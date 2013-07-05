@@ -73,6 +73,26 @@
 			    </td>
 		    </tr>
 		    <?php endforeach; ?>
+		    <tr class="heading">
+		        <td colspan="2"><b><?php echo GetMessage('ORDER_TYPES_LIST'); ?></b></td>
+	        </tr>
+		    <?php foreach($arResult['bitrixOrderTypesList'] as $bitrixOrderType): ?>
+	        <tr>
+			    <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $bitrixOrderType['ID']; ?>">
+			        <?php echo $bitrixOrderType['NAME']; ?>
+			    </td>
+			    <td width="50%" class="adm-detail-content-cell-r">
+			        <select name="order-type-<?php echo $bitrixOrderType['ID']; ?>" class="typeselect">
+                        <option value="" selected=""></option>
+                        <?php foreach($arResult['orderTypesList'] as $orderType): ?>
+                            <option value="<?php echo $orderType['code']; ?>">
+                                <?php echo $APPLICATION->ConvertCharset($orderType['name'], 'utf-8', SITE_CHARSET); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+			    </td>
+		    </tr>
+		    <?php endforeach; ?>
 		</tbody>
 	</table>
     <br />

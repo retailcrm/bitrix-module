@@ -24,6 +24,7 @@ class intaro_crm extends CModule
 	
     var $CRM_API_HOST_OPTION = 'api_host';
     var $CRM_API_KEY_OPTION = 'api_key';
+    var $CRM_ORDER_TYPES_ARR = 'order_types_arr';
     var $CRM_DELIVERY_TYPES_ARR = 'deliv_types_arr';
     var $CRM_PAYMENT_TYPES = 'pay_types_arr';
     var $CRM_PAYMENT_STATUSES = 'pay_statuses_arr';
@@ -41,8 +42,8 @@ class intaro_crm extends CModule
         $this->MODULE_VERSION_DATE = $arModuleVersion["VERSION_DATE"];
         $this->MODULE_NAME = GetMessage('MODULE_NAME');
         $this->MODULE_DESCRIPTION = GetMessage('MODULE_DESCRIPTION');
-		$this->PARTNER_NAME = GetMessage('MODULE_PARTNER_NAME');
-		$this->PARTNER_URI = GetMessage('MODULE_PARTNER_URI');
+        $this->PARTNER_NAME = GetMessage('MODULE_PARTNER_NAME');
+        $this->PARTNER_URI = GetMessage('MODULE_PARTNER_URI');
     }
     
     /** 
@@ -54,7 +55,7 @@ class intaro_crm extends CModule
     {
         global $APPLICATION, $step, $arResult;
         
-        include($this->INSTALL_PATH . '/../classes/general/IntaroCrmRestApi.php');
+        include($this->INSTALL_PATH . '/../classes/general/ICrmApi.php');
         
         $step = intval($_REQUEST['step']);
             
@@ -80,7 +81,7 @@ class intaro_crm extends CModule
                 return;
             }
             
-            $this->INTARO_CRM_API = new IntaroCrmRestApi($api_host, $api_key);
+            $this->INTARO_CRM_API = new ICrmApi($api_host, $api_key);
             
             $this->INTARO_CRM_API->paymentStatusesList();
             
@@ -100,15 +101,30 @@ class intaro_crm extends CModule
             COption::SetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, $api_key);
             
             //prepare crm lists
-            //$orderTypes = $this->INTARO_CRM_API->orderTypesList(); -- no such method
+            $arResult['orderTypesList'] = $this->INTARO_CRM_API->orderTypesList();
             $arResult['deliveryTypesList'] = $this->INTARO_CRM_API->deliveryTypesList();
             $arResult['paymentTypesList'] = $this->INTARO_CRM_API->paymentTypesList();
             $arResult['paymentStatusesList'] = $this->INTARO_CRM_API->paymentStatusesList();
             
-            //bitrix orderTypesList
-            /*
-             *  ...some code here...           
-             */
+            //bitrix orderTypesList -- personTypes
+            $dbOrderTypesList = CSalePersonType::GetList(
+                array(
+                    "SORT" => "ASC",
+                    "NAME" => "ASC"
+                ),
+                array(
+                    "ACTIVE" => "Y",
+                ),
+                false,
+                false,
+                array()
+            );
+            
+            if ($arOrderTypesList = $dbOrderTypesList->Fetch()) {
+                do {
+                    $arResult['bitrixOrderTypesList'][] = $arOrderTypesList;     
+                } while ($arOrderTypesList = $dbOrderTypesList->Fetch());
+            }
             
             //bitrix deliveryTypesList
             $dbDeliveryTypesList = CSaleDelivery::GetList(
@@ -174,6 +190,28 @@ class intaro_crm extends CModule
             if(!CModule::IncludeModule("sale")) {
                 //handler
             }
+            
+            //bitrix orderTypesList -- personTypes
+            $dbOrderTypesList = CSalePersonType::GetList(
+                array(
+                    "SORT" => "ASC",
+                    "NAME" => "ASC"
+                ),
+                array(
+                    "ACTIVE" => "Y",
+                ),
+                false,
+                false,
+                array()
+            );
+            
+            //form order types ids arr
+		    $orderTypesArr = array();
+            if ($arOrderTypesList = $dbOrderTypesList->Fetch()) {
+                do {
+                    $orderTypesArr[$arOrderTypesList['ID']] = $_POST['order-type-' . $arOrderTypesList['ID']];     
+                } while ($arOrderTypesList = $dbOrderTypesList->Fetch());
+            }
             		   
 		    //bitrix deliveryTypesList
             $dbDeliveryTypesList = CSaleDelivery::GetList(
@@ -229,40 +267,40 @@ class intaro_crm extends CModule
             );
             
             //form payment statuses ids arr
-		    $paymentStatusesArr = array();
+            $paymentStatusesArr = array();
             if ($arPaymentStatusesList = $dbPaymentStatusesList->Fetch()) {
                 do {
                     $paymentStatusesArr[$arPaymentStatusesList['ID']] = $_POST['payment-status-' . $arPaymentStatusesList['ID']];     
                 } while ($arPaymentStatusesList = $dbPaymentStatusesList->Fetch());
             }
 		    
+            COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_TYPES_ARR, serialize($orderTypesArr));
 		    COption::SetOptionString($this->MODULE_ID, $this->CRM_DELIVERY_TYPES_ARR, serialize($deliveryTypesArr));
             COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT_TYPES, serialize($paymentTypesArr));
             COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT_STATUSES, serialize($paymentStatusesArr));
             RegisterModule($this->MODULE_ID);
             
-		    $APPLICATION->IncludeAdminFile(
+            $APPLICATION->IncludeAdminFile(
                 GetMessage('MODULE_INSTALL_TITLE'), 
                 $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step3.php'
             );
-
-		} 
+        } 
     }
 
     function DoUninstall() {
-		global $APPLICATION;
+        global $APPLICATION;
 		
-		UnRegisterModule($this->MODULE_ID);
+        UnRegisterModule($this->MODULE_ID);
 			
-		COption::RemoveOption($this->MODULE_ID, $this->CRM_API_HOST_OPTION);
-		COption::RemoveOption($this->MODULE_ID, $this->CRM_API_KEY_OPTION);
-		COption::RemoveOption($this->MODULE_ID, $this->CRM_DELIVERY_TYPES_ARR);
+        COption::RemoveOption($this->MODULE_ID, $this->CRM_API_HOST_OPTION);
+        COption::RemoveOption($this->MODULE_ID, $this->CRM_API_KEY_OPTION);
+        COption::RemoveOption($this->MODULE_ID, $this->CRM_DELIVERY_TYPES_ARR);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_PAYMENT_TYPES);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_PAYMENT_STATUSES);
 		
-		$APPLICATION->IncludeAdminFile(
-			GetMessage('MODULE_UNINSTALL_TITLE'), 
-			$_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/unstep1.php'
+        $APPLICATION->IncludeAdminFile(
+            GetMessage('MODULE_UNINSTALL_TITLE'), 
+            $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/unstep1.php'
 		);	
     }
 }

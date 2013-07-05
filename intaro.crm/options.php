@@ -20,7 +20,7 @@ if (isset($_POST['Update']) && $_POST['Update']=='Y') {
     $api_key = htmlspecialchars(trim($_POST['api_key']));
             
     if($api_host && $api_key) {
-        $api = new IntaroCrmRestApi($api_host, $api_key);
+        $api = new ICrmApi($api_host, $api_key);
             
         $api->paymentStatusesList();
             
@@ -32,6 +32,28 @@ if (isset($_POST['Update']) && $_POST['Update']=='Y') {
             COption::SetOptionString($mid, 'api_host', $api_host);
             COption::SetOptionString($mid, 'api_key', $api_key);
         }   
+    }
+	
+	//bitrix orderTypesList -- personTypes
+    $dbOrderTypesList = CSalePersonType::GetList(
+        array(
+            "SORT" => "ASC",
+            "NAME" => "ASC"
+        ),
+        array(
+             "ACTIVE" => "Y",
+        ),
+        false,
+        false,
+        array()
+    );
+            
+    //form order types ids arr
+	$orderTypesArr = array();
+    if ($arOrderTypesList = $dbOrderTypesList->Fetch()) {
+        do {
+            $orderTypesArr[$arOrderTypesList['ID']] = $_POST['order-type-' . $arOrderTypesList['ID']];     
+        } while ($arOrderTypesList = $dbOrderTypesList->Fetch());
     }
 	
     //bitrix deliveryTypesList
@@ -49,7 +71,7 @@ if (isset($_POST['Update']) && $_POST['Update']=='Y') {
      );
             
      //form delivery types ids arr
-	 $deliveryTypesArr = array();
+    $deliveryTypesArr = array();
      if ($arDeliveryTypesList = $dbDeliveryTypesList->Fetch()) {
          do {
             $deliveryTypesArr[$arDeliveryTypesList['ID']] = $_POST['delivery-type-' . $arDeliveryTypesList['ID']];   
@@ -94,7 +116,8 @@ if (isset($_POST['Update']) && $_POST['Update']=='Y') {
               $paymentStatusesArr[$arPaymentStatusesList['ID']] = $_POST['payment-status-' . $arPaymentStatusesList['ID']];     
           } while ($arPaymentStatusesList = $dbPaymentStatusesList->Fetch());
       }
-		    
+		
+      COption::SetOptionString($mid, 'order_types_arr', serialize($orderTypesArr));	    
       COption::SetOptionString($mid, 'deliv_types_arr', serialize($deliveryTypesArr));
       COption::SetOptionString($mid, 'pay_types_arr', serialize($paymentTypesArr));
       COption::SetOptionString($mid, 'pay_statuses_arr', serialize($paymentStatusesArr));
@@ -105,18 +128,33 @@ if (isset($_POST['Update']) && $_POST['Update']=='Y') {
     $api_host = COption::GetOptionString($mid, 'api_host', 0);
     $api_key = COption::GetOptionString($mid, 'api_key', 0);
 
-    $api = new IntaroCrmRestApi($api_host, $api_key);
+    $api = new ICrmApi($api_host, $api_key);
 
     //prepare crm lists
-    //$orderTypes = $api->orderTypesList(); -- no such method
+    $arResult['orderTypesList'] = $api->orderTypesList();
     $arResult['deliveryTypesList'] = $api->deliveryTypesList();
     $arResult['paymentTypesList'] = $api->paymentTypesList();
     $arResult['paymentStatusesList'] = $api->paymentStatusesList();
 
-    //bitrix orderTypesList
-    /*
-     *  ...some code here...           
-     */
+    //bitrix orderTypesList -- personTypes
+    $dbOrderTypesList = CSalePersonType::GetList(
+        array(
+            "SORT" => "ASC",
+            "NAME" => "ASC"
+         ),
+        array(
+            "ACTIVE" => "Y",
+        ),
+        false,
+        false,
+        array()
+     );
+            
+     if ($arOrderTypesList = $dbOrderTypesList->Fetch()) {
+        do {
+            $arResult['bitrixOrderTypesList'][] = $arOrderTypesList;     
+        } while ($arOrderTypesList = $dbOrderTypesList->Fetch());
+    }
 
     //bitrix deliveryTypesList
     $dbDeliveryTypesList = CSaleDelivery::GetList(
@@ -174,6 +212,7 @@ if (isset($_POST['Update']) && $_POST['Update']=='Y') {
     }
 
     //saved cat params
+    $optionsOrderTypes = unserialize(COption::GetOptionString($mid, 'order_types_arr', 0));
     $optionsDelivTypes = unserialize(COption::GetOptionString($mid, 'deliv_types_arr', 0));
     $optionsPayTypes = unserialize(COption::GetOptionString($mid, 'pay_types_arr', 0));
     $optionsPayStatuses = unserialize(COption::GetOptionString($mid, 'pay_statuses_arr', 0));
@@ -273,7 +312,27 @@ if (isset($_POST['Update']) && $_POST['Update']=='Y') {
             </select>
         </td>
     </tr>
-<?php endforeach; ?>
+   <?php endforeach; ?>
+   <tr class="heading">
+       <td colspan="2"><b><?php echo GetMessage('ORDER_TYPES_LIST'); ?></b></td>
+   </tr>
+   <?php foreach($arResult['bitrixOrderTypesList'] as $bitrixOrderType): ?>
+   <tr>
+       <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $bitrixOrderType['ID']; ?>">
+           <?php echo $bitrixOrderType['NAME']; ?>
+	   </td>
+	   <td width="50%" class="adm-detail-content-cell-r">
+	       <select name="order-type-<?php echo $bitrixOrderType['ID']; ?>" class="typeselect">
+               <option value=""></option>
+               <?php foreach($arResult['orderTypesList'] as $orderType): ?>
+               <option value="<?php echo $orderType['code']; ?>" <?php if ($optionsOrderTypes[$bitrixOrderType['ID']] == $orderType['code']) echo 'selected'; ?>>
+                   <?php echo $APPLICATION->ConvertCharset($orderType['name'], 'utf-8', SITE_CHARSET); ?>
+               </option>
+               <?php endforeach; ?>
+            </select>
+        </td>
+   </tr>
+   <?php endforeach; ?>
 <?php $tabControl->BeginNextTab(); ?>
 <?php $tabControl->Buttons(); ?>
 <input type="hidden" name="Update" value="Y" />

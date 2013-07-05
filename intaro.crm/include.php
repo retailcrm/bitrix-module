@@ -1,9 +1,4 @@
 <?php
-/*
- * 
- * Add autoload classes here
- * 
- */
 CModule::AddAutoloadClasses(
     'intaro.crm',	// module name
     array (
@@ -11,5 +6,4 @@ CModule::AddAutoloadClasses(
         'ICrmApi' => 'classes/general/ICrmApi.php'
     )
 );
-
 ?>
