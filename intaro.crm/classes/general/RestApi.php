@@ -33,6 +33,7 @@ class RestApi
     protected $apiVersion = '1';
     protected $lastError;
     protected $statusCode;
+    protected $parameters;
 
     /**
      * @param string $crmUrl - адрес CRM
@@ -42,6 +43,7 @@ class RestApi
     {
         $this->apiUrl = $crmUrl.'/api/v'.$this->apiVersion.'/';
         $this->apiKey = $apiKey;
+        $this->parameters = array('apiKey' => $this->apiKey);
     }
 
 
@@ -71,11 +73,15 @@ class RestApi
      * Получение заказа по id
      *
      * @param string $id - идентификатор заказа
+     * @param string $by - поиск заказа по id или externalId
      * @return array - информация о заказе
      */
-    public function orderGet($id)
+    public function orderGet($id, $by = 'externalId')
     {
         $url = $this->apiUrl.'orders/'.$id;
+
+        if ($by != 'externalId')
+            $this->parameters['by'] = $by;
         $result = $this->curlRequest($url);
         return $result;
     }
@@ -91,11 +97,10 @@ class RestApi
         $dataJson = json_encode($order);
         $dataJson = str_replace(self::$jsonReplaceSource, self::$jsonReplaceTarget,
             $dataJson);
-        $parameters = array();
-        $parameters['order'] = $dataJson;
+        $this->parameters['order'] = $dataJson;
 
         $url = $this->apiUrl.'orders/create';
-        $result = $this->curlRequest($url, $parameters, 'POST');
+        $result = $this->curlRequest($url, 'POST');
         return $result;
     }
 
@@ -110,11 +115,10 @@ class RestApi
         $dataJson = json_encode($order);
         $dataJson = str_replace(self::$jsonReplaceSource, self::$jsonReplaceTarget,
             $dataJson);
-        $parameters = array();
-        $parameters['order'] = $dataJson;
+        $this->parameters['order'] = $dataJson;
 
-        $url = $this->apiUrl.'orders/'.$order['id'].'/edit';
-        $result = $this->curlRequest($url, $parameters, 'POST');
+        $url = $this->apiUrl.'orders/'.$order['externalId'].'/edit';
+        $result = $this->curlRequest($url, 'POST');
         return $result;
     }
 
@@ -129,11 +133,10 @@ class RestApi
         $dataJson = json_encode($orders);
         $dataJson = str_replace(self::$jsonReplaceSource, self::$jsonReplaceTarget,
             $dataJson);
-        $parameters = array();
-        $parameters['orders'] = $dataJson;
+        $this->parameters['orders'] = $dataJson;
 
         $url = $this->apiUrl.'orders/upload';
-        $result = $this->curlRequest($url, $parameters, 'POST');
+        $result = $this->curlRequest($url, 'POST');
         return $result;
     }
 
@@ -141,12 +144,15 @@ class RestApi
      * Удаление заказа
      *
      * @param string $id - идентификатор заказа
+     * @param string $by - поиск заказа по id или externalId
      * @return array
      */
-    public function orderDelete($id)
+    public function orderDelete($id, $by = 'externalId')
     {
         $url = $this->apiUrl.'orders/'.$id.'/delete';
-        $result = $this->curlRequest($url, array(), 'POST');
+        if ($by != 'externalId')
+            $this->parameters['by'] = $by;
+        $result = $this->curlRequest($url, 'POST');
         return $result;
     }
 
@@ -162,13 +168,12 @@ class RestApi
     public function orderHistory($startDate = null, $endDate = null, $limit = 100, $offset = 0)
     {
         $url = $this->apiUrl.'orders/history';
-        $parameters = array();
-        $parameters['startDate'] = $startDate;
-        $parameters['endDate'] = $endDate;
-        $parameters['limit'] = $limit;
-        $parameters['offset'] = $offset;
+        $this->parameters['startDate'] = $startDate;
+        $this->parameters['endDate'] = $endDate;
+        $this->parameters['limit'] = $limit;
+        $this->parameters['offset'] = $offset;
 
-        $result = $this->curlRequest($url, $parameters);
+        $result = $this->curlRequest($url);
         return $result;
     }
 
@@ -178,11 +183,14 @@ class RestApi
      * Получение клиента по id
      *
      * @param string $id - идентификатор
+     * @param string $by - поиск заказа по id или externalId
      * @return array - информация о клиенте
      */
-    public function customerGet($id)
+    public function customerGet($id, $by = 'externalId')
     {
         $url = $this->apiUrl.'customers/'.$id;
+        if ($by != 'externalId')
+            $this->parameters['by'] = $by;
         $result = $this->curlRequest($url);
         return $result;
     }
@@ -198,11 +206,10 @@ class RestApi
         $dataJson = json_encode($customer);
         $dataJson = str_replace(self::$jsonReplaceSource, self::$jsonReplaceTarget,
             $dataJson);
-        $parameters = array();
-        $parameters['customer'] = $dataJson;
+        $this->parameters['customer'] = $dataJson;
 
         $url = $this->apiUrl.'customers/create';
-        $result = $this->curlRequest($url, $parameters, 'POST');
+        $result = $this->curlRequest($url, 'POST');
         return $result;
     }
 
@@ -217,11 +224,10 @@ class RestApi
         $dataJson = json_encode($customer);
         $dataJson = str_replace(self::$jsonReplaceSource, self::$jsonReplaceTarget,
             $dataJson);
-        $parameters = array();
-        $parameters['customer'] = $dataJson;
+        $this->parameters['customer'] = $dataJson;
 
-        $url = $this->apiUrl.'customers/'.$customer['id'].'/edit';
-        $result = $this->curlRequest($url, $parameters, 'POST');
+        $url = $this->apiUrl.'customers/'.$customer['externalId'].'/edit';
+        $result = $this->curlRequest($url, 'POST');
         return $result;
     }
 
@@ -229,12 +235,15 @@ class RestApi
      * Удаление клиента
      *
      * @param string $id - идентификатор
+     * @param string $by - поиск заказа по id или externalId
      * @return array
      */
-    public function customerDelete($id)
+    public function customerDelete($id, $by = 'externalId')
     {
         $url = $this->apiUrl.'customers/'.$id.'/delete';
-        $result = $this->curlRequest($url, array(), 'POST');
+        if ($by != 'externalId')
+            $this->parameters['by'] = $by;
+        $result = $this->curlRequest($url, 'POST');
         return $result;
     }
 
@@ -242,6 +251,7 @@ class RestApi
      * Получение списка заказов клиента
      *
      * @param string $id - идентификатор клиента
+     * @param string $by - поиск заказа по id или externalId
      * @param DateTime $startDate - начальная дата выборки
      * @param DateTime $endDate - конечная дата
      * @param int $limit - ограничение на размер выборки
@@ -249,16 +259,17 @@ class RestApi
      * @return array - массив заказов
      */
     public function customerOrdersList($id, $startDate = null, $endDate = null,
-        $limit = 100, $offset = 0)
+        $limit = 100, $offset = 0, $by = 'externalId')
     {
         $url = $this->apiUrl.'customers/'.$id.'/orders';
-        $parameters = array();
-        $parameters['startDate'] = $startDate;
-        $parameters['endDate'] = $endDate;
-        $parameters['limit'] = $limit;
-        $parameters['offset'] = $offset;
+        if ($by != 'externalId')
+            $this->parameters['by'] = $by;
+        $this->parameters['startDate'] = $startDate;
+        $this->parameters['endDate'] = $endDate;
+        $this->parameters['limit'] = $limit;
+        $this->parameters['offset'] = $offset;
 
-        $result = $this->curlRequest($url, $parameters);
+        $result = $this->curlRequest($url);
         return $result;
     }
 
@@ -286,11 +297,10 @@ class RestApi
         $dataJson = json_encode($deliveryType);
         $dataJson = str_replace(self::$jsonReplaceSource, self::$jsonReplaceTarget,
             $dataJson);
-        $parameters = array();
-        $parameters['deliveryType'] = $dataJson;
+        $this->parameters['deliveryType'] = $dataJson;
 
         $url = $this->apiUrl.'delivery-types/'.$deliveryType['code'].'/edit';
-        $result = $this->curlRequest($url, $parameters, 'POST');
+        $result = $this->curlRequest($url, 'POST');
         return $result;
     }
 
@@ -318,11 +328,10 @@ class RestApi
         $dataJson = json_encode($paymentType);
         $dataJson = str_replace(self::$jsonReplaceSource, self::$jsonReplaceTarget,
             $dataJson);
-        $parameters = array();
-        $parameters['paymentType'] = $dataJson;
+        $this->parameters['paymentType'] = $dataJson;
 
         $url = $this->apiUrl.'payment-types/'.$paymentType['code'].'/edit';
-        $result = $this->curlRequest($url, $parameters, 'POST');
+        $result = $this->curlRequest($url, 'POST');
         return $result;
     }
 
@@ -350,11 +359,10 @@ class RestApi
         $dataJson = json_encode($paymentStatus);
         $dataJson = str_replace(self::$jsonReplaceSource, self::$jsonReplaceTarget,
             $dataJson);
-        $parameters = array();
-        $parameters['paymentStatus'] = $dataJson;
+        $this->parameters['paymentStatus'] = $dataJson;
 
         $url = $this->apiUrl.'payment-statuses/'.$paymentStatus['code'].'/edit';
-        $result = $this->curlRequest($url, $parameters, 'POST');
+        $result = $this->curlRequest($url, 'POST');
         return $result;
     }
 
@@ -374,7 +382,7 @@ class RestApi
     /**
      * Редактирование типа заказа
      *
-     * @param array $paymentType - информация о типе заказа
+     * @param array $orderType - информация о типе заказа
      * @return array
      */
     public function orderTypesEdit($orderType)
@@ -382,39 +390,82 @@ class RestApi
         $dataJson = json_encode($orderType);
         $dataJson = str_replace(self::$jsonReplaceSource, self::$jsonReplaceTarget,
             $dataJson);
-        $parameters = array();
-        $parameters['orderType'] = $dataJson;
+        $this->parameters['orderType'] = $dataJson;
 
-        $url = $this->apiUrl.'order-types/'.$paymentType['code'].'/edit';
-        $result = $this->curlRequest($url, $parameters, 'POST');
+        $url = $this->apiUrl.'order-types/'.$orderType['code'].'/edit';
+        $result = $this->curlRequest($url, 'POST');
+        return $result;
+    }
+
+    /**
+     * Получение списка статусов заказа
+     *
+     * @return array - массив статусов заказа
+     */
+    public function orderStatusesList()
+    {
+        $url = $this->apiUrl.'reference/statuses';
+        $result = $this->curlRequest($url);
+        return $result;
+    }
+
+    /**
+     * Редактирование статуса заказа
+     *
+     * @param array $status - информация о статусе заказа
+     * @return array
+     */
+    public function orderStatusEdit($status)
+    {
+        $dataJson = json_encode($status);
+        $dataJson = str_replace(self::$jsonReplaceSource, self::$jsonReplaceTarget,
+            $dataJson);
+        $this->parameters['status'] = $dataJson;
+
+        $url = $this->apiUrl.'statuses/'.$status['code'].'/edit';
+        $result = $this->curlRequest($url, 'POST');
+        return $result;
+    }
+
+
+    /**
+     * Получение списка групп статусов заказа
+     *
+     * @return array - массив групп статусов заказа
+     */
+    public function orderStatusGroupsList()
+    {
+        $url = $this->apiUrl.'reference/status-groups';
+        $result = $this->curlRequest($url);
         return $result;
     }
 
 
 
 
-    protected function curlRequest($url, $parameters = null, $method = 'GET', $format = 'json')
+    protected function curlRequest($url, $method = 'GET', $format = 'json')
     {
-        $parameters['apiKey'] = $this->apiKey;
-
-        if ($method == 'GET' && !is_null($parameters))
-            $url .= '?'.http_build_query($parameters);
+        if ($method == 'GET' && !is_null($this->parameters))
+            $url .= '?'.http_build_query($this->parameters);
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_FAILONERROR, FALSE);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);// allow redirects
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); // return into a variable
-        curl_setopt($ch, CURLOPT_TIMEOUT, 3); // times out after 3s
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30); // times out after 30s
 
         if ($method == 'POST')
         {
             curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $parameters);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $this->parameters);
         }
 
         $response = curl_exec($ch);
         $this->statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        unset($this->parameters);
+        /* Сброс массива с параметрами */
+        $this->parameters = array('apiKey' => $this->apiKey);
 
         if (curl_errno($ch))
         {

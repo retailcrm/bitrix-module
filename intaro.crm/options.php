@@ -10,6 +10,7 @@ $CRM_DELIVERY_TYPES_ARR = 'deliv_types_arr';
 $CRM_PAYMENT_TYPES = 'pay_types_arr';
 $CRM_PAYMENT_STATUSES = 'pay_statuses_arr';
 $CRM_PAYMENT = 'payment_arr'; //order payment Y/N
+$CRM_ORDER_LAST_ID = 'order_last_id';
 
 CModule::IncludeModule('intaro.crm');
 CModule::IncludeModule('sale');
@@ -139,8 +140,8 @@ if (isset($_POST['Update']) && $_POST['Update']=='Y') {
     $uri .= '&ok=Y';
     LocalRedirect($uri);
 } else {
-    $api_host = COption::GetOptionString($mid, 'api_host', 0);
-    $api_key = COption::GetOptionString($mid, 'api_key', 0);
+    $api_host = COption::GetOptionString($mid, $CRM_API_HOST_OPTION, 0);
+    $api_key = COption::GetOptionString($mid, $CRM_API_KEY_OPTION, 0);
 
     $api = new IntaroCrm\RestApi($api_host, $api_key);
 
@@ -149,7 +150,7 @@ if (isset($_POST['Update']) && $_POST['Update']=='Y') {
     $arResult['deliveryTypesList'] = $api->deliveryTypesList();
     $arResult['paymentTypesList'] = $api->paymentTypesList();
     $arResult['paymentStatusesList'] = $api->paymentStatusesList(); // --statuses
-    //$arResult['payment'] = $this->INTARO_CRM_API->getPymentsList() -- not exist
+    $arResult['paymentList'] = $api->orderStatusesList();
 
     //bitrix orderTypesList -- personTypes
     $dbOrderTypesList = CSalePersonType::GetList(
@@ -250,7 +251,7 @@ if (isset($_POST['Update']) && $_POST['Update']=='Y') {
             "DIV" => "edit2",
             "TAB" => GetMessage('ICRM_OPTIONS_CATALOG_TAB'),
             "ICON" => '',
-            "TITLE" => GetMessage('ICRM_OPTIONS_IMPORT_CAPTION')
+            "TITLE" => GetMessage('ICRM_OPTIONS_CATALOG_CAPTION')
         ),
     );
     $tabControl = new CAdminTabControl("tabControl", $aTabs);

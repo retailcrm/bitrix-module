@@ -29,6 +29,7 @@ class intaro_crm extends CModule
     var $CRM_PAYMENT_TYPES = 'pay_types_arr';
     var $CRM_PAYMENT_STATUSES = 'pay_statuses_arr';
     var $CRM_PAYMENT = 'payment_arr'; //order payment Y/N
+    var $CRM_ORDER_LAST_ID = 'order_last_id';
 
     
     var $INSTALL_PATH;
@@ -107,7 +108,7 @@ class intaro_crm extends CModule
             $arResult['deliveryTypesList'] = $this->INTARO_CRM_API->deliveryTypesList();
             $arResult['paymentTypesList'] = $this->INTARO_CRM_API->paymentTypesList();
             $arResult['paymentStatusesList'] = $this->INTARO_CRM_API->paymentStatusesList(); // --statuses
-            //$arResult['payment'] = $this->INTARO_CRM_API->getPymentsList() -- not exist
+            $arResult['paymentList'] = $this->INTARO_CRM_API->orderStatusesList();
             
             //bitrix orderTypesList -- personTypes
             $dbOrderTypesList = CSalePersonType::GetList(
@@ -307,6 +308,7 @@ class intaro_crm extends CModule
         COption::RemoveOption($this->MODULE_ID, $this->CRM_PAYMENT_TYPES);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_PAYMENT_STATUSES);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_PAYMENT);
+        COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_LAST_ID);
 		
         $APPLICATION->IncludeAdminFile(
             GetMessage('MODULE_UNINSTALL_TITLE'), 
