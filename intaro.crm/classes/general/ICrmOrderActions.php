@@ -1,5 +1,4 @@
 <?php
-//namespace IntaroCrm;
 
 class ICrmOrderActions
 {
@@ -245,12 +244,44 @@ class ICrmOrderActions
         return true; //all ok!
     }
     
+    public static function orderHistory() {
+        
+        if (!CModule::IncludeModule('iblock')) {
+            //handle err
+            self::eventLog('iblock', 'module not found');
+            return false;
+        }
+        
+        if (!CModule::IncludeModule("sale")) {
+            //handle err
+            self::eventLog('sale', 'module not found');
+            return false;
+        }
+        
+        if (!CModule::IncludeModule("catalog")) {
+            //handle err
+            self::eventLog('catalog', 'module not found');
+            return false;
+        }
+        
+        $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
+        $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
+
+        //saved cat params
+        $optionsOrderTypes = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_TYPES_ARR, 0));
+        $optionsDelivTypes = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_DELIVERY_TYPES_ARR, 0));
+        $optionsPayTypes = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_TYPES, 0));
+        $optionsPayStatuses = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_STATUSES, 0)); // --statuses
+        $optionsPayment = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT, 0));
+
+        $api = new IntaroCrm\RestApi($api_host, $api_key);
+        
+        var_dump($api->orderHistory());
+    }
+    
     /**
      * 
-     * w event in bitrix log
-     * @param type $auditType
-     * @param type $itemId
-     * @param type $description
+     * w+ event in bitrix log
      */
     private static function eventLog($itemId, $description) {
         CEventLog::Add(array(
@@ -264,6 +295,12 @@ class ICrmOrderActions
         self::sendEmail($itemId, $description);
     }
     
+    
+    
+    /**
+     * 
+     * send email to admin
+     */
     private static function sendEmail($itemId, $description) {
         $title = 'Error: Intaro CRM.';
         $text =  'Error: ' . $itemId . ' - ' . $description;
@@ -285,7 +322,6 @@ class ICrmOrderActions
             return 'ICrmOrderActions::uploadOrdersAgent();';
         
         else return;
-        
     }
     
 }

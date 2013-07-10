@@ -307,6 +307,8 @@ class intaro_crm extends CModule
                  30
             );
             
+            $this->CopyFiles();
+            
             $APPLICATION->IncludeAdminFile(
                 GetMessage('MODULE_INSTALL_TITLE'), 
                 $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step3.php'
@@ -318,7 +320,6 @@ class intaro_crm extends CModule
         global $APPLICATION;
         
 	CAgent::RemoveAgent("ICrmOrderActions::uploadOrdersAgent();", $this->MODULE_ID);	
-        UnRegisterModule($this->MODULE_ID);
 			
         COption::RemoveOption($this->MODULE_ID, $this->CRM_API_HOST_OPTION);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_API_KEY_OPTION);
@@ -327,11 +328,46 @@ class intaro_crm extends CModule
         COption::RemoveOption($this->MODULE_ID, $this->CRM_PAYMENT_STATUSES);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_PAYMENT);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_LAST_ID);
-		
+        
+        $this->DeleteFiles();
+        
+        UnRegisterModule($this->MODULE_ID);
+	
         $APPLICATION->IncludeAdminFile(
             GetMessage('MODULE_UNINSTALL_TITLE'), 
             $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/unstep1.php'
         );	
+    }
+    
+    /**
+     * 
+     * Recursive copy files from folder
+     * @param type $src
+     * @param type $dst
+     */
+    
+    function rCopy($src, $dst) {
+        if (is_dir($src)) {
+            mkdir($dst);
+            $files = scandir($src);
+            foreach ($files as $file)
+                if ($file != "." && $file != "..")
+                    $this->rCopy("$src/$file", "$dst/$file");
+        }
+        else if (file_exists($src))
+            copy($src, $dst);
+    }
+
+    function CopyFiles() {
+        $this->rCopy(
+                $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/export/', $_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/'
+        );
+    }
+
+    function DeleteFiles() {
+        unlink($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/crm_run.php');
+        unlink($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/crm_setup.php');
+        
     }
 }
 ?>
