@@ -288,7 +288,24 @@ class intaro_crm extends CModule
             COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT_TYPES, serialize($paymentTypesArr));
             COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT_STATUSES, serialize($paymentStatusesArr));
             COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT, serialize($paymentArr));
+            COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_LAST_ID, 0);
             RegisterModule($this->MODULE_ID);
+            
+            //agent
+            $dateAgent = new DateTime();
+            $intAgent = new DateInterval('PT60S');
+            $dateAgent->add($intAgent);
+
+            CAgent::AddAgent(
+                "ICrmOrderActions::uploadOrdersAgent();",
+                 $this->MODULE_ID,
+                 "N",
+                 600, // interval - 10 mins
+                 $dateAgent->format('d.m.Y H:i:s'), // date of first check
+                 "Y", // агент активен
+                 $dateAgent->format('d.m.Y H:i:s'), // date of first start
+                 30
+            );
             
             $APPLICATION->IncludeAdminFile(
                 GetMessage('MODULE_INSTALL_TITLE'), 
@@ -299,7 +316,8 @@ class intaro_crm extends CModule
 
     function DoUninstall() {
         global $APPLICATION;
-		
+        
+	CAgent::RemoveAgent("ICrmOrderActions::uploadOrdersAgent();", $this->MODULE_ID);	
         UnRegisterModule($this->MODULE_ID);
 			
         COption::RemoveOption($this->MODULE_ID, $this->CRM_API_HOST_OPTION);

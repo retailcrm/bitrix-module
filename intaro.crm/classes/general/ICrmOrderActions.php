@@ -3,15 +3,15 @@
 
 class ICrmOrderActions
 {
-    public static $MODULE_ID = 'intaro.crm';
-    public static $CRM_API_HOST_OPTION = 'api_host';
-    public static $CRM_API_KEY_OPTION = 'api_key';
-    public static $CRM_ORDER_TYPES_ARR = 'order_types_arr';
-    public static $CRM_DELIVERY_TYPES_ARR = 'deliv_types_arr';
-    public static $CRM_PAYMENT_TYPES = 'pay_types_arr';
-    public static $CRM_PAYMENT_STATUSES = 'pay_statuses_arr';
-    public static $CRM_PAYMENT = 'payment_arr'; //order payment Y/N
-    public static $CRM_ORDER_LAST_ID = 'order_last_id';
+    protected static $MODULE_ID = 'intaro.crm';
+    protected static $CRM_API_HOST_OPTION = 'api_host';
+    protected static $CRM_API_KEY_OPTION = 'api_key';
+    protected static $CRM_ORDER_TYPES_ARR = 'order_types_arr';
+    protected static $CRM_DELIVERY_TYPES_ARR = 'deliv_types_arr';
+    protected static $CRM_PAYMENT_TYPES = 'pay_types_arr';
+    protected static $CRM_PAYMENT_STATUSES = 'pay_statuses_arr';
+    protected static $CRM_PAYMENT = 'payment_arr'; //order payment Y/N
+    protected static $CRM_ORDER_LAST_ID = 'order_last_id';
     
     /**
      * 
@@ -19,7 +19,7 @@ class ICrmOrderActions
      * @param type $str in SITE_CHARSET
      * @return type $str in utf-8
      */
-    public static function toJSON($str) {
+    protected static function toJSON($str) {
         global $APPLICATION;
         
         return $APPLICATION->ConvertCharset($str, SITE_CHARSET, 'utf-8');
@@ -40,20 +40,26 @@ class ICrmOrderActions
     /**
      * Mass order uploading func
      */
-    function uploadOrders() {
+    public static function uploadOrders() {
         
-        //ini_set('display_errors', 1);
-        //error_reporting(E_ALL);
-        
-        COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, 0);
+        //COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, 0); // -- for test
         
         if (!CModule::IncludeModule('iblock')) {
-            //ShowError(GetMessage("SOA_MODULE_NOT_INSTALL"));
-            return;
+            //handle err
+            self::eventLog('iblock', 'module not found');
+            return false;
         }
+        
         if (!CModule::IncludeModule("sale")) {
-            //ShowError(GetMessage("SOA_MODULE_NOT_INSTALL"));
-            return;
+            //handle err
+            self::eventLog('sale', 'module not found');
+            return false;
+        }
+        
+        if (!CModule::IncludeModule("catalog")) {
+            //handle err
+            self::eventLog('catalog', 'module not found');
+            return false;
         }
 
         $resOrders = array();
@@ -76,8 +82,8 @@ class ICrmOrderActions
         $api = new IntaroCrm\RestApi($api_host, $api_key);
 
         while ($arOrder = $dbOrder->GetNext()) {
-            if ($arOrder['ID'] < $lastUpOrderId) //old orders not to upload
-                break;
+            if ($arOrder['ID'] <= $lastUpOrderId) //old orders not to upload
+                return true;
             
             if(!$lastUpOrderIdNew)
                 $lastUpOrderIdNew = $arOrder['ID'];
@@ -86,15 +92,9 @@ class ICrmOrderActions
 
             if (empty($arFields)) { 
                 //handle err
-                CEventLog::Add(array(
-                    "SEVERITY"      => "SECURITY",
-                    "AUDIT_TYPE_ID" => "IntroCrm\uploadOrders",
-                    "MODULE_ID"     => self::$MODULE_ID,
-                    "ITEM_ID"       => 'empty($arFields)',
-                    "DESCRIPTION"   => "Не корректный заказ.",
-                ));
+                self::eventLog('empty($arFields)', 'incorrect order');
                 
-                return;
+                return false;
             }
 
             $rsUser = CUser::GetByID($arFields['USER_ID']);
@@ -144,7 +144,7 @@ class ICrmOrderActions
             $addresses[] = $addressWork;
 
             $result = array(
-                'externalId'         => $arFields['USER_ID'],
+                'externalId' => $arFields['USER_ID'],
                 'lastName'   => $lastName,
                 'firstName'  => $firstName,
                 'patronymic' => $patronymic,
@@ -156,16 +156,9 @@ class ICrmOrderActions
             
             // error pushing customer
             if (!$customer) {
-                // handle
-                CEventLog::Add(array(
-                    "SEVERITY"      => "SECURITY",
-                    "AUDIT_TYPE_ID" => "IntroCrm\uploadOrders",
-                    "MODULE_ID"     => self::$MODULE_ID,
-                    "ITEM_ID"       => "customerEdit",
-                    "DESCRIPTION"   => $api->getLastError(),
-                ));
-                
-                return;
+                //handle err
+                self::eventLog('IntaroCrm\RestApi::customerEdit', $api->getLastError());
+                return false;
             }
 
             // delivery types
@@ -218,12 +211,19 @@ class ICrmOrderActions
 
             $rsOrderBasket = CSaleBasket::GetList(array('PRODUCT_ID' => 'ASC'), array('ORDER_ID' => $arFields['ID']));
             while ($p = $rsOrderBasket->Fetch()) {
+                $pr = CCatalogProduct::GetList(array('ID' => $p['PRODUCT_ID']))->Fetch();
+                if($pr)
+                    $pr = $pr['PURCHASING_PRICE'];
+                else 
+                    $pr = '';
+                
                 $items[] = array(
-                    'price'       => $p['PRICE'],
-                    'discount'    => $p['DISCOUNT_VALUE'],
-                    'quantity'    => $p['QUANTITY'],
-                    'productId'   => $p['PRODUCT_ID'],
-                    'productName' => self::toJSON($p['NAME'])
+                    'price'         => $p['PRICE'],
+                    'purchasePrice' => $pr,
+                    'discount'      => $p['DISCOUNT_VALUE'],
+                    'quantity'      => $p['QUANTITY'],
+                    'productId'     => $p['PRODUCT_ID'],
+                    'productName'   => self::toJSON($p['NAME'])
                 );
             }
 
@@ -236,21 +236,57 @@ class ICrmOrderActions
         // error pushing orders
         if(!$orders) {
             //handle err
-            CEventLog::Add(array(
-                "SEVERITY"      => "SECURITY",
-                "AUDIT_TYPE_ID" => "IntroCrm\uploadOrders",
-                "MODULE_ID"     => self::$MODULE_ID,
-                "ITEM_ID"       => "orderUpload",
-                "DESCRIPTION"   => $api->getLastError(),
-            ));
-            
-            return;
+            self::eventLog('IntaroCrm\RestApi::orderUpload', $api->getLastError());
+            return false;
         }
         
         COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, $lastUpOrderIdNew);
         
-        return; //all ok!
+        return true; //all ok!
     }
+    
+    /**
+     * 
+     * w event in bitrix log
+     * @param type $auditType
+     * @param type $itemId
+     * @param type $description
+     */
+    private static function eventLog($itemId, $description) {
+        CEventLog::Add(array(
+            "SEVERITY" => "SECURITY",
+            "AUDIT_TYPE_ID" => 'ICrmOrderActions::uploadOrders',
+            "MODULE_ID" => self::$MODULE_ID,
+            "ITEM_ID" => $itemId,
+            "DESCRIPTION" => $description,
+        ));
+        
+        self::sendEmail($itemId, $description);
+    }
+    
+    private static function sendEmail($itemId, $description) {
+        $title = 'Error: Intaro CRM.';
+        $text =  'Error: ' . $itemId . ' - ' . $description;
+        $to = COption::GetOptionString("main", "email_from"); 
+        $from = COption::GetOptionString("main", "email_from");
+        mail($to, $title, $text, 'From:'.$from);
+    }
+    
+    /**
+     * 
+     * Agent function
+     * 
+     * @return self name
+     */
+    
+    public static function uploadOrdersAgent() {
+        
+        if(self::uploadOrders())
+            return 'ICrmOrderActions::uploadOrdersAgent();';
+        
+        else return;
+        
+    }
+    
 }
-
 ?>
