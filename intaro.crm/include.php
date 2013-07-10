@@ -1,9 +1,9 @@
 <?php
 CModule::AddAutoloadClasses(
-    'intaro.crm',	// module name
+    'intaro.crm', // module name
     array (
-        'IntaroCrmRestApi' => 'classes/general/IntaroCrmRestApi.php',
-        'ICrmApi' => 'classes/general/ICrmApi.php'
+        'IntaroCrm\RestApi'      => 'classes/general/RestApi.php',
+        'ICrmOrderActions' => 'classes/general/ICrmOrderActions.php'
     )
 );
 ?>

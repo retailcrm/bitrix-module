@@ -3,6 +3,15 @@ IncludeModuleLangFile(__FILE__);
 $mid = 'intaro.crm';
 $uri = $APPLICATION->GetCurPage() . '?mid=' . htmlspecialchars($mid) . '&lang=' . LANGUAGE_ID;
 
+$CRM_API_HOST_OPTION = 'api_host';
+$CRM_API_KEY_OPTION = 'api_key';
+$CRM_ORDER_TYPES_ARR = 'order_types_arr';
+$CRM_DELIVERY_TYPES_ARR = 'deliv_types_arr';
+$CRM_PAYMENT_TYPES = 'pay_types_arr';
+$CRM_PAYMENT_STATUSES = 'pay_statuses_arr';
+$CRM_PAYMENT = 'payment_arr'; //order payment Y/N
+$CRM_ORDER_LAST_ID = 'order_last_id';
+
 CModule::IncludeModule('intaro.crm');
 CModule::IncludeModule('sale');
 
@@ -20,7 +29,7 @@ if (isset($_POST['Update']) && $_POST['Update']=='Y') {
     $api_key = htmlspecialchars(trim($_POST['api_key']));
             
     if($api_host && $api_key) {
-        $api = new ICrmApi($api_host, $api_key);
+        $api = new IntaroCrm\RestApi($api_host, $api_key);
             
         $api->paymentStatusesList();
             
@@ -49,7 +58,7 @@ if (isset($_POST['Update']) && $_POST['Update']=='Y') {
     );
             
     //form order types ids arr
-	$orderTypesArr = array();
+    $orderTypesArr = array();
     if ($arOrderTypesList = $dbOrderTypesList->Fetch()) {
         do {
             $orderTypesArr[$arOrderTypesList['ID']] = $_POST['order-type-' . $arOrderTypesList['ID']];     
@@ -68,73 +77,80 @@ if (isset($_POST['Update']) && $_POST['Update']=='Y') {
         false,
         false,
         array()
-     );
+    );
             
-     //form delivery types ids arr
+    //form delivery types ids arr
     $deliveryTypesArr = array();
-     if ($arDeliveryTypesList = $dbDeliveryTypesList->Fetch()) {
-         do {
-            $deliveryTypesArr[$arDeliveryTypesList['ID']] = $_POST['delivery-type-' . $arDeliveryTypesList['ID']];   
-         } while ($arDeliveryTypesList = $dbDeliveryTypesList->Fetch());
-      }
+    if ($arDeliveryTypesList = $dbDeliveryTypesList->Fetch()) {
+        do {
+            $deliveryTypesArr[$arDeliveryTypesList['ID']] = htmlspecialchars(trim($_POST['delivery-type-' . $arDeliveryTypesList['ID']]));   
+        } while ($arDeliveryTypesList = $dbDeliveryTypesList->Fetch());
+    }
 		    
-      //bitrix paymentTypesList
-      $dbPaymentTypesList = CSalePaySystem::GetList(
-          array(
-              "SORT" => "ASC", 
-              "NAME" => "ASC"
-          ), 
-          array(
-              "ACTIVE" => "Y"
-          )
-      );
+    //bitrix paymentTypesList
+    $dbPaymentTypesList = CSalePaySystem::GetList(
+        array(
+            "SORT" => "ASC", 
+            "NAME" => "ASC"
+        ), 
+        array(
+            "ACTIVE" => "Y"
+        )
+    );
         
-      //form payment types ids arr
-      $paymentTypesArr = array();
-      if ($arPaymentTypesList = $dbPaymentTypesList->Fetch()) {
-          do {
-              $paymentTypesArr[$arPaymentTypesList['ID']] = $_POST['payment-type-' . $arPaymentTypesList['ID']];         
-          } while ($arPaymentTypesList = $dbPaymentTypesList->Fetch());
-      }
+    //form payment types ids arr
+    $paymentTypesArr = array();
+    if ($arPaymentTypesList = $dbPaymentTypesList->Fetch()) {
+        do {
+            $paymentTypesArr[$arPaymentTypesList['ID']] = htmlspecialchars(trim($_POST['payment-type-' . $arPaymentTypesList['ID']]));         
+        } while ($arPaymentTypesList = $dbPaymentTypesList->Fetch());
+    }
                 
-      //bitrix paymentStatusesList
-      $dbPaymentStatusesList = CSaleStatus::GetList(
-          array(
-              "SORT" => "ASC", 
-              "NAME" => "ASC"
-          ), 
-          array(
-              "LID" => "ru", //ru 
-              "ACTIVE" => "Y"
+    //bitrix paymentStatusesList
+    $dbPaymentStatusesList = CSaleStatus::GetList(
+        array(
+            "SORT" => "ASC", 
+            "NAME" => "ASC"
+        ), 
+        array(
+            "LID" => "ru", //ru 
+            "ACTIVE" => "Y"
           )
-      );
+    );
             
-      //form payment statuses ids arr
-      $paymentStatusesArr = array();
-      if ($arPaymentStatusesList = $dbPaymentStatusesList->Fetch()) {
-          do {
-              $paymentStatusesArr[$arPaymentStatusesList['ID']] = $_POST['payment-status-' . $arPaymentStatusesList['ID']];     
-          } while ($arPaymentStatusesList = $dbPaymentStatusesList->Fetch());
-      }
-		
-      COption::SetOptionString($mid, 'order_types_arr', serialize($orderTypesArr));	    
-      COption::SetOptionString($mid, 'deliv_types_arr', serialize($deliveryTypesArr));
-      COption::SetOptionString($mid, 'pay_types_arr', serialize($paymentTypesArr));
-      COption::SetOptionString($mid, 'pay_statuses_arr', serialize($paymentStatusesArr));
+    //form payment statuses ids arr
+    $paymentStatusesArr = array();
+    if ($arPaymentStatusesList = $dbPaymentStatusesList->Fetch()) {
+        do {
+            $paymentStatusesArr[$arPaymentStatusesList['ID']] = htmlspecialchars(trim($_POST['payment-status-' . $arPaymentStatusesList['ID']]));     
+        } while ($arPaymentStatusesList = $dbPaymentStatusesList->Fetch());
+    }
       
-      $uri .= '&ok=Y';
-      LocalRedirect($uri);
-} else {
-    $api_host = COption::GetOptionString($mid, 'api_host', 0);
-    $api_key = COption::GetOptionString($mid, 'api_key', 0);
+    //form payment ids arr
+    $paymentArr = array();
+    $paymentArr['Y'] = htmlspecialchars(trim($_POST['payment-Y']));
+    $paymentArr['N'] = htmlspecialchars(trim($_POST['payment-N']));
+    
+    COption::SetOptionString($mid, $CRM_ORDER_TYPES_ARR, serialize($orderTypesArr));
+    COption::SetOptionString($mid, $CRM_DELIVERY_TYPES_ARR, serialize($deliveryTypesArr));
+    COption::SetOptionString($mid, $CRM_PAYMENT_TYPES, serialize($paymentTypesArr));
+    COption::SetOptionString($mid, $CRM_PAYMENT_STATUSES, serialize($paymentStatusesArr));
+    COption::SetOptionString($mid, $CRM_PAYMENT, serialize($paymentArr));
 
-    $api = new ICrmApi($api_host, $api_key);
+    $uri .= '&ok=Y';
+    LocalRedirect($uri);
+} else {
+    $api_host = COption::GetOptionString($mid, $CRM_API_HOST_OPTION, 0);
+    $api_key = COption::GetOptionString($mid, $CRM_API_KEY_OPTION, 0);
+
+    $api = new IntaroCrm\RestApi($api_host, $api_key);
 
     //prepare crm lists
     $arResult['orderTypesList'] = $api->orderTypesList();
     $arResult['deliveryTypesList'] = $api->deliveryTypesList();
     $arResult['paymentTypesList'] = $api->paymentTypesList();
-    $arResult['paymentStatusesList'] = $api->paymentStatusesList();
+    $arResult['paymentStatusesList'] = $api->paymentStatusesList(); // --statuses
+    $arResult['paymentList'] = $api->orderStatusesList();
 
     //bitrix orderTypesList -- personTypes
     $dbOrderTypesList = CSalePersonType::GetList(
@@ -210,12 +226,19 @@ if (isset($_POST['Update']) && $_POST['Update']=='Y') {
             $arResult['bitrixPaymentStatusesList'][] = $arPaymentStatusesList;
         } while ($arPaymentStatusesList = $dbPaymentStatusesList->Fetch());
     }
+    
+    //bitrix pyament Y/N
+    $arResult['bitrixPaymentList'][0]['NAME'] = GetMessage('PAYMENT_Y');
+    $arResult['bitrixPaymentList'][0]['ID'] = 'Y';
+    $arResult['bitrixPaymentList'][1]['NAME'] = GetMessage('PAYMENT_N');
+    $arResult['bitrixPaymentList'][1]['ID'] = 'N';
 
     //saved cat params
-    $optionsOrderTypes = unserialize(COption::GetOptionString($mid, 'order_types_arr', 0));
-    $optionsDelivTypes = unserialize(COption::GetOptionString($mid, 'deliv_types_arr', 0));
-    $optionsPayTypes = unserialize(COption::GetOptionString($mid, 'pay_types_arr', 0));
-    $optionsPayStatuses = unserialize(COption::GetOptionString($mid, 'pay_statuses_arr', 0));
+    $optionsOrderTypes = unserialize(COption::GetOptionString($mid, $CRM_ORDER_TYPES_ARR, 0));
+    $optionsDelivTypes = unserialize(COption::GetOptionString($mid, $CRM_DELIVERY_TYPES_ARR, 0));
+    $optionsPayTypes = unserialize(COption::GetOptionString($mid, $CRM_PAYMENT_TYPES, 0));
+    $optionsPayStatuses = unserialize(COption::GetOptionString($mid, $CRM_PAYMENT_STATUSES, 0)); // --statuses
+    $optionsPayment = unserialize(COption::GetOptionString($mid, $CRM_PAYMENT, 0));
 
     $aTabs = array(
         array(
@@ -228,7 +251,7 @@ if (isset($_POST['Update']) && $_POST['Update']=='Y') {
             "DIV" => "edit2",
             "TAB" => GetMessage('ICRM_OPTIONS_CATALOG_TAB'),
             "ICON" => '',
-            "TITLE" => GetMessage('ICRM_OPTIONS_IMPORT_CAPTION')
+            "TITLE" => GetMessage('ICRM_OPTIONS_CATALOG_CAPTION')
         ),
     );
     $tabControl = new CAdminTabControl("tabControl", $aTabs);
@@ -293,31 +316,51 @@ if (isset($_POST['Update']) && $_POST['Update']=='Y') {
         </td>
     </tr>
     <?php endforeach; ?>
-	<tr class="heading">
-	    <td colspan="2"><b><?php echo GetMessage('PAYMENT_STATUS_LIST'); ?></b></td>
-	</tr>
-	<?php foreach($arResult['bitrixPaymentStatusesList'] as $bitrixPaymentStatus): ?>
-	<tr>
+    <tr class="heading">
+        <td colspan="2"><b><?php echo GetMessage('PAYMENT_STATUS_LIST'); ?></b></td>
+    </tr>
+    <?php foreach($arResult['bitrixPaymentStatusesList'] as $bitrixPaymentStatus): ?>
+    <tr>
         <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $bitrixPaymentStatus['ID']; ?>">
-	        <?php echo $bitrixPaymentStatus['NAME']; ?>
+            <?php echo $bitrixPaymentStatus['NAME']; ?>
         </td>
         <td width="50%" class="adm-detail-content-cell-r">
             <select name="payment-status-<?php echo $bitrixPaymentStatus['ID']; ?>" class="typeselect">
-                <option value="" selected=""></option>
+                <option value=""></option>
+                <?php foreach($arResult['paymentList'] as $payment): ?>
+                <option value="<?php echo $payment['code']; ?>" <?php if ($optionsPayStatuses[$bitrixPaymentStatus['ID']] == $payment['code']) echo 'selected'; ?>>
+                    <?php echo $APPLICATION->ConvertCharset($payment['name'], 'utf-8', SITE_CHARSET); ?>
+                </option>
+                <?php endforeach; ?>
+            </select>
+        </td>
+    </tr>
+    <?php endforeach; ?>
+    <tr class="heading">
+        <td colspan="2"><b><?php echo GetMessage('PAYMENT_LIST'); ?></b></td>
+    </tr>
+    <?php foreach($arResult['bitrixPaymentList'] as $bitrixPayment): ?>
+    <tr>
+        <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $bitrixPayment['ID']; ?>">
+            <?php echo $bitrixPayment['NAME']; ?>
+        </td>
+        <td width="50%" class="adm-detail-content-cell-r">
+            <select name="payment-<?php echo $bitrixPayment['ID']; ?>" class="typeselect">
+                <option value=""></option>
                 <?php foreach($arResult['paymentStatusesList'] as $paymentStatus): ?>
-                <option value="<?php echo $paymentStatus['code']; ?>" <?php if ($optionsPayStatuses[$bitrixPaymentStatus['ID']] == $paymentStatus['code']) echo 'selected'; ?>>
+                <option value="<?php echo $paymentStatus['code']; ?>" <?php if ($optionsPayment[$bitrixPayment['ID']] == $paymentStatus['code']) echo 'selected'; ?>>
                     <?php echo $APPLICATION->ConvertCharset($paymentStatus['name'], 'utf-8', SITE_CHARSET); ?>
                 </option>
                 <?php endforeach; ?>
             </select>
         </td>
     </tr>
-   <?php endforeach; ?>
-   <tr class="heading">
-       <td colspan="2"><b><?php echo GetMessage('ORDER_TYPES_LIST'); ?></b></td>
-   </tr>
-   <?php foreach($arResult['bitrixOrderTypesList'] as $bitrixOrderType): ?>
-   <tr>
+    <?php endforeach; ?>
+    <tr class="heading">
+        <td colspan="2"><b><?php echo GetMessage('ORDER_TYPES_LIST'); ?></b></td>
+    </tr>
+    <?php foreach($arResult['bitrixOrderTypesList'] as $bitrixOrderType): ?>
+    <tr>
        <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $bitrixOrderType['ID']; ?>">
            <?php echo $bitrixOrderType['NAME']; ?>
 	   </td>
@@ -331,8 +374,8 @@ if (isset($_POST['Update']) && $_POST['Update']=='Y') {
                <?php endforeach; ?>
             </select>
         </td>
-   </tr>
-   <?php endforeach; ?>
+    </tr>
+    <?php endforeach; ?>
 <?php $tabControl->BeginNextTab(); ?>
 <?php $tabControl->Buttons(); ?>
 <input type="hidden" name="Update" value="Y" />
