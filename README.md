@@ -1,7 +1,7 @@
 Bitrix module
 =============
 
-Bitrix module for interaction with IntaroCRM throw REST API.
+Bitrix module for interaction with IntaroCRM throgh REST API.
 
 Module allows:
 
@@ -13,4 +13,4 @@ Module allows:
 Installation
 -------------
 
-You should install module throw [Bitrix.Marketplace](http://marketplace.1c-bitrix.ru).
+You should install module throgh [Bitrix.Marketplace](http://marketplace.1c-bitrix.ru).
