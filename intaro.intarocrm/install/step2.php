@@ -12,7 +12,7 @@ $arResult['bitrixPaymentList'][1]['ID'] = 'N';
 <form action="<?php echo $APPLICATION->GetCurPage() ?>" method="POST">
     <?php echo bitrix_sessid_post(); ?>
     <input type="hidden" name="lang" value="<?php echo LANGUAGE_ID ?>">
-    <input type="hidden" name="id" value="intaro.crm">
+    <input type="hidden" name="id" value="intaro.intarocrm">
     <input type="hidden" name="install" value="Y">
     <input type="hidden" name="step" value="3">
 

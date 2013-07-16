@@ -2,7 +2,7 @@
 
 class ICrmOrderActions
 {
-    protected static $MODULE_ID = 'intaro.crm';
+    protected static $MODULE_ID = 'intaro.intarocrm';
     protected static $CRM_API_HOST_OPTION = 'api_host';
     protected static $CRM_API_KEY_OPTION = 'api_key';
     protected static $CRM_ORDER_TYPES_ARR = 'order_types_arr';

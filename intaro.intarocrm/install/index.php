@@ -1,18 +1,18 @@
 <?php
 /**
  * Module Install/Uninstall script
- * Module name:	intaro.crm
- * Class name:	intaro_crm
+ * Module name:	intaro.intarocrm
+ * Class name:	intaro_intarocrm
  */
 
 global $MESS;
 IncludeModuleLangFile(__FILE__);
-if (class_exists('intaro_crm'))
+if (class_exists('intaro_intarocrm'))
     return;
 
-class intaro_crm extends CModule 
+class intaro_intarocrm extends CModule 
 {
-    var $MODULE_ID = 'intaro.crm';
+    var $MODULE_ID = 'intaro.intarocrm';
     var $MODULE_VERSION;
     var $MODULE_VERSION_DATE;
     var $MODULE_NAME;
@@ -34,7 +34,7 @@ class intaro_crm extends CModule
     
     var $INSTALL_PATH;
     
-    function intaro_crm()
+    function intaro_intarocrm()
     {
         $arModuleVersion = array();
         $path = str_replace("\\", "/", __FILE__);
