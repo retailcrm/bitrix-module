@@ -338,29 +338,12 @@ class intaro_crm extends CModule
             $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/unstep1.php'
         );	
     }
-    
-    /**
-     * 
-     * Recursive copy files from folder
-     * @param type $src
-     * @param type $dst
-     */
-    
-    function rCopy($src, $dst) {
-        if (is_dir($src)) {
-            mkdir($dst);
-            $files = scandir($src);
-            foreach ($files as $file)
-                if ($file != "." && $file != "..")
-                    $this->rCopy("$src/$file", "$dst/$file");
-        }
-        else if (file_exists($src))
-            copy($src, $dst);
-    }
 
     function CopyFiles() {
-        $this->rCopy(
-                $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/export/', $_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/'
+        CopyDirFiles(
+            $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/export/',
+            $_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/',
+            true, true
         );
     }
 
