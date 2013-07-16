@@ -17,11 +17,11 @@
 	        </tr>
 	        <tr>
 			    <td width="50%" class="adm-detail-content-cell-l"><?php echo GetMessage('ICRM_API_HOST'); ?></td>
-			    <td width="50%" class="adm-detail-content-cell-r"><input type="text" id="api_host" name="api_host" value="http://bitrix.beta.intarocrm.ru"></td>
+			    <td width="50%" class="adm-detail-content-cell-r"><input type="text" id="api_host" name="api_host" value=""></td>
 		    </tr>
 		    <tr>
 			    <td width="50%" class="adm-detail-content-cell-l"><?php echo GetMessage('ICRM_API_KEY'); ?></td>
-			    <td width="50%" class="adm-detail-content-cell-r"><input type="text" id="api_key" name="api_key" value="test2"></td>
+			    <td width="50%" class="adm-detail-content-cell-r"><input type="text" id="api_key" name="api_key" value=""></td>
 		    </tr>
 		</tbody>
 	</table>
