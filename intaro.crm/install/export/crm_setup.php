@@ -1,6 +1,6 @@
 <?
 //<title>CRM</title>
-__IncludeLang(GetLangFileName($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/catalog/lang/", "/export_setup_templ.php"));
+__IncludeLang(GetLangFileName($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/intaro.crm/lang/", "/export_setup_templ.php"));
 
 global $APPLICATION, $USER;
 
