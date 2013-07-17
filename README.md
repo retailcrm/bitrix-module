@@ -1,7 +1,7 @@
 Bitrix module
 =============
 
-Bitrix module for interaction with IntaroCRM throguh REST API.
+Bitrix module for interaction with IntaroCRM through REST API.
 
 Module allows:
 

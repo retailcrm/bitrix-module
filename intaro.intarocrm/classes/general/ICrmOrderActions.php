@@ -91,7 +91,7 @@ class ICrmOrderActions
         
         while ($arOrder = $dbOrder->GetNext()) {
             if ($arOrder['ID'] <= $lastUpOrderId) //old orders not to upload
-                return true;
+                break;
             
             if(!$lastUpOrderIdNew)
                 $lastUpOrderIdNew = $arOrder['ID'];
