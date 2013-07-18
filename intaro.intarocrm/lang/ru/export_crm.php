@@ -1,4 +1,4 @@
-<?
+<?php
 $MESS["YANDEX_DETAIL_TITLE"] = "Настройка дополнительных параметров";
 $MESS["YANDEX_ERR_NO_ACCESS_EXPORT"] = "Нет доступа к управлению экспортом";
 $MESS["YANDEX_ERR_NO_IBLOCK_CHOSEN"] = "Не выбран инфоблок";
@@ -107,4 +107,3 @@ $MESS["YANDEX_ERR_SKU_SETTINGS_ABSENT"] = "Отсутствуют настрой
 $MESS["YANDEX_ROOT_DIRECTORY"] = "Основной раздел каталога";
 $MESS["CET_ERROR_IBLOCK_PERM"] = "Недостаточно прав для работы с инфоблоком ##IBLOCK_ID#";
 $MESS["CES_ERROR_BAD_EXPORT_FILENAME"] = "Имя файла экспорта содержит запрещенные символы";
-?>

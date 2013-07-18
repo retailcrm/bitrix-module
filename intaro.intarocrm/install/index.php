@@ -98,7 +98,11 @@ class intaro_intarocrm extends CModule
                 );
                 
                 return;
-            } 
+            }
+            
+            // form correct url
+            $api_host = parse_url($api_host);
+            $api_host = $api_host['scheme'] . '://' . $api_host['host'];
             
             COption::SetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, $api_host);
             COption::SetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, $api_key);
@@ -359,4 +363,3 @@ class intaro_intarocrm extends CModule
         unlink($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/crm_setup.php');
     }
 }
-?>

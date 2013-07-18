@@ -1,4 +1,4 @@
-<?
+<?php
 $MESS["CET_ERROR_NO_NAME"] = "Введите название профиля выгрузки.";
 $MESS["CET_STEP1"] = "Шаг";
 $MESS["CET_STEP2"] = "из";
@@ -122,4 +122,3 @@ $MESS["CAT_ADM_CSV_EXP_SECTION_LEVEL"] = "Раздел уровня #LEVEL#";
 $MESS["CATI_FI_PRICE_TYPE2"] = "Цена типа \"#TYPE#\"";
 $MESS["CATI_FI_PRICE_TYPE3"] = "Цена типа \"#NAME#\" (#TYPE#)";
 $MESS["CATI_FI_PRICE_CURRENCY"] = "в валюте #CURRENCY#";
-?>

@@ -82,7 +82,7 @@ class ICrmOrderActions
         $api = new IntaroCrm\RestApi($api_host, $api_key);
         
         $arParams = array(
-            'optionsOrderTypes'   => $optionsOrderTypes,
+            'optionsOrderTypes'  => $optionsOrderTypes,
             'optionsDelivTypes'  => $optionsDelivTypes,
             'optionsPayTypes'    => $optionsPayTypes,
             'optionsPayStatuses' => $optionsPayStatuses,
@@ -104,21 +104,23 @@ class ICrmOrderActions
             $resOrders[] = $order;
         }
         
-        $orders = $api->orderUpload($resOrders);
-        
-        // error pushing orders
-        if(!$orders) {
-            //handle err
-            self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload', $api->getLastError());
-            return true;
+        if(!empty($resOrders)) {
+            $orders = $api->orderUpload($resOrders);
+            
+            // error pushing orders
+            if (!$orders) {
+                //handle err
+                self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload', $api->getLastError());
+                return true;
+            }
         }
         
         if($lastUpOrderIdNew)
             COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, $lastUpOrderIdNew);
-        
+
         return true; //all ok!
     }
-   
+        
     /**
      * 
      * w+ event in bitrix log
@@ -318,5 +320,3 @@ class ICrmOrderActions
     }
     
 }
-?>
-

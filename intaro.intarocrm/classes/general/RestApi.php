@@ -3,31 +3,6 @@ namespace IntaroCrm;
 
 class RestApi
 {
-    protected static $jsonReplaceSource = array(
-        '\u0410','\u0430','\u0411','\u0431','\u0412','\u0432','\u0413','\u0433',
-        '\u0414','\u0434','\u0415','\u0435','\u0401','\u0451','\u0416','\u0436',
-        '\u0417','\u0437','\u0418','\u0438','\u0419','\u0439','\u041a','\u043a',
-        '\u041b','\u043b','\u041c','\u043c','\u041d','\u043d','\u041e','\u043e',
-        '\u041f','\u043f','\u0420','\u0440','\u0421','\u0441','\u0422','\u0442',
-        '\u0423','\u0443','\u0424','\u0444','\u0425','\u0445','\u0426','\u0446',
-        '\u0427','\u0447','\u0428','\u0448','\u0429','\u0449','\u042a','\u044a',
-        '\u042b','\u044b','\u042c','\u044c','\u042d','\u044d','\u042e','\u044e',
-        '\u042f','\u044f'
-      );
-
-    protected static $jsonReplaceTarget = array(
-        'А', 'а', 'Б', 'б', 'В', 'в', 'Г', 'г',
-        'Д', 'д', 'Е', 'е', 'Ё', 'ё', 'Ж', 'ж',
-        'З', 'з', 'И', 'и', 'Й', 'й', 'К', 'к',
-        'Л', 'л', 'М', 'м', 'Н', 'н', 'О', 'о',
-        'П', 'п', 'Р', 'р', 'С', 'с', 'Т', 'т',
-        'У', 'у', 'Ф', 'ф', 'Х', 'х', 'Ц', 'ц',
-        'Ч', 'ч', 'Ш', 'ш', 'Щ', 'щ', 'Ъ', 'ъ',
-        'Ы', 'ы', 'Ь', 'ь', 'Э', 'э', 'Ю', 'ю',
-        'Я', 'я'
-      );
-
-
     protected $apiUrl;
     protected $apiKey;
     protected $apiVersion = '1';
@@ -95,8 +70,6 @@ class RestApi
     public function orderCreate($order)
     {
         $dataJson = json_encode($order);
-        $dataJson = str_replace(self::$jsonReplaceSource, self::$jsonReplaceTarget,
-            $dataJson);
         $this->parameters['order'] = $dataJson;
 
         $url = $this->apiUrl.'orders/create';
@@ -113,8 +86,6 @@ class RestApi
     public function orderEdit($order)
     {
         $dataJson = json_encode($order);
-        $dataJson = str_replace(self::$jsonReplaceSource, self::$jsonReplaceTarget,
-            $dataJson);
         $this->parameters['order'] = $dataJson;
 
         $url = $this->apiUrl.'orders/'.$order['externalId'].'/edit';
@@ -131,11 +102,25 @@ class RestApi
     public function orderUpload($orders)
     {
         $dataJson = json_encode($orders);
-        $dataJson = str_replace(self::$jsonReplaceSource, self::$jsonReplaceTarget,
-            $dataJson);
         $this->parameters['orders'] = $dataJson;
 
         $url = $this->apiUrl.'orders/upload';
+        $result = $this->curlRequest($url, 'POST');
+        return $result;
+    }
+
+    /**
+     * Обновление externalId у заказов с переданными id
+     *
+     * @param array $orders- массив, содержащий id и externalId заказа
+     * @return array
+     */
+    public function orderFixExternalIds($order)
+    {
+        $dataJson = json_encode($order);
+        $this->parameters['orders'] = $dataJson;
+
+        $url = $this->apiUrl.'orders/fix-external-ids';
         $result = $this->curlRequest($url, 'POST');
         return $result;
     }
@@ -147,6 +132,7 @@ class RestApi
      * @param string $by - поиск заказа по id или externalId
      * @return array
      */
+    /*
     public function orderDelete($id, $by = 'externalId')
     {
         $url = $this->apiUrl.'orders/'.$id.'/delete';
@@ -154,7 +140,7 @@ class RestApi
             $this->parameters['by'] = $by;
         $result = $this->curlRequest($url, 'POST');
         return $result;
-    }
+    }*/
 
     /**
      * Получение последних измененных заказов
@@ -204,8 +190,6 @@ class RestApi
     public function customerCreate($customer)
     {
         $dataJson = json_encode($customer);
-        $dataJson = str_replace(self::$jsonReplaceSource, self::$jsonReplaceTarget,
-            $dataJson);
         $this->parameters['customer'] = $dataJson;
 
         $url = $this->apiUrl.'customers/create';
@@ -222,8 +206,6 @@ class RestApi
     public function customerEdit($customer)
     {
         $dataJson = json_encode($customer);
-        $dataJson = str_replace(self::$jsonReplaceSource, self::$jsonReplaceTarget,
-            $dataJson);
         $this->parameters['customer'] = $dataJson;
 
         $url = $this->apiUrl.'customers/'.$customer['externalId'].'/edit';
@@ -238,6 +220,7 @@ class RestApi
      * @param string $by - поиск заказа по id или externalId
      * @return array
      */
+    /*
     public function customerDelete($id, $by = 'externalId')
     {
         $url = $this->apiUrl.'customers/'.$id.'/delete';
@@ -245,7 +228,7 @@ class RestApi
             $this->parameters['by'] = $by;
         $result = $this->curlRequest($url, 'POST');
         return $result;
-    }
+    }*/
 
     /**
      * Получение списка заказов клиента
@@ -295,8 +278,6 @@ class RestApi
     public function deliveryTypeEdit($deliveryType)
     {
         $dataJson = json_encode($deliveryType);
-        $dataJson = str_replace(self::$jsonReplaceSource, self::$jsonReplaceTarget,
-            $dataJson);
         $this->parameters['deliveryType'] = $dataJson;
 
         $url = $this->apiUrl.'delivery-types/'.$deliveryType['code'].'/edit';
@@ -326,8 +307,6 @@ class RestApi
     public function paymentTypesEdit($paymentType)
     {
         $dataJson = json_encode($paymentType);
-        $dataJson = str_replace(self::$jsonReplaceSource, self::$jsonReplaceTarget,
-            $dataJson);
         $this->parameters['paymentType'] = $dataJson;
 
         $url = $this->apiUrl.'payment-types/'.$paymentType['code'].'/edit';
@@ -357,8 +336,6 @@ class RestApi
     public function paymentStatusesEdit($paymentStatus)
     {
         $dataJson = json_encode($paymentStatus);
-        $dataJson = str_replace(self::$jsonReplaceSource, self::$jsonReplaceTarget,
-            $dataJson);
         $this->parameters['paymentStatus'] = $dataJson;
 
         $url = $this->apiUrl.'payment-statuses/'.$paymentStatus['code'].'/edit';
@@ -388,8 +365,6 @@ class RestApi
     public function orderTypesEdit($orderType)
     {
         $dataJson = json_encode($orderType);
-        $dataJson = str_replace(self::$jsonReplaceSource, self::$jsonReplaceTarget,
-            $dataJson);
         $this->parameters['orderType'] = $dataJson;
 
         $url = $this->apiUrl.'order-types/'.$orderType['code'].'/edit';
@@ -418,8 +393,6 @@ class RestApi
     public function orderStatusEdit($status)
     {
         $dataJson = json_encode($status);
-        $dataJson = str_replace(self::$jsonReplaceSource, self::$jsonReplaceTarget,
-            $dataJson);
         $this->parameters['status'] = $dataJson;
 
         $url = $this->apiUrl.'statuses/'.$status['code'].'/edit';
@@ -488,5 +461,3 @@ class RestApi
         return reset($result);
     }
 }
-
-?>

@@ -7,4 +7,3 @@ CModule::AddAutoloadClasses(
         'ICrmOrderEvent' => 'classes/general/events/ICrmOrderEvent.php'
     )
 );
-?>

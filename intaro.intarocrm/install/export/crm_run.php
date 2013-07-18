@@ -1827,4 +1827,3 @@ if ($bTmpUserCreated)
                 unset($USER_TMP);
         }
 }
-?>
