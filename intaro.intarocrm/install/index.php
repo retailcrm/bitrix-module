@@ -75,6 +75,10 @@ class intaro_intarocrm extends CModule
             $api_host = htmlspecialchars(trim($_POST[$this->CRM_API_HOST_OPTION]));
             $api_key = htmlspecialchars(trim($_POST[$this->CRM_API_KEY_OPTION]));
             
+            // form correct url
+            $api_host = parse_url($api_host);
+            $api_host = $api_host['scheme'] . '://' . $api_host['host'];
+            
             if(!$api_host || !$api_key) { 
                 $arResult['errCode'] = 'ERR_FIELDS_API_HOST';
                 $APPLICATION->IncludeAdminFile(
@@ -99,10 +103,6 @@ class intaro_intarocrm extends CModule
                 
                 return;
             }
-            
-            // form correct url
-            $api_host = parse_url($api_host);
-            $api_host = $api_host['scheme'] . '://' . $api_host['host'];
             
             COption::SetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, $api_host);
             COption::SetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, $api_key);
@@ -348,6 +348,7 @@ class intaro_intarocrm extends CModule
             GetMessage('MODULE_UNINSTALL_TITLE'), 
             $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/unstep1.php'
         );	
+        
     }
 
     function CopyFiles() {
