@@ -1,6 +1,6 @@
 <?php 
 IncludeModuleLangFile(__FILE__);
-$mid = 'intaro.crm';
+$mid = 'intaro.intarocrm';
 $uri = $APPLICATION->GetCurPage() . '?mid=' . htmlspecialchars($mid) . '&lang=' . LANGUAGE_ID;
 
 $CRM_API_HOST_OPTION = 'api_host';
@@ -12,7 +12,7 @@ $CRM_PAYMENT_STATUSES = 'pay_statuses_arr';
 $CRM_PAYMENT = 'payment_arr'; //order payment Y/N
 $CRM_ORDER_LAST_ID = 'order_last_id';
 
-CModule::IncludeModule('intaro.crm');
+CModule::IncludeModule('intaro.intarocrm');
 CModule::IncludeModule('sale');
 
 $_GET['errc'] = htmlspecialchars(trim($_GET['errc']));

@@ -113,8 +113,7 @@ class ICrmOrderActions
             return true;
         }
         
-        if($lastUpOrderIdNew)
-            COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, $lastUpOrderIdNew);
+        COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, $lastUpOrderIdNew);
         
         return true; //all ok!
     }

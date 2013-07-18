@@ -6,6 +6,34 @@ $arResult['bitrixPaymentList'][0]['NAME'] = GetMessage('PAYMENT_Y');
 $arResult['bitrixPaymentList'][0]['ID'] = 'Y';
 $arResult['bitrixPaymentList'][1]['NAME'] = GetMessage('PAYMENT_N');
 $arResult['bitrixPaymentList'][1]['ID'] = 'N';
+
+$defaultOrderTypes = array (
+    1 => 'eshop-individual',
+    2 => 'eshop-legal'
+);
+
+$defaultDelivTypes = array (
+    1 => 'courier',
+    2 => 'self-delivery'
+);
+
+$defaultPayTypes = array (
+    1 => 'cash',
+    5 => 'bank-card',
+    6 => 'bank-transfer'
+);
+
+$defaultPayStatuses = array (
+    'N' => 'in-processing',
+    'P' => 'in-processing',
+    'F' => 'complete'
+);
+
+$defaultPayment = array(
+    'Y' => 'paid',
+    'N' => 'not-paid'   
+);
+
 ?>
 
 <div class="adm-detail-content-item-block">
@@ -21,6 +49,9 @@ $arResult['bitrixPaymentList'][1]['ID'] = 'N';
             <tr class="heading">
                 <td colspan="2"><b><?php echo GetMessage('STEP_NAME'); ?></b></td>
             </tr>
+            <tr align="center">
+                <td colspan="2"><b><?php echo GetMessage('INFO_1'); ?></b></td>
+            </tr>
             <tr class="heading">
                 <td colspan="2"><b><?php echo GetMessage('DELIVERY_TYPES_LIST'); ?></b></td>
             </tr>
@@ -31,9 +62,10 @@ $arResult['bitrixPaymentList'][1]['ID'] = 'N';
                 </td>
                 <td width="50%" class="adm-detail-content-cell-r">
                     <select name="delivery-type-<?php echo $bitrixDeliveryType['ID']; ?>" class="typeselect">
-                        <option value="" selected=""></option>
+                        <option value=""></option>
                         <?php foreach($arResult['deliveryTypesList'] as $deliveryType): ?>
-                        <option value="<?php echo $deliveryType['code']; ?>">
+                        <option value="<?php echo $deliveryType['code']; ?>" 
+                            <?php if($defaultDelivTypes[$bitrixDeliveryType['ID']] == $deliveryType['code']) echo 'selected'; ?>>
                             <?php echo $APPLICATION->ConvertCharset($deliveryType['name'], 'utf-8', SITE_CHARSET); ?>
                         </option>
                         <?php endforeach; ?>
@@ -51,9 +83,10 @@ $arResult['bitrixPaymentList'][1]['ID'] = 'N';
                 </td>
                 <td width="50%" class="adm-detail-content-cell-r">
                     <select name="payment-type-<?php echo $bitrixPaymentType['ID']; ?>" class="typeselect">
-                        <option value="" selected=""></option>
+                        <option value=""></option>
                         <?php foreach($arResult['paymentTypesList'] as $paymentType): ?>
-                        <option value="<?php echo $paymentType['code']; ?>">
+                        <option value="<?php echo $paymentType['code']; ?>" 
+                            <?php if($defaultPayTypes[$bitrixPaymentType['ID']] == $paymentType['code']) echo 'selected'; ?>>
                             <?php echo $APPLICATION->ConvertCharset($paymentType['name'], 'utf-8', SITE_CHARSET); ?>
                         </option>
                         <?php endforeach; ?>
@@ -73,7 +106,8 @@ $arResult['bitrixPaymentList'][1]['ID'] = 'N';
                     <select name="payment-status-<?php echo $bitrixPaymentStatus['ID']; ?>" class="typeselect">
                         <option value="" selected=""></option>
                         <?php foreach($arResult['paymentList'] as $payment): ?>
-                        <option value="<?php echo $payment['code']; ?>">
+                        <option value="<?php echo $payment['code']; ?>" 
+                            <?php if($defaultPayStatuses[$bitrixPaymentStatus['ID']] == $payment['code']) echo 'selected'; ?>>
                             <?php echo $APPLICATION->ConvertCharset($payment['name'], 'utf-8', SITE_CHARSET); ?>
                         </option>
                         <?php endforeach; ?>
@@ -91,9 +125,10 @@ $arResult['bitrixPaymentList'][1]['ID'] = 'N';
                 </td>
                 <td width="50%" class="adm-detail-content-cell-r">
                     <select name="payment-<?php echo $bitrixPayment['ID']; ?>" class="typeselect">
-                        <option value="" selected=""></option>
+                        <option value=""></option>
                         <?php foreach($arResult['paymentStatusesList'] as $paymentStatus): ?>
-                        <option value="<?php echo $paymentStatus['code']; ?>">
+                        <option value="<?php echo $paymentStatus['code']; ?>" 
+                            <?php if($defaultPayment[$bitrixPayment['ID']] == $paymentStatus['code']) echo 'selected'; ?>>
                             <?php echo $APPLICATION->ConvertCharset($paymentStatus['name'], 'utf-8', SITE_CHARSET); ?>
                         </option>
                         <?php endforeach; ?>
@@ -111,9 +146,10 @@ $arResult['bitrixPaymentList'][1]['ID'] = 'N';
                 </td>
                 <td width="50%" class="adm-detail-content-cell-r">
                     <select name="order-type-<?php echo $bitrixOrderType['ID']; ?>" class="typeselect">
-                        <option value="" selected=""></option>
+                        <option value=""></option>
                         <?php foreach($arResult['orderTypesList'] as $orderType): ?>
-                        <option value="<?php echo $orderType['code']; ?>">
+                        <option value="<?php echo $orderType['code']; ?>" 
+                            <?php if($defaultOrderTypes[$bitrixOrderType['ID']] == $orderType['code']) echo 'selected'; ?>>
                             <?php echo $APPLICATION->ConvertCharset($orderType['name'], 'utf-8', SITE_CHARSET); ?>
                         </option>
                         <?php endforeach; ?>
@@ -124,6 +160,13 @@ $arResult['bitrixPaymentList'][1]['ID'] = 'N';
         </tbody>
     </table>
     <br />
-    <input type="submit" name="inst" value="<?php echo GetMessage("MOD_NEXT_STEP"); ?>" class="adm-btn-save">
+     <div style="padding: 1px 13px 2px; height:28px;">
+        <div align="right" style="float:right; width:50%; position:relative;">
+            <input type="submit" name="inst" value="<?php echo GetMessage("MOD_NEXT_STEP"); ?>" class="adm-btn-save">
+        </div>
+        <div align="left" style="float:right; width:50%; position:relative;">
+            <input type="submit" name="back" value="<?php echo GetMessage("MOD_PREV_STEP"); ?>" class="adm-btn-save">
+        </div>
+    </div>
 </form>
 </div>

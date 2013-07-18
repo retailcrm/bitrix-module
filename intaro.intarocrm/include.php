@@ -3,7 +3,8 @@ CModule::AddAutoloadClasses(
     'intaro.intarocrm', // module name
     array (
         'IntaroCrm\RestApi'      => 'classes/general/RestApi.php',
-        'ICrmOrderActions' => 'classes/general/ICrmOrderActions.php'
+        'ICrmOrderActions' => 'classes/general/ICrmOrderActions.php',
+        'ICrmOrderEvent' => 'classes/general/events/ICrmOrderEvent.php'
     )
 );
 ?>

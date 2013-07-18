@@ -190,9 +190,16 @@ class intaro_intarocrm extends CModule
                 $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step2.php'
             );
           
-            } else if ($step == 3) {
+        } else if ($step == 3) {
             if(!CModule::IncludeModule("sale")) {
                 //handler
+            }
+            
+            if (isset($_POST['back']) && $_POST['back']) {
+                $APPLICATION->IncludeAdminFile(
+                   GetMessage('MODULE_INSTALL_TITLE'), 
+                   $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step1.php'
+                );
             }
             
             //bitrix orderTypesList -- personTypes
@@ -350,7 +357,6 @@ class intaro_intarocrm extends CModule
     function DeleteFiles() {
         unlink($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/crm_run.php');
         unlink($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/crm_setup.php');
-        
     }
 }
 ?>

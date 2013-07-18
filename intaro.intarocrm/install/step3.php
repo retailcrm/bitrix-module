@@ -6,5 +6,5 @@ echo CAdminMessage::ShowNote(GetMessage("MOD_INST_OK")); ?>
 	<input type="hidden" name="lang" value="<?php echo LANG; ?>">
 	<input type="hidden" name="id" value="intaro.intarocrm">
 	<input type="hidden" name="install" value="Y">
-	<input type="submit" name="" value="<?php echo GetMessage("MOD_BACK"); ?>" class="adm-btn-save">
+	<input type="submit" name="" value="<?php echo GetMessage("MOD_BACK"); ?>">
 <form>
