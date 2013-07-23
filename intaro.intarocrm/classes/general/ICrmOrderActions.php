@@ -40,7 +40,7 @@ class ICrmOrderActions
      * Mass order uploading, without repeating; always returns true, but writes error log
      * @return boolean
      */
-    public static function uploadOrders() {
+    public static function uploadOrders($steps = false, $pSize = 500) {
         
         //COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, 0); // -- for test
         
@@ -61,13 +61,13 @@ class ICrmOrderActions
             self::eventLog('ICrmOrderActions::uploadOrders', 'catalog', 'module not found');
             return true;
         }
-
+        
         $resOrders = array();
-     
-        $dbOrder = CSaleOrder::GetList();
         
         $lastUpOrderId = COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, 0);
-        $lastUpOrderIdNew = 0;
+        $lastOrderId = 0;
+        
+        $dbOrder = CSaleOrder::GetList(array("ID" => "ASC"), array('>ID' => $lastUpOrderId));
         
         $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
         $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
@@ -89,38 +89,81 @@ class ICrmOrderActions
             'optionsPayment'     => $optionsPayment
         );
         
-        while ($arOrder = $dbOrder->GetNext()) {
-            if ($arOrder['ID'] <= $lastUpOrderId) //old orders not to upload
-                break;
-            
-            if(!$lastUpOrderIdNew)
-                $lastUpOrderIdNew = $arOrder['ID'];
-            
-            $order = self::orderCreate($arOrder['ID'], $api, $arParams);
-            
-            if(!$order)
-                continue;
-            
-            $resOrders[] = $order;
-        }
-        
-        if(!empty($resOrders)) {
-            $orders = $api->orderUpload($resOrders);
-            
-            // error pushing orders
-            if (!$orders) {
-                //handle err
-                self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload', $api->getLastError());
-                return true;
+        // pack mode enable / disable
+        // can send data evry 500 rows
+        if (!$steps) {
+            while ($arOrder = $dbOrder->GetNext()) { //here orders by id asc; with offset
+                
+                $order = self::orderCreate($arOrder['ID'], $api, $arParams);
+
+                if (!$order)
+                    continue;
+
+                $resOrders[] = $order;
+                
+                $lastOrderId = $arOrder['ID'];
             }
+
+            if (!empty($resOrders)) {
+                $orders = $api->orderUpload($resOrders);
+
+                // error pushing orders
+                if (!$orders) {
+                    //handle err
+                    self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload', $api->getLastError());
+                    return true;
+                }
+            }
+        } else { // package mode (by default runs after install)
+            $orderCount = 0;
+            
+            while ($arOrder = $dbOrder->GetNext()) { // here orders by id asc
+                
+                $order = self::orderCreate($arOrder['ID'], $api, $arParams);
+
+                if (!$order)
+                    continue;
+                
+                $orderCount++;
+                
+                $resOrders[] = $order;
+                
+                $lastOrderId = $arOrder['ID'];
+                
+                if($orderCount >= $pSize) {
+                    $orders = $api->orderUpload($resOrders);
+                    
+                    // error pushing orders
+                    if (!$orders) {
+                        //handle err
+                        self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload', $api->getLastError());
+                        return false; // in pack mode return errors
+                    }
+                    
+                    COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, $lastOrderId);
+                    
+                    return true; // end of pack
+                }
+            }
+
+            if (!empty($resOrders)) {
+                $orders = $api->orderUpload($resOrders);
+
+                // error pushing orders
+                if (!$orders) {
+                    //handle err
+                    self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload', $api->getLastError());
+                    return false; // in pack mode return errors
+                }
+            } 
         }
         
-        if($lastUpOrderIdNew)
-            COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, $lastUpOrderIdNew);
+        if($lastOrderId)
+            COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, $lastOrderId);
 
         return true; //all ok!
     }
-        
+    
     /**
      * 
      * w+ event in bitrix log
@@ -198,39 +241,12 @@ class ICrmOrderActions
         );
         $phones[] = $phoneWork;
 
-        $addressPersonal = array(
-            'index'    => self::toJSON($arUser['PERSONAL_ZIP']),
-            'country'  => self::toJSON(GetCountryByID($arUser['PERSONAL_COUNTRY'])),
-            'city'     => self::toJSON($arUser['PERSONAL_CITY']),
-            'street'   => self::toJSON($arUser['PERSONAL_STREET']),
-            'building' => self::toJSON($arUser['UF_PERSONAL_BUILDING']),
-            'flat'     => self::toJSON($arUser['UF_PERSONAL_FLAT']),
-            'notes'    => self::toJSON($arUser['PERSONAL_NOTES']),
-            'text'     => self::toJSON($arUser['UF_PERSONAL_TEXT']),
-            'type'     => 'home'
-        );
-        $addresses[] = $addressPersonal;
-
-        $addressWork = array(
-            'index'    => self::toJSON($arUser['WORK_ZIP']),
-            'country'  => self::toJSON(GetCountryByID($arUser['WORK_COUNTRY'])),
-            'city'     => self::toJSON($arUser['WORK_CITY']),
-            'street'   => self::toJSON($arUser['WORK_STREET']),
-            'building' => self::toJSON($arUser['UF_WORK_BUILDING']), // -- 
-            'flat'     => self::toJSON($arUser['UF_WORK_FLAT']),
-            'notes'    => self::toJSON($arUser['PERSONAL_NOTES']),
-            'text'     => self::toJSON($arUser['UF_WORK_TEXT']),
-            'type'     => 'work'
-        );
-        $addresses[] = $addressWork;
-
         $result = array(
             'externalId' => $arFields['USER_ID'],
             'lastName'   => $lastName,
             'firstName'  => $firstName,
             'patronymic' => $patronymic,
-            'phones'     => $phones,
-            'addresses'  => $addresses
+            'phones'     => $phones
         );
 
         $customer = $api->customerEdit($result);

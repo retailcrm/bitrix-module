@@ -154,8 +154,10 @@ class RestApi
     public function orderHistory($startDate = null, $endDate = null, $limit = 100, $offset = 0)
     {
         $url = $this->apiUrl.'orders/history';
-        $this->parameters['startDate'] = $startDate;
-        $this->parameters['endDate'] = $endDate;
+        if($startDate)
+            $this->parameters['startDate'] = $startDate;
+        if($endDate)
+            $this->parameters['endDate'] = $endDate;
         $this->parameters['limit'] = $limit;
         $this->parameters['offset'] = $offset;
 

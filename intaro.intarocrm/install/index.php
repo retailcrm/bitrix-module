@@ -164,7 +164,7 @@ class intaro_intarocrm extends CModule
                     "ACTIVE" => "Y"
                 )
             );
-        
+                    
             if ($arPaymentTypesList = $dbPaymentTypesList->Fetch()) {
                 do {
                     $arResult['bitrixPaymentTypesList'][] = $arPaymentTypesList;     
@@ -189,6 +189,11 @@ class intaro_intarocrm extends CModule
                 } while ($arPaymentStatusesList = $dbPaymentStatusesList->Fetch());
             }
             
+            $arResult['bitrixPaymentStatusesList'][] = array(
+                'ID'   => 'Y',
+                'NAME' => 'Отменен'
+            );
+            
             $APPLICATION->IncludeAdminFile(
                 GetMessage('MODULE_INSTALL_TITLE'), 
                 $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step2.php'
@@ -197,6 +202,31 @@ class intaro_intarocrm extends CModule
         } else if ($step == 3) {
             if(!CModule::IncludeModule("sale")) {
                 //handler
+            }
+  
+            if(!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') 
+                    && isset($_POST['ajax']) && ($_POST['ajax'] == 1)) {
+                include($this->INSTALL_PATH . '/../classes/general/ICrmOrderActions.php');
+                
+                ICrmOrderActions::uploadOrders(true); // each 500
+                
+                $lastUpOrderId = COption::GetOptionString($this->MODULE_ID, $this->CRM_ORDER_LAST_ID, 0);
+                $countLeft = (int) CSaleOrder::GetList(array("ID" => "ASC"), array('>ID' => $lastUpOrderId), array());
+                $countAll = (int) CSaleOrder::GetList(array("ID" => "ASC"), array(), array());
+                
+                if(!isset($_POST['finish']))
+                    $finish = 0;
+                else 
+                    $finish = (int) $_POST['finish'];
+                
+                $percent = 100 - $countLeft * 100 / $countAll;
+                
+                if(!$countLeft)
+                    $finish = 1;
+                
+                $APPLICATION->RestartBuffer();
+		header('Content-Type: application/x-javascript; charset='.LANG_CHARSET);
+		die(json_encode(array("finish" => $finish, "percent" => $percent)));
             }
             
             if (isset($_POST['back']) && $_POST['back']) {
@@ -282,7 +312,8 @@ class intaro_intarocrm extends CModule
             );
             
             //form payment statuses ids arr
-            $paymentStatusesArr = array();
+            $paymentStatusesArr['Y'] = htmlspecialchars(trim($_POST['payment-status-Y']));
+            
             if ($arPaymentStatusesList = $dbPaymentStatusesList->Fetch()) {
                 do {
                     $paymentStatusesArr[$arPaymentStatusesList['ID']] = htmlspecialchars(trim($_POST['payment-status-' . $arPaymentStatusesList['ID']]));     
@@ -300,11 +331,37 @@ class intaro_intarocrm extends CModule
             COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT_STATUSES, serialize($paymentStatusesArr));
             COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT, serialize($paymentArr));
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_LAST_ID, 0);
+            /*RegisterModule($this->MODULE_ID);
+            
+            //agent
+            $dateAgent = new DateTime();
+            $intAgent = new DateInterval('PT600S'); // PT60S - 60 sec; 600 - 600 sec
+            $dateAgent->add($intAgent);
+
+            CAgent::AddAgent(
+                "ICrmOrderActions::uploadOrdersAgent();",
+                 $this->MODULE_ID,
+                 "N",
+                 600, // interval - 10 mins
+                 $dateAgent->format('d.m.Y H:i:s'), // date of first check
+                 "Y", // агент активен
+                 $dateAgent->format('d.m.Y H:i:s'), // date of first start
+                 30
+            );
+            
+            $this->CopyFiles(); */
+            
+            $APPLICATION->IncludeAdminFile(
+                GetMessage('MODULE_INSTALL_TITLE'), 
+                $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step3.php'
+            );
+        } else if ($step == 4) {
+            
             RegisterModule($this->MODULE_ID);
             
             //agent
             $dateAgent = new DateTime();
-            $intAgent = new DateInterval('PT60S');
+            $intAgent = new DateInterval('PT60S'); // PT60S - 60 sec;
             $dateAgent->add($intAgent);
 
             CAgent::AddAgent(
@@ -322,7 +379,7 @@ class intaro_intarocrm extends CModule
             
             $APPLICATION->IncludeAdminFile(
                 GetMessage('MODULE_INSTALL_TITLE'), 
-                $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step3.php'
+                $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step4.php'
             );
         } 
     }

@@ -119,13 +119,13 @@ if (isset($_POST['Update']) && $_POST['Update']=='Y') {
     );
             
     //form payment statuses ids arr
-    $paymentStatusesArr = array();
+    $paymentStatusesArr['Y'] = htmlspecialchars(trim($_POST['payment-status-Y']));
     if ($arPaymentStatusesList = $dbPaymentStatusesList->Fetch()) {
         do {
             $paymentStatusesArr[$arPaymentStatusesList['ID']] = htmlspecialchars(trim($_POST['payment-status-' . $arPaymentStatusesList['ID']]));     
         } while ($arPaymentStatusesList = $dbPaymentStatusesList->Fetch());
     }
-      
+    
     //form payment ids arr
     $paymentArr = array();
     $paymentArr['Y'] = htmlspecialchars(trim($_POST['payment-Y']));
@@ -226,6 +226,10 @@ if (isset($_POST['Update']) && $_POST['Update']=='Y') {
             $arResult['bitrixPaymentStatusesList'][] = $arPaymentStatusesList;
         } while ($arPaymentStatusesList = $dbPaymentStatusesList->Fetch());
     }
+    $arResult['bitrixPaymentStatusesList'][] = array(
+        'ID'   => 'Y',
+        'NAME' => 'Отменен'
+    );
     
     //bitrix pyament Y/N
     $arResult['bitrixPaymentList'][0]['NAME'] = GetMessage('PAYMENT_Y');
