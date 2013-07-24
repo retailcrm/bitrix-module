@@ -63,13 +63,41 @@ class intaro_intarocrm extends CModule
         $step = intval($_REQUEST['step']);
             
         if ($step <= 1) {  
+            if(!CModule::IncludeModule("sale")) {
+                $arResult['errCode'] = 'ERR_SALE';
+            }
+            
+            if(!CModule::IncludeModule("iblock")) {
+                $arResult['errCode'] = 'ERR_IBLOCK';
+            }
+            
+            if(!CModule::IncludeModule("catalog")) {
+                $arResult['errCode'] = 'ERR_CATALOG';
+            }
+            
             $APPLICATION->IncludeAdminFile(
                 GetMessage('MODULE_INSTALL_TITLE'), 
                 $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step1.php'
             );
         } else if ($step == 2) {
             if(!CModule::IncludeModule("sale")) {
-                //handler
+                $arResult['errCode'] = 'ERR_SALE';
+            }
+            
+            if(!CModule::IncludeModule("iblock")) {
+                $arResult['errCode'] = 'ERR_IBLOCK';
+            }
+            
+            if(!CModule::IncludeModule("catalog")) {
+                $arResult['errCode'] = 'ERR_CATALOG';
+            }
+            
+            if(isset($arResult['errCode']) && $arResult['errCode']) {
+                $APPLICATION->IncludeAdminFile(
+                    GetMessage('MODULE_INSTALL_TITLE'),
+                    $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step1.php'
+                );
+                return;
             }
             
             $api_host = htmlspecialchars(trim($_POST[$this->CRM_API_HOST_OPTION]));
@@ -191,7 +219,7 @@ class intaro_intarocrm extends CModule
             
             $arResult['bitrixPaymentStatusesList'][] = array(
                 'ID'   => 'Y',
-                'NAME' => 'Отменен'
+                'NAME' => GetMessage('CANCELED')
             );
             
             $APPLICATION->IncludeAdminFile(
@@ -219,7 +247,7 @@ class intaro_intarocrm extends CModule
                 else 
                     $finish = (int) $_POST['finish'];
                 
-                $percent = 100 - $countLeft * 100 / $countAll;
+                $percent = 100 - round(($countLeft * 100 / $countAll), 1);
                 
                 if(!$countLeft)
                     $finish = 1;

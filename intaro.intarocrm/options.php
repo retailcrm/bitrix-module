@@ -12,8 +12,9 @@ $CRM_PAYMENT_STATUSES = 'pay_statuses_arr';
 $CRM_PAYMENT = 'payment_arr'; //order payment Y/N
 $CRM_ORDER_LAST_ID = 'order_last_id';
 
-CModule::IncludeModule('intaro.intarocrm');
-CModule::IncludeModule('sale');
+if(!CModule::IncludeModule('intaro.intarocrm') 
+        || !CModule::IncludeModule('sale'))
+    return;
 
 $_GET['errc'] = htmlspecialchars(trim($_GET['errc']));
 $_GET['ok'] = htmlspecialchars(trim($_GET['ok']));
@@ -24,7 +25,7 @@ if($_GET['ok'] && $_GET['ok'] == 'Y') echo CAdminMessage::ShowNote(GetMessage('I
 $arResult = array();
 
 //update connection settings
-if (isset($_POST['Update']) && $_POST['Update']=='Y') {
+if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     $api_host = htmlspecialchars(trim($_POST['api_host']));
     $api_key = htmlspecialchars(trim($_POST['api_key']));
             
@@ -43,7 +44,7 @@ if (isset($_POST['Update']) && $_POST['Update']=='Y') {
         }   
     }
 	
-	//bitrix orderTypesList -- personTypes
+    //bitrix orderTypesList -- personTypes
     $dbOrderTypesList = CSalePersonType::GetList(
         array(
             "SORT" => "ASC",
@@ -151,6 +152,10 @@ if (isset($_POST['Update']) && $_POST['Update']=='Y') {
     $arResult['paymentTypesList'] = $api->paymentTypesList();
     $arResult['paymentStatusesList'] = $api->paymentStatusesList(); // --statuses
     $arResult['paymentList'] = $api->orderStatusesList();
+            
+    //check connection & apiKey valid
+    if ((int) $api->getStatusCode() != 200)
+        echo CAdminMessage::ShowMessage(GetMessage('ERR_' . $api->getStatusCode()));
 
     //bitrix orderTypesList -- personTypes
     $dbOrderTypesList = CSalePersonType::GetList(
@@ -228,7 +233,7 @@ if (isset($_POST['Update']) && $_POST['Update']=='Y') {
     }
     $arResult['bitrixPaymentStatusesList'][] = array(
         'ID'   => 'Y',
-        'NAME' => 'Отменен'
+        'NAME' => GetMessage('CANCELED')
     );
     
     //bitrix pyament Y/N
@@ -264,7 +269,7 @@ if (isset($_POST['Update']) && $_POST['Update']=='Y') {
 <form method="POST" action="<?php echo $uri; ?>" id="FORMACTION">
 <?php 
     echo bitrix_sessid_post();
-	$tabControl->BeginNextTab();
+    $tabControl->BeginNextTab();
 ?>
     <input type="hidden" name="tab" value="catalog">
     <tr class="heading">

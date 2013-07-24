@@ -7,7 +7,7 @@ $MESS ['PAYMENT_TYPES_LIST'] = 'Способы оплаты';
 $MESS ['PAYMENT_STATUS_LIST'] = 'Статусы';
 $MESS ['ORDER_TYPES_LIST'] = 'Типы заказа';
 $MESS ['PAYMENT_LIST'] = 'Оплата';
-$MESS ['PAYMENT_Y'] = 'Оплачен';
+$MESS ['PAYMENT_Y'] = 'Флаг «Отменен»';
 $MESS ['PAYMENT_N'] = 'Не оплачен';
+$MESS ['CANCELED'] = 'Отменен';
 $MESS ['INFO_1'] = ' Задайте соответствие между справочниками 1C-Битрикс и справочниками IntaroCRM.';
-?>

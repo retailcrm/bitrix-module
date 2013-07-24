@@ -40,11 +40,11 @@ class ICrmOrderActions
      * Mass order uploading, without repeating; always returns true, but writes error log
      * @return boolean
      */
-    public static function uploadOrders($steps = false, $pSize = 500) {
+    public static function uploadOrders($steps = false, $pSize = 50) {
         
         //COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, 0); // -- for test
         
-        if (!CModule::IncludeModule('iblock')) {
+        if (!CModule::IncludeModule("iblock")) {
             //handle err
             self::eventLog('ICrmOrderActions::uploadOrders', 'iblock', 'module not found');
             return true;
@@ -163,7 +163,7 @@ class ICrmOrderActions
 
         return true; //all ok!
     }
-    
+
     /**
      * 
      * w+ event in bitrix log
@@ -303,7 +303,8 @@ class ICrmOrderActions
             $items[] = array(
                 'price'         => $p['PRICE'],
                 'purchasePrice' => $pr,
-                'discount'      => $p['DISCOUNT_VALUE'],
+                'discount'      => $p['DISCOUNT_PRICE'],
+                'discountPercent' => $p['DISCOUNT_VALUE'],
                 'quantity'      => $p['QUANTITY'],
                 'productId'     => $p['PRODUCT_ID'],
                 'productName'   => self::toJSON($p['NAME'])

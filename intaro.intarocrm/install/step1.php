@@ -1,6 +1,9 @@
-<?php IncludeModuleLangFile(__FILE__); ?>
+<?php 
+    IncludeModuleLangFile(__FILE__);
 
-<?php if($arResult['errCode']) echo CAdminMessage::ShowMessage(GetMessage($arResult['errCode'])); ?>
+    if(isset($arResult['errCode']) && $arResult['errCode']) 
+        echo CAdminMessage::ShowMessage(GetMessage($arResult['errCode'])); 
+?>
 
 <div class="adm-detail-content-item-block">
 <form action="<?php echo $APPLICATION->GetCurPage() ?>" method="POST">

@@ -18,6 +18,7 @@ $MESS ['ICRM_OPTIONS_SUBMIT_TITLE'] = 'Сохранить настройки';
 $MESS ['ICRM_OPTIONS_SUBMIT_VALUE'] = 'Сохранить';
 
 $MESS ['ERR_404'] = 'Возможно не верно введен адрес CRM.';
-$MESS ['ERR_403'] = 'Не верный apiKey.';
+$MESS ['ERR_403'] = 'Неверный apiKey.';
 $MESS ['ERR_0'] = 'Превышено время ожидания ответа от сервера.';
 $MESS ['ICRM_OPTIONS_OK'] = 'Изменения успешно сохранены.';
+$MESS ['CANCELED'] = 'Отменен';
