@@ -84,15 +84,12 @@ class ICrmOrderActions
                 $orders = $api->orderUpload($resOrders);
 
                 // error pushing orders
-                if (($api->getStatusCode() != 200) || ($api->getStatusCode() != 460)) {
+                if ($api->getStatusCode() != 200) {
                     //handle err
                     self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload', $api->getLastError());
-                    return false; // in pack mode return errors
-                }
 
-                // if some orders not uploaded
-                if ($api->getStatusCode() == 460) {
-                    self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload', $api->getLastError());
+                    if ($api->getStatusCode() != 460) // some orders were sent
+                        return false; // in pack mode return errors
                 }
             }
         } else { // package mode (by default runs after install)
@@ -115,15 +112,12 @@ class ICrmOrderActions
                     $orders = $api->orderUpload($resOrders);
                     
                     // error pushing orders
-                    if (($api->getStatusCode() != 200) || ($api->getStatusCode() != 460)) {
+                    if ($api->getStatusCode() != 200) {
                         //handle err
                         self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload', $api->getLastError());
-                        return false; // in pack mode return errors
-                    }
-                    
-                    // if some orders not uploaded
-                    if($api->getStatusCode() == 460) {
-                        self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload', $api->getLastError());
+                        
+                        if($api->getStatusCode() != 460) // some orders were sent
+                            return false; // in pack mode return errors
                     }
                     
                     COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, $lastOrderId);
@@ -136,15 +130,12 @@ class ICrmOrderActions
                 $orders = $api->orderUpload($resOrders);
 
                 // error pushing orders
-                if (($api->getStatusCode() != 200) || ($api->getStatusCode() != 460)) {
+                if ($api->getStatusCode() != 200) {
                     //handle err
                     self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload', $api->getLastError());
-                    return false; // in pack mode return errors
-                }
 
-                // if some orders not uploaded
-                if ($api->getStatusCode() == 460) {
-                    self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload', $api->getLastError());
+                    if ($api->getStatusCode() != 460) // some orders were sent
+                        return false; // in pack mode return errors
                 }
             } 
         }
