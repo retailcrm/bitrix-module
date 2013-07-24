@@ -13,30 +13,6 @@ class ICrmOrderActions
     protected static $CRM_ORDER_LAST_ID = 'order_last_id';
     
     /**
-     * 
-     * @global type $APPLICATION
-     * @param type $str in SITE_CHARSET
-     * @return type $str in utf-8
-     */
-    protected static function toJSON($str) {
-        global $APPLICATION;
-        
-        return $APPLICATION->ConvertCharset($str, SITE_CHARSET, 'utf-8');
-    }
-    
-    /**
-     * 
-     * @global type $APPLICATION
-     * @param type $str in utf-8
-     * @return type $str in SITE_CHARSET
-     */
-    public static function fromJSON($str) {
-        global $APPLICATION;
-        
-        return $APPLICATION->ConvertCharset($str, 'utf-8', SITE_CHARSET);
-    }
-    
-    /**
      * Mass order uploading, without repeating; always returns true, but writes error log
      * @return boolean
      */
@@ -163,7 +139,7 @@ class ICrmOrderActions
 
         return true; //all ok!
     }
-
+    
     /**
      * 
      * w+ event in bitrix log
@@ -176,20 +152,6 @@ class ICrmOrderActions
             "ITEM_ID"       => $itemId,
             "DESCRIPTION"   => $description,
         ));
-        
-        //self::sendEmail($itemId, $description);
-    }
-    
-    /**
-     * 
-     * send email to admin
-     */
-    private static function sendEmail($itemId, $description) {
-        $title = 'Error: Intaro CRM.';
-        $text =  'Error: ' . $itemId . ' - ' . $description;
-        $to = COption::GetOptionString("main", "email_from"); 
-        $from = COption::GetOptionString("main", "email_from");
-        mail($to, $title, $text, 'From:'.$from);
     }
     
     /**
@@ -241,13 +203,13 @@ class ICrmOrderActions
         );
         $phones[] = $phoneWork;
 
-        $result = array(
+        $result = self::clearArr(array(
             'externalId' => $arFields['USER_ID'],
             'lastName'   => $lastName,
             'firstName'  => $firstName,
             'patronymic' => $patronymic,
             'phones'     => $phones
-        );
+        ));
 
         $customer = $api->customerEdit($result);
 
@@ -301,17 +263,17 @@ class ICrmOrderActions
                 $pr = '';
 
             $items[] = array(
-                'price'         => $p['PRICE'],
-                'purchasePrice' => $pr,
-                'discount'      => $p['DISCOUNT_PRICE'],
+                'initialPrice'    => (double) $p['PRICE'] + (double) $p['DISCOUNT_PRICE'],
+                'purchasePrice'   => $pr,
+                'discount'        => $p['DISCOUNT_PRICE'],
                 'discountPercent' => $p['DISCOUNT_VALUE'],
-                'quantity'      => $p['QUANTITY'],
-                'productId'     => $p['PRODUCT_ID'],
-                'productName'   => self::toJSON($p['NAME'])
+                'quantity'        => $p['QUANTITY'],
+                'productId'       => $p['PRODUCT_ID'],
+                'productName'     => self::toJSON($p['NAME'])
             );
         }
         
-        $resOrder = array(
+        $resOrder = self::clearArr(array(
             'contactName'     => $resOrder['contactName'],
             'phone'           => $resOrder['phone'],
             'email'           => $resOrder['email'],
@@ -327,7 +289,7 @@ class ICrmOrderActions
             'status'          => $arParams['optionsPayStatuses'][$arFields['STATUS_ID']],
             'deliveryAddress' => $resOrderDeliveryAddress,
             'items'           => $items
-        );
+        ));
         
         if($send)
             return $api->createOrder($resOrder);
@@ -336,4 +298,49 @@ class ICrmOrderActions
         
     }
     
+    /**
+     * removes all empty fields from arrays
+     * working with nested arrs
+     * 
+     * @param type $arr
+     * @return boolean
+     */
+    public static function clearArr($arr) {
+        if(!$arr || !is_array($arr))
+            return false;
+        
+        foreach($arr as $key => $value) {
+            if(!$value || (is_array($value) && empty($value)))
+                unset($arr[$key]);
+            
+            if(is_array($value) && !empty($value))
+                $arr[$key] = self::clearArr($value);
+        }
+        
+        return $arr;
+    }
+    
+    /**
+     * 
+     * @global type $APPLICATION
+     * @param type $str in SITE_CHARSET
+     * @return type $str in utf-8
+     */
+    protected static function toJSON($str) {
+        global $APPLICATION;
+        
+        return $APPLICATION->ConvertCharset($str, SITE_CHARSET, 'utf-8');
+    }
+    
+    /**
+     * 
+     * @global type $APPLICATION
+     * @param type $str in utf-8
+     * @return type $str in SITE_CHARSET
+     */
+    public static function fromJSON($str) {
+        global $APPLICATION;
+        
+        return $APPLICATION->ConvertCharset($str, 'utf-8', SITE_CHARSET);
+    }
 }

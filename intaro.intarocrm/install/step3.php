@@ -35,7 +35,7 @@ IncludeModuleLangFile(__FILE__);
 
     .instal-progress-bar-alignment {
         height: 28px;
-        margin: 0 2px;
+        margin: 0;
         position: relative;
     }
 
@@ -51,7 +51,7 @@ IncludeModuleLangFile(__FILE__);
         background-image:linear-gradient(top, #27a8d7, #2396ce, #1c79c0);
         position: absolute;
         overflow: hidden;
-        top: 2px;
+        top: 1px;
         left:0;
     }
 
@@ -164,9 +164,9 @@ IncludeModuleLangFile(__FILE__);
         <div class="instal-load-block" id="result">
             <div class="instal-load-label" id="status"><?php echo GetMessage('MESS_1'); ?></div>
             <div class="instal-progress-bar-outer">
-                <div class="instal-progress-bar-alignment" style="width: 980px;">
+                <div class="instal-progress-bar-alignment" style="width: 100%;">
                     <div class="instal-progress-bar-inner" id="indicator" style="width: 0%;">
-                        <div class="instal-progress-bar-inner-text" style="width: 980px;" id="percent">0%</div>
+                        <div class="instal-progress-bar-inner-text" style="width: 100%;" id="percent">0%</div>
                     </div>
                     <span id="percent2">0%</span>
                 </div>
