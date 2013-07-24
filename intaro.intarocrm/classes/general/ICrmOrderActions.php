@@ -68,6 +68,7 @@ class ICrmOrderActions
         // pack mode enable / disable
         // can send data evry 500 rows
         if (!$steps) {
+            
             while ($arOrder = $dbOrder->GetNext()) { //here orders by id asc; with offset
                 
                 $order = self::orderCreate($arOrder['ID'], $api, $arParams);
@@ -79,12 +80,12 @@ class ICrmOrderActions
                 
                 $lastOrderId = $arOrder['ID'];
             }
-
+            
             if (!empty($resOrders)) {
                 $orders = $api->orderUpload($resOrders);
-
+                
                 // error pushing orders
-                if ($api->getStatusCode() != 200) {
+                if ($api->getStatusCode() != 201) {
                     //handle err
                     self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload', $api->getLastError());
 
@@ -92,6 +93,7 @@ class ICrmOrderActions
                         return false; // in pack mode return errors
                 }
             }
+           
         } else { // package mode (by default runs after install)
             $orderCount = 0;
             
@@ -112,7 +114,7 @@ class ICrmOrderActions
                     $orders = $api->orderUpload($resOrders);
                     
                     // error pushing orders
-                    if ($api->getStatusCode() != 200) {
+                    if ($api->getStatusCode() != 201) {
                         //handle err
                         self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload', $api->getLastError());
                         
@@ -130,7 +132,7 @@ class ICrmOrderActions
                 $orders = $api->orderUpload($resOrders);
 
                 // error pushing orders
-                if ($api->getStatusCode() != 200) {
+                if ($api->getStatusCode() != 201) {
                     //handle err
                     self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload', $api->getLastError());
 
