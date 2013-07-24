@@ -84,10 +84,15 @@ class ICrmOrderActions
                 $orders = $api->orderUpload($resOrders);
 
                 // error pushing orders
-                if (!$orders) {
+                if (($api->getStatusCode() != 200) || ($api->getStatusCode() != 460)) {
                     //handle err
                     self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload', $api->getLastError());
-                    return true;
+                    return false; // in pack mode return errors
+                }
+
+                // if some orders not uploaded
+                if ($api->getStatusCode() == 460) {
+                    self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload', $api->getLastError());
                 }
             }
         } else { // package mode (by default runs after install)
@@ -110,10 +115,15 @@ class ICrmOrderActions
                     $orders = $api->orderUpload($resOrders);
                     
                     // error pushing orders
-                    if (!$orders) {
+                    if (($api->getStatusCode() != 200) || ($api->getStatusCode() != 460)) {
                         //handle err
                         self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload', $api->getLastError());
                         return false; // in pack mode return errors
+                    }
+                    
+                    // if some orders not uploaded
+                    if($api->getStatusCode() == 460) {
+                        self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload', $api->getLastError());
                     }
                     
                     COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, $lastOrderId);
@@ -126,10 +136,15 @@ class ICrmOrderActions
                 $orders = $api->orderUpload($resOrders);
 
                 // error pushing orders
-                if (!$orders) {
+                if (($api->getStatusCode() != 200) || ($api->getStatusCode() != 460)) {
                     //handle err
                     self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload', $api->getLastError());
                     return false; // in pack mode return errors
+                }
+
+                // if some orders not uploaded
+                if ($api->getStatusCode() == 460) {
+                    self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload', $api->getLastError());
                 }
             } 
         }
@@ -276,6 +291,10 @@ class ICrmOrderActions
         if($arFields['CANCELED'] == 'Y')
             $arFields['STATUS_ID'] = $arFields['CANCELED'];
         
+        $createdAt =  \datetime::createfromformat('Y-m-d H:i:s', $arFields['DATE_INSERT']);
+        if($createdAt)
+            $createdAt = $createdAt->format('d-m-Y H:i:s');
+        
         $resOrder = self::clearArr(array(
             'contactName'     => $resOrder['contactName'],
             'phone'           => $resOrder['phone'],
@@ -291,6 +310,7 @@ class ICrmOrderActions
             'deliveryType'    => $arParams['optionsDelivTypes'][$resultDeliveryTypeId],
             'status'          => $arParams['optionsPayStatuses'][$arFields['STATUS_ID']],
             'statusComment'   => $arFields['REASON_CANCELED'],
+            'createdAt'       => $createdAt,
             'deliveryAddress' => $resOrderDeliveryAddress,
             'items'           => $items
         ));
