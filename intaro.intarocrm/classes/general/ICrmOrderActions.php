@@ -273,6 +273,9 @@ class ICrmOrderActions
             );
         }
         
+        if($arFields['CANCELED'] == 'Y')
+            $arFields['STATUS_ID'] = $arFields['CANCELED'];
+        
         $resOrder = self::clearArr(array(
             'contactName'     => $resOrder['contactName'],
             'phone'           => $resOrder['phone'],
@@ -287,6 +290,7 @@ class ICrmOrderActions
             'orderType'       => $arParams['optionsOrderTypes'][$arFields['PERSON_TYPE_ID']],
             'deliveryType'    => $arParams['optionsDelivTypes'][$resultDeliveryTypeId],
             'status'          => $arParams['optionsPayStatuses'][$arFields['STATUS_ID']],
+            'statusComment'   => $arFields['REASON_CANCELED'],
             'deliveryAddress' => $resOrderDeliveryAddress,
             'items'           => $items
         ));
