@@ -13,6 +13,8 @@ while ($res = $db_res->Fetch())
                 $arCat = CCatalog::GetByIDExt($res["ID"]);
                 if($arCat['CATALOG_TYPE'] == "D" || $arCat['CATALOG_TYPE'] == "X" || $arCat['CATALOG_TYPE'] == "P")
                         $arIBlockId[] = $res["ID"];
+              
+                
         }
 }
 
@@ -478,7 +480,7 @@ else
 }
 if (empty($arRunErrors))
 {
-/*      if ($GLOBALS["APPLICATION"]->GetFileAccessPermission($SETUP_FILE_NAME) < "W")
+/*  if ($GLOBALS["APPLICATION"]->GetFileAccessPermission($SETUP_FILE_NAME) < "W")
         {
                 $arRunErrors[] = str_replace('#FILE#', $SETUP_FILE_NAME,GetMessage('YANDEX_ERR_FILE_ACCESS_DENIED'));
         } */
@@ -668,6 +670,7 @@ if (empty($arRunErrors))
                                 $arAcc['CATALOG_QUANTITY'] = '';
                                 $arAcc['CATALOG_QUANTITY_TRACE'] = 'N';
                                 $arProduct = CCatalogProduct::GetByID($arAcc['ID']);
+
                                 if (!empty($arProduct))
                                 {
                                         $arAcc['CATALOG_QUANTITY'] = $arProduct['QUANTITY'];
@@ -864,10 +867,12 @@ if (empty($arRunErrors))
                                                 }
                                                 break;
                                         case 'xml_id':
-                                                $strTmpOff .= "<xmlId>".yandex_text2xml($arProduct["EXTERNAL_ID"], true)."</xmlId>\n";
+                                                
+                                                
+                                                $strTmpOff .= "<xmlId>".yandex_text2xml($arAcc["EXTERNAL_ID"], true)."</xmlId>\n";
                                                 break;
                                         case 'product_name':
-                                                $strTmpOff .= "<productName>".yandex_text2xml($arProduct["NAME"], true)."</productName>\n";
+                                                $strTmpOff .= "<productName>".yandex_text2xml($arAcc["NAME"], true)."</productName>\n";
                                                 break;
                                         case 'model':
                                         case 'title':
@@ -1863,6 +1868,7 @@ if (empty($arRunErrors))
         @fwrite($fp, "</yml_catalog>\n");
 
         @fclose($fp);
+
 }
 
 CCatalogDiscountSave::Enable();
