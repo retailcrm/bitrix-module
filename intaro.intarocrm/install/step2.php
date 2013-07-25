@@ -106,12 +106,16 @@ $defaultPayment = array(
                 <td width="50%" class="adm-detail-content-cell-r">
                     <select name="payment-status-<?php echo $bitrixPaymentStatus['ID']; ?>" class="typeselect">
                         <option value="" selected=""></option>
-                        <?php foreach($arResult['paymentList'] as $payment): ?>
-                        <option value="<?php echo $payment['code']; ?>" 
-                            <?php if($defaultPayStatuses[$bitrixPaymentStatus['ID']] == $payment['code']) echo 'selected'; ?>>
-                            <?php echo $APPLICATION->ConvertCharset($payment['name'], 'utf-8', SITE_CHARSET); ?>
-                        </option>
-                        <?php endforeach; ?>
+                        <?php foreach($arResult['paymentGroupList'] as $orderStatusGroup): if(!empty($orderStatusGroup['statuses'])) : ?>
+                        <optgroup label="<?php echo $orderStatusGroup['name']; ?>">
+                            <?php foreach($orderStatusGroup['statuses'] as $payment): ?>
+                            <option value="<?php echo $arResult['paymentList'][$payment]['code']; ?>" 
+                                <?php if ($defaultPayStatuses[$bitrixPaymentStatus['ID']] == $arResult['paymentList'][$payment]['code']) echo 'selected'; ?>>
+                                <?php echo $APPLICATION->ConvertCharset($arResult['paymentList'][$payment]['name'], 'utf-8', SITE_CHARSET); ?>
+                            </option>
+                            <?php endforeach; ?>
+                        </optgroup>
+                        <?php endif; endforeach; ?>
                     </select>
                 </td>
             </tr>

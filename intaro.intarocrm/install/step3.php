@@ -73,6 +73,10 @@ IncludeModuleLangFile(__FILE__);
     $(document).ready(function() { 
         var globStop = false;
         
+        $(window).resize(function(){ // strechin progress bar
+            $('#percent').width($('.instal-progress-bar-outer').width());
+        });
+        
         // orderUpload function
         function orderUpload(finish) {
             if(globStop)

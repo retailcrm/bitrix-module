@@ -146,7 +146,7 @@ class ICrmOrderActions
             COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, $lastOrderId);
 
         return true; //all ok!
-    }
+    }   
     
     /**
      * 

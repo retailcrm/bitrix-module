@@ -141,6 +141,7 @@ class intaro_intarocrm extends CModule
             $arResult['paymentTypesList'] = $this->INTARO_CRM_API->paymentTypesList();
             $arResult['paymentStatusesList'] = $this->INTARO_CRM_API->paymentStatusesList(); // --statuses
             $arResult['paymentList'] = $this->INTARO_CRM_API->orderStatusesList();
+            $arResult['paymentGroupList'] = $this->INTARO_CRM_API->orderStatusGroupsList(); // -- statuses groups
             
             //bitrix orderTypesList -- personTypes
             $dbOrderTypesList = CSalePersonType::GetList(
@@ -359,25 +360,6 @@ class intaro_intarocrm extends CModule
             COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT_STATUSES, serialize($paymentStatusesArr));
             COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT, serialize($paymentArr));
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_LAST_ID, 0);
-            /*RegisterModule($this->MODULE_ID);
-            
-            //agent
-            $dateAgent = new DateTime();
-            $intAgent = new DateInterval('PT600S'); // PT60S - 60 sec; 600 - 600 sec
-            $dateAgent->add($intAgent);
-
-            CAgent::AddAgent(
-                "ICrmOrderActions::uploadOrdersAgent();",
-                 $this->MODULE_ID,
-                 "N",
-                 600, // interval - 10 mins
-                 $dateAgent->format('d.m.Y H:i:s'), // date of first check
-                 "Y", // агент активен
-                 $dateAgent->format('d.m.Y H:i:s'), // date of first start
-                 30
-            );
-            
-            $this->CopyFiles(); */
             
             $APPLICATION->IncludeAdminFile(
                 GetMessage('MODULE_INSTALL_TITLE'), 
