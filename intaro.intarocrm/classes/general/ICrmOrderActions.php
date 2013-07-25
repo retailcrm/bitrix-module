@@ -146,7 +146,7 @@ class ICrmOrderActions
             COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, $lastOrderId);
 
         return true; //all ok!
-    }   
+    }
     
     /**
      * 
@@ -269,7 +269,10 @@ class ICrmOrderActions
                 $pr = $pr['PURCHASING_PRICE'];
             else
                 $pr = '';
-
+            
+            if($p['DISCOUNT_VALUE'])
+                $p['DISCOUNT_PRICE'] = null;
+            
             $items[] = array(
                 'initialPrice'    => (double) $p['PRICE'] + (double) $p['DISCOUNT_PRICE'],
                 'purchasePrice'   => $pr,
