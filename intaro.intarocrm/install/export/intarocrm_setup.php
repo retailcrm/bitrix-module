@@ -124,7 +124,7 @@ if ($STEP==1)
 				<td width="0%" valign="top"></td>
 				<td width="100%" valign="top">
 					<font class="text">
-					<?echo GetMessage("CET_SAVE_FILENAME");?> <input type="text" name="SETUP_FILE_NAME" value="<?echo htmlspecialcharsbx(strlen($SETUP_FILE_NAME)>0 ? $SETUP_FILE_NAME : (COption::GetOptionString("catalog", "export_default_path", "/bitrix/catalog_export/"))."yandex_".mt_rand(0, 999999).".php"); ?>" size="50">
+					<?echo GetMessage("CET_SAVE_FILENAME");?> <input type="text" name="SETUP_FILE_NAME" value="<?echo htmlspecialcharsbx(strlen($SETUP_FILE_NAME)>0 ? $SETUP_FILE_NAME : (COption::GetOptionString("catalog", "export_default_path", "/bitrix/catalog_export/"))."intarocrm"/* .mt_rand(0, 999999) */.".php"); ?>" size="50">
 					</font>
 					<br><br>
 				</td>
