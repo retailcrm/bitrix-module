@@ -73,6 +73,8 @@ IncludeModuleLangFile(__FILE__);
     $(document).ready(function() { 
         var globStop = false;
         
+        $('#percent').width($('.instal-progress-bar-outer').width());
+        
         $(window).resize(function(){ // strechin progress bar
             $('#percent').width($('.instal-progress-bar-outer').width());
         });
@@ -111,6 +113,13 @@ IncludeModuleLangFile(__FILE__);
                     
                     orderUpload(response.finish); // wait until next response
                     
+                },
+                error: function () {
+                    $('input[name="inst"]').css('opacity', '1').removeAttr('disabled');
+                    $('input[name="stop"]').attr('name', 'start');
+                    $('input[name="stop"]').attr('value', '<?php echo GetMessage("START_3"); ?>');
+                    $('#status').text('<?php echo GetMessage('MESS_4'); ?>');
+                    globStop = true;
                 }
             });
         }
