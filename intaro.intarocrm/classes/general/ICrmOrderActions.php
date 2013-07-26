@@ -217,6 +217,7 @@ class ICrmOrderActions
             'firstName'  => $firstName,
             'patronymic' => $patronymic,
             'phones'     => $phones
+            'createdAt'  => $arUser['DATE_REGISTER'],
         ));
 
         $customer = $api->customerEdit($result);
@@ -287,10 +288,6 @@ class ICrmOrderActions
         if($arFields['CANCELED'] == 'Y')
             $arFields['STATUS_ID'] = $arFields['CANCELED'];
         
-        $createdAt =  \datetime::createfromformat('Y-m-d H:i:s', $arFields['DATE_INSERT']);
-        if($createdAt)
-            $createdAt = $createdAt->format('d-m-Y H:i:s');
-        
         $resOrder = self::clearArr(array(
             'contactName'     => $resOrder['contactName'],
             'phone'           => $resOrder['phone'],
@@ -306,7 +303,7 @@ class ICrmOrderActions
             'deliveryType'    => $arParams['optionsDelivTypes'][$resultDeliveryTypeId],
             'status'          => $arParams['optionsPayStatuses'][$arFields['STATUS_ID']],
             'statusComment'   => $arFields['REASON_CANCELED'],
-            'createdAt'       => $createdAt,
+            'createdAt'       => $arFields['DATE_INSERT'],
             'deliveryAddress' => $resOrderDeliveryAddress,
             'items'           => $items
         ));
