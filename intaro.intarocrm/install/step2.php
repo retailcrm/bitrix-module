@@ -24,7 +24,7 @@ $defaultPayTypes = array (
 );
 
 $defaultPayStatuses = array (
-    'N' => 'in-processing',
+    'N' => 'new',
     'P' => 'approval',
     'F' => 'complete',
     'Y' => 'cancel-other'
