@@ -211,13 +211,16 @@ class ICrmOrderActions
         );
         $phones[] = $phoneWork;
 
+        $createdAt = new \DateTime($arUser['DATE_REGISTER']);
+        $createdAt = $createdAt->format('Y-m-d H:i:s');
+        
         $result = self::clearArr(array(
             'externalId' => $arFields['USER_ID'],
             'lastName'   => $lastName,
             'firstName'  => $firstName,
             'patronymic' => $patronymic,
-            'phones'     => $phones
-            'createdAt'  => $arUser['DATE_REGISTER'],
+            'phones'     => $phones,
+            'createdAt'  => $createdAt,
         ));
 
         $customer = $api->customerEdit($result);
