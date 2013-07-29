@@ -256,11 +256,6 @@ class ICrmOrderActions
                     break;
                 case 'ADDRESS': $resOrderDeliveryAddress['text'] = self::toJSON($ar['VALUE']);
                     break;
-                case 'LOCATION': if(!isset($resOrderDeliveryAddress['city']) && !$resOrderDeliveryAddress['city']) {
-                        $resOrderDeliveryAddress['city'] = CSaleLocation::GetByID($ar['VALUE']);
-                        $resOrderDeliveryAddress['city'] = self::toJSON($resOrderDeliveryAddress['city']['CITY_NAME_LANG']);
-                    }
-                    break;
                 case 'FIO': $resOrder['contactName'] = explode(" ", self::toJSON($ar['VALUE']));
                     break;
                 case 'PHONE': $resOrder['phone'] = $ar['VALUE'];
