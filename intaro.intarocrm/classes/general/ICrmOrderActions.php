@@ -18,7 +18,7 @@ class ICrmOrderActions
      */
     public static function uploadOrders($steps = false, $pSize = 50) {
         
-        //COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, 0); // -- for test
+        COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, 0); // -- for test
         
         if (!CModule::IncludeModule("iblock")) {
             //handle err
@@ -39,6 +39,7 @@ class ICrmOrderActions
         }
         
         $resOrders = array();
+        $resCustomers = array();
         
         $lastUpOrderId = COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, 0);
         $lastOrderId = 0;
@@ -68,20 +69,31 @@ class ICrmOrderActions
         // pack mode enable / disable
         // can send data evry 500 rows
         if (!$steps) {
-            
             while ($arOrder = $dbOrder->GetNext()) { //here orders by id asc; with offset
                 
-                $order = self::orderCreate($arOrder['ID'], $api, $arParams);
+                $result = self::orderCreate($arOrder['ID'], $api, $arParams);
 
-                if (!$order)
+                if (!$result['order'] || !$result['customer'])
                     continue;
 
-                $resOrders[] = $order;
+                $resOrders[] = $result['order'];
+                $resCustomers[] = $result['customer'];
                 
                 $lastOrderId = $arOrder['ID'];
             }
             
-            if (!empty($resOrders)) {
+            if (!empty($resOrders) && !empty($resCustomers)) {
+                $customers = $api->customerUpload($resCustomers);
+                
+                // error pushing customers
+                if ($api->getStatusCode() != 201) {
+                    //handle err
+                    self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::customerUpload', $api->getLastError());
+
+                    if ($api->getStatusCode() != 460) // some orders were sent
+                        return true;
+                }
+                
                 $orders = $api->orderUpload($resOrders);
                 
                 // error pushing orders
@@ -99,18 +111,30 @@ class ICrmOrderActions
             
             while ($arOrder = $dbOrder->GetNext()) { // here orders by id asc
                 
-                $order = self::orderCreate($arOrder['ID'], $api, $arParams);
+                $result = self::orderCreate($arOrder['ID'], $api, $arParams);
 
-                if (!$order)
+                if (!$result['order'] || !$result['customer'])
                     continue;
                 
                 $orderCount++;
                 
-                $resOrders[] = $order;
+                $resOrders[] = $result['order'];
+                $resCustomers[] = $result['customer'];
                 
                 $lastOrderId = $arOrder['ID'];
                 
                 if($orderCount >= $pSize) {
+                    $customers = $api->customerUpload($resCustomers);
+                    
+                    // error pushing customers
+                    if ($api->getStatusCode() != 201) {
+                        //handle err
+                        self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::customerUpload', $api->getLastError());
+                        
+                        if($api->getStatusCode() != 460) // some orders were sent
+                            return false; // in pack mode return errors
+                    }
+                    
                     $orders = $api->orderUpload($resOrders);
                     
                     // error pushing orders
@@ -130,6 +154,17 @@ class ICrmOrderActions
             }
 
             if (!empty($resOrders)) {
+                $customers = $api->customerUpload($resCustomers);
+                
+                // error pushing customers
+                if ($api->getStatusCode() != 201) {
+                    //handle err
+                    self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::customerUpload', $api->getLastError());
+
+                    if ($api->getStatusCode() != 460) // some orders were sent
+                        return false; // in pack mode return errors
+                }
+                
                 $orders = $api->orderUpload($resOrders);
 
                 // error pushing orders
@@ -178,6 +213,17 @@ class ICrmOrderActions
         else return;
     }
     
+    /**
+     * 
+     * creates order or returns array of order and customer for mass upload
+     * 
+     * @param type $orderId
+     * @param type $api
+     * @param type $arParams
+     * @param type $send
+     * @return boolean
+     * @return array - array('order' = $order, 'customer' => $customer)
+     */
     public static function orderCreate($orderId, $api, $arParams, $send = false) {
         if(!$api || empty($arParams) || !$orderId) { // add cond to check $arParams
             return false;
@@ -215,7 +261,7 @@ class ICrmOrderActions
         );
         $phones[] = $phoneWork;
 
-        $result = self::clearArr(array(
+        $customer = self::clearArr(array(
             'externalId' => $arFields['USER_ID'],
             'lastName'   => $lastName,
             'firstName'  => $firstName,
@@ -223,8 +269,9 @@ class ICrmOrderActions
             'phones'     => $phones,
             'createdAt'  => $createdAt
         ));
-
-        $customer = $api->customerEdit($result);
+        
+        if($send)
+            $customer = $api->customerEdit($customer);
 
         // error pushing customer
         if (!$customer) {
@@ -320,7 +367,10 @@ class ICrmOrderActions
         if($send)
             return $api->createOrder($resOrder);
         
-        return $resOrder;
+        return array(
+            'order' => $resOrder,
+            'customer' => $customer
+        );
         
     }
     
