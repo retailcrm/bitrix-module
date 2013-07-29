@@ -1,14 +1,13 @@
 Bitrix module
 =============
 
-Bitrix module for interaction with IntaroCRM through REST API.
+Bitrix module for interaction with [IntaroCRM](http://www.intarocrm.com) through [REST API](http://docs.intarocrm.ru/rest-api/).
 
 Module allows:
 
-* Send to IntaroCRM new orders and changes for old orders from Bitrix
-* Load from IntaroCRM changes for old orders to Bitrix
+* Send to IntaroCRM new orders
 * Configure relations between dictionaries of IntaroCRM and Bitrix (statuses, payments, delivery types and etc)
-* Generate extended YML (YandexML) for catalog loading by IntaroCRM
+* Generate [ICML](http://docs.intarocrm.ru/index.php?n=Пользователи.ФорматICML) (IntaroCRM Markup Language) for catalog loading by IntaroCRM
 
 Installation
 -------------

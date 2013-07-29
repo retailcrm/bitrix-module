@@ -59,6 +59,7 @@ class intaro_intarocrm extends CModule
         global $APPLICATION, $step, $arResult;
         
         include($this->INSTALL_PATH . '/../classes/general/RestApi.php');
+        include($this->INSTALL_PATH . '/../classes/general/ICrmOrderActions.php');
                 
         $step = intval($_REQUEST['step']);
             
@@ -141,6 +142,7 @@ class intaro_intarocrm extends CModule
             $arResult['paymentTypesList'] = $this->INTARO_CRM_API->paymentTypesList();
             $arResult['paymentStatusesList'] = $this->INTARO_CRM_API->paymentStatusesList(); // --statuses
             $arResult['paymentList'] = $this->INTARO_CRM_API->orderStatusesList();
+            $arResult['paymentGroupList'] = $this->INTARO_CRM_API->orderStatusGroupsList(); // -- statuses groups
             
             //bitrix orderTypesList -- personTypes
             $dbOrderTypesList = CSalePersonType::GetList(
@@ -233,9 +235,7 @@ class intaro_intarocrm extends CModule
             }
   
             if(!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') 
-                    && isset($_POST['ajax']) && ($_POST['ajax'] == 1)) {
-                include($this->INSTALL_PATH . '/../classes/general/ICrmOrderActions.php');
-                
+                    && isset($_POST['ajax']) && ($_POST['ajax'] == 1)) {              
                 ICrmOrderActions::uploadOrders(true); // each 50
                 
                 $lastUpOrderId = COption::GetOptionString($this->MODULE_ID, $this->CRM_ORDER_LAST_ID, 0);
@@ -249,8 +249,14 @@ class intaro_intarocrm extends CModule
                 
                 $percent = 100 - round(($countLeft * 100 / $countAll), 1);
                 
-                if(!$countLeft)
+                if(!$countLeft) {
+                    $api_host = COption::GetOptionString($mid, $this->CRM_API_HOST_OPTION, 0);
+                    $api_key = COption::GetOptionString($mid, $this->CRM_API_KEY_OPTION, 0);
+                    $this->INTARO_CRM_API = new \IntaroCrm\RestApi($api_host, $api_key);
+                    $this->INTARO_CRM_API->statisticUpdate();
                     $finish = 1;
+                }
+                
                 
                 $APPLICATION->RestartBuffer();
 		header('Content-Type: application/x-javascript; charset='.LANG_CHARSET);
@@ -359,25 +365,6 @@ class intaro_intarocrm extends CModule
             COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT_STATUSES, serialize($paymentStatusesArr));
             COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT, serialize($paymentArr));
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_LAST_ID, 0);
-            /*RegisterModule($this->MODULE_ID);
-            
-            //agent
-            $dateAgent = new DateTime();
-            $intAgent = new DateInterval('PT600S'); // PT60S - 60 sec; 600 - 600 sec
-            $dateAgent->add($intAgent);
-
-            CAgent::AddAgent(
-                "ICrmOrderActions::uploadOrdersAgent();",
-                 $this->MODULE_ID,
-                 "N",
-                 600, // interval - 10 mins
-                 $dateAgent->format('d.m.Y H:i:s'), // date of first check
-                 "Y", // агент активен
-                 $dateAgent->format('d.m.Y H:i:s'), // date of first start
-                 30
-            );
-            
-            $this->CopyFiles(); */
             
             $APPLICATION->IncludeAdminFile(
                 GetMessage('MODULE_INSTALL_TITLE'), 
@@ -445,7 +432,7 @@ class intaro_intarocrm extends CModule
     }
 
     function DeleteFiles() {
-        unlink($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/crm_run.php');
-        unlink($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/crm_setup.php');
+        unlink($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/intarocrm_run.php');
+        unlink($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/intarocrm_setup.php');
     }
 }

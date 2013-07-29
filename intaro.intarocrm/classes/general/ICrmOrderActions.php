@@ -90,7 +90,7 @@ class ICrmOrderActions
                     self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload', $api->getLastError());
 
                     if ($api->getStatusCode() != 460) // some orders were sent
-                        return false; // in pack mode return errors
+                        return true;
                 }
             }
            
@@ -120,9 +120,10 @@ class ICrmOrderActions
                         
                         if($api->getStatusCode() != 460) // some orders were sent
                             return false; // in pack mode return errors
-                    }
                     
-                    COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, $lastOrderId);
+                        if($lastOrderId)
+                            COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, $lastOrderId);
+                    }
                     
                     return true; // end of pack
                 }
@@ -147,7 +148,7 @@ class ICrmOrderActions
 
         return true; //all ok!
     }
-    
+
     /**
      * 
      * w+ event in bitrix log
@@ -193,6 +194,9 @@ class ICrmOrderActions
 
         $rsUser = CUser::GetByID($arFields['USER_ID']);
         $arUser = $rsUser->Fetch();
+        
+        $createdAt = new \DateTime($arUser['DATE_REGISTER']);
+        $createdAt = $createdAt->format('Y-m-d H:i:s');
 
         // push customer (for crm)
         $firstName = self::toJSON($arUser['NAME']);
@@ -216,7 +220,8 @@ class ICrmOrderActions
             'lastName'   => $lastName,
             'firstName'  => $firstName,
             'patronymic' => $patronymic,
-            'phones'     => $phones
+            'phones'     => $phones,
+            'createdAt'  => $createdAt
         ));
 
         $customer = $api->customerEdit($result);
@@ -251,7 +256,7 @@ class ICrmOrderActions
                     break;
                 case 'ADDRESS': $resOrderDeliveryAddress['text'] = self::toJSON($ar['VALUE']);
                     break;
-                case 'FIO': $resOrder['contactName'] = self::toJSON($ar['VALUE']);
+                case 'FIO': $resOrder['contactName'] = explode(" ", self::toJSON($ar['VALUE']));
                     break;
                 case 'PHONE': $resOrder['phone'] = $ar['VALUE'];
                     break;
@@ -269,7 +274,10 @@ class ICrmOrderActions
                 $pr = $pr['PURCHASING_PRICE'];
             else
                 $pr = '';
-
+            
+            if($p['DISCOUNT_VALUE'])
+                $p['DISCOUNT_PRICE'] = null;
+            
             $items[] = array(
                 'initialPrice'    => (double) $p['PRICE'] + (double) $p['DISCOUNT_PRICE'],
                 'purchasePrice'   => $pr,
@@ -284,12 +292,13 @@ class ICrmOrderActions
         if($arFields['CANCELED'] == 'Y')
             $arFields['STATUS_ID'] = $arFields['CANCELED'];
         
-        $createdAt =  \datetime::createfromformat('Y-m-d H:i:s', $arFields['DATE_INSERT']);
-        if($createdAt)
-            $createdAt = $createdAt->format('d-m-Y H:i:s');
+        $createdAt = new \DateTime($arFields['DATE_INSERT']);
+        $createdAt = $createdAt->format('Y-m-d H:i:s');
         
         $resOrder = self::clearArr(array(
-            'contactName'     => $resOrder['contactName'],
+            'firstName'       => $resOrder['contactName'][0],
+            'lastName'        => $resOrder['contactName'][1],
+            'patronymic'      => $resOrder['contactName'][2],
             'phone'           => $resOrder['phone'],
             'email'           => $resOrder['email'],
             'deliveryCost'    => $arFields['PRICE_DELIVERY'],
