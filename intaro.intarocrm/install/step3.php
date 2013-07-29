@@ -85,17 +85,19 @@ IncludeModuleLangFile(__FILE__);
                 return false;
             
             if(finish == 1) {
-                $('#status').text('<?php echo GetMessage('MESS_3'); ?>');
+                $('#status').text('<?php echo GetMessage("MESS_3"); ?>');
                 BX.closeWait();
                 $('input[name="inst"]').css('opacity', '1').removeAttr('disabled');
+                $('input[name="stop"]').css('opacity', '0.5').attr('disabled', 'disabled');
+                $('input[name="stop"]').attr('value', '<?php echo GetMessage("START_1"); ?>');
                 return true; // exit from function, end recursion
             }
             
             var handlerUrl = $(this).parents('form').attr('action');
-            var step = $('input[name="continue"]').val();
-            var id      = $('input[name="id"]').val();
-            var install = $('input[name="install"]').val();
-            var sessid  = BX.bitrix_sessid();
+            var step       = $('input[name="continue"]').val();
+            var id         = $('input[name="id"]').val();
+            var install    = $('input[name="install"]').val();
+            var sessid     = BX.bitrix_sessid();
             
             var data = 'install=' + install +'&step=' + step + '&sessid=' + sessid +
                         '&id=' + id + '&ajax=1&finish=' + finish;
@@ -115,11 +117,14 @@ IncludeModuleLangFile(__FILE__);
                     
                 },
                 error: function () {
+                    BX.closeWait();
                     $('input[name="inst"]').css('opacity', '1').removeAttr('disabled');
                     $('input[name="stop"]').attr('name', 'start');
                     $('input[name="stop"]').attr('value', '<?php echo GetMessage("START_3"); ?>');
                     $('#status').text('<?php echo GetMessage('MESS_4'); ?>');
                     globStop = true;
+                    
+                    alert('<?php echo GetMessage('MESS_5'); ?>');
                 }
             });
         }

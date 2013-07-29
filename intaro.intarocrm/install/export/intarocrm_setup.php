@@ -150,8 +150,8 @@ if ($STEP==1)
 				</td>
 				<td width="100%" valign="top">
 					<input type="hidden" name="lang" value="<?echo LANGUAGE_ID ?>">
-					<input type="hidden" name="ACT_FILE" value="<?echo htmlspecialcharsbx($_REQUEST["ACT_FILE"]) ?>">
-					<input type="hidden" name="ACTION" value="<?echo htmlspecialcharsbx($ACTION) ?>">
+					<input type="hidden" name="ACT_FILE" value="<?echo htmlspecialchars($_REQUEST["ACT_FILE"]) ?>">
+					<input type="hidden" name="ACTION" value="<?echo htmlspecialchars($ACTION) ?>">
 					<input type="hidden" name="STEP" value="<?echo intval($STEP) + 1 ?>">
 					<input type="hidden" name="SETUP_FIELDS_LIST" value="YANDEX_EXPORT,SETUP_SERVER_NAME,SETUP_FILE_NAME">
 					<input type="submit" value="<?echo ($ACTION=="EXPORT")?GetMessage("CET_EXPORT"):GetMessage("CET_SAVE")?>">
