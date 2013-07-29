@@ -3,6 +3,7 @@
 __IncludeLang(GetLangFileName($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/intaro.intarocrm/lang/", "/export_crm.php"));
 set_time_limit(0);
 
+
 CModule::IncludeModule("iblock");
 $db_res = CIBlock::GetList(Array("IBLOCK_TYPE"=>"ASC", "NAME"=>"ASC"),array('CHECK_PERMISSIONS' => 'Y','MIN_PERMISSION' => 'W'));
 $IBLOCK_ID = Array();
@@ -244,30 +245,44 @@ if ($XML_DATA && CheckSerializedData($XML_DATA))
         $XML_DATA = unserialize(stripslashes($XML_DATA));
         if (!is_array($XML_DATA)) $XML_DATA = array();
 }
-$XML_DATA = Array();
-$XML_DATA["TYPE"] = null;
-$XML_DATA["CURRENCY"] = Array (
-            "RUB" => Array (
-                    "rate" => SITE,
-                    "plus" => null 
-                    )
-                );
-$XML_DATA["XML_DATA"] = Array();
-$XML_DATA["SKU_EXPORT"] = Array (
-        "SKU_URL_TEMPLATE_TYPE" => 1,
-        "SKU_URL_TEMPLATE" => null,
-        "SKU_EXPORT_COND" => 1,
-        "SKU_PROP_COND" => Array (
-                "PROP_ID" => 0,
-                "COND" => null,
-                "VALUES" => Array()
-                )
-        );
 
+$XML_DATA = Array();
 foreach ($arIBlockId as $id) 
 {
-        $IBLOCK_ID = $id;
-        $IBLOCK_ID = intval($IBLOCK_ID);
+    $IBLOCK_ID = $id;
+    $IBLOCK_ID = intval($IBLOCK_ID);    
+
+    
+    $XML_DATA[$IBLOCK_ID]["TYPE"] = null;
+    $XML_DATA[$IBLOCK_ID]["CURRENCY"] = Array (
+                "RUB" => Array (
+                        "rate" => SITE,
+                        "plus" => null 
+                        )
+                    );
+    $XML_DATA[$IBLOCK_ID]["XML_DATA"] = Array();
+    $XML_DATA[$IBLOCK_ID]["SKU_EXPORT"] = Array (
+            "SKU_URL_TEMPLATE_TYPE" => 1,
+            "SKU_URL_TEMPLATE" => null,
+            "SKU_EXPORT_COND" => 1,
+            "SKU_PROP_COND" => Array (
+                    "PROP_ID" => 0,
+                    "COND" => null,
+                    "VALUES" => Array()
+                    )
+            );
+
+        $properties = CIBlockProperty::GetList(
+            Array(), 
+            Array(
+                "ACTIVE"=>"Y", 
+                "IBLOCK_ID"=>$IBLOCK_ID, 
+                "CODE" => "ARTICLE"
+                )
+            )->Fetch();
+
+        $XML_DATA[$IBLOCK_ID]['XML_DATA']['PARAMS'][] = $properties['ID'];
+      
         $db_iblock = CIBlock::GetByID($IBLOCK_ID);
         $ar_iblock[$IBLOCK_ID] = $db_iblock->Fetch();
         if (!($ar_iblock[$IBLOCK_ID]))
@@ -378,13 +393,13 @@ foreach ($arIBlockId as $id)
                 }
                 if (true == $boolOffers)
                 {
-                        if (empty($XML_DATA['SKU_EXPORT']))
+                        if (empty($XML_DATA[$IBLOCK_ID]['SKU_EXPORT']))
                         {
                                 $arRunErrors[] = GetMessage('YANDEX_ERR_SKU_SETTINGS_ABSENT');
                         }
                         else
                         {
-                                $arSKUExport = $XML_DATA['SKU_EXPORT'];;
+                                $arSKUExport = $XML_DATA[$IBLOCK_ID]['SKU_EXPORT'];;
                                 if (empty($arSKUExport['SKU_EXPORT_COND']) || !in_array($arSKUExport['SKU_EXPORT_COND'],$arOffersSelectKeys))
                                 {
                                         $arRunErrors[] = GetMessage('YANDEX_SKU_EXPORT_ERR_CONDITION_ABSENT');
@@ -450,11 +465,11 @@ if (empty($arRunErrors))
         }
 }
 
-if (!empty($XML_DATA['PRICE']))
+if (!empty($XML_DATA[$IBLOCK_ID]['PRICE']))
 {
-        if (intval($XML_DATA['PRICE']) > 0)
+        if (intval($XML_DATA[$IBLOCK_ID]['PRICE']) > 0)
         {
-                $rsCatalogGroups = CCatalogGroup::GetGroupsList(array('CATALOG_GROUP_ID' => $XML_DATA['PRICE'],'GROUP_ID' => 2));
+                $rsCatalogGroups = CCatalogGroup::GetGroupsList(array('CATALOG_GROUP_ID' => $XML_DATA[$IBLOCK_ID]['PRICE'],'GROUP_ID' => 2));
                 if (!($arCatalogGroup = $rsCatalogGroups->Fetch()))
                 {
                         $arRunErrors[] = GetMessage('YANDEX_ERR_BAD_PRICE_TYPE');
@@ -536,9 +551,9 @@ if (empty($arRunErrors))
         $arCurrencyAllowed = array($RUR, 'USD', 'EUR', 'UAH', 'BYR', 'KZT');
 
         $BASE_CURRENCY = CCurrency::GetBaseCurrency();
-        if (is_array($XML_DATA['CURRENCY']))
+        if (is_array($XML_DATA[$IBLOCK_ID]['CURRENCY']))
         {
-                foreach ($XML_DATA['CURRENCY'] as $CURRENCY => $arCurData)
+                foreach ($XML_DATA[$IBLOCK_ID]['CURRENCY'] as $CURRENCY => $arCurData)
                 {
                         if (in_array($CURRENCY, $arCurrencyAllowed))
                         {
@@ -663,7 +678,7 @@ if (empty($arRunErrors))
                         while ($obElement = $res->GetNextElement())
                         {
                                 $arAcc = $obElement->GetFields();
-                                if (is_array($XML_DATA['XML_DATA']))
+                                if (is_array($XML_DATA[$IBLOCK_ID]['XML_DATA']))
                                 {
                                         $arAcc["PROPERTIES"] = $obElement->GetProperties();
                                 }
@@ -688,11 +703,11 @@ if (empty($arRunErrors))
                                 $minPriceGroup = 0;
                                 $minPriceCurrency = "";
 
-                                if ($XML_DATA['PRICE'] > 0)
+                                if ($XML_DATA[$IBLOCK_ID]['PRICE'] > 0)
                                 {
                                         $rsPrices = CPrice::GetListEx(array(),array(
                                                 'PRODUCT_ID' => $arAcc['ID'],
-                                                'CATALOG_GROUP_ID' => $XML_DATA['PRICE'],
+                                                'CATALOG_GROUP_ID' => $XML_DATA[$IBLOCK_ID]['PRICE'],
                                                 'CAN_BUY' => 'Y',
                                                 'GROUP_GROUP_ID' => array(2),
                                                 '+<=QUANTITY_FROM' => 1,
@@ -721,7 +736,7 @@ if (empty($arRunErrors))
                                                 $arDiscounts = CCatalogDiscount::GetDiscount(
                                                         $arAcc['ID'],
                                                         $IBLOCK_ID,
-                                                        array($XML_DATA['PRICE']),
+                                                        array($XML_DATA[$IBLOCK_ID]['PRICE']),
                                                         array(2),
                                                         'N',
                                                         $ar_iblock['LID'],
@@ -798,8 +813,8 @@ if (empty($arRunErrors))
                                 else
                                         $arAcc['DETAIL_PAGE_URL'] = str_replace(' ', '%20', $arAcc['DETAIL_PAGE_URL']);
 
-                                if (is_array($XML_DATA) && $XML_DATA['TYPE'] && $XML_DATA['TYPE'] != 'none')
-                                        $str_TYPE = ' type="'.htmlspecialcharsbx($XML_DATA['TYPE']).'"';
+                                if (is_array($XML_DATA[$IBLOCK_ID]) && $XML_DATA[$IBLOCK_ID]['TYPE'] && $XML_DATA[$IBLOCK_ID]['TYPE'] != 'none')
+                                        $str_TYPE = ' type="'.htmlspecialcharsbx($XML_DATA[$IBLOCK_ID]['TYPE']).'"';
                                 else
                                         $str_TYPE = '';
 
@@ -837,7 +852,7 @@ if (empty($arRunErrors))
                                         switch ($key)
                                         {
                                         case 'name':
-                                                if (is_array($XML_DATA) && ($XML_DATA['TYPE'] == 'vendor.model' || $XML_DATA['TYPE'] == 'artist.title'))
+                                                if (is_array($XML_DATA[$IBLOCK_ID]) && ($XML_DATA[$IBLOCK_ID]['TYPE'] == 'vendor.model' || $XML_DATA[$IBLOCK_ID]['TYPE'] == 'artist.title'))
                                                         continue;
 
                                                 $strTmpOff .= "<name>".yandex_text2xml($arAcc["NAME"], true)."</name>\n";
@@ -852,10 +867,11 @@ if (empty($arRunErrors))
                                                         "</description>\n";
                                                 break;
                                         case 'param':
-                                                if (is_array($XML_DATA) && is_array($XML_DATA['XML_DATA']) && is_array($XML_DATA['XML_DATA']['PARAMS']))
+                                                if (is_array($XML_DATA[$IBLOCK_ID]) && is_array($XML_DATA[$IBLOCK_ID]['XML_DATA']) && is_array($XML_DATA[$IBLOCK_ID]['XML_DATA']['PARAMS']))
                                                 {
-                                                        foreach ($XML_DATA['XML_DATA']['PARAMS'] as $key => $prop_id)
+                                                        foreach ($XML_DATA[$IBLOCK_ID]['XML_DATA']['PARAMS'] as $key => $prop_id)
                                                         {
+                                                            
                                                                 $strParamValue = '';
                                                                 if ($prop_id)
                                                                 {
@@ -876,12 +892,12 @@ if (empty($arRunErrors))
                                                 break;
                                         case 'model':
                                         case 'title':
-                                                if (!is_array($XML_DATA) || !is_array($XML_DATA['XML_DATA']) || !$XML_DATA['XML_DATA'][$key])
+                                                if (!is_array($XML_DATA[$IBLOCK_ID]) || !is_array($XML_DATA[$IBLOCK_ID]['XML_DATA']) || !$XML_DATA[$IBLOCK_ID]['XML_DATA'][$key])
                                                 {
                                                         if (
-                                                                $key == 'model' && $XML_DATA['TYPE'] == 'vendor.model'
+                                                                $key == 'model' && $XML_DATA[$IBLOCK_ID]['TYPE'] == 'vendor.model'
                                                                 ||
-                                                                $key == 'title' && $XML_DATA['TYPE'] == 'artist.title'
+                                                                $key == 'title' && $XML_DATA[$IBLOCK_ID]['TYPE'] == 'artist.title'
                                                         )
 
                                                         $strTmpOff.= "<".$key.">".yandex_text2xml($arAcc["NAME"], true)."</".$key.">\n";
@@ -889,14 +905,14 @@ if (empty($arRunErrors))
                                                 else
                                                 {
                                                         $strValue = '';
-                                                        $strValue = yandex_get_value($arAcc, $key, $XML_DATA['XML_DATA'][$key], $IBLOCK_ID);
+                                                        $strValue = yandex_get_value($arAcc, $key, $XML_DATA[$IBLOCK_ID]['XML_DATA'][$key], $IBLOCK_ID);
                                                         if ('' != $strValue)
                                                                 $strTmpOff .= $strValue."\n";
                                                 }
                                                 break;
                                         case 'year':
                                                 $y++;
-                                                if ($XML_DATA['TYPE'] == 'artist.title')
+                                                if ($XML_DATA[$IBLOCK_ID]['TYPE'] == 'artist.title')
                                                 {
                                                         if ($y == 1) continue;
                                                 }
@@ -908,10 +924,10 @@ if (empty($arRunErrors))
                                                 // no break here
 
                                         default:
-                                                if (is_array($XML_DATA) && is_array($XML_DATA['XML_DATA']) && $XML_DATA['XML_DATA'][$key])
+                                                if (is_array($XML_DATA[$IBLOCK_ID]) && is_array($XML_DATA[$IBLOCK_ID]['XML_DATA']) && $XML_DATA[$IBLOCK_ID]['XML_DATA'][$key])
                                                 {
                                                         $strValue = '';
-                                                        $strValue = yandex_get_value($arAcc, $key, $XML_DATA['XML_DATA'][$key], $IBLOCK_ID);
+                                                        $strValue = yandex_get_value($arAcc, $key, $XML_DATA[$IBLOCK_ID]['XML_DATA'][$key], $IBLOCK_ID);
                                                         if ('' != $strValue)
                                                                 $strTmpOff .= $strValue."\n";
                                                 }
@@ -1053,11 +1069,11 @@ if (empty($arRunErrors))
                                         {
                                                 $arOfferItem = $obOfferItem->GetFields();
                                                 $minPrice = -1;
-                                                if ($XML_DATA['PRICE'] > 0)
+                                                if ($XML_DATA[$IBLOCK_ID]['PRICE'] > 0)
                                                 {
                                                         $rsPrices = CPrice::GetListEx(array(),array(
                                                                 'PRODUCT_ID' => $arOfferItem['ID'],
-                                                                'CATALOG_GROUP_ID' => $XML_DATA['PRICE'],
+                                                                'CATALOG_GROUP_ID' => $XML_DATA[$IBLOCK_ID]['PRICE'],
                                                                 'CAN_BUY' => 'Y',
                                                                 'GROUP_GROUP_ID' => array(2),
                                                                 '+<=QUANTITY_FROM' => 1,
@@ -1086,7 +1102,7 @@ if (empty($arRunErrors))
                                                                 $arDiscounts = CCatalogDiscount::GetDiscount(
                                                                         $arOfferItem['ID'],
                                                                         $intOfferIBlockID,
-                                                                        array($XML_DATA['PRICE']),
+                                                                        array($XML_DATA[$IBLOCK_ID]['PRICE']),
                                                                         array(2),
                                                                         'N',
                                                                         $arOfferIBlock['LID'],
@@ -1215,8 +1231,8 @@ if (empty($arRunErrors))
                                                 else
                                                         $arOfferItem['DETAIL_PAGE_URL'] = str_replace(' ', '%20', $arOfferItem['DETAIL_PAGE_URL']);
 
-                                                if (is_array($XML_DATA) && $XML_DATA['TYPE'] && $XML_DATA['TYPE'] != 'none')
-                                                        $str_TYPE = ' type="'.htmlspecialcharsbx($XML_DATA['TYPE']).'"';
+                                                if (is_array($XML_DATA[$IBLOCK_ID]) && $XML_DATA[$IBLOCK_ID]['TYPE'] && $XML_DATA[$IBLOCK_ID]['TYPE'] != 'none')
+                                                        $str_TYPE = ' type="'.htmlspecialcharsbx($XML_DATA[$IBLOCK_ID]['TYPE']).'"';
                                                 else
                                                         $str_TYPE = '';
 
@@ -1262,7 +1278,7 @@ if (empty($arRunErrors))
                                                         switch ($key)
                                                         {
                                                         case 'name':
-                                                                if (is_array($XML_DATA) && ($XML_DATA['TYPE'] == 'vendor.model' || $XML_DATA['TYPE'] == 'artist.title'))
+                                                                if (is_array($XML_DATA[$IBLOCK_ID]) && ($XML_DATA[$IBLOCK_ID]['TYPE'] == 'vendor.model' || $XML_DATA[$IBLOCK_ID]['TYPE'] == 'artist.title'))
                                                                         continue;
 
                                                                 $strOfferYandex .= "<name>".yandex_text2xml($arOfferItem["NAME"], true)."</name>\n";
@@ -1284,10 +1300,11 @@ if (empty($arRunErrors))
                                                                 $strOfferYandex .= "</description>\n";
                                                                 break;
                                                         case 'param':
-                                                                if (is_array($XML_DATA) && is_array($XML_DATA['XML_DATA']) && is_array($XML_DATA['XML_DATA']['PARAMS']))
+                                                                if (is_array($XML_DATA[$IBLOCK_ID]) && is_array($XML_DATA[$IBLOCK_ID]['XML_DATA']) && is_array($XML_DATA[$IBLOCK_ID]['XML_DATA']['PARAMS']))
                                                                 {
-                                                                        foreach ($XML_DATA['XML_DATA']['PARAMS'] as $key => $prop_id)
+                                                                        foreach ($XML_DATA[$IBLOCK_ID]['XML_DATA']['PARAMS'] as $key => $prop_id)
                                                                         {
+                                                                            
                                                                                 $strParamValue = '';
                                                                                 if ($prop_id)
                                                                                 {
@@ -1306,26 +1323,26 @@ if (empty($arRunErrors))
                                                                 break;
                                                         case 'model':
                                                         case 'title':
-                                                                if (!is_array($XML_DATA) || !is_array($XML_DATA['XML_DATA']) || !$XML_DATA['XML_DATA'][$key])
+                                                                if (!is_array($XML_DATA[$IBLOCK_ID]) || !is_array($XML_DATA[$IBLOCK_ID]['XML_DATA']) || !$XML_DATA[$IBLOCK_ID]['XML_DATA'][$key])
                                                                 {
                                                                         if (
-                                                                                $key == 'model' && $XML_DATA['TYPE'] == 'vendor.model'
+                                                                                $key == 'model' && $XML_DATA[$IBLOCK_ID]['TYPE'] == 'vendor.model'
                                                                                 ||
-                                                                                $key == 'title' && $XML_DATA['TYPE'] == 'artist.title'
+                                                                                $key == 'title' && $XML_DATA[$IBLOCK_ID]['TYPE'] == 'artist.title'
                                                                         )
                                                                         $strOfferYandex .= "<".$key.">".yandex_text2xml($arOfferItem["NAME"], true)."</".$key.">\n";
                                                                 }
                                                                 else
                                                                 {
                                                                         $strValue = '';
-                                                                        $strValue = yandex_get_value($arOfferItem, $key, $XML_DATA['XML_DATA'][$key], $IBLOCK_ID);
+                                                                        $strValue = yandex_get_value($arOfferItem, $key, $XML_DATA[$IBLOCK_ID]['XML_DATA'][$key], $IBLOCK_ID);
                                                                         if ('' != $strValue)
                                                                                 $strOfferYandex .= $strValue."\n";
                                                                 }
                                                                 break;
                                                         case 'year':
                                                                 $y++;
-                                                                if ($XML_DATA['TYPE'] == 'artist.title')
+                                                                if ($XML_DATA[$IBLOCK_ID]['TYPE'] == 'artist.title')
                                                                 {
                                                                         if ($y == 1) continue;
                                                                 }
@@ -1335,10 +1352,10 @@ if (empty($arRunErrors))
                                                                 }
                                                 // no break here
                                                         default:
-                                                                if (is_array($XML_DATA) && is_array($XML_DATA['XML_DATA']) && $XML_DATA['XML_DATA'][$key])
+                                                                if (is_array($XML_DATA[$IBLOCK_ID]) && is_array($XML_DATA[$IBLOCK_ID]['XML_DATA']) && $XML_DATA[$IBLOCK_ID]['XML_DATA'][$key])
                                                                 {
                                                                         $strValue = '';
-                                                                        $strValue = yandex_get_value($arOfferItem, $key, $XML_DATA['XML_DATA'][$key], $IBLOCK_ID);
+                                                                        $strValue = yandex_get_value($arOfferItem, $key, $XML_DATA[$IBLOCK_ID]['XML_DATA'][$key], $IBLOCK_ID);
                                                                         if ('' != $strValue)
                                                                                 $strOfferYandex .= $strValue."\n";
                                                                 }
@@ -1386,11 +1403,11 @@ if (empty($arRunErrors))
                                                         $arOfferItem['YANDEX_AVAILABLE'] = 'false';
 
                                                 $minPrice = -1;
-                                                if ($XML_DATA['PRICE'] > 0)
+                                                if ($XML_DATA[$IBLOCK_ID]['PRICE'] > 0)
                                                 {
                                                         $rsPrices = CPrice::GetListEx(array(),array(
                                                                 'PRODUCT_ID' => $arOfferItem['ID'],
-                                                                'CATALOG_GROUP_ID' => $XML_DATA['PRICE'],
+                                                                'CATALOG_GROUP_ID' => $XML_DATA[$IBLOCK_ID]['PRICE'],
                                                                 'CAN_BUY' => 'Y',
                                                                 'GROUP_GROUP_ID' => array(2),
                                                                 '+<=QUANTITY_FROM' => 1,
@@ -1419,7 +1436,7 @@ if (empty($arRunErrors))
                                                                 $arDiscounts = CCatalogDiscount::GetDiscount(
                                                                         $arOfferItem['ID'],
                                                                         $intOfferIBlockID,
-                                                                        array($XML_DATA['PRICE']),
+                                                                        array($XML_DATA[$IBLOCK_ID]['PRICE']),
                                                                         array(2),
                                                                         'N',
                                                                         $arOfferIBlock['LID'],
@@ -1471,8 +1488,8 @@ if (empty($arRunErrors))
                                                 else
                                                         $arOfferItem['DETAIL_PAGE_URL'] = str_replace(' ', '%20', $arOfferItem['DETAIL_PAGE_URL']);
 
-                                                if (is_array($XML_DATA) && $XML_DATA['TYPE'] && $XML_DATA['TYPE'] != 'none')
-                                                        $str_TYPE = ' type="'.htmlspecialcharsbx($XML_DATA['TYPE']).'"';
+                                                if (is_array($XML_DATA[$IBLOCK_ID]) && $XML_DATA[$IBLOCK_ID]['TYPE'] && $XML_DATA[$IBLOCK_ID]['TYPE'] != 'none')
+                                                        $str_TYPE = ' type="'.htmlspecialcharsbx($XML_DATA[$IBLOCK_ID]['TYPE']).'"';
                                                 else
                                                         $str_TYPE = '';
 
@@ -1518,7 +1535,7 @@ if (empty($arRunErrors))
                                                         switch ($key)
                                                         {
                                                         case 'name':
-                                                                if (is_array($XML_DATA) && ($XML_DATA['TYPE'] == 'vendor.model' || $XML_DATA['TYPE'] == 'artist.title'))
+                                                                if (is_array($XML_DATA[$IBLOCK_ID]) && ($XML_DATA[$IBLOCK_ID]['TYPE'] == 'vendor.model' || $XML_DATA[$IBLOCK_ID]['TYPE'] == 'artist.title'))
                                                                         continue;
 
                                                                 $strOfferYandex .= "<name>".yandex_text2xml($arOfferItem["NAME"], true)."</name>\n";
@@ -1540,9 +1557,9 @@ if (empty($arRunErrors))
                                                                 $strOfferYandex .= "</description>\n";
                                                                 break;
                                                         case 'param':
-                                                                if (is_array($XML_DATA) && is_array($XML_DATA['XML_DATA']) && is_array($XML_DATA['XML_DATA']['PARAMS']))
+                                                                if (is_array($XML_DATA[$IBLOCK_ID]) && is_array($XML_DATA[$IBLOCK_ID]['XML_DATA']) && is_array($XML_DATA[$IBLOCK_ID]['XML_DATA']['PARAMS']))
                                                                 {
-                                                                        foreach ($XML_DATA['XML_DATA']['PARAMS'] as $key => $prop_id)
+                                                                        foreach ($XML_DATA[$IBLOCK_ID]['XML_DATA']['PARAMS'] as $key => $prop_id)
                                                                         {
                                                                                 $strParamValue = '';
                                                                                 if ($prop_id)
@@ -1562,26 +1579,26 @@ if (empty($arRunErrors))
                                                                 break;
                                                         case 'model':
                                                         case 'title':
-                                                                if (!is_array($XML_DATA) || !is_array($XML_DATA['XML_DATA']) || !$XML_DATA['XML_DATA'][$key])
+                                                                if (!is_array($XML_DATA[$IBLOCK_ID]) || !is_array($XML_DATA[$IBLOCK_ID]['XML_DATA']) || !$XML_DATA[$IBLOCK_ID]['XML_DATA'][$key])
                                                                 {
                                                                         if (
-                                                                                $key == 'model' && $XML_DATA['TYPE'] == 'vendor.model'
+                                                                                $key == 'model' && $XML_DATA[$IBLOCK_ID]['TYPE'] == 'vendor.model'
                                                                                 ||
-                                                                                $key == 'title' && $XML_DATA['TYPE'] == 'artist.title'
+                                                                                $key == 'title' && $XML_DATA[$IBLOCK_ID]['TYPE'] == 'artist.title'
                                                                         )
                                                                         $strOfferYandex .= "<".$key.">".yandex_text2xml($arOfferItem["NAME"], true)."</".$key.">\n";
                                                                 }
                                                                 else
                                                                 {
                                                                         $strValue = '';
-                                                                        $strValue = yandex_get_value($arOfferItem, $key, $XML_DATA['XML_DATA'][$key], $IBLOCK_ID);
+                                                                        $strValue = yandex_get_value($arOfferItem, $key, $XML_DATA[$IBLOCK_ID]['XML_DATA'][$key], $IBLOCK_ID);
                                                                         if ('' != $strValue)
                                                                                 $strOfferYandex .= $strValue."\n";
                                                                 }
                                                                 break;
                                                         case 'year':
                                                                 $y++;
-                                                                if ($XML_DATA['TYPE'] == 'artist.title')
+                                                                if ($XML_DATA[$IBLOCK_ID]['TYPE'] == 'artist.title')
                                                                 {
                                                                         if ($y == 1) continue;
                                                                 }
@@ -1591,10 +1608,10 @@ if (empty($arRunErrors))
                                                                 }
                                                 // no break here
                                                         default:
-                                                                if (is_array($XML_DATA) && is_array($XML_DATA['XML_DATA']) && $XML_DATA['XML_DATA'][$key])
+                                                                if (is_array($XML_DATA[$IBLOCK_ID]) && is_array($XML_DATA[$IBLOCK_ID]['XML_DATA']) && $XML_DATA[$IBLOCK_ID]['XML_DATA'][$key])
                                                                 {
                                                                         $strValue = '';
-                                                                        $strValue = yandex_get_value($arOfferItem, $key, $XML_DATA['XML_DATA'][$key], $IBLOCK_ID);
+                                                                        $strValue = yandex_get_value($arOfferItem, $key, $XML_DATA[$IBLOCK_ID]['XML_DATA'][$key], $IBLOCK_ID);
                                                                         if ('' != $strValue)
                                                                                 $strOfferYandex .= $strValue."\n";
                                                                 }
@@ -1630,11 +1647,11 @@ if (empty($arRunErrors))
                                         $minPriceGroup = 0;
                                         $minPriceCurrency = "";
 
-                                        if ($XML_DATA['PRICE'] > 0)
+                                        if ($XML_DATA[$IBLOCK_ID]['PRICE'] > 0)
                                         {
                                                 $rsPrices = CPrice::GetListEx(array(),array(
                                                         'PRODUCT_ID' => $arItem['ID'],
-                                                        'CATALOG_GROUP_ID' => $XML_DATA['PRICE'],
+                                                        'CATALOG_GROUP_ID' => $XML_DATA[$IBLOCK_ID]['PRICE'],
                                                         'CAN_BUY' => 'Y',
                                                         'GROUP_GROUP_ID' => array(2),
                                                         '+<=QUANTITY_FROM' => 1,
@@ -1663,7 +1680,7 @@ if (empty($arRunErrors))
                                                         $arDiscounts = CCatalogDiscount::GetDiscount(
                                                                 $arItem['ID'],
                                                                 $IBLOCK_ID,
-                                                                array($XML_DATA['PRICE']),
+                                                                array($XML_DATA[$IBLOCK_ID]['PRICE']),
                                                                 array(2),
                                                                 'N',
                                                                 $ar_iblock['LID'],
@@ -1726,8 +1743,8 @@ if (empty($arRunErrors))
                                                 $arItem['~DETAIL_PAGE_URL'] = str_replace(' ', '%20', $arItem['~DETAIL_PAGE_URL']);
                                         }
 
-                                        if (is_array($XML_DATA) && $XML_DATA['TYPE'] && $XML_DATA['TYPE'] != 'none')
-                                                $str_TYPE = ' type="'.htmlspecialcharsbx($XML_DATA['TYPE']).'"';
+                                        if (is_array($XML_DATA[$IBLOCK_ID]) && $XML_DATA[$IBLOCK_ID]['TYPE'] && $XML_DATA[$IBLOCK_ID]['TYPE'] != 'none')
+                                                $str_TYPE = ' type="'.htmlspecialcharsbx($XML_DATA[$IBLOCK_ID]['TYPE']).'"';
                                         else
                                                 $str_TYPE = '';
                                         if (!isset($arItem["ID"]))
@@ -1754,7 +1771,7 @@ if (empty($arRunErrors))
                                                 switch ($key)
                                                 {
                                                 case 'name':
-                                                        if (is_array($XML_DATA) && ($XML_DATA['TYPE'] == 'vendor.model' || $XML_DATA['TYPE'] == 'artist.title'))
+                                                        if (is_array($XML_DATA[$IBLOCK_ID]) && ($XML_DATA[$IBLOCK_ID]['TYPE'] == 'vendor.model' || $XML_DATA[$IBLOCK_ID]['TYPE'] == 'artist.title'))
                                                                 continue;
 
                                                         $strValue = "<name>".yandex_text2xml($arItem["NAME"], true)."</name>\n";
@@ -1769,9 +1786,9 @@ if (empty($arRunErrors))
                                                                 "</description>\n";
                                                         break;
                                                 case 'param':
-                                                        if (is_array($XML_DATA) && is_array($XML_DATA['XML_DATA']) && is_array($XML_DATA['XML_DATA']['PARAMS']))
+                                                        if (is_array($XML_DATA[$IBLOCK_ID]) && is_array($XML_DATA[$IBLOCK_ID]['XML_DATA']) && is_array($XML_DATA[$IBLOCK_ID]['XML_DATA']['PARAMS']))
                                                         {
-                                                                foreach ($XML_DATA['XML_DATA']['PARAMS'] as $key => $prop_id)
+                                                                foreach ($XML_DATA[$IBLOCK_ID]['XML_DATA']['PARAMS'] as $key => $prop_id)
                                                                 {
                                                                         $strParamValue = '';
                                                                         if ($prop_id)
@@ -1791,26 +1808,26 @@ if (empty($arRunErrors))
                                                         break;
                                                 case 'model':
                                                 case 'title':
-                                                        if (!is_array($XML_DATA) || !is_array($XML_DATA['XML_DATA']) || !$XML_DATA['XML_DATA'][$key])
+                                                        if (!is_array($XML_DATA[$IBLOCK_ID]) || !is_array($XML_DATA[$IBLOCK_ID]['XML_DATA']) || !$XML_DATA[$IBLOCK_ID]['XML_DATA'][$key])
                                                         {
                                                                 if (
-                                                                        $key == 'model' && $XML_DATA['TYPE'] == 'vendor.model'
+                                                                        $key == 'model' && $XML_DATA[$IBLOCK_ID]['TYPE'] == 'vendor.model'
                                                                         ||
-                                                                        $key == 'title' && $XML_DATA['TYPE'] == 'artist.title'
+                                                                        $key == 'title' && $XML_DATA[$IBLOCK_ID]['TYPE'] == 'artist.title'
                                                                 )
 
                                                                 $strValue = "<".$key.">".yandex_text2xml($arItem["NAME"], true)."</".$key.">\n";
                                                         }
                                                         else
                                                         {
-                                                                $strValue = yandex_get_value($arItem, $key, $XML_DATA['XML_DATA'][$key], $IBLOCK_ID);
+                                                                $strValue = yandex_get_value($arItem, $key, $XML_DATA[$IBLOCK_ID]['XML_DATA'][$key], $IBLOCK_ID);
                                                                 if ('' != $strValue)
                                                                         $strValue .= "\n";
                                                         }
                                                         break;
                                                 case 'year':
                                                         $y++;
-                                                        if ($XML_DATA['TYPE'] == 'artist.title')
+                                                        if ($XML_DATA[$IBLOCK_ID]['TYPE'] == 'artist.title')
                                                         {
                                                                 if ($y == 1) continue;
                                                         }
@@ -1822,9 +1839,9 @@ if (empty($arRunErrors))
                                                 // no break here
 
                                                 default:
-                                                        if (is_array($XML_DATA) && is_array($XML_DATA['XML_DATA']) && $XML_DATA['XML_DATA'][$key])
+                                                        if (is_array($XML_DATA[$IBLOCK_ID]) && is_array($XML_DATA[$IBLOCK_ID]['XML_DATA']) && $XML_DATA[$IBLOCK_ID]['XML_DATA'][$key])
                                                         {
-                                                                $strValue = yandex_get_value($arItem, $key, $XML_DATA['XML_DATA'][$key], $IBLOCK_ID);
+                                                                $strValue = yandex_get_value($arItem, $key, $XML_DATA[$IBLOCK_ID]['XML_DATA'][$key], $IBLOCK_ID);
                                                                 if ('' != $strValue)
                                                                         $strValue .= "\n";
                                                         }
@@ -1868,6 +1885,7 @@ if (empty($arRunErrors))
         @fwrite($fp, "</yml_catalog>\n");
 
         @fclose($fp);
+        
 
 }
 
