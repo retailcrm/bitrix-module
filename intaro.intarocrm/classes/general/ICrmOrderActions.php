@@ -152,6 +152,8 @@ class ICrmOrderActions
                     return true; // end of pack
                 }
             }
+            
+            self::eventLog('json', 'json', json_encode($resOrders));
 
             if (!empty($resOrders)) {
                 $customers = $api->customerUpload($resCustomers);
@@ -297,13 +299,18 @@ class ICrmOrderActions
         $rsOrderProps = CSaleOrderPropsValue::GetList(array(), array('ORDER_ID' => $arFields['ID']));
         while ($ar = $rsOrderProps->Fetch()) {
             switch ($ar['CODE']) {
-                case 'ZIP': $resOrderDeliveryAddress['index'] = self::toJSON($ar['VALUE']);
+                case 'ZIP': $resOrderDeliveryAddress['index'] = ICrmOrderActions::toJSON($ar['VALUE']);
                     break;
-                case 'CITY': $resOrderDeliveryAddress['city'] = self::toJSON($ar['VALUE']);
+                case 'CITY': $resOrderDeliveryAddress['city'] = ICrmOrderActions::toJSON($ar['VALUE']);
                     break;
-                case 'ADDRESS': $resOrderDeliveryAddress['text'] = self::toJSON($ar['VALUE']);
+                case 'ADDRESS': $resOrderDeliveryAddress['text'] = ICrmOrderActions::toJSON($ar['VALUE']);
                     break;
-                case 'FIO': $resOrder['contactName'] = explode(" ", self::toJSON($ar['VALUE']));
+                case 'LOCATION': if(!isset($resOrderDeliveryAddress['city']) && !$resOrderDeliveryAddress['city']) {
+                        $resOrderDeliveryAddress['city'] = CSaleLocation::GetByID($ar['VALUE']);
+                        $resOrderDeliveryAddress['city'] = self::toJSON($resOrderDeliveryAddress['city']['CITY_NAME_LANG']);
+                    }
+                    break;
+                case 'FIO': $resOrder['contactName'] = explode(" ", ICrmOrderActions::toJSON($ar['VALUE']));
                     break;
                 case 'PHONE': $resOrder['phone'] = $ar['VALUE'];
                     break;
@@ -402,7 +409,7 @@ class ICrmOrderActions
      * @param type $str in SITE_CHARSET
      * @return type $str in utf-8
      */
-    protected static function toJSON($str) {
+    public static function toJSON($str) {
         global $APPLICATION;
         
         return $APPLICATION->ConvertCharset($str, SITE_CHARSET, 'utf-8');
