@@ -144,10 +144,10 @@ class ICrmOrderActions
                         
                         if($api->getStatusCode() != 460) // some orders were sent
                             return false; // in pack mode return errors
-                    
-                        if($lastOrderId)
-                            COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, $lastOrderId);
                     }
+                    
+                    if($lastOrderId)
+                        COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, $lastOrderId);
                     
                     return true; // end of pack
                 }
