@@ -90,7 +90,7 @@ class ICrmOrderActions
                     self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload', $api->getLastError());
 
                     if ($api->getStatusCode() != 460) // some orders were sent
-                        return false; // in pack mode return errors
+                        return true;
                 }
             }
            
