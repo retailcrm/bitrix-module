@@ -1624,7 +1624,7 @@ if (empty($arRunErrors))
                                                 $boolItemExport = true;
                                         }
                                 }
-                                if ('X' == $arCatalog[$IBLOCK_ID]['CATALOG_TYPE'] && !$boolItemOffers)
+                                if (('X' == $arCatalog[$IBLOCK_ID]['CATALOG_TYPE'] || 'P' == $arCatalog[$IBLOCK_ID]['CATALOG_TYPE'])  && !$boolItemOffers)
                                 {
                                         
                                         $arItem['CATALOG_QUANTITY'] = '';
