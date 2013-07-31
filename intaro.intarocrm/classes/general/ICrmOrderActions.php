@@ -152,9 +152,6 @@ class ICrmOrderActions
                     return true; // end of pack
                 }
             }
-            
-            self::eventLog('json', 'json', json_encode($resOrders));
-
             if (!empty($resOrders)) {
                 $customers = $api->customerUpload($resCustomers);
                 
