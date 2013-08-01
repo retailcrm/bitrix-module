@@ -30,6 +30,7 @@ class intaro_intarocrm extends CModule
     var $CRM_PAYMENT_STATUSES = 'pay_statuses_arr';
     var $CRM_PAYMENT = 'payment_arr'; //order payment Y/N
     var $CRM_ORDER_LAST_ID = 'order_last_id';
+    var $CRM_ORDER_PROPS = 'order_props';
 
 
     var $INSTALL_PATH;
@@ -363,6 +364,16 @@ class intaro_intarocrm extends CModule
             $paymentArr = array();
             $paymentArr['Y'] = htmlspecialchars(trim($_POST['payment-Y']));
             $paymentArr['N'] = htmlspecialchars(trim($_POST['payment-N']));
+            
+            // orderProps assoc arr
+            $orderPropsArr = array(
+                'city'  => 'CITY',
+                'fio'   => 'FIO',
+                'index' => 'ZIP',
+                'text'  => 'ADDRESS',
+                'phone' => 'PHONE',
+                'email' => 'EMAIL'
+            );
 
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_TYPES_ARR, serialize($orderTypesArr));
             COption::SetOptionString($this->MODULE_ID, $this->CRM_DELIVERY_TYPES_ARR, serialize($deliveryTypesArr));
@@ -370,6 +381,7 @@ class intaro_intarocrm extends CModule
             COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT_STATUSES, serialize($paymentStatusesArr));
             COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT, serialize($paymentArr));
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_LAST_ID, 0);
+            COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_PROPS, serialize($orderPropsArr));
 
             $APPLICATION->IncludeAdminFile(
                 GetMessage('MODULE_INSTALL_TITLE'),
