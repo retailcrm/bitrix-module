@@ -18,7 +18,7 @@ class ICrmOrderActions
      */
     public static function uploadOrders($steps = false, $pSize = 50) {
         
-        COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, 0); // -- for test
+        //COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, 0); // -- for test
         
         if (!CModule::IncludeModule("iblock")) {
             //handle err
@@ -88,7 +88,7 @@ class ICrmOrderActions
                 // error pushing customers
                 if ($api->getStatusCode() != 201) {
                     //handle err
-                    self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::customerUpload', $api->getLastError());
+                    //self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::customerUpload', $api->getLastError());
 
                     if ($api->getStatusCode() != 460) // some orders were sent
                         return true;
@@ -129,7 +129,7 @@ class ICrmOrderActions
                     // error pushing customers
                     if ($api->getStatusCode() != 201) {
                         //handle err
-                        self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::customerUpload', $api->getLastError());
+                        //self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::customerUpload', $api->getLastError());
                         
                         if($api->getStatusCode() != 460) // some orders were sent
                             return false; // in pack mode return errors
@@ -158,7 +158,7 @@ class ICrmOrderActions
                 // error pushing customers
                 if ($api->getStatusCode() != 201) {
                     //handle err
-                    self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::customerUpload', $api->getLastError());
+                    //self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::customerUpload', $api->getLastError());
 
                     if ($api->getStatusCode() != 460) // some orders were sent
                         return false; // in pack mode return errors
@@ -188,6 +188,7 @@ class ICrmOrderActions
      * w+ event in bitrix log
      */
     private static function eventLog($auditType, $itemId, $description) {
+        
         CEventLog::Add(array(
             "SEVERITY"      => "SECURITY",
             "AUDIT_TYPE_ID" => $auditType,
