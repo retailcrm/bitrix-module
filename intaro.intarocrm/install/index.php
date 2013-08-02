@@ -367,7 +367,6 @@ class intaro_intarocrm extends CModule
             
             // orderProps assoc arr
             $orderPropsArr = array(
-                'city'  => 'CITY',
                 'fio'   => 'FIO',
                 'index' => 'ZIP',
                 'text'  => 'ADDRESS',

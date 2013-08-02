@@ -256,14 +256,6 @@ class ICrmOrderActions
             switch ($ar['CODE']) {
                 case $arParams['optionsOrderProps']['index']: $resOrderDeliveryAddress['index'] = self::toJSON($ar['VALUE']);
                     break;
-                case $arParams['optionsOrderProps']['city']: if ($arParams['optionsOrderProps']['index'] == 'LOCATION') {
-                        if (!isset($resOrderDeliveryAddress['city']) && !$resOrderDeliveryAddress['city']) {
-                            $resOrderDeliveryAddress['city'] = CSaleLocation::GetByID($ar['VALUE']);
-                            $resOrderDeliveryAddress['city'] = self::toJSON($resOrderDeliveryAddress['city']['CITY_NAME_LANG']);
-                        }
-                    } else
-                        $resOrderDeliveryAddress['city'] = self::toJSON($ar['VALUE']);
-                    break;
                 case 'CITY': if (!isset($resOrderDeliveryAddress['city']) && !$resOrderDeliveryAddress['city'])
                         $resOrderDeliveryAddress['city'] = self::toJSON($ar['VALUE']); // we check both locations & city for export
                     break;
@@ -280,6 +272,31 @@ class ICrmOrderActions
                     break;
                 case $arParams['optionsOrderProps']['email']: $resOrder['email'] = $ar['VALUE'];
                     break;
+            }
+            
+            if (count($arParams['optionsOrderProps'] > 5)) {
+                switch ($ar['CODE']) {
+                    case $arParams['optionsOrderProps']['country']: $resOrderDeliveryAddress['country'] = self::toJSON($ar['VALUE']);
+                        break;
+                    case $arParams['optionsOrderProps']['region']: $resOrderDeliveryAddress['region'] = self::toJSON($ar['VALUE']);
+                        break;
+                    case $arParams['optionsOrderProps']['city']: $resOrderDeliveryAddress['city'] = self::toJSON($ar['VALUE']);
+                        break;
+                    case $arParams['optionsOrderProps']['street']: $resOrderDeliveryAddress['street'] = self::toJSON($ar['VALUE']);
+                        break;
+                    case $arParams['optionsOrderProps']['building']: $resOrderDeliveryAddress['building'] = self::toJSON($ar['VALUE']);
+                        break;
+                    case $arParams['optionsOrderProps']['flat']: $resOrderDeliveryAddress['flat'] = self::toJSON($ar['VALUE']);
+                        break;
+                    case $arParams['optionsOrderProps']['inercomcode']: $resOrderDeliveryAddress['intercomcode'] = self::toJSON($ar['VALUE']);
+                        break;
+                    case $arParams['optionsOrderProps']['floor']: $resOrderDeliveryAddress['floor'] = self::toJSON($ar['VALUE']);
+                        break;
+                    case $arParams['optionsOrderProps']['block']: $resOrderDeliveryAddress['block'] = self::toJSON($ar['VALUE']);
+                        break;
+                    case $arParams['optionsOrderProps']['house']: $resOrderDeliveryAddress['house'] = self::toJSON($ar['VALUE']);
+                        break;
+                }
             }
         }
 

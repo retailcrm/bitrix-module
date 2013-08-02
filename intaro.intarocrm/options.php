@@ -26,16 +26,35 @@ if($_GET['ok'] && $_GET['ok'] == 'Y') echo CAdminMessage::ShowNote(GetMessage('I
 $arResult = array();
 $arResult['orderProps'][0]['NAME'] = GetMessage('FIO');
 $arResult['orderProps'][0]['ID'] = 'fio';
-$arResult['orderProps'][1]['NAME'] = GetMessage('CITY');
-$arResult['orderProps'][1]['ID'] = 'city';
-$arResult['orderProps'][2]['NAME'] = GetMessage('ZIP');
-$arResult['orderProps'][2]['ID'] = 'index';
-$arResult['orderProps'][3]['NAME'] = GetMessage('ADDRESS');
-$arResult['orderProps'][3]['ID'] = 'text';
-$arResult['orderProps'][4]['NAME'] = GetMessage('PHONE');
-$arResult['orderProps'][4]['ID'] = 'phone';
-$arResult['orderProps'][5]['NAME'] = GetMessage('EMAIL');
-$arResult['orderProps'][5]['ID'] = 'email';
+$arResult['orderProps'][1]['NAME'] = GetMessage('ZIP');
+$arResult['orderProps'][1]['ID'] = 'index';
+$arResult['orderProps'][2]['NAME'] = GetMessage('PHONE');
+$arResult['orderProps'][2]['ID'] = 'phone';
+$arResult['orderProps'][3]['NAME'] = GetMessage('EMAIL');
+$arResult['orderProps'][3]['ID'] = 'email';
+// address
+$arResult['orderProps'][4]['NAME'] = GetMessage('ADDRESS');
+$arResult['orderProps'][4]['ID'] = 'text';
+$arResult['orderProps'][5]['NAME'] = GetMessage('COUNTRY');
+$arResult['orderProps'][5]['ID'] = 'country';
+$arResult['orderProps'][6]['NAME'] = GetMessage('REGION');
+$arResult['orderProps'][6]['ID'] = 'region';
+$arResult['orderProps'][7]['NAME'] = GetMessage('CITY');
+$arResult['orderProps'][7]['ID'] = 'city';
+$arResult['orderProps'][8]['NAME'] = GetMessage('STREET');
+$arResult['orderProps'][8]['ID'] = 'street';
+$arResult['orderProps'][9]['NAME'] = GetMessage('BUILDING');
+$arResult['orderProps'][9]['ID'] = 'building';
+$arResult['orderProps'][10]['NAME'] = GetMessage('FLAT');
+$arResult['orderProps'][10]['ID'] = 'flat';
+$arResult['orderProps'][11]['NAME'] = GetMessage('INTERCOMCODE');
+$arResult['orderProps'][11]['ID'] = 'intercomecode';
+$arResult['orderProps'][12]['NAME'] = GetMessage('FLOOR');
+$arResult['orderProps'][12]['ID'] = 'floor';
+$arResult['orderProps'][13]['NAME'] = GetMessage('BLOCK');
+$arResult['orderProps'][13]['ID'] = 'block';
+$arResult['orderProps'][14]['NAME'] = GetMessage('HOUSE');
+$arResult['orderProps'][14]['ID'] = 'house';
 
 //update connection settings
 if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
@@ -145,8 +164,13 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     $paymentArr['Y'] = htmlspecialchars(trim($_POST['payment-Y']));
     $paymentArr['N'] = htmlspecialchars(trim($_POST['payment-N']));
     
-    foreach($arResult['orderProps'] as $orderProp)
+    $propsCount = 0;
+    foreach($arResult['orderProps'] as $orderProp) {
+        if((!(int) htmlspecialchars(trim($_POST['address-detail']))) && $propsCount > 4) 
+            break;
         $orderPropsArr[$orderProp['ID']] = htmlspecialchars(trim($_POST['order-prop-' . $orderProp['ID']]));
+        $propsCount++;
+    }
     
     COption::SetOptionString($mid, $CRM_ORDER_TYPES_ARR, serialize($orderTypesArr));
     COption::SetOptionString($mid, $CRM_DELIVERY_TYPES_ARR, serialize($deliveryTypesArr));
@@ -297,6 +321,19 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     $tabControl = new CAdminTabControl("tabControl", $aTabs);
     $tabControl->Begin();
 ?>
+<?php $APPLICATION->AddHeadString('<script type="text/javascript" src="/bitrix/js/main/jquery/jquery-1.7.min.js"></script>'); ?>
+<script type="text/javascript">
+    $(document).ready(function() { 
+        $('input[name="address-detail"]').change(function(){  
+            if(parseInt($(this).val()) === 1)
+                $('tr.address-detail').show('slow');
+            else if(parseInt($(this).val()) === 0)
+                $('tr.address-detail').hide('slow');
+                
+            });
+     });
+</script>
+
 <form method="POST" action="<?php echo $uri; ?>" id="FORMACTION">
 <?php 
     echo bitrix_sessid_post();
@@ -425,8 +462,18 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     <tr class="heading">
         <td colspan="2"><b><?php echo GetMessage('ORDER_PROPS'); ?></b></td>
     </tr>
-    <?php foreach($arResult['orderProps'] as $orderProp): ?>
-    <tr>
+    <?php $countProps = 0; foreach($arResult['orderProps'] as $orderProp): ?>
+    <?php if($orderProp['ID'] == 'text'): ?>
+    <tr class="heading">
+        <td colspan="2">
+            <b>
+                <input type="radio" name="address-detail" value="0" <?php if(count($optionsOrderProps) < 6) echo "checked"; ?>><?php echo GetMessage('ADDRESS_SHORT'); ?>
+                <input type="radio" name="address-detail" value="1" <?php if(count($optionsOrderProps) > 5) echo "checked"; ?>><?php echo GetMessage('ADDRESS_FULL'); ?>
+            </b>
+        </td>
+    </tr>
+    <?php endif; ?>
+    <tr <?php if ($countProps > 4) echo 'class="address-detail"'; if(($countProps > 4) && (count($optionsOrderProps) < 6)) echo 'style="display:none;"';?>>
         <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $orderProp['ID']; ?>">
     	    <?php echo $orderProp['NAME']; ?>
         </td>
@@ -441,7 +488,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             </select>
         </td>
     </tr>
-    <?php endforeach; ?>
+    <?php $countProps++; endforeach; ?>
 <?php $tabControl->BeginNextTab(); ?>
 <?php $tabControl->Buttons(); ?>
 <input type="hidden" name="Update" value="Y" />
