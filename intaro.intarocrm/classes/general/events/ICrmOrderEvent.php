@@ -80,7 +80,8 @@ class ICrmOrderEvent {
             'optionsPayment'     => $optionsPayment
         );
         
-        $result = ICrmOrderActions::orderCreate($ID, $api, $arParams, true);
+        $arOrder = CSaleOrder::GetById($ID);
+        $result = ICrmOrderActions::orderCreate($arOrder, $api, $arParams, true);
         
         if(!$result) {
             ICrmOrderActions::eventLog('ICrmOrderEvent::writeDataOnOrderCreate', 'ICrmOrderActions::orderCreate', 'error during creating order');
