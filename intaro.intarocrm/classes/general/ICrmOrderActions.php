@@ -188,7 +188,7 @@ class ICrmOrderActions
             //handle err
             self::eventLog('ICrmOrderActions::orderCreate', 'empty($arFields)', 'incorrect order');
 
-            return true;
+            return false;
         }
 
         $rsUser = CUser::GetByID($arFields['USER_ID']);
