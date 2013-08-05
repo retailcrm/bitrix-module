@@ -118,29 +118,17 @@ class ICrmOrderEvent {
             ICrmOrderActions::eventLog('ICrmOrderEvent::onSaleCancelOrder', 'catalog', 'module not found');
             return true;
         }
-        
-        $arFields = CSaleOrder::GetById($ID);
-
-        if (empty($arFields)) {
-            //handle err
-            self::eventLog('ICrmOrderEvent::onSaleCancelOrder', 'empty($arFields)', 'incorrect order');
-
-            return true;
-        }
 
         $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
         $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
 
         //saved cat params
-        $optionsOrderTypes = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_TYPES_ARR, 0));
         $optionsPayStatuses = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_STATUSES, 0)); // --statuses
 
         $api = new IntaroCrm\RestApi($api_host, $api_key);
         
         $order = array(
             'externalId'    => (int) $ID,
-            'customerId'    => (int) $arFields['USER_ID'],
-            'orderType'     => $optionsOrderTypes[$arFields['PERSON_TYPE_ID']],
             'status'        => $optionsPayStatuses[$cancel],
             'statusComment' => ICrmOrderActions::toJSON($reason)
         );
