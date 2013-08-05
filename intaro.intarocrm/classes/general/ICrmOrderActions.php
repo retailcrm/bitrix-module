@@ -71,7 +71,7 @@ class ICrmOrderActions
         if (!$steps) {
             while ($arOrder = $dbOrder->GetNext()) { //here orders by id asc; with offset
                 
-                $result = self::orderCreate($arOrder['ID'], $api, $arParams);
+                $result = self::orderCreate($arOrder, $api, $arParams);
 
                 if (!$result['order'] || !$result['customer'])
                     continue;
@@ -111,7 +111,7 @@ class ICrmOrderActions
             
             while ($arOrder = $dbOrder->GetNext()) { // here orders by id asc
                 
-                $result = self::orderCreate($arOrder['ID'], $api, $arParams);
+                $result = self::orderCreate($arOrder, $api, $arParams);
 
                 if (!$result['order'] || !$result['customer'])
                     continue;
@@ -224,12 +224,10 @@ class ICrmOrderActions
      * @return boolean
      * @return array - array('order' = $order, 'customer' => $customer)
      */
-    public static function orderCreate($orderId, $api, $arParams, $send = false) {
-        if(!$api || empty($arParams) || !$orderId) { // add cond to check $arParams
+    public static function orderCreate($arFields, $api, $arParams, $send = false) {
+        if(!$api || empty($arParams)) { // add cond to check $arParams
             return false;
         }
-        
-        $arFields = CSaleOrder::GetById($orderId);
 
         if (empty($arFields)) {
             //handle err
