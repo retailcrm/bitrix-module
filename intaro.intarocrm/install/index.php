@@ -372,8 +372,11 @@ class intaro_intarocrm extends CModule
         } else if ($step == 4) {
 
             RegisterModule($this->MODULE_ID);
+            
             RegisterModuleDependences("sale", "OnSaleCancelOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSaleCancelOrder");
+            RegisterModuleDependences("sale", "OnSalePayOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSalePayOrder");
 
+            
             //agent
             $dateAgent = new DateTime();
             $intAgent = new DateInterval('PT60S'); // PT60S - 60 sec;
@@ -417,6 +420,8 @@ class intaro_intarocrm extends CModule
         COption::RemoveOption($this->MODULE_ID, $this->CRM_PAYMENT_STATUSES);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_PAYMENT);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_LAST_ID);
+        
+        UnRegisterModuleDependences("sale", "OnSalePayOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSalePayOrder");
         UnRegisterModuleDependences("sale", "OnSaleCancelOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSaleCancelOrder");
         
         $this->DeleteFiles();

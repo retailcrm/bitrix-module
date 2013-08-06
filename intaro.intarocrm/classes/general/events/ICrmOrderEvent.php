@@ -141,5 +141,55 @@ class ICrmOrderEvent {
             ICrmOrderActions::eventLog('ICrmOrderEvent::onSaleCancelOrder', 'IntaroCrm\RestApi::orderEdit', $api->getLastError());
         
         return true;
-    } 
+    }
+    
+    /**
+     * 
+     * @param type $ID -- orderId
+     * @param type $payed -- Y / N - pay order status
+     * @return boolean
+     */
+    function onSalePayOrder($ID, $payed) {
+        if(!$ID || !$payed || ($payed != 'Y'))
+            return true;
+        
+        if (!CModule::IncludeModule('iblock')) {
+            //handle err
+            ICrmOrderActions::eventLog('ICrmOrderEvent::onSalePayOrder', 'iblock', 'module not found');
+            return true;
+        }
+
+        if (!CModule::IncludeModule("sale")) {
+            //handle err
+            ICrmOrderActions::eventLog('ICrmOrderEvent::onSalePayOrder', 'sale', 'module not found');
+            return true;
+        }
+
+        if (!CModule::IncludeModule("catalog")) {
+            //handle err
+            ICrmOrderActions::eventLog('ICrmOrderEvent::onSalePayOrder', 'catalog', 'module not found');
+            return true;
+        }
+
+        $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
+        $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
+
+        //saved cat params
+        $optionsPayment = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT, 0));
+
+        $api = new IntaroCrm\RestApi($api_host, $api_key);
+        
+        $order = array(
+            'externalId'    => (int) $ID,
+            'paymentStatus' => $optionsPayment[$payed]
+        );
+        
+        $api->orderEdit($order);
+ 
+        // error pushing order
+        if ($api->getStatusCode() != 201)
+            ICrmOrderActions::eventLog('ICrmOrderEvent::onSalePayOrder', 'IntaroCrm\RestApi::orderEdit', $api->getLastError());
+        
+        return true;
+    }
 }
