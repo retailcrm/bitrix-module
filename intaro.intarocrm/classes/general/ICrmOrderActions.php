@@ -11,7 +11,6 @@ class ICrmOrderActions
     protected static $CRM_PAYMENT_STATUSES = 'pay_statuses_arr';
     protected static $CRM_PAYMENT = 'payment_arr'; //order payment Y/N
     protected static $CRM_ORDER_LAST_ID = 'order_last_id';
-    protected static $CRM_ORDER_PROPS = 'order_props';
 
     /**
      * Mass order uploading, without repeating; always returns true, but writes error log
@@ -55,7 +54,6 @@ class ICrmOrderActions
         $optionsPayTypes = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_TYPES, 0));
         $optionsPayStatuses = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_STATUSES, 0)); // --statuses
         $optionsPayment = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT, 0));
-        $optionsOrderProps = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_PROPS, 0));
 
         $api = new IntaroCrm\RestApi($api_host, $api_key);
 
@@ -64,8 +62,7 @@ class ICrmOrderActions
             'optionsDelivTypes'  => $optionsDelivTypes,
             'optionsPayTypes'    => $optionsPayTypes,
             'optionsPayStatuses' => $optionsPayStatuses,
-            'optionsPayment'     => $optionsPayment,
-            'optionsOrderProps'  => $optionsOrderProps
+            'optionsPayment'     => $optionsPayment
         );
 
         // pack mode enable / disable
@@ -186,7 +183,7 @@ class ICrmOrderActions
         if(!$api || empty($arParams)) { // add cond to check $arParams
             return false;
         }
-
+     
         if (empty($arFields)) {
             //handle err
             self::eventLog('ICrmOrderActions::orderCreate', 'empty($arFields)', 'incorrect order');
@@ -252,49 +249,23 @@ class ICrmOrderActions
         $rsOrderProps = CSaleOrderPropsValue::GetList(array(), array('ORDER_ID' => $arFields['ID']));
         while ($ar = $rsOrderProps->Fetch()) {
             switch ($ar['CODE']) {
-                case $arParams['optionsOrderProps']['index']: $resOrderDeliveryAddress['index'] = self::toJSON($ar['VALUE']);
+                case 'ZIP': $resOrderDeliveryAddress['index'] = self::toJSON($ar['VALUE']);
                     break;
-                case 'CITY': if (!isset($resOrderDeliveryAddress['city']) && !$resOrderDeliveryAddress['city'])
-                        $resOrderDeliveryAddress['city'] = self::toJSON($ar['VALUE']); // we check both locations & city for export
+                case 'CITY': $resOrderDeliveryAddress['city'] = self::toJSON($ar['VALUE']);
                     break;
-                case $arParams['optionsOrderProps']['text']: $resOrderDeliveryAddress['text'] = self::toJSON($ar['VALUE']);
+                case 'ADDRESS': $resOrderDeliveryAddress['text'] = self::toJSON($ar['VALUE']);
                     break;
-                case 'LOCATION': if (!isset($resOrderDeliveryAddress['city']) && !$resOrderDeliveryAddress['city']) {
+                case 'LOCATION': if(!isset($resOrderDeliveryAddress['city']) && !$resOrderDeliveryAddress['city']) {
                         $resOrderDeliveryAddress['city'] = CSaleLocation::GetByID($ar['VALUE']);
                         $resOrderDeliveryAddress['city'] = self::toJSON($resOrderDeliveryAddress['city']['CITY_NAME_LANG']);
                     }
                     break;
-                case $arParams['optionsOrderProps']['fio']: $resOrder['contactName'] = explode(" ", self::toJSON($ar['VALUE']));
+                case 'FIO': $resOrder['contactName'] = explode(" ", self::toJSON($ar['VALUE']));
                     break;
-                case $arParams['optionsOrderProps']['phone']: $resOrder['phone'] = $ar['VALUE'];
+                case 'PHONE': $resOrder['phone'] = $ar['VALUE'];
                     break;
-                case $arParams['optionsOrderProps']['email']: $resOrder['email'] = $ar['VALUE'];
+                case 'EMAIL': $resOrder['email'] = $ar['VALUE'];
                     break;
-            }
-            
-            if (count($arParams['optionsOrderProps'] > 5)) {
-                switch ($ar['CODE']) {
-                    case $arParams['optionsOrderProps']['country']: $resOrderDeliveryAddress['country'] = self::toJSON($ar['VALUE']);
-                        break;
-                    case $arParams['optionsOrderProps']['region']: $resOrderDeliveryAddress['region'] = self::toJSON($ar['VALUE']);
-                        break;
-                    case $arParams['optionsOrderProps']['city']: $resOrderDeliveryAddress['city'] = self::toJSON($ar['VALUE']);
-                        break;
-                    case $arParams['optionsOrderProps']['street']: $resOrderDeliveryAddress['street'] = self::toJSON($ar['VALUE']);
-                        break;
-                    case $arParams['optionsOrderProps']['building']: $resOrderDeliveryAddress['building'] = self::toJSON($ar['VALUE']);
-                        break;
-                    case $arParams['optionsOrderProps']['flat']: $resOrderDeliveryAddress['flat'] = self::toJSON($ar['VALUE']);
-                        break;
-                    case $arParams['optionsOrderProps']['inercomcode']: $resOrderDeliveryAddress['intercomcode'] = self::toJSON($ar['VALUE']);
-                        break;
-                    case $arParams['optionsOrderProps']['floor']: $resOrderDeliveryAddress['floor'] = self::toJSON($ar['VALUE']);
-                        break;
-                    case $arParams['optionsOrderProps']['block']: $resOrderDeliveryAddress['block'] = self::toJSON($ar['VALUE']);
-                        break;
-                    case $arParams['optionsOrderProps']['house']: $resOrderDeliveryAddress['house'] = self::toJSON($ar['VALUE']);
-                        break;
-                }
             }
         }
 
