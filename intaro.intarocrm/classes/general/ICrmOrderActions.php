@@ -157,7 +157,7 @@ class ICrmOrderActions
      *
      * w+ event in bitrix log
      */
-    private static function eventLog($auditType, $itemId, $description) {
+    public static function eventLog($auditType, $itemId, $description) {
         CEventLog::Add(array(
             "SEVERITY"      => "SECURITY",
             "AUDIT_TYPE_ID" => $auditType,
@@ -186,7 +186,11 @@ class ICrmOrderActions
         if(!$api || empty($arParams)) { // add cond to check $arParams
             return false;
         }
+<<<<<<< HEAD
 
+=======
+     
+>>>>>>> cancelEvent
         if (empty($arFields)) {
             //handle err
             self::eventLog('ICrmOrderActions::orderCreate', 'empty($arFields)', 'incorrect order');
@@ -385,7 +389,7 @@ class ICrmOrderActions
      * @param type $str in SITE_CHARSET
      * @return type $str in utf-8
      */
-    protected static function toJSON($str) {
+    public static function toJSON($str) {
         global $APPLICATION;
 
         return $APPLICATION->ConvertCharset($str, SITE_CHARSET, 'utf-8');
