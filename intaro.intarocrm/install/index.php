@@ -21,6 +21,7 @@ class intaro_intarocrm extends CModule
     var $PARTNER_NAME;
     var $PARTNER_URI;
     var $INTARO_CRM_API;
+    var $INTARO_CRM_EXPORT = 'intarocrm';
 
     var $CRM_API_HOST_OPTION = 'api_host';
     var $CRM_API_KEY_OPTION = 'api_key';
@@ -65,6 +66,7 @@ class intaro_intarocrm extends CModule
 
         include($this->INSTALL_PATH . '/../classes/general/RestApi.php');
         include($this->INSTALL_PATH . '/../classes/general/ICrmOrderActions.php');
+        include($this->INSTALL_PATH . '/../classes/general/ICMLLoader.php');
 
         $step = intval($_REQUEST['step']);
 
@@ -370,11 +372,193 @@ class intaro_intarocrm extends CModule
                 $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step3.php'
             );
         } else if ($step == 4) {
+	    
+	    if(!CModule::IncludeModule("iblock")) {
+                $arResult['errCode'] = 'ERR_IBLOCK';
+            }
 
+            if(!CModule::IncludeModule("catalog")) {
+                $arResult['errCode'] = 'ERR_CATALOG';
+            }
+            $APPLICATION->IncludeAdminFile(
+                GetMessage('MODULE_INSTALL_TITLE'),
+                $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step4.php'
+            );
+	} else if ($step == 5) {
+            
+            if(isset($arResult['errCode']) && $arResult['errCode']) {
+                $APPLICATION->IncludeAdminFile(
+                    GetMessage('MODULE_INSTALL_TITLE'),
+                    $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step4.php'
+                );
+                return;
+            }
+            
+            if (isset($_POST['back']) && $_POST['back']) {
+                $APPLICATION->IncludeAdminFile(
+                   GetMessage('MODULE_INSTALL_TITLE'),
+                   $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step3.php'
+                );
+            }
+            
             RegisterModule($this->MODULE_ID);
             RegisterModuleDependences("sale", "OnSaleCancelOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSaleCancelOrder");
+	    
+            if(!CModule::IncludeModule("iblock")) {
+                $arResult['errCode'] = 'ERR_IBLOCK';
+            }
+
+            if(!CModule::IncludeModule("catalog")) {
+                $arResult['errCode'] = 'ERR_CATALOG';
+            }
+            
+	    if(!isset($_POST['IBLOCK_EXPORT']))
+                $iblocks = 0;
+            else
+                $iblocks = $_POST['IBLOCK_EXPORT'];
+            
+            if(!isset($_POST['IBLOCK_PROPERTY_ARTICLE']))
+                $articleProperties = 0;
+            else
+                $articleProperties = $_POST['IBLOCK_PROPERTY_ARTICLE'];
+	    
+            if(!isset($_POST['SETUP_PROFILE_NAME']))
+                $profileName = 0;
+            else
+                $profileName = $_POST['SETUP_PROFILE_NAME'];
+	    
+	    if(!isset($_POST['SETUP_FILE_NAME']))
+                $filename = 0;
+            else
+                $filename = $_POST['SETUP_FILE_NAME'];
+            
+            if(!isset($_POST['TYPE_LOADING']))
+                $typeLoading = 0;
+            else
+                $typeLoading = $_POST['TYPE_LOADING'];
+            
+            if (isset($_POST['LOAD_NOW'])) {
+                
+                $loader = new ICMLLoader();
+                $loader->iblocks = $iblocks;
+                $loader->articleProperties = $articleProperties;
+                $loader->filename = $filename;
+                $loader->application = $APPLICATION;
+                $loader->Load();
+                
+            } 
+            if(!isset($_POST['TYPE_LOADING']))
+                $typeLoading = 0;
+            else
+                $typeLoading = $_POST['TYPE_LOADING'];  
+            
+            if ($typeLoading == 'agent' || $typeLoading == 'cron') {
+                $dbProfile = CCatalogExport::GetList(array(), array("FILE_NAME" => $this->INTARO_CRM_EXPORT));
+                       
+                while ($arProfile = $dbProfile->Fetch()) {
+                    if ($arProfile["DEFAULT_PROFILE"]!="Y")
+                        CAgent::RemoveAgent("CCatalogExport::PreGenerateExport(".$arProfile['ID'].");", "catalog");
+                }
+                $ar = $this->GetProfileSetupVars($iblocks, $articleProperties, $filename);
+                $PROFILE_ID = CCatalogExport::Add(array(
+                    "LAST_USE"		=> false,
+                    "FILE_NAME"		=> $this->INTARO_CRM_EXPORT,
+                    "NAME"		=> $profileName,
+                    "DEFAULT_PROFILE"   => "N",
+                    "IN_MENU"		=> "N",
+                    "IN_AGENT"		=> "N",
+                    "IN_CRON"		=> "N",
+                    "NEED_EDIT"		=> "N",
+                    "SETUP_VARS"	=> $ar
+                    ));
+                if (intval($PROFILE_ID) <= 0) {
+                    $arResult['errCode'] = 'ERR_IBLOCK';
+                    return;
+                }
+                if ($typeLoading == 'agent') {
+                    
+                    $dateAgent = new DateTime();
+                    $intAgent = new DateInterval('PT60S'); // PT60S - 60 sec;
+                    $dateAgent->add($intAgent);
+                    CAgent::AddAgent(
+                            "CCatalogExport::PreGenerateExport(" . $PROFILE_ID . ");", 
+                            "catalog", 
+                            "N", 
+                            86400, 
+                            $dateAgent->format('d.m.Y H:i:s'), // date of first check
+                            "Y", // агент активен
+                            $dateAgent->format('d.m.Y H:i:s'), // date of first start
+                            30
+                            );
+                    
+                    CCatalogExport::Update($PROFILE_ID, array(
+                            "IN_CRON" => ($arProfile["IN_AGENT"]=="Y" ? "N" : "Y")
+                            ));
+                } else {
+                    $agent_period = 24;
+                    $agent_php_path = "/usr/local/php/bin/php";
+
+                    if (!file_exists($_SERVER["DOCUMENT_ROOT"].CATALOG_PATH2EXPORTS."cron_frame.php"))
+                    {
+                        CheckDirPath($_SERVER["DOCUMENT_ROOT"].CATALOG_PATH2EXPORTS);
+                        $tmp_file_size = filesize($_SERVER["DOCUMENT_ROOT"].CATALOG_PATH2EXPORTS_DEF."cron_frame.php");
+                        $fp = fopen($_SERVER["DOCUMENT_ROOT"].CATALOG_PATH2EXPORTS_DEF."cron_frame.php", "rb");
+                        $tmp_data = fread($fp, $tmp_file_size);
+                        fclose($fp);
+
+                        $tmp_data = str_replace("#DOCUMENT_ROOT#", $_SERVER["DOCUMENT_ROOT"], $tmp_data);
+                        $tmp_data = str_replace("#PHP_PATH#", $agent_php_path, $tmp_data);
+
+                        $fp = fopen($_SERVER["DOCUMENT_ROOT"].CATALOG_PATH2EXPORTS."cron_frame.php", "ab");
+                        fwrite($fp, $tmp_data);
+                        fclose($fp);
+                    }
+
+                    $cfg_data = "";
+                    if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/crontab/crontab.cfg"))
+                    {
+                            $cfg_file_size = filesize($_SERVER["DOCUMENT_ROOT"]."/bitrix/crontab/crontab.cfg");
+                            $fp = fopen($_SERVER["DOCUMENT_ROOT"]."/bitrix/crontab/crontab.cfg", "rb");
+                            $cfg_data = fread($fp, $cfg_file_size);
+                            fclose($fp);
+                    }
+
+                    CheckDirPath($_SERVER["DOCUMENT_ROOT"].CATALOG_PATH2EXPORTS."logs/");
+                    
+                    if ($arProfile["IN_CRON"]=="Y")
+                    {
+                            // remove
+                            $cfg_data = preg_replace("#^.*?".preg_quote(CATALOG_PATH2EXPORTS)."cron_frame.php +".$PROFILE_ID." *>.*?$#im", "", $cfg_data);
+						}
+                    else
+                    {
+                        $strTime = "0 */".$agent_period." * * * ";
+                        if (strlen($cfg_data)>0) 
+                            $cfg_data .= "\n";
+                        
+                        $cfg_data .= $strTime.$agent_php_path." -f ".$_SERVER["DOCUMENT_ROOT"].CATALOG_PATH2EXPORTS."cron_frame.php ".$PROFILE_ID." >".$_SERVER["DOCUMENT_ROOT"].CATALOG_PATH2EXPORTS."logs/".$PROFILE_ID.".txt\n";
+                    }
+
+                    CCatalogExport::Update($PROFILE_ID, array(
+                            "IN_CRON" => ($arProfile["IN_CRON"]=="Y" ? "N" : "Y")
+                        ));
+                    
+                    CheckDirPath($_SERVER["DOCUMENT_ROOT"]."/bitrix/crontab/");
+                    $cfg_data = preg_replace("#[\r\n]{2,}#im", "\n", $cfg_data);
+                    $fp = fopen($_SERVER["DOCUMENT_ROOT"]."/bitrix/crontab/crontab.cfg", "wb");
+                    fwrite($fp, $cfg_data);
+                    fclose($fp);
+
+                    $arRetval = array();
+                    @exec("crontab ".$_SERVER["DOCUMENT_ROOT"]."/bitrix/crontab/crontab.cfg", $arRetval, $return_var);
+                    
+                }  
+            }
+            
+            //
 
             //agent
+            
             $dateAgent = new DateTime();
             $intAgent = new DateInterval('PT60S'); // PT60S - 60 sec;
             $dateAgent->add($intAgent);
@@ -391,16 +575,10 @@ class intaro_intarocrm extends CModule
             );
 
             $this->CopyFiles();
-            
-            // statistic update
-            $api_host = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, 0);
-            $api_key = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, 0);
-            $this->INTARO_CRM_API = new \IntaroCrm\RestApi($api_host, $api_key);
-            $this->INTARO_CRM_API->statisticUpdate();
-            
+
             $APPLICATION->IncludeAdminFile(
                 GetMessage('MODULE_INSTALL_TITLE'),
-                $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step4.php'
+                $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step5.php'
             );
         }
     }
@@ -417,10 +595,9 @@ class intaro_intarocrm extends CModule
         COption::RemoveOption($this->MODULE_ID, $this->CRM_PAYMENT_STATUSES);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_PAYMENT);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_LAST_ID);
-        UnRegisterModuleDependences("sale", "OnSaleCancelOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSaleCancelOrder");
-        
+
         $this->DeleteFiles();
-        
+
         UnRegisterModule($this->MODULE_ID);
 
         $APPLICATION->IncludeAdminFile(
@@ -441,5 +618,24 @@ class intaro_intarocrm extends CModule
     function DeleteFiles() {
         unlink($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/intarocrm_run.php');
         unlink($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/intarocrm_setup.php');
+    }
+    
+    function GetProfileSetupVars($iblocks, $articleProperties, $filename) {
+        // Get string like IBLOCK_EXPORT[0]=3&
+        // IBLOCK_EXPORT[1]=6&
+        // IBLOCK_PROPERTY_ARTICLE[0]=ARTICLE&
+        // IBLOCK_PROPERTY_ARTICLE[1]=ARTNUMBER&
+        // SETUP_FILE_NAME=%2Fbitrix%2Fcatalog_export%2Ftestintarocrm.xml
+
+        //$arProfileFields = explode(",", $SETUP_FIELDS_LIST);
+        $strVars = "";
+        foreach ($iblocks as $key => $val) 
+            $strVars .= 'IBLOCK_EXPORT[' . $key . ']=' . $val . '&';
+        foreach ($articleProperties as $key => $val) 
+            $strVars .= 'IBLOCK_PROPERTY_ARTICLE[' . $key . ']=' . $val . '&';
+        
+        $strVars .= 'SETUP_FILE_NAME=' . urlencode($filename);
+        
+        return $strVars;
     }
 }
