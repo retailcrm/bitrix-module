@@ -255,14 +255,8 @@ class intaro_intarocrm extends CModule
 
                 $percent = 100 - round(($countLeft * 100 / $countAll), 1);
 
-                if(!$countLeft) {
-                    $api_host = COption::GetOptionString($mid, $this->CRM_API_HOST_OPTION, 0);
-                    $api_key = COption::GetOptionString($mid, $this->CRM_API_KEY_OPTION, 0);
-                    $this->INTARO_CRM_API = new \IntaroCrm\RestApi($api_host, $api_key);
-                    $this->INTARO_CRM_API->statisticUpdate();
+                if(!$countLeft)
                     $finish = 1;
-                }
-
 
                 $APPLICATION->RestartBuffer();
 		header('Content-Type: application/x-javascript; charset='.LANG_CHARSET);
@@ -408,6 +402,12 @@ class intaro_intarocrm extends CModule
             );
 
             $this->CopyFiles();
+            
+            //statistic update
+            $api_host = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, 0);
+            $api_key = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, 0);
+            $this->INTARO_CRM_API = new \IntaroCrm\RestApi($api_host, $api_key);
+            $this->INTARO_CRM_API->statisticUpdate();
 
             $APPLICATION->IncludeAdminFile(
                 GetMessage('MODULE_INSTALL_TITLE'),
