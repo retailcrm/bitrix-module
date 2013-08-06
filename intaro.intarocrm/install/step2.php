@@ -19,7 +19,7 @@ $defaultDelivTypes = array (
 
 $defaultPayTypes = array (
     1 => 'cash',
-    5 => 'bank-card',
+    5 => 'bank-transfer',
     6 => 'bank-transfer'
 );
 
