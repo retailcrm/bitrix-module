@@ -286,6 +286,9 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     </tr>
 <?php $tabControl->BeginNextTab(); ?>
     <input type="hidden" name="tab" value="catalog">
+    <tr align="center">
+        <td colspan="2"><b><?php echo GetMessage('INFO_1'); ?></b></td>
+    </tr>
     <tr class="heading">
         <td colspan="2"><b><?php echo GetMessage('DELIVERY_TYPES_LIST'); ?></b></td>
     </tr>
