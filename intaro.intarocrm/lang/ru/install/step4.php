@@ -1,0 +1,19 @@
+<?php
+$MESS ['STEP_NAME'] = 'Шаг 4';
+$MESS ['MOD_NEXT_STEP'] = 'Следующий шаг';
+$MESS ['MOD_PREV_STEP'] = 'Предыдущий шаг';
+$MESS ['DELIVERY_TYPES_LIST'] = 'Способы доставки';
+$MESS ['PAYMENT_TYPES_LIST'] = 'Способы оплаты';
+$MESS ['PAYMENT_STATUS_LIST'] = 'Статусы';
+$MESS ['ORDER_TYPES_LIST'] = 'Типы заказа';
+$MESS ['PAYMENT_LIST'] = 'Оплата';
+$MESS ['PAYMENT_Y'] = 'Оплачен';
+$MESS ['PAYMENT_N'] = 'Не оплачен';
+$MESS ['CANCELED'] = 'Флаг «Отменен»';
+$MESS ['INFO_1'] = ' Задайте соответствие между справочниками 1C-Битрикс и справочниками IntaroCRM.';
+$MESS ['LOAD_PERIOD'] = 'Выгружать каталог периодически';
+$MESS ['NOT_LOADING'] = 'Нет (по умолчанию)';
+$MESS ['CRON_LOADING'] = 'CRON';
+$MESS ['AGENT_LOADING'] = 'Агент';
+$MESS ['LOAD_NOW'] = 'Выгрузить сейчас';
+$MESS ['PROFILE_NAME'] = 'Имя профиля:';
