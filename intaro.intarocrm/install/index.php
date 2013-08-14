@@ -59,14 +59,14 @@ class intaro_intarocrm extends CModule
     {
         global $APPLICATION, $step, $arResult;
 
-		if (!in_array('curl', get_loaded_extensions())) {
-			$APPLICATION->ThrowException( GetMessage("INTAROCRM_CURL_ERR") );
-			return false;
-		}
+        if (!in_array('curl', get_loaded_extensions())) {
+            $APPLICATION->ThrowException( GetMessage("INTAROCRM_CURL_ERR") );
+            return false;
+        }
 
         include($this->INSTALL_PATH . '/../classes/general/RestApi.php');
         include($this->INSTALL_PATH . '/../classes/general/ICrmOrderActions.php');
-		include($this->INSTALL_PATH . '/../classes/general/ICMLLoader.php');
+        include($this->INSTALL_PATH . '/../classes/general/ICMLLoader.php');
 
         $step = intval($_REQUEST['step']);
 
@@ -108,7 +108,7 @@ class intaro_intarocrm extends CModule
                 return;
             }
 			
-			 if(!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest')
+            if(!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest')
                     && isset($_POST['ajax']) && ($_POST['ajax'] == 1)) {
                 
                 $api_host = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, 0);
@@ -625,7 +625,7 @@ class intaro_intarocrm extends CModule
                 $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step3.php'
             );
         } else if ($step == 4) {
-			if(!CModule::IncludeModule("iblock")) {
+            if(!CModule::IncludeModule("iblock")) {
                 $arResult['errCode'] = 'ERR_IBLOCK';
             }
  
@@ -636,9 +636,9 @@ class intaro_intarocrm extends CModule
                 GetMessage('MODULE_INSTALL_TITLE'),
                 $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step4.php'
             );
-		} else if ($step == 5) {
-			
-			if(isset($arResult['errCode']) && $arResult['errCode']) {
+        
+        } else if ($step == 5) {
+            if(isset($arResult['errCode']) && $arResult['errCode']) {
                 $APPLICATION->IncludeAdminFile(
                     GetMessage('MODULE_INSTALL_TITLE'),
                     $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step4.php'
@@ -658,155 +658,144 @@ class intaro_intarocrm extends CModule
             RegisterModuleDependences("sale", "OnSaleCancelOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSaleCancelOrder");
             RegisterModuleDependences("sale", "OnSalePayOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSalePayOrder");
 			
-			if(!CModule::IncludeModule("iblock")) {
+            if(!CModule::IncludeModule("iblock")) {
                 $arResult['errCode'] = 'ERR_IBLOCK';
             }
 
-            if(!CModule::IncludeModule("catalog")) {
+            if (!CModule::IncludeModule("catalog")) {
                 $arResult['errCode'] = 'ERR_CATALOG';
             }
-            
-      if(!isset($_POST['IBLOCK_EXPORT']))
+
+            if (!isset($_POST['IBLOCK_EXPORT']))
                 $iblocks = 0;
             else
                 $iblocks = $_POST['IBLOCK_EXPORT'];
-            
-            if(!isset($_POST['IBLOCK_PROPERTY_ARTICLE']))
+
+            if (!isset($_POST['IBLOCK_PROPERTY_ARTICLE']))
                 $articleProperties = 0;
             else
                 $articleProperties = $_POST['IBLOCK_PROPERTY_ARTICLE'];
-      
-            if(!isset($_POST['SETUP_PROFILE_NAME']))
+
+            if (!isset($_POST['SETUP_PROFILE_NAME']))
                 $profileName = 0;
             else
                 $profileName = $_POST['SETUP_PROFILE_NAME'];
-      
-      if(!isset($_POST['SETUP_FILE_NAME']))
+
+            if (!isset($_POST['SETUP_FILE_NAME']))
                 $filename = 0;
             else
                 $filename = $_POST['SETUP_FILE_NAME'];
-            
-            if(!isset($_POST['TYPE_LOADING']))
+
+            if (!isset($_POST['TYPE_LOADING']))
                 $typeLoading = 0;
             else
                 $typeLoading = $_POST['TYPE_LOADING'];
-            
+
             if (isset($_POST['LOAD_NOW'])) {
-                
+
                 $loader = new ICMLLoader();
                 $loader->iblocks = $iblocks;
                 $loader->articleProperties = $articleProperties;
                 $loader->filename = $filename;
                 $loader->application = $APPLICATION;
                 $loader->Load();
-                
-            } 
-            if(!isset($_POST['TYPE_LOADING']))
+            }
+            if (!isset($_POST['TYPE_LOADING']))
                 $typeLoading = 0;
             else
-                $typeLoading = $_POST['TYPE_LOADING'];  
-            
+                $typeLoading = $_POST['TYPE_LOADING'];
+
             if ($typeLoading == 'agent' || $typeLoading == 'cron') {
                 $dbProfile = CCatalogExport::GetList(array(), array("FILE_NAME" => $this->INTARO_CRM_EXPORT));
-                       
+
                 while ($arProfile = $dbProfile->Fetch()) {
-                    if ($arProfile["DEFAULT_PROFILE"]!="Y")
-                        CAgent::RemoveAgent("CCatalogExport::PreGenerateExport(".$arProfile['ID'].");", "catalog");
+                    if ($arProfile["DEFAULT_PROFILE"] != "Y")
+                        CAgent::RemoveAgent("CCatalogExport::PreGenerateExport(" . $arProfile['ID'] . ");", "catalog");
                 }
                 $ar = $this->GetProfileSetupVars($iblocks, $articleProperties, $filename);
                 $PROFILE_ID = CCatalogExport::Add(array(
-                    "LAST_USE"    => false,
-                    "FILE_NAME"    => $this->INTARO_CRM_EXPORT,
-                    "NAME"    => $profileName,
-                    "DEFAULT_PROFILE"   => "N",
-                    "IN_MENU"    => "N",
-                    "IN_AGENT"    => "N",
-                    "IN_CRON"    => "N",
-                    "NEED_EDIT"    => "N",
-                    "SETUP_VARS"  => $ar
-                    ));
+                            "LAST_USE" => false,
+                            "FILE_NAME" => $this->INTARO_CRM_EXPORT,
+                            "NAME" => $profileName,
+                            "DEFAULT_PROFILE" => "N",
+                            "IN_MENU" => "N",
+                            "IN_AGENT" => "N",
+                            "IN_CRON" => "N",
+                            "NEED_EDIT" => "N",
+                            "SETUP_VARS" => $ar
+                ));
                 if (intval($PROFILE_ID) <= 0) {
                     $arResult['errCode'] = 'ERR_IBLOCK';
                     return;
                 }
                 if ($typeLoading == 'agent') {
-                    
+
                     $dateAgent = new DateTime();
                     $intAgent = new DateInterval('PT60S'); // PT60S - 60 sec;
                     $dateAgent->add($intAgent);
                     CAgent::AddAgent(
-                            "CCatalogExport::PreGenerateExport(" . $PROFILE_ID . ");", 
-                            "catalog", 
-                            "N", 
-                            86400, 
-                            $dateAgent->format('d.m.Y H:i:s'), // date of first check
+                            "CCatalogExport::PreGenerateExport(" . $PROFILE_ID . ");", "catalog", "N", 86400, $dateAgent->format('d.m.Y H:i:s'), // date of first check
                             "Y", // агент активен
                             $dateAgent->format('d.m.Y H:i:s'), // date of first start
                             30
-                            );
-                    
+                    );
+
                     CCatalogExport::Update($PROFILE_ID, array(
-                            "IN_CRON" => ($arProfile["IN_AGENT"]=="Y" ? "N" : "Y")
-                            ));
+                        "IN_CRON" => ($arProfile["IN_AGENT"] == "Y" ? "N" : "Y")
+                    ));
                 } else {
                     $agent_period = 24;
                     $agent_php_path = "/usr/local/php/bin/php";
 
-                    if (!file_exists($_SERVER["DOCUMENT_ROOT"].CATALOG_PATH2EXPORTS."cron_frame.php"))
-                    {
-                        CheckDirPath($_SERVER["DOCUMENT_ROOT"].CATALOG_PATH2EXPORTS);
-                        $tmp_file_size = filesize($_SERVER["DOCUMENT_ROOT"].CATALOG_PATH2EXPORTS_DEF."cron_frame.php");
-                        $fp = fopen($_SERVER["DOCUMENT_ROOT"].CATALOG_PATH2EXPORTS_DEF."cron_frame.php", "rb");
+                    if (!file_exists($_SERVER["DOCUMENT_ROOT"] . CATALOG_PATH2EXPORTS . "cron_frame.php")) {
+                        CheckDirPath($_SERVER["DOCUMENT_ROOT"] . CATALOG_PATH2EXPORTS);
+                        $tmp_file_size = filesize($_SERVER["DOCUMENT_ROOT"] . CATALOG_PATH2EXPORTS_DEF . "cron_frame.php");
+                        $fp = fopen($_SERVER["DOCUMENT_ROOT"] . CATALOG_PATH2EXPORTS_DEF . "cron_frame.php", "rb");
                         $tmp_data = fread($fp, $tmp_file_size);
                         fclose($fp);
 
                         $tmp_data = str_replace("#DOCUMENT_ROOT#", $_SERVER["DOCUMENT_ROOT"], $tmp_data);
                         $tmp_data = str_replace("#PHP_PATH#", $agent_php_path, $tmp_data);
 
-                        $fp = fopen($_SERVER["DOCUMENT_ROOT"].CATALOG_PATH2EXPORTS."cron_frame.php", "ab");
+                        $fp = fopen($_SERVER["DOCUMENT_ROOT"] . CATALOG_PATH2EXPORTS . "cron_frame.php", "ab");
                         fwrite($fp, $tmp_data);
                         fclose($fp);
                     }
 
                     $cfg_data = "";
-                    if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/crontab/crontab.cfg"))
-                    {
-                            $cfg_file_size = filesize($_SERVER["DOCUMENT_ROOT"]."/bitrix/crontab/crontab.cfg");
-                            $fp = fopen($_SERVER["DOCUMENT_ROOT"]."/bitrix/crontab/crontab.cfg", "rb");
-                            $cfg_data = fread($fp, $cfg_file_size);
-                            fclose($fp);
+                    if (file_exists($_SERVER["DOCUMENT_ROOT"] . "/bitrix/crontab/crontab.cfg")) {
+                        $cfg_file_size = filesize($_SERVER["DOCUMENT_ROOT"] . "/bitrix/crontab/crontab.cfg");
+                        $fp = fopen($_SERVER["DOCUMENT_ROOT"] . "/bitrix/crontab/crontab.cfg", "rb");
+                        $cfg_data = fread($fp, $cfg_file_size);
+                        fclose($fp);
                     }
 
-                    CheckDirPath($_SERVER["DOCUMENT_ROOT"].CATALOG_PATH2EXPORTS."logs/");
-                    
-                    if ($arProfile["IN_CRON"]=="Y")
-                    {
-                            // remove
-                            $cfg_data = preg_replace("#^.*?".preg_quote(CATALOG_PATH2EXPORTS)."cron_frame.php +".$PROFILE_ID." *>.*?$#im", "", $cfg_data);
-            }
-                    else
-                    {
-                        $strTime = "0 */".$agent_period." * * * ";
-                        if (strlen($cfg_data)>0) 
+                    CheckDirPath($_SERVER["DOCUMENT_ROOT"] . CATALOG_PATH2EXPORTS . "logs/");
+
+                    if ($arProfile["IN_CRON"] == "Y") {
+                        // remove
+                        $cfg_data = preg_replace("#^.*?" . preg_quote(CATALOG_PATH2EXPORTS) . "cron_frame.php +" . $PROFILE_ID . " *>.*?$#im", "", $cfg_data);
+                    } else {
+                        $strTime = "0 */" . $agent_period . " * * * ";
+                        if (strlen($cfg_data) > 0)
                             $cfg_data .= "\n";
-                        
-                        $cfg_data .= $strTime.$agent_php_path." -f ".$_SERVER["DOCUMENT_ROOT"].CATALOG_PATH2EXPORTS."cron_frame.php ".$PROFILE_ID." >".$_SERVER["DOCUMENT_ROOT"].CATALOG_PATH2EXPORTS."logs/".$PROFILE_ID.".txt\n";
+
+                        $cfg_data .= $strTime . $agent_php_path . " -f " . $_SERVER["DOCUMENT_ROOT"] . CATALOG_PATH2EXPORTS . "cron_frame.php " . $PROFILE_ID . " >" . $_SERVER["DOCUMENT_ROOT"] . CATALOG_PATH2EXPORTS . "logs/" . $PROFILE_ID . ".txt\n";
                     }
 
                     CCatalogExport::Update($PROFILE_ID, array(
-                            "IN_CRON" => ($arProfile["IN_CRON"]=="Y" ? "N" : "Y")
-                        ));
-                    
-                    CheckDirPath($_SERVER["DOCUMENT_ROOT"]."/bitrix/crontab/");
+                        "IN_CRON" => ($arProfile["IN_CRON"] == "Y" ? "N" : "Y")
+                    ));
+
+                    CheckDirPath($_SERVER["DOCUMENT_ROOT"] . "/bitrix/crontab/");
                     $cfg_data = preg_replace("#[\r\n]{2,}#im", "\n", $cfg_data);
-                    $fp = fopen($_SERVER["DOCUMENT_ROOT"]."/bitrix/crontab/crontab.cfg", "wb");
+                    $fp = fopen($_SERVER["DOCUMENT_ROOT"] . "/bitrix/crontab/crontab.cfg", "wb");
                     fwrite($fp, $cfg_data);
                     fclose($fp);
 
                     $arRetval = array();
-                    @exec("crontab ".$_SERVER["DOCUMENT_ROOT"]."/bitrix/crontab/crontab.cfg", $arRetval, $return_var);
-                    
-                }  
+                    @exec("crontab " . $_SERVER["DOCUMENT_ROOT"] . "/bitrix/crontab/crontab.cfg", $arRetval, $return_var);
+                }
             }
 
             //agent
