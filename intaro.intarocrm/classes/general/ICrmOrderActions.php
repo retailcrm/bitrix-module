@@ -16,7 +16,7 @@ class ICrmOrderActions
      * Mass order uploading, without repeating; always returns true, but writes error log
      * @return boolean
      */
-    public static function uploadOrders($steps = false, $pSize = 50) {
+    public static function uploadOrders($pSize = 50) {
 
         //COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, 0); // -- for test
 
