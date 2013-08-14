@@ -11,41 +11,41 @@ class ICrmOrderActions
     protected static $CRM_PAYMENT_STATUSES = 'pay_statuses_arr';
     protected static $CRM_PAYMENT = 'payment_arr'; //order payment Y/N
     protected static $CRM_ORDER_LAST_ID = 'order_last_id';
-    
+
     /**
      * Mass order uploading, without repeating; always returns true, but writes error log
      * @return boolean
      */
     public static function uploadOrders($steps = false, $pSize = 50) {
-        
+
         //COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, 0); // -- for test
-        
+
         if (!CModule::IncludeModule("iblock")) {
             //handle err
             self::eventLog('ICrmOrderActions::uploadOrders', 'iblock', 'module not found');
             return true;
         }
-        
+
         if (!CModule::IncludeModule("sale")) {
             //handle err
             self::eventLog('ICrmOrderActions::uploadOrders', 'sale', 'module not found');
             return true;
         }
-        
+
         if (!CModule::IncludeModule("catalog")) {
             //handle err
             self::eventLog('ICrmOrderActions::uploadOrders', 'catalog', 'module not found');
             return true;
         }
-        
+
         $resOrders = array();
         $resCustomers = array();
         
         $lastUpOrderId = COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, 0);
         $lastOrderId = 0;
-        
+
         $dbOrder = CSaleOrder::GetList(array("ID" => "ASC"), array('>ID' => $lastUpOrderId));
-        
+
         $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
         $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
 
@@ -57,7 +57,7 @@ class ICrmOrderActions
         $optionsPayment = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT, 0));
 
         $api = new IntaroCrm\RestApi($api_host, $api_key);
-        
+
         $arParams = array(
             'optionsOrderTypes'  => $optionsOrderTypes,
             'optionsDelivTypes'  => $optionsDelivTypes,
@@ -65,7 +65,7 @@ class ICrmOrderActions
             'optionsPayStatuses' => $optionsPayStatuses,
             'optionsPayment'     => $optionsPayment
         );
-        
+
         // pack mode enable / disable
         // can send data evry 500 rows
         if (!$steps) {
@@ -94,8 +94,14 @@ class ICrmOrderActions
                         return true;
                 }
                 
+                $resOrders[] = $order;
+
+                $lastOrderId = $arOrder['ID'];
+            }
+
+            if (!empty($resOrders)) {
                 $orders = $api->orderUpload($resOrders);
-                
+
                 // error pushing orders
                 if ($api->getStatusCode() != 201) {
                     //handle err
@@ -105,24 +111,24 @@ class ICrmOrderActions
                         return true;
                 }
             }
-           
+
         } else { // package mode (by default runs after install)
             $orderCount = 0;
-            
+
             while ($arOrder = $dbOrder->GetNext()) { // here orders by id asc
                 
                 $result = self::orderCreate($arOrder, $api, $arParams);
 
                 if (!$result['order'] || !$result['customer'])
                     continue;
-                
+
                 $orderCount++;
                 
                 $resOrders[] = $result['order'];
                 $resCustomers[] = $result['customer'];
-                
+
                 $lastOrderId = $arOrder['ID'];
-                
+
                 if($orderCount >= $pSize) {
                     $customers = $api->customerUpload($resCustomers);
                     
@@ -136,19 +142,19 @@ class ICrmOrderActions
                     }
                     
                     $orders = $api->orderUpload($resOrders);
-                    
+
                     // error pushing orders
                     if ($api->getStatusCode() != 201) {
                         //handle err
                         self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload', $api->getLastError());
-                        
+
                         if($api->getStatusCode() != 460) // some orders were sent
                             return false; // in pack mode return errors
                     }
                     
                     if($lastOrderId)
                         COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, $lastOrderId);
-                    
+
                     return true; // end of pack
                 }
             }
@@ -174,9 +180,9 @@ class ICrmOrderActions
                     if ($api->getStatusCode() != 460) // some orders were sent
                         return false; // in pack mode return errors
                 }
-            } 
+            }
         }
-        
+
         if($lastOrderId)
             COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, $lastOrderId);
 
@@ -184,11 +190,12 @@ class ICrmOrderActions
     }
 
     /**
-     * 
+     *
      * w+ event in bitrix log
      */
-    private static function eventLog($auditType, $itemId, $description) {
-        
+
+    public static function eventLog($auditType, $itemId, $description) {
+
         CEventLog::Add(array(
             "SEVERITY"      => "SECURITY",
             "AUDIT_TYPE_ID" => $auditType,
@@ -197,19 +204,19 @@ class ICrmOrderActions
             "DESCRIPTION"   => $description,
         ));
     }
-    
+
     /**
-     * 
+     *
      * Agent function
-     * 
+     *
      * @return self name
      */
-    
+
     public static function uploadOrdersAgent() {
-        
+
         if(self::uploadOrders())
             return 'ICrmOrderActions::uploadOrdersAgent();';
-        
+
         else return;
     }
     
@@ -228,7 +235,7 @@ class ICrmOrderActions
         if(!$api || empty($arParams)) { // add cond to check $arParams
             return false;
         }
-
+		
         if (empty($arFields)) {
             //handle err
             self::eventLog('ICrmOrderActions::orderCreate', 'empty($arFields)', 'incorrect order');
@@ -238,7 +245,7 @@ class ICrmOrderActions
 
         $rsUser = CUser::GetByID($arFields['USER_ID']);
         $arUser = $rsUser->Fetch();
-        
+
         $createdAt = new \DateTime($arUser['DATE_REGISTER']);
         $createdAt = $createdAt->format('Y-m-d H:i:s');
 
@@ -314,7 +321,7 @@ class ICrmOrderActions
                     break;
             }
         }
-        
+
         $items = array();
 
         $rsOrderBasket = CSaleBasket::GetList(array('PRODUCT_ID' => 'ASC'), array('ORDER_ID' => $arFields['ID']));
@@ -324,10 +331,10 @@ class ICrmOrderActions
                 $pr = $pr['PURCHASING_PRICE'];
             else
                 $pr = '';
-            
+
             if($p['DISCOUNT_VALUE'])
                 $p['DISCOUNT_PRICE'] = null;
-            
+
             $items[] = array(
                 'initialPrice'    => (double) $p['PRICE'] + (double) $p['DISCOUNT_PRICE'],
                 'purchasePrice'   => $pr,
@@ -338,16 +345,16 @@ class ICrmOrderActions
                 'productName'     => self::toJSON($p['NAME'])
             );
         }
-        
+
         if($arFields['CANCELED'] == 'Y')
             $arFields['STATUS_ID'] = $arFields['CANCELED'];
-        
+
         $createdAt = new \DateTime($arFields['DATE_INSERT']);
         $createdAt = $createdAt->format('Y-m-d H:i:s');
-        
+
         $resOrder = self::clearArr(array(
-            'firstName'       => $resOrder['contactName'][0],
-            'lastName'        => $resOrder['contactName'][1],
+            'lastName'        => $resOrder['contactName'][0],
+            'firstName'       => $resOrder['contactName'][1],
             'patronymic'      => $resOrder['contactName'][2],
             'phone'           => $resOrder['phone'],
             'email'           => $resOrder['email'],
@@ -366,7 +373,7 @@ class ICrmOrderActions
             'deliveryAddress' => $resOrderDeliveryAddress,
             'items'           => $items
         ));
-        
+
         if($send)
             return $api->createOrder($resOrder);
         
@@ -374,52 +381,51 @@ class ICrmOrderActions
             'order' => $resOrder,
             'customer' => $customer
         );
-        
     }
-    
+
     /**
      * removes all empty fields from arrays
      * working with nested arrs
-     * 
+     *
      * @param type $arr
      * @return boolean
      */
     public static function clearArr($arr) {
         if(!$arr || !is_array($arr))
             return false;
-        
+
         foreach($arr as $key => $value) {
             if(!$value || (is_array($value) && empty($value)))
                 unset($arr[$key]);
-            
+
             if(is_array($value) && !empty($value))
                 $arr[$key] = self::clearArr($value);
         }
-        
+
         return $arr;
     }
-    
+
     /**
-     * 
+     *
      * @global type $APPLICATION
      * @param type $str in SITE_CHARSET
      * @return type $str in utf-8
      */
     public static function toJSON($str) {
         global $APPLICATION;
-        
+
         return $APPLICATION->ConvertCharset($str, SITE_CHARSET, 'utf-8');
     }
-    
+
     /**
-     * 
+     *
      * @global type $APPLICATION
      * @param type $str in utf-8
      * @return type $str in SITE_CHARSET
      */
     public static function fromJSON($str) {
         global $APPLICATION;
-        
+
         return $APPLICATION->ConvertCharset($str, 'utf-8', SITE_CHARSET);
     }
 }
