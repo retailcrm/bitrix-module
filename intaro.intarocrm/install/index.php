@@ -496,7 +496,7 @@ class intaro_intarocrm extends CModule
 
             if(!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest')
                     && isset($_POST['ajax']) && ($_POST['ajax'] == 1)) {
-                ICrmOrderActions::uploadOrders(true); // each 50
+                ICrmOrderActions::uploadOrders(); // each 50
 
                 $lastUpOrderId = COption::GetOptionString($this->MODULE_ID, $this->CRM_ORDER_LAST_ID, 0);
                 $countLeft = (int) CSaleOrder::GetList(array("ID" => "ASC"), array('>ID' => $lastUpOrderId), array());

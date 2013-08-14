@@ -1,6 +1,6 @@
 <?php
 $MESS ['STEP_NAME'] = 'Шаг 4';
-$MESS ['MOD_NEXT_STEP'] = 'Следующий шаг';
+$MESS ['MOD_NEXT_STEP'] = 'Завершить установку';
 $MESS ['MOD_PREV_STEP'] = 'Предыдущий шаг';
 $MESS ['DELIVERY_TYPES_LIST'] = 'Способы доставки';
 $MESS ['PAYMENT_TYPES_LIST'] = 'Способы оплаты';
