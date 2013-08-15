@@ -885,4 +885,23 @@ class intaro_intarocrm extends CModule
         unlink($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/intarocrm_run.php');
         unlink($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/intarocrm_setup.php');
     }
+    
+    function GetProfileSetupVars($iblocks, $articleProperties, $filename) {
+        // Get string like IBLOCK_EXPORT[0]=3&
+        // IBLOCK_EXPORT[1]=6&
+        // IBLOCK_PROPERTY_ARTICLE[0]=ARTICLE&
+        // IBLOCK_PROPERTY_ARTICLE[1]=ARTNUMBER&
+        // SETUP_FILE_NAME=%2Fbitrix%2Fcatalog_export%2Ftestintarocrm.xml
+
+        //$arProfileFields = explode(",", $SETUP_FIELDS_LIST);
+        $strVars = "";
+        foreach ($iblocks as $key => $val) 
+            $strVars .= 'IBLOCK_EXPORT[' . $key . ']=' . $val . '&';
+        foreach ($articleProperties as $key => $val) 
+            $strVars .= 'IBLOCK_PROPERTY_ARTICLE[' . $key . ']=' . $val . '&';
+        
+        $strVars .= 'SETUP_FILE_NAME=' . urlencode($filename);
+        
+        return $strVars;
+    }
 }
