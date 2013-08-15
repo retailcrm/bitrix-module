@@ -568,13 +568,13 @@ class intaro_intarocrm extends CModule
             //form delivery types ids arr
             $deliveryTypesArr = array();
             
-            if (htmlspecialchars(trim($_POST['delivery-types-export'])) == 'true') {
+            if (htmlspecialchars(trim($_POST['delivery-types-export'])) == 'false') {
                 if ($arDeliveryTypesList = $dbDeliveryTypesList->Fetch()) {
                     do {
                         $deliveryTypesArr[$arDeliveryTypesList['ID']] = htmlspecialchars(trim($_POST['delivery-type-' . $arDeliveryTypesList['ID']]));
                     } while ($arDeliveryTypesList = $dbDeliveryTypesList->Fetch());
                 }
-            } else {
+            } elseif (htmlspecialchars(trim($_POST['delivery-types-export'])) == 'true') {
                 // send to intaro crm and save
                 if ($arDeliveryTypesList = $dbDeliveryTypesList->Fetch()) {
                     do {
@@ -592,18 +592,19 @@ class intaro_intarocrm extends CModule
                         $deliveryTypesArr[$arDeliveryTypesList['ID']] = $resultDeliveryTypeId;
                         
                         // send to crm
-                        $this->INTARO_CRM_API->deliveryTypeEdit(array(
+                        $this->INTARO_CRM_API->deliveryTypeEdit(ICrmOrderActions::clearArr(array(
                             'code'         => $resultDeliveryTypeId,
                             'name'         => ICrmOrderActions::toJSON($arDeliveryTypesList['NAME']),
                             'defaultCost'  => $arDeliveryTypesList['PRICE'],
                             'description'  => ICrmOrderActions::toJSON($arDeliveryTypesList['DESCRIPTION']),
                             'paymentTypes' => ''
-                        ));
+                        )));
 
                         // error pushing customer
-                        if (($this->INTARO_CRM_API->getStatusCode() != 200) || ($this->INTARO_CRM_API->getStatusCode() != 201)) {
+                        if (($this->INTARO_CRM_API->getStatusCode() != 200) 
+                                || ($this->INTARO_CRM_API->getStatusCode() != 201)) {
                             //handle err
-                            self::eventLog('install/index.php', 'IntaroCrm\RestApi::deliveryTypeEdit', $this->INTARO_CRM_API->getLastError());
+                            ICrmOrderActions::eventLog('install/index.php', 'IntaroCrm\RestApi::deliveryTypeEdit', $this->INTARO_CRM_API->getLastError());
                         }
                         
                     } while ($arDeliveryTypesList = $dbDeliveryTypesList->Fetch());
