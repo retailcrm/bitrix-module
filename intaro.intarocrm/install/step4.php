@@ -4,6 +4,8 @@ if(!check_bitrix_sessid()) return;
 IncludeModuleLangFile(__FILE__);
 __IncludeLang(GetLangFileName($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/intaro.intarocrm/lang/", "/icml_export_setup.php"));
 
+if(isset($arResult['errCode']) && $arResult['errCode']) 
+        echo CAdminMessage::ShowMessage(GetMessage($arResult['errCode'])); 
 ?>
 <form method="post" action="<?php echo $APPLICATION->GetCurPage(); ?>" >
     <font class="text"><?=GetMessage("EXPORT_CATALOGS");?><br><br></font>
@@ -53,8 +55,8 @@ __IncludeLang(GetLangFileName($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/intaro.
                     }
             }
     }
-    if ($intCountChecked == $intCountAvailIBlock)
-            $boolAll = true;
+    $intCountChecked = $intCountAvailIBlock;
+    $boolAll = true;
     
     ?>
             
@@ -100,6 +102,7 @@ __IncludeLang(GetLangFileName($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/intaro.
                         <td class="adm-list-table-cell">
                                 <font class="tablebodytext">
                                         <input
+                                            checked
                                                 type="checkbox"
                                                 name="IBLOCK_EXPORT[<?=$key?>]"
                                                 id="IBLOCK_EXPORT<?=$key?>"

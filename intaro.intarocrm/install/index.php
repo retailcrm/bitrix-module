@@ -380,11 +380,21 @@ class intaro_intarocrm extends CModule
             if(!CModule::IncludeModule("catalog")) {
                 $arResult['errCode'] = 'ERR_CATALOG';
             }
+            
+            
             $APPLICATION->IncludeAdminFile(
                 GetMessage('MODULE_INSTALL_TITLE'),
                 $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step4.php'
             );
 	} else if ($step == 5) {
+            
+            if(!CModule::IncludeModule("iblock")) {
+                $arResult['errCode'] = 'ERR_IBLOCK';
+            }
+
+            if(!CModule::IncludeModule("catalog")) {
+                $arResult['errCode'] = 'ERR_CATALOG';
+            }
             
             if(isset($arResult['errCode']) && $arResult['errCode']) {
                 $APPLICATION->IncludeAdminFile(
@@ -401,41 +411,45 @@ class intaro_intarocrm extends CModule
                 );
             }
             
-            RegisterModule($this->MODULE_ID);
-            RegisterModuleDependences("sale", "OnSaleCancelOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSaleCancelOrder");
-	    
-            if(!CModule::IncludeModule("iblock")) {
-                $arResult['errCode'] = 'ERR_IBLOCK';
-            }
-
-            if(!CModule::IncludeModule("catalog")) {
-                $arResult['errCode'] = 'ERR_CATALOG';
-            }
-            
-	    if(!isset($_POST['IBLOCK_EXPORT']))
-                $iblocks = 0;
+	    if(!isset($_POST['IBLOCK_EXPORT'])) 
+                $arResult['errCode'] = 'ERR_FIELDS_IBLOCK';
             else
                 $iblocks = $_POST['IBLOCK_EXPORT'];
             
             if(!isset($_POST['IBLOCK_PROPERTY_ARTICLE']))
-                $articleProperties = 0;
+                $arResult['errCode'] = 'ERR_FIELDS_ARTICLE';
             else
                 $articleProperties = $_POST['IBLOCK_PROPERTY_ARTICLE'];
 	    
-            if(!isset($_POST['SETUP_PROFILE_NAME']))
-                $profileName = 0;
-            else
-                $profileName = $_POST['SETUP_PROFILE_NAME'];
-	    
 	    if(!isset($_POST['SETUP_FILE_NAME']))
-                $filename = 0;
+                $arResult['errCode'] = 'ERR_FIELDS_FILE';
             else
                 $filename = $_POST['SETUP_FILE_NAME'];
+            
             
             if(!isset($_POST['TYPE_LOADING']))
                 $typeLoading = 0;
             else
                 $typeLoading = $_POST['TYPE_LOADING'];
+            
+            if(!isset($_POST['SETUP_PROFILE_NAME']) ) 
+                $profileName = "";
+            else
+                $profileName = $_POST['SETUP_PROFILE_NAME'];
+            
+            if ($typeLoading != 'none' && $profileName == "")
+                $arResult['errCode'] = 'ERR_FIELDS_PROFILE';
+            
+            if(isset($arResult['errCode']) && $arResult['errCode']) {
+                $APPLICATION->IncludeAdminFile(
+                    GetMessage('MODULE_INSTALL_TITLE'),
+                    $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step4.php'
+                );
+                return;
+            }
+            
+            RegisterModule($this->MODULE_ID);
+            RegisterModuleDependences("sale", "OnSaleCancelOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSaleCancelOrder");
             
             if (isset($_POST['LOAD_NOW'])) {
                 
@@ -447,17 +461,15 @@ class intaro_intarocrm extends CModule
                 $loader->Load();
                 
             } 
-            if(!isset($_POST['TYPE_LOADING']))
-                $typeLoading = 0;
-            else
-                $typeLoading = $_POST['TYPE_LOADING'];  
             
             if ($typeLoading == 'agent' || $typeLoading == 'cron') {
-                $dbProfile = CCatalogExport::GetList(array(), array("FILE_NAME" => $this->INTARO_CRM_EXPORT));
-                       
-                while ($arProfile = $dbProfile->Fetch()) {
-                    if ($arProfile["DEFAULT_PROFILE"]!="Y")
-                        CAgent::RemoveAgent("CCatalogExport::PreGenerateExport(".$arProfile['ID'].");", "catalog");
+                if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/catalog_export/' . $this->INTARO_CRM_EXPORT . '_run.php')) {
+                    $dbProfile = CCatalogExport::GetList(array(), array("FILE_NAME" => $this->INTARO_CRM_EXPORT));
+
+                    while ($arProfile = $dbProfile->Fetch()) {
+                        if ($arProfile["DEFAULT_PROFILE"]!="Y")
+                            CAgent::RemoveAgent("CCatalogExport::PreGenerateExport(".$arProfile['ID'].");", "catalog");
+                    }
                 }
                 $ar = $this->GetProfileSetupVars($iblocks, $articleProperties, $filename);
                 $PROFILE_ID = CCatalogExport::Add(array(
