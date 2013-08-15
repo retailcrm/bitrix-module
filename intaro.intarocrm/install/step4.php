@@ -164,7 +164,7 @@ if(isset($arResult['errCode']) && $arResult['errCode'])
     <br>
     <br>    
     <font class="text"><?=GetMessage("LOAD_NOW");?>&nbsp;</font>
-    <input id="load-now" type="checkbox" name="LOAD_NOW" value="now">
+    <input id="load-now" type="checkbox" name="LOAD_NOW" value="now" checked >
     <br>
     <br>
     <br>
@@ -174,7 +174,7 @@ if(isset($arResult['errCode']) && $arResult['errCode'])
         <input 
             type="text" 
             name="SETUP_PROFILE_NAME" 
-            value="<?echo htmlspecialchars($SETUP_PROFILE_NAME)?>"  
+            value="Выгрузка каталога IntaroCRM"  
             size="30">
         <br>
         <br>
