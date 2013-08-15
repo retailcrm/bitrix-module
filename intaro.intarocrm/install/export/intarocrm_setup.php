@@ -1,11 +1,50 @@
-<?php
+<?
+//<title>IntaroCRM</title>
 
 if(!check_bitrix_sessid()) return;
-IncludeModuleLangFile(__FILE__);
+
 __IncludeLang(GetLangFileName($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/intaro.intarocrm/lang/", "/icml_export_setup.php"));
 
-if(isset($arResult['errCode']) && $arResult['errCode']) 
-        echo CAdminMessage::ShowMessage(GetMessage($arResult['errCode'])); 
+if (($ACTION == 'EXPORT_EDIT' || $ACTION == 'EXPORT_COPY') && $STEP == 1)
+{
+	if (isset($arOldSetupVars['SETUP_FILE_NAME']))
+		$SETUP_FILE_NAME = $arOldSetupVars['SETUP_FILE_NAME'];
+	if (isset($arOldSetupVars['SETUP_PROFILE_NAME']))
+		$SETUP_PROFILE_NAME = $arOldSetupVars['SETUP_PROFILE_NAME'];
+}
+
+
+if ($STEP>1)
+{
+
+	if (strlen($SETUP_FILE_NAME)<=0)
+	{
+		$arSetupErrors[] = GetMessage("CET_ERROR_NO_FILENAME");
+	}
+	elseif ($APPLICATION->GetFileAccessPermission($SETUP_FILE_NAME) < "W")
+	{
+		$arSetupErrors[] = str_replace("#FILE#", $SETUP_FILE_NAME, GetMessage('CET_YAND_RUN_ERR_SETUP_FILE_ACCESS_DENIED'));
+	}
+
+	if (($ACTION=="EXPORT_SETUP" || $ACTION == 'EXPORT_EDIT' || $ACTION == 'EXPORT_COPY') && strlen($SETUP_PROFILE_NAME)<=0)
+	{
+		$arSetupErrors[] = GetMessage("CET_ERROR_NO_PROFILE_NAME");
+	}
+
+	if (!empty($arSetupErrors))
+	{
+		$STEP = 1;
+	}
+}
+
+if (!empty($arSetupErrors))
+	echo ShowError(implode('<br />', $arSetupErrors));
+
+
+if ($STEP==1)
+{
+    
+
 ?>
 <form method="post" action="<?php echo $APPLICATION->GetCurPage(); ?>" >
     <font class="text"><?=GetMessage("EXPORT_CATALOGS");?><br><br></font>
@@ -16,7 +55,7 @@ if(isset($arResult['errCode']) && $arResult['errCode'])
     }
     
     $boolAll = false;
-    $intCountChecked = 0;
+    $intCountChecked = 2;
     $intCountAvailIBlock = 0;
     $arIBlockList = array();
     $db_res = CIBlock::GetList(Array("IBLOCK_TYPE"=>"ASC", "NAME"=>"ASC"),array('CHECK_PERMISSIONS' => 'Y','MIN_PERMISSION' => 'W'));
@@ -55,8 +94,8 @@ if(isset($arResult['errCode']) && $arResult['errCode'])
                     }
             }
     }
-    $intCountChecked = $intCountAvailIBlock;
-    $boolAll = true;
+    if ($intCountChecked == $intCountAvailIBlock)
+            $boolAll = true;
     
     ?>
             
@@ -157,29 +196,19 @@ if(isset($arResult['errCode']) && $arResult['errCode'])
     <br>
     <br>
     
-    <font class="text"><?=GetMessage("LOAD_PERIOD");?><br><br></font>
-    <input type="radio" name="TYPE_LOADING" value="none" onclick="checkProfile(this);"><?=GetMessage("NOT_LOADING");?><Br>
-    <input type="radio" name="TYPE_LOADING" value="cron" onclick="checkProfile(this);"><?=GetMessage("CRON_LOADING");?><Br>
-    <input type="radio" name="TYPE_LOADING" value="agent"  checked  onclick="checkProfile(this);"><?=GetMessage("AGENT_LOADING");?><Br>
-    <br>
-    <br>    
-    <font class="text"><?=GetMessage("LOAD_NOW");?>&nbsp;</font>
-    <input id="load-now" type="checkbox" name="LOAD_NOW" value="now" checked >
-    <br>
-    <br>
-    <br>
-    
-    <div id="profile-field" >
-        <font class="text"><?=GetMessage("PROFILE_NAME");?>&nbsp;</font>
+   
+    <?if ($ACTION=="EXPORT_SETUP" || $ACTION == 'EXPORT_EDIT' || $ACTION == 'EXPORT_COPY'):?>
+        <font class="text"><?=GetMessage("PROFILE_NAME");?><br><br></font>
         <input 
             type="text" 
             name="SETUP_PROFILE_NAME" 
-            value="Выгрузка каталога IntaroCRM"  
-            size="30">
+            value="<?echo htmlspecialchars($SETUP_PROFILE_NAME)?>"  
+            size="50">
         <br>
         <br>
         <br>
-    </div>
+    <?endif;?>
+   
     
     <script type="text/javascript" src="/bitrix/js/main/jquery/jquery-1.7.min.js"></script>
     <script type="text/javascript">
@@ -200,32 +229,28 @@ if(isset($arResult['errCode']) && $arResult['errCode'])
                     BX('icml_export_all').checked = (intCurrent < cnt ? false : true);
                     BX('count_checked').value = intCurrent;
             };
-            function checkProfile(obj)
-            {
-                if (obj.value !== 'none')
-                    $('#profile-field').show();
-                else
-                    $('#profile-field').hide();
-            };
     </script>
     
     
     <?//Следующие переменные должны быть обязательно установлены?>
     <?=bitrix_sessid_post();?>
     
-    <input type="hidden" name="lang" value="<?php echo LANG; ?>">
-    <input type="hidden" name="id" value="intaro.intarocrm">
-    <input type="hidden" name="install" value="Y">
-    <input type="hidden" name="step" value="5">
-    <input type="hidden" name="continue" value="4">
-    <div style="padding: 1px 13px 2px; height:28px;">
-        <div align="right" style="float:right; width:50%; position:relative;">
-            <input type="submit" name="inst" value="<?php echo GetMessage("MOD_NEXT_STEP"); ?>" class="adm-btn-save">
-        </div>
-        <div align="left" style="float:right; width:50%; position:relative;">
-            <input type="submit" name="back" value="<?php echo GetMessage("MOD_PREV_STEP"); ?>" class="adm-btn-save">
-        </div>
-    </div>
+    <input type="hidden" name="lang" value="<?echo LANGUAGE_ID ?>">
+    <input type="hidden" name="ACT_FILE" value="<?echo htmlspecialcharsbx($_REQUEST["ACT_FILE"]) ?>">
+    <input type="hidden" name="ACTION" value="<?echo htmlspecialcharsbx($ACTION) ?>">
+    <input type="hidden" name="STEP" value="<?echo intval($STEP) + 1 ?>">
+    <input type="hidden" name="SETUP_FIELDS_LIST" value="SETUP_FILE_NAME,IBLOCK_EXPORT,IBLOCK_PROPERTY_ARTICLE">
+    <input type="submit" value="<?echo ($ACTION=="EXPORT")?GetMessage("CET_EXPORT"):GetMessage("CET_SAVE")?>">
+
+        
 </form>
 
+<?
+}
+elseif ($STEP==2)
+{
+	
+	$FINITE = true;
+}
 
+?>
