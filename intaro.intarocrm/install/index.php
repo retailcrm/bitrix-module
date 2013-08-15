@@ -21,7 +21,7 @@ class intaro_intarocrm extends CModule
     var $PARTNER_NAME;
     var $PARTNER_URI;
     var $INTARO_CRM_API;
-    var $INTARO_CRM_EXPORT = 'intarocrm';
+	var $INTARO_CRM_EXPORT = 'intarocrm';
 
     var $CRM_API_HOST_OPTION = 'api_host';
     var $CRM_API_KEY_OPTION = 'api_key';
@@ -60,7 +60,7 @@ class intaro_intarocrm extends CModule
         global $APPLICATION, $step, $arResult;
 
         if (!in_array('curl', get_loaded_extensions())) {
-            $APPLICATION->ThrowException(GetMessage("INTAROCRM_CURL_ERR"));
+            $APPLICATION->ThrowException( GetMessage("INTAROCRM_CURL_ERR") );
             return false;
         }
 
@@ -106,6 +106,259 @@ class intaro_intarocrm extends CModule
                     $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step1.php'
                 );
                 return;
+            }
+			
+            if(!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest')
+                    && isset($_POST['ajax']) && ($_POST['ajax'] == 1)) {
+                
+                $api_host = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, 0);
+                $api_key = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, 0);
+                $this->INTARO_CRM_API = new \IntaroCrm\RestApi($api_host, $api_key);
+                
+                //prepare crm lists
+                $arResult['orderTypesList'] = $this->INTARO_CRM_API->orderTypesList();
+                
+                if ((int) $this->INTARO_CRM_API->getStatusCode() != 200) {
+                    $APPLICATION->RestartBuffer();
+                    header('Content-Type: application/x-javascript; charset=' . LANG_CHARSET);
+                    die(json_encode(array("success" => false)));
+                }
+                
+                $arResult['deliveryTypesList'] = $this->INTARO_CRM_API->deliveryTypesList();
+                $arResult['paymentTypesList'] = $this->INTARO_CRM_API->paymentTypesList();
+                $arResult['paymentStatusesList'] = $this->INTARO_CRM_API->paymentStatusesList(); // --statuses
+                $arResult['paymentList'] = $this->INTARO_CRM_API->orderStatusesList();
+                $arResult['paymentGroupList'] = $this->INTARO_CRM_API->orderStatusGroupsList(); // -- statuses groups
+                
+                //bitrix orderTypesList -- personTypes
+                $dbOrderTypesList = CSalePersonType::GetList(
+                            array(
+                                "SORT" => "ASC",
+                                "NAME" => "ASC"
+                            ),
+                            array(
+                                "ACTIVE" => "Y",
+                            ),
+                           false,
+                           false,
+                           array()
+                );
+                
+
+                //form order types ids arr
+                $orderTypesArr = array();
+                if ($arOrderTypesList = $dbOrderTypesList->Fetch()) {
+                    do {
+                        $arResult['bitrixOrderTypesList'][] = $arOrderTypesList;
+                        $orderTypesArr[$arOrderTypesList['ID']] = htmlspecialchars(trim($_POST['order-type-' . $arOrderTypesList['ID']]));
+                    } while ($arOrderTypesList = $dbOrderTypesList->Fetch());
+                }
+
+                //bitrix deliveryTypesList
+                $dbDeliveryTypesList = CSaleDelivery::GetList(
+                            array(
+                                "SORT" => "ASC",
+                                "NAME" => "ASC"
+                            ),
+                            array(
+                                "ACTIVE" => "Y",
+                            ),
+                            false,
+                            false,
+                            array()
+                );
+
+                //form delivery types ids arr
+                $deliveryTypesArr = array();
+                if ($arDeliveryTypesList = $dbDeliveryTypesList->Fetch()) {
+                    do {
+                        $arResult['bitrixDeliveryTypesList'][] = $arDeliveryTypesList;
+                        $deliveryTypesArr[$arDeliveryTypesList['ID']] = htmlspecialchars(trim($_POST['delivery-type-' . $arDeliveryTypesList['ID']]));
+                    } while ($arDeliveryTypesList = $dbDeliveryTypesList->Fetch());
+                }
+
+                //bitrix paymentTypesList
+                $dbPaymentTypesList = CSalePaySystem::GetList(
+                            array(
+                                "SORT" => "ASC",
+                                "NAME" => "ASC"
+                            ),
+                            array(
+                                "ACTIVE" => "Y"
+                            )
+                );
+
+                //form payment types ids arr
+                $paymentTypesArr = array();
+                if ($arPaymentTypesList = $dbPaymentTypesList->Fetch()) {
+                    do {
+                        $arResult['bitrixPaymentTypesList'][] = $arPaymentTypesList;
+                        $paymentTypesArr[$arPaymentTypesList['ID']] = htmlspecialchars(trim($_POST['payment-type-' . $arPaymentTypesList['ID']]));
+                    } while ($arPaymentTypesList = $dbPaymentTypesList->Fetch());
+                }
+
+                //bitrix paymentStatusesList
+                $dbPaymentStatusesList = CSaleStatus::GetList(
+                            array(
+                                "SORT" => "ASC",
+                                "NAME" => "ASC"
+                            ),
+                            array(
+                                "LID" => "ru", //ru 
+                                "ACTIVE" => "Y"
+                            )
+                );
+
+                //form payment statuses ids arr
+                $paymentStatusesArr['Y'] = htmlspecialchars(trim($_POST['payment-status-Y']));
+                if ($arPaymentStatusesList = $dbPaymentStatusesList->Fetch()) {
+                    do {
+                        $arResult['bitrixPaymentStatusesList'][] = $arPaymentStatusesList;
+                        $paymentStatusesArr[$arPaymentStatusesList['ID']] = htmlspecialchars(trim($_POST['payment-status-' . $arPaymentStatusesList['ID']]));
+                    } while ($arPaymentStatusesList = $dbPaymentStatusesList->Fetch());
+                }
+                
+                $arResult['bitrixPaymentStatusesList'][] = array(
+                    'ID' => 'Y',
+                    'NAME' => GetMessage('CANCELED')
+                );
+
+                //form payment ids arr
+                $paymentArr = array();
+                $paymentArr['Y'] = htmlspecialchars(trim($_POST['payment-Y']));
+                $paymentArr['N'] = htmlspecialchars(trim($_POST['payment-N']));
+
+                COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_TYPES_ARR, serialize($orderTypesArr));
+                COption::SetOptionString($this->MODULE_ID, $this->CRM_DELIVERY_TYPES_ARR, serialize($deliveryTypesArr));
+                COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT_TYPES, serialize($paymentTypesArr));
+                COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT_STATUSES, serialize($paymentStatusesArr));
+                COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT, serialize($paymentArr));
+                
+                // generate updated select inputs  
+                $input = array();
+                
+                foreach($arResult['bitrixDeliveryTypesList'] as $bitrixDeliveryType) {
+                    $input['delivery-type-' . $bitrixDeliveryType['ID']] =
+                        '<select name="delivery-type-' . $bitrixDeliveryType['ID'] . '" class="typeselect">';
+                    $input['delivery-type-' . $bitrixDeliveryType['ID']] .= '<option value=""></option>';
+                    
+                    foreach($arResult['deliveryTypesList'] as $deliveryType) {
+                        if ($deliveryTypesArr[$bitrixDeliveryType['ID']] == $deliveryType['code']) {
+                            $input['delivery-type-' . $bitrixDeliveryType['ID']] .=
+                                '<option value="' . $deliveryType['code'] . '" selected>';
+                        } else {
+                            $input['delivery-type-' . $bitrixDeliveryType['ID']] .=
+                                '<option value="' . $deliveryType['code'] . '">';
+                        } 
+                        
+                        $input['delivery-type-' . $bitrixDeliveryType['ID']] .= 
+                                $APPLICATION->ConvertCharset($deliveryType['name'], 'utf-8', SITE_CHARSET);
+                        $input['delivery-type-' . $bitrixDeliveryType['ID']] .= '</option>';
+                    }
+                    
+                    $input['delivery-type-' . $bitrixDeliveryType['ID']] .= '</select>';
+                }
+    
+                foreach($arResult['bitrixPaymentTypesList'] as $bitrixPaymentType) {
+                    $input['payment-type-' . $bitrixPaymentType['ID']] =
+                        '<select name="payment-type-' . $bitrixPaymentType['ID'] . '" class="typeselect">';
+                    $input['payment-type-' . $bitrixPaymentType['ID']] .= '<option value=""></option>';
+                    
+                    foreach($arResult['paymentTypesList'] as $paymentType) {
+                        if ($paymentTypesArr[$bitrixPaymentType['ID']] == $paymentType['code']) {
+                            $input['payment-type-' . $bitrixPaymentType['ID']] .=
+                                '<option value="' . $paymentType['code'] . '" selected>';
+                        } else {
+                            $input['payment-type-' . $bitrixPaymentType['ID']] .=
+                                '<option value="' . $paymentType['code'] . '">';
+                        } 
+                        
+                        $input['payment-type-' . $bitrixPaymentType['ID']] .=
+                            $APPLICATION->ConvertCharset($paymentType['name'], 'utf-8', SITE_CHARSET);
+                        $input['payment-type-' . $bitrixPaymentType['ID']] .= '</option>';
+                    }
+                    
+                    $input['payment-type-' . $bitrixPaymentType['ID']] .= '</select>';
+                }
+    
+                foreach($arResult['bitrixPaymentStatusesList'] as $bitrixPaymentStatus) {
+                    $input['payment-status-' . $bitrixPaymentStatus['ID']] =
+                        '<select name="payment-status-' . $bitrixPaymentStatus['ID'] . '" class="typeselect">';
+                    $input['payment-status-' . $bitrixPaymentStatus['ID']] .= '<option value=""></option>';
+                    
+                    foreach($arResult['paymentGroupList'] as $orderStatusGroup){
+                        if(empty($orderStatusGroup['statuses'])) continue;
+                        
+                        $input['payment-status-' . $bitrixPaymentStatus['ID']].= 
+                            '<optgroup label="' . $orderStatusGroup['name'] . '">';
+                        
+                        foreach($orderStatusGroup['statuses'] as $payment) {
+                            if ($paymentStatusesArr[$bitrixPaymentStatus['ID']] == $arResult['paymentList'][$payment]['code']) {
+                                $input['payment-status-' . $bitrixPaymentStatus['ID']] .=
+                                    '<option value="' . $arResult['paymentList'][$payment]['code'] . '" selected>';
+                            } else {
+                                $input['payment-status-' . $bitrixPaymentStatus['ID']] .=
+                                    '<option value="' . $arResult['paymentList'][$payment]['code'] . '">';
+                            } 
+                        
+                            $input['payment-status-' . $bitrixPaymentStatus['ID']] .=
+                                $APPLICATION->ConvertCharset($arResult['paymentList'][$payment]['name'], 'utf-8', SITE_CHARSET);
+                            $input['payment-status-' . $bitrixPaymentStatus['ID']] .= '</option>';
+                        }
+                        
+                        $input['payment-status-' . $bitrixPaymentStatus['ID']] .= '</optgroup>';
+                    }
+                    
+                    $input['payment-status-' . $bitrixPaymentStatus['ID']] .= '</select>';
+                }
+    
+                foreach($arResult['bitrixPaymentList'] as $bitrixPayment) {
+                    $input['payment-' . $bitrixPayment['ID']] =
+                        '<select name="payment-' . $bitrixPayment['ID'] . '" class="typeselect">';
+                    $input['payment-' . $bitrixPayment['ID']] .= '<option value=""></option>';
+                    
+                    foreach($arResult['paymentStatusesList'] as $paymentStatus) {
+                        if ($paymentArr[$bitrixPayment['ID']] == $paymentStatus['code']) {
+                            $input['payment-' . $bitrixPayment['ID']] .=
+                                '<option value="' . $paymentStatus['code'] . '" selected>';
+                        } else {
+                            $input['payment-' . $bitrixPayment['ID']] .=
+                                '<option value="' . $paymentStatus['code']. '">';
+                        } 
+                        
+                        $input['payment-' . $bitrixPayment['ID']] .=
+                            $APPLICATION->ConvertCharset($paymentStatus['name'], 'utf-8', SITE_CHARSET);
+                        $input['payment-' . $bitrixPayment['ID']] .= '</option>';
+                    }
+                    
+                    $input['payment-' . $bitrixPayment['ID']] .= '</select>';
+                }
+    
+                foreach($arResult['bitrixOrderTypesList'] as $bitrixOrderType) {
+                    $input['order-type-' . $bitrixOrderType['ID']] =
+                        '<select name="order-type-' . $bitrixOrderType['ID'] . '" class="typeselect">';
+                    $input['order-type-' . $bitrixOrderType['ID']] .= '<option value=""></option>';
+                    
+                    foreach($arResult['orderTypesList'] as $orderType) {
+                        if ($orderTypesArr[$bitrixOrderType['ID']] == $orderType['code']) {
+                            $input['order-type-' . $bitrixOrderType['ID']] .=
+                                '<option value="' . $orderType['code'] . '" selected>';
+                        } else {
+                            $input['order-type-' . $bitrixOrderType['ID']] .=
+                                '<option value="' . $orderType['code']. '">';
+                        } 
+                        
+                         $input['order-type-' . $bitrixOrderType['ID']] .=
+                            $APPLICATION->ConvertCharset($orderType['name'], 'utf-8', SITE_CHARSET);
+                         $input['order-type-' . $bitrixOrderType['ID']] .= '</option>';
+                    }
+                    
+                     $input['order-type-' . $bitrixOrderType['ID']] .= '</select>';
+                }
+                
+                $APPLICATION->RestartBuffer();
+		header('Content-Type: application/x-javascript; charset='.LANG_CHARSET);
+		die(json_encode(array("success" => true, "result" => $input)));
             }
 
             $api_host = htmlspecialchars(trim($_POST[$this->CRM_API_HOST_OPTION]));
@@ -243,7 +496,7 @@ class intaro_intarocrm extends CModule
 
             if(!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest')
                     && isset($_POST['ajax']) && ($_POST['ajax'] == 1)) {
-                ICrmOrderActions::uploadOrders(true); // each 50
+                ICrmOrderActions::uploadOrders(); // each 50
 
                 $lastUpOrderId = COption::GetOptionString($this->MODULE_ID, $this->CRM_ORDER_LAST_ID, 0);
                 $countLeft = (int) CSaleOrder::GetList(array("ID" => "ASC"), array('>ID' => $lastUpOrderId), array());
@@ -258,7 +511,7 @@ class intaro_intarocrm extends CModule
 
                 if(!$countLeft)
                     $finish = 1;
-           
+
                 $APPLICATION->RestartBuffer();
 		header('Content-Type: application/x-javascript; charset='.LANG_CHARSET);
 		die(json_encode(array("finish" => $finish, "percent" => $percent)));
@@ -372,22 +625,20 @@ class intaro_intarocrm extends CModule
                 $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step3.php'
             );
         } else if ($step == 4) {
-	    
-	    if(!CModule::IncludeModule("iblock")) {
+            if(!CModule::IncludeModule("iblock")) {
                 $arResult['errCode'] = 'ERR_IBLOCK';
             }
-
+ 
             if(!CModule::IncludeModule("catalog")) {
                 $arResult['errCode'] = 'ERR_CATALOG';
             }
-            
-            
             $APPLICATION->IncludeAdminFile(
                 GetMessage('MODULE_INSTALL_TITLE'),
                 $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step4.php'
             );
-	} else if ($step == 5) {
-            
+        
+        } else if ($step == 5) {
+             
             if(!CModule::IncludeModule("iblock")) {
                 $arResult['errCode'] = 'ERR_IBLOCK';
             }
@@ -607,7 +858,10 @@ class intaro_intarocrm extends CModule
         COption::RemoveOption($this->MODULE_ID, $this->CRM_PAYMENT_STATUSES);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_PAYMENT);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_LAST_ID);
-
+        
+        UnRegisterModuleDependences("sale", "OnSalePayOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSalePayOrder");
+        UnRegisterModuleDependences("sale", "OnSaleCancelOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSaleCancelOrder");
+        
         $this->DeleteFiles();
 
         UnRegisterModule($this->MODULE_ID);
@@ -630,24 +884,5 @@ class intaro_intarocrm extends CModule
     function DeleteFiles() {
         unlink($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/intarocrm_run.php');
         unlink($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/intarocrm_setup.php');
-    }
-    
-    function GetProfileSetupVars($iblocks, $articleProperties, $filename) {
-        // Get string like IBLOCK_EXPORT[0]=3&
-        // IBLOCK_EXPORT[1]=6&
-        // IBLOCK_PROPERTY_ARTICLE[0]=ARTICLE&
-        // IBLOCK_PROPERTY_ARTICLE[1]=ARTNUMBER&
-        // SETUP_FILE_NAME=%2Fbitrix%2Fcatalog_export%2Ftestintarocrm.xml
-
-        //$arProfileFields = explode(",", $SETUP_FIELDS_LIST);
-        $strVars = "";
-        foreach ($iblocks as $key => $val) 
-            $strVars .= 'IBLOCK_EXPORT[' . $key . ']=' . $val . '&';
-        foreach ($articleProperties as $key => $val) 
-            $strVars .= 'IBLOCK_PROPERTY_ARTICLE[' . $key . ']=' . $val . '&';
-        
-        $strVars .= 'SETUP_FILE_NAME=' . urlencode($filename);
-        
-        return $strVars;
     }
 }
