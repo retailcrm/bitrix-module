@@ -21,7 +21,7 @@ class intaro_intarocrm extends CModule
     var $PARTNER_NAME;
     var $PARTNER_URI;
     var $INTARO_CRM_API;
-	var $INTARO_CRM_EXPORT = 'intarocrm';
+    var $INTARO_CRM_EXPORT = 'intarocrm';
 
     var $CRM_API_HOST_OPTION = 'api_host';
     var $CRM_API_KEY_OPTION = 'api_key';
@@ -423,7 +423,7 @@ class intaro_intarocrm extends CModule
                     $arResult['bitrixOrderTypesList'][] = $arOrderTypesList;
                 } while ($arOrderTypesList = $dbOrderTypesList->Fetch());
             }
-
+            
             //bitrix deliveryTypesList
             $dbDeliveryTypesList = CSaleDelivery::GetList(
                 array(
@@ -523,6 +523,11 @@ class intaro_intarocrm extends CModule
                    $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step1.php'
                 );
             }
+            
+            // api load
+            $api_host = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, 0);
+            $api_key = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, 0);
+            $this->INTARO_CRM_API = new \IntaroCrm\RestApi($api_host, $api_key);
 
             //bitrix orderTypesList -- personTypes
             $dbOrderTypesList = CSalePersonType::GetList(
@@ -559,13 +564,50 @@ class intaro_intarocrm extends CModule
                 false,
                 array()
             );
-
+            
             //form delivery types ids arr
             $deliveryTypesArr = array();
-            if ($arDeliveryTypesList = $dbDeliveryTypesList->Fetch()) {
-                do {
-                    $deliveryTypesArr[$arDeliveryTypesList['ID']] = htmlspecialchars(trim($_POST['delivery-type-' . $arDeliveryTypesList['ID']]));
-                } while ($arDeliveryTypesList = $dbDeliveryTypesList->Fetch());
+            
+            if (htmlspecialchars(trim($_POST['delivery-types-export'])) == 'true') {
+                if ($arDeliveryTypesList = $dbDeliveryTypesList->Fetch()) {
+                    do {
+                        $deliveryTypesArr[$arDeliveryTypesList['ID']] = htmlspecialchars(trim($_POST['delivery-type-' . $arDeliveryTypesList['ID']]));
+                    } while ($arDeliveryTypesList = $dbDeliveryTypesList->Fetch());
+                }
+            } else {
+                // send to intaro crm and save
+                if ($arDeliveryTypesList = $dbDeliveryTypesList->Fetch()) {
+                    do {
+                        // parse id
+                        $arId = array();
+                        $resultDeliveryTypeId = 0;
+                        if (strpos($arDeliveryTypesList['ID'], ":") !== false)
+                            $arId = explode(":", $arDeliveryTypesList['ID']);
+
+                        if ($arId)
+                            $resultDeliveryTypeId = $arId[0];
+                        else
+                            $resultDeliveryTypeId = $arDeliveryTypesList['ID'];
+                        
+                        $deliveryTypesArr[$arDeliveryTypesList['ID']] = $resultDeliveryTypeId;
+                        
+                        // send to crm
+                        $this->INTARO_CRM_API->deliveryTypeEdit(array(
+                            'code'         => $resultDeliveryTypeId,
+                            'name'         => ICrmOrderActions::toJSON($arDeliveryTypesList['NAME']),
+                            'defaultCost'  => $arDeliveryTypesList['PRICE'],
+                            'description'  => ICrmOrderActions::toJSON($arDeliveryTypesList['DESCRIPTION']),
+                            'paymentTypes' => ''
+                        ));
+
+                        // error pushing customer
+                        if (($this->INTARO_CRM_API->getStatusCode() != 200) || ($this->INTARO_CRM_API->getStatusCode() != 201)) {
+                            //handle err
+                            self::eventLog('install/index.php', 'IntaroCrm\RestApi::deliveryTypeEdit', $this->INTARO_CRM_API->getLastError());
+                        }
+                        
+                    } while ($arDeliveryTypesList = $dbDeliveryTypesList->Fetch());
+                }
             }
 
             //bitrix paymentTypesList

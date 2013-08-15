@@ -93,6 +93,13 @@ $defaultPayment = array(
             return false;
         }); 
         
+        $('input[name="delivery-types-export"]').click(function() {
+            if($(this).val() === 'true')
+                $('tr.delivery-types').hide('slow');
+            else if($(this).val() === 'false')
+                $('tr.delivery-types').show('show');
+                
+        });
     });
 </script>
 
@@ -124,8 +131,16 @@ $defaultPayment = array(
             <tr class="heading">
                 <td colspan="2"><b><?php echo GetMessage('DELIVERY_TYPES_LIST'); ?></b></td>
             </tr>
+            <tr class="heading">
+                <td width="50%" class="adm-detail-content-cell-l">
+                    <label><input type="radio" name="delivery-types-export" value="true" checked> <?php echo GetMessage('DELIV_TYPES_EXPORT'); ?></label>
+                </td>
+                <td width="50%" class="adm-detail-content-cell-r">
+                    <label><input type="radio" name="delivery-types-export" value="false"> <?php echo GetMessage('DELIV_TYPES_EXPORT_F'); ?></label>
+                </td>
+            </tr>
             <?php foreach($arResult['bitrixDeliveryTypesList'] as $bitrixDeliveryType): ?>
-            <tr>
+            <tr class="delivery-types" style="display: none;">
                 <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $bitrixDeliveryType['ID']; ?>">
 		<?php echo $bitrixDeliveryType['NAME']; ?>
                 </td>
@@ -175,7 +190,7 @@ $defaultPayment = array(
                     <select name="payment-status-<?php echo $bitrixPaymentStatus['ID']; ?>" class="typeselect">
                         <option value="" selected=""></option>
                         <?php foreach($arResult['paymentGroupList'] as $orderStatusGroup): if(!empty($orderStatusGroup['statuses'])) : ?>
-                        <optgroup label="<?php echo $orderStatusGroup['name']; ?>">
+                        <optgroup label="<?php echo $APPLICATION->ConvertCharset($orderStatusGroup['name'], 'utf-8', SITE_CHARSET); ?>">
                             <?php foreach($orderStatusGroup['statuses'] as $payment): ?>
                             <option value="<?php echo $arResult['paymentList'][$payment]['code']; ?>" 
                                 <?php if ($defaultPayStatuses[$bitrixPaymentStatus['ID']] == $arResult['paymentList'][$payment]['code']) echo 'selected'; ?>>
