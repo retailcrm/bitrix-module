@@ -755,7 +755,7 @@ class intaro_intarocrm extends CModule
                             );
                     
                     CCatalogExport::Update($PROFILE_ID, array(
-                            "IN_CRON" => ($arProfile["IN_AGENT"]=="Y" ? "N" : "Y")
+                            "IN_AGENT" => "Y" 
                             ));
                 } else {
                     $agent_period = 24;
@@ -803,7 +803,7 @@ class intaro_intarocrm extends CModule
                     }
 
                     CCatalogExport::Update($PROFILE_ID, array(
-                            "IN_CRON" => ($arProfile["IN_CRON"]=="Y" ? "N" : "Y")
+                            "IN_CRON" => "Y"
                         ));
                     
                     CheckDirPath($_SERVER["DOCUMENT_ROOT"]."/bitrix/crontab/");

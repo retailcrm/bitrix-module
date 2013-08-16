@@ -150,7 +150,7 @@ if(isset($arResult['errCode']) && $arResult['errCode'])
                                             'catalog',
                                             'export_default_path',
                                             '/bitrix/catalog_export/'))
-                                        .'testintarocrm'/* .mt_rand(0, 999999) */.'.xml'
+                                        .'intarocrm'/* .mt_rand(0, 999999) */.'.xml'
                                         ); ?>" size="50">
                             
     <br>
