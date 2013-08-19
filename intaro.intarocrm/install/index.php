@@ -701,7 +701,7 @@ class intaro_intarocrm extends CModule
             
             RegisterModule($this->MODULE_ID);
             RegisterModuleDependences("sale", "OnSaleCancelOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSaleCancelOrder");
-            
+            $this->CopyFiles();
             if (isset($_POST['LOAD_NOW'])) {
                 
                 $loader = new ICMLLoader();
@@ -714,12 +714,14 @@ class intaro_intarocrm extends CModule
             } 
             
             if ($typeLoading == 'agent' || $typeLoading == 'cron') {
-                if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/catalog_export/' . $this->INTARO_CRM_EXPORT . '_run.php')) {
+                if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/' . $this->INTARO_CRM_EXPORT . '_run.php')) {
                     $dbProfile = CCatalogExport::GetList(array(), array("FILE_NAME" => $this->INTARO_CRM_EXPORT));
 
                     while ($arProfile = $dbProfile->Fetch()) {
-                        if ($arProfile["DEFAULT_PROFILE"]!="Y")
+                        if ($arProfile["DEFAULT_PROFILE"]!="Y") {
                             CAgent::RemoveAgent("CCatalogExport::PreGenerateExport(".$arProfile['ID'].");", "catalog");
+                            CCatalogExport::Delete($arProfile['ID']);
+                        }
                     }
                 }
                 $ar = $this->GetProfileSetupVars($iblocks, $articleProperties, $filename);
@@ -755,8 +757,8 @@ class intaro_intarocrm extends CModule
                             );
                     
                     CCatalogExport::Update($PROFILE_ID, array(
-                            "IN_AGENT" => "Y" 
-                            ));
+                            "IN_AGENT" => "Y"
+                        ));
                 } else {
                     $agent_period = 24;
                     $agent_php_path = "/usr/local/php/bin/php";
@@ -803,7 +805,7 @@ class intaro_intarocrm extends CModule
                     }
 
                     CCatalogExport::Update($PROFILE_ID, array(
-                            "IN_CRON" => "Y"
+                            "IN_CRON" => "Y" 
                         ));
                     
                     CheckDirPath($_SERVER["DOCUMENT_ROOT"]."/bitrix/crontab/");
@@ -837,7 +839,7 @@ class intaro_intarocrm extends CModule
                  30
             );
 
-            $this->CopyFiles();
+            
 
             $APPLICATION->IncludeAdminFile(
                 GetMessage('MODULE_INSTALL_TITLE'),
@@ -861,6 +863,18 @@ class intaro_intarocrm extends CModule
         
         UnRegisterModuleDependences("sale", "OnSalePayOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSalePayOrder");
         UnRegisterModuleDependences("sale", "OnSaleCancelOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSaleCancelOrder");
+        if(CModule::IncludeModule("catalog")) {
+            if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/' . $this->INTARO_CRM_EXPORT . '_run.php')) {
+                $dbProfile = CCatalogExport::GetList(array(), array("FILE_NAME" => $this->INTARO_CRM_EXPORT));
+
+                while ($arProfile = $dbProfile->Fetch()) {
+                    if ($arProfile["DEFAULT_PROFILE"]!="Y") {
+                        CAgent::RemoveAgent("CCatalogExport::PreGenerateExport(".$arProfile['ID'].");", "catalog");
+                        CCatalogExport::Delete($arProfile['ID']);
+                    }
+                }
+            }
+        }
         
         $this->DeleteFiles();
 
