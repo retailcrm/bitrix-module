@@ -3,9 +3,11 @@
 if(!check_bitrix_sessid()) return;
 IncludeModuleLangFile(__FILE__);
 __IncludeLang(GetLangFileName($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/intaro.intarocrm/lang/", "/icml_export_setup.php"));
-
-if(isset($arResult['errCode']) && $arResult['errCode']) 
-        echo CAdminMessage::ShowMessage(GetMessage($arResult['errCode'])); 
+?>
+<h3><?=GetMessage("EXPORT_CATALOGS_INFO");?></h3>
+<?php
+if(isset($arResult['errCode']) && $arResult['errCode'])
+        echo CAdminMessage::ShowMessage(GetMessage($arResult['errCode']));
 ?>
 <form method="post" action="<?php echo $APPLICATION->GetCurPage(); ?>" >
     <font class="text"><?=GetMessage("EXPORT_CATALOGS");?><br><br></font>
@@ -14,7 +16,7 @@ if(isset($arResult['errCode']) && $arResult['errCode'])
     {
             $IBLOCK_EXPORT = array();
     }
-    
+
     $boolAll = false;
     $intCountChecked = 0;
     $intCountAvailIBlock = 0;
@@ -35,10 +37,10 @@ if(isset($arResult['errCode']) && $arResult['errCode'])
                             $db_properties = CIBlock::GetProperties($res['ID'], Array());
 
                             $properties = Array();
-                            while($prop = $db_properties->Fetch()) 
+                            while($prop = $db_properties->Fetch())
                                     $properties[] = $prop;
-                            
-                            
+
+
                             $boolExport = (in_array($res['ID'],$IBLOCK_EXPORT));
                             $arIBlockList[] = array(
                                     'ID' => $res['ID'],
@@ -48,7 +50,7 @@ if(isset($arResult['errCode']) && $arResult['errCode'])
                                     'PROPERTIES' => $properties,
                                     'SITE_LIST' => '('.implode(' ',$arSiteList).')',
                             );
-                            
+
                             if ($boolExport)
                                     $intCountChecked++;
                             $intCountAvailIBlock++;
@@ -57,11 +59,11 @@ if(isset($arResult['errCode']) && $arResult['errCode'])
     }
     $intCountChecked = $intCountAvailIBlock;
     $boolAll = true;
-    
+
     ?>
-            
-    
-    
+
+
+
     <table class="adm-list-table" id="export_setup">
             <thead>
                     <tr class="adm-list-table-header">
@@ -152,35 +154,35 @@ if(isset($arResult['errCode']) && $arResult['errCode'])
                                             '/bitrix/catalog_export/'))
                                         .'intarocrm'/* .mt_rand(0, 999999) */.'.xml'
                                         ); ?>" size="50">
-                            
+
     <br>
     <br>
     <br>
-    
+
     <font class="text"><?=GetMessage("LOAD_PERIOD");?><br><br></font>
     <input type="radio" name="TYPE_LOADING" value="none" onclick="checkProfile(this);"><?=GetMessage("NOT_LOADING");?><Br>
     <input type="radio" name="TYPE_LOADING" value="cron" onclick="checkProfile(this);"><?=GetMessage("CRON_LOADING");?><Br>
     <input type="radio" name="TYPE_LOADING" value="agent"  checked  onclick="checkProfile(this);"><?=GetMessage("AGENT_LOADING");?><Br>
     <br>
-    <br>    
+    <br>
     <font class="text"><?=GetMessage("LOAD_NOW");?>&nbsp;</font>
     <input id="load-now" type="checkbox" name="LOAD_NOW" value="now" checked >
     <br>
     <br>
     <br>
-    
+
     <div id="profile-field" >
         <font class="text"><?=GetMessage("PROFILE_NAME");?>&nbsp;</font>
-        <input 
-            type="text" 
-            name="SETUP_PROFILE_NAME" 
-            value="Выгрузка каталога IntaroCRM"  
+        <input
+            type="text"
+            name="SETUP_PROFILE_NAME"
+            value="<?=GetMessage("PROFILE_NAME_EXAMPLE");?>"
             size="30">
         <br>
         <br>
         <br>
     </div>
-    
+
     <script type="text/javascript" src="/bitrix/js/main/jquery/jquery-1.7.min.js"></script>
     <script type="text/javascript">
             function checkAll(obj,cnt)
@@ -208,11 +210,11 @@ if(isset($arResult['errCode']) && $arResult['errCode'])
                     $('#profile-field').hide();
             };
     </script>
-    
-    
+
+
     <?//Следующие переменные должны быть обязательно установлены?>
     <?=bitrix_sessid_post();?>
-    
+
     <input type="hidden" name="lang" value="<?php echo LANG; ?>">
     <input type="hidden" name="id" value="intaro.intarocrm">
     <input type="hidden" name="install" value="Y">
@@ -227,5 +229,4 @@ if(isset($arResult['errCode']) && $arResult['errCode'])
         </div>
     </div>
 </form>
-
 

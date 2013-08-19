@@ -17,6 +17,7 @@ $MESS ['CRON_LOADING'] = 'Cron';
 $MESS ['AGENT_LOADING'] = 'Агент (по умолчанию)';
 $MESS ['LOAD_NOW'] = 'Выгрузить сейчас';
 $MESS ['PROFILE_NAME'] = 'Имя профиля:';
+$MESS ['PROFILE_NAME_EXAMPLE'] = 'Выгрузка каталога IntaroCRM';
 $MESS ['ERR_FIELDS_PROFILE'] = 'Неверно заполнено поле имени профиля';
 $MESS ['ERR_FIELDS_IBLOCK'] = 'Не выбрано ни одного информационного блока';
 $MESS ['ERR_FIELDS_ARTICLE'] = 'Не выбраны артикулы';

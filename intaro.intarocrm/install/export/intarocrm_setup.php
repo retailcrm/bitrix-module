@@ -55,7 +55,7 @@ if ($STEP==1)
     }
     
     $boolAll = false;
-    $intCountChecked = 2;
+    $intCountChecked = 0;
     $intCountAvailIBlock = 0;
     $arIBlockList = array();
     $db_res = CIBlock::GetList(Array("IBLOCK_TYPE"=>"ASC", "NAME"=>"ASC"),array('CHECK_PERMISSIONS' => 'Y','MIN_PERMISSION' => 'W'));
@@ -94,8 +94,8 @@ if ($STEP==1)
                     }
             }
     }
-    if ($intCountChecked == $intCountAvailIBlock)
-            $boolAll = true;
+    $intCountChecked = $intCountAvailIBlock;
+    $boolAll = true;
     
     ?>
             
@@ -189,7 +189,7 @@ if ($STEP==1)
                                             'catalog',
                                             'export_default_path',
                                             '/bitrix/catalog_export/'))
-                                        .'testintarocrm'/* .mt_rand(0, 999999) */.'.xml'
+                                        .'intarocrm'/* .mt_rand(0, 999999) */.'.xml'
                                         ); ?>" size="50">
                             
     <br>
@@ -249,7 +249,6 @@ if ($STEP==1)
 }
 elseif ($STEP==2)
 {
-	
 	$FINITE = true;
 }
 

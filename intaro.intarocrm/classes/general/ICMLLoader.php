@@ -49,16 +49,7 @@ class ICMLLoader {
 		$categories = $this->GetCategories();
 		
 		$offers = $this->GetOffers();
-		
-		/*foreach ($offers as $obj)
-			if (is_array($obj))
-				foreach ($obj as $obj2)
-					print(htmlspecialcharsbx($obj2) . "<br>");
-			else
-				print(htmlspecialcharsbx($obj) . "<br>");
-			*/	
-				
-		
+                
 		$this->PrepareFile();
 		
 		$this->PreWriteCatalog();
@@ -74,13 +65,7 @@ class ICMLLoader {
 	
 	protected function PrepareValue($text)
         {
-		
-                //$text = htmlspecialcharsbx($text);
-                //$text = str_replace('&quot;', '"', $text);        
-                //$text = preg_replace("/[\x1-\x8\xB-\xC\xE-\x1F]/", "", $text);
-                //$text = str_replace("'", "&apos;", $text);
-                $text = $this->application->ConvertCharset($text, LANG_CHARSET, $this->encoding);
-                return $text;
+                return $this->application->ConvertCharset($text, LANG_CHARSET, $this->encoding);
         }
 	
 	protected function PrepareFile()
@@ -96,12 +81,12 @@ class ICMLLoader {
 	
 	protected function PreWriteCatalog()
 	{
-		@fwrite($this->fp, "<yml_catalog date=\"".Date("Y-m-d H:i:s")."\">\n");
+		@fwrite($this->fp, "<yml_catalog date=\"" . $this->PrepareValue(Date("Y-m-d H:i:s")) . "\">\n");
 		@fwrite($this->fp, "<shop>\n");
 	
-		@fwrite($this->fp, "<name>".$this->application->ConvertCharset(htmlspecialcharsbx(COption::GetOptionString("main", "site_name", "")), LANG_CHARSET, $encoding)."</name>\n");
+		@fwrite($this->fp, "<name>". $this->PrepareValue(COption::GetOptionString("main", "site_name", ""))."</name>\n");
 	
-		@fwrite($this->fp, "<company>".$this->application->ConvertCharset(htmlspecialcharsbx(COption::GetOptionString("main", "site_name", "")), LANG_CHARSET, $encoding)."</company>\n");
+		@fwrite($this->fp, "<company>".$this->PrepareValue(COption::GetOptionString("main", "site_name", ""))."</company>\n");
 		
 	}
 	
@@ -160,12 +145,12 @@ class ICMLLoader {
 	protected function BuildCategory($arCategory)
 	{
 		return "
-			<category id=\"" . $arCategory["ID"] . "\""
+			<category id=\"" . $this->PrepareValue($arCategory["ID"]) . "\""
 			. ( intval($arCategory["IBLOCK_SECTION_ID"] ) > 0 ?
-				" parentId=\"" . $arCategory["IBLOCK_SECTION_ID"] . "\""
+				" parentId=\"" . $this->PrepareValue($arCategory["IBLOCK_SECTION_ID"]) . "\""
 				:"")
 			. ">"
-			. $arCategory["NAME"]
+			. $this->PrepareValue($arCategory["NAME"])
 			. "</category>";
 			
 	}
@@ -203,7 +188,7 @@ class ICMLLoader {
 					"ACTIVE" => "Y",
 					"INCLUDE_SUBSECTIONS" => "Y"
 				);
-			$counter = 0;
+			
                         $dbResProducts = CIBlockElement::GetList(array(), $filter, false, false, $arSelect);
 			while ($product = $dbResProducts->GetNextElement()) {
 				
@@ -281,14 +266,12 @@ class ICMLLoader {
 	protected function BuildOffer($arOffer, $categoriesString, $iblock)
 	{
 		$offer = "";
-		$offer .= "<offer
-				id=\"" . $arOffer["ID"] . "\"
-				productId=\"" . $arOffer["PRODUCT_ID"] . "\"
-				quantity=\"" . DoubleVal($arOffer['QUANTITY']) . "\"
-			>\n";
-		$offer .= "<url>http://" . $iblock['IBLOCK_DB']['SERVER_NAME'] . $arOffer['DETAIL_PAGE_URL'] . "</url>\n";
+		$offer .= "<offer id=\"" .$this->PrepareValue($arOffer["ID"]) . "\" ".
+                        "productId=\"" . $this->PrepareValue($arOffer["PRODUCT_ID"]) . "\" ".
+                        "quantity=\"" . $this->PrepareValue(DoubleVal($arOffer['QUANTITY'])) . "\">\n";
+		$offer .= "<url>http://" . $this->PrepareValue($iblock['IBLOCK_DB']['SERVER_NAME']) . $this->PrepareValue($arOffer['DETAIL_PAGE_URL']) . "</url>\n";
 
-		$offer .= "<price>" . $arOffer['PRICE'] . "</price>\n";
+		$offer .= "<price>" . $this->PrepareValue($arOffer['PRICE']) . "</price>\n";
 		$offer .= $categoriesString;
 		
 		$detailPicture = intval($arOffer["DETAIL_PICTURE"]);
@@ -304,23 +287,22 @@ class ICMLLoader {
 			if ($arFile = CFile::GetFileArray($picture))
 			{
 				if(substr($arFile["SRC"], 0, 1) == "/")
-					$strFile = "http://" . $iblock['IBLOCK_DB']['SERVER_NAME'] . implode("/", array_map("rawurlencode", explode("/", $arFile["SRC"])));
+					$strFile = "http://" . $this->PrepareValue($iblock['IBLOCK_DB']['SERVER_NAME']) . implode("/", array_map("rawurlencode", explode("/", $arFile["SRC"])));
 				elseif(preg_match("/^(http|https):\\/\\/(.*?)\\/(.*)\$/", $arFile["SRC"], $match))
-					$strFile = "http://" . $match[2] . '/' . implode("/", array_map("rawurlencode", explode("/", $match[3])));
+					$strFile = "http://" . $this->PrepareValue($match[2]) . '/' . implode("/", array_map("rawurlencode", explode("/", $this->PrepareValue($match[3]))));
 				else
 					$strFile = $arFile["SRC"];
-				$offer .= "<picture>" . $strFile . "</picture>\n";
+				$offer .= "<picture>" . $this->PrepareValue($strFile) . "</picture>\n";
 			}
 		}
 		
 		$offer .= "<name>" . $this->PrepareValue($arOffer["NAME"]) . "</name>\n";
-		$offer .= "<description>" . (strip_tags( html_entity_decode(str_replace("&nbsp;", ' ', $this->PrepareValue($arOffer["DETAIL_TEXT"]))))) .
-		"</description>\n";
+		$offer .= "<description>" . (strip_tags( html_entity_decode(str_replace("&nbsp;", ' ', $this->PrepareValue($arOffer["DETAIL_TEXT"]))))) ."</description>\n";
 		
 
-		$offer .= "<xmlId>" . $arOffer["EXTERNAL_ID"] . "</xmlId>\n";
-		$offer .= "<productName>" . $arOffer["PRODUCT_NAME"] . "</productName>\n";
-		$offer .= "<article>" . $arOffer["ARTICLE"] . "</article>\n";
+		$offer .= "<xmlId>" . $this->PrepareValue($arOffer["EXTERNAL_ID"]) . "</xmlId>\n";
+		$offer .= "<productName>" . $this->PrepareValue($arOffer["PRODUCT_NAME"]) . "</productName>\n";
+		$offer .= "<article>" . $this->PrepareValue($arOffer["ARTICLE"]) . "</article>\n";
 		
 		$offer.= "</offer>\n";
 		return $offer;
