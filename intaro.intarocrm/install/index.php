@@ -662,7 +662,7 @@ class intaro_intarocrm extends CModule
                 );
             }
             
-	    if(!isset($_POST['IBLOCK_EXPORT'])) 
+    	    if(!isset($_POST['IBLOCK_EXPORT'])) 
                 $arResult['errCode'] = 'ERR_FIELDS_IBLOCK';
             else
                 $iblocks = $_POST['IBLOCK_EXPORT'];
@@ -676,6 +676,9 @@ class intaro_intarocrm extends CModule
                 $arResult['errCode'] = 'ERR_FIELDS_FILE';
             else
                 $filename = $_POST['SETUP_FILE_NAME'];
+            
+            if (count($iblocks) != count($articleProperties))
+                $arResult['errCode'] = 'ERR_ARTICLE_IBLOCK';
             
             
             if(!isset($_POST['TYPE_LOADING']))
@@ -691,7 +694,18 @@ class intaro_intarocrm extends CModule
             if ($typeLoading != 'none' && $profileName == "")
                 $arResult['errCode'] = 'ERR_FIELDS_PROFILE';
             
+            
             if(isset($arResult['errCode']) && $arResult['errCode']) {
+                
+                
+                $arOldValues = Array(
+                    'IBLOCK_EXPORT' => $iblocks,
+                    'IBLOCK_PROPERTY_ARTICLE' => $articleProperties,
+                    'SETUP_FILE_NAME' => $filename,
+                    'SETUP_PROFILE_NAME' => $profileName
+                );
+                global $oldValues;
+                $oldValues = $arOldValues;
                 $APPLICATION->IncludeAdminFile(
                     GetMessage('MODULE_INSTALL_TITLE'),
                     $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step4.php'
@@ -839,7 +853,10 @@ class intaro_intarocrm extends CModule
                  30
             );
 
-            
+            $api_host = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, 0);
+            $api_key = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, 0);
+            $this->INTARO_CRM_API = new \IntaroCrm\RestApi($api_host, $api_key);
+            $this->INTARO_CRM_API->statisticUpdate();
 
             $APPLICATION->IncludeAdminFile(
                 GetMessage('MODULE_INSTALL_TITLE'),

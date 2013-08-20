@@ -11,3 +11,4 @@ $MESS ['ERR_IBLOCK'] = 'Отсутствует модуль iblock! Дальне
 $MESS ['ERR_CATALOG'] = 'Отсутствует модуль catalog! Дальнейшая установка невозможна.';
 $MESS ['ERR_CATALOG'] = 'Отсутствует модуль catalog! Дальнейшая установка невозможна.';
 $MESS ['INTAROCRM_CURL_ERR'] = 'Для работы модуля интеграции с IntaroCRM требуется PHP-расширение CURL.';
+$MESS ['ERR_ARTICLE_IBLOCK'] = 'Не установлены артикулы';

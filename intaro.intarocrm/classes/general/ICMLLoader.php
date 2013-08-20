@@ -9,12 +9,16 @@ class ICMLLoader {
 	public $encoding = 'utf-8';
 	
 	protected $fp;
+        protected $mainSection = 1000000;
         
 	public function Load()
 	{
             global $USER;
             if(!isset($USER))
                 $USER = new CUser;
+            
+            if (count($this->iblocks) != count($this->articleProperties))
+                return false;
             
             $categories = $this->GetCategories();
 
@@ -30,6 +34,7 @@ class ICMLLoader {
             $this->PostWriteCatalog();
 
             $this->CloseFile();
+            return true;
 		
 	}
 	
@@ -107,6 +112,14 @@ class ICMLLoader {
                 {
                         $categories[] = $this->BuildCategory($arRes);
                 }
+                if (count($categories) == 0)
+                {
+                    $arRes = Array();
+                    $arRes['ID'] = $this->mainSection + $id;
+                    $arRes['IBLOCK_SECTION_ID'] = 0;
+                    $arRes['NAME'] = "Основной раздел каталога";
+                    $categories[] = $this->BuildCategory($arRes);
+                }
             }
             return $categories;
 
@@ -149,7 +162,7 @@ class ICMLLoader {
                                     "DETAIL_PICTURE",
                                     "LANG_DIR",
                                     "DETAIL_PAGE_URL",
-                                    "PROPERTY_" . $this->articleProperties[$key]
+                                    "PROPERTY_" . $this->articleProperties[$id]
                             );
 
                     $filter = Array (
@@ -179,7 +192,7 @@ class ICMLLoader {
                                                     "DETAIL_TEXT",
                                                     "DETAIL_PAGE_URL",
                                                     "DETAIL_PICTURE",
-                                                    "PROPERTY_" . $this->articleProperties[$key]
+                                                    "PROPERTY_" . $this->articleProperties[$id]
                                             );
 
                                     $rsOffers = CIBlockElement::GetList(array(), $arFilterOffer, false, false, $arSelectOffer);
@@ -189,6 +202,8 @@ class ICMLLoader {
                                             while ($arResCategory = $dbResCategories->Fetch()) {
                                                     $categoriesString .= "<categoryId>" . $arResCategory["ID"] . "</categoryId>\n";
                                             }
+                                            if ($categoriesString == '')
+                                                $categoriesString .= "<categoryId>" . ($this->mainSection + $id) . "</categoryId>\n";
                                             $offer = CCatalogProduct::GetByID($arOffer['ID']);
                                             $arOffer['QUANTITY'] = $offer["QUANTITY"];
 
@@ -197,7 +212,7 @@ class ICMLLoader {
                                             $arOffer['DETAIL_PICTURE'] = $product["DETAIL_PICTURE"];
                                             $arOffer['PREVIEW_PICTURE'] = $product["PREVIEW_PICTURE"];
                                             $arOffer['PRODUCT_NAME'] = $product["NAME"];
-                                            $arOffer['ARTICLE'] = $arOffer["PROPERTY_" . $this->articleProperties[$key] . "_VALUE"];
+                                            $arOffer['ARTICLE'] = $arOffer["PROPERTY_" . $this->articleProperties[$id] . "_VALUE"];
 
                                             $dbPrice = GetCatalogProductPrice($arOffer["ID"],1);
                                             $arOffer['PRICE'] = $dbPrice['PRICE'];
@@ -213,14 +228,15 @@ class ICMLLoader {
                                     while ($arResCategory = $dbResCategories->Fetch()) {
                                             $categoriesString .= "<categoryId>" . $arResCategory["ID"] . "</categoryId>\n";
                                     }
-
+                                    if ($categoriesString == '')
+                                        $categoriesString .= "<categoryId>" . ($this->mainSection + $id) . "</categoryId>\n";
 
                                     $offer = CCatalogProduct::GetByID($product['ID']);
                                     $product['QUANTITY'] = $offer["QUANTITY"];
 
                                     $product['PRODUCT_ID'] = $product["ID"];
                                     $product['PRODUCT_NAME'] = $product["NAME"];
-                                    $product['ARTICLE'] = $product["PROPERTY_" . $this->articleProperties[$key] . "_VALUE"];
+                                    $product['ARTICLE'] = $product["PROPERTY_" . $this->articleProperties[$id] . "_VALUE"];
 
                                     $dbPrice = GetCatalogProductPrice($product["ID"],1);
                                     $product['PRICE'] = $dbPrice['PRICE'];
