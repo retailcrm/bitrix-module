@@ -40,7 +40,10 @@ class ICMLLoader {
 	
 	protected function PrepareValue($text)
         {
-            return $this->application->ConvertCharset($text, LANG_CHARSET, $this->encoding);
+            $newText = $this->application->ConvertCharset($text, LANG_CHARSET, $this->encoding);
+            $newText = strip_tags($newText);
+            $newText = str_replace("&", "&#x26;", $newText);
+            return $newText;
         }
 	
 	protected function PrepareFile()
