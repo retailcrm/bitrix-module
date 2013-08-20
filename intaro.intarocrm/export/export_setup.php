@@ -22,7 +22,7 @@ if ($STEP>1)
 {
     
     
-    if (count($IBLOCK_EXPORT) != count($IBLOCK_PROPERTY_ARTICLE)) 
+    if (count($IBLOCK_EXPORT) < count($IBLOCK_PROPERTY_ARTICLE)) 
         $arSetupErrors[] = GetMessage("ERROR_ARTICLE_NOT_SET");
 
     if (strlen($SETUP_FILE_NAME)<=0)
@@ -159,8 +159,8 @@ if ($STEP==1)
                                 <font class="tablebodytext">
                                         <input
                                                 type="checkbox"
-                                                name="IBLOCK_EXPORT[<?=$key?>]"
-                                                id="IBLOCK_EXPORT<?=$key?>"
+                                                name="IBLOCK_EXPORT[<?=$arIBlock["ID"]?>]"
+                                                id="IBLOCK_EXPORT<?=$arIBlock["ID"]?>"
                                                 value="<?=$arIBlock["ID"]?>"
                                                 <? if ($arIBlock['IBLOCK_EXPORT']) echo " checked"; ?>
                                                 onclick="checkOne(this,<? echo $intCountAvailIBlock; ?>);"

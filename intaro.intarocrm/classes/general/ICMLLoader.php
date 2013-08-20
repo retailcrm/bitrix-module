@@ -17,7 +17,7 @@ class ICMLLoader {
             if(!isset($USER))
                 $USER = new CUser;
             
-            if (count($this->iblocks) != count($this->articleProperties))
+            if (count($this->iblocks) < count($this->articleProperties))
                 return false;
             
             $categories = $this->GetCategories();
@@ -164,9 +164,12 @@ class ICMLLoader {
                                     "DETAIL_TEXT",
                                     "DETAIL_PICTURE",
                                     "LANG_DIR",
-                                    "DETAIL_PAGE_URL",
-                                    "PROPERTY_" . $this->articleProperties[$id]
+                                    "DETAIL_PAGE_URL"
                             );
+                    
+                    if (isset($this->articleProperties[$id]))
+                        $arSelect[] =  "PROPERTY_" . $this->articleProperties[$id];
+                            
 
                     $filter = Array (
                                     "IBLOCK_ID" => $id,
@@ -194,9 +197,10 @@ class ICMLLoader {
                                                     "NAME",
                                                     "DETAIL_TEXT",
                                                     "DETAIL_PAGE_URL",
-                                                    "DETAIL_PICTURE",
-                                                    "PROPERTY_" . $this->articleProperties[$id]
+                                                    "DETAIL_PICTURE"
                                             );
+                                    if (isset($this->articleProperties[$id]))
+                                        $arSelectOffer[] =  "PROPERTY_" . $this->articleProperties[$id];
 
                                     $rsOffers = CIBlockElement::GetList(array(), $arFilterOffer, false, false, $arSelectOffer);
                                     while ($arOffer = $rsOffers->GetNext()) {
@@ -215,7 +219,8 @@ class ICMLLoader {
                                             $arOffer['DETAIL_PICTURE'] = $product["DETAIL_PICTURE"];
                                             $arOffer['PREVIEW_PICTURE'] = $product["PREVIEW_PICTURE"];
                                             $arOffer['PRODUCT_NAME'] = $product["NAME"];
-                                            $arOffer['ARTICLE'] = $arOffer["PROPERTY_" . $this->articleProperties[$id] . "_VALUE"];
+                                            if (isset($this->articleProperties[$id]))
+                                                $arOffer['ARTICLE'] = $arOffer["PROPERTY_" . $this->articleProperties[$id] . "_VALUE"];
 
                                             $dbPrice = GetCatalogProductPrice($arOffer["ID"],1);
                                             $arOffer['PRICE'] = $dbPrice['PRICE'];
@@ -239,7 +244,8 @@ class ICMLLoader {
 
                                     $product['PRODUCT_ID'] = $product["ID"];
                                     $product['PRODUCT_NAME'] = $product["NAME"];
-                                    $product['ARTICLE'] = $product["PROPERTY_" . $this->articleProperties[$id] . "_VALUE"];
+                                    if (isset($this->articleProperties[$id]))
+                                        $product['ARTICLE'] = $product["PROPERTY_" . $this->articleProperties[$id] . "_VALUE"];
 
                                     $dbPrice = GetCatalogProductPrice($product["ID"],1);
                                     $product['PRICE'] = $dbPrice['PRICE'];
@@ -289,7 +295,8 @@ class ICMLLoader {
 
             $offer .= "<xmlId>" . $this->PrepareValue($arOffer["EXTERNAL_ID"]) . "</xmlId>\n";
             $offer .= "<productName>" . $this->PrepareValue($arOffer["PRODUCT_NAME"]) . "</productName>\n";
-            $offer .= "<article>" . $this->PrepareValue($arOffer["ARTICLE"]) . "</article>\n";
+            if (isset($arOffer["ARTICLE"]))
+                $offer .= "<article>" . $this->PrepareValue($arOffer["ARTICLE"]) . "</article>\n";
 
             $offer.= "</offer>\n";
             return $offer;

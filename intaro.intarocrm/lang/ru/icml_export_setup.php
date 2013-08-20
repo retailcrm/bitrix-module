@@ -12,6 +12,6 @@ $MESS["CET_SAVE"] = "Сохранить";
 $MESS["ERROR_IBLOCK_MODULE"] = "Модуль Инфоблоки не установлен";
 $MESS["ERROR_IBLOCK_CATALOG"] = "Модуль Каталог не установлен";
 $MESS["ERROR_IBLOCK_INTAROCRM"] = "Модуль IntaroCRM не установлен";
-$MESS["ERROR_ARTICLE_NOT_SET"] = "Не установлены поля артикулов";
+$MESS["ERROR_ARTICLE_NOT_SET"] = "Были установлены поля артикулов, но не установлены Информационные блоки";
 
 ?>

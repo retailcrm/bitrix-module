@@ -677,7 +677,7 @@ class intaro_intarocrm extends CModule
             else
                 $filename = $_POST['SETUP_FILE_NAME'];
             
-            if (count($iblocks) != count($articleProperties))
+            if (count($iblocks) < count($articleProperties))
                 $arResult['errCode'] = 'ERR_ARTICLE_IBLOCK';
             
             
@@ -694,6 +694,8 @@ class intaro_intarocrm extends CModule
             if ($typeLoading != 'none' && $profileName == "")
                 $arResult['errCode'] = 'ERR_FIELDS_PROFILE';
             
+            if($filename == "")
+                $arResult['errCode'] = 'ERR_FIELDS_FILE';
             
             if(isset($arResult['errCode']) && $arResult['errCode']) {
                 

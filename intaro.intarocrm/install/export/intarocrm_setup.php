@@ -1,3 +1,3 @@
 <?
 //<title>IntaroCRM</title>
-require($_SERVER["DOCUMENT_ROOT"]."/bitrix/intaro.intarocrm/export/load/export_setup.php");
+require($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/intaro.intarocrm/export/export_setup.php");
