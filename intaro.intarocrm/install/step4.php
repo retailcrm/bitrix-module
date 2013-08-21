@@ -135,6 +135,7 @@ if (!empty($oldValues)) {
                                     id="IBLOCK_PROPERTY_ARTICLE<?=$arIBlock["ID"]?>"
                                     name="IBLOCK_PROPERTY_ARTICLE[<?=$arIBlock["ID"]?>]" 
                                     class="property-export">
+                                        <option value=""></option>
                                         <?
                                         foreach ($arIBlock['PROPERTIES'] as $prop)
                                         {
