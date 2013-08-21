@@ -55,12 +55,18 @@ if ($STEP==1)
 
 ?>
 <form method="post" action="<?php echo $APPLICATION->GetCurPage(); ?>" >
+    <?if ($ACTION == 'EXPORT_EDIT' || $ACTION == 'EXPORT_COPY')
+		{
+			?><input type="hidden" name="PROFILE_ID" value="<? echo intval($PROFILE_ID); ?>"><?
+		}
+		?>
     <font class="text"><?=GetMessage("EXPORT_CATALOGS");?><br><br></font>
     <?
     if (!isset($IBLOCK_EXPORT) || !is_array($IBLOCK_EXPORT))
     {
             $IBLOCK_EXPORT = array();
     }
+    
     
     $boolAll = false;
     $intCountChecked = 0;
@@ -279,7 +285,6 @@ if ($STEP==1)
 }
 elseif ($STEP==2)
 {
-	
 	$FINITE = true;
 }
 
