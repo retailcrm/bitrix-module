@@ -1,4 +1,4 @@
-<?
+    <?
 
 
 if(!check_bitrix_sessid()) return;
@@ -20,9 +20,9 @@ if (($ACTION == 'EXPORT_EDIT' || $ACTION == 'EXPORT_COPY') && $STEP == 1)
 
 if ($STEP>1)
 {
-    
-    
-    if (count($IBLOCK_EXPORT) < count($IBLOCK_PROPERTY_ARTICLE)) 
+
+
+    if (count($IBLOCK_EXPORT) < count($IBLOCK_PROPERTY_ARTICLE))
         $arSetupErrors[] = GetMessage("ERROR_ARTICLE_NOT_SET");
 
     if (strlen($SETUP_FILE_NAME)<=0)
@@ -51,7 +51,7 @@ if (!empty($arSetupErrors))
 
 if ($STEP==1)
 {
-    
+
 
 ?>
 <form method="post" action="<?php echo $APPLICATION->GetCurPage(); ?>" >
@@ -66,8 +66,8 @@ if ($STEP==1)
     {
             $IBLOCK_EXPORT = array();
     }
-    
-    
+
+
     $boolAll = false;
     $intCountChecked = 0;
     $intCountAvailIBlock = 0;
@@ -88,14 +88,14 @@ if ($STEP==1)
                             $db_properties = CIBlock::GetProperties($res['ID'], Array());
 
                             $properties = Array();
-                            while($prop = $db_properties->Fetch()) 
+                            while($prop = $db_properties->Fetch())
                                     $properties[] = $prop;
-                            
-                            if (count($IBLOCK_EXPORT) != 0) 
+
+                            if (count($IBLOCK_EXPORT) != 0)
                                 $boolExport = (in_array($res['ID'], $IBLOCK_EXPORT));
                             else
                                 $boolExport = true;
-                            
+
                             $arIBlockList[] = array(
                                     'ID' => $res['ID'],
                                     'NAME' => $res['NAME'],
@@ -105,7 +105,7 @@ if ($STEP==1)
                                     'OLD_PROPERTY_SELECT' => $IBLOCK_PROPERTY_ARTICLE[$res['ID']] != "" ? $IBLOCK_PROPERTY_ARTICLE[$res['ID']]  : null,
                                     'SITE_LIST' => '('.implode(' ',$arSiteList).')',
                             );
-                            
+
                             if ($boolExport)
                                     $intCountChecked++;
                             $intCountAvailIBlock++;
@@ -119,11 +119,12 @@ if ($STEP==1)
         $intCountChecked = $intCountAvailIBlock;
         $boolAll = true;
     }
-    
+
+
     ?>
-            
-    
-    
+
+
+
     <table class="adm-list-table" id="export_setup">
             <thead>
                     <tr class="adm-list-table-header">
@@ -174,10 +175,10 @@ if ($STEP==1)
                                 </font>
                         </td>
                         <td class="adm-list-table-cell">
-                                <select 
-                                    style="width: 200px;" 
+                                <select
+                                    style="width: 200px;"
                                     id="IBLOCK_PROPERTY_ARTICLE<?=$arIBlock["ID"]?>"
-                                    name="IBLOCK_PROPERTY_ARTICLE[<?=$arIBlock["ID"]?>]" 
+                                    name="IBLOCK_PROPERTY_ARTICLE[<?=$arIBlock["ID"]?>]"
                                     class="property-export">
                                         <option value=""></option>
                                         <?
@@ -189,13 +190,15 @@ if ($STEP==1)
                                                 if ($arIBlock['OLD_PROPERTY_SELECT'] == $prop["CODE"]){
                                                     echo " selected";
                                                 } else {
-                                                    if ($prop["CODE"] == "ARTICLE" ||
-                                                          $prop["CODE"] == "ART" ||
-                                                          $prop["CODE"] == "ARTNUMBER"  ) 
-                                                            echo " selected";
+                                                    if ($arIBlock['OLD_PROPERTY_SELECT'] != "") {
+                                                        if ($prop["CODE"] == "ARTICLE" ||
+                                                              $prop["CODE"] == "ART" ||
+                                                              $prop["CODE"] == "ARTNUMBER"  )
+                                                                echo " selected";
+                                                    }
                                                 }
-                                                      
-                                                
+
+
                                                 ?>
                                                 >
                                                         <?=$prop["NAME"];?>
@@ -226,25 +229,25 @@ if ($STEP==1)
                                             '/bitrix/catalog_export/'))
                                         .'intarocrm'/* .mt_rand(0, 999999) */.'.xml'
                                         ); ?>" size="50">
-                            
+
     <br>
     <br>
     <br>
-    
-   
+
+
     <?if ($ACTION=="EXPORT_SETUP" || $ACTION == 'EXPORT_EDIT' || $ACTION == 'EXPORT_COPY'):?>
         <font class="text"><?=GetMessage("PROFILE_NAME");?><br><br></font>
-        <input 
-            type="text" 
-            name="SETUP_PROFILE_NAME" 
-            value="<?echo htmlspecialchars($SETUP_PROFILE_NAME)?>"  
+        <input
+            type="text"
+            name="SETUP_PROFILE_NAME"
+            value="<?echo htmlspecialchars($SETUP_PROFILE_NAME)?>"
             size="50">
         <br>
         <br>
         <br>
     <?endif;?>
-   
-    
+
+
     <script type="text/javascript" src="/bitrix/js/main/jquery/jquery-1.7.min.js"></script>
     <script type="text/javascript">
             function checkAll(obj,cnt)
@@ -267,11 +270,11 @@ if ($STEP==1)
                         BX(obj.id.replace('IBLOCK_EXPORT','IBLOCK_PROPERTY_ARTICLE')).value = 'none';
             };
     </script>
-    
-    
+
+
     <?//Следующие переменные должны быть обязательно установлены?>
     <?=bitrix_sessid_post();?>
-    
+
     <input type="hidden" name="lang" value="<?echo LANGUAGE_ID ?>">
     <input type="hidden" name="ACT_FILE" value="<?echo htmlspecialcharsbx($_REQUEST["ACT_FILE"]) ?>">
     <input type="hidden" name="ACTION" value="<?echo htmlspecialcharsbx($ACTION) ?>">
@@ -279,7 +282,7 @@ if ($STEP==1)
     <input type="hidden" name="SETUP_FIELDS_LIST" value="SETUP_FILE_NAME,IBLOCK_EXPORT,IBLOCK_PROPERTY_ARTICLE">
     <input type="submit" value="<?echo ($ACTION=="EXPORT")?GetMessage("CET_EXPORT"):GetMessage("CET_SAVE")?>">
 
-        
+
 </form>
 
 <?
