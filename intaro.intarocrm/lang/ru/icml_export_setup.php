@@ -1,17 +1,17 @@
 <?
-$MESS["ERROR_FILENAME_NOT_SET"] = "Íå óêàçàí ôàéë äàííûõ.";
-$MESS["ERROR_PROFIE_NOT_SET"] = "Íå óêàçàíî èìÿ ïðîôèëÿ";
-$MESS["EXPORT_CATALOGS"] = "Âûáåðèòå êàòàëîãè äëÿ âûãðóçêè â ICML:";
-$MESS["CATALOG"] = "Êàòàëîã";
-$MESS["EXPORT2INTAROCML"] = "Âûãðóçèòü â ICML";
-$MESS["FILENAME"] = "Óêàæèòå èìÿ ôàéëà äàííûõ:";
-$MESS["PROPERTY"] = "Ñâîéñòâî, ñîäåðæàùåå àðòèêóë òîâàðà";
-$MESS["ALL_CATALOG"] = "Âñå êàòàëîãè";
-$MESS["CET_EXPORT"] = "Ýêñïîðòèðîâàòü";
-$MESS["CET_SAVE"] = "Ñîõðàíèòü";
-$MESS["ERROR_IBLOCK_MODULE"] = "Ìîäóëü Èíôîáëîêè íå óñòàíîâëåí";
-$MESS["ERROR_IBLOCK_CATALOG"] = "Ìîäóëü Êàòàëîã íå óñòàíîâëåí";
-$MESS["ERROR_IBLOCK_INTAROCRM"] = "Ìîäóëü IntaroCRM íå óñòàíîâëåí";
-$MESS["ERROR_ARTICLE_NOT_SET"] = "Áûëè óñòàíîâëåíû ïîëÿ àðòèêóëîâ, íî íå óñòàíîâëåíû Èíôîðìàöèîííûå áëîêè";
-$MESS["PROFILE_NAME"] = "Èìÿ ïðîôèëÿ";
+$MESS["ERROR_FILENAME_NOT_SET"] = "ÐÐµ ÑƒÐºÐ°Ð·Ð°Ð½ Ñ„Ð°Ð¹Ð» Ð´Ð°Ð½Ð½Ñ‹Ñ….";
+$MESS["ERROR_PROFIE_NOT_SET"] = "ÐÐµ ÑƒÐºÐ°Ð·Ð°Ð½Ð¾ Ð¸Ð¼Ñ Ð¿Ñ€Ð¾Ñ„Ð¸Ð»Ñ";
+$MESS["EXPORT_CATALOGS"] = "Ð’Ñ‹Ð±ÐµÑ€Ð¸Ñ‚Ðµ ÐºÐ°Ñ‚Ð°Ð»Ð¾Ð³Ð¸ Ð´Ð»Ñ Ð²Ñ‹Ð³Ñ€ÑƒÐ·ÐºÐ¸ Ð² ICML:";
+$MESS["CATALOG"] = "ÐšÐ°Ñ‚Ð°Ð»Ð¾Ð³";
+$MESS["EXPORT2INTAROCML"] = "Ð’Ñ‹Ð³Ñ€ÑƒÐ·Ð¸Ñ‚ÑŒ Ð² ICML";
+$MESS["FILENAME"] = "Ð£ÐºÐ°Ð¶Ð¸Ñ‚Ðµ Ð¸Ð¼Ñ Ñ„Ð°Ð¹Ð»Ð° Ð´Ð°Ð½Ð½Ñ‹Ñ…:";
+$MESS["PROPERTY"] = "Ð¡Ð²Ð¾Ð¹ÑÑ‚Ð²Ð¾, ÑÐ¾Ð´ÐµÑ€Ð¶Ð°Ñ‰ÐµÐµ Ð°Ñ€Ñ‚Ð¸ÐºÑƒÐ» Ñ‚Ð¾Ð²Ð°Ñ€Ð°";
+$MESS["ALL_CATALOG"] = "Ð’ÑÐµ ÐºÐ°Ñ‚Ð°Ð»Ð¾Ð³Ð¸";
+$MESS["CET_EXPORT"] = "Ð­ÐºÑÐ¿Ð¾Ñ€Ñ‚Ð¸Ñ€Ð¾Ð²Ð°Ñ‚ÑŒ";
+$MESS["CET_SAVE"] = "Ð¡Ð¾Ñ…Ñ€Ð°Ð½Ð¸Ñ‚ÑŒ";
+$MESS["ERROR_IBLOCK_MODULE"] = "ÐœÐ¾Ð´ÑƒÐ»ÑŒ Ð˜Ð½Ñ„Ð¾Ð±Ð»Ð¾ÐºÐ¸ Ð½Ðµ ÑƒÑÑ‚Ð°Ð½Ð¾Ð²Ð»ÐµÐ½";
+$MESS["ERROR_IBLOCK_CATALOG"] = "ÐœÐ¾Ð´ÑƒÐ»ÑŒ ÐšÐ°Ñ‚Ð°Ð»Ð¾Ð³ Ð½Ðµ ÑƒÑÑ‚Ð°Ð½Ð¾Ð²Ð»ÐµÐ½";
+$MESS["ERROR_IBLOCK_INTAROCRM"] = "ÐœÐ¾Ð´ÑƒÐ»ÑŒ IntaroCRM Ð½Ðµ ÑƒÑÑ‚Ð°Ð½Ð¾Ð²Ð»ÐµÐ½";
+$MESS["ERROR_ARTICLE_NOT_SET"] = "Ð‘Ñ‹Ð»Ð¸ ÑƒÑÑ‚Ð°Ð½Ð¾Ð²Ð»ÐµÐ½Ñ‹ Ð¿Ð¾Ð»Ñ Ð°Ñ€Ñ‚Ð¸ÐºÑƒÐ»Ð¾Ð², Ð½Ð¾ Ð½Ðµ ÑƒÑÑ‚Ð°Ð½Ð¾Ð²Ð»ÐµÐ½Ñ‹ Ð˜Ð½Ñ„Ð¾Ñ€Ð¼Ð°Ñ†Ð¸Ð¾Ð½Ð½Ñ‹Ðµ Ð±Ð»Ð¾ÐºÐ¸";
+$MESS["PROFILE_NAME"] = "Ð˜Ð¼Ñ Ð¿Ñ€Ð¾Ñ„Ð¸Ð»Ñ";
 ?>
