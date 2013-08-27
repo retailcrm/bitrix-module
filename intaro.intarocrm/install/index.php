@@ -507,7 +507,7 @@ class intaro_intarocrm extends CModule
                 else
                     $finish = (int) $_POST['finish'];
 
-                $percent = 100 - round(($countLeft * 100 / $countAll), 1);
+                $percent = round(100 - ($countLeft * 100 / $countAll), 1);
 
                 if(!$countLeft)
                     $finish = 1;
@@ -601,10 +601,11 @@ class intaro_intarocrm extends CModule
                         )));
 
                         // error pushing customer
-                        if (($this->INTARO_CRM_API->getStatusCode() != 200) 
-                                || ($this->INTARO_CRM_API->getStatusCode() != 201)) {
-                            //handle err
-                            ICrmOrderActions::eventLog('install/index.php', 'IntaroCrm\RestApi::deliveryTypeEdit', $this->INTARO_CRM_API->getLastError());
+                        if ($this->INTARO_CRM_API->getStatusCode() != 200) { 
+                            if ($this->INTARO_CRM_API->getStatusCode() != 201) {
+                                //handle err
+                                ICrmOrderActions::eventLog('install/index.php', 'IntaroCrm\RestApi::deliveryTypeEdit', $this->INTARO_CRM_API->getLastError());
+                            }
                         }
                         
                     } while ($arDeliveryTypesList = $dbDeliveryTypesList->Fetch());
