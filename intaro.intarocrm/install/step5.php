@@ -1,6 +1,7 @@
 <?php
 if(!check_bitrix_sessid()) return;
-echo CAdminMessage::ShowNote(GetMessage("MOD_INST_OK")); ?>
+echo CAdminMessage::ShowNote(GetMessage("MOD_INST_OK"));
+echo GetMessage("INTAROCRM_INFO"); ?>
 
 <form action="<?php echo $APPLICATION->GetCurPage(); ?>">
 	<input type="hidden" name="lang" value="<?php echo LANG; ?>">

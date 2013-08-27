@@ -1,28 +1,72 @@
-<?php
+    <?
+
 
 if(!check_bitrix_sessid()) return;
-IncludeModuleLangFile(__FILE__);
+
 __IncludeLang(GetLangFileName($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/intaro.intarocrm/lang/", "/icml_export_setup.php"));
-?>
-<h3><?=GetMessage("EXPORT_CATALOGS_INFO");?></h3>
-<?php
-if(isset($arResult['errCode']) && $arResult['errCode'])
-        echo CAdminMessage::ShowMessage(GetMessage($arResult['errCode']));
-global $oldValues;
-if (!empty($oldValues)) {
-    $IBLOCK_EXPORT = $oldValues['IBLOCK_EXPORT'];
-    $IBLOCK_PROPERTY_ARTICLE = $oldValues['IBLOCK_PROPERTY_ARTICLE'];
-    $SETUP_FILE_NAME = $oldValues['SETUP_FILE_NAME'];
-    $SETUP_PROFILE_NAME = $oldValues['SETUP_PROFILE_NAME'];
+
+if (($ACTION == 'EXPORT_EDIT' || $ACTION == 'EXPORT_COPY') && $STEP == 1)
+{
+	if (isset($arOldSetupVars['SETUP_FILE_NAME']))
+		$SETUP_FILE_NAME = $arOldSetupVars['SETUP_FILE_NAME'];
+	if (isset($arOldSetupVars['SETUP_PROFILE_NAME']))
+		$SETUP_PROFILE_NAME = $arOldSetupVars['SETUP_PROFILE_NAME'];
+        if (isset($arOldSetupVars['IBLOCK_EXPORT']))
+		$IBLOCK_EXPORT = $arOldSetupVars['IBLOCK_EXPORT'];
+        if (isset($arOldSetupVars['IBLOCK_PROPERTY_ARTICLE']))
+		$IBLOCK_PROPERTY_ARTICLE = $arOldSetupVars['IBLOCK_PROPERTY_ARTICLE'];
 }
+
+
+if ($STEP>1)
+{
+
+
+    if (count($IBLOCK_EXPORT) < count($IBLOCK_PROPERTY_ARTICLE))
+        $arSetupErrors[] = GetMessage("ERROR_ARTICLE_NOT_SET");
+
+    if (strlen($SETUP_FILE_NAME)<=0)
+    {
+            $arSetupErrors[] = GetMessage("CET_ERROR_NO_FILENAME");
+    }
+    elseif ($APPLICATION->GetFileAccessPermission($SETUP_FILE_NAME) < "W")
+    {
+            $arSetupErrors[] = str_replace("#FILE#", $SETUP_FILE_NAME, GetMessage('CET_YAND_RUN_ERR_SETUP_FILE_ACCESS_DENIED'));
+    }
+
+    if (($ACTION=="EXPORT_SETUP" || $ACTION == 'EXPORT_EDIT' || $ACTION == 'EXPORT_COPY') && strlen($SETUP_PROFILE_NAME)<=0)
+    {
+            $arSetupErrors[] = GetMessage("CET_ERROR_NO_PROFILE_NAME");
+    }
+
+    if (!empty($arSetupErrors))
+    {
+            $STEP = 1;
+    }
+}
+
+if (!empty($arSetupErrors))
+	echo ShowError(implode('<br />', $arSetupErrors));
+
+
+if ($STEP==1)
+{
+
+
 ?>
 <form method="post" action="<?php echo $APPLICATION->GetCurPage(); ?>" >
+    <?if ($ACTION == 'EXPORT_EDIT' || $ACTION == 'EXPORT_COPY')
+		{
+			?><input type="hidden" name="PROFILE_ID" value="<? echo intval($PROFILE_ID); ?>"><?
+		}
+		?>
     <font class="text"><?=GetMessage("EXPORT_CATALOGS");?><br><br></font>
     <?
     if (!isset($IBLOCK_EXPORT) || !is_array($IBLOCK_EXPORT))
     {
             $IBLOCK_EXPORT = array();
     }
+
 
     $boolAll = false;
     $intCountChecked = 0;
@@ -47,7 +91,7 @@ if (!empty($oldValues)) {
                             while($prop = $db_properties->Fetch())
                                     $properties[] = $prop;
 
-                            if (count($IBLOCK_EXPORT) != 0) 
+                            if (count($IBLOCK_EXPORT) != 0)
                                 $boolExport = (in_array($res['ID'], $IBLOCK_EXPORT));
                             else
                                 $boolExport = true;
@@ -75,6 +119,7 @@ if (!empty($oldValues)) {
         $intCountChecked = $intCountAvailIBlock;
         $boolAll = true;
     }
+
 
     ?>
 
@@ -130,10 +175,10 @@ if (!empty($oldValues)) {
                                 </font>
                         </td>
                         <td class="adm-list-table-cell">
-                                <select 
-                                    style="width: 200px;" 
+                                <select
+                                    style="width: 200px;"
                                     id="IBLOCK_PROPERTY_ARTICLE<?=$arIBlock["ID"]?>"
-                                    name="IBLOCK_PROPERTY_ARTICLE[<?=$arIBlock["ID"]?>]" 
+                                    name="IBLOCK_PROPERTY_ARTICLE[<?=$arIBlock["ID"]?>]"
                                     class="property-export">
                                         <option value=""></option>
                                         <?
@@ -145,13 +190,15 @@ if (!empty($oldValues)) {
                                                 if ($arIBlock['OLD_PROPERTY_SELECT'] == $prop["CODE"]){
                                                     echo " selected";
                                                 } else {
-                                                    if ($prop["CODE"] == "ARTICLE" ||
-                                                          $prop["CODE"] == "ART" ||
-                                                          $prop["CODE"] == "ARTNUMBER"  ) 
-                                                            echo " selected";
+                                                    if ($arIBlock['OLD_PROPERTY_SELECT'] != "") {
+                                                        if ($prop["CODE"] == "ARTICLE" ||
+                                                              $prop["CODE"] == "ART" ||
+                                                              $prop["CODE"] == "ARTNUMBER"  )
+                                                                echo " selected";
+                                                    }
                                                 }
-                                                      
-                                                
+
+
                                                 ?>
                                                 >
                                                         <?=$prop["NAME"];?>
@@ -187,29 +234,19 @@ if (!empty($oldValues)) {
     <br>
     <br>
 
-    <font class="text"><?=GetMessage("LOAD_PERIOD");?><br><br></font>
-    <input type="radio" name="TYPE_LOADING" value="none" onclick="checkProfile(this);"><?=GetMessage("NOT_LOADING");?><Br>
-    <input type="radio" name="TYPE_LOADING" value="cron" onclick="checkProfile(this);"><?=GetMessage("CRON_LOADING");?><Br>
-    <input type="radio" name="TYPE_LOADING" value="agent"  checked  onclick="checkProfile(this);"><?=GetMessage("AGENT_LOADING");?><Br>
-    <br>
-    <br>
-    <font class="text"><?=GetMessage("LOAD_NOW");?>&nbsp;</font>
-    <input id="load-now" type="checkbox" name="LOAD_NOW" value="now" checked >
-    <br>
-    <br>
-    <br>
 
-    <div id="profile-field" >
-        <font class="text"><?=GetMessage("PROFILE_NAME");?>&nbsp;</font>
+    <?if ($ACTION=="EXPORT_SETUP" || $ACTION == 'EXPORT_EDIT' || $ACTION == 'EXPORT_COPY'):?>
+        <font class="text"><?=GetMessage("PROFILE_NAME");?><br><br></font>
         <input
             type="text"
             name="SETUP_PROFILE_NAME"
-            value="<?= ($SETUP_PROFILE_NAME ? $SETUP_PROFILE_NAME: GetMessage("PROFILE_NAME_EXAMPLE"));?>"
-            size="30">
+            value="<?echo htmlspecialchars($SETUP_PROFILE_NAME)?>"
+            size="50">
         <br>
         <br>
         <br>
-    </div>
+    <?endif;?>
+
 
     <script type="text/javascript" src="/bitrix/js/main/jquery/jquery-1.7.min.js"></script>
     <script type="text/javascript">
@@ -224,20 +261,13 @@ if (!empty($oldValues)) {
             };
             function checkOne(obj,cnt)
             {
-                var boolCheck = obj.checked;
-                var intCurrent = parseInt(BX('count_checked').value);
-                intCurrent += (boolCheck ? 1 : -1);
-                BX('icml_export_all').checked = (intCurrent < cnt ? false : true);
-                BX('count_checked').value = intCurrent;
-                if (!boolCheck)
-                    BX(obj.id.replace('IBLOCK_EXPORT','IBLOCK_PROPERTY_ARTICLE')).value = 'none';
-            };
-            function checkProfile(obj)
-            {
-                if (obj.value !== 'none')
-                    $('#profile-field').show();
-                else
-                    $('#profile-field').hide();
+                    var boolCheck = obj.checked;
+                    var intCurrent = parseInt(BX('count_checked').value);
+                    intCurrent += (boolCheck ? 1 : -1);
+                    BX('icml_export_all').checked = (intCurrent < cnt ? false : true);
+                    BX('count_checked').value = intCurrent;
+                    if (!boolCheck)
+                        BX(obj.id.replace('IBLOCK_EXPORT','IBLOCK_PROPERTY_ARTICLE')).value = 'none';
             };
     </script>
 
@@ -245,19 +275,21 @@ if (!empty($oldValues)) {
     <?//Следующие переменные должны быть обязательно установлены?>
     <?=bitrix_sessid_post();?>
 
-    <input type="hidden" name="lang" value="<?php echo LANG; ?>">
-    <input type="hidden" name="id" value="intaro.intarocrm">
-    <input type="hidden" name="install" value="Y">
-    <input type="hidden" name="step" value="5">
-    <input type="hidden" name="continue" value="4">
-    <div style="padding: 1px 13px 2px; height:28px;">
-        <div align="right" style="float:right; width:50%; position:relative;">
-            <input type="submit" name="inst" value="<?php echo GetMessage("MOD_NEXT_STEP"); ?>" class="adm-btn-save">
-        </div>
-        <div align="left" style="float:right; width:50%; position:relative;">
-            <input type="submit" name="back" value="<?php echo GetMessage("MOD_PREV_STEP"); ?>" class="adm-btn-save">
-        </div>
-    </div>
+    <input type="hidden" name="lang" value="<?echo LANGUAGE_ID ?>">
+    <input type="hidden" name="ACT_FILE" value="<?echo htmlspecialcharsbx($_REQUEST["ACT_FILE"]) ?>">
+    <input type="hidden" name="ACTION" value="<?echo htmlspecialcharsbx($ACTION) ?>">
+    <input type="hidden" name="STEP" value="<?echo intval($STEP) + 1 ?>">
+    <input type="hidden" name="SETUP_FIELDS_LIST" value="SETUP_FILE_NAME,IBLOCK_EXPORT,IBLOCK_PROPERTY_ARTICLE">
+    <input type="submit" value="<?echo ($ACTION=="EXPORT")?GetMessage("CET_EXPORT"):GetMessage("CET_SAVE")?>">
+
+
 </form>
 
+<?
+}
+elseif ($STEP==2)
+{
+	$FINITE = true;
+}
 
+?>
