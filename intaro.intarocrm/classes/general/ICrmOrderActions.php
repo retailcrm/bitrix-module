@@ -167,11 +167,8 @@ class ICrmOrderActions
      */
 
     public static function uploadOrdersAgent() {
-
-        if(self::uploadOrders())
-            return 'ICrmOrderActions::uploadOrdersAgent();';
-
-        else return;
+        self::uploadOrders();
+        return 'ICrmOrderActions::uploadOrdersAgent();';
     }
     
     /**
