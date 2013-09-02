@@ -220,7 +220,7 @@ class ICMLLoader {
                                             $arOffer['PREVIEW_PICTURE'] = $product["PREVIEW_PICTURE"];
                                             $arOffer['PRODUCT_NAME'] = $product["NAME"];
                                             if (isset($this->articleProperties[$id]))
-                                                $arOffer['ARTICLE'] = $arOffer["PROPERTY_" . $this->articleProperties[$id] . "_VALUE"];
+                                                $arOffer['ARTICLE'] = $product["PROPERTY_" . $this->articleProperties[$id] . "_VALUE"];
 
                                             $dbPrice = GetCatalogProductPrice($arOffer["ID"],1);
                                             $arOffer['PRICE'] = $dbPrice['PRICE'];
