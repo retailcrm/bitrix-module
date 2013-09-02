@@ -31,6 +31,7 @@ class intaro_intarocrm extends CModule
     var $CRM_PAYMENT_STATUSES = 'pay_statuses_arr';
     var $CRM_PAYMENT = 'payment_arr'; //order payment Y/N
     var $CRM_ORDER_LAST_ID = 'order_last_id';
+    var $CRM_ORDER_SITES = 'sites_ids';
 
 
     var $INSTALL_PATH;
@@ -83,11 +84,17 @@ class intaro_intarocrm extends CModule
                 $arResult['errCode'] = 'ERR_CATALOG';
             }
 
+            $arResult['arSites'] = array();
+            $rsSites = CSite::GetList($by, $sort, array());
+            while ($ar = $rsSites->Fetch())
+                $arResult['arSites'][] = $ar;
+
             $APPLICATION->IncludeAdminFile(
                 GetMessage('MODULE_INSTALL_TITLE'),
                 $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step1.php'
             );
         } else if ($step == 2) {
+          
             if(!CModule::IncludeModule("sale")) {
                 $arResult['errCode'] = 'ERR_SALE';
             }
@@ -99,8 +106,13 @@ class intaro_intarocrm extends CModule
             if(!CModule::IncludeModule("catalog")) {
                 $arResult['errCode'] = 'ERR_CATALOG';
             }
+            
+            $arResult['arSites'] = array();
+            $rsSites = CSite::GetList($by, $sort, array());
+            while ($ar = $rsSites->Fetch())
+                $arResult['arSites'][] = $ar;
 
-            if(isset($arResult['errCode']) && $arResult['errCode']) {
+            if (isset($arResult['errCode']) && $arResult['errCode']) {
                 $APPLICATION->IncludeAdminFile(
                     GetMessage('MODULE_INSTALL_TITLE'),
                     $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step1.php'
@@ -363,6 +375,12 @@ class intaro_intarocrm extends CModule
 
             $api_host = htmlspecialchars(trim($_POST[$this->CRM_API_HOST_OPTION]));
             $api_key = htmlspecialchars(trim($_POST[$this->CRM_API_KEY_OPTION]));
+            
+            // empty == select all
+            $orderSites = array();
+            foreach($_POST[$this->CRM_ORDER_SITES] as $site) {
+                $orderSites[] = htmlspecialchars(trim($site));
+            }
 
             // form correct url
             $api_host = parse_url($api_host);
@@ -395,6 +413,7 @@ class intaro_intarocrm extends CModule
 
             COption::SetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, $api_host);
             COption::SetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, $api_key);
+            COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_SITES, serialize($orderSites));
 
             //prepare crm lists
             $arResult['orderTypesList'] = $this->INTARO_CRM_API->orderTypesList();

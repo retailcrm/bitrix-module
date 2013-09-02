@@ -4,6 +4,7 @@ $MESS ['ICRM_OPTIONS_IMPORT_TAB'] = 'Настройки импората';
 $MESS ['ICRM_CONN_SETTINGS'] = 'Настройка соединения';
 $MESS ['ICRM_API_HOST'] = 'Адрес Intaro CRM:';
 $MESS ['ICRM_API_KEY'] = 'Ключ авторизации:';
+$MESS ['ICRM_SITES'] = 'Активные сайты:';
 
 $MESS ['ICRM_OPTIONS_CATALOG_TAB'] = 'Настройка справочников';
 $MESS ['DELIVERY_TYPES_LIST'] = 'Способы доставки';

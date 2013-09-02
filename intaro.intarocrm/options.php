@@ -11,6 +11,7 @@ $CRM_PAYMENT_TYPES = 'pay_types_arr';
 $CRM_PAYMENT_STATUSES = 'pay_statuses_arr';
 $CRM_PAYMENT = 'payment_arr'; //order payment Y/N
 $CRM_ORDER_LAST_ID = 'order_last_id';
+$CRM_ORDER_SITES = 'sites_ids';
 
 if(!CModule::IncludeModule('intaro.intarocrm') 
         || !CModule::IncludeModule('sale'))
@@ -28,6 +29,12 @@ $arResult = array();
 if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     $api_host = htmlspecialchars(trim($_POST['api_host']));
     $api_key = htmlspecialchars(trim($_POST['api_key']));
+    
+    // if empty so select all? or exception --not obligatory
+    $orderSites = array();
+    foreach ($_POST[$CRM_ORDER_SITES] as $site) {
+        $orderSites[] = htmlspecialchars(trim($site));
+    }
             
     if($api_host && $api_key) {
         $api = new IntaroCrm\RestApi($api_host, $api_key);
@@ -137,6 +144,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     COption::SetOptionString($mid, $CRM_PAYMENT_TYPES, serialize($paymentTypesArr));
     COption::SetOptionString($mid, $CRM_PAYMENT_STATUSES, serialize($paymentStatusesArr));
     COption::SetOptionString($mid, $CRM_PAYMENT, serialize($paymentArr));
+    COption::SetOptionString($mid, $CRM_ORDER_SITES, serialize($orderSites));
 
     $uri .= '&ok=Y';
     LocalRedirect($uri);
@@ -145,6 +153,11 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     $api_key = COption::GetOptionString($mid, $CRM_API_KEY_OPTION, 0);
 
     $api = new IntaroCrm\RestApi($api_host, $api_key);
+    
+    $arResult['arSites'] = array();
+    $rsSites = CSite::GetList($by, $sort, array());
+    while ($ar = $rsSites->Fetch())
+        $arResult['arSites'][] = $ar;
 
     //prepare crm lists
     $arResult['orderTypesList'] = $api->orderTypesList();
@@ -249,6 +262,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     $optionsPayTypes = unserialize(COption::GetOptionString($mid, $CRM_PAYMENT_TYPES, 0));
     $optionsPayStatuses = unserialize(COption::GetOptionString($mid, $CRM_PAYMENT_STATUSES, 0)); // --statuses
     $optionsPayment = unserialize(COption::GetOptionString($mid, $CRM_PAYMENT, 0));
+    $optionsSites = unserialize(COption::GetOptionString($mid, $CRM_ORDER_SITES, 0));
 
     $aTabs = array(
         array(
@@ -283,6 +297,16 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     <tr>
         <td width="50%" class="adm-detail-content-cell-l"><?php echo GetMessage('ICRM_API_KEY'); ?></td>
         <td width="50%" class="adm-detail-content-cell-r"><input type="text" id="api_key" name="api_key" value="<?php echo $api_key; ?>"></td>
+    </tr>
+    <tr>
+        <td width="50%" class="adm-detail-content-cell-l"><?php echo GetMessage('ICRM_SITES'); ?></td>
+        <td width="50%" class="adm-detail-content-cell-r">
+            <select id="sites_ids" name="sites_ids[]" multiple="multiple" size="3">
+                <?php foreach ($arResult['arSites'] as $site): ?>
+                    <option value="<?php echo $site['LID'] ?>" <?php if(in_array($site['LID'], $optionsSites)) echo 'selected="selected"'; ?>><?php echo $site['NAME'] . ' (' . $site['LID'] . ')' ?></option>
+                <?php endforeach; ?>
+            </select>
+        </td>
     </tr>
 <?php $tabControl->BeginNextTab(); ?>
     <input type="hidden" name="tab" value="catalog">

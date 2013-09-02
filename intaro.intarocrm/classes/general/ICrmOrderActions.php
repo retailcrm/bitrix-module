@@ -11,6 +11,7 @@ class ICrmOrderActions
     protected static $CRM_PAYMENT_STATUSES = 'pay_statuses_arr';
     protected static $CRM_PAYMENT = 'payment_arr'; //order payment Y/N
     protected static $CRM_ORDER_LAST_ID = 'order_last_id';
+    protected static $CRM_ORDER_SITES = 'sites_ids';
 
     /**
      * Mass order uploading, without repeating; always returns true, but writes error log
@@ -55,6 +56,7 @@ class ICrmOrderActions
         $optionsPayTypes = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_TYPES, 0));
         $optionsPayStatuses = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_STATUSES, 0)); // --statuses
         $optionsPayment = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT, 0));
+        $optionsSites = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_SITES, 0));
 
         $api = new IntaroCrm\RestApi($api_host, $api_key);
 
@@ -63,7 +65,8 @@ class ICrmOrderActions
             'optionsDelivTypes'  => $optionsDelivTypes,
             'optionsPayTypes'    => $optionsPayTypes,
             'optionsPayStatuses' => $optionsPayStatuses,
-            'optionsPayment'     => $optionsPayment
+            'optionsPayment'     => $optionsPayment,
+            'optionSites'        => $optionsSites
         );
 
         //packmode
@@ -71,12 +74,15 @@ class ICrmOrderActions
         $orderCount = 0;
 
         while ($arOrder = $dbOrder->GetNext()) { // here orders by id asc
+            
+            if(is_array($optionsSites) && !empty($optionsSites) && !in_array($arOrder['LID'], $optionsSites))
+                continue;
                 
             $result = self::orderCreate($arOrder, $api, $arParams);
 
             if (!$result['order'] || !$result['customer'])
                  continue;
-
+            
             $orderCount++;
                 
             $resOrders[] = $result['order'];
@@ -324,9 +330,13 @@ class ICrmOrderActions
             'deliveryAddress' => $resOrderDeliveryAddress,
             'items'           => $items
         ));
-
+        
+        if(isset($arParams['optionsSites']) && is_array($arParams['optionsSites'])
+                && in_array($arFields['LID'], $arParams['optionsSites']))
+            $resOrder['site'] = $arFields['LID'];
+        
         if($send)
-            return $api->createOrder($resOrder);
+            $api->createOrder($resOrder);
         
         return array(
             'order' => $resOrder,
