@@ -339,7 +339,7 @@ class ICrmOrderActions
             $api->createOrder($resOrder);
         
         return array(
-            'order' => $resOrder,
+            'order'    => $resOrder,
             'customer' => $customer
         );
     }
