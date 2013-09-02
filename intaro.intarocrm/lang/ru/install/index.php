@@ -12,3 +12,4 @@ $MESS ['ERR_CATALOG'] = 'Отсутствует модуль catalog! Дальн
 $MESS ['ERR_CATALOG'] = 'Отсутствует модуль catalog! Дальнейшая установка невозможна.';
 $MESS ['INTAROCRM_CURL_ERR'] = 'Для работы модуля интеграции с IntaroCRM требуется PHP-расширение CURL.';
 $MESS ['ERR_ARTICLE_IBLOCK'] = 'Не установлены артикулы';
+$MESS ['DATE_TIMEZONE_ERR'] = 'Не указана временная зона в настройках php.';
