@@ -27,6 +27,9 @@
                 <td colspan="2"><b><?php echo GetMessage('INFO_2'); ?></b></td>
             </tr>
             <tr align="center">
+                <td colspan="2"><b><?php echo GetMessage('INFO_3'); ?></b></td>
+            </tr>
+            <tr align="center">
                 <td colspan="2">&nbsp;</td>
             </tr>
             <tr>
