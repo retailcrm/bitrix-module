@@ -148,6 +148,280 @@ class ICrmOrderActions
 
         return true; //all ok!
     }
+    
+    /**
+     * 
+     * History update; doesnt work; always returns true, but writes log of errors
+     * @global CUser $USER
+     * @return boolean
+     */
+    public static function orderHistory() {
+        global $USER;
+        
+        if(!isset($USER) || !$USER) { // for agent; to add order User
+            $USER = new CUser;
+            $USER->Update(1, array());
+        }
+        
+        if (!CModule::IncludeModule("iblock")) {
+            //handle err
+            self::eventLog('ICrmOrderActions::orderHistory', 'iblock', 'module not found');
+            return true;
+        }
+        
+        if (!CModule::IncludeModule("sale")) {
+            //handle err
+            self::eventLog('ICrmOrderActions::orderHistory', 'sale', 'module not found');
+            return true;
+        }
+        
+        if (!CModule::IncludeModule("catalog")) {
+            //handle err
+            self::eventLog('ICrmOrderActions::orderHistory', 'catalog', 'module not found');
+            return true;
+        }
+        
+        $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
+        $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
+
+        //saved cat params (crm -> bitrix)
+        $optionsOrderTypes = array_flip(unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_TYPES_ARR, 0)));
+        $optionsDelivTypes = array_flip(unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_DELIVERY_TYPES_ARR, 0)));
+        $optionsPayTypes = array_flip(unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_TYPES, 0)));
+        $optionsPayStatuses = array_flip(unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_STATUSES, 0))); // --statuses
+        $optionsPayment = array_flip(unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT, 0)));
+        $optionsSites = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_SITES, 0));
+
+        $api = new IntaroCrm\RestApi($api_host, $api_key);
+        
+        $orderHistory = $api->orderHistory();
+        
+        // pushing existing orders
+        foreach ($orderHistory as $order) {
+            var_dump($order);
+            continue;
+            
+            if(!isset($order['externalId']) && !$order['externalId']) {
+                            
+                continue;
+
+                // new order
+               /*array(
+                    'LID'              => SITE_ID, //<----!
+                    'PERSON_TYPE_ID'   => 1, // <------!
+                    'PAYED'            => 'N',
+                    'CANCELED'         => 'N',
+                    'STATUS_ID'        => 'N',
+                    'PRICE'            => 0,
+                    'CURRENCY'         => 'RUB',
+                    'USER_ID'          => IntVal($USER->GetID()), // <--------!
+                    'PAY_SYSTEM_ID'    => 0,
+                    'PRICE_DELIVERY'   => 0,
+                    'DELIVERY_ID'      => 0,
+                    'DISCOUNT_VALUE'   => 0,
+                    'USER_DESCRIPTION' => ''
+                );
+                
+                $order['externalId'] = CSaleOrder::Add(array());
+                
+                $api->orderFixExternalIds(array($order['id'], $order['externalId']));
+                
+                if ($api->getStatusCode() != 200) { 
+                    //handle err - write log & continue
+                    self::eventLog('ICrmOrderActions::orderHistory', 'IntaroCrm\RestApi::orderFixExternalIds', $api->getLastError());
+                    continue;
+                } 
+                
+                */
+            }
+            
+            if(isset($order['externalId']) && $order['externalId']) { 
+                $arFields = CSaleOrder::GetById($order['externalId']);
+                
+                var_dump($arFields);
+                
+                // incorrect order
+                if(!$arFields || empty($arFields))
+                    continue;
+                
+                $userId = $arFields['USER_ID'];
+                $LID = $arFields['LID'];
+                
+                $rsOrderProps = CSaleOrderPropsValue::GetList(array(), array('ORDER_ID' => $arFields['ID']));
+                while ($ar = $rsOrderProps->Fetch()) {
+                    if (isset($order['deliveryAddress']) && $order['deliveryAddress']) {
+                        switch ($ar['CODE']) {
+                            case 'ZIP': if (isset($order['deliveryAddress']['index']))
+                                    CSaleOrderPropsValue::Update($ar['ID'], array('VALUE' => self::fromJSON($order['deliveryAddress']['index'])));
+                                break;
+                            case 'CITY': if (isset($order['deliveryAddress']['city']))
+                                    CSaleOrderPropsValue::Update($ar['ID'], array('VALUE' => self::fromJSON($order['deliveryAddress']['city'])));
+                                break;
+                            case 'ADDRESS': if (isset($order['deliveryAddress']['text']))
+                                    CSaleOrderPropsValue::Update($ar['ID'], array('VALUE' => self::fromJSON($order['deliveryAddress']['text'])));
+                                break;
+                            case 'LOCATION': if (isset($order['deliveryAddress']['city'])) {
+                                    $cityId = self::getLocationCityId($order['deliveryAddress']['city']);
+                                    if (!$cityId)
+                                        break;
+                                    CSaleOrderPropsValue::Update($ar['ID'], array('VALUE' => $cityId));
+                                }
+                                break;
+                        }
+                    }
+
+                    switch ($ar['CODE']) {
+                        case 'FIO':
+                            if (isset($order['firstName']))
+                                $contactName['firstName'] = self::fromJSON($order['firstName']);
+                            if (isset($order['lastName']))
+                                $contactName['lastName'] = self::fromJSON($order['lastName']);
+                            if (isset($order['patronymic']))
+                                $contactName['patronymic'] = self::fromJSON($order['patronymic']);
+
+                            if (!isset($contactName) || empty($contactName))
+                                break;
+
+                            CSaleOrderPropsValue::Update($ar['ID'], array('VALUE' => implode(" ", $contactName)));
+                            break;
+                        case 'PHONE': if (isset($order['phone']))
+                                CSaleOrderPropsValue::Update($ar['ID'], array('VALUE' => self::fromJSON($order['phone'])));
+                            break;
+                        case 'EMAIL': if (isset($order['email']))
+                                CSaleOrderPropsValue::Update($ar['ID'], array('VALUE' => self::fromJSON($order['email'])));
+                            break;
+                    }
+                }
+                
+                // here check if smth wasnt added or new propetties
+                if (isset($order['deliveryAddress']) && $order['deliveryAddress']) {
+                    if (isset($order['deliveryAddress']['index']))
+                        self::addOrderProperty('ZIP', self::fromJSON($order['deliveryAddress']['index']), $order['externalId']);
+
+                    if (isset($order['deliveryAddress']['city']))
+                        self::addOrderProperty('CITY', self::fromJSON($order['deliveryAddress']['city']), $order['externalId']);
+
+                    if (isset($order['deliveryAddress']['text']))
+                        self::addOrderProperty('ADDRESS', self::fromJSON($order['deliveryAddress']['text']), $order['externalId']);
+                }
+
+                if (isset($order['phone']))
+                    self::addOrderProperty('PHONE', self::fromJSON($order['phone']), $order['externalId']);
+
+                if (isset($order['email']))
+                    self::addOrderProperty('EMAIL', self::fromJSON($order['email']), $order['externalId']);
+
+                if (isset($order['firstName']))
+                    $contactName['firstName'] = self::fromJSON($order['firstName']);
+                if (isset($order['lastName']))
+                    $contactName['lastName'] = self::fromJSON($order['lastName']);
+                if (isset($order['patronymic']))
+                    $contactName['patronymic'] = self::fromJSON($order['patronymic']);
+
+                if (isset($contactName) && !empty($contactName))
+                    self::addOrderProperty('FIO', implode(" ", $contactName), $order['externalId']);
+
+                /*foreach($order['items'] as $item) {                  
+                    $p = CSaleBasket::GetList(
+                            array('PRODUCT_ID' => 'ASC'),
+                            array('ORDER_ID' => $order['externalId'], 'PRODUCT_ID' => $item['offer']['externalId']))->Fetch();
+                    
+                    if(!$p) // if not found
+                        continue;
+                    
+                    // del from basket
+                    if(isset($item['deleted']) && $item['deleted']) {
+                        CSaleBasket::Delete($p['ID']);
+                        continue;
+                    }
+                    
+                    // change existing basket items
+                    if(!isset($item['offer']) && !$item['offer']['externalId']) 
+                        continue;
+                    
+                    $arProduct = array();
+                    
+                    // create new
+                    if(isset($item['created']) && $item['created']) {
+                        $arProduct = array(
+                            'FUSER_ID'               => $userId,
+                            'ORDER_ID'               => $order['externalId'],
+                            'QUANTITY'               => $item['quantity'],
+                            'CURRENCY'               => $p['CURRENCY'],
+                            'LID'                    => $LID,
+                            'PRODUCT_ID'             => $item['offer']['externalId'],
+                            'PRODUCT_PRICE_ID'       => $p['PRODUCT_PRICE_ID'],
+                            'WEIGHT'                 => $p['WEIGHT'],
+                            'DELAY'                  => $p['DELAY'],
+                            'CAN_BUY'                => $p['CAN_BUY'],
+                            'MODULE'                 => $p['MODULE'],
+                            'NOTES'                  => $p['NOTES'],
+                            'PRODUCT_PROVIDER_CLASS' => $p['PRODUCT_PROVIDER_CLASS'],
+                            'DETAIL_PAGE_URL'        => $p['DETAIL_PAGE_URL'],
+                            'CATALOG_XML_ID'         => $p['CATALOG_XML_ID'],
+                            'PRODUCT_XML_ID'         => $p['PRODUCT_XML_ID']
+                        );
+
+                        if (isset($item['initialPrice']) && $item['initialPrice'])
+                            $arProduct['PRICE'] = (double) $item['initialPrice'];
+
+                        if (isset($item['discount']) && $item['discount']) {
+                            $arProduct['PRICE'] = $arProduct['PRICE'] - (double) $item['disount'];
+                            $arProduct['DISCOUNT_PRICE'] = $item['discount'];
+                        }
+
+                        if (isset($item['discountPercent']) && $item['discountPercent']) {
+                            //$arProducts['PRICE'] -- how ?
+                            $arProduct['DISCOUNT_VALUE'] = $item['discountPercent'];
+                        }
+
+                        if (isset($item['offer']['name']) && $item['offer']['name'])
+                            $arProduct['NAME'] = $item['offer']['name'];
+                        
+                        CSaleBasket::Add($arProduct);
+                        continue;
+                    }
+                    
+                    // update old
+                    if(isset($item['initialPrice']) && $item['initialPrice'])
+                        $arProduct['PRICE'] = (double) $item['initialPrice'];
+                    
+                    if(isset($item['dicount']) && $item['discount']){
+                        $arProduct['PRICE'] = $arProducts['PRICE'] - (double) $item['disount'];
+                        $arProduct['DISCOUNT_PRICE'] = $item['discount'];
+                    }
+                    
+                    if(isset($item['discountPercent']) && $item['discountPercent']) {
+                        //$arProducts['PRICE'] -- how ?
+                        $arProduct['DISCOUNT_VALUE'] = $item['discountPercent'];
+                    }
+                    
+                    if(isset($item['offer']['name']) && $item['offer']['name'])
+                        $arProduct['NAME'] = $item['offer']['name'];
+                    
+                    CSaleBasket::Update($p['ID'], $arProduct);
+                }*/ 
+                
+                // orderUpdate
+                $arFields = array(
+                    'PRICE_DELIVERY' => $order['deliveryCost'],
+                    'PRICE'          => $order['summ'],
+                    'DATE_MARKED'    => $order['markDatetime'],
+                    'USER_ID'        => $order['customer'],
+                    'PAY_SYSTEM_ID'  => $optionsPayTypes[$order['paymentType']],
+                    'PAYED'          => $optionsPayment[$order['paymentStatus']],
+                    'PERSON_TYPE_ID' => $optionsOrderTypes[$order['orderType']],
+                    'DELIVERY_ID'    => $optionsDelivTypes[$order['deliveryType']],
+                    'STATUS_ID'      => $optionsPayStatuses[$order['status']]
+                );
+
+                CSaleOrder::Update($order['externalId'], $arFields);
+                
+            } 
+        } 
+        
+        return true;
+    }
 
     /**
      *
