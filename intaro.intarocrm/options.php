@@ -25,6 +25,7 @@ if($_GET['errc']) echo CAdminMessage::ShowMessage(GetMessage($_GET['errc']));
 if($_GET['ok'] && $_GET['ok'] == 'Y') echo CAdminMessage::ShowNote(GetMessage('ICRM_OPTIONS_OK'));
 
 $arResult = array();
+
 $arResult['orderProps'][0]['NAME'] = GetMessage('FIO');
 $arResult['orderProps'][0]['ID'] = 'fio';
 $arResult['orderProps'][1]['NAME'] = GetMessage('ZIP');
@@ -36,12 +37,12 @@ $arResult['orderProps'][3]['ID'] = 'email';
 // address
 $arResult['orderProps'][4]['NAME'] = GetMessage('ADDRESS');
 $arResult['orderProps'][4]['ID'] = 'text';
-$arResult['orderProps'][5]['NAME'] = GetMessage('COUNTRY');
-$arResult['orderProps'][5]['ID'] = 'country';
-$arResult['orderProps'][6]['NAME'] = GetMessage('REGION');
-$arResult['orderProps'][6]['ID'] = 'region';
-$arResult['orderProps'][7]['NAME'] = GetMessage('CITY');
-$arResult['orderProps'][7]['ID'] = 'city';
+//$arResult['orderProps'][5]['NAME'] = GetMessage('COUNTRY');
+//$arResult['orderProps'][5]['ID'] = 'country';
+//$arResult['orderProps'][6]['NAME'] = GetMessage('REGION');
+//$arResult['orderProps'][6]['ID'] = 'region';
+//$arResult['orderProps'][7]['NAME'] = GetMessage('CITY');
+//$arResult['orderProps'][7]['ID'] = 'city';
 $arResult['orderProps'][8]['NAME'] = GetMessage('STREET');
 $arResult['orderProps'][8]['ID'] = 'street';
 $arResult['orderProps'][9]['NAME'] = GetMessage('BUILDING');
