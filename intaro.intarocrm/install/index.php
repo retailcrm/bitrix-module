@@ -906,16 +906,24 @@ class intaro_intarocrm extends CModule
                 }  
             }
             
-            //
-
-            //agent
-            
+            //agents
             $dateAgent = new DateTime();
             $intAgent = new DateInterval('PT60S'); // PT60S - 60 sec;
             $dateAgent->add($intAgent);
 
             CAgent::AddAgent(
                 "ICrmOrderActions::uploadOrdersAgent();",
+                 $this->MODULE_ID,
+                 "N",
+                 600, // interval - 10 mins
+                 $dateAgent->format('d.m.Y H:i:s'), // date of first check
+                 "Y", // агент активен
+                 $dateAgent->format('d.m.Y H:i:s'), // date of first start
+                 30
+            );
+            
+            CAgent::AddAgent(
+                "ICrmOrderActions::orderHistoryAgent();",
                  $this->MODULE_ID,
                  "N",
                  600, // interval - 10 mins

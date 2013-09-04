@@ -453,6 +453,18 @@ class ICrmOrderActions
     }
     
     /**
+     *
+     * Agent function
+     *
+     * @return self name
+     */
+
+    public static function orderHistoryAgent() {
+        self::orderHistory();
+        return 'ICrmOrderActions::orderHistoryAgent();';
+    }
+    
+    /**
      * 
      * creates order or returns array of order and customer for mass upload
      * 
