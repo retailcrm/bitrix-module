@@ -198,8 +198,8 @@ class ICrmOrderActions
         
         // pushing existing orders
         foreach ($orderHistory as $order) {
+            
             var_dump($order);
-            continue;
             
             if(!isset($order['externalId']) && !$order['externalId']) {
                             
@@ -238,13 +238,12 @@ class ICrmOrderActions
             if(isset($order['externalId']) && $order['externalId']) { 
                 $arFields = CSaleOrder::GetById($order['externalId']);
                 
-                var_dump($arFields);
-                
                 // incorrect order
                 if(!$arFields || empty($arFields))
                     continue;
                 
                 $userId = $arFields['USER_ID'];
+                if(isset($order['customer']) && $order['customer']) $userId = $order['customer'];
                 $LID = $arFields['LID'];
                 
                 $rsOrderProps = CSaleOrderPropsValue::GetList(array(), array('ORDER_ID' => $arFields['ID']));
@@ -403,20 +402,22 @@ class ICrmOrderActions
                 }*/ 
                 
                 // orderUpdate
-                $arFields = array(
+                $arFields = self::clearArr(array(
                     'PRICE_DELIVERY' => $order['deliveryCost'],
                     'PRICE'          => $order['summ'],
                     'DATE_MARKED'    => $order['markDatetime'],
-                    'USER_ID'        => $order['customer'],
+                    'USER_ID'        => $userId, //$order['customer']
                     'PAY_SYSTEM_ID'  => $optionsPayTypes[$order['paymentType']],
                     'PAYED'          => $optionsPayment[$order['paymentStatus']],
                     'PERSON_TYPE_ID' => $optionsOrderTypes[$order['orderType']],
                     'DELIVERY_ID'    => $optionsDelivTypes[$order['deliveryType']],
                     'STATUS_ID'      => $optionsPayStatuses[$order['status']]
-                );
+                ));
+                
+                var_dump($arFields);
 
                 CSaleOrder::Update($order['externalId'], $arFields);
-                
+
             } 
         } 
         
