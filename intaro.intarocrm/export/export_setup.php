@@ -190,7 +190,7 @@ if ($STEP==1)
                                                 if ($arIBlock['OLD_PROPERTY_SELECT'] == $prop["CODE"]){
                                                     echo " selected";
                                                 } else {
-                                                    if ($arIBlock['OLD_PROPERTY_SELECT'] != "") {
+                                                    if ($arIBlock['OLD_PROPERTY_SELECT'] == "") {
                                                         if ($prop["CODE"] == "ARTICLE" ||
                                                               $prop["CODE"] == "ART" ||
                                                               $prop["CODE"] == "ARTNUMBER"  )

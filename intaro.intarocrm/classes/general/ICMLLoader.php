@@ -22,7 +22,11 @@ class ICMLLoader {
             
             $categories = $this->GetCategories();
 
-            $offers = $this->GetOffers();
+            $newCategories = array();
+            $offers = $this->GetOffers($newCategories);
+            foreach ($newCategories as $newCategory) {
+                $categories[] = $this->BuildCategory($newCategory);
+            }
 
             $this->PrepareFile();
 
@@ -141,8 +145,8 @@ class ICMLLoader {
 			
 	}
 	
-	protected function GetOffers()
-	{
+    protected function GetOffers(&$newCategories)
+    {
             $offers = Array();
             foreach ($this->iblocks as $key => $id) 
             {
@@ -205,12 +209,21 @@ class ICMLLoader {
                                     $rsOffers = CIBlockElement::GetList(array(), $arFilterOffer, false, false, $arSelectOffer);
                                     while ($arOffer = $rsOffers->GetNext()) {
 
-                                            $dbResCategories = CIBlockElement::GetElementGroups($arOffer['ID'], true);
+                                            $dbResCategories = CIBlockElement::GetElementGroups($product['ID'], true);
                                             while ($arResCategory = $dbResCategories->Fetch()) {
                                                     $categoriesString .= "<categoryId>" . $arResCategory["ID"] . "</categoryId>\n";
                                             }
-                                            if ($categoriesString == '')
-                                                $categoriesString .= "<categoryId>" . ($this->mainSection + $id) . "</categoryId>\n";
+                                            if ($categoriesString == '') {
+                                                
+                                                $catId = $this->mainSection + $id;
+                                                $categoriesString .= "<categoryId>" . ($catId) . "</categoryId>\n";
+                                                
+                                                $category = array();
+                                                $category['ID'] = $catId;
+                                                $category['NAME'] = 'Основная группа инфоблока ' . $iblock['IBLOCK_DB']['NAME'];
+                                                
+                                                $newCategories[$catId] = $category;
+                                            }
                                             $offer = CCatalogProduct::GetByID($arOffer['ID']);
                                             $arOffer['QUANTITY'] = $offer["QUANTITY"];
 
@@ -236,8 +249,17 @@ class ICMLLoader {
                                     while ($arResCategory = $dbResCategories->Fetch()) {
                                             $categoriesString .= "<categoryId>" . $arResCategory["ID"] . "</categoryId>\n";
                                     }
-                                    if ($categoriesString == '')
-                                        $categoriesString .= "<categoryId>" . ($this->mainSection + $id) . "</categoryId>\n";
+                                    if ($categoriesString == '') {
+                                                
+                                        $catId = $this->mainSection + $id;
+                                        $categoriesString .= "<categoryId>" . ($catId) . "</categoryId>\n";
+
+                                        $category = array();
+                                        $category['ID'] = $catId;
+                                        $category['NAME'] = 'Основная группа инфоблока ' . $iblock['IBLOCK_DB']['NAME'];
+
+                                        $newCategories[$catId] = $category;
+                                    }
 
                                     $offer = CCatalogProduct::GetByID($product['ID']);
                                     $product['QUANTITY'] = $offer["QUANTITY"];
