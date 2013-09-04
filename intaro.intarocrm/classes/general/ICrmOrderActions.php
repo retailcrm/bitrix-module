@@ -199,8 +199,6 @@ class ICrmOrderActions
         // pushing existing orders
         foreach ($orderHistory as $order) {
             
-            var_dump($order);
-            
             if(!isset($order['externalId']) && !$order['externalId']) {
                             
                 continue;
@@ -413,8 +411,6 @@ class ICrmOrderActions
                     'DELIVERY_ID'    => $optionsDelivTypes[$order['deliveryType']],
                     'STATUS_ID'      => $optionsPayStatuses[$order['status']]
                 ));
-                
-                var_dump($arFields);
 
                 CSaleOrder::Update($order['externalId'], $arFields);
 
