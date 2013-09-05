@@ -128,8 +128,8 @@ class intaro_intarocrm extends CModule {
                 'ID' => 'flat'
             ),
             array(
-                'NAME' => GetMessage('INTERCOMECODE'),
-                'ID' => 'intercomecode'
+                'NAME' => GetMessage('INTERCOMCODE'),
+                'ID' => 'intercomcode'
             ),
             array(
                 'NAME' => GetMessage('FLOOR'),
@@ -555,7 +555,8 @@ class intaro_intarocrm extends CModule {
             );
 
             $APPLICATION->IncludeAdminFile(
-                    GetMessage('MODULE_INSTALL_TITLE'), $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step2.php'
+                    GetMessage('MODULE_INSTALL_TITLE'),
+                    $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step2.php'
             );
         } else if ($step == 3) {
             if (!CModule::IncludeModule("sale")) {
@@ -586,9 +587,11 @@ class intaro_intarocrm extends CModule {
 
             //form order types ids arr
             $orderTypesArr = array();
+            $arResult['bitrixOrderTypesList'] = array();
             if ($arOrderTypesList = $dbOrderTypesList->Fetch()) {
                 do {
                     $orderTypesArr[$arOrderTypesList['ID']] = htmlspecialchars(trim($_POST['order-type-' . $arOrderTypesList['ID']]));
+                    $arResult['bitrixOrderTypesList'][] = $arOrderTypesList;
                 } while ($arOrderTypesList = $dbOrderTypesList->Fetch());
             }
 
@@ -738,21 +741,42 @@ class intaro_intarocrm extends CModule {
             
             if (isset($_POST['back']) && $_POST['back']) {
                 $APPLICATION->IncludeAdminFile(
-                        GetMessage('MODULE_INSTALL_TITLE'), 
-                        $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step2.php'
+                        GetMessage('MODULE_INSTALL_TITLE'), $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step2.php'
                 );
             }
             
-            $propsCount = 0;
-            $orderPropsArr = array();
-            foreach ($arResult['orderProps'] as $orderProp) {
-                if ((!(int) htmlspecialchars(trim($_POST['address-detail']))) && $propsCount > 5)
-                    break;
-                $orderPropsArr[$orderProp['ID']] = htmlspecialchars(trim($_POST['order-prop-' . $orderProp['ID']]));
-                $propsCount++;
+            //bitrix orderTypesList -- personTypes
+            $dbOrderTypesList = CSalePersonType::GetList(
+                            array(
+                        "SORT" => "ASC",
+                        "NAME" => "ASC"
+                            ), array(
+                        "ACTIVE" => "Y",
+                            ), false, false, array()
+            );
+
+            //form order types ids arr
+            $orderTypesArr = array();
+            $orderTypesList = array();
+            if ($arOrderTypesList = $dbOrderTypesList->Fetch()) {
+                do {
+                    $orderTypesArr[$arOrderTypesList['ID']] = htmlspecialchars(trim($_POST['order-type-' . $arOrderTypesList['ID']]));
+                    $orderTypesList[] = $arOrderTypesList;
+                } while ($arOrderTypesList = $dbOrderTypesList->Fetch());
             }
-            
-            $arResult['test'] = $_POST;
+
+            $orderPropsArr = array();
+            foreach ($orderTypesList as $orderType) {
+                $propsCount = 0;
+                $_orderPropsArr = array();
+                foreach ($arResult['orderProps'] as $orderProp) {
+                    if ((!(int) htmlspecialchars(trim($_POST['address-detail-' . $orderType['ID']]))) && $propsCount > 5)
+                        break;
+                    $_orderPropsArr[$orderProp['ID']] = htmlspecialchars(trim($_POST['order-prop-' . $orderProp['ID'] . '-' . $orderType['ID']]));
+                    $propsCount++;
+                }
+                $orderPropsArr[$orderType['ID']] = $_orderPropsArr;
+            }
             
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_PROPS, serialize($orderPropsArr));
                        
@@ -998,6 +1022,8 @@ class intaro_intarocrm extends CModule {
         COption::RemoveOption($this->MODULE_ID, $this->CRM_PAYMENT_STATUSES);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_PAYMENT);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_LAST_ID);
+        COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_SITES);
+        COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_PROPS);
 
         UnRegisterModuleDependences("sale", "OnSalePayOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSalePayOrder");
         UnRegisterModuleDependences("sale", "OnSaleCancelOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSaleCancelOrder");

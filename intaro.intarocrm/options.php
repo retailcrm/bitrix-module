@@ -81,8 +81,8 @@ $arResult['orderProps'] = array(
         'ID'   => 'flat'
     ),
     array(
-        'NAME' => GetMessage('INTERCOMECODE'),
-        'ID'   => 'intercomecode'
+        'NAME' => GetMessage('INTERCOMCODE'),
+        'ID'   => 'intercomcode'
     ),
     array(
         'NAME' => GetMessage('FLOOR'),
@@ -140,9 +140,11 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             
     //form order types ids arr
     $orderTypesArr = array();
+    $orderTypesList = array();
     if ($arOrderTypesList = $dbOrderTypesList->Fetch()) {
         do {
-            $orderTypesArr[$arOrderTypesList['ID']] = $_POST['order-type-' . $arOrderTypesList['ID']];     
+            $orderTypesArr[$arOrderTypesList['ID']] = $_POST['order-type-' . $arOrderTypesList['ID']];
+            $orderTypesList[] = $arOrderTypesList;
         } while ($arOrderTypesList = $dbOrderTypesList->Fetch());
     }
 	
@@ -212,13 +214,17 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     $paymentArr['Y'] = htmlspecialchars(trim($_POST['payment-Y']));
     $paymentArr['N'] = htmlspecialchars(trim($_POST['payment-N']));
     
-    $propsCount = 0;
     $orderPropsArr = array();
-    foreach($arResult['orderProps'] as $orderProp) {
-        if((!(int) htmlspecialchars(trim($_POST['address-detail']))) && $propsCount > 5) 
-            break;
-        $orderPropsArr[$orderProp['ID']] = htmlspecialchars(trim($_POST['order-prop-' . $orderProp['ID']]));
-        $propsCount++;
+    foreach ($orderTypesList as $orderType) {
+        $propsCount = 0;
+        $_orderPropsArr = array();
+        foreach ($arResult['orderProps'] as $orderProp) {
+            if ((!(int) htmlspecialchars(trim($_POST['address-detail-' . $orderType['ID']]))) && $propsCount > 5)
+                break;
+            $_orderPropsArr[$orderProp['ID']] = htmlspecialchars(trim($_POST['order-prop-' . $orderProp['ID'] . '-' . $orderType['ID']]));
+            $propsCount++;
+        }
+        $orderPropsArr[$orderType['ID']] = $_orderPropsArr;
     }
     
     COption::SetOptionString($mid, $CRM_ORDER_TYPES_ARR, serialize($orderTypesArr));
@@ -379,12 +385,14 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
 <?php $APPLICATION->AddHeadString('<script type="text/javascript" src="/bitrix/js/main/jquery/jquery-1.7.min.js"></script>'); ?>
 <script type="text/javascript">
     $(document).ready(function() { 
-        $('input[name="address-detail"]').change(function(){  
+        $('input.addr').change(function(){
+            splitName = $(this).attr('name').split('-');
+            orderType = splitName[2];
+            
             if(parseInt($(this).val()) === 1)
-                $('tr.address-detail').show('slow');
+                $('tr.address-detail-' + orderType).show('slow');
             else if(parseInt($(this).val()) === 0)
-                $('tr.address-detail').hide('slow');
-                
+                $('tr.address-detail-' + orderType).hide('slow');
             });
      });
 </script>
@@ -530,26 +538,34 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     <tr class="heading">
         <td colspan="2"><b><?php echo GetMessage('ORDER_PROPS'); ?></b></td>
     </tr>
+    <tr align="center">
+        <td colspan="2"><b><?php echo GetMessage('INFO_2'); ?></b></td>
+    </tr>
+    <?php foreach($arResult['bitrixOrderTypesList'] as $bitrixOrderType): ?>
+    <tr class="heading">
+        <td colspan="2"><b><?php echo $bitrixOrderType['NAME']; ?></b></td>
+    </tr>
+    
     <?php $countProps = 0; foreach($arResult['orderProps'] as $orderProp): ?>
     <?php if($orderProp['ID'] == 'text'): ?>
     <tr class="heading">
         <td colspan="2">
             <b>
-                <label><input type="radio" name="address-detail" value="0" <?php if(count($optionsOrderProps) < 6) echo "checked"; ?>><?php echo GetMessage('ADDRESS_SHORT'); ?></label>
-                <label><input type="radio" name="address-detail" value="1" <?php if(count($optionsOrderProps) > 5) echo "checked"; ?>><?php echo GetMessage('ADDRESS_FULL'); ?></label>
+                <label><input class="addr" type="radio" name="address-detail-<?php echo $bitrixOrderType['ID'];; ?>" value="0" <?php if(count($optionsOrderProps[$bitrixOrderType['ID']]) < 6) echo "checked"; ?>><?php echo GetMessage('ADDRESS_SHORT'); ?></label>
+                <label><input class="addr" type="radio" name="address-detail-<?php echo $bitrixOrderType['ID']; ?>" value="1" <?php if(count($optionsOrderProps[$bitrixOrderType['ID']]) > 5) echo "checked"; ?>><?php echo GetMessage('ADDRESS_FULL'); ?></label>
             </b>
         </td>
     </tr>
     <?php endif; ?>
-    <tr <?php if ($countProps > 5) echo 'class="address-detail"'; if(($countProps > 5) && (count($optionsOrderProps) < 6)) echo 'style="display:none;"';?>>
+    <tr <?php if ($countProps > 5) echo 'class="address-detail-' . $bitrixOrderType['ID'] . '"'; if(($countProps > 5) && (count($optionsOrderProps[$bitrixOrderType['ID']]) < 6)) echo 'style="display:none;"';?>>
         <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $orderProp['ID']; ?>">
     	    <?php echo $orderProp['NAME']; ?>
         </td>
         <td width="50%" class="adm-detail-content-cell-r">
-            <select name="order-prop-<?php echo $orderProp['ID']; ?>" class="typeselect">
+            <select name="order-prop-<?php echo $orderProp['ID'] . '-' . $bitrixOrderType['ID']; ?>" class="typeselect">
                 <option value=""></option>              
                 <?php foreach ($arResult['arProp'] as $arProp): ?>
-                <option value="<?php echo $arProp['CODE']; ?>" <?php if ($optionsOrderProps[$orderProp['ID']] == $arProp['CODE']) echo 'selected'; ?>>
+                <option value="<?php echo $arProp['CODE']; ?>" <?php if ($optionsOrderProps[$bitrixOrderType['ID']][$orderProp['ID']] == $arProp['CODE']) echo 'selected'; ?>>
                     <?php echo $arProp['NAME']; ?>
                 </option>
                 <?php endforeach; ?>
@@ -557,6 +573,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         </td>
     </tr>
     <?php $countProps++; endforeach; ?>
+    <?php endforeach; ?>
 <?php $tabControl->BeginNextTab(); ?>
 <?php $tabControl->Buttons(); ?>
 <input type="hidden" name="Update" value="Y" />
