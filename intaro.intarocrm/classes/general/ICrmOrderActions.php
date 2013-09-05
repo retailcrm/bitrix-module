@@ -78,8 +78,10 @@ class ICrmOrderActions
 
         while ($arOrder = $dbOrder->GetNext()) { // here orders by id asc
             
-            if(is_array($optionsSites) && !empty($optionsSites) && !in_array($arOrder['LID'], $optionsSites))
-                continue;
+            if(is_array($optionsSites)) 
+                if(!empty($optionsSites)) 
+                    if(!in_array($arOrder['LID'], $optionsSites))
+                        continue;
                 
             $result = self::orderCreate($arOrder, $api, $arParams);
 

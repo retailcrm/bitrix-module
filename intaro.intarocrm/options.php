@@ -414,16 +414,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         <td width="50%" class="adm-detail-content-cell-l"><?php echo GetMessage('ICRM_API_KEY'); ?></td>
         <td width="50%" class="adm-detail-content-cell-r"><input type="text" id="api_key" name="api_key" value="<?php echo $api_key; ?>"></td>
     </tr>
-    <tr>
-        <td width="50%" class="adm-detail-content-cell-l"><?php echo GetMessage('ICRM_SITES'); ?></td>
-        <td width="50%" class="adm-detail-content-cell-r">
-            <select id="sites_ids" name="sites_ids[]" multiple="multiple" size="3">
-                <?php foreach ($arResult['arSites'] as $site): ?>
-                    <option value="<?php echo $site['LID'] ?>" <?php if(in_array($site['LID'], $optionsSites)) echo 'selected="selected"'; ?>><?php echo $site['NAME'] . ' (' . $site['LID'] . ')' ?></option>
-                <?php endforeach; ?>
-            </select>
-        </td>
-    </tr>
 <?php $tabControl->BeginNextTab(); ?>
     <input type="hidden" name="tab" value="catalog">
     <tr align="center">

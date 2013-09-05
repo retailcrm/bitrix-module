@@ -40,16 +40,6 @@
                 <td width="50%" class="adm-detail-content-cell-l"><?php echo GetMessage('ICRM_API_KEY'); ?></td>
                 <td width="50%" class="adm-detail-content-cell-r"><input type="text" id="api_key" name="api_key" value=""></td>
             </tr>
-            <tr>
-                <td width="50%" class="adm-detail-content-cell-l"><?php echo GetMessage('ICRM_SITES'); ?></td>
-                <td width="50%" class="adm-detail-content-cell-r">
-                    <select id="sites_ids" name="sites_ids[]" multiple="multiple" size="3">
-                        <?php foreach ($arResult['arSites'] as $site): ?>
-                            <option value="<?php echo $site['LID'] ?>" selected="selected"><?php echo $site['NAME'] . ' (' . $site['LID'] . ')' ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </td>
-            </tr>
         </tbody>
     </table>
     <br />
