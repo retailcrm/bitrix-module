@@ -26,37 +26,77 @@ if($_GET['ok'] && $_GET['ok'] == 'Y') echo CAdminMessage::ShowNote(GetMessage('I
 
 $arResult = array();
 
-$arResult['orderProps'][0]['NAME'] = GetMessage('FIO');
-$arResult['orderProps'][0]['ID'] = 'fio';
-$arResult['orderProps'][1]['NAME'] = GetMessage('ZIP');
-$arResult['orderProps'][1]['ID'] = 'index';
-$arResult['orderProps'][2]['NAME'] = GetMessage('PHONE');
-$arResult['orderProps'][2]['ID'] = 'phone';
-$arResult['orderProps'][3]['NAME'] = GetMessage('EMAIL');
-$arResult['orderProps'][3]['ID'] = 'email';
-// address
-$arResult['orderProps'][4]['NAME'] = GetMessage('ADDRESS');
-$arResult['orderProps'][4]['ID'] = 'text';
-//$arResult['orderProps'][5]['NAME'] = GetMessage('COUNTRY');
-//$arResult['orderProps'][5]['ID'] = 'country';
-//$arResult['orderProps'][6]['NAME'] = GetMessage('REGION');
-//$arResult['orderProps'][6]['ID'] = 'region';
-//$arResult['orderProps'][7]['NAME'] = GetMessage('CITY');
-//$arResult['orderProps'][7]['ID'] = 'city';
-$arResult['orderProps'][8]['NAME'] = GetMessage('STREET');
-$arResult['orderProps'][8]['ID'] = 'street';
-$arResult['orderProps'][9]['NAME'] = GetMessage('BUILDING');
-$arResult['orderProps'][9]['ID'] = 'building';
-$arResult['orderProps'][10]['NAME'] = GetMessage('FLAT');
-$arResult['orderProps'][10]['ID'] = 'flat';
-$arResult['orderProps'][11]['NAME'] = GetMessage('INTERCOMCODE');
-$arResult['orderProps'][11]['ID'] = 'intercomecode';
-$arResult['orderProps'][12]['NAME'] = GetMessage('FLOOR');
-$arResult['orderProps'][12]['ID'] = 'floor';
-$arResult['orderProps'][13]['NAME'] = GetMessage('BLOCK');
-$arResult['orderProps'][13]['ID'] = 'block';
-$arResult['orderProps'][14]['NAME'] = GetMessage('HOUSE');
-$arResult['orderProps'][14]['ID'] = 'house';
+$arResult['orderProps'] = array(
+    array(
+        'NAME' => GetMessage('FIO'),
+        'ID'   => 'fio'
+    ),
+    array(
+        'NAME' => GetMessage('ZIP'),
+        'ID'   => 'index'
+    ),
+    array(
+        'NAME' => GetMessage('PHONE'),
+        'ID'   => 'phone'
+    ),
+    array(
+        'NAME' => GetMessage('EMAIL'),
+        'ID'   => 'email'
+    ),
+    array(
+        'NAME' => GetMessage('ZIP'),
+        'ID'   => 'index'
+    ),
+    array(
+        'NAME' => GetMessage('ADDRESS'),
+        'ID'   => 'text'
+    ),
+    // address
+    /* array(
+        'NAME' => GetMessage('COUNTRY'),
+        'ID'   => 'country'
+    ),
+    array(
+        'NAME' => GetMessage('REGION'),
+        'ID'   => 'region'
+    ),
+    array(
+        'NAME' => GetMessage('CITY'),
+        'ID'   => 'city'
+    ),*/
+    array(
+        'NAME' => GetMessage('ZIP'),
+        'ID'   => 'index'
+    ),
+    array(
+        'NAME' => GetMessage('STREET'),
+        'ID'   => 'street'
+    ),
+    array(
+        'NAME' => GetMessage('BUILDING'),
+        'ID'   => 'building'
+    ),
+    array(
+        'NAME' => GetMessage('FLAT'),
+        'ID'   => 'flat'
+    ),
+    array(
+        'NAME' => GetMessage('INTERCOMECODE'),
+        'ID'   => 'intercomecode'
+    ),
+    array(
+        'NAME' => GetMessage('FLOOR'),
+        'ID'   => 'floor'
+    ),
+    array(
+        'NAME' => GetMessage('BLOCK'),
+        'ID'   => 'block'
+    ),
+    array(
+        'NAME' => GetMessage('HOUSE'),
+        'ID'   => 'house'
+    )
+);
 
 //update connection settings
 if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
@@ -175,7 +215,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     $propsCount = 0;
     $orderPropsArr = array();
     foreach($arResult['orderProps'] as $orderProp) {
-        if((!(int) htmlspecialchars(trim($_POST['address-detail']))) && $propsCount > 4) 
+        if((!(int) htmlspecialchars(trim($_POST['address-detail']))) && $propsCount > 5) 
             break;
         $orderPropsArr[$orderProp['ID']] = htmlspecialchars(trim($_POST['order-prop-' . $orderProp['ID']]));
         $propsCount++;
@@ -501,7 +541,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         </td>
     </tr>
     <?php endif; ?>
-    <tr <?php if ($countProps > 4) echo 'class="address-detail"'; if(($countProps > 4) && (count($optionsOrderProps) < 6)) echo 'style="display:none;"';?>>
+    <tr <?php if ($countProps > 5) echo 'class="address-detail"'; if(($countProps > 5) && (count($optionsOrderProps) < 6)) echo 'style="display:none;"';?>>
         <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $orderProp['ID']; ?>">
     	    <?php echo $orderProp['NAME']; ?>
         </td>
