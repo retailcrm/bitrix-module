@@ -403,7 +403,7 @@ class ICrmOrderActions
         if(!$str)
             return array();
 
-        $array = expolde(" ", ICrmOrderActions::toJSON($str), 3);
+        $array = explode(" ", self::toJSON($str), 3);
 
         foreach($array as &$ar)
             if(!$ar)
