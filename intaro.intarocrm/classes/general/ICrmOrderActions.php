@@ -427,4 +427,17 @@ class ICrmOrderActions
 
         return $APPLICATION->ConvertCharset($str, 'utf-8', SITE_CHARSET);
     }
+    
+    public static function expodeFIO($str) {
+        if(!$str)
+            return array();
+
+        $array = expolde(" ", ICrmOrderActions::toJSON($str), 3);
+
+        foreach($array as &$ar)
+            if(!$ar)
+                unset($ar);
+        
+        return $array;
+    }
 }
