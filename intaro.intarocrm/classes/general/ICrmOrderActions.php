@@ -255,6 +255,7 @@ class ICrmOrderActions
 
         $resOrder = array();
         $resOrderDeliveryAddress = array();
+        $contactNameArr = array();
 
         $rsOrderProps = CSaleOrderPropsValue::GetList(array(), array('ORDER_ID' => $arFields['ID']));
         while ($ar = $rsOrderProps->Fetch()) {
@@ -270,7 +271,7 @@ class ICrmOrderActions
                         $resOrderDeliveryAddress['city'] = self::toJSON($resOrderDeliveryAddress['city']['CITY_NAME_LANG']);
                     }
                     break;
-                case 'FIO': $resOrder['contactName'] = explode(" ", self::toJSON($ar['VALUE']));
+                case 'FIO': $contactNameArr = self::explodeFIO($ar['VALUE']);
                     break;
                 case 'PHONE': $resOrder['phone'] = $ar['VALUE'];
                     break;
@@ -309,10 +310,7 @@ class ICrmOrderActions
         $createdAt = new \DateTime($arFields['DATE_INSERT']);
         $createdAt = $createdAt->format('Y-m-d H:i:s');
 
-        $resOrder = self::clearArr(array(
-            'lastName'        => $resOrder['contactName'][0],
-            'firstName'       => $resOrder['contactName'][1],
-            'patronymic'      => $resOrder['contactName'][2],
+        $resOrder = array(
             'phone'           => $resOrder['phone'],
             'email'           => $resOrder['email'],
             'deliveryCost'    => $arFields['PRICE_DELIVERY'],
@@ -329,11 +327,22 @@ class ICrmOrderActions
             'createdAt'       => $createdAt,
             'deliveryAddress' => $resOrderDeliveryAddress,
             'items'           => $items
-        ));
+        );
+        
+        // parse fio
+        if(count($contactNameArr) == 1) {
+            $resOrder['firstName'] = $contactNameArr[0];
+        } else {
+            $resOrder['lastName'] = $contactNameArr['contactName'][0];
+            $resOrder['firstName'] = $contactNameArr['contactName'][1];
+            $resOrder['patronymic'] = $contactNameArr['contactName'][2];
+        }
         
         if(isset($arParams['optionsSites']) && is_array($arParams['optionsSites'])
                 && in_array($arFields['LID'], $arParams['optionsSites']))
             $resOrder['site'] = $arFields['LID'];
+
+        $resOrder = self::clearArr($resOrder);
         
         if($send)
             $api->createOrder($resOrder);
@@ -388,5 +397,18 @@ class ICrmOrderActions
         global $APPLICATION;
 
         return $APPLICATION->ConvertCharset($str, 'utf-8', SITE_CHARSET);
+    }
+
+    public static function expodeFIO($str) {
+        if(!$str)
+            return array();
+
+        $array = expolde(" ", ICrmOrderActions::toJSON($str), 3);
+
+        foreach($array as &$ar)
+            if(!$ar)
+                unset($ar);
+        
+        return $array;
     }
 }
