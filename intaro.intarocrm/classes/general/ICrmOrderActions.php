@@ -330,9 +330,9 @@ class ICrmOrderActions
         if(count($contactNameArr) == 1) {
             $resOrder['firstName'] = $contactNameArr[0];
         } else {
-            $resOrder['lastName'] = $contactNameArr['contactName'][0],
-            $resOrder['firstName'] = $contactNameArr['contactName'][1],
-            $resOrder['patronymic'] = $contactNameArr['contactName'][2],
+            $resOrder['lastName'] = $contactNameArr['contactName'][0];
+            $resOrder['firstName'] = $contactNameArr['contactName'][1];
+            $resOrder['patronymic'] = $contactNameArr['contactName'][2];
         }
 
         $resOrder = self::clearArr($resOrder);
