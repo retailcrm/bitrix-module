@@ -371,6 +371,7 @@ class ICrmOrderActions
         if(isset($arParams['optionsSites']) && is_array($arParams['optionsSites'])
                 && in_array($arFields['LID'], $arParams['optionsSites']))
             $resOrder['site'] = $arFields['LID'];
+        
         $resOrder = self::clearArr($resOrder);
         
         if($send)
