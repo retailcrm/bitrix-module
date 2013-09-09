@@ -399,7 +399,7 @@ class ICrmOrderActions
         return $APPLICATION->ConvertCharset($str, 'utf-8', SITE_CHARSET);
     }
 
-    public static function expodeFIO($str) {
+    public static function explodeFIO($str) {
         if(!$str)
             return array();
 
