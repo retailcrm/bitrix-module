@@ -22,12 +22,8 @@ class ICMLLoader {
             
             $categories = $this->GetCategories();
 
-            $newCategories = array();
-            $offers = $this->GetOffers($newCategories);
-            foreach ($newCategories as $newCategory) {
-                $categories[] = $this->BuildCategory($newCategory);
-            }
-
+            $offers = $this->GetOffers($categories);
+            
             $this->PrepareFile();
 
             $this->PreWriteCatalog();
@@ -76,7 +72,7 @@ class ICMLLoader {
 	{
             @fwrite($this->fp, "<categories>\n");
             foreach ($categories as $category) {
-                @fwrite($this->fp, $category . "\n");
+                @fwrite($this->fp, $this->BuildCategory($category) . "\n");
             }
             @fwrite($this->fp, "</categories>\n");
 	}
@@ -84,7 +80,7 @@ class ICMLLoader {
 	{
             @fwrite($this->fp, "<offers>\n");
             foreach ($offers as $offer) {
-                @fwrite($this->fp, $offer . "\n");
+                @fwrite($this->fp, $this->BuildOffer($offer['OFFER'], $offer['CATEGORIES'], $offer['IBLOCK']) . "\n");
             }
             @fwrite($this->fp, "</offers>\n");
 	}
@@ -117,7 +113,7 @@ class ICMLLoader {
                 $dbRes = CIBlockSection::GetList(array("left_margin" => "asc"), $filter);
                 while ($arRes = $dbRes->Fetch())
                 {
-                        $categories[] = $this->BuildCategory($arRes);
+                        $categories[] = $arRes;
                 }
                 if (count($categories) == 0)
                 {
@@ -125,7 +121,7 @@ class ICMLLoader {
                     $arRes['ID'] = $this->mainSection + $id;
                     $arRes['IBLOCK_SECTION_ID'] = 0;
                     $arRes['NAME'] = "Основной раздел каталога";
-                    $categories[] = $this->BuildCategory($arRes);
+                    $categories[] = $arRes;
                 }
             }
             return $categories;
@@ -145,7 +141,7 @@ class ICMLLoader {
 			
 	}
 	
-    protected function GetOffers(&$newCategories)
+    protected function GetOffers(&$allCategories)
     {
             $offers = Array();
             foreach ($this->iblocks as $key => $id) 
@@ -187,14 +183,14 @@ class ICMLLoader {
 
                             $product = $product->GetFields();
 
-                            $categoriesString = "";
+                            $categories = Array();
 
 
                             $existOffer = false;
                             if (!empty($iblockOffer['IBLOCK_ID'])) {
                                     $arFilterOffer = Array (
                                                     'IBLOCK_ID' => $iblockOffer['IBLOCK_ID'],
-                                                    'PROPERTY_'.$iblockOffer['SKU_PROPERTY_ID'] => $product["ID"]
+                                                    'PROPERTY_' . $iblockOffer['SKU_PROPERTY_ID'] => $product["ID"]
                                             );
                                     $arSelectOffer = Array (
                                                     'ID',
@@ -205,25 +201,29 @@ class ICMLLoader {
                                             );
                                     if (isset($this->articleProperties[$id]))
                                         $arSelectOffer[] =  "PROPERTY_" . $this->articleProperties[$id];
+                                    
+                                    $dbResCategories = CIBlockElement::GetElementGroups($product['ID'], true);
+                                    while ($arResCategory = $dbResCategories->Fetch()) {
+                                            $categories[$arResCategory["ID"]] = array(
+                                                'ID' => $arResCategory["ID"],
+                                                'NAME' => $arResCategory["NAME"],
+                                                );
+                                    }
+                                    if (count($categories) == 0) {
+
+                                        $catId = $this->mainSection + $id;;
+
+                                        $category = array();
+                                        $category['ID'] = $catId;
+                                        $category['NAME'] = 'Основная группа инфоблока ' . $iblock['IBLOCK_DB']['NAME'];
+
+                                        $categories[$catId] = $category;
+                                        $allCategories[$catId] = $category;
+                                    }
 
                                     $rsOffers = CIBlockElement::GetList(array(), $arFilterOffer, false, false, $arSelectOffer);
                                     while ($arOffer = $rsOffers->GetNext()) {
 
-                                            $dbResCategories = CIBlockElement::GetElementGroups($product['ID'], true);
-                                            while ($arResCategory = $dbResCategories->Fetch()) {
-                                                    $categoriesString .= "<categoryId>" . $arResCategory["ID"] . "</categoryId>\n";
-                                            }
-                                            if ($categoriesString == '') {
-                                                
-                                                $catId = $this->mainSection + $id;
-                                                $categoriesString .= "<categoryId>" . ($catId) . "</categoryId>\n";
-                                                
-                                                $category = array();
-                                                $category['ID'] = $catId;
-                                                $category['NAME'] = 'Основная группа инфоблока ' . $iblock['IBLOCK_DB']['NAME'];
-                                                
-                                                $newCategories[$catId] = $category;
-                                            }
                                             $offer = CCatalogProduct::GetByID($arOffer['ID']);
                                             $arOffer['QUANTITY'] = $offer["QUANTITY"];
 
@@ -238,41 +238,52 @@ class ICMLLoader {
                                             $dbPrice = GetCatalogProductPrice($arOffer["ID"],1);
                                             $arOffer['PRICE'] = $dbPrice['PRICE'];
 
-
-
-                                            $offers[] = $this->BuildOffer($arOffer, $categoriesString, $iblock);
+                                            $offers[] = Array(
+                                                'OFFER' => $arOffer, 
+                                                'CATEGORIES' => $categories, 
+                                                'IBLOCK' => $iblock
+                                                    );
+                                            
                                             $existOffer = true;
                                     }
                             }
                             if (!$existOffer) {
-                                    $dbResCategories = CIBlockElement::GetElementGroups($product["ID"], true);
-                                    while ($arResCategory = $dbResCategories->Fetch()) {
-                                            $categoriesString .= "<categoryId>" . $arResCategory["ID"] . "</categoryId>\n";
-                                    }
-                                    if ($categoriesString == '') {
-                                                
-                                        $catId = $this->mainSection + $id;
-                                        $categoriesString .= "<categoryId>" . ($catId) . "</categoryId>\n";
+                                
+                                $dbResCategories = CIBlockElement::GetElementGroups($product["ID"], true);
+                                while ($arResCategory = $dbResCategories->Fetch()) {
+                                        $categories[$arResCategory["ID"]] = array(
+                                                'ID' => $arResCategory["ID"],
+                                                'NAME' => $arResCategory["NAME"],
+                                                );
+                                }
+                                if (count($categories) == 0) {
 
-                                        $category = array();
-                                        $category['ID'] = $catId;
-                                        $category['NAME'] = 'Основная группа инфоблока ' . $iblock['IBLOCK_DB']['NAME'];
+                                    $catId = $this->mainSection + $id;
+                                    $category = array();
+                                    $category['ID'] = $catId;
+                                    $category['NAME'] = 'Основная группа инфоблока ' . $iblock['IBLOCK_DB']['NAME'];
 
-                                        $newCategories[$catId] = $category;
-                                    }
+                                    $categories[$catId] = $category;
+                                    $allCategories[$catId] = $category;
+                                }
 
-                                    $offer = CCatalogProduct::GetByID($product['ID']);
-                                    $product['QUANTITY'] = $offer["QUANTITY"];
+                                    
+                                $offer = CCatalogProduct::GetByID($product['ID']);
+                                $product['QUANTITY'] = $offer["QUANTITY"];
 
-                                    $product['PRODUCT_ID'] = $product["ID"];
-                                    $product['PRODUCT_NAME'] = $product["NAME"];
-                                    if (isset($this->articleProperties[$id]))
-                                        $product['ARTICLE'] = $product["PROPERTY_" . $this->articleProperties[$id] . "_VALUE"];
+                                $product['PRODUCT_ID'] = $product["ID"];
+                                $product['PRODUCT_NAME'] = $product["NAME"];
+                                if (isset($this->articleProperties[$id]))
+                                    $product['ARTICLE'] = $product["PROPERTY_" . $this->articleProperties[$id] . "_VALUE"];
 
-                                    $dbPrice = GetCatalogProductPrice($product["ID"],1);
-                                    $product['PRICE'] = $dbPrice['PRICE'];
+                                $dbPrice = GetCatalogProductPrice($product["ID"],1);
+                                $product['PRICE'] = $dbPrice['PRICE'];
 
-                                    $offers[] = $this->BuildOffer($product, $categoriesString, $iblock);
+                                $offers[] = Array(
+                                    'OFFER' => $product, 
+                                    'CATEGORIES' => $categories, 
+                                    'IBLOCK' => $iblock
+                                        );
                             }
                     }
             }
@@ -280,8 +291,8 @@ class ICMLLoader {
 	}
 	
 	
-	protected function BuildOffer($arOffer, $categoriesString, $iblock)
-	{
+    protected function BuildOffer($arOffer, $categories, $iblock)
+    {
             $offer = "";
             $offer .= "<offer id=\"" .$this->PrepareValue($arOffer["ID"]) . "\" ".
                     "productId=\"" . $this->PrepareValue($arOffer["PRODUCT_ID"]) . "\" ".
@@ -289,7 +300,8 @@ class ICMLLoader {
             $offer .= "<url>http://" . $this->PrepareValue($iblock['IBLOCK_DB']['SERVER_NAME']) . $this->PrepareValue($arOffer['DETAIL_PAGE_URL']) . "</url>\n";
 
             $offer .= "<price>" . $this->PrepareValue($arOffer['PRICE']) . "</price>\n";
-            $offer .= $categoriesString;
+            foreach ($categories as $category)
+                $offer .= "<categoryId>" . $category['ID'] . "</categoryId>\n";
 
             $detailPicture = intval($arOffer["DETAIL_PICTURE"]);
             $previewPicture = intval($arOffer["PREVIEW_PICTURE"]);
