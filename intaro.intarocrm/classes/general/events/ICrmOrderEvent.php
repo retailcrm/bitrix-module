@@ -21,8 +21,9 @@ class ICrmOrderEvent {
      * @param mixed $arFields - Order arFields
      */
     function onUpdateOrder($ID, $arFields = array()) {
-        //self::writeDataOnOrderCreate($ID);
+        self::writeDataOnOrderCreate($ID);
     }
+    
 
     /**
      * onSendOrderMail
@@ -61,7 +62,7 @@ class ICrmOrderEvent {
         }
 
         $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
-        $api_key = COption::GetOptionString(Iself::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
+        $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
 
         //saved cat params
         $optionsOrderTypes = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_TYPES_ARR, 0));

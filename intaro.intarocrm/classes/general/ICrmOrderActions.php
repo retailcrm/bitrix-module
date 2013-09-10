@@ -338,7 +338,7 @@ class ICrmOrderActions
         $resOrder = self::clearArr($resOrder);
 
         if($send)
-            return $api->createOrder($resOrder);
+            return $api->orderEdit($resOrder);
         
         return array(
             'order' => $resOrder,
@@ -392,7 +392,7 @@ class ICrmOrderActions
         return $APPLICATION->ConvertCharset($str, 'utf-8', SITE_CHARSET);
     }
 
-    public static function expodeFIO($str) {
+    public static function explodeFIO($str) {
         if(!$str)
             return array();
 
