@@ -13,6 +13,7 @@ $CRM_PAYMENT = 'payment_arr'; //order payment Y/N
 $CRM_ORDER_LAST_ID = 'order_last_id';
 $CRM_ORDER_SITES = 'sites_ids';
 $CRM_ORDER_DISCHARGE = 'order_discharge';
+$CRM_ORDER_PROPS = 'order_props';
 
 if(!CModule::IncludeModule('intaro.intarocrm') 
         || !CModule::IncludeModule('sale'))
@@ -25,6 +26,78 @@ if($_GET['errc']) echo CAdminMessage::ShowMessage(GetMessage($_GET['errc']));
 if($_GET['ok'] && $_GET['ok'] == 'Y') echo CAdminMessage::ShowNote(GetMessage('ICRM_OPTIONS_OK'));
 
 $arResult = array();
+
+$arResult['orderProps'] = array(
+    array(
+        'NAME' => GetMessage('FIO'),
+        'ID'   => 'fio'
+    ),
+    array(
+        'NAME' => GetMessage('ZIP'),
+        'ID'   => 'index'
+    ),
+    array(
+        'NAME' => GetMessage('PHONE'),
+        'ID'   => 'phone'
+    ),
+    array(
+        'NAME' => GetMessage('EMAIL'),
+        'ID'   => 'email'
+    ),
+    array(
+        'NAME' => GetMessage('ZIP'),
+        'ID'   => 'index'
+    ),
+    array(
+        'NAME' => GetMessage('ADDRESS'),
+        'ID'   => 'text'
+    ),
+    // address
+    /* array(
+        'NAME' => GetMessage('COUNTRY'),
+        'ID'   => 'country'
+    ),
+    array(
+        'NAME' => GetMessage('REGION'),
+        'ID'   => 'region'
+    ),
+    array(
+        'NAME' => GetMessage('CITY'),
+        'ID'   => 'city'
+    ),*/
+    array(
+        'NAME' => GetMessage('ZIP'),
+        'ID'   => 'index'
+    ),
+    array(
+        'NAME' => GetMessage('STREET'),
+        'ID'   => 'street'
+    ),
+    array(
+        'NAME' => GetMessage('BUILDING'),
+        'ID'   => 'building'
+    ),
+    array(
+        'NAME' => GetMessage('FLAT'),
+        'ID'   => 'flat'
+    ),
+    array(
+        'NAME' => GetMessage('INTERCOMCODE'),
+        'ID'   => 'intercomcode'
+    ),
+    array(
+        'NAME' => GetMessage('FLOOR'),
+        'ID'   => 'floor'
+    ),
+    array(
+        'NAME' => GetMessage('BLOCK'),
+        'ID'   => 'block'
+    ),
+    array(
+        'NAME' => GetMessage('HOUSE'),
+        'ID'   => 'house'
+    )
+);
 
 //update connection settings
 if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
@@ -68,9 +141,11 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             
     //form order types ids arr
     $orderTypesArr = array();
+    $orderTypesList = array();
     if ($arOrderTypesList = $dbOrderTypesList->Fetch()) {
         do {
-            $orderTypesArr[$arOrderTypesList['ID']] = $_POST['order-type-' . $arOrderTypesList['ID']];     
+            $orderTypesArr[$arOrderTypesList['ID']] = $_POST['order-type-' . $arOrderTypesList['ID']];
+            $orderTypesList[] = $arOrderTypesList;
         } while ($arOrderTypesList = $dbOrderTypesList->Fetch());
     }
 	
@@ -140,6 +215,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     $paymentArr['Y'] = htmlspecialchars(trim($_POST['payment-Y']));
     $paymentArr['N'] = htmlspecialchars(trim($_POST['payment-N']));
     
+
     $previousDischarge = COption::GetOptionString($mid, $CRM_ORDER_DISCHARGE, 0);
     //order discharge mode
     // 0 - agent
@@ -168,6 +244,18 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         // event dependencies
         RegisterModuleDependences("sale", "OnOrderNewSendEmail", $mid, "ICrmOrderEvent", "onSendOrderMail");
         RegisterModuleDependences("sale", "OnOrderUpdate", $mid, "ICrmOrderEvent", "onUpdateOrder");
+
+    $orderPropsArr = array();
+    foreach ($orderTypesList as $orderType) {
+        $propsCount = 0;
+        $_orderPropsArr = array();
+        foreach ($arResult['orderProps'] as $orderProp) {
+            if ((!(int) htmlspecialchars(trim($_POST['address-detail-' . $orderType['ID']]))) && $propsCount > 5)
+                break;
+            $_orderPropsArr[$orderProp['ID']] = htmlspecialchars(trim($_POST['order-prop-' . $orderProp['ID'] . '-' . $orderType['ID']]));
+            $propsCount++;
+        }
+        $orderPropsArr[$orderType['ID']] = $_orderPropsArr;
     }
     
     COption::SetOptionString($mid, $CRM_ORDER_TYPES_ARR, serialize($orderTypesArr));
@@ -177,6 +265,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     COption::SetOptionString($mid, $CRM_PAYMENT, serialize($paymentArr));
     COption::SetOptionString($mid, $CRM_ORDER_SITES, serialize($orderSites));
     COption::SetOptionString($mid, $CRM_ORDER_DISCHARGE, $orderDischarge);
+    COption::SetOptionString($mid, $CRM_ORDER_PROPS, serialize($orderPropsArr));
 
     $uri .= '&ok=Y';
     LocalRedirect($uri);
@@ -287,6 +376,11 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     $arResult['bitrixPaymentList'][0]['ID'] = 'Y';
     $arResult['bitrixPaymentList'][1]['NAME'] = GetMessage('PAYMENT_N');
     $arResult['bitrixPaymentList'][1]['ID'] = 'N';
+    
+    $dbProp = CSaleOrderProps::GetList(array(), array());
+    while ($arProp = $dbProp->GetNext()) {
+        $arResult['arProp'][] = $arProp;
+    }
 
     //saved cat params
     $optionsOrderTypes = unserialize(COption::GetOptionString($mid, $CRM_ORDER_TYPES_ARR, 0));
@@ -296,6 +390,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     $optionsPayment = unserialize(COption::GetOptionString($mid, $CRM_PAYMENT, 0));
     $optionsSites = unserialize(COption::GetOptionString($mid, $CRM_ORDER_SITES, 0));
     $optionsDischarge = COption::GetOptionString($mid, $CRM_ORDER_DISCHARGE, 0);
+    $optionsOrderProps = unserialize(COption::GetOptionString($mid, $CRM_ORDER_PROPS, 0));
 
     $aTabs = array(
         array(
@@ -311,15 +406,36 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             "TITLE" => GetMessage('ICRM_OPTIONS_CATALOG_CAPTION')
         ),
         array(
-            "DIV" => "edit4",
+            "DIV" => "edit3",
             "TAB" => GetMessage('ICRM_OPTIONS_ORDER_DISCHARGE_TAB'),
             "ICON" => '',
             "TITLE" => GetMessage('ICRM_OPTIONS_ORDER_DISCHARGE_CAPTION')
+        ),
+        array(
+            "DIV" => "edit4",
+            "TAB" => GetMessage('ICRM_OPTIONS_ORDER_PROPS_TAB'),
+            "ICON" => '',
+            "TITLE" => GetMessage('ICRM_OPTIONS_ORDER_PROPS_CAPTION')
         )
     );
     $tabControl = new CAdminTabControl("tabControl", $aTabs);
     $tabControl->Begin();
 ?>
+<?php $APPLICATION->AddHeadString('<script type="text/javascript" src="/bitrix/js/main/jquery/jquery-1.7.min.js"></script>'); ?>
+<script type="text/javascript">
+    $(document).ready(function() { 
+        $('input.addr').change(function(){
+            splitName = $(this).attr('name').split('-');
+            orderType = splitName[2];
+            
+            if(parseInt($(this).val()) === 1)
+                $('tr.address-detail-' + orderType).show('slow');
+            else if(parseInt($(this).val()) === 0)
+                $('tr.address-detail-' + orderType).hide('slow');
+            });
+     });
+</script>
+
 <form method="POST" action="<?php echo $uri; ?>" id="FORMACTION">
 <?php 
     echo bitrix_sessid_post();
@@ -337,6 +453,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         <td width="50%" class="adm-detail-content-cell-l"><?php echo GetMessage('ICRM_API_KEY'); ?></td>
         <td width="50%" class="adm-detail-content-cell-r"><input type="text" id="api_key" name="api_key" value="<?php echo $api_key; ?>"></td>
     </tr>
+<<<<<<< HEAD
     <!--<tr>
         <td width="50%" class="adm-detail-content-cell-l"><?php echo GetMessage('ICRM_SITES'); ?></td>
         <td width="50%" class="adm-detail-content-cell-r">
@@ -347,6 +464,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             </select>
         </td>
     </tr>-->
+=======
+>>>>>>> 22b82eff3f805aaef606018b1c6f63202aca7ad3
 <?php $tabControl->BeginNextTab(); ?>
     <input type="hidden" name="tab" value="catalog">
     <tr align="center">
@@ -459,6 +578,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
 <?php $tabControl->BeginNextTab(); ?>
     <input type="hidden" name="tab" value="catalog">
     <tr class="heading">
+<<<<<<< HEAD
         <td colspan="2"><b><?php echo GetMessage('ORDER_DISCH'); ?></b></td>
     </tr>    
     <tr class="heading">
@@ -469,6 +589,47 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             </b>
         </td>
     </tr>  
+=======
+        <td colspan="2"><b><?php echo GetMessage('ORDER_PROPS'); ?></b></td>
+    </tr>
+    <tr align="center">
+        <td colspan="2"><b><?php echo GetMessage('INFO_2'); ?></b></td>
+    </tr>
+    <?php foreach($arResult['bitrixOrderTypesList'] as $bitrixOrderType): ?>
+    <tr class="heading">
+        <td colspan="2"><b><?php echo $bitrixOrderType['NAME']; ?></b></td>
+    </tr>
+    
+    <?php $countProps = 0; foreach($arResult['orderProps'] as $orderProp): ?>
+    <?php if($orderProp['ID'] == 'text'): ?>
+    <tr class="heading">
+        <td colspan="2">
+            <b>
+                <label><input class="addr" type="radio" name="address-detail-<?php echo $bitrixOrderType['ID'];; ?>" value="0" <?php if(count($optionsOrderProps[$bitrixOrderType['ID']]) < 6) echo "checked"; ?>><?php echo GetMessage('ADDRESS_SHORT'); ?></label>
+                <label><input class="addr" type="radio" name="address-detail-<?php echo $bitrixOrderType['ID']; ?>" value="1" <?php if(count($optionsOrderProps[$bitrixOrderType['ID']]) > 5) echo "checked"; ?>><?php echo GetMessage('ADDRESS_FULL'); ?></label>
+            </b>
+        </td>
+    </tr>
+    <?php endif; ?>
+    <tr <?php if ($countProps > 5) echo 'class="address-detail-' . $bitrixOrderType['ID'] . '"'; if(($countProps > 5) && (count($optionsOrderProps[$bitrixOrderType['ID']]) < 6)) echo 'style="display:none;"';?>>
+        <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $orderProp['ID']; ?>">
+    	    <?php echo $orderProp['NAME']; ?>
+        </td>
+        <td width="50%" class="adm-detail-content-cell-r">
+            <select name="order-prop-<?php echo $orderProp['ID'] . '-' . $bitrixOrderType['ID']; ?>" class="typeselect">
+                <option value=""></option>              
+                <?php foreach ($arResult['arProp'] as $arProp): ?>
+                <option value="<?php echo $arProp['CODE']; ?>" <?php if ($optionsOrderProps[$bitrixOrderType['ID']][$orderProp['ID']] == $arProp['CODE']) echo 'selected'; ?>>
+                    <?php echo $arProp['NAME']; ?>
+                </option>
+                <?php endforeach; ?>
+            </select>
+        </td>
+    </tr>
+    <?php $countProps++; endforeach; ?>
+    <?php endforeach; ?>
+<?php $tabControl->BeginNextTab(); ?>
+>>>>>>> 22b82eff3f805aaef606018b1c6f63202aca7ad3
 <?php $tabControl->Buttons(); ?>
 <input type="hidden" name="Update" value="Y" />
 <input type="submit" title="<?php echo GetMessage('ICRM_OPTIONS_SUBMIT_TITLE'); ?>" value="<?php echo GetMessage('ICRM_OPTIONS_SUBMIT_VALUE'); ?>" name="btn-update" class="adm-btn-save" />

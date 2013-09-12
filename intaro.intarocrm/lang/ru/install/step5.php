@@ -1,18 +1,24 @@
 <?php
-$MESS ['INTAROCRM_INFO'] = '
-<h2>Дальнейшие действия<h2>
-<p>
-    Если вы произвели выгрузку заказов на шаге 3, то эти заказы уже доступны в вашей CRM и
-    через некоторое время по этим заказам будет подготовлены аналитические отчеты в Панели KPI.
-</p>
-<p>
-    Новые заказы будут отправляться агентом <span style="font-family: Courier New;">ICrmOrderActions::uploadOrdersAgent();</span>
-    в IntaroCRM каждые 10 минут (интервал можно изменить в разделе <a href="/bitrix/admin/agent_list.php">Агенты</a>).
-</p>
-<p>
-    Если вы выбрали опцию «Выгрузить каталог сейчас» на шаге 4, то ваш каталог уже загружается в IntaroCRM.
-    Загрузка длится, как правило, не более 10 минут. Если вы не выбирали эту опцию, то генерацию файла с каталогом
-    можно произвести экспортом «IntaroCRM» в разделе Магазин > Настройки > <a href="/bitrix/admin/cat_export_setup.php">Экспорт данных</a>.
-    IntaroCRM проверяет и загружает данный файл с каталогом каждые 3 часа.
-</p>
-';
+$MESS ['STEP_NAME'] = 'Шаг 5';
+$MESS ['MOD_NEXT_STEP'] = 'Завершить установку';
+$MESS ['MOD_PREV_STEP'] = 'Предыдущий шаг';
+$MESS ['DELIVERY_TYPES_LIST'] = 'Способы доставки';
+$MESS ['PAYMENT_TYPES_LIST'] = 'Способы оплаты';
+$MESS ['PAYMENT_STATUS_LIST'] = 'Статусы';
+$MESS ['ORDER_TYPES_LIST'] = 'Типы заказа';
+$MESS ['PAYMENT_LIST'] = 'Оплата';
+$MESS ['PAYMENT_Y'] = 'Оплачен';
+$MESS ['PAYMENT_N'] = 'Не оплачен';
+$MESS ['CANCELED'] = 'Флаг «Отменен»';
+$MESS ['INFO_1'] = ' Задайте соответствие между справочниками 1C-Битрикс и справочниками IntaroCRM.';
+$MESS ['LOAD_PERIOD'] = 'Выгружать каталог периодически';
+$MESS ['NOT_LOADING'] = 'Нет';
+$MESS ['CRON_LOADING'] = 'С помощью CRON каждые 24 часа';
+$MESS ['AGENT_LOADING'] = 'Агентом каждые 24 часа (по умолчанию)';
+$MESS ['LOAD_NOW'] = 'Выгрузить сейчас';
+$MESS ['PROFILE_NAME'] = 'Имя профиля:';
+$MESS ['PROFILE_NAME_EXAMPLE'] = 'Выгрузка каталога IntaroCRM';
+$MESS ['ERR_FIELDS_PROFILE'] = 'Неверно заполнено поле имени профиля';
+$MESS ['ERR_FIELDS_IBLOCK'] = 'Не выбрано ни одного информационного блока';
+$MESS ['ERR_FIELDS_ARTICLE'] = 'Не выбраны артикулы';
+$MESS ['ERR_FIELDS_FILE'] = 'Не указано имя файла';
