@@ -89,6 +89,8 @@ class ICrmOrderEvent {
             return true;
         }
         
+        COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, $ID);
+        
         return true;
     }
     
