@@ -72,6 +72,13 @@ class intaro_intarocrm extends CModule
             }
         }
 
+        if (!date_default_timezone_get()) {
+            if (!ini_get('date.timezone')) {
+                $APPLICATION->ThrowException(GetMessage("DATE_TIMEZONE_ERR"));
+                return false; 
+            }
+        }
+
         include($this->INSTALL_PATH . '/../classes/general/RestApi.php');
         include($this->INSTALL_PATH . '/../classes/general/ICrmOrderActions.php');
         include($this->INSTALL_PATH . '/../classes/general/ICMLLoader.php');

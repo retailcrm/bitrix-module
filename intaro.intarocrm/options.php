@@ -12,6 +12,7 @@ $CRM_PAYMENT_STATUSES = 'pay_statuses_arr';
 $CRM_PAYMENT = 'payment_arr'; //order payment Y/N
 $CRM_ORDER_LAST_ID = 'order_last_id';
 $CRM_ORDER_SITES = 'sites_ids';
+$CRM_ORDER_DISCHARGE = 'order_discharge';
 
 if(!CModule::IncludeModule('intaro.intarocrm') 
         || !CModule::IncludeModule('sale'))
@@ -139,12 +140,43 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     $paymentArr['Y'] = htmlspecialchars(trim($_POST['payment-Y']));
     $paymentArr['N'] = htmlspecialchars(trim($_POST['payment-N']));
     
+    $previousDischarge = COption::GetOptionString($mid, $CRM_ORDER_DISCHARGE, 0);
+    //order discharge mode
+    // 0 - agent
+    // 1 - event
+    $orderDischarge = 0;
+    $orderDischarge = (int) htmlspecialchars(trim($_POST['order-discharge']));
+    
+    if (($orderDischarge != $previousDischarge) && ($orderDischarge == 0)) {
+        // remove depenedencies
+        UnRegisterModuleDependences("sale", "OnOrderNewSendEmail", $mid, "ICrmOrderEvent", "onSendOrderMail");
+        UnRegisterModuleDependences("sale", "OnOrderUpdate", $mid, "ICrmOrderEvent", "onUpdateOrder");
+        // new agent
+        $dateAgent = new DateTime();
+        $intAgent = new DateInterval('PT60S'); // PT60S - 60 sec;
+        $dateAgent->add($intAgent);
+        CAgent::AddAgent(
+                "ICrmOrderActions::uploadOrdersAgent();", $mid, "N", 600, // interval - 10 mins
+                $dateAgent->format('d.m.Y H:i:s'), // date of first check
+                "Y", // агент активен
+                $dateAgent->format('d.m.Y H:i:s'), // date of first start
+                30
+        );
+    } else if (($orderDischarge != $previousDischarge) && ($orderDischarge == 1)) {
+        // remove agent
+        CAgent::RemoveAgent("ICrmOrderActions::uploadOrdersAgent();", $mid);
+        // event dependencies
+        RegisterModuleDependences("sale", "OnOrderNewSendEmail", $mid, "ICrmOrderEvent", "onSendOrderMail");
+        RegisterModuleDependences("sale", "OnOrderUpdate", $mid, "ICrmOrderEvent", "onUpdateOrder");
+    }
+    
     COption::SetOptionString($mid, $CRM_ORDER_TYPES_ARR, serialize($orderTypesArr));
     COption::SetOptionString($mid, $CRM_DELIVERY_TYPES_ARR, serialize($deliveryTypesArr));
     COption::SetOptionString($mid, $CRM_PAYMENT_TYPES, serialize($paymentTypesArr));
     COption::SetOptionString($mid, $CRM_PAYMENT_STATUSES, serialize($paymentStatusesArr));
     COption::SetOptionString($mid, $CRM_PAYMENT, serialize($paymentArr));
     COption::SetOptionString($mid, $CRM_ORDER_SITES, serialize($orderSites));
+    COption::SetOptionString($mid, $CRM_ORDER_DISCHARGE, $orderDischarge);
 
     $uri .= '&ok=Y';
     LocalRedirect($uri);
@@ -263,6 +295,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     $optionsPayStatuses = unserialize(COption::GetOptionString($mid, $CRM_PAYMENT_STATUSES, 0)); // --statuses
     $optionsPayment = unserialize(COption::GetOptionString($mid, $CRM_PAYMENT, 0));
     $optionsSites = unserialize(COption::GetOptionString($mid, $CRM_ORDER_SITES, 0));
+    $optionsDischarge = COption::GetOptionString($mid, $CRM_ORDER_DISCHARGE, 0);
 
     $aTabs = array(
         array(
@@ -277,6 +310,12 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             "ICON" => '',
             "TITLE" => GetMessage('ICRM_OPTIONS_CATALOG_CAPTION')
         ),
+        array(
+            "DIV" => "edit4",
+            "TAB" => GetMessage('ICRM_OPTIONS_ORDER_DISCHARGE_TAB'),
+            "ICON" => '',
+            "TITLE" => GetMessage('ICRM_OPTIONS_ORDER_DISCHARGE_CAPTION')
+        )
     );
     $tabControl = new CAdminTabControl("tabControl", $aTabs);
     $tabControl->Begin();
@@ -298,7 +337,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         <td width="50%" class="adm-detail-content-cell-l"><?php echo GetMessage('ICRM_API_KEY'); ?></td>
         <td width="50%" class="adm-detail-content-cell-r"><input type="text" id="api_key" name="api_key" value="<?php echo $api_key; ?>"></td>
     </tr>
-    <tr>
+    <!--<tr>
         <td width="50%" class="adm-detail-content-cell-l"><?php echo GetMessage('ICRM_SITES'); ?></td>
         <td width="50%" class="adm-detail-content-cell-r">
             <select id="sites_ids" name="sites_ids[]" multiple="multiple" size="3">
@@ -307,7 +346,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                 <?php endforeach; ?>
             </select>
         </td>
-    </tr>
+    </tr>-->
 <?php $tabControl->BeginNextTab(); ?>
     <input type="hidden" name="tab" value="catalog">
     <tr align="center">
@@ -418,6 +457,18 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     </tr>
     <?php endforeach; ?>
 <?php $tabControl->BeginNextTab(); ?>
+    <input type="hidden" name="tab" value="catalog">
+    <tr class="heading">
+        <td colspan="2"><b><?php echo GetMessage('ORDER_DISCH'); ?></b></td>
+    </tr>    
+    <tr class="heading">
+        <td colspan="2">
+            <b>
+                <label><input class="addr" type="radio" name="order-discharge" value="0" <?php if($optionsDischarge == 0) echo "checked"; ?>><?php echo GetMessage('DISCHARGE_AGENT'); ?></label>
+                <label><input class="addr" type="radio" name="order-discharge" value="1" <?php if($optionsDischarge == 1) echo "checked"; ?>><?php echo GetMessage('DISCHARGE_EVENTS'); ?></label>
+            </b>
+        </td>
+    </tr>  
 <?php $tabControl->Buttons(); ?>
 <input type="hidden" name="Update" value="Y" />
 <input type="submit" title="<?php echo GetMessage('ICRM_OPTIONS_SUBMIT_TITLE'); ?>" value="<?php echo GetMessage('ICRM_OPTIONS_SUBMIT_VALUE'); ?>" name="btn-update" class="adm-btn-save" />
