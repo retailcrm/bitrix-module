@@ -327,11 +327,22 @@ class ICrmOrderActions
             'createdAt'       => $createdAt,
             'deliveryAddress' => $resOrderDeliveryAddress,
             'items'           => $items
-        ));
+        );
+        
+        // parse fio
+        if(count($contactNameArr) == 1) {
+            $resOrder['firstName'] = $contactNameArr[0];
+        } else {
+            $resOrder['lastName'] = $contactNameArr['contactName'][0];
+            $resOrder['firstName'] = $contactNameArr['contactName'][1];
+            $resOrder['patronymic'] = $contactNameArr['contactName'][2];
+        }
         
         if(isset($arParams['optionsSites']) && is_array($arParams['optionsSites'])
                 && in_array($arFields['LID'], $arParams['optionsSites']))
             $resOrder['site'] = $arFields['LID'];
+
+        $resOrder = self::clearArr($resOrder);
         
         // parse fio
         if(count($contactNameArr) == 1) {
@@ -404,6 +415,7 @@ class ICrmOrderActions
             return array();
 
         $array = explode(" ", self::toJSON($str), 3);
+
         $newArray = array();
 
         foreach($array as $ar) {
