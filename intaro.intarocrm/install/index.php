@@ -32,6 +32,7 @@ class intaro_intarocrm extends CModule {
     var $CRM_ORDER_LAST_ID = 'order_last_id';
     var $CRM_ORDER_SITES = 'sites_ids';
     var $CRM_ORDER_PROPS = 'order_props';
+    var $CRM_ORDER_DISCHARGE = 'order_discharge';
     var $INSTALL_PATH;
 
     function intaro_intarocrm() {
@@ -66,7 +67,6 @@ class intaro_intarocrm extends CModule {
                 return false;
             }
         }
-
 
         if (!date_default_timezone_get()) {
             if (!ini_get('date.timezone')) {
@@ -714,6 +714,7 @@ class intaro_intarocrm extends CModule {
             COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT_STATUSES, serialize($paymentStatusesArr));
             COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT, serialize($paymentArr));
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_LAST_ID, 0);
+            COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_DISCHARGE, 0);
             
             $APPLICATION->IncludeAdminFile(
                     GetMessage('MODULE_INSTALL_TITLE'),
@@ -866,8 +867,7 @@ class intaro_intarocrm extends CModule {
                 $arResult['errCode'] = 'ERR_FIELDS_FILE';
 
             if (isset($arResult['errCode']) && $arResult['errCode']) {
-
-
+                
                 $arOldValues = Array(
                     'IBLOCK_EXPORT' => $iblocks,
                     'IBLOCK_PROPERTY_ARTICLE' => $articleProperties,
@@ -1034,6 +1034,7 @@ class intaro_intarocrm extends CModule {
         global $APPLICATION;
 
         CAgent::RemoveAgent("ICrmOrderActions::uploadOrdersAgent();", $this->MODULE_ID);
+        CAgent::RemoveAgent("ICrmOrderActions::orderHistoryAgent();", $this->MODULE_ID);
 
         COption::RemoveOption($this->MODULE_ID, $this->CRM_API_HOST_OPTION);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_API_KEY_OPTION);
@@ -1044,6 +1045,7 @@ class intaro_intarocrm extends CModule {
         COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_LAST_ID);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_SITES);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_PROPS);
+        COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_DISCHARGE);
 
         UnRegisterModuleDependences("sale", "OnSalePayOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSalePayOrder");
         UnRegisterModuleDependences("sale", "OnSaleCancelOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSaleCancelOrder");

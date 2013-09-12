@@ -245,17 +245,18 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         RegisterModuleDependences("sale", "OnOrderNewSendEmail", $mid, "ICrmOrderEvent", "onSendOrderMail");
         RegisterModuleDependences("sale", "OnOrderUpdate", $mid, "ICrmOrderEvent", "onUpdateOrder");
 
-    $orderPropsArr = array();
-    foreach ($orderTypesList as $orderType) {
-        $propsCount = 0;
-        $_orderPropsArr = array();
-        foreach ($arResult['orderProps'] as $orderProp) {
-            if ((!(int) htmlspecialchars(trim($_POST['address-detail-' . $orderType['ID']]))) && $propsCount > 5)
-                break;
-            $_orderPropsArr[$orderProp['ID']] = htmlspecialchars(trim($_POST['order-prop-' . $orderProp['ID'] . '-' . $orderType['ID']]));
-            $propsCount++;
+        $orderPropsArr = array();
+        foreach ($orderTypesList as $orderType) {
+            $propsCount = 0;
+            $_orderPropsArr = array();
+            foreach ($arResult['orderProps'] as $orderProp) {
+                if ((!(int) htmlspecialchars(trim($_POST['address-detail-' . $orderType['ID']]))) && $propsCount > 5)
+                    break;
+                $_orderPropsArr[$orderProp['ID']] = htmlspecialchars(trim($_POST['order-prop-' . $orderProp['ID'] . '-' . $orderType['ID']]));
+                $propsCount++;
+            }
+            $orderPropsArr[$orderType['ID']] = $_orderPropsArr;
         }
-        $orderPropsArr[$orderType['ID']] = $_orderPropsArr;
     }
     
     COption::SetOptionString($mid, $CRM_ORDER_TYPES_ARR, serialize($orderTypesArr));
@@ -407,15 +408,15 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         ),
         array(
             "DIV" => "edit3",
-            "TAB" => GetMessage('ICRM_OPTIONS_ORDER_DISCHARGE_TAB'),
-            "ICON" => '',
-            "TITLE" => GetMessage('ICRM_OPTIONS_ORDER_DISCHARGE_CAPTION')
-        ),
-        array(
-            "DIV" => "edit4",
             "TAB" => GetMessage('ICRM_OPTIONS_ORDER_PROPS_TAB'),
             "ICON" => '',
             "TITLE" => GetMessage('ICRM_OPTIONS_ORDER_PROPS_CAPTION')
+        ),
+        array(
+            "DIV" => "edit4",
+            "TAB" => GetMessage('ICRM_OPTIONS_ORDER_DISCHARGE_TAB'),
+            "ICON" => '',
+            "TITLE" => GetMessage('ICRM_OPTIONS_ORDER_DISCHARGE_CAPTION')
         )
     );
     $tabControl = new CAdminTabControl("tabControl", $aTabs);
@@ -453,7 +454,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         <td width="50%" class="adm-detail-content-cell-l"><?php echo GetMessage('ICRM_API_KEY'); ?></td>
         <td width="50%" class="adm-detail-content-cell-r"><input type="text" id="api_key" name="api_key" value="<?php echo $api_key; ?>"></td>
     </tr>
-<<<<<<< HEAD
     <!--<tr>
         <td width="50%" class="adm-detail-content-cell-l"><?php echo GetMessage('ICRM_SITES'); ?></td>
         <td width="50%" class="adm-detail-content-cell-r">
@@ -464,8 +464,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             </select>
         </td>
     </tr>-->
-=======
->>>>>>> 22b82eff3f805aaef606018b1c6f63202aca7ad3
 <?php $tabControl->BeginNextTab(); ?>
     <input type="hidden" name="tab" value="catalog">
     <tr align="center">
@@ -578,18 +576,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
 <?php $tabControl->BeginNextTab(); ?>
     <input type="hidden" name="tab" value="catalog">
     <tr class="heading">
-<<<<<<< HEAD
-        <td colspan="2"><b><?php echo GetMessage('ORDER_DISCH'); ?></b></td>
-    </tr>    
-    <tr class="heading">
-        <td colspan="2">
-            <b>
-                <label><input class="addr" type="radio" name="order-discharge" value="0" <?php if($optionsDischarge == 0) echo "checked"; ?>><?php echo GetMessage('DISCHARGE_AGENT'); ?></label>
-                <label><input class="addr" type="radio" name="order-discharge" value="1" <?php if($optionsDischarge == 1) echo "checked"; ?>><?php echo GetMessage('DISCHARGE_EVENTS'); ?></label>
-            </b>
-        </td>
-    </tr>  
-=======
         <td colspan="2"><b><?php echo GetMessage('ORDER_PROPS'); ?></b></td>
     </tr>
     <tr align="center">
@@ -629,7 +615,18 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     <?php $countProps++; endforeach; ?>
     <?php endforeach; ?>
 <?php $tabControl->BeginNextTab(); ?>
->>>>>>> 22b82eff3f805aaef606018b1c6f63202aca7ad3
+    <input type="hidden" name="tab" value="catalog">
+    <tr class="heading">
+        <td colspan="2"><b><?php echo GetMessage('ORDER_DISCH'); ?></b></td>
+    </tr>    
+    <tr class="heading">
+        <td colspan="2">
+            <b>
+                <label><input class="addr" type="radio" name="order-discharge" value="0" <?php if($optionsDischarge == 0) echo "checked"; ?>><?php echo GetMessage('DISCHARGE_AGENT'); ?></label>
+                <label><input class="addr" type="radio" name="order-discharge" value="1" <?php if($optionsDischarge == 1) echo "checked"; ?>><?php echo GetMessage('DISCHARGE_EVENTS'); ?></label>
+            </b>
+        </td>
+    </tr>  
 <?php $tabControl->Buttons(); ?>
 <input type="hidden" name="Update" value="Y" />
 <input type="submit" title="<?php echo GetMessage('ICRM_OPTIONS_SUBMIT_TITLE'); ?>" value="<?php echo GetMessage('ICRM_OPTIONS_SUBMIT_VALUE'); ?>" name="btn-update" class="adm-btn-save" />

@@ -646,7 +646,7 @@ class ICrmOrderActions
         if(isset($arParams['optionsSites']) && is_array($arParams['optionsSites'])
                 && in_array($arFields['LID'], $arParams['optionsSites']))
             $resOrder['site'] = $arFields['LID'];
-
+        
         // parse fio
         if(count($contactNameArr) == 1) {
             $resOrder['firstName'] = $contactNameArr[0];
@@ -655,8 +655,10 @@ class ICrmOrderActions
             $resOrder['firstName'] = $contactNameArr[1];
             $resOrder['patronymic'] = $contactNameArr[2];
         }
-
+       
         $resOrder = self::clearArr($resOrder);
+        
+        self::eventLog('ICrmOrderActions::orderHistory', 'iblock', json_encode($resOrder));
 
         if($send)
             return $api->orderEdit($resOrder);
@@ -728,5 +730,23 @@ class ICrmOrderActions
         }
         
         return $newArray;
+    }
+    
+    public static function addOrderProperty($code, $value, $order) {
+        if (!$code)
+            return;
+
+        if (!CModule::IncludeModule('sale'))
+            return;
+        
+        if ($arProp = CSaleOrderProps::GetList(array(), array('CODE' => $code))->Fetch()) {
+            return CSaleOrderPropsValue::Add(array(
+                        'NAME' => $arProp['NAME'],
+                        'CODE' => $arProp['CODE'],
+                        'ORDER_PROPS_ID' => $arProp['ID'],
+                        'ORDER_ID' => $order,
+                        'VALUE' => $value,
+            ));
+        }
     }
 }
