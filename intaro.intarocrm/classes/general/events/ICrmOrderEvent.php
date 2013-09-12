@@ -88,8 +88,6 @@ class ICrmOrderEvent {
             ICrmOrderActions::eventLog('ICrmOrderEvent::writeDataOnOrderCreate', 'ICrmOrderActions::orderCreate', 'error during creating order');
             return true;
         }
-
-        COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, $ID);
         
         return true;
     }

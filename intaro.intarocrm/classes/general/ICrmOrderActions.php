@@ -320,7 +320,7 @@ class ICrmOrderActions
             'orderType'       => $arParams['optionsOrderTypes'][$arFields['PERSON_TYPE_ID']],
             'deliveryType'    => $arParams['optionsDelivTypes'][$resultDeliveryTypeId],
             'status'          => $arParams['optionsPayStatuses'][$arFields['STATUS_ID']],
-            'statusComment'   => $arFields['REASON_CANCELED'],
+            'statusComment'   => $arFields['USER_DESCRIPTION'],
             'createdAt'       => $createdAt,
             'deliveryAddress' => $resOrderDeliveryAddress,
             'items'           => $items
@@ -330,9 +330,9 @@ class ICrmOrderActions
         if(count($contactNameArr) == 1) {
             $resOrder['firstName'] = $contactNameArr[0];
         } else {
-            $resOrder['lastName'] = $contactNameArr['contactName'][0];
-            $resOrder['firstName'] = $contactNameArr['contactName'][1];
-            $resOrder['patronymic'] = $contactNameArr['contactName'][2];
+            $resOrder['lastName'] = $contactNameArr[0];
+            $resOrder['firstName'] = $contactNameArr[1];
+            $resOrder['patronymic'] = $contactNameArr[2];
         }
 
         $resOrder = self::clearArr($resOrder);
@@ -397,11 +397,15 @@ class ICrmOrderActions
             return array();
 
         $array = explode(" ", self::toJSON($str), 3);
+        $newArray = array();
 
-        foreach($array as &$ar)
+        foreach($array as $ar) {
             if(!$ar)
-                unset($ar);
+                continue;
+            
+            $newArray[] = $ar;
+        }
         
-        return $array;
+        return $newArray;
     }
 }
