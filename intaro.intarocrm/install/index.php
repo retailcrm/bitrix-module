@@ -64,13 +64,6 @@ class intaro_intarocrm extends CModule {
         if (!date_default_timezone_get()) {
             if (!ini_get('date.timezone')) {
                 $APPLICATION->ThrowException(GetMessage("DATE_TIMEZONE_ERR"));
-                return false;
-            }
-        }
-
-        if (!date_default_timezone_get()) {
-            if (!ini_get('date.timezone')) {
-                $APPLICATION->ThrowException(GetMessage("DATE_TIMEZONE_ERR"));
                 return false; 
             }
         }
