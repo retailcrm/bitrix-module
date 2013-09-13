@@ -11,60 +11,115 @@ if(isset($arResult['errCode']) && $arResult['errCode'])
 global $oldValues;
 if (!empty($oldValues)) {
     $IBLOCK_EXPORT = $oldValues['IBLOCK_EXPORT'];
-    $IBLOCK_PROPERTY_ARTICLE = $oldValues['IBLOCK_PROPERTY_ARTICLE'];
+    $IBLOCK_PROPERTY_SKU = $oldValues['IBLOCK_PROPERTY_SKU'];
+    $IBLOCK_PROPERTY_PRODUCT = $oldValues['IBLOCK_PROPERTY_PRODUCT'];
     $SETUP_FILE_NAME = $oldValues['SETUP_FILE_NAME'];
     $SETUP_PROFILE_NAME = $oldValues['SETUP_PROFILE_NAME'];
 }
 ?>
-<form method="post" action="<?php echo $APPLICATION->GetCurPage(); ?>" >
+
+
+<style type="text/css">
+    .iblock-export-table-display-none {
+        display: none;
+    }
+</style>
+
+<form method="post" action="<?php echo $APPLICATION->GetCurPage(); ?>" >            
+    <h3>Настройки инфоблоков</h3>
     <font class="text"><?=GetMessage("EXPORT_CATALOGS");?><br><br></font>
     <?
     if (!isset($IBLOCK_EXPORT) || !is_array($IBLOCK_EXPORT))
     {
             $IBLOCK_EXPORT = array();
     }
+    
+    $iblockPropertiesName = Array(
+        "article" => "Артикул",
+        "manufacturer" => "Производитель",
+        "color" => "Цвет",
+        "weight" => "Вес",
+        "size" => "Размер",
+    );
+    
+    $iblockPropertiesHint = Array(
+        "article" => Array("ARTICLE", "ART", "ARTNUMBER", "ARTICUL", "ARTIKUL"),
+        "manufacturer" => Array("MANUFACTURER", "PROISVODITEL", "PROISVOD", "PROISV"),
+        "color" => Array("COLOR", "CVET"),
+        "weight" => Array("WEIGHT", "VES", "VEC"),
+        "size" => Array("SIZE", "RAZMER"),
+    );
+
 
     $boolAll = false;
     $intCountChecked = 0;
     $intCountAvailIBlock = 0;
     $arIBlockList = array();
     $db_res = CIBlock::GetList(Array("IBLOCK_TYPE"=>"ASC", "NAME"=>"ASC"),array('CHECK_PERMISSIONS' => 'Y','MIN_PERMISSION' => 'W'));
-    while ($res = $db_res->Fetch())
+    while ($iblock = $db_res->Fetch())
     {
-            if ($arCatalog = CCatalog::GetByIDExt($res["ID"]))
+            if ($arCatalog = CCatalog::GetByIDExt($iblock["ID"]))
             {
                     if($arCatalog['CATALOG_TYPE'] == "D" || $arCatalog['CATALOG_TYPE'] == "X" || $arCatalog['CATALOG_TYPE'] == "P")
                     {
-                            $arSiteList = array();
-                            $rsSites = CIBlock::GetSite($res["ID"]);
-                            while ($arSite = $rsSites->Fetch())
-                            {
-                                    $arSiteList[] = $arSite["SITE_ID"];
-                            }
-                            $db_properties = CIBlock::GetProperties($res['ID'], Array());
-
-                            $properties = Array();
+                        $propertiesSKU = null;
+                        if ($arCatalog['CATALOG_TYPE'] == "X" || $arCatalog['CATALOG_TYPE'] == "P")
+                        {
+                            $iblockOffer = CCatalogSKU::GetInfoByProductIBlock($iblock["ID"]);
+                            
+                            $db_properties = CIBlock::GetProperties($iblockOffer['IBLOCK_ID'], Array());
                             while($prop = $db_properties->Fetch())
-                                    $properties[] = $prop;
+                                $propertiesSKU[] = $prop;
+                            
+                            $oldPropertySKU = null;
+                            if (isset($IBLOCK_PROPERTY_SKU[$iblock['ID']])) {
+                                foreach ($iblockPropertiesName as $key => $prop) {
+                                    $oldPropertySKU[$key] = $IBLOCK_PROPERTY_SKU[$iblock['ID']][$key];
+                                }
+                            }
+                        } 
+                        
+                        
+                        $propertiesProduct = null;
+                        $db_properties = CIBlock::GetProperties($iblock['ID'], Array());
+                        while($prop = $db_properties->Fetch())
+                            $propertiesProduct[] = $prop;
+                            
+                        $oldPropertyProduct = null;
+                        if (isset($IBLOCK_PROPERTY_PRODUCT[$iblock['ID']])) {
+                            foreach ($iblockPropertiesName as $key => $prop) {
+                                $oldPropertyProduct[$key] = $IBLOCK_PROPERTY_PRODUCT[$iblock['ID']][$key];
+                            }
+                        }
+                        
+                        $arSiteList = array();
+                        $rsSites = CIBlock::GetSite($iblock["ID"]);
+                        while ($arSite = $rsSites->Fetch())
+                        {
+                            $arSiteList[] = $arSite["SITE_ID"];
+                        }
 
-                            if (count($IBLOCK_EXPORT) != 0) 
-                                $boolExport = (in_array($res['ID'], $IBLOCK_EXPORT));
-                            else
-                                $boolExport = true;
+                        if (count($IBLOCK_EXPORT) != 0)
+                            $boolExport = (in_array($iblock['ID'], $IBLOCK_EXPORT));
+                        else
+                            $boolExport = true;
+                        
 
-                            $arIBlockList[] = array(
-                                    'ID' => $res['ID'],
-                                    'NAME' => $res['NAME'],
-                                    'IBLOCK_TYPE_ID' => $res['IBLOCK_TYPE_ID'],
-                                    'IBLOCK_EXPORT' => $boolExport,
-                                    'PROPERTIES' => $properties,
-                                    'OLD_PROPERTY_SELECT' => $IBLOCK_PROPERTY_ARTICLE[$res['ID']] != "" ? $IBLOCK_PROPERTY_ARTICLE[$res['ID']]  : null,
-                                    'SITE_LIST' => '('.implode(' ',$arSiteList).')',
-                            );
+                        $arIBlockList[] = array(
+                            'ID' => $iblock['ID'],
+                            'NAME' => $iblock['NAME'],
+                            'IBLOCK_TYPE_ID' => $iblock['IBLOCK_TYPE_ID'],
+                            'IBLOCK_EXPORT' => $boolExport,
+                            'PROPERTIES_SKU' => $propertiesSKU,
+                            'PROPERTIES_PRODUCT' => $propertiesProduct,
+                            'OLD_PROPERTY_SKU_SELECT' => $oldPropertySKU,
+                            'OLD_PROPERTY_PRODUCT_SELECT' => $oldPropertyProduct,
+                            'SITE_LIST' => '('.implode(' ',$arSiteList).')',
+                        );
 
-                            if ($boolExport)
-                                    $intCountChecked++;
-                            $intCountAvailIBlock++;
+                        if ($boolExport)
+                                $intCountChecked++;
+                        $intCountAvailIBlock++;
                     }
             }
     }
@@ -78,99 +133,141 @@ if (!empty($oldValues)) {
 
     ?>
 
-
-
-    <table class="adm-list-table" id="export_setup">
-            <thead>
-                    <tr class="adm-list-table-header">
-                            <td class="adm-list-table-cell">
-                                    <div class="adm-list-table-cell-inner"><?echo GetMessage("CATALOG");?></div>
+    <font class="text" style="font-weight: bold;">Выбрать все инфоблоки </font>
+    <input 
+        style="vertical-align: middle;" 
+        type="checkbox" 
+        name="icml_export_all" 
+        id="icml_export_all" 
+        value="Y" 
+        onclick="checkAll(this,<? echo $intCountAvailIBlock; ?>);"
+        <? echo ($boolAll ? ' checked' : ''); ?>>
+    </br>
+    </br>
+    <div>
+        <? $checkBoxCounter = 0;?>
+        <? foreach ($arIBlockList as $key => $arIBlock):?>
+        <div>
+            <div>
+                <font class="text" style="font-weight: bold;"><? echo htmlspecialcharsex("[".$arIBlock["IBLOCK_TYPE_ID"]."] ".$arIBlock["NAME"]." ".$arIBlock['SITE_LIST']); ?></font>
+                <input
+                    type="checkbox"
+                    name="IBLOCK_EXPORT[<?=$arIBlock["ID"]?>]"
+                    id="IBLOCK_EXPORT<?=++$checkBoxCounter?>"
+                    value="<?=$arIBlock["ID"]?>"
+                    <? if ($arIBlock['IBLOCK_EXPORT']) echo " checked"; ?>
+                    onclick="checkOne(this,<? echo $intCountAvailIBlock; ?>);"
+                >
+            </div>
+            <br>
+            <div id="IBLOCK_EXPORT_TABLE<?=$checkBoxCounter?>">
+                <table class="adm-list-table" id="export_setup" <?=($arIBlock['PROPERTIES_SKU'] == null ? 'style="width: 66%;"': "" )?> >
+                    <thead>
+                        <tr class="adm-list-table-header">
+                            <td class="adm-list-table-cell">    
+                                <div class="adm-list-table-cell-inner">Выгружаемое свойство</div>
                             </td>
                             <td class="adm-list-table-cell">
-                                    <div class="adm-list-table-cell-inner">
-                                            <?echo GetMessage("EXPORT2INTAROCML");?>&nbsp;
-                                    </div>
+                                <div class="adm-list-table-cell-inner">Свойство товара</div>
+                            </td>
+                            <? if ($arIBlock['PROPERTIES_SKU'] != null): ?>
+                                <td class="adm-list-table-cell">
+                                    <div class="adm-list-table-cell-inner">Свойство торгового предложения</div>
+                                </td>
+                            <? endif;?>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                        <? foreach ($iblockPropertiesName as $key => $property): ?>
+                        <? $productSelected = false;?>
+                        <tr class="adm-list-table-row">
+                            <td class="adm-list-table-cell">
+                                    <? echo htmlspecialcharsex($property); ?>
                             </td>
                             <td class="adm-list-table-cell">
-                                    <div class="adm-list-table-cell-inner"><?echo GetMessage("PROPERTY");?></div>
-                            </td>
-                    </tr>
-            </thead>
-            <tbody>
-                    <tr class="adm-list-table-row">
-                            <td class="adm-list-table-cell">
-                                    <?echo GetMessage("ALL_CATALOG");?>
-                            </td>
-                            <td class="adm-list-table-cell">
-                                    <input style="vertical-align: middle;" type="checkbox" name="icml_export_all" id="icml_export_all" value="Y" onclick="checkAll(this,<? echo $intCountAvailIBlock; ?>);"<? echo ($boolAll ? ' checked' : ''); ?>>
-
-                            </td>
-                            <td class="adm-list-table-cell">
-                                    &nbsp;
-                            </td>
-                    </tr>
-            <?
-            foreach ($arIBlockList as $key => $arIBlock)
-            {
-            ?>
-                    <tr class="adm-list-table-row">
-                        <td class="adm-list-table-cell" style="padding-left: 5em">
-                                <? echo htmlspecialcharsex("[".$arIBlock["IBLOCK_TYPE_ID"]."] ".$arIBlock["NAME"]." ".$arIBlock['SITE_LIST']); ?>
-                        </td>
-                        <td class="adm-list-table-cell">
-                                <font class="tablebodytext">
-                                        <input
-                                                type="checkbox"
-                                                name="IBLOCK_EXPORT[<?=$arIBlock["ID"]?>]"
-                                                id="IBLOCK_EXPORT<?=$arIBlock["ID"]?>"
-                                                value="<?=$arIBlock["ID"]?>"
-                                                <? if ($arIBlock['IBLOCK_EXPORT']) echo " checked"; ?>
-                                                onclick="checkOne(this,<? echo $intCountAvailIBlock; ?>);"
-                                        >
-                                </font>
-                        </td>
-                        <td class="adm-list-table-cell">
-                                <select 
-                                    style="width: 200px;" 
-                                    id="IBLOCK_PROPERTY_ARTICLE<?=$arIBlock["ID"]?>"
-                                    name="IBLOCK_PROPERTY_ARTICLE[<?=$arIBlock["ID"]?>]" 
-                                    class="property-export">
-                                        <option value=""></option>
-                                        <?
-                                        foreach ($arIBlock['PROPERTIES'] as $prop)
-                                        {
-                                                ?>
+                                    <select
+                                        style="width: 200px;"
+                                        id="IBLOCK_PROPERTY_PRODUCT_<?=$key?><?=$arIBlock["ID"]?>"
+                                        name="IBLOCK_PROPERTY_PRODUCT[<?=$arIBlock["ID"]?>][<?=$key?>]"
+                                        class="property-export"
+                                        onchange="propertyChange(this);">
+                                            <option value=""></option>
+                                            <? foreach ($arIBlock['PROPERTIES_PRODUCT'] as $prop): ?>
                                                 <option value="<?=$prop['CODE'] ?>"
-                                                <?
-                                                if ($arIBlock['OLD_PROPERTY_SELECT'] == $prop["CODE"]){
-                                                    echo " selected";
-                                                } else {
-                                                    if ($prop["CODE"] == "ARTICLE" ||
-                                                          $prop["CODE"] == "ART" ||
-                                                          $prop["CODE"] == "ARTNUMBER"  ) 
+                                                    <?
+                                                    if ($arIBlock['OLD_PROPERTY_PRODUCT_SELECT'] != null) {
+                                                        if ($prop["CODE"] == $arIBlock['OLD_PROPERTY_PRODUCT_SELECT'][$key]  ) {
                                                             echo " selected";
-                                                }
-                                                      
-                                                
-                                                ?>
-                                                >
+                                                            $productSelected = true;
+                                                        }
+                                                    } else {
+                                                        foreach ($iblockPropertiesHint[$key] as $hint) {
+                                                            if ($prop["CODE"] == $hint  ) {
+                                                                echo " selected";
+                                                                $productSelected = true;
+                                                                break;
+                                                            }
+                                                        }
+                                                    }
+                                                    ?>
+                                                    >
                                                         <?=$prop["NAME"];?>
                                                 </option>
-                                                <?
-                                        }
-                                        ?>
-                                </select>
-                        </td>
-                    </tr>
-            <?
-            }
-            ?>
-            </tbody>
-    </table>
+                                            <? endforeach;?>
+                                    </select>
+                            </td>
+                            <? if ($arIBlock['PROPERTIES_SKU'] != null): ?>
+                                <td class="adm-list-table-cell">
+                                    <select
+                                        style="width: 200px;"
+                                        id="IBLOCK_PROPERTY_SKU_<?=$key?><?=$arIBlock["ID"]?>"
+                                        name="IBLOCK_PROPERTY_SKU[<?=$arIBlock["ID"]?>][<?=$key?>]"
+                                        class="property-export"
+                                        onchange="propertyChange(this);">
+                                        
+                                            <option value=""></option>
+                                            <? foreach ($arIBlock['PROPERTIES_SKU'] as $prop): ?>
+                                                <option value="<?=$prop['CODE'] ?>"
+                                                    <?
+                                                    if (!$productSelected) {
+                                                        if ($arIBlock['OLD_PROPERTY_SKU_SELECT'] != null) {
+                                                            if ($prop["CODE"] == $arIBlock['OLD_PROPERTY_SKU_SELECT'][$key]  ) {
+                                                                echo " selected";
+                                                            }
+                                                        } else {
+                                                            foreach ($iblockPropertiesHint[$key] as $hint) {
+                                                                if ($prop["CODE"] == $hint  ) {
+                                                                    echo " selected";
+                                                                    break;
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                    ?>
+                                                    >
+                                                        <?=$prop["NAME"];?>
+                                                </option>
+                                            <? endforeach;?>
+                                    </select>
+                                </td>
+                            <? endif;?>
+                        </tr>
+                        <? endforeach;?>
+                    </tbody>
+                </table>
+                <br>
+                <br>
+            </div>
+        </div>
+        
+        
+        <? endforeach;?>
+    </div>
+
     <input type="hidden" name="count_checked" id="count_checked" value="<? echo $intCountChecked; ?>">
     <br>
-    <br>
-    <br>
+
 
     <font class="text"><?=GetMessage("FILENAME");?><br><br></font>
     <input type="text" name="SETUP_FILE_NAME"

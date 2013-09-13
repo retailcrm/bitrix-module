@@ -4,12 +4,13 @@ class ICMLLoader {
     
     public $iblocks;
     public $filename;
-        public $articleProperties;
+    public $propertiesSKU;
+    public $propertiesProduct;
     public $application;
     public $encoding = 'utf-8';
     
     protected $fp;
-        protected $mainSection = 1000000;
+    protected $mainSection = 1000000;
         
     public function Load()
     {
@@ -19,6 +20,8 @@ class ICMLLoader {
             
             if (count($this->iblocks) < count($this->articleProperties))
                 return false;
+            
+            $this->PrepareSettings();
             
             $this->PrepareFile();
 
@@ -37,6 +40,20 @@ class ICMLLoader {
             $this->CloseFile();
             return true;
         
+    }
+    
+    protected function PrepareSettings()
+    {
+        foreach ($this->propertiesSKU as $iblock => $arr) {
+            foreach ($arr as $id => $sku) {
+                $this->propertiesSKU[$iblock][$id] = strtoupper($sku);
+            }
+        }
+        foreach ($this->propertiesProduct as $iblock => $arr) {
+            foreach ($arr as $id => $prod) {
+                $this->propertiesProduct[$iblock][$id] = strtoupper($prod);
+            }
+        }
     }
     
     protected function PrepareValue($text)
@@ -60,12 +77,11 @@ class ICMLLoader {
     
     protected function PreWriteCatalog()
     {
-            @fwrite($this->fp, "<yml_catalog date=\"" . $this->PrepareValue(Date("Y-m-d H:i:s")) . "\">\n");
-            @fwrite($this->fp, "<shop>\n");
-
-            @fwrite($this->fp, "<name>". $this->PrepareValue(COption::GetOptionString("main", "site_name", ""))."</name>\n");
-
-            @fwrite($this->fp, "<company>".$this->PrepareValue(COption::GetOptionString("main", "site_name", ""))."</company>\n");
+            @fwrite($this->fp, "<yml_catalog date=\"" . $this->PrepareValue(Date("Y-m-d H:i:s")) . "\">\n
+                <shop>\n
+                <name>" . $this->PrepareValue(COption::GetOptionString("main", "site_name", ""))."</name>\n
+                <company>" . $this->PrepareValue(COption::GetOptionString("main", "site_name", ""))."</company>\n"
+                    );
 
     }
     
@@ -96,8 +112,8 @@ class ICMLLoader {
         
     protected function PostWriteCatalog()
     {
-            @fwrite($this->fp, "</shop>\n");
-            @fwrite($this->fp, "</yml_catalog>\n");
+            @fwrite($this->fp, "</shop>\n
+                </yml_catalog>\n");
     }
     
     protected function CloseFile()
@@ -157,10 +173,8 @@ class ICMLLoader {
     {
             foreach ($this->iblocks as $key => $id) 
             {
-
                     $iblock['IBLOCK_DB'] = CIBlock::GetByID($id)->Fetch();
                     $iblockOffer = CCatalogSKU::GetInfoByProductIBlock($id);
-
 
                     $arSelect = Array (
                                     "ID",
@@ -178,8 +192,10 @@ class ICMLLoader {
                                     "DETAIL_PAGE_URL"
                             );
                     
-                    if (isset($this->articleProperties[$id]))
-                        $arSelect[] =  "PROPERTY_" . $this->articleProperties[$id];
+                    foreach ($this->propertiesProduct[$id] as $key => $propProduct) {
+                        if ($this->propertiesProduct[$id][$key] != "")
+                            $arSelect[] =  "PROPERTY_" . $propProduct;
+                    }
                             
 
                     $filter = Array (
@@ -195,7 +211,23 @@ class ICMLLoader {
                         
                             $product = $product->GetFields();
 
-                            // Get categories in InfoBlock
+                            // Get properties of product
+                            $resPropertiesProduct = Array();
+                            foreach ($this->propertiesProduct[$id] as $key => $propProduct) {
+                                $resPropertiesProduct[$key] = "";
+                                if ($propProduct != "") {
+                                    $propDesc = CIBlockProperty::GetByID($propProduct, $id)->GetNext();
+
+                                    if ($propDesc['PROPERTY_TYPE'] == 'E') {
+                                        $el = CIBlockElement::GetById($product["PROPERTY_" . $propProduct . "_VALUE"])->Fetch();
+                                        $resPropertiesProduct[$key] =  $el['NAME'];
+                                    } else {
+                                        $resPropertiesProduct[$key] =  $product["PROPERTY_" . $propProduct . "_VALUE"];
+                                    }
+                                }
+                            }
+                            
+                            // Get categories of product
                             $categories = Array();
                             $dbResCategories = CIBlockElement::GetElementGroups($product['ID'], true);
                             while ($arResCategory = $dbResCategories->Fetch()) {
@@ -214,7 +246,6 @@ class ICMLLoader {
                             $existOffer = false;
                             if (!empty($iblockOffer['IBLOCK_ID'])) {
                                 
-                                
                                 $arFilterOffer = Array (
                                                 'IBLOCK_ID' => $iblockOffer['IBLOCK_ID'],
                                                 'PROPERTY_' . $iblockOffer['SKU_PROPERTY_ID'] => $product["ID"]
@@ -226,9 +257,11 @@ class ICMLLoader {
                                                 "DETAIL_PAGE_URL",
                                                 "DETAIL_PICTURE"
                                         );
-                                if (isset($this->articleProperties[$id]))
-                                    $arSelectOffer[] =  "PROPERTY_" . $this->articleProperties[$id];
-
+                                
+                                foreach ($this->propertiesSKU[$id] as $key => $propSKU) {
+                                    if ($this->propertiesSKU[$id][$key] != "")
+                                        $arSelectOffer[] =  "PROPERTY_" . $propSKU;
+                                }
 
                                 $rsOffers = CIBlockElement::GetList(array(), $arFilterOffer, false, false, $arSelectOffer);
                                 while ($arOffer = $rsOffers->GetNext()) {
@@ -241,9 +274,27 @@ class ICMLLoader {
                                     $arOffer['DETAIL_PICTURE'] = $product["DETAIL_PICTURE"];
                                     $arOffer['PREVIEW_PICTURE'] = $product["PREVIEW_PICTURE"];
                                     $arOffer['PRODUCT_NAME'] = $product["NAME"];
-                                    if (isset($this->articleProperties[$id]))
-                                        $arOffer['ARTICLE'] = $product["PROPERTY_" . $this->articleProperties[$id] . "_VALUE"];
+                                    
+                                    // Get properties of offer
+                                    
+                                    foreach ($this->propertiesSKU[$id] as $key => $propSKU) {
+                                        if ($propSKU != "") {
+                                            $propDesc = CIBlockProperty::GetByID($propSKU,$arOffer['ID'])->GetNext();
 
+                                            if ($propDesc['PROPERTY_TYPE'] == 'E') {
+                                                $el = CIBlockElement::GetById($product["PROPERTY_" . $propSKU . "_VALUE"])->Fetch();
+                                                $arOffer[$key] =  $el['NAME'];
+                                            } else {
+                                                $arOffer[$key] =  $arOffer["PROPERTY_" . $propSKU . "_VALUE"];
+                                            }
+                                        }
+                                    }
+                                    
+                                    foreach ($resPropertiesProduct as $key => $propProduct) {
+                                        if ($this->propertiesProduct[$id][$key] != "")
+                                            $arOffer[$key] =  $propProduct;
+                                    }
+                                    
                                     $dbPrice = GetCatalogProductPrice($arOffer["ID"],1);
                                     $arOffer['PRICE'] = $dbPrice['PRICE'];
 
@@ -258,8 +309,11 @@ class ICMLLoader {
 
                                 $product['PRODUCT_ID'] = $product["ID"];
                                 $product['PRODUCT_NAME'] = $product["NAME"];
-                                if (isset($this->articleProperties[$id]))
-                                    $product['ARTICLE'] = $product["PROPERTY_" . $this->articleProperties[$id] . "_VALUE"];
+
+                                foreach ($resPropertiesProduct as $key => $propProduct) {
+                                    if ($this->propertiesProduct[$id][$key] != "")
+                                        $product[$key] =  $propProduct;
+                                }
 
                                 $dbPrice = GetCatalogProductPrice($product["ID"],1);
                                 $product['PRICE'] = $dbPrice['PRICE'];
@@ -323,9 +377,12 @@ class ICMLLoader {
 
             $offer .= "<xmlId>" . $this->PrepareValue($arOffer["EXTERNAL_ID"]) . "</xmlId>\n";
             $offer .= "<productName>" . $this->PrepareValue($arOffer["PRODUCT_NAME"]) . "</productName>\n";
-            if (isset($arOffer["ARTICLE"]))
-                $offer .= "<article>" . $this->PrepareValue($arOffer["ARTICLE"]) . "</article>\n";
 
+            foreach ($this->propertiesProduct[$iblock['IBLOCK_DB']['ID']] as $key => $propProduct) {
+                if ($propProduct != "" && $arOffer[$key] != null)
+                    $offer .= "<" . $key . ">" . $this->PrepareValue($arOffer[$key]) . "</" . $key . ">\n";
+            }
+            
             $offer.= "</offer>\n";
             return $offer;
     }
