@@ -412,7 +412,7 @@ class ICrmOrderActions
                     'USER_ID'        => $userId, //$order['customer']
                     'PAY_SYSTEM_ID'  => $optionsPayTypes[$order['paymentType']],
                     'PAYED'          => $optionsPayment[$order['paymentStatus']],
-                    'PERSON_TYPE_ID' => $optionsOrderTypes[$order['orderType']],
+                    //'PERSON_TYPE_ID' => $optionsOrderTypes[$order['orderType']],
                     'DELIVERY_ID'    => $optionsDelivTypes[$order['deliveryType']],
                     'STATUS_ID'      => $optionsPayStatuses[$order['status']]
                 ));
