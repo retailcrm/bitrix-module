@@ -657,8 +657,6 @@ class ICrmOrderActions
         }
        
         $resOrder = self::clearArr($resOrder);
-        
-        self::eventLog('ICrmOrderActions::orderHistory', 'iblock', json_encode($resOrder));
 
         if($send)
             return $api->orderEdit($resOrder);
