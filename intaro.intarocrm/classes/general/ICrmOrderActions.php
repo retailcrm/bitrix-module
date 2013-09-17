@@ -749,4 +749,19 @@ class ICrmOrderActions
             ));
         }
     }
+    
+    public static function getLocationCityId($cityName) {
+        if(!$cityName)
+            return;
+        
+        $dbLocation = CSaleLocation::GetList(
+                        array(
+                            "SORT" => "ASC",
+                            "CITY_NAME_LANG" => "ASC"
+                        ), 
+                        array("LID" => "ru", "CITY_NAME" => $cityName), false, false, array());
+        
+        if($location = $dbLocation->Fetch())
+                return $location['ID'];
+    }
 }
