@@ -21,6 +21,9 @@ class ICrmOrderEvent {
      * @param mixed $arFields - Order arFields
      */
     function onUpdateOrder($ID, $arFields = array()) {
+        if(isset($GLOBALS['FROM_HISTORY']) && $GLOBALS['FROM_HISTORY'])
+            return;
+        
         self::writeDataOnOrderCreate($ID);
     }
     
@@ -35,6 +38,7 @@ class ICrmOrderEvent {
      */
     function onSendOrderMail($ID, &$eventName, &$arFields) {
         self::writeDataOnOrderCreate($ID);
+        COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, $ID);
     }
 
     /**
@@ -88,8 +92,6 @@ class ICrmOrderEvent {
             ICrmOrderActions::eventLog('ICrmOrderEvent::writeDataOnOrderCreate', 'ICrmOrderActions::orderCreate', 'error during creating order');
             return true;
         }
-        
-        COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, $ID);
         
         return true;
     }

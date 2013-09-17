@@ -416,6 +416,8 @@ class ICrmOrderActions
                     'DELIVERY_ID'    => $optionsDelivTypes[$order['deliveryType']],
                     'STATUS_ID'      => $optionsPayStatuses[$order['status']]
                 ));
+                
+                $GLOBALS['FROM_HISTORY'] = true;
 
                 CSaleOrder::Update($order['externalId'], $arFields);
 
