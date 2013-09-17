@@ -64,7 +64,14 @@ class intaro_intarocrm extends CModule {
         if (!date_default_timezone_get()) {
             if (!ini_get('date.timezone')) {
                 $APPLICATION->ThrowException(GetMessage("DATE_TIMEZONE_ERR"));
-                return false; 
+                return false;
+            }
+        }
+
+        if (!date_default_timezone_get()) {
+            if (!ini_get('date.timezone')) {
+                $APPLICATION->ThrowException(GetMessage("DATE_TIMEZONE_ERR"));
+                return false;
             }
         }
 
@@ -77,27 +84,19 @@ class intaro_intarocrm extends CModule {
         $arResult['orderProps'] = array(
             array(
                 'NAME' => GetMessage('FIO'),
-                'ID' => 'fio'
-            ),
-            array(
-                'NAME' => GetMessage('ZIP'),
-                'ID' => 'index'
+                'ID'   => 'fio'
             ),
             array(
                 'NAME' => GetMessage('PHONE'),
-                'ID' => 'phone'
+                'ID'   => 'phone'
             ),
             array(
                 'NAME' => GetMessage('EMAIL'),
-                'ID' => 'email'
-            ),
-            array(
-                'NAME' => GetMessage('ZIP'),
-                'ID' => 'index'
+                'ID'   => 'email'
             ),
             array(
                 'NAME' => GetMessage('ADDRESS'),
-                'ID' => 'text'
+                'ID'   => 'text'
             ),
             // address
             /* array(
@@ -114,35 +113,35 @@ class intaro_intarocrm extends CModule {
               ), */
             array(
                 'NAME' => GetMessage('ZIP'),
-                'ID' => 'index'
+                'ID'   => 'index'
             ),
             array(
                 'NAME' => GetMessage('STREET'),
-                'ID' => 'street'
+                'ID'   => 'street'
             ),
             array(
                 'NAME' => GetMessage('BUILDING'),
-                'ID' => 'building'
+                'ID'   => 'building'
             ),
             array(
                 'NAME' => GetMessage('FLAT'),
-                'ID' => 'flat'
+                'ID'   => 'flat'
             ),
             array(
                 'NAME' => GetMessage('INTERCOMCODE'),
-                'ID' => 'intercomcode'
+                'ID'   => 'intercomcode'
             ),
             array(
                 'NAME' => GetMessage('FLOOR'),
-                'ID' => 'floor'
+                'ID'   => 'floor'
             ),
             array(
                 'NAME' => GetMessage('BLOCK'),
-                'ID' => 'block'
+                'ID'   => 'block'
             ),
             array(
                 'NAME' => GetMessage('HOUSE'),
-                'ID' => 'house'
+                'ID'   => 'house'
             )
         );
 
@@ -698,7 +697,7 @@ class intaro_intarocrm extends CModule {
             //form orderProps
             $dbProp = CSaleOrderProps::GetList(array(), array());
             while ($arProp = $dbProp->GetNext()) {
-                $arResult['arProp'][] = $arProp;
+                $arResult['arProp'][$arProp['PERSON_TYPE_ID']] = $arProp;
             }
 
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_TYPES_ARR, serialize($orderTypesArr));
@@ -772,7 +771,7 @@ class intaro_intarocrm extends CModule {
                 $propsCount = 0;
                 $_orderPropsArr = array();
                 foreach ($arResult['orderProps'] as $orderProp) {
-                    if ((!(int) htmlspecialchars(trim($_POST['address-detail-' . $orderType['ID']]))) && $propsCount > 5)
+                    if ((!(int) htmlspecialchars(trim($_POST['address-detail-' . $orderType['ID']]))) && $propsCount > 4)
                         break;
                     $_orderPropsArr[$orderProp['ID']] = htmlspecialchars(trim($_POST['order-prop-' . $orderProp['ID'] . '-' . $orderType['ID']]));
                     $propsCount++;

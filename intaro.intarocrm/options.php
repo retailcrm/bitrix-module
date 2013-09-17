@@ -33,20 +33,12 @@ $arResult['orderProps'] = array(
         'ID'   => 'fio'
     ),
     array(
-        'NAME' => GetMessage('ZIP'),
-        'ID'   => 'index'
-    ),
-    array(
         'NAME' => GetMessage('PHONE'),
         'ID'   => 'phone'
     ),
     array(
         'NAME' => GetMessage('EMAIL'),
         'ID'   => 'email'
-    ),
-    array(
-        'NAME' => GetMessage('ZIP'),
-        'ID'   => 'index'
     ),
     array(
         'NAME' => GetMessage('ADDRESS'),
@@ -245,18 +237,19 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         RegisterModuleDependences("sale", "OnOrderNewSendEmail", $mid, "ICrmOrderEvent", "onSendOrderMail");
         RegisterModuleDependences("sale", "OnOrderUpdate", $mid, "ICrmOrderEvent", "onUpdateOrder");
 
-        $orderPropsArr = array();
-        foreach ($orderTypesList as $orderType) {
-            $propsCount = 0;
-            $_orderPropsArr = array();
-            foreach ($arResult['orderProps'] as $orderProp) {
-                if ((!(int) htmlspecialchars(trim($_POST['address-detail-' . $orderType['ID']]))) && $propsCount > 5)
-                    break;
-                $_orderPropsArr[$orderProp['ID']] = htmlspecialchars(trim($_POST['order-prop-' . $orderProp['ID'] . '-' . $orderType['ID']]));
-                $propsCount++;
-            }
-            $orderPropsArr[$orderType['ID']] = $_orderPropsArr;
+    }
+
+    $orderPropsArr = array();
+    foreach ($orderTypesList as $orderType) {
+        $propsCount = 0;
+        $_orderPropsArr = array();
+        foreach ($arResult['orderProps'] as $orderProp) {
+            if ((!(int) htmlspecialchars(trim($_POST['address-detail-' . $orderType['ID']]))) && $propsCount > 4)
+                break;
+            $_orderPropsArr[$orderProp['ID']] = htmlspecialchars(trim($_POST['order-prop-' . $orderProp['ID'] . '-' . $orderType['ID']]));
+            $propsCount++;
         }
+        $orderPropsArr[$orderType['ID']] = $_orderPropsArr;
     }
     
     COption::SetOptionString($mid, $CRM_ORDER_TYPES_ARR, serialize($orderTypesArr));
@@ -380,7 +373,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     
     $dbProp = CSaleOrderProps::GetList(array(), array());
     while ($arProp = $dbProp->GetNext()) {
-        $arResult['arProp'][] = $arProp;
+        $arResult['arProp'][$arProp['PERSON_TYPE_ID']][] = $arProp;
     }
 
     //saved cat params
@@ -597,14 +590,14 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         </td>
     </tr>
     <?php endif; ?>
-    <tr <?php if ($countProps > 5) echo 'class="address-detail-' . $bitrixOrderType['ID'] . '"'; if(($countProps > 5) && (count($optionsOrderProps[$bitrixOrderType['ID']]) < 6)) echo 'style="display:none;"';?>>
+    <tr <?php if ($countProps > 4) echo 'class="address-detail-' . $bitrixOrderType['ID'] . '"'; if(($countProps > 4) && (count($optionsOrderProps[$bitrixOrderType['ID']]) < 6)) echo 'style="display:none;"';?>>
         <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $orderProp['ID']; ?>">
     	    <?php echo $orderProp['NAME']; ?>
         </td>
         <td width="50%" class="adm-detail-content-cell-r">
             <select name="order-prop-<?php echo $orderProp['ID'] . '-' . $bitrixOrderType['ID']; ?>" class="typeselect">
                 <option value=""></option>              
-                <?php foreach ($arResult['arProp'] as $arProp): ?>
+                <?php foreach ($arResult['arProp'][$bitrixOrderType['ID']] as $arProp): ?>
                 <option value="<?php echo $arProp['CODE']; ?>" <?php if ($optionsOrderProps[$bitrixOrderType['ID']][$orderProp['ID']] == $arProp['CODE']) echo 'selected'; ?>>
                     <?php echo $arProp['NAME']; ?>
                 </option>
