@@ -13,7 +13,18 @@ class ICrmOrderEvent {
     protected static $CRM_PAYMENT_STATUSES = 'pay_statuses_arr';
     protected static $CRM_PAYMENT = 'payment_arr'; //order payment Y/N
     protected static $CRM_ORDER_LAST_ID = 'order_last_id';
-
+    protected static $CRM_ORDER_PROPS = 'order_props';
+    
+    /**
+     * onBeforeOrderAdd
+     * 
+     * @param mixed $arFields - Order arFields
+     */
+    function onBeforeOrderAdd($arFields = array()) {
+        $GLOBALS['INTARO_CRM_ORDER_ADD'] = true;
+        return;
+    }
+    
     /**
      * onUpdateOrder
      * 
@@ -21,7 +32,10 @@ class ICrmOrderEvent {
      * @param mixed $arFields - Order arFields
      */
     function onUpdateOrder($ID, $arFields = array()) {
-        if(isset($GLOBALS['FROM_HISTORY']) && $GLOBALS['FROM_HISTORY'])
+        if(isset($GLOBALS['INTARO_CRM_ORDER_ADD']) && $GLOBALS['INTARO_CRM_ORDER_ADD'])
+            return;
+        
+        if(isset($GLOBALS['INTARO_CRM_FROM_HISTORY']) && $GLOBALS['INTARO_CRM_FROM_HISTORY'])
             return;
         
         self::writeDataOnOrderCreate($ID);
@@ -47,6 +61,7 @@ class ICrmOrderEvent {
      * @param integer $ID - Order Id
      */
     function writeDataOnOrderCreate($ID) {
+        
         if (!CModule::IncludeModule('iblock')) {
             //handle err
             ICrmOrderActions::eventLog('ICrmOrderEvent::writeDataOnOrderCreate', 'iblock', 'module not found');
@@ -64,6 +79,9 @@ class ICrmOrderEvent {
             ICrmOrderActions::eventLog('ICrmOrderEvent::writeDataOnOrderCreate', 'catalog', 'module not found');
             return true;
         }
+        
+        $GLOBALS['INTARO_CRM_ORDER_ADD'] = false;
+        $GLOBALS['INTARO_CRM_FROM_HISTORY'] = false;
 
         $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
         $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
@@ -74,6 +92,7 @@ class ICrmOrderEvent {
         $optionsPayTypes = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_TYPES, 0));
         $optionsPayStatuses = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_STATUSES, 0)); // --statuses
         $optionsPayment = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT, 0));
+        $optionsOrderProps = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_PROPS, 0));
 
         $api = new IntaroCrm\RestApi($api_host, $api_key);
 
@@ -82,7 +101,8 @@ class ICrmOrderEvent {
             'optionsDelivTypes'  => $optionsDelivTypes,
             'optionsPayTypes'    => $optionsPayTypes,
             'optionsPayStatuses' => $optionsPayStatuses,
-            'optionsPayment'     => $optionsPayment
+            'optionsPayment'     => $optionsPayment,
+            'optionsOrderProps'  => $optionsOrderProps
         );
         
         $arOrder = CSaleOrder::GetById($ID);
@@ -190,6 +210,7 @@ class ICrmOrderEvent {
         );
         
         $api->orderEdit($order);
+        
  
         // error pushing order
         if ($api->getStatusCode() != 201)

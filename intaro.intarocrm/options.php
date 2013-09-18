@@ -219,6 +219,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         // remove depenedencies
         UnRegisterModuleDependences("sale", "OnOrderNewSendEmail", $mid, "ICrmOrderEvent", "onSendOrderMail");
         UnRegisterModuleDependences("sale", "OnOrderUpdate", $mid, "ICrmOrderEvent", "onUpdateOrder");
+        UnRegisterModuleDependences("sale", "OnBeforeOrderAdd", $mid, "ICrmOrderEvent", "onBeforeOrderAdd");
         // new agent
         $dateAgent = new DateTime();
         $intAgent = new DateInterval('PT60S'); // PT60S - 60 sec;
@@ -236,7 +237,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         // event dependencies
         RegisterModuleDependences("sale", "OnOrderNewSendEmail", $mid, "ICrmOrderEvent", "onSendOrderMail");
         RegisterModuleDependences("sale", "OnOrderUpdate", $mid, "ICrmOrderEvent", "onUpdateOrder");
-
+        RegisterModuleDependences("sale", "OnBeforeOrderAdd", $mid, "ICrmOrderEvent", "onBeforeOrderAdd");
     }
 
     $orderPropsArr = array();
@@ -576,13 +577,13 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     </tr>
     <?php foreach($arResult['bitrixOrderTypesList'] as $bitrixOrderType): ?>
     <tr class="heading">
-        <td colspan="2"><b><?php echo $bitrixOrderType['NAME']; ?></b></td>
+        <td colspan="2"><b><?php echo GetMessage('ORDER_TYPE_INFO') . ' ' . $bitrixOrderType['NAME']; ?></b></td>
     </tr>
     
     <?php $countProps = 0; foreach($arResult['orderProps'] as $orderProp): ?>
     <?php if($orderProp['ID'] == 'text'): ?>
     <tr class="heading">
-        <td colspan="2">
+        <td colspan="2" style="background-color: transparent;">
             <b>
                 <label><input class="addr" type="radio" name="address-detail-<?php echo $bitrixOrderType['ID'];; ?>" value="0" <?php if(count($optionsOrderProps[$bitrixOrderType['ID']]) < 6) echo "checked"; ?>><?php echo GetMessage('ADDRESS_SHORT'); ?></label>
                 <label><input class="addr" type="radio" name="address-detail-<?php echo $bitrixOrderType['ID']; ?>" value="1" <?php if(count($optionsOrderProps[$bitrixOrderType['ID']]) > 5) echo "checked"; ?>><?php echo GetMessage('ADDRESS_FULL'); ?></label>
@@ -599,7 +600,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                 <option value=""></option>              
                 <?php foreach ($arResult['arProp'][$bitrixOrderType['ID']] as $arProp): ?>
                 <option value="<?php echo $arProp['CODE']; ?>" <?php if ($optionsOrderProps[$bitrixOrderType['ID']][$orderProp['ID']] == $arProp['CODE']) echo 'selected'; ?>>
-                    <?php echo $arProp['NAME']; ?>
+                    <?php echo $APPLICATION->ConvertCharset($arProp['NAME'], 'utf-8', SITE_CHARSET); ?>
                 </option>
                 <?php endforeach; ?>
             </select>

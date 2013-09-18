@@ -68,13 +68,6 @@ class intaro_intarocrm extends CModule {
             }
         }
 
-        if (!date_default_timezone_get()) {
-            if (!ini_get('date.timezone')) {
-                $APPLICATION->ThrowException(GetMessage("DATE_TIMEZONE_ERR"));
-                return false;
-            }
-        }
-
         include($this->INSTALL_PATH . '/../classes/general/RestApi.php');
         include($this->INSTALL_PATH . '/../classes/general/ICrmOrderActions.php');
         include($this->INSTALL_PATH . '/../classes/general/ICMLLoader.php');
@@ -697,7 +690,7 @@ class intaro_intarocrm extends CModule {
             //form orderProps
             $dbProp = CSaleOrderProps::GetList(array(), array());
             while ($arProp = $dbProp->GetNext()) {
-                $arResult['arProp'][$arProp['PERSON_TYPE_ID']] = $arProp;
+                $arResult['arProp'][$arProp['PERSON_TYPE_ID']][] = $arProp;
             }
 
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_TYPES_ARR, serialize($orderTypesArr));
@@ -876,6 +869,7 @@ class intaro_intarocrm extends CModule {
             }
 
             RegisterModule($this->MODULE_ID);
+            RegisterModuleDependences("sale", "OnSalePayOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSalePayOrder");
             RegisterModuleDependences("sale", "OnSaleCancelOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSaleCancelOrder");
             $this->CopyFiles();
             if (isset($_POST['LOAD_NOW'])) {
