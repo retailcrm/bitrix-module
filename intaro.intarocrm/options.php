@@ -218,25 +218,13 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     if (($orderDischarge != $previousDischarge) && ($orderDischarge == 0)) {
         // remove depenedencies
         UnRegisterModuleDependences("sale", "OnOrderNewSendEmail", $mid, "ICrmOrderEvent", "onSendOrderMail");
-        UnRegisterModuleDependences("sale", "OnOrderUpdate", $mid, "ICrmOrderEvent", "onUpdateOrder");
+        UnRegisterModuleDependences("sale", "OnBeforeOrderUpdate", $mid, "ICrmOrderEvent", "onBeforeUpdateOrder");
         UnRegisterModuleDependences("sale", "OnBeforeOrderAdd", $mid, "ICrmOrderEvent", "onBeforeOrderAdd");
-        // new agent
-        $dateAgent = new DateTime();
-        $intAgent = new DateInterval('PT60S'); // PT60S - 60 sec;
-        $dateAgent->add($intAgent);
-        CAgent::AddAgent(
-                "ICrmOrderActions::uploadOrdersAgent();", $mid, "N", 600, // interval - 10 mins
-                $dateAgent->format('d.m.Y H:i:s'), // date of first check
-                "Y", // агент активен
-                $dateAgent->format('d.m.Y H:i:s'), // date of first start
-                30
-        );
+        
     } else if (($orderDischarge != $previousDischarge) && ($orderDischarge == 1)) {
-        // remove agent
-        CAgent::RemoveAgent("ICrmOrderActions::uploadOrdersAgent();", $mid);
         // event dependencies
         RegisterModuleDependences("sale", "OnOrderNewSendEmail", $mid, "ICrmOrderEvent", "onSendOrderMail");
-        RegisterModuleDependences("sale", "OnOrderUpdate", $mid, "ICrmOrderEvent", "onUpdateOrder");
+        RegisterModuleDependences("sale", "OnBeforeOrderUpdate", $mid, "ICrmOrderEvent", "onBeforeUpdateOrder");
         RegisterModuleDependences("sale", "OnBeforeOrderAdd", $mid, "ICrmOrderEvent", "onBeforeOrderAdd");
     }
 

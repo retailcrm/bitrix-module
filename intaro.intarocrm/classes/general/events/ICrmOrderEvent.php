@@ -14,6 +14,7 @@ class ICrmOrderEvent {
     protected static $CRM_PAYMENT = 'payment_arr'; //order payment Y/N
     protected static $CRM_ORDER_LAST_ID = 'order_last_id';
     protected static $CRM_ORDER_PROPS = 'order_props';
+    protected static $CRM_ORDER_FAILED_IDS = 'order_failed_ids';
     
     /**
      * onBeforeOrderAdd
@@ -31,14 +32,18 @@ class ICrmOrderEvent {
      * @param mixed $ID - Order id  
      * @param mixed $arFields - Order arFields
      */
-    function onUpdateOrder($ID, $arFields = array()) {
+    function onBeforeUpdateOrder($ID, $arFields) {
+        
         if(isset($GLOBALS['INTARO_CRM_ORDER_ADD']) && $GLOBALS['INTARO_CRM_ORDER_ADD'])
             return;
         
         if(isset($GLOBALS['INTARO_CRM_FROM_HISTORY']) && $GLOBALS['INTARO_CRM_FROM_HISTORY'])
             return;
         
-        self::writeDataOnOrderCreate($ID);
+        if(isset($arFields['LOCKED_BY']) && $arFields['LOCKED_BY'])
+            return;
+        
+        self::writeDataOnOrderCreate($ID, $arFields);
     }
     
 
@@ -51,8 +56,17 @@ class ICrmOrderEvent {
      * @param mixed $arFields - Order arFields for sending template
      */
     function onSendOrderMail($ID, &$eventName, &$arFields) {
-        self::writeDataOnOrderCreate($ID);
-        COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, $ID);
+        if(self::writeDataOnOrderCreate($ID)) 
+            COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, $ID);
+        else {
+            $failedIds = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_FAILED_IDS, 0));
+            if(!$failedIds)
+                $failedIds = array();
+            
+            $failedIds[] = $ID;
+            
+            COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_FAILED_IDS, serialize($failedIds));
+        }
     }
 
     /**
@@ -60,7 +74,7 @@ class ICrmOrderEvent {
      * 
      * @param integer $ID - Order Id
      */
-    function writeDataOnOrderCreate($ID) {
+    function writeDataOnOrderCreate($ID, $arFields) {
         
         if (!CModule::IncludeModule('iblock')) {
             //handle err
@@ -96,21 +110,37 @@ class ICrmOrderEvent {
 
         $api = new IntaroCrm\RestApi($api_host, $api_key);
 
-        $arParams = array(
+        $arParams = ICrmOrderActions::clearArr(array(
             'optionsOrderTypes'  => $optionsOrderTypes,
             'optionsDelivTypes'  => $optionsDelivTypes,
             'optionsPayTypes'    => $optionsPayTypes,
             'optionsPayStatuses' => $optionsPayStatuses,
             'optionsPayment'     => $optionsPayment,
             'optionsOrderProps'  => $optionsOrderProps
-        );
+        ));
         
         $arOrder = CSaleOrder::GetById($ID);
+        
+        if (is_array($arFields) && !empty($arFields)) {
+            $arFieldsNew = array(
+                'USER_ID' => $arOrder['USER_ID'],
+                'ID' => $ID,
+                'PERSON_TYPE_ID' => $arOrder['PERSON_TYPE_ID'],
+                'CANCELED' => $arOrder['CANCELED'],
+                'STATUS_ID' => $arOrder['STATUS_ID'],
+                'DATE_INSERT' => $arOrder['DATE_INSERT'],
+                'LID' => $arOrder['LID']
+            );
+
+            $arFieldsNew = array_merge($arFieldsNew, $arFields);
+            $arOrder = $arFieldsNew;
+        }
+
         $result = ICrmOrderActions::orderCreate($arOrder, $api, $arParams, true);
         
         if(!$result) {
             ICrmOrderActions::eventLog('ICrmOrderEvent::writeDataOnOrderCreate', 'ICrmOrderActions::orderCreate', 'error during creating order');
-            return true;
+            return false;
         }
         
         return true;
