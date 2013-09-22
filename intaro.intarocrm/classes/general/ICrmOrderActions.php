@@ -727,7 +727,7 @@ class ICrmOrderActions
         $createdAt = $createdAt->format('Y-m-d H:i:s');
 
         $resOrder = array(
-            'number'          => $resOrder['ACCOUNT_NUMBER'],
+            'number'          => $arFields['ACCOUNT_NUMBER'],
             'phone'           => $resOrder['phone'],
             'email'           => $resOrder['email'],
             'deliveryCost'    => $arFields['PRICE_DELIVERY'],
