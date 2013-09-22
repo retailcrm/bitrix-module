@@ -218,13 +218,13 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     if (($orderDischarge != $previousDischarge) && ($orderDischarge == 0)) {
         // remove depenedencies
         UnRegisterModuleDependences("sale", "OnOrderNewSendEmail", $mid, "ICrmOrderEvent", "onSendOrderMail");
-        UnRegisterModuleDependences("sale", "OnBeforeOrderUpdate", $mid, "ICrmOrderEvent", "onBeforeUpdateOrder");
+        UnRegisterModuleDependences("sale", "OnOrderUpdate", $mid, "ICrmOrderEvent", "onUpdateOrder");
         UnRegisterModuleDependences("sale", "OnBeforeOrderAdd", $mid, "ICrmOrderEvent", "onBeforeOrderAdd");
         
     } else if (($orderDischarge != $previousDischarge) && ($orderDischarge == 1)) {
         // event dependencies
         RegisterModuleDependences("sale", "OnOrderNewSendEmail", $mid, "ICrmOrderEvent", "onSendOrderMail");
-        RegisterModuleDependences("sale", "OnBeforeOrderUpdate", $mid, "ICrmOrderEvent", "onBeforeUpdateOrder");
+        RegisterModuleDependences("sale", "OnOrderUpdate", $mid, "ICrmOrderEvent", "onUpdateOrder");
         RegisterModuleDependences("sale", "OnBeforeOrderAdd", $mid, "ICrmOrderEvent", "onBeforeOrderAdd");
     }
 

@@ -32,7 +32,7 @@ class ICrmOrderEvent {
      * @param mixed $ID - Order id  
      * @param mixed $arFields - Order arFields
      */
-    function onBeforeUpdateOrder($ID, $arFields) {
+    function onUpdateOrder($ID, $arFields) {
         
         if(isset($GLOBALS['INTARO_CRM_ORDER_ADD']) && $GLOBALS['INTARO_CRM_ORDER_ADD'])
             return;
@@ -123,13 +123,13 @@ class ICrmOrderEvent {
         
         if (is_array($arFields) && !empty($arFields)) {
             $arFieldsNew = array(
-                'USER_ID' => $arOrder['USER_ID'],
-                'ID' => $ID,
+                'USER_ID'        => $arOrder['USER_ID'],
+                'ID'             => $ID,
                 'PERSON_TYPE_ID' => $arOrder['PERSON_TYPE_ID'],
-                'CANCELED' => $arOrder['CANCELED'],
-                'STATUS_ID' => $arOrder['STATUS_ID'],
-                'DATE_INSERT' => $arOrder['DATE_INSERT'],
-                'LID' => $arOrder['LID']
+                'CANCELED'       => $arOrder['CANCELED'],
+                'STATUS_ID'      => $arOrder['STATUS_ID'],
+                'DATE_INSERT'    => $arOrder['DATE_INSERT'],
+                'LID'            => $arOrder['LID']
             );
 
             $arFieldsNew = array_merge($arFieldsNew, $arFields);
