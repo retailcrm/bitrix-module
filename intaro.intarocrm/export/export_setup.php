@@ -67,7 +67,7 @@ if ($STEP==1)
 		}
 		?>
                         
-    <h3>Настройки инфоблоков</h3>
+    <h3><?=GetMessage("SETTINGS_INFOBLOCK");?></h3>
     <font class="text"><?=GetMessage("EXPORT_CATALOGS");?><br><br></font>
     <?
     if (!isset($IBLOCK_EXPORT) || !is_array($IBLOCK_EXPORT))
@@ -177,7 +177,7 @@ if ($STEP==1)
 
     ?>
 
-    <font class="text" style="font-weight: bold;">Выбрать все инфоблоки </font>
+    <font class="text" style="font-weight: bold;"><?=GetMessage("CHECK_ALL_INFOBLOCKS");?></font>
     <input 
         style="vertical-align: middle;" 
         type="checkbox" 
@@ -312,7 +312,7 @@ if ($STEP==1)
     <input type="hidden" name="count_checked" id="count_checked" value="<? echo $intCountChecked; ?>">
     <br>
 
-    <h3>Настройки экспорта</h3>
+    <h3><?=GetMessage("SETTINGS_EXPORT");?></h3>
     
     <font class="text"><?=GetMessage("FILENAME");?><br><br></font>
     <input type="text" name="SETUP_FILE_NAME"
