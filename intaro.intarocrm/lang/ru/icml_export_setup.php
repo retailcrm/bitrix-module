@@ -14,4 +14,8 @@ $MESS["ERROR_IBLOCK_CATALOG"] = "Модуль Каталог не установ
 $MESS["ERROR_IBLOCK_INTAROCRM"] = "Модуль IntaroCRM не установлен";
 $MESS["ERROR_ARTICLE_NOT_SET"] = "Были установлены поля артикулов, но не установлены Информационные блоки";
 $MESS["PROFILE_NAME"] = "Имя профиля";
+$MESS["SETTINGS_INFOBLOCK"] = "Настройки инфоблоков";
+$MESS["SETTINGS_EXPORT"] = "Настройки экспорта";
+$MESS["CHECK_ALL_INFOBLOCKS"] = "Выбрать все инфоблоки ";
+
 ?>
