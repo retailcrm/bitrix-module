@@ -312,29 +312,74 @@ if (!empty($oldValues)) {
     <script type="text/javascript">
             function checkAll(obj,cnt)
             {
-                    var boolCheck = obj.checked;
-                    for (i = 0; i < cnt; i++)
-                    {
-                            BX('IBLOCK_EXPORT'+i).checked = boolCheck;
-                    }
-                    BX('count_checked').value = (boolCheck ? cnt : 0);
+                for (i = 0; i < cnt; i++)
+                { 
+                    if (obj.checked)
+                        BX.removeClass('IBLOCK_EXPORT_TABLE'+(i+1),"iblock-export-table-display-none");
+                }
+                var table = BX(obj.id.replace('IBLOCK_EXPORT','IBLOCK_EXPORT_TABLE'));
+                if (obj.checked)
+                    BX.removeClass(table,"iblock-export-table-display-none");
+                var easing = new BX.easing({
+                        duration : 150,
+                        start : {opacity : obj.checked ? 0 : 100 },
+                        finish : {opacity: obj.checked ? 100 : 0 },
+                        transition : BX.easing.transitions.linear,
+                        step : function(state){
+                            for (i = 0; i < cnt; i++)
+                                { 
+                                    BX('IBLOCK_EXPORT_TABLE'+(i+1)).style.opacity = state.opacity/100;
+                                }
+                        },
+                        complete : function() {
+                             for (i = 0; i < cnt; i++)
+                                { 
+                                    if (!obj.checked)
+                                        BX.addClass('IBLOCK_EXPORT_TABLE'+(i+1),"iblock-export-table-display-none");
+                                }  
+                        }
+                });
+                easing.animate();
+                var boolCheck = obj.checked;
+                for (i = 0; i < cnt; i++)
+                {
+                        BX('IBLOCK_EXPORT'+(i+1)).checked = boolCheck;
+                }
+                BX('count_checked').value = (boolCheck ? cnt : 0);
             };
             function checkOne(obj,cnt)
             {
+                var table = BX(obj.id.replace('IBLOCK_EXPORT','IBLOCK_EXPORT_TABLE'));
+                if (obj.checked)
+                    BX.removeClass(table,"iblock-export-table-display-none");
+                var easing = new BX.easing({
+                        duration : 150,
+                        start : {opacity : obj.checked ? 0 : 100 },
+                        finish : {opacity: obj.checked ? 100 : 0 },
+                        transition : BX.easing.transitions.linear,
+                        step : function(state){
+                            table.style.opacity = state.opacity/100;
+                        },
+                        complete : function() {
+                             if (!obj.checked)
+                                BX.addClass(table,"iblock-export-table-display-none");   
+                        }
+                });
+                easing.animate();
                 var boolCheck = obj.checked;
                 var intCurrent = parseInt(BX('count_checked').value);
                 intCurrent += (boolCheck ? 1 : -1);
                 BX('icml_export_all').checked = (intCurrent < cnt ? false : true);
                 BX('count_checked').value = intCurrent;
-                if (!boolCheck)
-                    BX(obj.id.replace('IBLOCK_EXPORT','IBLOCK_PROPERTY_ARTICLE')).value = 'none';
             };
-            function checkProfile(obj)
+            function propertyChange(obj)
             {
-                if (obj.value !== 'none')
-                    $('#profile-field').show();
-                else
-                    $('#profile-field').hide();
+                if (BX(obj.id).value !== 'none') {
+                    if (obj.id.indexOf("SKU") !== -1)
+                        BX(obj.id.replace('SKU','PRODUCT')).value = 'none';
+                    else
+                        BX(obj.id.replace('PRODUCT','SKU')).value = 'none';
+                }
             };
     </script>
 
