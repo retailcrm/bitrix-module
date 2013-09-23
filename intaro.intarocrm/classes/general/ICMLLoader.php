@@ -1,14 +1,17 @@
 <?php
 
+global $MESS;
+IncludeModuleLangFile(__FILE__);
+
 class ICMLLoader {
-    
+
     public $iblocks;
     public $filename;
     public $propertiesSKU;
     public $propertiesProduct;
     public $application;
     public $encoding = 'utf-8';
-    
+
     protected $fp;
     protected $mainSection = 1000000;
         
@@ -17,7 +20,7 @@ class ICMLLoader {
             global $USER;
             if(!isset($USER))
                 $USER = new CUser;
-            
+
             if (count($this->iblocks) < count($this->articleProperties))
                 return false;
             
@@ -26,11 +29,11 @@ class ICMLLoader {
             $this->PrepareFile();
 
             $this->PreWriteCatalog();
-            
+
             $categories = $this->GetCategories();
-            
+
             $this->WriteCategories($categories);
-            
+
             $this->PreWriteOffers();
             $this->BuildOffers($categories);
             $this->PostWriteOffers();
@@ -39,7 +42,7 @@ class ICMLLoader {
 
             $this->CloseFile();
             return true;
-        
+
     }
     
     protected function PrepareSettings()
@@ -63,7 +66,7 @@ class ICMLLoader {
             $newText = str_replace("&", "&#x26;", $newText);
             return $newText;
         }
-    
+
     protected function PrepareFile()
     {
             $fullFilename = $_SERVER["DOCUMENT_ROOT"] . $this->filename;
@@ -74,7 +77,7 @@ class ICMLLoader {
             else
                 return true;
     }
-    
+
     protected function PreWriteCatalog()
     {
             @fwrite($this->fp, "<yml_catalog date=\"" . $this->PrepareValue(Date("Y-m-d H:i:s")) . "\">\n
@@ -84,7 +87,7 @@ class ICMLLoader {
                     );
 
     }
-    
+
     protected function WriteCategories($categories)
     {
             $stringCategories = "";
@@ -99,33 +102,33 @@ class ICMLLoader {
     {
             @fwrite($this->fp, "<offers>\n");
     }
-        
+
         protected function PostWriteOffers()
     {
             @fwrite($this->fp, "</offers>\n");
     }
-    
+
         protected function WriteOffers($offers)
     {
             @fwrite($this->fp, $offers);
     }
-        
+
     protected function PostWriteCatalog()
     {
             @fwrite($this->fp, "</shop>\n
                 </yml_catalog>\n");
     }
-    
+
     protected function CloseFile()
     {
             @fclose($this->fp);
     }
-    
-    
+
+
     protected function GetCategories()
     {
             $categories = array();
-            foreach ($this->iblocks as $id) 
+            foreach ($this->iblocks as $id)
             {
                 $filter = Array(
                                 "IBLOCK_ID" => $id,
@@ -144,18 +147,18 @@ class ICMLLoader {
                 if (!$hasCategories)
                 {
                     $iblock = CIBlock::GetByID($id)->Fetch();
-                    
+
                     $arRes = Array();
                     $arRes['ID'] = $this->mainSection + $id;
                     $arRes['IBLOCK_SECTION_ID'] = 0;
-                    $arRes['NAME'] = "Основной раздел каталога " . $iblock['NAME'];
+                    $arRes['NAME'] = sprintf(GetMessage('ROOT_CATEGORY_FOR_CATALOG'), $iblock['NAME']);
                     $categories[$arRes['ID']] = $arRes;
                 }
             }
             return $categories;
 
     }
-    
+
     protected function BuildCategory($arCategory)
     {
             return "
@@ -166,12 +169,12 @@ class ICMLLoader {
                     . ">"
                     . $this->PrepareValue($arCategory["NAME"])
                     . "</category>\n";
-            
+
     }
-    
+
     protected function BuildOffers(&$allCategories)
     {
-            foreach ($this->iblocks as $key => $id) 
+            foreach ($this->iblocks as $key => $id)
             {
                     $iblock['IBLOCK_DB'] = CIBlock::GetByID($id)->Fetch();
                     $iblockOffer = CCatalogSKU::GetInfoByProductIBlock($id);
@@ -208,7 +211,7 @@ class ICMLLoader {
                     $dbResProducts = CIBlockElement::GetList(array(), $filter, false, false, $arSelect);
                     $stringOffers = "";
                     while ($product = $dbResProducts->GetNextElement()) {
-                        
+
                             $product = $product->GetFields();
 
                             // Get properties of product
@@ -237,12 +240,12 @@ class ICMLLoader {
                                     );
                             }
                             if (count($categories) == 0) {
-                                
+
                                 $catId = $this->mainSection + $id;
                                 $categories[$catId] = $allCategories[$catId];
                             }
 
-                            
+
                             $existOffer = false;
                             if (!empty($iblockOffer['IBLOCK_ID'])) {
                                 
@@ -303,7 +306,7 @@ class ICMLLoader {
                                 }
                             }
                             if (!$existOffer) {
-                                
+
                                 $offer = CCatalogProduct::GetByID($product['ID']);
                                 $product['QUANTITY'] = $offer["QUANTITY"];
 
@@ -320,15 +323,15 @@ class ICMLLoader {
 
                                 $stringOffers .= $this->BuildOffer($product, $categories, $iblock);
                             }
-                            
+
                             $count++;
                             if ($count == 1000) {
                                 $this->WriteOffers($stringOffers);
                                 $stringOffers = "";
                             }
-                            
+
                     }
-                    
+
                     if ($stringOffers != "") {
                         $this->WriteOffers($stringOffers);
                         $stringOffers = "";
@@ -336,15 +339,15 @@ class ICMLLoader {
 
             }
     }
-    
-    
+
+
     protected function BuildOffer($arOffer, $categories, $iblock)
     {
             $offer = "";
             $offer .= "<offer id=\"" .$this->PrepareValue($arOffer["ID"]) . "\" ".
                     "productId=\"" . $this->PrepareValue($arOffer["PRODUCT_ID"]) . "\" ".
                     "quantity=\"" . $this->PrepareValue(DoubleVal($arOffer['QUANTITY'])) . "\">\n";
-            
+
             $offer .= "<url>http://" . $this->PrepareValue($iblock['IBLOCK_DB']['SERVER_NAME']) . $this->PrepareValue($arOffer['DETAIL_PAGE_URL']) . "</url>\n";
 
             $offer .= "<price>" . $this->PrepareValue($arOffer['PRICE']) . "</price>\n";
@@ -386,5 +389,5 @@ class ICMLLoader {
             $offer.= "</offer>\n";
             return $offer;
     }
-    
+
 }

@@ -33,6 +33,7 @@ class intaro_intarocrm extends CModule {
     var $CRM_ORDER_SITES = 'sites_ids';
     var $CRM_ORDER_PROPS = 'order_props';
     var $CRM_ORDER_DISCHARGE = 'order_discharge';
+    var $CRM_ORDER_FAILED_IDS = 'order_failed_ids';
     var $INSTALL_PATH;
 
     function intaro_intarocrm() {
@@ -64,7 +65,7 @@ class intaro_intarocrm extends CModule {
         if (!date_default_timezone_get()) {
             if (!ini_get('date.timezone')) {
                 $APPLICATION->ThrowException(GetMessage("DATE_TIMEZONE_ERR"));
-                return false; 
+                return false;
             }
         }
 
@@ -77,27 +78,19 @@ class intaro_intarocrm extends CModule {
         $arResult['orderProps'] = array(
             array(
                 'NAME' => GetMessage('FIO'),
-                'ID' => 'fio'
-            ),
-            array(
-                'NAME' => GetMessage('ZIP'),
-                'ID' => 'index'
+                'ID'   => 'fio'
             ),
             array(
                 'NAME' => GetMessage('PHONE'),
-                'ID' => 'phone'
+                'ID'   => 'phone'
             ),
             array(
                 'NAME' => GetMessage('EMAIL'),
-                'ID' => 'email'
-            ),
-            array(
-                'NAME' => GetMessage('ZIP'),
-                'ID' => 'index'
+                'ID'   => 'email'
             ),
             array(
                 'NAME' => GetMessage('ADDRESS'),
-                'ID' => 'text'
+                'ID'   => 'text'
             ),
             // address
             /* array(
@@ -114,35 +107,35 @@ class intaro_intarocrm extends CModule {
               ), */
             array(
                 'NAME' => GetMessage('ZIP'),
-                'ID' => 'index'
+                'ID'   => 'index'
             ),
             array(
                 'NAME' => GetMessage('STREET'),
-                'ID' => 'street'
+                'ID'   => 'street'
             ),
             array(
                 'NAME' => GetMessage('BUILDING'),
-                'ID' => 'building'
+                'ID'   => 'building'
             ),
             array(
                 'NAME' => GetMessage('FLAT'),
-                'ID' => 'flat'
+                'ID'   => 'flat'
             ),
             array(
                 'NAME' => GetMessage('INTERCOMCODE'),
-                'ID' => 'intercomcode'
+                'ID'   => 'intercomcode'
             ),
             array(
                 'NAME' => GetMessage('FLOOR'),
-                'ID' => 'floor'
+                'ID'   => 'floor'
             ),
             array(
                 'NAME' => GetMessage('BLOCK'),
-                'ID' => 'block'
+                'ID'   => 'block'
             ),
             array(
                 'NAME' => GetMessage('HOUSE'),
-                'ID' => 'house'
+                'ID'   => 'house'
             )
         );
 
@@ -698,7 +691,7 @@ class intaro_intarocrm extends CModule {
             //form orderProps
             $dbProp = CSaleOrderProps::GetList(array(), array());
             while ($arProp = $dbProp->GetNext()) {
-                $arResult['arProp'][] = $arProp;
+                $arResult['arProp'][$arProp['PERSON_TYPE_ID']][] = $arProp;
             }
 
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_TYPES_ARR, serialize($orderTypesArr));
@@ -708,6 +701,7 @@ class intaro_intarocrm extends CModule {
             COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT, serialize($paymentArr));
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_LAST_ID, 0);
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_DISCHARGE, 0);
+            COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_FAILED_IDS, serialize(array()));
             
             $APPLICATION->IncludeAdminFile(
                     GetMessage('MODULE_INSTALL_TITLE'),
@@ -772,7 +766,7 @@ class intaro_intarocrm extends CModule {
                 $propsCount = 0;
                 $_orderPropsArr = array();
                 foreach ($arResult['orderProps'] as $orderProp) {
-                    if ((!(int) htmlspecialchars(trim($_POST['address-detail-' . $orderType['ID']]))) && $propsCount > 5)
+                    if ((!(int) htmlspecialchars(trim($_POST['address-detail-' . $orderType['ID']]))) && $propsCount > 4)
                         break;
                     $_orderPropsArr[$orderProp['ID']] = htmlspecialchars(trim($_POST['order-prop-' . $orderProp['ID'] . '-' . $orderType['ID']]));
                     $propsCount++;
@@ -879,6 +873,7 @@ class intaro_intarocrm extends CModule {
             }
 
             RegisterModule($this->MODULE_ID);
+            RegisterModuleDependences("sale", "OnSalePayOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSalePayOrder");
             RegisterModuleDependences("sale", "OnSaleCancelOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSaleCancelOrder");
             $this->CopyFiles();
             if (isset($_POST['LOAD_NOW'])) {
@@ -1043,9 +1038,13 @@ class intaro_intarocrm extends CModule {
         COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_SITES);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_PROPS);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_DISCHARGE);
+        COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_FAILED_IDS);
 
         UnRegisterModuleDependences("sale", "OnSalePayOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSalePayOrder");
         UnRegisterModuleDependences("sale", "OnSaleCancelOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSaleCancelOrder");
+        UnRegisterModuleDependences("sale", "OnOrderNewSendEmail", $this->MODULE_ID, "ICrmOrderEvent", "onSendOrderMail");
+        UnRegisterModuleDependences("sale", "OnOrderUpdate", $this->MODULE_ID, "ICrmOrderEvent", "onUpdateOrder");
+        UnRegisterModuleDependences("sale", "OnBeforeOrderAdd", $this->MODULE_ID, "ICrmOrderEvent", "onBeforeOrderAdd");
         if (CModule::IncludeModule("catalog")) {
             if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/' . $this->INTARO_CRM_EXPORT . '_run.php')) {
                 $dbProfile = CCatalogExport::GetList(array(), array("FILE_NAME" => $this->INTARO_CRM_EXPORT));

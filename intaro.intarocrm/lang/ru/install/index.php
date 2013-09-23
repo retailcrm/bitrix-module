@@ -15,7 +15,7 @@ $MESS ['ERR_ARTICLE_IBLOCK'] = 'Не установлены артикулы';
 $MESS ['DATE_TIMEZONE_ERR'] = 'Не указана временная зона в настройках php.';
 
 $MESS ['ORDER_PROPS'] = 'Настройки соответствия полей заказа IntaroCRM свойствам заказа 1С-Битрикс';
-$MESS ['FIO'] = 'ф.И.О.';
+$MESS ['FIO'] = 'Ф.И.О.';
 $MESS ['ZIP'] = 'Индекс';
 $MESS ['ADDRESS'] = 'Адрес (строкой)';
 $MESS ['PHONE'] = 'Телефон';

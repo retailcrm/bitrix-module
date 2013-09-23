@@ -13,12 +13,14 @@ class ICrmOrderActions
     protected static $CRM_ORDER_LAST_ID = 'order_last_id';
     protected static $CRM_ORDER_SITES = 'sites_ids';
     protected static $CRM_ORDER_PROPS = 'order_props';
+    protected static $CRM_ORDER_FAILED_IDS = 'order_failed_ids';
 
     /**
      * Mass order uploading, without repeating; always returns true, but writes error log
+     * @param $failed -- flag to export failed orders
      * @return boolean
      */
-    public static function uploadOrders($pSize = 50) {
+    public static function uploadOrders($pSize = 50, $failed = false) {
 
         //COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, 0); // -- for test
 
@@ -42,11 +44,16 @@ class ICrmOrderActions
 
         $resOrders = array();
         $resCustomers = array();
-        
+
         $lastUpOrderId = COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, 0);
         $lastOrderId = 0;
 
+        $failedIds = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_FAILED_IDS, 0));
+        if (!$failedIds)
+            $failedIds = array();
+
         $dbOrder = CSaleOrder::GetList(array("ID" => "ASC"), array('>ID' => $lastUpOrderId));
+        $dbFailedOrder = CSaleOrder::GetList(array("ID" => "ASC"), array('ID' => $failedIds));
 
         $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
         $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
@@ -63,50 +70,80 @@ class ICrmOrderActions
         $api = new IntaroCrm\RestApi($api_host, $api_key);
 
         $arParams = array(
-            'optionsOrderTypes'  => $optionsOrderTypes,
-            'optionsDelivTypes'  => $optionsDelivTypes,
-            'optionsPayTypes'    => $optionsPayTypes,
+            'optionsOrderTypes' => $optionsOrderTypes,
+            'optionsDelivTypes' => $optionsDelivTypes,
+            'optionsPayTypes' => $optionsPayTypes,
             'optionsPayStatuses' => $optionsPayStatuses,
-            'optionsPayment'     => $optionsPayment,
-            'optionSites'        => $optionsSites,
-            'optionsOrderProps'  => $optionsOrderProps
+            'optionsPayment' => $optionsPayment,
+            'optionSites' => $optionsSites,
+            'optionsOrderProps' => $optionsOrderProps
         );
 
-        //packmode
-		
-        $orderCount = 0;
+        if (!$failed) {
 
-        while ($arOrder = $dbOrder->GetNext()) { // here orders by id asc
-            
-            if(is_array($optionsSites)) 
-                if(!empty($optionsSites)) 
-                    if(!in_array($arOrder['LID'], $optionsSites))
-                        continue;
-                
-            $result = self::orderCreate($arOrder, $api, $arParams);
+            //packmode
 
-            if (!$result['order'] || !$result['customer'])
-                 continue;
-            
-            $orderCount++;
-                
-            $resOrders[] = $result['order'];
-            $resCustomers[] = $result['customer'];
+            $orderCount = 0;
 
-            $lastOrderId = $arOrder['ID'];
+            while ($arOrder = $dbOrder->GetNext()) { // here orders by id asc
+                if (is_array($optionsSites))
+                    if (!empty($optionsSites))
+                        if (!in_array($arOrder['LID'], $optionsSites))
+                            continue;
 
-            if($orderCount >= $pSize) {
-                $customers = $api->customerUpload($resCustomers);
-                    
-            // error pushing customers
-            if ($api->getStatusCode() != 201) {
-                //handle err
-                //self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::customerUpload', $api->getLastError());
-                        
-                if($api->getStatusCode() != 460) // some orders were sent
-                    return false; // in pack mode return errors
+                $result = self::orderCreate($arOrder, $api, $arParams);
+
+                if (!$result['order'] || !$result['customer'])
+                    continue;
+
+                $orderCount++;
+
+                $resOrders[] = $result['order'];
+                $resCustomers[] = $result['customer'];
+
+                $lastOrderId = $arOrder['ID'];
+
+                if ($orderCount >= $pSize) {
+                    $customers = $api->customerUpload($resCustomers);
+
+                    // error pushing customers
+                    if ($api->getStatusCode() != 201) {
+                        //handle err
+                        //self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::customerUpload', $api->getLastError());
+
+                        if ($api->getStatusCode() != 460) // some orders were sent
+                            return false; // in pack mode return errors
+                    }
+
+                    $orders = $api->orderUpload($resOrders);
+
+                    // error pushing orders
+                    if ($api->getStatusCode() != 201) {
+                        //handle err
+                        self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload', $api->getLastError());
+
+                        if ($api->getStatusCode() != 460) // some orders were sent
+                            return false; // in pack mode return errors
+                    }
+
+                    if ($lastOrderId)
+                        COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, $lastOrderId);
+
+                    return true; // end of pack
                 }
-                    
+            }
+            if (!empty($resOrders)) {
+                $customers = $api->customerUpload($resCustomers);
+
+                // error pushing customers
+                if ($api->getStatusCode() != 201) {
+                    //handle err
+                    //self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::customerUpload', $api->getLastError());
+
+                    if ($api->getStatusCode() != 460) // some orders were sent
+                        return false; // in pack mode return errors
+                }
+
                 $orders = $api->orderUpload($resOrders);
 
                 // error pushing orders
@@ -114,42 +151,98 @@ class ICrmOrderActions
                     //handle err
                     self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload', $api->getLastError());
 
-                    if($api->getStatusCode() != 460) // some orders were sent
+                    if ($api->getStatusCode() != 460) // some orders were sent
                         return false; // in pack mode return errors
                 }
-                    
-                if($lastOrderId)
-                    COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, $lastOrderId);
+            }
 
-                return true; // end of pack
+            if ($lastOrderId)
+                COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, $lastOrderId);
+            
+        } else {
+            
+            // failed orders upload 
+            $orderCount = 0;
+            $recOrders = array();
+
+            while ($arOrder = $dbFailedOrder->GetNext()) { // here orders by id asc
+                if (is_array($optionsSites))
+                    if (!empty($optionsSites))
+                        if (!in_array($arOrder['LID'], $optionsSites))
+                            continue;
+
+                $result = self::orderCreate($arOrder, $api, $arParams);
+
+                if (!$result['order'] || !$result['customer'])
+                    continue;
+
+                $orderCount++;
+
+                $resOrders[] = $result['order'];
+                $resCustomers[] = $result['customer'];
+
+                $recOrders[] = $arOrder['ID'];
+
+                if ($orderCount >= $pSize) {
+                    $customers = $api->customerUpload($resCustomers);
+
+                    // error pushing customers
+                    if ($api->getStatusCode() != 201) {
+                        //handle err
+                        //self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::customerUpload', $api->getLastError());
+
+                        if ($api->getStatusCode() != 460) // some orders were sent
+                            return false; // in pack mode return errors
+                    }
+
+                    $orders = $api->orderUpload($resOrders);
+
+                    // error pushing orders
+                    if ($api->getStatusCode() != 201) {
+                        //handle err
+                        self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload', $api->getLastError());
+
+                        if ($api->getStatusCode() != 460) // some orders were sent
+                            return false; // in pack mode return errors
+                    }
+
+                    if (!empty($recOrders)) {
+                        $failedIds = array_merge(array_diff($failedIds, $recOrders)); // clear success ids
+                        COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_FAILED_IDS, serialize($failedIds));
+                    }
+
+                    return true; // end of pack
+                }
+            }
+            if (!empty($resOrders)) {
+                $customers = $api->customerUpload($resCustomers);
+
+                // error pushing customers
+                if ($api->getStatusCode() != 201) {
+                    //handle err
+                    //self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::customerUpload', $api->getLastError());
+
+                    if ($api->getStatusCode() != 460) // some orders were sent
+                        return false; // in pack mode return errors
+                }
+
+                $orders = $api->orderUpload($resOrders);
+
+                // error pushing orders
+                if ($api->getStatusCode() != 201) {
+                    //handle err
+                    self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload', $api->getLastError());
+
+                    if ($api->getStatusCode() != 460) // some orders were sent
+                        return false; // in pack mode return errors
+                }
+            }
+
+            if (!empty($recOrders)) {
+                $failedIds = array_merge(array_diff($failedIds, $recOrders)); // clear success ids
+                COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_FAILED_IDS, serialize($failedIds));
             }
         }
-        if (!empty($resOrders)) {
-            $customers = $api->customerUpload($resCustomers);
-                
-            // error pushing customers
-            if ($api->getStatusCode() != 201) {
-                //handle err
-                //self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::customerUpload', $api->getLastError());
-
-                if ($api->getStatusCode() != 460) // some orders were sent
-                    return false; // in pack mode return errors
-            }
-                
-            $orders = $api->orderUpload($resOrders);
-
-            // error pushing orders
-            if ($api->getStatusCode() != 201) {
-                //handle err
-                self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload', $api->getLastError());
-
-                if ($api->getStatusCode() != 460) // some orders were sent
-                    return false; // in pack mode return errors
-            }
-        }
-        
-        if($lastOrderId)
-            COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, $lastOrderId);
 
         return true; //all ok!
     }
@@ -200,7 +293,7 @@ class ICrmOrderActions
         $api = new IntaroCrm\RestApi($api_host, $api_key);
         
         $orderHistory = $api->orderHistory();
-        
+
         // pushing existing orders
         foreach ($orderHistory as $order) {
             
@@ -249,7 +342,9 @@ class ICrmOrderActions
                 if(isset($order['customer']) && $order['customer']) $userId = $order['customer'];
                 $LID = $arFields['LID'];
                 
+                
                 $rsOrderProps = CSaleOrderPropsValue::GetList(array(), array('ORDER_ID' => $arFields['ID']));
+                
                 while ($ar = $rsOrderProps->Fetch()) {
                     if (isset($order['deliveryAddress']) && $order['deliveryAddress']) {
                         switch ($ar['CODE']) {
@@ -403,22 +498,26 @@ class ICrmOrderActions
                     
                     CSaleBasket::Update($p['ID'], $arProduct);
                 }*/ 
-                
+
                 // orderUpdate
                 $arFields = self::clearArr(array(
-                    'PRICE_DELIVERY' => $order['deliveryCost'],
-                    'PRICE'          => $order['summ'],
-                    'DATE_MARKED'    => $order['markDatetime'],
-                    'USER_ID'        => $userId, //$order['customer']
-                    'PAY_SYSTEM_ID'  => $optionsPayTypes[$order['paymentType']],
-                    'PAYED'          => $optionsPayment[$order['paymentStatus']],
-                    'PERSON_TYPE_ID' => $optionsOrderTypes[$order['orderType']],
-                    'DELIVERY_ID'    => $optionsDelivTypes[$order['deliveryType']],
-                    'STATUS_ID'      => $optionsPayStatuses[$order['status']]
+                    'PRICE_DELIVERY'   => $order['deliveryCost'],
+                    'PRICE'            => $order['summ'],
+                    'DATE_MARKED'      => $order['markDatetime'],
+                    'USER_ID'          => $userId, //$order['customer']
+                    'PAY_SYSTEM_ID'    => $optionsPayTypes[$order['paymentType']],
+                    'PAYED'            => $optionsPayment[$order['paymentStatus']],
+                    //'PERSON_TYPE_ID' => $optionsOrderTypes[$order['orderType']],
+                    'DELIVERY_ID'      => $optionsDelivTypes[$order['deliveryType']],
+                    'STATUS_ID'        => $optionsPayStatuses[$order['status']],
+                    'REASON_CANCELED'  => $order['statusComment'],
+                    'USER_DESCRIPTION' => $order['customerComment'],
+                    'COMMENTS'         => $order['managerComment']
                 ));
+                
+                $GLOBALS['INTARO_CRM_FROM_HISTORY'] = true;
 
                 CSaleOrder::Update($order['externalId'], $arFields);
-
             } 
         } 
         
@@ -450,6 +549,10 @@ class ICrmOrderActions
 
     public static function uploadOrdersAgent() {
         self::uploadOrders();
+        $failedIds = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_FAILED_IDS, 0));
+        if(is_array($failedIds) && !empty($failedIds))
+            self::uploadOrders(50, true); // upload failed orders
+        
         return 'ICrmOrderActions::uploadOrdersAgent();';
     }
     
@@ -548,46 +651,46 @@ class ICrmOrderActions
         $rsOrderProps = CSaleOrderPropsValue::GetList(array(), array('ORDER_ID' => $arFields['ID']));
         while ($ar = $rsOrderProps->Fetch()) {
             switch ($ar['CODE']) {
-                case $arParams['optionsOrderProps']['index']: $resOrderDeliveryAddress['index'] = self::toJSON($ar['VALUE']);
+                case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['index']: $resOrderDeliveryAddress['index'] = self::toJSON($ar['VALUE']);
                     break;
                 case 'CITY': $resOrderDeliveryAddress['city'] = self::toJSON($ar['VALUE']);
                     break;
-                case $arParams['optionsOrderProps']['text']: $resOrderDeliveryAddress['text'] = self::toJSON($ar['VALUE']);
+                case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['text']: $resOrderDeliveryAddress['text'] = self::toJSON($ar['VALUE']);
                     break;
                 case 'LOCATION': if(!isset($resOrderDeliveryAddress['city']) && !$resOrderDeliveryAddress['city']) {
                         $resOrderDeliveryAddress['city'] = CSaleLocation::GetByID($ar['VALUE']);
                         $resOrderDeliveryAddress['city'] = self::toJSON($resOrderDeliveryAddress['city']['CITY_NAME_LANG']);
                     }
                     break;
-                case $arParams['optionsOrderProps']['fio']: $contactNameArr = self::explodeFIO($ar['VALUE']);
+                case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['fio']: $contactNameArr = self::explodeFIO($ar['VALUE']);
                     break;
-                case $arParams['optionsOrderProps']['phone']: $resOrder['phone'] = $ar['VALUE'];
+                case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['phone']: $resOrder['phone'] = $ar['VALUE'];
                     break;
-                case $arParams['optionsOrderProps']['email']: $resOrder['email'] = $ar['VALUE'];
+                case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['email']: $resOrder['email'] = $ar['VALUE'];
                     break;
             }
             
-            if (count($arParams['optionsOrderProps'] > 5)) {
+            if (count($arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']] > 5)) {
                 switch ($ar['CODE']) {
-                    /*case $arParams['optionsOrderProps']['country']: $resOrderDeliveryAddress['country'] = self::toJSON($ar['VALUE']);
+                    /*case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['country']: $resOrderDeliveryAddress['country'] = self::toJSON($ar['VALUE']);
                         break;
-                    case $arParams['optionsOrderProps']['region']: $resOrderDeliveryAddress['region'] = self::toJSON($ar['VALUE']);
+                    case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['region']: $resOrderDeliveryAddress['region'] = self::toJSON($ar['VALUE']);
                         break;
-                    case $arParams['optionsOrderProps']['city']: $resOrderDeliveryAddress['city'] = self::toJSON($ar['VALUE']);
+                    case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['city']: $resOrderDeliveryAddress['city'] = self::toJSON($ar['VALUE']);
                         break; */
-                    case $arParams['optionsOrderProps']['street']: $resOrderDeliveryAddress['street'] = self::toJSON($ar['VALUE']);
+                    case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['street']: $resOrderDeliveryAddress['street'] = self::toJSON($ar['VALUE']);
                         break;
-                    case $arParams['optionsOrderProps']['building']: $resOrderDeliveryAddress['building'] = self::toJSON($ar['VALUE']);
+                    case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['building']: $resOrderDeliveryAddress['building'] = self::toJSON($ar['VALUE']);
                         break;
-                    case $arParams['optionsOrderProps']['flat']: $resOrderDeliveryAddress['flat'] = self::toJSON($ar['VALUE']);
+                    case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['flat']: $resOrderDeliveryAddress['flat'] = self::toJSON($ar['VALUE']);
                         break;
-                    case $arParams['optionsOrderProps']['inercomcode']: $resOrderDeliveryAddress['intercomcode'] = self::toJSON($ar['VALUE']);
+                    case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['inercomcode']: $resOrderDeliveryAddress['intercomcode'] = self::toJSON($ar['VALUE']);
                         break;
-                    case $arParams['optionsOrderProps']['floor']: $resOrderDeliveryAddress['floor'] = self::toJSON($ar['VALUE']);
+                    case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['floor']: $resOrderDeliveryAddress['floor'] = self::toJSON($ar['VALUE']);
                         break;
-                    case $arParams['optionsOrderProps']['block']: $resOrderDeliveryAddress['block'] = self::toJSON($ar['VALUE']);
+                    case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['block']: $resOrderDeliveryAddress['block'] = self::toJSON($ar['VALUE']);
                         break;
-                    case $arParams['optionsOrderProps']['house']: $resOrderDeliveryAddress['house'] = self::toJSON($ar['VALUE']);
+                    case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['house']: $resOrderDeliveryAddress['house'] = self::toJSON($ar['VALUE']);
                         break;
                 }
             }
@@ -624,6 +727,7 @@ class ICrmOrderActions
         $createdAt = $createdAt->format('Y-m-d H:i:s');
 
         $resOrder = array(
+            'number'          => $arFields['ACCOUNT_NUMBER'],
             'phone'           => $resOrder['phone'],
             'email'           => $resOrder['email'],
             'deliveryCost'    => $arFields['PRICE_DELIVERY'],
@@ -636,7 +740,9 @@ class ICrmOrderActions
             'orderType'       => $arParams['optionsOrderTypes'][$arFields['PERSON_TYPE_ID']],
             'deliveryType'    => $arParams['optionsDelivTypes'][$resultDeliveryTypeId],
             'status'          => $arParams['optionsPayStatuses'][$arFields['STATUS_ID']],
-            'statusComment'   => $arFields['USER_DESCRIPTION'],
+            'statusComment'   => $arFields['REASON_CANCELED'],
+            'customerComment' => $arFields['USER_DESCRIPTION'],
+            'managerComment'  => $arFields['COMMENTS'],
             'createdAt'       => $createdAt,
             'deliveryAddress' => $resOrderDeliveryAddress,
             'items'           => $items
@@ -657,8 +763,6 @@ class ICrmOrderActions
         }
        
         $resOrder = self::clearArr($resOrder);
-        
-        self::eventLog('ICrmOrderActions::orderHistory', 'iblock', json_encode($resOrder));
 
         if($send)
             return $api->orderEdit($resOrder);
@@ -748,5 +852,20 @@ class ICrmOrderActions
                         'VALUE' => $value,
             ));
         }
+    }
+    
+    public static function getLocationCityId($cityName) {
+        if(!$cityName)
+            return;
+        
+        $dbLocation = CSaleLocation::GetList(
+                        array(
+                            "SORT" => "ASC",
+                            "CITY_NAME_LANG" => "ASC"
+                        ), 
+                        array("LID" => "ru", "CITY_NAME" => $cityName), false, false, array());
+        
+        if($location = $dbLocation->Fetch())
+                return $location['ID'];
     }
 }

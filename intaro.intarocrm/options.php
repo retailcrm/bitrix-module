@@ -33,20 +33,12 @@ $arResult['orderProps'] = array(
         'ID'   => 'fio'
     ),
     array(
-        'NAME' => GetMessage('ZIP'),
-        'ID'   => 'index'
-    ),
-    array(
         'NAME' => GetMessage('PHONE'),
         'ID'   => 'phone'
     ),
     array(
         'NAME' => GetMessage('EMAIL'),
         'ID'   => 'email'
-    ),
-    array(
-        'NAME' => GetMessage('ZIP'),
-        'ID'   => 'index'
     ),
     array(
         'NAME' => GetMessage('ADDRESS'),
@@ -227,36 +219,26 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         // remove depenedencies
         UnRegisterModuleDependences("sale", "OnOrderNewSendEmail", $mid, "ICrmOrderEvent", "onSendOrderMail");
         UnRegisterModuleDependences("sale", "OnOrderUpdate", $mid, "ICrmOrderEvent", "onUpdateOrder");
-        // new agent
-        $dateAgent = new DateTime();
-        $intAgent = new DateInterval('PT60S'); // PT60S - 60 sec;
-        $dateAgent->add($intAgent);
-        CAgent::AddAgent(
-                "ICrmOrderActions::uploadOrdersAgent();", $mid, "N", 600, // interval - 10 mins
-                $dateAgent->format('d.m.Y H:i:s'), // date of first check
-                "Y", // агент активен
-                $dateAgent->format('d.m.Y H:i:s'), // date of first start
-                30
-        );
+        UnRegisterModuleDependences("sale", "OnBeforeOrderAdd", $mid, "ICrmOrderEvent", "onBeforeOrderAdd");
+        
     } else if (($orderDischarge != $previousDischarge) && ($orderDischarge == 1)) {
-        // remove agent
-        CAgent::RemoveAgent("ICrmOrderActions::uploadOrdersAgent();", $mid);
         // event dependencies
         RegisterModuleDependences("sale", "OnOrderNewSendEmail", $mid, "ICrmOrderEvent", "onSendOrderMail");
         RegisterModuleDependences("sale", "OnOrderUpdate", $mid, "ICrmOrderEvent", "onUpdateOrder");
+        RegisterModuleDependences("sale", "OnBeforeOrderAdd", $mid, "ICrmOrderEvent", "onBeforeOrderAdd");
+    }
 
-        $orderPropsArr = array();
-        foreach ($orderTypesList as $orderType) {
-            $propsCount = 0;
-            $_orderPropsArr = array();
-            foreach ($arResult['orderProps'] as $orderProp) {
-                if ((!(int) htmlspecialchars(trim($_POST['address-detail-' . $orderType['ID']]))) && $propsCount > 5)
-                    break;
-                $_orderPropsArr[$orderProp['ID']] = htmlspecialchars(trim($_POST['order-prop-' . $orderProp['ID'] . '-' . $orderType['ID']]));
-                $propsCount++;
-            }
-            $orderPropsArr[$orderType['ID']] = $_orderPropsArr;
+    $orderPropsArr = array();
+    foreach ($orderTypesList as $orderType) {
+        $propsCount = 0;
+        $_orderPropsArr = array();
+        foreach ($arResult['orderProps'] as $orderProp) {
+            if ((!(int) htmlspecialchars(trim($_POST['address-detail-' . $orderType['ID']]))) && $propsCount > 4)
+                break;
+            $_orderPropsArr[$orderProp['ID']] = htmlspecialchars(trim($_POST['order-prop-' . $orderProp['ID'] . '-' . $orderType['ID']]));
+            $propsCount++;
         }
+        $orderPropsArr[$orderType['ID']] = $_orderPropsArr;
     }
     
     COption::SetOptionString($mid, $CRM_ORDER_TYPES_ARR, serialize($orderTypesArr));
@@ -380,7 +362,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     
     $dbProp = CSaleOrderProps::GetList(array(), array());
     while ($arProp = $dbProp->GetNext()) {
-        $arResult['arProp'][] = $arProp;
+        $arResult['arProp'][$arProp['PERSON_TYPE_ID']][] = $arProp;
     }
 
     //saved cat params
@@ -583,13 +565,13 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     </tr>
     <?php foreach($arResult['bitrixOrderTypesList'] as $bitrixOrderType): ?>
     <tr class="heading">
-        <td colspan="2"><b><?php echo $bitrixOrderType['NAME']; ?></b></td>
+        <td colspan="2"><b><?php echo GetMessage('ORDER_TYPE_INFO') . ' ' . $bitrixOrderType['NAME']; ?></b></td>
     </tr>
     
     <?php $countProps = 0; foreach($arResult['orderProps'] as $orderProp): ?>
     <?php if($orderProp['ID'] == 'text'): ?>
     <tr class="heading">
-        <td colspan="2">
+        <td colspan="2" style="background-color: transparent;">
             <b>
                 <label><input class="addr" type="radio" name="address-detail-<?php echo $bitrixOrderType['ID'];; ?>" value="0" <?php if(count($optionsOrderProps[$bitrixOrderType['ID']]) < 6) echo "checked"; ?>><?php echo GetMessage('ADDRESS_SHORT'); ?></label>
                 <label><input class="addr" type="radio" name="address-detail-<?php echo $bitrixOrderType['ID']; ?>" value="1" <?php if(count($optionsOrderProps[$bitrixOrderType['ID']]) > 5) echo "checked"; ?>><?php echo GetMessage('ADDRESS_FULL'); ?></label>
@@ -597,16 +579,16 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         </td>
     </tr>
     <?php endif; ?>
-    <tr <?php if ($countProps > 5) echo 'class="address-detail-' . $bitrixOrderType['ID'] . '"'; if(($countProps > 5) && (count($optionsOrderProps[$bitrixOrderType['ID']]) < 6)) echo 'style="display:none;"';?>>
+    <tr <?php if ($countProps > 4) echo 'class="address-detail-' . $bitrixOrderType['ID'] . '"'; if(($countProps > 4) && (count($optionsOrderProps[$bitrixOrderType['ID']]) < 6)) echo 'style="display:none;"';?>>
         <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $orderProp['ID']; ?>">
     	    <?php echo $orderProp['NAME']; ?>
         </td>
         <td width="50%" class="adm-detail-content-cell-r">
             <select name="order-prop-<?php echo $orderProp['ID'] . '-' . $bitrixOrderType['ID']; ?>" class="typeselect">
                 <option value=""></option>              
-                <?php foreach ($arResult['arProp'] as $arProp): ?>
+                <?php foreach ($arResult['arProp'][$bitrixOrderType['ID']] as $arProp): ?>
                 <option value="<?php echo $arProp['CODE']; ?>" <?php if ($optionsOrderProps[$bitrixOrderType['ID']][$orderProp['ID']] == $arProp['CODE']) echo 'selected'; ?>>
-                    <?php echo $arProp['NAME']; ?>
+                    <?php echo $APPLICATION->ConvertCharset($arProp['NAME'], 'utf-8', SITE_CHARSET); ?>
                 </option>
                 <?php endforeach; ?>
             </select>
