@@ -1,6 +1,12 @@
 <?
 
-
+$iblockProperties = Array(
+            "article" => "article",
+            "manufacturer" => "manufacturer",
+            "color" =>"color",
+            "weight" => "weight",
+            "size" => "size",
+        );
 
 if(!check_bitrix_sessid()) return;
 
@@ -8,17 +14,29 @@ __IncludeLang(GetLangFileName($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/intaro.
 
 if (($ACTION == 'EXPORT' || $ACTION == 'EXPORT_EDIT' || $ACTION == 'EXPORT_COPY') && $STEP == 1)
 {
+        
+
 	if (isset($arOldSetupVars['SETUP_FILE_NAME']))
             $SETUP_FILE_NAME = $arOldSetupVars['SETUP_FILE_NAME'];
 	if (isset($arOldSetupVars['SETUP_PROFILE_NAME']))
             $SETUP_PROFILE_NAME = $arOldSetupVars['SETUP_PROFILE_NAME'];
         if (isset($arOldSetupVars['IBLOCK_EXPORT']))
             $IBLOCK_EXPORT = $arOldSetupVars['IBLOCK_EXPORT'];
-        if (isset($arOldSetupVars['IBLOCK_PROPERTY_SKU']))
-            $IBLOCK_PROPERTY_SKU = $arOldSetupVars['IBLOCK_PROPERTY_SKU'];
-        if (isset($arOldSetupVars['IBLOCK_PROPERTY_PRODUCT']))
-            $IBLOCK_PROPERTY_PRODUCT = $arOldSetupVars['IBLOCK_PROPERTY_PRODUCT'];
+
+        $IBLOCK_PROPERTY_SKU = array();
+        foreach ($iblockProperties as $prop) {
+            foreach ($arOldSetupVars['IBLOCK_PROPERTY_SKU'. '_' . $prop] as $iblock => $val) {
+                $IBLOCK_PROPERTY_SKU[$iblock][$prop] = $val;
+            }
+        }
+        $IBLOCK_PROPERTY_PRODUCT = array();
+        foreach ($iblockProperties as $prop) {
+            foreach ($arOldSetupVars['IBLOCK_PROPERTY_PRODUCT'. '_' . $prop] as $iblock => $val) {
+                $IBLOCK_PROPERTY_PRODUCT[$iblock][$prop] = $val;
+            }
+        }
 }
+
 
 
 if ($STEP>1)
@@ -76,11 +94,11 @@ if ($STEP==1)
     }
     
     $iblockPropertiesName = Array(
-        "article" => "Артикул",
-        "manufacturer" => "Производитель",
-        "color" => "Цвет",
-        "weight" => "Вес",
-        "size" => "Размер",
+        "article" => GetMessage("PROPERTY_ARTICLE_HEADER_NAME"),
+        "manufacturer" => GetMessage("PROPERTY_MANUFACTURER_HEADER_NAME"),
+        "color" => GetMessage("PROPERTY_COLOR_HEADER_NAME"),
+        "weight" => GetMessage("PROPERTY_WEIGHT_HEADER_NAME"),
+        "size" => GetMessage("PROPERTY_SIZE_HEADER_NAME"),
     );
     
     $iblockPropertiesHint = Array(
@@ -209,14 +227,14 @@ if ($STEP==1)
                     <thead>
                         <tr class="adm-list-table-header">
                             <td class="adm-list-table-cell">    
-                                <div class="adm-list-table-cell-inner">Выгружаемое свойство</div>
+                                <div class="adm-list-table-cell-inner"><?=GetMessage("LOADED_PROPERTY");?></div>
                             </td>
                             <td class="adm-list-table-cell">
-                                <div class="adm-list-table-cell-inner">Свойство товара</div>
+                                <div class="adm-list-table-cell-inner"><?=GetMessage("PROPERTY_PRODUCT_HEADER_NAME");?></div>
                             </td>
                             <? if ($arIBlock['PROPERTIES_SKU'] != null): ?>
                                 <td class="adm-list-table-cell">
-                                    <div class="adm-list-table-cell-inner">Свойство торгового предложения</div>
+                                    <div class="adm-list-table-cell-inner"><?=GetMessage("PROPERTY_OFFER_HEADER_NAME");?></div>
                                 </td>
                             <? endif;?>
                         </tr>
@@ -233,7 +251,7 @@ if ($STEP==1)
                                     <select
                                         style="width: 200px;"
                                         id="IBLOCK_PROPERTY_PRODUCT_<?=$key?><?=$arIBlock["ID"]?>"
-                                        name="IBLOCK_PROPERTY_PRODUCT[<?=$arIBlock["ID"]?>][<?=$key?>]"
+                                        name="IBLOCK_PROPERTY_PRODUCT_<?=$key?>[<?=$arIBlock["ID"]?>]"
                                         class="property-export"
                                         onchange="propertyChange(this);">
                                             <option value=""></option>
@@ -266,7 +284,7 @@ if ($STEP==1)
                                     <select
                                         style="width: 200px;"
                                         id="IBLOCK_PROPERTY_SKU_<?=$key?><?=$arIBlock["ID"]?>"
-                                        name="IBLOCK_PROPERTY_SKU[<?=$arIBlock["ID"]?>][<?=$key?>]"
+                                        name="IBLOCK_PROPERTY_SKU_<?=$key?>[<?=$arIBlock["ID"]?>]"
                                         class="property-export"
                                         onchange="propertyChange(this);">
                                         
@@ -422,11 +440,19 @@ if ($STEP==1)
     <?//Следующие переменные должны быть обязательно установлены?>
     <?=bitrix_sessid_post();?>
 
+    <?
+    $vals = "SETUP_FILE_NAME,IBLOCK_EXPORT";
+    foreach ($iblockProperties as $val) {
+        $vals .= ",IBLOCK_PROPERTY_SKU_" . $val;
+        $vals .= ",IBLOCK_PROPERTY_PRODUCT_" . $val;
+    }
+    
+    ?>
     <input type="hidden" name="lang" value="<?echo LANGUAGE_ID ?>">
     <input type="hidden" name="ACT_FILE" value="<?echo htmlspecialcharsbx($_REQUEST["ACT_FILE"]) ?>">
     <input type="hidden" name="ACTION" value="<?echo htmlspecialcharsbx($ACTION) ?>">
     <input type="hidden" name="STEP" value="<?echo intval($STEP) + 1 ?>">
-    <input type="hidden" name="SETUP_FIELDS_LIST" value="SETUP_FILE_NAME,IBLOCK_EXPORT,IBLOCK_PROPERTY_SKU,IBLOCK_PROPERTY_PRODUCT">
+    <input type="hidden" name="SETUP_FIELDS_LIST" value="<? echo $vals ?>">
     <input type="submit" value="<?echo ($ACTION=="EXPORT")?GetMessage("CET_EXPORT"):GetMessage("CET_SAVE")?>">
 
 

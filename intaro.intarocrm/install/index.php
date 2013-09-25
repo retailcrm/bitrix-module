@@ -823,15 +823,27 @@ class intaro_intarocrm extends CModule {
             else
                 $iblocks = $_POST['IBLOCK_EXPORT'];
             
-            if(!isset($_POST['IBLOCK_PROPERTY_SKU']))
-                $arResult['errCode'] = 'ERR_FIELDS_SKU';
-            else
-                $propertiesSKU = $_POST['IBLOCK_PROPERTY_SKU'];
+            $iblockProperties = Array(
+                    "article" => "article",
+                    "manufacturer" => "manufacturer",
+                    "color" =>"color",
+                    "weight" => "weight",
+                    "size" => "size",
+                );
             
-            if(!isset($_POST['IBLOCK_PROPERTY_PRODUCT']))
-                $arResult['errCode'] = 'ERR_FIELDS_PRODUCT';
-            else
-                $propertiesProduct = $_POST['IBLOCK_PROPERTY_PRODUCT'];
+            $propertiesSKU = array();
+            foreach ($iblockProperties as $prop) {
+                foreach ($_POST['IBLOCK_PROPERTY_SKU'. '_' . $prop] as $iblock => $val) {
+                    $propertiesSKU[$iblock][$prop] = $val;
+                }
+            }
+            
+            $propertiesProduct = array();
+            foreach ($iblockProperties as $prop) {
+                foreach ($_POST['IBLOCK_PROPERTY_PRODUCT'. '_' . $prop] as $iblock => $val) {
+                    $propertiesProduct[$iblock][$prop] = $val;
+                }
+            }
 
             if (!isset($_POST['SETUP_FILE_NAME']))
                 $arResult['errCode'] = 'ERR_FIELDS_FILE';
@@ -1091,14 +1103,13 @@ class intaro_intarocrm extends CModule {
             $strVars .= 'IBLOCK_EXPORT[' . $key . ']=' . $val . '&';
         foreach ($propertiesSKU as $iblock => $arr) 
             foreach ($arr as $id => $val)
-                $strVars .= 'IBLOCK_PROPERTY_SKU[' . $iblock . '][' . $id . ']=' . $val . '&';
+                $strVars .= 'IBLOCK_PROPERTY_SKU_' . $id . '[' . $iblock . ']=' . $val . '&';
         foreach ($propertiesProduct as $iblock => $arr) 
             foreach ($arr as $id => $val)
-                $strVars .= 'IBLOCK_PROPERTY_PRODUCT[' . $iblock . '][' . $id . ']=' . $val . '&';
+                $strVars .= 'IBLOCK_PROPERTY_PRODUCT_' . $id . '[' . $iblock . ']=' . $val . '&';
         
         $strVars .= 'SETUP_FILE_NAME=' . urlencode($filename);
         
         return $strVars;
     }
-
 }
