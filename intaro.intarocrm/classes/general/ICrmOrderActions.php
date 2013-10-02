@@ -302,7 +302,6 @@ class ICrmOrderActions
         
         // pushing existing orders
         foreach ($orderHistory as $order) {
-            var_dump($order);
             
             // выбрасываем заказы от 'новых клиентов'
             if(!isset($order['customer']) && !$order['customer'])
@@ -356,8 +355,6 @@ class ICrmOrderActions
                 $rsOrderProps = CSaleOrderPropsValue::GetList(array(), array('ORDER_ID' => $arFields['ID']));
                 
                 while ($ar = $rsOrderProps->Fetch()) {
-                    if($order['externalId'] == 45)
-                        var_dump($ar);
                     if (isset($order['deliveryAddress']) && $order['deliveryAddress']) {
                         switch ($ar['CODE']) {
                             case 'CITY': if (isset($order['deliveryAddress']['city']))
@@ -500,14 +497,6 @@ class ICrmOrderActions
                     
                     if(!$p)
                         $p = CIBlockElement::GetByID($item['offer']['externalId'])->Fetch();
-
-                    var_dump($p);
-                    
-                    var_dump(GetCatalogProductPrice($item['offer']['externalId'], 1));
-                    //if(!$p) // if not found
-                    //    continue;
-                    
-                    //echo 1;
                     
                     // del from basket
                     if(isset($item['deleted']) && $item['deleted']) {
@@ -516,8 +505,6 @@ class ICrmOrderActions
                     }
                     
                     // change existing basket items
-                    
-                    
                     $arProduct = array();
                     
                     // create new
@@ -558,34 +545,28 @@ class ICrmOrderActions
 
                         if (isset($item['offer']['name']) && $item['offer']['name'])
                             $arProduct['NAME'] = $item['offer']['name'];
-                        
-                        
-                        var_dump($arProduct);
-                        
-                        var_dump(CSaleBasket::Add($arProduct));
-                        //continue;
+
+                        CSaleBasket::Add($arProduct);
                     }
-                    
-                    if ($p) {
-                        // update old
-                        if (isset($item['initialPrice']) && $item['initialPrice'])
-                            $arProduct['PRICE'] = (double) $item['initialPrice'];
 
-                        if (isset($item['dicount']) && $item['discount']) {
-                            $arProduct['PRICE'] = $arProducts['PRICE'] - (double) $item['disount'];
-                            $arProduct['DISCOUNT_PRICE'] = $item['discount'];
-                        }
+                    // update old
+                    if (isset($item['initialPrice']) && $item['initialPrice'])
+                        $arProduct['PRICE'] = (double) $item['initialPrice'];
 
-                        if (isset($item['discountPercent']) && $item['discountPercent']) {
-                            //$arProducts['PRICE'] -- how ?
-                            $arProduct['DISCOUNT_VALUE'] = $item['discountPercent'];
-                        }
-
-                        if (isset($item['offer']['name']) && $item['offer']['name'])
-                            $arProduct['NAME'] = $item['offer']['name'];
-
-                        CSaleBasket::Update($p['ID'], $arProduct);
+                    if (isset($item['dicount']) && $item['discount']) {
+                        $arProduct['PRICE'] = $arProducts['PRICE'] - (double) $item['disount'];
+                        $arProduct['DISCOUNT_PRICE'] = $item['discount'];
                     }
+
+                    if (isset($item['discountPercent']) && $item['discountPercent']) {
+                        //$arProducts['PRICE'] -- how ?
+                        $arProduct['DISCOUNT_VALUE'] = $item['discountPercent'];
+                    }
+
+                    if (isset($item['offer']['name']) && $item['offer']['name'])
+                        $arProduct['NAME'] = $item['offer']['name'];
+
+                    CSaleBasket::Update($p['ID'], $arProduct);
                 } 
 
                 // orderUpdate
