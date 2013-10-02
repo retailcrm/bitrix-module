@@ -35,11 +35,11 @@ if (!empty($oldValues)) {
     }
     
     $iblockPropertiesName = Array(
-        "article" => "Артикул",
-        "manufacturer" => "Производитель",
-        "color" => "Цвет",
-        "weight" => "Вес",
-        "size" => "Размер",
+        "article" => GetMessage("PROPERTY_ARTICLE_HEADER_NAME"),
+        "manufacturer" => GetMessage("PROPERTY_MANUFACTURER_HEADER_NAME"),
+        "color" => GetMessage("PROPERTY_COLOR_HEADER_NAME"),
+        "weight" => GetMessage("PROPERTY_WEIGHT_HEADER_NAME"),
+        "size" => GetMessage("PROPERTY_SIZE_HEADER_NAME"),
     );
     
     $iblockPropertiesHint = Array(
@@ -165,14 +165,14 @@ if (!empty($oldValues)) {
                     <thead>
                         <tr class="adm-list-table-header">
                             <td class="adm-list-table-cell">    
-                                <div class="adm-list-table-cell-inner">Выгружаемое свойство</div>
+                                <div class="adm-list-table-cell-inner"><?=GetMessage("LOADED_PROPERTY");?></div>
                             </td>
                             <td class="adm-list-table-cell">
-                                <div class="adm-list-table-cell-inner">Свойство товара</div>
+                                <div class="adm-list-table-cell-inner"><?=GetMessage("PROPERTY_PRODUCT_HEADER_NAME");?></div>
                             </td>
                             <? if ($arIBlock['PROPERTIES_SKU'] != null): ?>
                                 <td class="adm-list-table-cell">
-                                    <div class="adm-list-table-cell-inner">Свойство торгового предложения</div>
+                                    <div class="adm-list-table-cell-inner"><?=GetMessage("PROPERTY_OFFER_HEADER_NAME");?></div>
                                 </td>
                             <? endif;?>
                         </tr>
@@ -189,7 +189,7 @@ if (!empty($oldValues)) {
                                     <select
                                         style="width: 200px;"
                                         id="IBLOCK_PROPERTY_PRODUCT_<?=$key?><?=$arIBlock["ID"]?>"
-                                        name="IBLOCK_PROPERTY_PRODUCT[<?=$arIBlock["ID"]?>][<?=$key?>]"
+                                        name="IBLOCK_PROPERTY_PRODUCT_<?=$key?>[<?=$arIBlock["ID"]?>]"
                                         class="property-export"
                                         onchange="propertyChange(this);">
                                             <option value=""></option>
@@ -222,7 +222,7 @@ if (!empty($oldValues)) {
                                     <select
                                         style="width: 200px;"
                                         id="IBLOCK_PROPERTY_SKU_<?=$key?><?=$arIBlock["ID"]?>"
-                                        name="IBLOCK_PROPERTY_SKU[<?=$arIBlock["ID"]?>][<?=$key?>]"
+                                        name="IBLOCK_PROPERTY_SKU_<?=$key?>[<?=$arIBlock["ID"]?>]"
                                         class="property-export"
                                         onchange="propertyChange(this);">
                                         

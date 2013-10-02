@@ -17,5 +17,12 @@ $MESS["PROFILE_NAME"] = "Имя профиля";
 $MESS["SETTINGS_INFOBLOCK"] = "Настройки инфоблоков";
 $MESS["SETTINGS_EXPORT"] = "Настройки экспорта";
 $MESS["CHECK_ALL_INFOBLOCKS"] = "Выбрать все инфоблоки ";
-
+$MESS["LOADED_PROPERTY"] = "Выгружаемое свойство";
+$MESS["PROPERTY_PRODUCT_HEADER_NAME"] = "Свойство товара";
+$MESS["PROPERTY_OFFER_HEADER_NAME"] = "Свойство торгового предложения";
+$MESS["PROPERTY_ARTICLE_HEADER_NAME"] = "Артикул";
+$MESS["PROPERTY_MANUFACTURER_HEADER_NAME"] = "Производитель";
+$MESS["PROPERTY_COLOR_HEADER_NAME"] = "Цвет";
+$MESS["PROPERTY_WEIGHT_HEADER_NAME"] = "Вес";
+$MESS["PROPERTY_SIZE_HEADER_NAME"] = "Размер";
 ?>
