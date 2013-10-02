@@ -279,6 +279,11 @@ class ICrmOrderActions
             return true;
         }
         
+        $defaultSiteId = 0;
+        $rsSites = CSite::GetList($by, $sort, array('DEF' => 'Y'));
+            while ($ar = $rsSites->Fetch())
+                $defaultSiteId = $ar['LID'];
+        
         $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
         $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
 
@@ -294,42 +299,46 @@ class ICrmOrderActions
         $api = new IntaroCrm\RestApi($api_host, $api_key);
         
         $orderHistory = $api->orderHistory();
-
+        
         // pushing existing orders
         foreach ($orderHistory as $order) {
+            var_dump($order);
             
-            if(!isset($order['externalId']) && !$order['externalId']) {
-                            
+            // выбрасываем заказы от 'новых клиентов'
+            if(!isset($order['customer']) && !$order['customer'])
                 continue;
+            
+            if(!isset($order['externalId']) && !$order['externalId']) { 
 
                 // new order
-               /*array(
-                    'LID'              => SITE_ID, //<----!
-                    'PERSON_TYPE_ID'   => 1, // <------!
+               $newOrderFields = array(
+                    'LID'              => $defaultSiteId, //<----!
+                    'PERSON_TYPE_ID'   => $optionsOrderTypes[$order['orderType']], // <------!
                     'PAYED'            => 'N',
                     'CANCELED'         => 'N',
                     'STATUS_ID'        => 'N',
                     'PRICE'            => 0,
                     'CURRENCY'         => 'RUB',
-                    'USER_ID'          => IntVal($USER->GetID()), // <--------!
+                    'USER_ID'          => $order['customer'], // <--------!
                     'PAY_SYSTEM_ID'    => 0,
                     'PRICE_DELIVERY'   => 0,
                     'DELIVERY_ID'      => 0,
                     'DISCOUNT_VALUE'   => 0,
                     'USER_DESCRIPTION' => ''
                 );
+               
+                if(isset($order['number']) && $order['number'])
+                    $newOrderFields['ACCOUNT_NUMBER'] = $order['number'];
                 
-                $order['externalId'] = CSaleOrder::Add(array());
+                $order['externalId'] = CSaleOrder::Add($newOrderFields);
                 
-                $api->orderFixExternalIds(array($order['id'], $order['externalId']));
+                $api->orderFixExternalIds(array(array('id' => $order['id'], 'externalId' => $order['externalId'])));
                 
                 if ($api->getStatusCode() != 200) { 
                     //handle err - write log & continue
                     self::eventLog('ICrmOrderActions::orderHistory', 'IntaroCrm\RestApi::orderFixExternalIds', $api->getLastError());
                     continue;
                 } 
-                
-                */
             }
             
             if(isset($order['externalId']) && $order['externalId']) { 
@@ -347,6 +356,8 @@ class ICrmOrderActions
                 $rsOrderProps = CSaleOrderPropsValue::GetList(array(), array('ORDER_ID' => $arFields['ID']));
                 
                 while ($ar = $rsOrderProps->Fetch()) {
+                    if($order['externalId'] == 45)
+                        var_dump($ar);
                     if (isset($order['deliveryAddress']) && $order['deliveryAddress']) {
                         switch ($ar['CODE']) {
                             case 'CITY': if (isset($order['deliveryAddress']['city']))
@@ -459,7 +470,7 @@ class ICrmOrderActions
                                     self::fromJSON($order['deliveryAddress']['house']), $order['externalId']);
                     }
                 }
-
+                
                 if (isset($order['phone']))
                     self::addOrderProperty($optionsOrderProps[$arFields['PERSON_TYPE_ID']]['phone'],
                             self::fromJSON($order['phone']), $order['externalId']);
@@ -479,13 +490,24 @@ class ICrmOrderActions
                     self::addOrderProperty($optionsOrderProps[$arFields['PERSON_TYPE_ID']]['fio'],
                             implode(" ", $contactName), $order['externalId']);
 
-                /*foreach($order['items'] as $item) {                  
+                foreach($order['items'] as $item) {                  
+                    if(!isset($item['offer']) && !$item['offer']['externalId']) 
+                        continue;
+                    
                     $p = CSaleBasket::GetList(
                             array('PRODUCT_ID' => 'ASC'),
                             array('ORDER_ID' => $order['externalId'], 'PRODUCT_ID' => $item['offer']['externalId']))->Fetch();
                     
-                    if(!$p) // if not found
-                        continue;
+                    if(!$p)
+                        $p = CIBlockElement::GetByID($item['offer']['externalId'])->Fetch();
+
+                    var_dump($p);
+                    
+                    var_dump(GetCatalogProductPrice($item['offer']['externalId'], 1));
+                    //if(!$p) // if not found
+                    //    continue;
+                    
+                    //echo 1;
                     
                     // del from basket
                     if(isset($item['deleted']) && $item['deleted']) {
@@ -494,18 +516,19 @@ class ICrmOrderActions
                     }
                     
                     // change existing basket items
-                    if(!isset($item['offer']) && !$item['offer']['externalId']) 
-                        continue;
+                    
                     
                     $arProduct = array();
                     
                     // create new
                     if(isset($item['created']) && $item['created']) {
+                        $productPrice = GetCatalogProductPrice($item['offer']['externalId'], 1);
+                                
                         $arProduct = array(
                             'FUSER_ID'               => $userId,
                             'ORDER_ID'               => $order['externalId'],
                             'QUANTITY'               => $item['quantity'],
-                            'CURRENCY'               => $p['CURRENCY'],
+                            'CURRENCY'               => $productPrice['CURRENCY'],
                             'LID'                    => $LID,
                             'PRODUCT_ID'             => $item['offer']['externalId'],
                             'PRODUCT_PRICE_ID'       => $p['PRODUCT_PRICE_ID'],
@@ -536,29 +559,34 @@ class ICrmOrderActions
                         if (isset($item['offer']['name']) && $item['offer']['name'])
                             $arProduct['NAME'] = $item['offer']['name'];
                         
-                        CSaleBasket::Add($arProduct);
-                        continue;
+                        
+                        var_dump($arProduct);
+                        
+                        var_dump(CSaleBasket::Add($arProduct));
+                        //continue;
                     }
                     
-                    // update old
-                    if(isset($item['initialPrice']) && $item['initialPrice'])
-                        $arProduct['PRICE'] = (double) $item['initialPrice'];
-                    
-                    if(isset($item['dicount']) && $item['discount']){
-                        $arProduct['PRICE'] = $arProducts['PRICE'] - (double) $item['disount'];
-                        $arProduct['DISCOUNT_PRICE'] = $item['discount'];
+                    if ($p) {
+                        // update old
+                        if (isset($item['initialPrice']) && $item['initialPrice'])
+                            $arProduct['PRICE'] = (double) $item['initialPrice'];
+
+                        if (isset($item['dicount']) && $item['discount']) {
+                            $arProduct['PRICE'] = $arProducts['PRICE'] - (double) $item['disount'];
+                            $arProduct['DISCOUNT_PRICE'] = $item['discount'];
+                        }
+
+                        if (isset($item['discountPercent']) && $item['discountPercent']) {
+                            //$arProducts['PRICE'] -- how ?
+                            $arProduct['DISCOUNT_VALUE'] = $item['discountPercent'];
+                        }
+
+                        if (isset($item['offer']['name']) && $item['offer']['name'])
+                            $arProduct['NAME'] = $item['offer']['name'];
+
+                        CSaleBasket::Update($p['ID'], $arProduct);
                     }
-                    
-                    if(isset($item['discountPercent']) && $item['discountPercent']) {
-                        //$arProducts['PRICE'] -- how ?
-                        $arProduct['DISCOUNT_VALUE'] = $item['discountPercent'];
-                    }
-                    
-                    if(isset($item['offer']['name']) && $item['offer']['name'])
-                        $arProduct['NAME'] = $item['offer']['name'];
-                    
-                    CSaleBasket::Update($p['ID'], $arProduct);
-                }*/ 
+                } 
 
                 // orderUpdate
                 $arFields = self::clearArr(array(
@@ -686,7 +714,7 @@ class ICrmOrderActions
         
         if($send)
             $customer = $api->customerEdit($customer);
-
+        
         // error pushing customer
         if (!$customer) {
             //handle err
@@ -806,6 +834,8 @@ class ICrmOrderActions
             'managerComment'  => $arFields['COMMENTS'],
             'createdAt'       => $createdAt,
             'deliveryAddress' => $resOrderDeliveryAddress,
+            'discount'        => $arFields['DISCOUNT_PRICE'],
+            'discountPercent' => $arFields['DISCOUNT_VALUE'],
             'items'           => $items
         );
 
