@@ -14,6 +14,7 @@ class ICrmOrderActions
     protected static $CRM_ORDER_SITES = 'sites_ids';
     protected static $CRM_ORDER_PROPS = 'order_props';
     protected static $CRM_ORDER_FAILED_IDS = 'order_failed_ids';
+    protected static $CRM_ORDER_HISTORY_DATE = 'order_history_date';
 
     /**
      * Mass order uploading, without repeating; always returns true, but writes error log
@@ -298,7 +299,12 @@ class ICrmOrderActions
 
         $api = new IntaroCrm\RestApi($api_host, $api_key);
         
-        $orderHistory = $api->orderHistory();
+        $dateStart = COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_HISTORY_DATE, null);
+        
+        $orderHistory = $api->orderHistory($dateStart);
+        
+        if($dateStart)
+            $dateStart = new \DateTime($dateStart);
         
         // pushing existing orders
         foreach ($orderHistory as $order) {
@@ -350,7 +356,6 @@ class ICrmOrderActions
                 $userId = $arFields['USER_ID'];
                 if(isset($order['customer']) && $order['customer']) $userId = $order['customer'];
                 $LID = $arFields['LID'];
-                
                 
                 $rsOrderProps = CSaleOrderPropsValue::GetList(array(), array('ORDER_ID' => $arFields['ID']));
                 
@@ -509,6 +514,7 @@ class ICrmOrderActions
                     
                     // create new
                     if(isset($item['created']) && $item['created']) {
+                        
                         $productPrice = GetCatalogProductPrice($item['offer']['externalId'], 1);
                                 
                         $arProduct = array(
@@ -546,7 +552,8 @@ class ICrmOrderActions
                         if (isset($item['offer']['name']) && $item['offer']['name'])
                             $arProduct['NAME'] = $item['offer']['name'];
 
-                        CSaleBasket::Add($arProduct);
+                        //CSaleBasket::Add($arProduct);
+                        
                     }
 
                     // update old
@@ -567,8 +574,14 @@ class ICrmOrderActions
                         $arProduct['NAME'] = $item['offer']['name'];
 
                     CSaleBasket::Update($p['ID'], $arProduct);
+                    CSaleBasket::DeleteAll($userId);
                 } 
-
+                
+                $dateInsert = new \DateTime($arFields['DATE_INSERT']);
+                
+                if(!$dateStart || ($dateInsert > $dateStart))
+                    $dateStart = $dateInsert;
+                
                 // orderUpdate
                 $arFields = self::clearArr(array(
                     'PRICE_DELIVERY'   => $order['deliveryCost'],
@@ -589,7 +602,10 @@ class ICrmOrderActions
 
                 CSaleOrder::Update($order['externalId'], $arFields);
             } 
-        } 
+        }
+        
+        if(count($orderHistory))
+            COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_HISTORY_DATE, $dateStart->format('Y-m-d H:i:s'));
         
         return true;
     }
