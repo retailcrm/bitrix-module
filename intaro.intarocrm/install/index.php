@@ -440,6 +440,7 @@ class intaro_intarocrm extends CModule {
 
             // form correct url
             $api_host = parse_url($api_host);
+            if($api_host['scheme'] != 'https') $api_host['scheme'] = 'https';
             $api_host = $api_host['scheme'] . '://' . $api_host['host'];
 
             if (!$api_host || !$api_key) {
@@ -822,34 +823,21 @@ class intaro_intarocrm extends CModule {
                 $arResult['errCode'] = 'ERR_FIELDS_IBLOCK';
             else
                 $iblocks = $_POST['IBLOCK_EXPORT'];
-            
-            $iblockProperties = Array(
-                    "article" => "article",
-                    "manufacturer" => "manufacturer",
-                    "color" =>"color",
-                    "weight" => "weight",
-                    "size" => "size",
-                );
-            
-            $propertiesSKU = array();
-            foreach ($iblockProperties as $prop) {
-                foreach ($_POST['IBLOCK_PROPERTY_SKU'. '_' . $prop] as $iblock => $val) {
-                    $propertiesSKU[$iblock][$prop] = $val;
-                }
-            }
-            
-            $propertiesProduct = array();
-            foreach ($iblockProperties as $prop) {
-                foreach ($_POST['IBLOCK_PROPERTY_PRODUCT'. '_' . $prop] as $iblock => $val) {
-                    $propertiesProduct[$iblock][$prop] = $val;
-                }
-            }
+
+            if (!isset($_POST['IBLOCK_PROPERTY_ARTICLE']))
+                $arResult['errCode'] = 'ERR_FIELDS_ARTICLE';
+            else
+                $articleProperties = $_POST['IBLOCK_PROPERTY_ARTICLE'];
 
             if (!isset($_POST['SETUP_FILE_NAME']))
                 $arResult['errCode'] = 'ERR_FIELDS_FILE';
             else
                 $filename = $_POST['SETUP_FILE_NAME'];
-            
+
+            if (count($iblocks) < count($articleProperties))
+                $arResult['errCode'] = 'ERR_ARTICLE_IBLOCK';
+
+
             if (!isset($_POST['TYPE_LOADING']))
                 $typeLoading = 0;
             else
@@ -870,16 +858,15 @@ class intaro_intarocrm extends CModule {
                 
                 $arOldValues = Array(
                     'IBLOCK_EXPORT' => $iblocks,
-                    'IBLOCK_PROPERTY_SKU' => $propertiesSKU,
-                    'IBLOCK_PROPERTY_PRODUCT' => $propertiesProduct,
+                    'IBLOCK_PROPERTY_ARTICLE' => $articleProperties,
                     'SETUP_FILE_NAME' => $filename,
                     'SETUP_PROFILE_NAME' => $profileName
                 );
                 global $oldValues;
                 $oldValues = $arOldValues;
                 $APPLICATION->IncludeAdminFile(
-                    GetMessage('MODULE_INSTALL_TITLE'),
-                    $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step4.php'
+                        GetMessage('MODULE_INSTALL_TITLE'), 
+                        $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step5.php'
                 );
                 return;
             }
@@ -892,14 +879,12 @@ class intaro_intarocrm extends CModule {
 
                 $loader = new ICMLLoader();
                 $loader->iblocks = $iblocks;
-                $loader->propertiesProduct = $propertiesProduct;
-                $loader->propertiesSKU = $propertiesSKU;
+                $loader->articleProperties = $articleProperties;
                 $loader->filename = $filename;
                 $loader->application = $APPLICATION;
                 $loader->Load();
-                
-            } 
-            
+            }
+
             if ($typeLoading == 'agent' || $typeLoading == 'cron') {
                 if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/' . $this->INTARO_CRM_EXPORT . '_run.php')) {
                     $dbProfile = CCatalogExport::GetList(array(), array("FILE_NAME" => $this->INTARO_CRM_EXPORT));
@@ -911,18 +896,18 @@ class intaro_intarocrm extends CModule {
                         }
                     }
                 }
-                $ar = $this->GetProfileSetupVars($iblocks, $propertiesProduct, $propertiesSKU, $filename);
+                $ar = $this->GetProfileSetupVars($iblocks, $articleProperties, $filename);
                 $PROFILE_ID = CCatalogExport::Add(array(
-                    "LAST_USE"		=> false,
-                    "FILE_NAME"		=> $this->INTARO_CRM_EXPORT,
-                    "NAME"		=> $profileName,
-                    "DEFAULT_PROFILE"   => "N",
-                    "IN_MENU"		=> "N",
-                    "IN_AGENT"		=> "N",
-                    "IN_CRON"		=> "N",
-                    "NEED_EDIT"		=> "N",
-                    "SETUP_VARS"	=> $ar
-                    ));
+                            "LAST_USE" => false,
+                            "FILE_NAME" => $this->INTARO_CRM_EXPORT,
+                            "NAME" => $profileName,
+                            "DEFAULT_PROFILE" => "N",
+                            "IN_MENU" => "N",
+                            "IN_AGENT" => "N",
+                            "IN_CRON" => "N",
+                            "NEED_EDIT" => "N",
+                            "SETUP_VARS" => $ar
+                ));
                 if (intval($PROFILE_ID) <= 0) {
                     $arResult['errCode'] = 'ERR_IBLOCK';
                     return;
@@ -1090,26 +1075,22 @@ class intaro_intarocrm extends CModule {
         unlink($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/intarocrm_setup.php');
     }
 
-    function GetProfileSetupVars($iblocks, $propertiesProduct, $propertiesSKU, $filename) {
+    function GetProfileSetupVars($iblocks, $articleProperties, $filename) {
         // Get string like IBLOCK_EXPORT[0]=3&
         // IBLOCK_EXPORT[1]=6&
         // IBLOCK_PROPERTY_ARTICLE[0]=ARTICLE&
         // IBLOCK_PROPERTY_ARTICLE[1]=ARTNUMBER&
         // SETUP_FILE_NAME=%2Fbitrix%2Fcatalog_export%2Ftestintarocrm.xml
-
         //$arProfileFields = explode(",", $SETUP_FIELDS_LIST);
         $strVars = "";
-        foreach ($iblocks as $key => $val) 
+        foreach ($iblocks as $key => $val)
             $strVars .= 'IBLOCK_EXPORT[' . $key . ']=' . $val . '&';
-        foreach ($propertiesSKU as $iblock => $arr) 
-            foreach ($arr as $id => $val)
-                $strVars .= 'IBLOCK_PROPERTY_SKU_' . $id . '[' . $iblock . ']=' . $val . '&';
-        foreach ($propertiesProduct as $iblock => $arr) 
-            foreach ($arr as $id => $val)
-                $strVars .= 'IBLOCK_PROPERTY_PRODUCT_' . $id . '[' . $iblock . ']=' . $val . '&';
-        
+        foreach ($articleProperties as $key => $val)
+            $strVars .= 'IBLOCK_PROPERTY_ARTICLE[' . $key . ']=' . $val . '&';
+
         $strVars .= 'SETUP_FILE_NAME=' . urlencode($filename);
-        
+
         return $strVars;
     }
+
 }

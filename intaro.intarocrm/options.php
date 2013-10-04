@@ -96,6 +96,10 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     $api_host = htmlspecialchars(trim($_POST['api_host']));
     $api_key = htmlspecialchars(trim($_POST['api_key']));
     
+    $api_host = parse_url($api_host);
+    if ($api_host['scheme'] != 'https') $api_host['scheme'] = 'https';
+    $api_host = $api_host['scheme'] . '://' . $api_host['host'];
+    
     // if empty so select all? or exception --not obligatory
     $orderSites = array();
     foreach ($_POST[$CRM_ORDER_SITES] as $site) {
