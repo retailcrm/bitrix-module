@@ -301,18 +301,13 @@ class ICrmOrderActions
  
         $dateStart = COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_HISTORY_DATE, null);
 
-        var_dump($dateStart);
-        
         $orderHistory = $api->orderHistory($dateStart);
-
-        var_dump($orderHistory);
         
         if($dateStart)
             $dateStart = new \DateTime($dateStart);
         
         // pushing existing orders
         foreach ($orderHistory as $order) {
-            var_dump($order['externalId']);
 
             if(!isset($order['externalId']) && !$order['externalId']) {
 
@@ -498,7 +493,6 @@ class ICrmOrderActions
                             implode(" ", $contactName), $order['externalId']);
 
                 foreach($order['items'] as $item) {
-                    var_dump($item);
                     // del from basket
                     if(isset($item['deleted']) && $item['deleted']) {
                         $p = CSaleBasket::GetList(
