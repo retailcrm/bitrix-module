@@ -298,22 +298,27 @@ class ICrmOrderActions
         $optionsOrderProps = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_PROPS, 0));
 
         $api = new IntaroCrm\RestApi($api_host, $api_key);
-        
+ 
         $dateStart = COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_HISTORY_DATE, null);
+
+        var_dump($dateStart);
         
         $orderHistory = $api->orderHistory($dateStart);
+
+        var_dump($orderHistory);
         
         if($dateStart)
             $dateStart = new \DateTime($dateStart);
         
         // pushing existing orders
         foreach ($orderHistory as $order) {
-            
-            // выбрасываем заказы от 'новых клиентов'
-            if(!isset($order['customer']) && !$order['customer'])
-                continue;
-            
-            if(!isset($order['externalId']) && !$order['externalId']) { 
+            var_dump($order['externalId']);
+
+            if(!isset($order['externalId']) && !$order['externalId']) {
+
+                // we dont need new orders without any customers
+                if(!isset($order['customer']) && !$order['customer'])
+                    continue;
 
                 // new order
                $newOrderFields = array(
@@ -336,7 +341,7 @@ class ICrmOrderActions
                     $newOrderFields['ACCOUNT_NUMBER'] = $order['number'];
                 
                 $order['externalId'] = CSaleOrder::Add($newOrderFields);
-                
+
                 $api->orderFixExternalIds(array(array('id' => $order['id'], 'externalId' => $order['externalId'])));
                 
                 if ($api->getStatusCode() != 200) { 
@@ -492,8 +497,21 @@ class ICrmOrderActions
                     self::addOrderProperty($optionsOrderProps[$arFields['PERSON_TYPE_ID']]['fio'],
                             implode(" ", $contactName), $order['externalId']);
 
-                foreach($order['items'] as $item) {                  
-                    if(!isset($item['offer']) && !$item['offer']['externalId']) 
+                foreach($order['items'] as $item) {
+                    var_dump($item);
+                    // del from basket
+                    if(isset($item['deleted']) && $item['deleted']) {
+                        $p = CSaleBasket::GetList(
+                            array('PRODUCT_ID' => 'ASC'),
+                            array('ORDER_ID' => $order['externalId'], 'PRODUCT_ID' => $item['id']))->Fetch();
+
+                        if($p)
+                            CSaleBasket::Delete($p['ID']);
+
+                         continue;
+                    }
+
+                    if(!isset($item['offer']) && !$item['offer']['externalId'])
                         continue;
                     
                     $p = CSaleBasket::GetList(
@@ -502,13 +520,7 @@ class ICrmOrderActions
                     
                     if(!$p)
                         $p = CIBlockElement::GetByID($item['offer']['externalId'])->Fetch();
-                    
-                    // del from basket
-                    if(isset($item['deleted']) && $item['deleted']) {
-                        CSaleBasket::Delete($p['ID']);
-                        continue;
-                    }
-                    
+
                     // change existing basket items
                     $arProduct = array();
                     
@@ -552,8 +564,9 @@ class ICrmOrderActions
                         if (isset($item['offer']['name']) && $item['offer']['name'])
                             $arProduct['NAME'] = $item['offer']['name'];
 
-                        //CSaleBasket::Add($arProduct);
-                        
+                        CSaleBasket::Add($arProduct);
+                        continue;
+
                     }
 
                     // update old
@@ -561,7 +574,7 @@ class ICrmOrderActions
                         $arProduct['PRICE'] = (double) $item['initialPrice'];
 
                     if (isset($item['dicount']) && $item['discount']) {
-                        $arProduct['PRICE'] = $arProducts['PRICE'] - (double) $item['disount'];
+                        $arProduct['PRICE'] = $arProduct['PRICE'] - (double) $item['disount'];
                         $arProduct['DISCOUNT_PRICE'] = $item['discount'];
                     }
 
@@ -570,18 +583,16 @@ class ICrmOrderActions
                         $arProduct['DISCOUNT_VALUE'] = $item['discountPercent'];
                     }
 
+                    if (isset($item['quantity']) && $item['quantity'])
+                        $arProduct['QUANTITY'] = $item['quantity'];
+
                     if (isset($item['offer']['name']) && $item['offer']['name'])
                         $arProduct['NAME'] = $item['offer']['name'];
 
                     CSaleBasket::Update($p['ID'], $arProduct);
                     CSaleBasket::DeleteAll($userId);
                 } 
-                
-                $dateInsert = new \DateTime($arFields['DATE_INSERT']);
-                
-                if(!$dateStart || ($dateInsert > $dateStart))
-                    $dateStart = $dateInsert;
-                
+
                 // orderUpdate
                 $arFields = self::clearArr(array(
                     'PRICE_DELIVERY'   => $order['deliveryCost'],
@@ -601,6 +612,8 @@ class ICrmOrderActions
                 $GLOBALS['INTARO_CRM_FROM_HISTORY'] = true;
 
                 CSaleOrder::Update($order['externalId'], $arFields);
+
+                $dateStart = new \DateTime();
             } 
         }
         
@@ -796,9 +809,9 @@ class ICrmOrderActions
                 $p['DISCOUNT_PRICE'] = null;
 
             $items[] = array(
-                'initialPrice'    => (double) $p['PRICE'] + (double) $p['DISCOUNT_PRICE'],
+                'initialPrice'          => (double) $p['PRICE'] + (double) $p['DISCOUNT_PRICE'],
                 'purchasePrice'   => $pr,
-                'discount'        => $p['DISCOUNT_PRICE'],
+                'discount'            => $p['DISCOUNT_PRICE'],
                 'discountPercent' => $p['DISCOUNT_VALUE'],
                 'quantity'        => $p['QUANTITY'],
                 'productId'       => $p['PRODUCT_ID'],
