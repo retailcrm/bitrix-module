@@ -261,7 +261,7 @@ class ICMLLoader {
                         
                         $pictures = array();
                         $products = array();
-                        while ($product = $dbResProducts->Fetch()) {
+                        while ($product = $dbResProducts->GetNext()) {
                              
                             // Compile products to array
                             $products[$product['ID']] = $product;
@@ -287,7 +287,7 @@ class ICMLLoader {
                         
                         // Get pathes of pictures
                         $dbFiles = CFile::GetList(Array(), Array("@ID" => implode(',', $pictureIDs)));
-                        while($file = $dbFiles->Fetch()) {
+                        while($file = $dbFiles->GetNext()) {
                             
                             // Link picture to product
                             $products[$pictures[$file['ID']]]['PICTURE'] = "http://" . 
@@ -305,6 +305,7 @@ class ICMLLoader {
                             
                             $arSelectOffer = Array (
                                             'ID',
+                                            'ACTIVE',
                                             "NAME",
                                             "DETAIL_TEXT",
                                             "DETAIL_PAGE_URL",
@@ -328,7 +329,7 @@ class ICMLLoader {
                             // Get all offers for products on this page
                             $dbResOffers = CIBlockElement::GetList(array(), $arFilterOffer, false, false, $arSelectOffer);
                             
-                            while ($offer = $dbResOffers->Fetch()) {
+                            while ($offer = $dbResOffers->GetNext()) {
                                 
                                 // Link offers to products
                                 $products[$offer['PROPERTY_' . $iblockOffer['SKU_PROPERTY_ID'] . '_VALUE']]['offers'][$offer['ID']] = $offer;
@@ -380,6 +381,7 @@ class ICMLLoader {
                                         $offer['DETAIL_PAGE_URL'] = $product["DETAIL_PAGE_URL"];
                                         $offer['PICTURE'] = $product["PICTURE"];
                                         $offer['PRODUCT_NAME'] = $product["NAME"];
+                                        $offer['PRODUCT_ACTIVE'] = $product["ACTIVE"];
                                         $offer['PRICE'] = $offer['CATALOG_PRICE_1'];
                                         $offer['QUANTITY'] = $offer["CATALOG_QUANTITY"];
                                         
@@ -409,6 +411,7 @@ class ICMLLoader {
 
                                     $product['PRODUCT_ID'] = $product["ID"];
                                     $product['PRODUCT_NAME'] = $product["NAME"];
+                                    $product['PRODUCT_ACTIVE'] = $product["ACTIVE"];
                                     $product['PRICE'] = $product['CATALOG_PRICE_1'];
                                     $product['QUANTITY'] = $product["CATALOG_QUANTITY"];
 
@@ -441,7 +444,10 @@ class ICMLLoader {
             $offer .= "<offer id=\"" .$this->PrepareValue($arOffer["ID"]) . "\" ".
                     "productId=\"" . $this->PrepareValue($arOffer["PRODUCT_ID"]) . "\" ".
                     "quantity=\"" . $this->PrepareValue(DoubleVal($arOffer['QUANTITY'])) . "\">\n";
-
+            
+            if ($arOffer['PRODUCT_ACTIVE'] == "N")
+                $offer .= "<productActivity>" .  $this->PrepareValue($arOffer['PRODUCT_ACTIVE']) . "</productActivity>\n";
+            
             $keys = array_keys($categories);
             if (strpos($arOffer['DETAIL_PAGE_URL'], "#SECTION_PATH#") !== false) {
                 if (count($categories) != 0) {
