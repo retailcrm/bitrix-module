@@ -34,6 +34,7 @@ class intaro_intarocrm extends CModule {
     var $CRM_ORDER_PROPS = 'order_props';
     var $CRM_ORDER_DISCHARGE = 'order_discharge';
     var $CRM_ORDER_FAILED_IDS = 'order_failed_ids';
+    var $CRM_ORDER_HISTORY_DATE = 'order_history_date';
     var $INSTALL_PATH;
 
     function intaro_intarocrm() {
@@ -702,6 +703,7 @@ class intaro_intarocrm extends CModule {
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_LAST_ID, 0);
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_DISCHARGE, 0);
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_FAILED_IDS, serialize(array()));
+            COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_HISTORY_DATE, new \DateTime()->format('Y-m-d H:i:s'));
             
             $APPLICATION->IncludeAdminFile(
                     GetMessage('MODULE_INSTALL_TITLE'),
@@ -1051,6 +1053,7 @@ class intaro_intarocrm extends CModule {
         COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_PROPS);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_DISCHARGE);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_FAILED_IDS);
+        COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_HISTORY_DATE);
 
         UnRegisterModuleDependences("sale", "OnSalePayOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSalePayOrder");
         UnRegisterModuleDependences("sale", "OnSaleCancelOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSaleCancelOrder");
