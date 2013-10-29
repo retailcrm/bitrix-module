@@ -34,6 +34,7 @@ class intaro_intarocrm extends CModule {
     var $CRM_ORDER_PROPS = 'order_props';
     var $CRM_ORDER_DISCHARGE = 'order_discharge';
     var $CRM_ORDER_FAILED_IDS = 'order_failed_ids';
+    var $CRM_ORDER_HISTORY_DATE = 'order_history_date';
     var $INSTALL_PATH;
 
     function intaro_intarocrm() {
@@ -300,6 +301,7 @@ class intaro_intarocrm extends CModule {
                 COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT_TYPES, serialize($paymentTypesArr));
                 COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT_STATUSES, serialize($paymentStatusesArr));
                 COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT, serialize($paymentArr));
+                COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_HISTORY_DATE, date('Y-m-d H:i:s'));
 
                 // generate updated select inputs  
                 $input = array();
@@ -1007,7 +1009,7 @@ class intaro_intarocrm extends CModule {
             CAgent::AddAgent(
                     "ICrmOrderActions::uploadOrdersAgent();", $this->MODULE_ID, "N", 600, // interval - 10 mins
                     $dateAgent->format('d.m.Y H:i:s'), // date of first check
-                    "Y", // àãåíò àêòèâåí
+                    "Y", // agent is active
                     $dateAgent->format('d.m.Y H:i:s'), // date of first start
                     30
             );
@@ -1018,7 +1020,7 @@ class intaro_intarocrm extends CModule {
                  "N",
                  600, // interval - 10 mins
                  $dateAgent->format('d.m.Y H:i:s'), // date of first check
-                 "Y", // àãåíò àêòèâåí
+                 "Y", // agent is active
                  $dateAgent->format('d.m.Y H:i:s'), // date of first start
                  30
             );
@@ -1052,6 +1054,7 @@ class intaro_intarocrm extends CModule {
         COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_PROPS);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_DISCHARGE);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_FAILED_IDS);
+        COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_HISTORY_DATE);
 
         UnRegisterModuleDependences("sale", "OnSalePayOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSalePayOrder");
         UnRegisterModuleDependences("sale", "OnSaleCancelOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSaleCancelOrder");
