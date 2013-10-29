@@ -676,7 +676,7 @@ class ICrmOrderActions
         if(!$api || empty($arParams)) { // add cond to check $arParams
             return false;
         }
-		
+        
         if (empty($arFields)) {
             //handle err
             self::eventLog('ICrmOrderActions::orderCreate', 'empty($arFields)', 'incorrect order');
@@ -803,9 +803,9 @@ class ICrmOrderActions
                 $p['DISCOUNT_PRICE'] = null;
 
             $items[] = array(
-                'initialPrice'          => (double) $p['PRICE'] + (double) $p['DISCOUNT_PRICE'],
+                'initialPrice'    => (double) $p['PRICE'] + (double) $p['DISCOUNT_PRICE'],
                 'purchasePrice'   => $pr,
-                'discount'            => $p['DISCOUNT_PRICE'],
+                'discount'        => $p['DISCOUNT_PRICE'],
                 'discountPercent' => $p['DISCOUNT_VALUE'],
                 'quantity'        => $p['QUANTITY'],
                 'productId'       => $p['PRODUCT_ID'],
@@ -814,7 +814,7 @@ class ICrmOrderActions
         }
 
         if($arFields['CANCELED'] == 'Y')
-            $arFields['STATUS_ID'] = $arFields['CANCELED'];
+            $arFields['STATUS_ID'] = $arFields['CANCELED'].$arFields['CANCELED'];
 
         $createdAt = new \DateTime($arFields['DATE_INSERT']);
         $createdAt = $createdAt->format('Y-m-d H:i:s');

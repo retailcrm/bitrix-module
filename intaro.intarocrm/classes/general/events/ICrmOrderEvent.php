@@ -122,6 +122,7 @@ class ICrmOrderEvent {
         $arOrder = CSaleOrder::GetById($ID);
         
         if (is_array($arFields) && !empty($arFields)) {
+
             $arFieldsNew = array(
                 'USER_ID'        => $arOrder['USER_ID'],
                 'ID'             => $ID,
@@ -185,7 +186,7 @@ class ICrmOrderEvent {
         
         $order = array(
             'externalId'    => (int) $ID,
-            'status'        => $optionsPayStatuses[$cancel],
+            'status'        => $optionsPayStatuses[$cancel.$cancel],
             'statusComment' => ICrmOrderActions::toJSON($reason)
         );
         

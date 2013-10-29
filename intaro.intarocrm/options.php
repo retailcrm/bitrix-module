@@ -116,7 +116,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             COption::SetOptionString($mid, 'api_key', $api_key);
         }   
     }
-	
+    
     //bitrix orderTypesList -- personTypes
     $dbOrderTypesList = CSalePersonType::GetList(
         array(
@@ -140,7 +140,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             $orderTypesList[] = $arOrderTypesList;
         } while ($arOrderTypesList = $dbOrderTypesList->Fetch());
     }
-	
+    
     //bitrix deliveryTypesList
     $dbDeliveryTypesList = CSaleDelivery::GetList(
         array(
@@ -162,7 +162,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             $deliveryTypesArr[$arDeliveryTypesList['ID']] = htmlspecialchars(trim($_POST['delivery-type-' . $arDeliveryTypesList['ID']]));   
         } while ($arDeliveryTypesList = $dbDeliveryTypesList->Fetch());
     }
-		    
+            
     //bitrix paymentTypesList
     $dbPaymentTypesList = CSalePaySystem::GetList(
         array(
@@ -195,7 +195,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     );
             
     //form payment statuses ids arr
-    $paymentStatusesArr['Y'] = htmlspecialchars(trim($_POST['payment-status-Y']));
+    $paymentStatusesArr['YY'] = htmlspecialchars(trim($_POST['payment-status-YY']));
     if ($arPaymentStatusesList = $dbPaymentStatusesList->Fetch()) {
         do {
             $paymentStatusesArr[$arPaymentStatusesList['ID']] = htmlspecialchars(trim($_POST['payment-status-' . $arPaymentStatusesList['ID']]));     
@@ -350,7 +350,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         } while ($arPaymentStatusesList = $dbPaymentStatusesList->Fetch());
     }
     $arResult['bitrixPaymentStatusesList'][] = array(
-        'ID'   => 'Y',
+        'ID'   => 'YY',
         'NAME' => GetMessage('CANCELED')
     );
     
@@ -457,7 +457,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     <?php foreach($arResult['bitrixDeliveryTypesList'] as $bitrixDeliveryType): ?>
     <tr>
         <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $bitrixDeliveryType['ID']; ?>">
-    	    <?php echo $bitrixDeliveryType['NAME']; ?>
+            <?php echo $bitrixDeliveryType['NAME']; ?>
         </td>
         <td width="50%" class="adm-detail-content-cell-r">
             <select name="delivery-type-<?php echo $bitrixDeliveryType['ID']; ?>" class="typeselect">
@@ -544,9 +544,9 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     <tr>
        <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $bitrixOrderType['ID']; ?>">
            <?php echo $bitrixOrderType['NAME']; ?>
-	   </td>
-	   <td width="50%" class="adm-detail-content-cell-r">
-	       <select name="order-type-<?php echo $bitrixOrderType['ID']; ?>" class="typeselect">
+       </td>
+       <td width="50%" class="adm-detail-content-cell-r">
+           <select name="order-type-<?php echo $bitrixOrderType['ID']; ?>" class="typeselect">
                <option value=""></option>
                <?php foreach($arResult['orderTypesList'] as $orderType): ?>
                <option value="<?php echo $orderType['code']; ?>" <?php if ($optionsOrderTypes[$bitrixOrderType['ID']] == $orderType['code']) echo 'selected'; ?>>
@@ -583,7 +583,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     <?php endif; ?>
     <tr <?php if ($countProps > 4) echo 'class="address-detail-' . $bitrixOrderType['ID'] . '"'; if(($countProps > 4) && (count($optionsOrderProps[$bitrixOrderType['ID']]) < 6)) echo 'style="display:none;"';?>>
         <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $orderProp['ID']; ?>">
-    	    <?php echo $orderProp['NAME']; ?>
+            <?php echo $orderProp['NAME']; ?>
         </td>
         <td width="50%" class="adm-detail-content-cell-r">
             <select name="order-prop-<?php echo $orderProp['ID'] . '-' . $bitrixOrderType['ID']; ?>" class="typeselect">
