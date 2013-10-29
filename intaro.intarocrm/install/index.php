@@ -301,7 +301,6 @@ class intaro_intarocrm extends CModule {
                 COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT_TYPES, serialize($paymentTypesArr));
                 COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT_STATUSES, serialize($paymentStatusesArr));
                 COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT, serialize($paymentArr));
-                COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_HISTORY_DATE, date('Y-m-d H:i:s'));
 
                 // generate updated select inputs  
                 $input = array();
@@ -705,6 +704,7 @@ class intaro_intarocrm extends CModule {
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_LAST_ID, 0);
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_DISCHARGE, 0);
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_FAILED_IDS, serialize(array()));
+            COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_HISTORY_DATE, date('Y-m-d H:i:s'));
             
             $APPLICATION->IncludeAdminFile(
                     GetMessage('MODULE_INSTALL_TITLE'),
@@ -937,7 +937,7 @@ class intaro_intarocrm extends CModule {
                     $dateAgent->add($intAgent);
                     CAgent::AddAgent(
                             "CCatalogExport::PreGenerateExport(" . $PROFILE_ID . ");", "catalog", "N", 86400, $dateAgent->format('d.m.Y H:i:s'), // date of first check
-                            "Y", // àãåíò àêòèâåí
+                            "Y", // agent is active
                             $dateAgent->format('d.m.Y H:i:s'), // date of first start
                             30
                     );
