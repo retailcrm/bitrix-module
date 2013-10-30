@@ -890,6 +890,7 @@ class intaro_intarocrm extends CModule {
             RegisterModule($this->MODULE_ID);
             RegisterModuleDependences("sale", "OnSalePayOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSalePayOrder");
             RegisterModuleDependences("sale", "OnSaleCancelOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSaleCancelOrder");
+            RegisterModuleDependences("sale", "OnBeforeOrderAccountNumberSet", $this->MODULE_ID, "ICrmOrderEvent", "onBeforeOrderAccountNumberSet");
             $this->CopyFiles();
             if (isset($_POST['LOAD_NOW'])) {
 
@@ -1061,6 +1062,7 @@ class intaro_intarocrm extends CModule {
         UnRegisterModuleDependences("sale", "OnOrderNewSendEmail", $this->MODULE_ID, "ICrmOrderEvent", "onSendOrderMail");
         UnRegisterModuleDependences("sale", "OnOrderUpdate", $this->MODULE_ID, "ICrmOrderEvent", "onUpdateOrder");
         UnRegisterModuleDependences("sale", "OnBeforeOrderAdd", $this->MODULE_ID, "ICrmOrderEvent", "onBeforeOrderAdd");
+        UnRegisterModuleDependences("sale", "OnBeforeOrderAccountNumberSet", $this->MODULE_ID, "ICrmOrderEvent", "onBeforeOrderAccountNumberSet");
         if (CModule::IncludeModule("catalog")) {
             if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/' . $this->INTARO_CRM_EXPORT . '_run.php')) {
                 $dbProfile = CCatalogExport::GetList(array(), array("FILE_NAME" => $this->INTARO_CRM_EXPORT));

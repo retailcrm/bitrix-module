@@ -31,7 +31,7 @@ class ICMLLoader {
             
             $this->PrepareSettings();
 
-            $this->fp = $this->PrepareFile($this->filename);
+            $this->fp = $this->PrepareFile($this->filename. '.tmp');
             
             if ($this->isLogged) {
                 $this->fpLog = $this->PrepareFile($this->logFile);
@@ -57,6 +57,8 @@ class ICMLLoader {
             $this->CloseFile($this->fp);
             $this->CloseFile($this->fpLog);
             
+            unlink($_SERVER["DOCUMENT_ROOT"] . $this->filename);
+            rename($_SERVER["DOCUMENT_ROOT"] . $this->filename. '.tmp', $_SERVER["DOCUMENT_ROOT"] . $this->filename);
 
             return true;
 

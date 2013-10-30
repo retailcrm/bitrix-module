@@ -333,9 +333,12 @@ class ICrmOrderActions
                 );
                
                 if(isset($order['number']) && $order['number'])
-                    $newOrderFields['ACCOUNT_NUMBER'] = $order['number'];
+                    $GLOBALS['ICRM_ACCOUNT_NUMBER'] = $order['number'];
                 
                 $order['externalId'] = CSaleOrder::Add($newOrderFields);
+
+                if(isset($GLOBALS['ICRM_ACCOUNT_NUMBER']))
+                    unset($GLOBALS['ICRM_ACCOUNT_NUMBER']);
 
                 $api->orderFixExternalIds(array(array('id' => $order['id'], 'externalId' => $order['externalId'])));
                 
