@@ -700,6 +700,8 @@ class ICrmOrderActions
         $lastName = self::toJSON($arUser['LAST_NAME']);
         $patronymic = self::toJSON($arUser['SECOND_NAME']);
 
+        $phones = array();
+
         $phonePersonal = array(
             'number' => self::toJSON($arUser['PERSONAL_PHONE']),
             'type'   => 'mobile'
