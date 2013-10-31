@@ -704,13 +704,17 @@ class ICrmOrderActions
             'number' => self::toJSON($arUser['PERSONAL_PHONE']),
             'type'   => 'mobile'
         );
-        $phones[] = $phonePersonal;
+
+        if($phonePersonal['number'])
+            $phones[] = $phonePersonal;
 
         $phoneWork = array(
             'number' => self::toJSON($arUser['WORK_PHONE']),
             'type'   => 'work'
         );
-        $phones[] = $phoneWork;
+
+        if($phoneWork['number'])
+            $phones[] = $phoneWork;
 
         $customer = self::clearArr(array(
             'externalId' => $arFields['USER_ID'],
