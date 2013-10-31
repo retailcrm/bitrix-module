@@ -311,20 +311,20 @@ class ICrmOrderActions
 
             if(!isset($order['externalId']) && !$order['externalId']) {
 
-                // we dont need new orders without any customers
-                if(!isset($order['customer']) && !$order['customer'])
+                // we dont need new orders without any customers (can check only for externalId)
+                if(!isset($order['customer']['externalId']) && !$order['customer']['externalId'])
                     continue;
 
                 // new order
                $newOrderFields = array(
-                    'LID'              => $defaultSiteId, //<----!
-                    'PERSON_TYPE_ID'   => $optionsOrderTypes[$order['orderType']], // <------!
+                    'LID'              => $defaultSiteId,
+                    'PERSON_TYPE_ID'   => $optionsOrderTypes[$order['orderType']],
                     'PAYED'            => 'N',
                     'CANCELED'         => 'N',
                     'STATUS_ID'        => 'N',
                     'PRICE'            => 0,
                     'CURRENCY'         => 'RUB',
-                    'USER_ID'          => $order['customer'], // <--------!
+                    'USER_ID'          => $order['customer']['externalId'],
                     'PAY_SYSTEM_ID'    => 0,
                     'PRICE_DELIVERY'   => 0,
                     'DELIVERY_ID'      => 0,
@@ -356,9 +356,11 @@ class ICrmOrderActions
                 if(!$arFields || empty($arFields))
                     continue;
                 
-                $userId = $arFields['USER_ID'];
-                if(isset($order['customer']) && $order['customer']) $userId = $order['customer'];
                 $LID = $arFields['LID'];
+                $userId = $arFields['USER_ID'];
+
+                if(isset($order['customer']['externalId']) && $order['customer']['externalId']) 
+                    $userId = $order['customer']['externalId'];
                 
                 $rsOrderProps = CSaleOrderPropsValue::GetList(array(), array('ORDER_ID' => $arFields['ID']));
                 
@@ -415,17 +417,17 @@ class ICrmOrderActions
 
                     switch ($ar['CODE']) {
                         case $optionsOrderProps[$arFields['PERSON_TYPE_ID']]['fio']:
-                            if (isset($order['firstName']))
-                                $contactName['firstName'] = self::fromJSON($order['firstName']);
-                            if (isset($order['lastName']))
-                                $contactName['lastName'] = self::fromJSON($order['lastName']);
-                            if (isset($order['patronymic']))
-                                $contactName['patronymic'] = self::fromJSON($order['patronymic']);
+                                if (isset($order['firstName']))
+                                    $contactName['firstName'] = self::fromJSON($order['firstName']);
+                                if (isset($order['lastName']))
+                                    $contactName['lastName'] = self::fromJSON($order['lastName']);
+                                if (isset($order['patronymic']))
+                                    $contactName['patronymic'] = self::fromJSON($order['patronymic']);
 
-                            if (!isset($contactName) || empty($contactName))
-                                break;
+                                if (!isset($contactName) || empty($contactName))
+                                    break;
 
-                            CSaleOrderPropsValue::Update($ar['ID'], array('VALUE' => implode(" ", $contactName)));
+                                CSaleOrderPropsValue::Update($ar['ID'], array('VALUE' => implode(" ", $contactName)));
                             break;
                         case $optionsOrderProps[$arFields['PERSON_TYPE_ID']]['phone']: if (isset($order['phone']))
                                 CSaleOrderPropsValue::Update($ar['ID'], array('VALUE' => self::fromJSON($order['phone'])));
