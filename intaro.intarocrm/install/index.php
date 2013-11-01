@@ -891,6 +891,9 @@ class intaro_intarocrm extends CModule {
             RegisterModuleDependences("sale", "OnSalePayOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSalePayOrder");
             RegisterModuleDependences("sale", "OnSaleCancelOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSaleCancelOrder");
             RegisterModuleDependences("sale", "OnBeforeOrderAccountNumberSet", $this->MODULE_ID, "ICrmOrderEvent", "onBeforeOrderAccountNumberSet");
+            RegisterModuleDependences("sale", "OnOrderNewSendEmail", $this->MODULE_ID, "ICrmOrderEvent", "onSendOrderMail");
+            RegisterModuleDependences("sale", "OnOrderUpdate", $this->MODULE_ID, "ICrmOrderEvent", "onUpdateOrder");
+            RegisterModuleDependences("sale", "OnBeforeOrderAdd", $this->MODULE_ID, "ICrmOrderEvent", "onBeforeOrderAdd");
             $this->CopyFiles();
             if (isset($_POST['LOAD_NOW'])) {
 
