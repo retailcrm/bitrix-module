@@ -591,6 +591,9 @@ class ICrmOrderActions
                     CSaleBasket::DeleteAll($userId);
                 } 
 
+                if(!isset($order['deliveryCost']))
+                    $order['deliveryCost'] = $arFields['PRICE_DELIVERY'];
+
                 // orderUpdate
                 $arFields = self::clearArr(array(
                     'PRICE_DELIVERY'   => $order['deliveryCost'],
