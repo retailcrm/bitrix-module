@@ -601,10 +601,10 @@ class ICrmOrderActions
                     'DATE_MARKED'      => $order['markDatetime'],
                     'USER_ID'          => $userId, //$order['customer']
                     'PAY_SYSTEM_ID'    => $optionsPayTypes[$order['paymentType']],
-                    'PAYED'            => $optionsPayment[$order['paymentStatus']],
+                    //'PAYED'            => $optionsPayment[$order['paymentStatus']],
                     //'PERSON_TYPE_ID' => $optionsOrderTypes[$order['orderType']],
                     'DELIVERY_ID'      => $optionsDelivTypes[$order['deliveryType']],
-                    'STATUS_ID'        => $optionsPayStatuses[$order['status']],
+                    //'STATUS_ID'        => $optionsPayStatuses[$order['status']],
                     'REASON_CANCELED'  => $order['statusComment'],
                     'USER_DESCRIPTION' => $order['customerComment'],
                     'COMMENTS'         => $order['managerComment']
@@ -613,6 +613,11 @@ class ICrmOrderActions
                 $GLOBALS['INTARO_CRM_FROM_HISTORY'] = true;
 
                 CSaleOrder::Update($order['externalId'], $arFields);
+
+                // set STATUS_ID
+                CSaleOrder::StatusOrder($order['externalId'], $optionsPayStatuses[$order['status']]);
+                // set PAYED
+                CSaleOrder::PayOrder($order['externalId'], $optionsPayment[$order['paymentStatus']]);
 
                 $dateStart = new \DateTime();
             } 
