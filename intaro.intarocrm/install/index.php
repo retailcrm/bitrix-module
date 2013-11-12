@@ -152,7 +152,7 @@ class intaro_intarocrm extends CModule {
             if (!CModule::IncludeModule("catalog")) {
                 $arResult['errCode'] = 'ERR_CATALOG';
             }
-
+ 
             $arResult['arSites'] = array();
             $rsSites = CSite::GetList($by, $sort, array());
             while ($ar = $rsSites->Fetch())
@@ -435,9 +435,9 @@ class intaro_intarocrm extends CModule {
 
             // empty == select all
             $orderSites = array();
-            foreach ($_POST[$this->CRM_ORDER_SITES] as $site) {
+            /* foreach ($_POST[$this->CRM_ORDER_SITES] as $site) {
                 $orderSites[] = htmlspecialchars(trim($site));
-            }
+            } */
 
             // form correct url
             $api_host = parse_url($api_host);

@@ -98,9 +98,9 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     
     // if empty so select all? or exception --not obligatory
     $orderSites = array();
-    foreach ($_POST[$CRM_ORDER_SITES] as $site) {
+    /*foreach ($_POST[$CRM_ORDER_SITES] as $site) {
         $orderSites[] = htmlspecialchars(trim($site));
-    }
+    }*/
             
     if($api_host && $api_key) {
         $api = new IntaroCrm\RestApi($api_host, $api_key);
