@@ -367,6 +367,9 @@ class ICrmOrderActions
                 while ($ar = $rsOrderProps->Fetch()) {
                     if (isset($order['deliveryAddress']) && $order['deliveryAddress']) {
                         switch ($ar['CODE']) {
+                            case $optionsOrderProps[$arFields['PERSON_TYPE_ID']]['index']: if (isset($order['deliveryAddress']['index']))
+                                    CSaleOrderPropsValue::Update($ar['ID'], array('VALUE' => self::fromJSON($order['deliveryAddress']['index'])));
+                                break;
                             case 'CITY': if (isset($order['deliveryAddress']['city']))
                                     CSaleOrderPropsValue::Update($ar['ID'], array('VALUE' => self::fromJSON($order['deliveryAddress']['city'])));
                                 break;
@@ -441,6 +444,10 @@ class ICrmOrderActions
                 
                 // here check if smth wasnt added or new propetties
                 if (isset($order['deliveryAddress']) && $order['deliveryAddress']) {
+                    if (isset($order['deliveryAddress']['index']))
+                        self::addOrderProperty($optionsOrderProps[$arFields['PERSON_TYPE_ID']]['index'], 
+                                self::fromJSON($order['deliveryAddress']['index']), $order['externalId']);
+                    
                     if (isset($order['deliveryAddress']['city']))
                         self::addOrderProperty($optionsOrderProps[$arFields['PERSON_TYPE_ID']]['city'], self::fromJSON($order['deliveryAddress']['city']), $order['externalId']);
 
@@ -557,7 +564,9 @@ class ICrmOrderActions
 
                         if (isset($item['discountPercent']) && $item['discountPercent']) {                            
                             $arProduct['DISCOUNT_VALUE'] = $item['discountPercent'];
-                            $arProduct['PRICE'] = floor ($arProduct['PRICE'] / 100 * (100 - $arProduct['DISCOUNT_VALUE']));
+                            $newPrice = floor ($arProduct['PRICE'] / 100 * (100 - $arProduct['DISCOUNT_VALUE']));
+                            $arProduct['DISCOUNT_PRICE'] = $arProduct['PRICE'] - $newPrice;
+                            $arProduct['PRICE'] -= $arProduct['DISCOUNT_PRICE'];
                         }
 
                         if (isset($item['offer']['name']) && $item['offer']['name'])
@@ -576,10 +585,12 @@ class ICrmOrderActions
                         $arProduct['PRICE'] -= $arProduct['DISCOUNT_PRICE'];
                     }                
 
-                    if (isset($item['discountPercent']) && $item['discountPercent']) {                        
-                        $arProduct['DISCOUNT_VALUE'] = $item['discountPercent'];
-                        $arProduct['PRICE'] = floor ($arProduct['PRICE'] / 100 * (100 - $arProduct['DISCOUNT_VALUE']));
-                    }
+                    if (isset($item['discountPercent']) && $item['discountPercent']) {                            
+                            $arProduct['DISCOUNT_VALUE'] = $item['discountPercent'];
+                            $newPrice = floor ($arProduct['PRICE'] / 100 * (100 - $arProduct['DISCOUNT_VALUE']));
+                            $arProduct['DISCOUNT_PRICE'] = $arProduct['PRICE'] - $newPrice;
+                            $arProduct['PRICE'] -= $arProduct['DISCOUNT_PRICE'];
+                        }
 
                     if (isset($item['quantity']) && $item['quantity'])
                         $arProduct['QUANTITY'] = $item['quantity'];
@@ -604,7 +615,7 @@ class ICrmOrderActions
                     //'PAYED'            => $optionsPayment[$order['paymentStatus']],
                     //'PERSON_TYPE_ID' => $optionsOrderTypes[$order['orderType']],
                     'DELIVERY_ID'      => $optionsDelivTypes[$order['deliveryType']],
-                    //'STATUS_ID'        => $optionsPayStatuses[$order['status']],
+                    'STATUS_ID'        => $optionsPayStatuses[$order['status']],
                     'REASON_CANCELED'  => $order['statusComment'],
                     'USER_DESCRIPTION' => $order['customerComment'],
                     'COMMENTS'         => $order['managerComment']
@@ -616,6 +627,10 @@ class ICrmOrderActions
 
                 // set STATUS_ID
                 CSaleOrder::StatusOrder($order['externalId'], $optionsPayStatuses[$order['status']]);
+
+                if($optionsPayStatuses[$order['status']] == 'YY')
+                    CSaleOrder::CancelOrder($order['externalId'], "Y", $order['statusComment']);
+
                 // set PAYED
                 CSaleOrder::PayOrder($order['externalId'], $optionsPayment[$order['paymentStatus']]);
 
