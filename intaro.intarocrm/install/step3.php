@@ -65,7 +65,7 @@ $defaultOrderProps = array(
             <tr class="heading">
                 <td colspan="2" style="background-color: transparent;">
                     <b>
-                        <label><input class="addr" type="radio" name="address-detail-<?php echo $bitrixOrderType['ID'];; ?>" value="0" <?php if(count($defaultOrderProps[$bitrixOrderType['ID']]) < 6) echo "checked"; ?>><?php echo GetMessage('ADDRESS_SHORT'); ?></label>
+                        <label><input class="addr" type="radio" name="address-detail-<?php echo $bitrixOrderType['ID']; ?>" value="0" <?php if(count($defaultOrderProps[$bitrixOrderType['ID']]) < 6) echo "checked"; ?>><?php echo GetMessage('ADDRESS_SHORT'); ?></label>
                         <label><input class="addr" type="radio" name="address-detail-<?php echo $bitrixOrderType['ID']; ?>" value="1" <?php if(count($defaultOrderProps[$bitrixOrderType['ID']]) > 5) echo "checked"; ?>><?php echo GetMessage('ADDRESS_FULL'); ?></label>
                     </b>
                 </td>
@@ -73,14 +73,14 @@ $defaultOrderProps = array(
             <?php endif; ?>
             <tr <?php if ($countProps > 4) echo 'class="address-detail-' . $bitrixOrderType['ID'] . '"'; if(($countProps > 4) && (count($defaultOrderProps[$bitrixOrderType['ID']]) < 6)) echo 'style="display:none;"';?>>
                 <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $orderProp['ID']; ?>">
-                    <?php echo $APPLICATION->ConvertCharset($orderProp['NAME'], 'utf-8', SITE_CHARSET);; ?>
+                    <?php echo $orderProp['NAME']; ?>
                 </td>
         <td width="50%" class="adm-detail-content-cell-r">
             <select name="order-prop-<?php echo $orderProp['ID'] . '-' . $bitrixOrderType['ID']; ?>" class="typeselect">
                 <option value=""></option>              
                 <?php foreach ($arResult['arProp'][$bitrixOrderType['ID']] as $arProp): ?>
                 <option value="<?php echo $arProp['CODE']; ?>" <?php if ($defaultOrderProps[$bitrixOrderType['ID']][$orderProp['ID']] == $arProp['CODE']) echo 'selected'; ?>>
-                    <?php echo $APPLICATION->ConvertCharset($arProp['NAME'], 'utf-8', SITE_CHARSET); ?>
+                    <?php echo $arProp['NAME']; ?>
                 </option>
                 <?php endforeach; ?>
             </select>
