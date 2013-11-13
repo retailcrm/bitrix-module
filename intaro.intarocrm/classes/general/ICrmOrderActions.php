@@ -608,7 +608,6 @@ class ICrmOrderActions
                 // orderUpdate
                 $arFields = self::clearArr(array(
                     'PRICE_DELIVERY'   => $order['deliveryCost'],
-                    'PRICE'            => $order['summ'] + (double) $order['deliveryCost'],
                     'DATE_MARKED'      => $order['markDatetime'],
                     'USER_ID'          => $userId, //$order['customer']
                     'PAY_SYSTEM_ID'    => $optionsPayTypes[$order['paymentType']],
@@ -620,6 +619,9 @@ class ICrmOrderActions
                     'USER_DESCRIPTION' => $order['customerComment'],
                     'COMMENTS'         => $order['managerComment']
                 ));
+
+                if(isset($order['summ']) && $order['summ'])
+                    $arFields['PRICE'] => $order['summ'] + (double) $order['deliveryCost'];
                 
                 $GLOBALS['INTARO_CRM_FROM_HISTORY'] = true;
 
