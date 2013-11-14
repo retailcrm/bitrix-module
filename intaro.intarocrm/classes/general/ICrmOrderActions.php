@@ -557,12 +557,12 @@ class ICrmOrderActions
                         if (isset($item['initialPrice']) && $item['initialPrice'])
                             $arProduct['PRICE'] = (double) $item['initialPrice'];
 
-                        if (isset($item['discount']) && $item['discount']) {
+                        if (isset($item['discount'])) {
                             $arProduct['DISCOUNT_PRICE'] = $item['discount'];
                             $arProduct['PRICE'] -= $arProduct['DISCOUNT_PRICE'];                        
                         }
 
-                        if (isset($item['discountPercent']) && $item['discountPercent']) {                            
+                        if (isset($item['discountPercent'])) {                            
                             $arProduct['DISCOUNT_VALUE'] = $item['discountPercent'];
                             $newPrice = floor ($arProduct['PRICE'] / 100 * (100 - $arProduct['DISCOUNT_VALUE']));
                             $arProduct['DISCOUNT_PRICE'] = $arProduct['PRICE'] - $newPrice;
@@ -580,12 +580,12 @@ class ICrmOrderActions
                     if (isset($item['initialPrice']) && $item['initialPrice'])
                         $arProduct['PRICE'] = (double) $item['initialPrice'];
 
-                    if (isset($item['discount']) && $item['discount']) {                         
+                    if (isset($item['discount'])) {                         
                         $arProduct['DISCOUNT_PRICE'] = $item['discount'];
                         $arProduct['PRICE'] -= $arProduct['DISCOUNT_PRICE'];
                     }                
 
-                    if (isset($item['discountPercent']) && $item['discountPercent']) {                            
+                    if (isset($item['discountPercent'])) {                            
                             $arProduct['DISCOUNT_VALUE'] = $item['discountPercent'];
                             $newPrice = floor ($arProduct['PRICE'] / 100 * (100 - $arProduct['DISCOUNT_VALUE']));
                             $arProduct['DISCOUNT_PRICE'] = $arProduct['PRICE'] - $newPrice;
@@ -606,7 +606,11 @@ class ICrmOrderActions
                     $order['deliveryCost'] = $arFields['PRICE_DELIVERY'];
 
                 if(!isset($order['summ']) || (isset($order['summ']) && !$order['summ'])) 
-                    $order['summ'] = $arFields['PRICE'] - $arFields['PRICE_DELIVERY'];                      
+                    $order['summ'] = $arFields['PRICE'] - $arFields['PRICE_DELIVERY'];
+
+                $wasCanaceled = false;
+                if($arFields['CANCELED'] == 'Y')
+                    $wasCanaceled = true;                      
 
                 // orderUpdate
                 $arFields = self::clearArr(array(
@@ -631,6 +635,11 @@ class ICrmOrderActions
                 // set STATUS_ID
                 CSaleOrder::StatusOrder($order['externalId'], $optionsPayStatuses[$order['status']]);
 
+                // uncancel order
+                if($wasCanaceled && ($optionsPayStatuses[$order['status']] != 'YY'))
+                    CSaleOrder::CancelOrder($order['externalId'], "N", $order['statusComment']);
+
+                // cancel order
                 if($optionsPayStatuses[$order['status']] == 'YY')
                     CSaleOrder::CancelOrder($order['externalId'], "Y", $order['statusComment']);
 

@@ -42,6 +42,9 @@ class ICrmOrderEvent {
         
         if(isset($arFields['LOCKED_BY']) && $arFields['LOCKED_BY'])
             return;
+
+        if(isset($arFields['CANCELED']))
+            return;
         
         self::writeDataOnOrderCreate($ID, $arFields);
     }
