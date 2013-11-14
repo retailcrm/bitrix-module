@@ -11,7 +11,6 @@ class ICMLLoader {
     public $propertiesProduct;
     public $application;
     public $encoding = 'utf-8';
-    public $defaultCharset = null;
 
     protected $fp;
     protected $mainSection = 1000000;
@@ -28,9 +27,6 @@ class ICMLLoader {
                 $USER = new CUser;
             
             $this->isLogged = true;
-            
-            $this->defaultCharset = LANG_CHARSET;
-            
             
             $this->PrepareSettings();
 
@@ -83,10 +79,7 @@ class ICMLLoader {
 
     protected function PrepareValue($text)
         {
-            if ($this->defaultCharset === "")
-                $this->defaultCharset = mb_detect_encoding($text);
-            
-            $newText = $this->application->ConvertCharset($text, $this->defaultCharset, $this->encoding);
+            $newText = $this->application->ConvertCharset($text, mb_detect_encoding($text), $this->encoding);
             $newText = strip_tags($newText);
             $newText = str_replace("&", "&#x26;", $newText);
             return $newText;
