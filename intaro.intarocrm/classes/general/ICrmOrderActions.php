@@ -560,16 +560,17 @@ class ICrmOrderActions
                             $arProduct['PRICE'] = (double) $item['initialPrice'];
 
                         if (isset($item['discount'])) {
-                            $arProduct['DISCOUNT_PRICE'] = $item['discount'];
-                            $arProduct['PRICE'] -= $arProduct['DISCOUNT_PRICE'];                        
+                            $arProduct['DISCOUNT_PRICE'] = $item['discount'];                                           
                         }
 
                         if (isset($item['discountPercent'])) {                            
                             $arProduct['DISCOUNT_VALUE'] = $item['discountPercent'];
                             $newPrice = floor ($arProduct['PRICE'] / 100 * (100 - $arProduct['DISCOUNT_VALUE']));
-                            $arProduct['DISCOUNT_PRICE'] = $arProduct['PRICE'] - $newPrice;
-                            $arProduct['PRICE'] -= $arProduct['DISCOUNT_PRICE'];
+                            $arProduct['DISCOUNT_PRICE'] = $arProduct['DISCOUNT_PRICE'] + $arProduct['PRICE'] - $newPrice;
                         }
+
+                        if(isset($item['discount']) || isset($item['discountPercent']))
+                            $arProduct['PRICE'] -= $arProduct['DISCOUNT_PRICE']; 
 
                         if (isset($item['offer']['name']) && $item['offer']['name'])
                             $arProduct['NAME'] = $item['offer']['name'];
@@ -580,19 +581,20 @@ class ICrmOrderActions
 
                     // update old
                     if (isset($item['initialPrice']) && $item['initialPrice'])
-                        $arProduct['PRICE'] = (double) $item['initialPrice'];
+                            $arProduct['PRICE'] = (double) $item['initialPrice'];
 
-                    if (isset($item['discount'])) {                         
-                        $arProduct['DISCOUNT_PRICE'] = $item['discount'];
-                        $arProduct['PRICE'] -= $arProduct['DISCOUNT_PRICE'];
-                    }                
+                    if (isset($item['discount'])) {
+                        $arProduct['DISCOUNT_PRICE'] = $item['discount'];                                           
+                    }
 
                     if (isset($item['discountPercent'])) {                            
-                            $arProduct['DISCOUNT_VALUE'] = $item['discountPercent'];
-                            $newPrice = floor ($arProduct['PRICE'] / 100 * (100 - $arProduct['DISCOUNT_VALUE']));
-                            $arProduct['DISCOUNT_PRICE'] = $arProduct['PRICE'] - $newPrice;
-                            $arProduct['PRICE'] -= $arProduct['DISCOUNT_PRICE'];
-                        }
+                        $arProduct['DISCOUNT_VALUE'] = $item['discountPercent'];
+                        $newPrice = floor ($arProduct['PRICE'] / 100 * (100 - $arProduct['DISCOUNT_VALUE']));
+                        $arProduct['DISCOUNT_PRICE'] = $arProduct['DISCOUNT_PRICE'] + $arProduct['PRICE'] - $newPrice;
+                    }
+
+                    if(isset($item['discount']) || isset($item['discountPercent']))
+                        $arProduct['PRICE'] -= $arProduct['DISCOUNT_PRICE']; 
 
                     if (isset($item['quantity']) && $item['quantity'])
                         $arProduct['QUANTITY'] = $item['quantity'];
@@ -852,7 +854,7 @@ class ICrmOrderActions
                 'initialPrice'    => (double) $p['PRICE'] + (double) $p['DISCOUNT_PRICE'],
                 //'purchasePrice'   => $pr,
                 'discount'        => $p['DISCOUNT_PRICE'],
-                'discountPercent' => $p['DISCOUNT_VALUE'],
+                //'discountPercent' => $p['DISCOUNT_VALUE'],
                 'quantity'        => $p['QUANTITY'],
                 'productId'       => $p['PRODUCT_ID'],
                 'productName'     => self::toJSON($p['NAME'])
