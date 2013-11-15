@@ -854,7 +854,7 @@ class ICrmOrderActions
                 'initialPrice'    => (double) $p['PRICE'] + (double) $p['DISCOUNT_PRICE'],
                 //'purchasePrice'   => $pr,
                 'discount'        => $p['DISCOUNT_PRICE'],
-                //'discountPercent' => $p['DISCOUNT_VALUE'],
+                'discountPercent' => 0,
                 'quantity'        => $p['QUANTITY'],
                 'productId'       => $p['PRODUCT_ID'],
                 'productName'     => self::toJSON($p['NAME'])
@@ -928,7 +928,7 @@ class ICrmOrderActions
             return false;
 
         foreach($arr as $key => $value) {
-            if(!$value || (is_array($value) && empty($value)))
+            if(($value !== 0) || ($value !== 0.0) || (is_array($value) && empty($value)))
                 unset($arr[$key]);
 
             if(is_array($value) && !empty($value))
