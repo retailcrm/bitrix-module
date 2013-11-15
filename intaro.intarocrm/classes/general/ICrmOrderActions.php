@@ -928,7 +928,7 @@ class ICrmOrderActions
             return false;
 
         foreach($arr as $key => $value) {
-            if(($value !== 0) || ($value !== 0.0) || (is_array($value) && empty($value)))
+            if((!($value) && $value !== 0) || (is_array($value) && empty($value)))
                 unset($arr[$key]);
 
             if(is_array($value) && !empty($value))
