@@ -635,7 +635,8 @@ class ICrmOrderActions
                 CSaleOrder::Update($order['externalId'], $arFields);
 
                 // set STATUS_ID
-                CSaleOrder::StatusOrder($order['externalId'], $optionsPayStatuses[$order['status']]);
+                if($optionsPayStatuses[$order['status']])
+                    CSaleOrder::StatusOrder($order['externalId'], $optionsPayStatuses[$order['status']]);
 
                 // uncancel order
                 if($wasCanaceled && ($optionsPayStatuses[$order['status']] != 'YY'))
@@ -646,7 +647,8 @@ class ICrmOrderActions
                     CSaleOrder::CancelOrder($order['externalId'], "Y", $order['statusComment']);
 
                 // set PAYED
-                CSaleOrder::PayOrder($order['externalId'], $optionsPayment[$order['paymentStatus']]);
+                if($optionsPayment[$order['paymentStatus']])
+                    CSaleOrder::PayOrder($order['externalId'], $optionsPayment[$order['paymentStatus']]);
 
                 $dateStart = new \DateTime();
             } 
@@ -846,12 +848,9 @@ class ICrmOrderActions
             else
                 $pr = '';
 
-            if($p['DISCOUNT_VALUE'])
-                $p['DISCOUNT_PRICE'] = null;
-
             $items[] = array(
                 'initialPrice'    => (double) $p['PRICE'] + (double) $p['DISCOUNT_PRICE'],
-                'purchasePrice'   => $pr,
+                //'purchasePrice'   => $pr,
                 'discount'        => $p['DISCOUNT_PRICE'],
                 'discountPercent' => $p['DISCOUNT_VALUE'],
                 'quantity'        => $p['QUANTITY'],
