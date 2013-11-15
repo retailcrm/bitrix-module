@@ -158,7 +158,7 @@ class ICrmOrderEvent {
      * @return boolean
      */
     function onSaleCancelOrder($ID, $cancel, $reason) {
-        if(!$ID || !$cancel || ($cancel != 'Y'))
+        if(!$ID || !$cancel)
             return true;
         
         if (!CModule::IncludeModule('iblock')) {
@@ -186,12 +186,24 @@ class ICrmOrderEvent {
         $optionsPayStatuses = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_STATUSES, 0)); // --statuses
 
         $api = new IntaroCrm\RestApi($api_host, $api_key);
-        
-        $order = array(
-            'externalId'    => (int) $ID,
-            'status'        => $optionsPayStatuses[$cancel.$cancel],
-            'statusComment' => ICrmOrderActions::toJSON($reason)
-        );
+
+        $order = array();
+
+        if($cancel == 'Y') {
+            $order = array(
+                'externalId'    => (int) $ID,
+                'status'        => $optionsPayStatuses[$cancel.$cancel],
+                'statusComment' => ICrmOrderActions::toJSON($reason)
+            );
+        } else if($cancel == 'N') {
+            $arOrder = CSaleOrder::GetById((int) $ID);
+
+            $order = array(
+                'externalId'     => (int) $ID,
+                'status'         => $optionsPayStatuses[$arOrder['STATUS_ID']],
+                'managerComment' => $arOrder['COMMENTS']
+            );
+        }
         
         $api->orderEdit($order);
  

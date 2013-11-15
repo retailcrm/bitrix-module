@@ -282,8 +282,10 @@ class ICrmOrderActions
         
         $defaultSiteId = 0;
         $rsSites = CSite::GetList($by, $sort, array('DEF' => 'Y'));
-            while ($ar = $rsSites->Fetch())
+            while ($ar = $rsSites->Fetch()) {
                 $defaultSiteId = $ar['LID'];
+                break;
+            }
         
         $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
         $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
