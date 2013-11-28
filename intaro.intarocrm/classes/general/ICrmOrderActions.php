@@ -266,7 +266,7 @@ class ICrmOrderActions
             } else {
                 $login = 'intarocrm';
                 $serverName = 0 < strlen(SITE_SERVER_NAME)? SITE_SERVER_NAME : 'server.com';
-                $email = $login . '@' . $server_name;
+                $email = $login . '@' . $serverName;
                 $userPassword = randString(10);
 
                 $user = new CUser;
