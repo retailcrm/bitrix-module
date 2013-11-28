@@ -503,7 +503,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             <select name="payment-status-<?php echo $bitrixPaymentStatus['ID']; ?>" class="typeselect">
                 <option value=""></option>
                 <?php foreach($arResult['paymentGroupList'] as $orderStatusGroup): if(!empty($orderStatusGroup['statuses'])) : ?>
-                <optgroup label="<?php echo $APPLICATION->ConvertCharset($orderStatusGroup['name']); ?>">
+                <optgroup label="<?php echo $APPLICATION->ConvertCharset($orderStatusGroup['name'], 'utf-8', SITE_CHARSET); ?>">
                     <?php foreach($orderStatusGroup['statuses'] as $payment): ?>
                         <?php if(isset($arResult['paymentList'][$payment])): ?>
                             <option value="<?php echo $arResult['paymentList'][$payment]['code']; ?>" <?php if ($optionsPayStatuses[$bitrixPaymentStatus['ID']] == $arResult['paymentList'][$payment]['code']) echo 'selected'; ?>>
