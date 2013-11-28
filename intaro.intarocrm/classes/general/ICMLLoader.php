@@ -11,6 +11,7 @@ class ICMLLoader {
     public $propertiesProduct;
     public $application;
     public $encoding = 'utf-8';
+    public $encodingDefault = 'utf-8';
 
     protected $fp;
     protected $mainSection = 1000000;
@@ -27,6 +28,9 @@ class ICMLLoader {
                 $USER = new CUser;
             
             $this->isLogged = true;
+            
+            $defaultSite = CSite::GetList($by="def", $order="desc", Array())->Fetch();
+            $this->encodingDefault = $defaultSite["CHARSET"];
             
             $this->PrepareSettings();
 
@@ -78,12 +82,12 @@ class ICMLLoader {
     }
 
     protected function PrepareValue($text)
-        {
-            $newText = $this->application->ConvertCharset($text, mb_detect_encoding($text), $this->encoding);
-            $newText = strip_tags($newText);
-            $newText = str_replace("&", "&#x26;", $newText);
-            return $newText;
-        }
+    {
+        $newText = $this->application->ConvertCharset($text, $this->encodingDefault, $this->encoding);
+        $newText = strip_tags($newText);
+        $newText = str_replace("&", "&#x26;", $newText);
+        return $newText;
+    }
 
     protected function PrepareFile($filename)
     {
