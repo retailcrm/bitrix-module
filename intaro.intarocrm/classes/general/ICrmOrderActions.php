@@ -258,8 +258,40 @@ class ICrmOrderActions
         global $USER;
         
         if(!isset($USER) || !$USER) { // for agent; to add order User
-            $USER = new CUser;
-            $USER->Update(1, array());
+            $rsUser = CUser::GetByLogin('intarocrm');
+            
+            if($arUser = $rsUser->Fetch()) {
+                $USER = new CUser;
+                $USER->Update($arUser['ID'], array());
+            } else {
+                $login = 'intarocrm';
+                $serverName = 0 < strlen(SITE_SERVER_NAME)? SITE_SERVER_NAME : 'server.com';
+                $email = $login . '@' . $server_name;
+                $userPassword = randString(10);
+
+                $user = new CUser;
+                $arFields = array(
+                    "NAME"              => $login,
+                    "LAST_NAME"         => $login,
+                    "EMAIL"             => $email,
+                    "LOGIN"             => $login,
+                    "LID"               => "ru",
+                    "ACTIVE"            => "Y",
+                    "GROUP_ID"          => array(2),
+                    "PASSWORD"          => $userPassword,
+                    "CONFIRM_PASSWORD"  => $userPassword
+                );
+
+                $id = $user->Add($arFields);
+                
+                if (!$id) {
+                    self::eventLog('ICrmOrderActions::orderHistory', 'USER', $user->LAST_ERROR);
+                    return;
+                }
+
+                $USER = new CUser;
+                $USER->Update($id, array());
+            }
         }
         
         if (!CModule::IncludeModule("iblock")) {
@@ -553,7 +585,8 @@ class ICrmOrderActions
                             'PRODUCT_PROVIDER_CLASS' => $p['PRODUCT_PROVIDER_CLASS'],
                             'DETAIL_PAGE_URL'        => $p['DETAIL_PAGE_URL'],
                             'CATALOG_XML_ID'         => $p['CATALOG_XML_ID'],
-                            'PRODUCT_XML_ID'         => $p['PRODUCT_XML_ID']
+                            'PRODUCT_XML_ID'         => $p['PRODUCT_XML_ID'],
+                            'CUSTOM_PRICE'           => 'Y'
                         );
 
                         if (isset($item['initialPrice']) && $item['initialPrice'])
@@ -573,7 +606,7 @@ class ICrmOrderActions
                             $arProduct['PRICE'] -= $arProduct['DISCOUNT_PRICE']; 
 
                         if (isset($item['offer']['name']) && $item['offer']['name'])
-                            $arProduct['NAME'] = $item['offer']['name'];
+                            $arProduct['NAME'] = self::fromJSON($item['offer']['name']);
 
                         CSaleBasket::Add($arProduct);
                         continue;
@@ -600,7 +633,7 @@ class ICrmOrderActions
                         $arProduct['QUANTITY'] = $item['quantity'];
 
                     if (isset($item['offer']['name']) && $item['offer']['name'])
-                        $arProduct['NAME'] = $item['offer']['name'];
+                        $arProduct['NAME'] = self::fromJSON($item['offer']['name']);
 
                     CSaleBasket::Update($p['ID'], $arProduct);
                     CSaleBasket::DeleteAll($userId);
