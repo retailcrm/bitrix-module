@@ -281,12 +281,15 @@ class ICrmOrderActions
     public static function orderHistory() {
         global $USER;
 
-        if(!isset($USER) || !$USER) { // for agent; to add order User
+        if($USER) {
+            $realUser = $USER->GetID();
+            $USER->Logout();
+        } else { // for agent; to add order User
             $rsUser = CUser::GetByLogin('intarocrm');
 
             if($arUser = $rsUser->Fetch()) {
                 $USER = new CUser;
-                $USER->Update($arUser['ID'], array());
+                $USER->Authorize($arUser['ID']);
             } else {
                 $login = 'intarocrm';
                 $serverName = 0 < strlen(SITE_SERVER_NAME)? SITE_SERVER_NAME : 'server.com';
@@ -314,7 +317,7 @@ class ICrmOrderActions
                 }
 
                 $USER = new CUser;
-                $USER->Update($id, array());
+                $USER->Authorize($id);
             }
         }
 
@@ -749,6 +752,9 @@ class ICrmOrderActions
 
         if(count($orderHistory))
             COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_HISTORY_DATE, $dateStart->format('Y-m-d H:i:s'));
+
+        $USER->Logout();
+        if($realUser) $USER->Authorize($realUser);
 
         return true;
     }
