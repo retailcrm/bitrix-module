@@ -585,13 +585,15 @@ class ICrmOrderActions
 
                     if (!$p) {
                         $p = CIBlockElement::GetByID($item['offer']['externalId'])->Fetch();
-                        $p[self::CANCEL_PROPERTY_CODE] = 0;
                     }
                     else {
                         //for basket props updating (in props we save cancel status)
                         $propResult = CSaleBasket::GetPropsList(
-                          array(),
-                          array('BASKET_ID' => $p['ID'])
+                          array(''),
+                          array('BASKET_ID' => $p['ID']),
+                          false,
+                          false,
+                          array('NAME', 'CODE', 'VALUE', 'SORT')
                         );
 
                         while($r = $propResult->Fetch()) {
@@ -619,7 +621,7 @@ class ICrmOrderActions
                             'DELAY'                  => $p['DELAY'],
                             'CAN_BUY'                => $p['CAN_BUY'],
                             'MODULE'                 => $p['MODULE'],
-                            'NOTES'                  => $p['NOTES'],
+                            'NOTES'                  => $item['comment'] ?: $p['NOTES'],
                             'PRODUCT_PROVIDER_CLASS' => $p['PRODUCT_PROVIDER_CLASS'],
                             'DETAIL_PAGE_URL'        => $p['DETAIL_PAGE_URL'],
                             'CATALOG_XML_ID'         => $p['CATALOG_XML_ID'],
@@ -649,7 +651,7 @@ class ICrmOrderActions
                         if (isset($item['isCanceled'])) {
                             //for product excluding from order
                             $arProduct['PRICE'] = 0;
-                            self::updateCancelProp($arProduct, 1);
+                            $arProduct = self::updateCancelProp($arProduct, 1);
                         }
 
                         CSaleBasket::Add($arProduct);
@@ -658,7 +660,7 @@ class ICrmOrderActions
 
                     $arProduct['PROPS'] = $p['PROPS'];
 
-                    if (!isset($item['isCanceled']) {
+                    if (!isset($item['isCanceled'])) {
                         // update old
                         if (isset($item['initialPrice']) && $item['initialPrice'])
                                 $arProduct['PRICE'] = (double) $item['initialPrice'];
@@ -676,12 +678,12 @@ class ICrmOrderActions
                         if(isset($item['discount']) || isset($item['discountPercent']))
                             $arProduct['PRICE'] -= $arProduct['DISCOUNT_PRICE'];
 
-                        self::updateCancelProp($arProduct, 0);
+                        $arProduct = self::updateCancelProp($arProduct, 0);
                     }
                     else {
                         //for product excluding from order
                         $arProduct['PRICE'] = 0;
-                        self::updateCancelProp($arProduct, 1);
+                        $arProduct = self::updateCancelProp($arProduct, 1);
                     }
 
 
@@ -938,6 +940,7 @@ class ICrmOrderActions
               array(),
               array('BASKET_ID' => $p['ID'], 'CODE' => self::CANCEL_PROPERTY_CODE)
             )->Fetch();
+
             if ($propCancel) {
                 $propCancel = (int)$propCancel['VALUE'];
             }
@@ -948,18 +951,21 @@ class ICrmOrderActions
             else
                 $pr = '';
 
-            $items[] = array(
+            $item = array(
                 'discountPercent' => 0,
                 'quantity'        => $p['QUANTITY'],
                 'productId'       => $p['PRODUCT_ID'],
-                'productName'     => self::toJSON($p['NAME'])
+                'productName'     => self::toJSON($p['NAME']),
+                'comment'         => $p['NOTES'],
             );
 
             //if it is canceled product don't send price
             if (!$propCancel) {
-                $items['initialPrice'] = (double) $p['PRICE'] + (double) $p['DISCOUNT_PRICE'];
-                $items['discount'] => $p['DISCOUNT_PRICE']
+                $item['initialPrice'] = (double) $p['PRICE'] + (double) $p['DISCOUNT_PRICE'];
+                $item['discount'] = $p['DISCOUNT_PRICE'];
             }
+
+            $items[] = $item;
         }
 
         if($arFields['CANCELED'] == 'Y')
