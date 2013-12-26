@@ -281,7 +281,7 @@ class ICrmOrderActions
     public static function orderHistory() {
         global $USER;
 
-        if($USER) {
+        if(isset($_SESSION["SESS_AUTH"]["USER_ID"]) && $_SESSION["SESS_AUTH"]["USER_ID"]) {
             $realUser = $USER->GetID();
             $USER->Logout();
         } else { // for agent; to add order User
