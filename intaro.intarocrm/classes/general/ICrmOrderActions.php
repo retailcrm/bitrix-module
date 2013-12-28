@@ -999,8 +999,7 @@ class ICrmOrderActions
             'managerComment'  => $arFields['COMMENTS'],
             'createdAt'       => $createdAt,
             'deliveryAddress' => $resOrderDeliveryAddress,
-            'discount'        => $arFields['DISCOUNT_PRICE'],
-            'discountPercent' => $arFields['DISCOUNT_VALUE'],
+            'discount'        => $arFields['DISCOUNT_VALUE'],
             'items'           => $items
         );
 
