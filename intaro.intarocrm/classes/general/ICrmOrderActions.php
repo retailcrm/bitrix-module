@@ -1,5 +1,5 @@
 <?php
-
+IncludeModuleLangFile(__FILE__);
 class ICrmOrderActions
 {
     protected static $MODULE_ID = 'intaro.intarocrm';
