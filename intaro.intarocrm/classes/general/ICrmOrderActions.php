@@ -262,7 +262,7 @@ class ICrmOrderActions
 
         if (!$propUpdated) {
             $arProduct['PROPS'][] = array(
-                'NAME' => 'Товар в статусе отмены',
+                'NAME' => GetMessage('PRODUCT_CANCEL'),
                 'CODE' => self::CANCEL_PROPERTY_CODE,
                 'VALUE' => $value,
                 'SORT' => 10,
