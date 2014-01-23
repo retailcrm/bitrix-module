@@ -91,14 +91,18 @@ $defaultPayment = array(
             });
             
             return false;
-        }); 
-        
+        });
+
         $('input[name="delivery-types-export"]').click(function() {
-            if($(this).val() === 'true')
+            if($(this).val() === 'true') {
                 $('tr.delivery-types').hide('slow');
-            else if($(this).val() === 'false')
-                $('tr.delivery-types').show('show');
-                
+                $('tr[name="delivery-services"]').hide('slow');
+                $('tr.delivery-services').hide('slow');
+            } else if($(this).val() === 'false') {
+                $('tr.delivery-types').show('slow');
+                $('tr[name="delivery-services"]').show('slow');
+                $('tr.delivery-services').show('slow');
+            }
         });
     });
 </script>
@@ -142,7 +146,7 @@ $defaultPayment = array(
             <?php foreach($arResult['bitrixDeliveryTypesList'] as $bitrixDeliveryType): ?>
             <tr class="delivery-types" style="display: none;">
                 <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $bitrixDeliveryType['ID']; ?>">
-		<?php echo $bitrixDeliveryType['NAME']; ?>
+		    <?php echo $bitrixDeliveryType['NAME']; ?>
                 </td>
                 <td width="50%" class="adm-detail-content-cell-r">
                     <select name="delivery-type-<?php echo $bitrixDeliveryType['ID']; ?>" class="typeselect">
@@ -156,6 +160,34 @@ $defaultPayment = array(
                     </select>
                 </td>
             </tr>
+            <?php endforeach; ?>
+            <tr name="delivery-services" class="heading" style="display: none;">
+                <td colspan="2"><b><?php echo GetMessage('DELIVERY_SERVICES_LIST'); ?></b></td>
+            </tr>
+            <?php foreach($arResult['bitrixDeliveryServicesList'] as $bitrixDeliveryService): ?>
+                <?php foreach($bitrixDeliveryService['PROFILES'] as $id => $profile): if(!$profile['TITLE']) continue; ?>
+                    <tr class="delivery-services" style="display: none;">
+                        <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $bitrixDeliveryService['SID'] . '-' . $id; ?>">
+                            <?php echo '<b>[' . $bitrixDeliveryService['NAME'] . ']</b>: ' . $profile['TITLE']; ?>
+                        </td>
+                        <td width="50%" class="adm-detail-content-cell-r">
+                            <select name="delivery-service-<?php echo $bitrixDeliveryService['SID'] . '-' . $id; ?>" class="typeselect">
+                                <option value=""></option>
+                                <?php foreach($arResult['deliveryTypesList'] as $deliveryType): if(!empty($deliveryType['deliveryServices'])) : ?>
+                                    <optgroup label="<?php echo $APPLICATION->ConvertCharset($deliveryType['name'], 'utf-8', SITE_CHARSET); ?>">
+                                        <?php foreach($deliveryType['deliveryServices'] as $ds): ?>
+                                            <?php if(isset($arResult['deliveryServicesList'][$ds])): ?>
+                                                <option value="<?php echo $arResult['deliveryServicesList'][$ds]['code']; ?>" <?php if ($optionsDelivServices[$bitrixDeliveryService['SID']][$id] == $arResult['deliveryServicesList'][$ds]['code']) echo 'selected'; ?>>
+                                                    <?php echo $APPLICATION->ConvertCharset($arResult['deliveryServicesList'][$ds]['name'], 'utf-8', SITE_CHARSET); ?>
+                                                </option>
+                                            <?php endif; ?>
+                                        <?php endforeach; ?>
+                                    </optgroup>
+                                <?php endif; endforeach; ?>
+                            </select>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
             <?php endforeach; ?>
             <tr class="heading">
                 <td colspan="2"><b><?php echo GetMessage('PAYMENT_TYPES_LIST'); ?></b></td>

@@ -26,6 +26,7 @@ class intaro_intarocrm extends CModule {
     var $CRM_API_KEY_OPTION = 'api_key';
     var $CRM_ORDER_TYPES_ARR = 'order_types_arr';
     var $CRM_DELIVERY_TYPES_ARR = 'deliv_types_arr';
+    var $CRM_DELIVERY_SERVICES_ARR = 'deliv_services_arr';
     var $CRM_PAYMENT_TYPES = 'pay_types_arr';
     var $CRM_PAYMENT_STATUSES = 'pay_statuses_arr';
     var $CRM_PAYMENT = 'payment_arr'; //order payment Y/N
@@ -204,6 +205,7 @@ class intaro_intarocrm extends CModule {
                 }
 
                 $arResult['deliveryTypesList'] = $this->INTARO_CRM_API->deliveryTypesList();
+                $arResult['deliveryServicesList'] = $this->INTARO_CRM_API->deliveryServicesList();
                 $arResult['paymentTypesList'] = $this->INTARO_CRM_API->paymentTypesList();
                 $arResult['paymentStatusesList'] = $this->INTARO_CRM_API->paymentStatusesList(); // --statuses
                 $arResult['paymentList'] = $this->INTARO_CRM_API->orderStatusesList();
@@ -245,6 +247,31 @@ class intaro_intarocrm extends CModule {
                         $arResult['bitrixDeliveryTypesList'][] = $arDeliveryTypesList;
                         $deliveryTypesArr[$arDeliveryTypesList['ID']] = htmlspecialchars(trim($_POST['delivery-type-' . $arDeliveryTypesList['ID']]));
                     } while ($arDeliveryTypesList = $dbDeliveryTypesList->Fetch());
+                }
+
+                //bitrix deliveryServicesList
+                $dbDeliveryServicesList = CSaleDeliveryHandler::GetList(
+                    array(
+                        'SORT' => 'ASC',
+                        'NAME' => 'ASC'
+                    ),
+                    array(
+                        'ACTIVE' => 'Y'
+                    )
+                );
+
+                //form delivery services ids arr
+                $deliveryServicesArr = array();
+                if ($arDeliveryServicesList = $dbDeliveryServicesList->Fetch()) {
+                    do {
+                        //auto delivery types
+                        $deliveryTypesArr[$arDeliveryServicesList['SID']] = htmlspecialchars(trim($_POST['delivery-type-' . $arDeliveryServicesList['SID']]));
+                        foreach($arDeliveryServicesList['PROFILES'] as $id => $profile) {
+                            if(!$profile['TITLE']) continue; // services without name ?
+                            $deliveryServicesArr[$arDeliveryServicesList['SID']][$id] = htmlspecialchars(trim($_POST['delivery-service-' . $arDeliveryServicesList['SID'] . '-' . $id]));
+                        }
+                        $arResult['bitrixDeliveryServicesList'][] = $arDeliveryServicesList;
+                    } while ($arDeliveryServicesList = $dbDeliveryServicesList->Fetch());
                 }
 
                 //bitrix paymentTypesList
@@ -298,6 +325,7 @@ class intaro_intarocrm extends CModule {
 
                 COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_TYPES_ARR, serialize($orderTypesArr));
                 COption::SetOptionString($this->MODULE_ID, $this->CRM_DELIVERY_TYPES_ARR, serialize($deliveryTypesArr));
+                COption::SetOptionString($this->MODULE_ID, $this->CRM_DELIVERY_TYPES_ARR, serialize($deliveryServicesArr));
                 COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT_TYPES, serialize($paymentTypesArr));
                 COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT_STATUSES, serialize($paymentStatusesArr));
                 COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT, serialize($paymentArr));
@@ -325,6 +353,43 @@ class intaro_intarocrm extends CModule {
                     }
 
                     $input['delivery-type-' . $bitrixDeliveryType['ID']] .= '</select>';
+                }
+
+                foreach ($arResult['bitrixDeliveryServicesList'] as $bitrixDeliveryService) {
+                    foreach($bitrixDeliveryService['PROFILES'] as $id => $profile) {
+                        if(!$profile['TITLE']) continue;
+
+                        $input['delivery-service-' . $bitrixDeliveryService['SID'] . '-' . $id] =
+                            '<select name="delivery-service-' . $bitrixDeliveryService['SID'] . '-' . $id . '" class="typeselect">';
+                        $input['delivery-service-' . $bitrixDeliveryService['SID'] . '-' . $id] .= '<option value=""></option>';
+
+                        foreach ($arResult['deliveryTypesList'] as $deliveryType) {
+                            if(empty($deliveryType['deliveryServices'])) continue;
+
+                            $input['delivery-service-' . $bitrixDeliveryService['SID'] . '-' . $id].=
+                                '<optgroup label="' . $APPLICATION->ConvertCharset($deliveryType['name'], 'utf-8', SITE_CHARSET) . '">';
+
+                            foreach ($deliveryType['deliveryServices'] as $ds) {
+                                if(!isset($arResult['deliveryServicesList'][$ds])) continue;
+
+                                if ($deliveryServicesArr[$bitrixDeliveryService['SID']][$id] == $arResult['deliveryServicesList'][$ds]['code']) {
+                                    $input['delivery-service-' . $bitrixDeliveryService['SID'] . '-' . $id] .=
+                                        '<option value="' . $arResult['deliveryServicesList'][$ds]['code'] . '" selected>';
+                                } else {
+                                    $input['delivery-service-' . $bitrixDeliveryService['SID'] . '-' . $id] .=
+                                        '<option value="' . $arResult['deliveryServicesList'][$ds]['code'] . '">';
+                                }
+
+                                $input['delivery-service-' . $bitrixDeliveryService['SID'] . '-' . $id] .=
+                                    $APPLICATION->ConvertCharset($arResult['deliveryServicesList'][$ds]['name'], 'utf-8', SITE_CHARSET);
+                                $input['delivery-service-' . $bitrixDeliveryService['SID'] . '-' . $id] .= '</option>';
+                            }
+
+                            $input['delivery-service-' . $bitrixDeliveryService['SID'] . '-' . $id] .= '</optgroup>';
+                        }
+
+                        $input['delivery-service-' . $bitrixDeliveryService['SID'] . '-' . $id] .= '</select>';
+                    }
                 }
 
                 foreach ($arResult['bitrixPaymentTypesList'] as $bitrixPaymentType) {
@@ -476,10 +541,12 @@ class intaro_intarocrm extends CModule {
             //prepare crm lists
             $arResult['orderTypesList'] = $this->INTARO_CRM_API->orderTypesList();
             $arResult['deliveryTypesList'] = $this->INTARO_CRM_API->deliveryTypesList();
+            $arResult['deliveryServicesList'] = $this->INTARO_CRM_API->deliveryServicesList();
             $arResult['paymentTypesList'] = $this->INTARO_CRM_API->paymentTypesList();
             $arResult['paymentStatusesList'] = $this->INTARO_CRM_API->paymentStatusesList(); // --statuses
             $arResult['paymentList'] = $this->INTARO_CRM_API->orderStatusesList();
             $arResult['paymentGroupList'] = $this->INTARO_CRM_API->orderStatusGroupsList(); // -- statuses groups
+
             //bitrix orderTypesList -- personTypes
             $dbOrderTypesList = CSalePersonType::GetList(
                             array(
@@ -510,6 +577,24 @@ class intaro_intarocrm extends CModule {
                 do {
                     $arResult['bitrixDeliveryTypesList'][] = $arDeliveryTypesList;
                 } while ($arDeliveryTypesList = $dbDeliveryTypesList->Fetch());
+            }
+
+            // bitrix deliveryServicesList
+            $dbDeliveryServicesList = CSaleDeliveryHandler::GetList(
+                array(
+                    'SORT' => 'ASC',
+                    'NAME' => 'ASC'
+                ),
+                array(
+                    'ACTIVE' => 'Y'
+                )
+            );
+
+            if ($arDeliveryServicesList = $dbDeliveryServicesList->Fetch()) {
+                do {
+                    $arResult['bitrixDeliveryTypesList'][] = array('ID' => $arDeliveryServicesList['SID'], 'NAME' => $arDeliveryServicesList['NAME']);
+                    $arResult['bitrixDeliveryServicesList'][] = $arDeliveryServicesList;
+                } while ($arDeliveryServicesList = $dbDeliveryServicesList->Fetch());
             }
 
             //bitrix paymentTypesList
@@ -601,8 +686,20 @@ class intaro_intarocrm extends CModule {
                             ), false, false, array()
             );
 
-            //form delivery types ids arr
+            //bitrix deliveryServicesList
+            $dbDeliveryServicesList = CSaleDeliveryHandler::GetList(
+                array(
+                    'SORT' => 'ASC',
+                    'NAME' => 'ASC'
+                ),
+                array(
+                    'ACTIVE' => 'Y'
+                )
+            );
+
+            //form delivery types / services ids arr
             $deliveryTypesArr = array();
+            $deliveryServicesArr = array();
 
             if (htmlspecialchars(trim($_POST['delivery-types-export'])) == 'false') {
                 if ($arDeliveryTypesList = $dbDeliveryTypesList->Fetch()) {
@@ -610,8 +707,20 @@ class intaro_intarocrm extends CModule {
                         $deliveryTypesArr[$arDeliveryTypesList['ID']] = htmlspecialchars(trim($_POST['delivery-type-' . $arDeliveryTypesList['ID']]));
                     } while ($arDeliveryTypesList = $dbDeliveryTypesList->Fetch());
                 }
+
+                if ($arDeliveryServicesList = $dbDeliveryServicesList->Fetch()) {
+                    do {
+                        //auto delivery types
+                        $deliveryTypesArr[$arDeliveryServicesList['SID']] = htmlspecialchars(trim($_POST['delivery-type-' . $arDeliveryServicesList['SID']]));
+                        foreach($arDeliveryServicesList['PROFILES'] as $id => $profile) {
+                            if(!$profile['TITLE']) continue; // services without name ?
+                            $deliveryServicesArr[$arDeliveryServicesList['SID']][$id] = htmlspecialchars(trim($_POST['delivery-service-' . $arDeliveryServicesList['SID'] . '-' . $id]));
+                        }
+                        $arResult['bitrixDeliveryServicesList'][] = $arDeliveryServicesList;
+                    } while ($arDeliveryServicesList = $dbDeliveryServicesList->Fetch());
+                }
             } elseif (htmlspecialchars(trim($_POST['delivery-types-export'])) == 'true') {
-                // send to intaro crm and save
+                // send to intaro crm and save delivery types!
                 if ($arDeliveryTypesList = $dbDeliveryTypesList->Fetch()) {
                     do {
                         // parse id
@@ -636,7 +745,7 @@ class intaro_intarocrm extends CModule {
                                     'paymentTypes' => ''
                         )));
 
-                        // error pushing customer
+                        // error pushing dt
                         if ($this->INTARO_CRM_API->getStatusCode() != 200) {
                             if ($this->INTARO_CRM_API->getStatusCode() != 201) {
                                 //handle err
@@ -644,6 +753,50 @@ class intaro_intarocrm extends CModule {
                             }
                         }
                     } while ($arDeliveryTypesList = $dbDeliveryTypesList->Fetch());
+                }
+
+                if ($arDeliveryServicesList = $dbDeliveryServicesList->Fetch()) {
+                    do {
+
+                        $deliveryTypesArr[$arDeliveryServicesList['SID']] = $arDeliveryServicesList['SID'];
+
+                        // send to crm
+                        $this->INTARO_CRM_API->deliveryTypeEdit(ICrmOrderActions::clearArr(array(
+                            'code' => $arDeliveryServicesList['SID'],
+                            'name' => ICrmOrderActions::toJSON($arDeliveryServicesList['NAME']),
+                            'defaultCost' => 0,
+                            'description' => ICrmOrderActions::toJSON($arDeliveryTypesList['DESCRIPTION']),
+                            'paymentTypes' => ''
+                        )));
+
+                        // error pushing dt
+                        if ($this->INTARO_CRM_API->getStatusCode() != 200) {
+                            if ($this->INTARO_CRM_API->getStatusCode() != 201) {
+                                //handle err
+                                ICrmOrderActions::eventLog('install/index.php', 'IntaroCrm\RestApi::deliveryTypeEdit', $this->INTARO_CRM_API->getLastError());
+                            }
+                        }
+
+                        foreach($arDeliveryServicesList['PROFILES'] as $id => $profile) {
+                            $deliveryServicesArr[$arDeliveryServicesList['SID']][$id] = $id;
+
+                            // send to crm
+                            $this->INTARO_CRM_API->deliveryServiceEdit(ICrmOrderActions::clearArr(array(
+                                'code' => $id,
+                                'name' => ICrmOrderActions::toJSON($profile['TITLE']),
+                                'deliveryType' => $arDeliveryServicesList['SID']
+                            )));
+
+                            // error pushing dt
+                            if ($this->INTARO_CRM_API->getStatusCode() != 200) {
+                                if ($this->INTARO_CRM_API->getStatusCode() != 201) {
+                                    //handle err
+                                    ICrmOrderActions::eventLog('install/index.php', 'IntaroCrm\RestApi::deliveryServiceEdit', $this->INTARO_CRM_API->getLastError());
+                                }
+                            }
+                        }
+
+                    } while ($arDeliveryServicesList = $dbDeliveryServicesList->Fetch());
                 }
             }
 
@@ -713,6 +866,13 @@ class intaro_intarocrm extends CModule {
         } else if ($step == 4) {
             if (!CModule::IncludeModule("sale")) {
                 //handler
+            }
+
+            if (isset($_POST['back']) && $_POST['back']) {
+                $APPLICATION->IncludeAdminFile(
+                    GetMessage('MODULE_INSTALL_TITLE'),
+                    $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step2.php'
+                );
             }
 
             if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest')

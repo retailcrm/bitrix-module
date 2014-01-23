@@ -7,6 +7,7 @@ $CRM_API_HOST_OPTION = 'api_host';
 $CRM_API_KEY_OPTION = 'api_key';
 $CRM_ORDER_TYPES_ARR = 'order_types_arr';
 $CRM_DELIVERY_TYPES_ARR = 'deliv_types_arr';
+$CRM_DELIVERY_SERVICES_ARR = 'deliv_services_arr';
 $CRM_PAYMENT_TYPES = 'pay_types_arr';
 $CRM_PAYMENT_STATUSES = 'pay_statuses_arr';
 $CRM_PAYMENT = 'payment_arr'; //order payment Y/N
@@ -162,7 +163,32 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             $deliveryTypesArr[$arDeliveryTypesList['ID']] = htmlspecialchars(trim($_POST['delivery-type-' . $arDeliveryTypesList['ID']]));   
         } while ($arDeliveryTypesList = $dbDeliveryTypesList->Fetch());
     }
-            
+
+    //bitrix deliveryServicesList
+    $dbDeliveryServicesList = CSaleDeliveryHandler::GetList(
+        array(
+            'SORT' => 'ASC',
+            'NAME' => 'ASC'
+        ),
+        array(
+            'ACTIVE' => 'Y'
+        )
+    );
+
+    //form delivery services ids arr
+    $deliveryServicesArr = array();
+    if ($arDeliveryServicesList = $dbDeliveryServicesList->Fetch()) {
+        do {
+            //auto delivery types
+            $deliveryTypesArr[$arDeliveryServicesList['SID']] = htmlspecialchars(trim($_POST['delivery-type-' . $arDeliveryServicesList['SID']]));
+            foreach($arDeliveryServicesList['PROFILES'] as $id => $profile) {
+                if(!$profile['TITLE']) continue; // services without name ?
+                $deliveryServicesArr[$arDeliveryServicesList['SID']][$id] = htmlspecialchars(trim($_POST['delivery-service-' . $arDeliveryServicesList['SID'] . '-' . $id]));
+            }
+            $arResult['bitrixDeliveryServicesList'][] = $arDeliveryServicesList;
+        } while ($arDeliveryServicesList = $dbDeliveryServicesList->Fetch());
+    }
+
     //bitrix paymentTypesList
     $dbPaymentTypesList = CSalePaySystem::GetList(
         array(
@@ -243,6 +269,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     
     COption::SetOptionString($mid, $CRM_ORDER_TYPES_ARR, serialize($orderTypesArr));
     COption::SetOptionString($mid, $CRM_DELIVERY_TYPES_ARR, serialize($deliveryTypesArr));
+    COption::SetOptionString($mid, $CRM_DELIVERY_SERVICES_ARR, serialize($deliveryServicesArr));
     COption::SetOptionString($mid, $CRM_PAYMENT_TYPES, serialize($paymentTypesArr));
     COption::SetOptionString($mid, $CRM_PAYMENT_STATUSES, serialize($paymentStatusesArr));
     COption::SetOptionString($mid, $CRM_PAYMENT, serialize($paymentArr));
@@ -266,6 +293,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     //prepare crm lists
     $arResult['orderTypesList'] = $api->orderTypesList();
     $arResult['deliveryTypesList'] = $api->deliveryTypesList();
+    $arResult['deliveryServicesList'] = $api->deliveryServicesList();
     $arResult['paymentTypesList'] = $api->paymentTypesList();
     $arResult['paymentStatusesList'] = $api->paymentStatusesList(); // --statuses
     $arResult['paymentList'] = $api->orderStatusesList();
@@ -313,6 +341,24 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         do {
             $arResult['bitrixDeliveryTypesList'][] = $arDeliveryTypesList;
         } while ($arDeliveryTypesList = $dbDeliveryTypesList->Fetch());
+    }
+
+    // bitrix deliveryServicesList
+    $dbDeliveryServicesList = CSaleDeliveryHandler::GetList(
+        array(
+            'SORT' => 'ASC',
+            'NAME' => 'ASC'
+        ),
+        array(
+            'ACTIVE' => 'Y'
+        )
+    );
+
+    if ($arDeliveryServicesList = $dbDeliveryServicesList->Fetch()) {
+        do {
+            $arResult['bitrixDeliveryTypesList'][] = array('ID' => $arDeliveryServicesList['SID'], 'NAME' => $arDeliveryServicesList['NAME']);
+            $arResult['bitrixDeliveryServicesList'][] = $arDeliveryServicesList;
+        } while ($arDeliveryServicesList = $dbDeliveryServicesList->Fetch());
     }
 
     //bitrix paymentTypesList
@@ -368,6 +414,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     //saved cat params
     $optionsOrderTypes = unserialize(COption::GetOptionString($mid, $CRM_ORDER_TYPES_ARR, 0));
     $optionsDelivTypes = unserialize(COption::GetOptionString($mid, $CRM_DELIVERY_TYPES_ARR, 0));
+    $optionsDelivServices = unserialize(COption::GetOptionString($mid, $CRM_DELIVERY_SERVICES_ARR, 0));
     $optionsPayTypes = unserialize(COption::GetOptionString($mid, $CRM_PAYMENT_TYPES, 0));
     $optionsPayStatuses = unserialize(COption::GetOptionString($mid, $CRM_PAYMENT_STATUSES, 0)); // --statuses
     $optionsPayment = unserialize(COption::GetOptionString($mid, $CRM_PAYMENT, 0));
@@ -470,6 +517,34 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             </select>
         </td>
     </tr>
+    <?php endforeach; ?>
+    <tr class="heading">
+        <td colspan="2"><b><?php echo GetMessage('DELIVERY_SERVICES_LIST'); ?></b></td>
+    </tr>
+    <?php foreach($arResult['bitrixDeliveryServicesList'] as $bitrixDeliveryService): ?>
+        <?php foreach($bitrixDeliveryService['PROFILES'] as $id => $profile): if(!$profile['TITLE']) continue; ?>
+        <tr>
+            <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $bitrixDeliveryService['SID'] . '-' . $id; ?>">
+                <?php echo '<b>[' . $bitrixDeliveryService['NAME'] . ']</b>: ' . $profile['TITLE']; ?>
+            </td>
+            <td width="50%" class="adm-detail-content-cell-r">
+                <select name="delivery-service-<?php echo $bitrixDeliveryService['SID'] . '-' . $id; ?>" class="typeselect">
+                    <option value=""></option>
+                    <?php foreach($arResult['deliveryTypesList'] as $deliveryType): if(!empty($deliveryType['deliveryServices'])) : ?>
+                        <optgroup label="<?php echo $APPLICATION->ConvertCharset($deliveryType['name'], 'utf-8', SITE_CHARSET); ?>">
+                            <?php foreach($deliveryType['deliveryServices'] as $ds): ?>
+                                <?php if(isset($arResult['deliveryServicesList'][$ds])): ?>
+                                    <option value="<?php echo $arResult['deliveryServicesList'][$ds]['code']; ?>" <?php if ($optionsDelivServices[$bitrixDeliveryService['SID']][$id] == $arResult['deliveryServicesList'][$ds]['code']) echo 'selected'; ?>>
+                                        <?php echo $APPLICATION->ConvertCharset($arResult['deliveryServicesList'][$ds]['name'], 'utf-8', SITE_CHARSET); ?>
+                                    </option>
+                                <?php endif; ?>
+                            <?php endforeach; ?>
+                        </optgroup>
+                    <?php endif; endforeach; ?>
+                </select>
+            </td>
+        </tr>
+        <?php endforeach; ?>
     <?php endforeach; ?>
     <tr class="heading">
         <td colspan="2"><b><?php echo GetMessage('PAYMENT_TYPES_LIST'); ?></b></td>

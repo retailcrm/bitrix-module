@@ -53,3 +53,5 @@ $MESS ['ADDRESS_SHORT'] = 'Краткий адрес';
 $MESS ['ADDRESS_FULL'] = 'Детальный адрес';
 
 $MESS ['ORDER_TYPE_INFO'] = 'Тип заказа:';
+
+$MESS ['DELIVERY_SERVICES_LIST'] = 'Автоматизированные службы доставок';
