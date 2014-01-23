@@ -8,7 +8,9 @@ class ICMLLoader {
     public $iblocks;
     public $filename;
     public $propertiesSKU;
+    public $propertiesUnitSKU;
     public $propertiesProduct;
+    public $propertiesUnitProduct;
     public $application;
     public $encoding = 'utf-8';
     public $encodingDefault = 'utf-8';
@@ -21,6 +23,15 @@ class ICMLLoader {
     protected $logFile = '/bitrix/catalog_export/i_crm_load_log.txt';
     protected $fpLog;
     
+    protected $measurement = array (
+        'mm' => 1,
+        'cm' => 10,
+        'm' => 1000,
+        'mg' => 0.001,
+        'g' => 1,
+        'kg' => 1000,
+    );
+
     public function Load()
     {
             global $USER;
@@ -356,8 +367,14 @@ class ICMLLoader {
                                         
                                         if (isset ($product["PROPERTY_" . $propProduct . "_NAME"])) 
                                             $resPropertiesProduct[$key] =  $product["PROPERTY_" . $propProduct . "_NAME"];
-                                         else 
+                                        elseif (isset ($product[$propProduct]))
+                                            $resPropertiesProduct[$key] =  $product[$propProduct];
+                                        else
                                             $resPropertiesProduct[$key] =  $product["PROPERTY_" . $propProduct . "_VALUE"];
+                                        
+                                        if (array_key_exists($key, $this->propertiesUnitProduct[$id])) {
+                                            $resPropertiesProduct[$key] *= $this->measurement[$this->propertiesUnitProduct[$id][$key]];
+                                        }
                                     }
                                 }
 
@@ -381,6 +398,11 @@ class ICMLLoader {
                                 if (!empty($iblockOffer['IBLOCK_ID'])) {
                                     
                                     foreach ($product['offers'] as $offer) {
+                                        
+                                        if ($product["ID"] == 33)
+                                        {
+                                            $a = 10;
+                                        }
 
                                         $offer['PRODUCT_ID'] = $product["ID"];
                                         $offer['DETAIL_PAGE_URL'] = $product["DETAIL_PAGE_URL"];
@@ -396,11 +418,18 @@ class ICMLLoader {
                                             
                                             if ($propSKU != "") {
                                                 
-                                                if (isset ($product["PROPERTY_" . $propSKU . "_NAME"])) 
-                                                    $offer[$key] =  $product["PROPERTY_" . $propSKU . "_NAME"];
+                                                if (isset ($offer["PROPERTY_" . $propSKU . "_NAME"])) 
+                                                    $offer[$key] =  $offer["PROPERTY_" . $propSKU . "_NAME"];
+                                                elseif (isset ($offer[$propSKU]))
+                                                    $offer[$key] = $offer[$propSKU];
                                                 else 
-                                                    $offer[$key] =  $product["PROPERTY_" . $propSKU . "_VALUE"];
+                                                    $offer[$key] =  $offer["PROPERTY_" . $propSKU . "_VALUE"];
+                                                
+                                                if (array_key_exists($key, $this->propertiesUnitSKU[$id])) {
+                                                    $offer[$key] *= $this->measurement[$this->propertiesUnitSKU[$id][$key]];
+                                                }
                                             }
+                                            
                                         }
                                         
                                         foreach ($resPropertiesProduct as $key => $propProduct) {
@@ -421,8 +450,9 @@ class ICMLLoader {
                                     $product['QUANTITY'] = $product["CATALOG_QUANTITY"];
 
                                     foreach ($resPropertiesProduct as $key => $propProduct) {
-                                        if ($this->propertiesProduct[$id][$key] != "")
+                                        if ($this->propertiesProduct[$id][$key] != "") {
                                             $product[$key] =  $propProduct;
+                                        }
                                     }
 
                                     $stringOffers .= $this->BuildOffer($product, $categories, $iblock, $allCategories);
@@ -486,6 +516,10 @@ class ICMLLoader {
             $offer .= "<productName>" . $this->PrepareValue($arOffer["PRODUCT_NAME"]) . "</productName>\n";
 
             foreach ($this->propertiesProduct[$iblock['IBLOCK_DB']['ID']] as $key => $propProduct) {
+                if ($propProduct != "" && $arOffer[$key] != null)
+                    $offer .= "<" . $key . ">" . $this->PrepareValue($arOffer[$key]) . "</" . $key . ">\n";
+            }
+            foreach ($this->propertiesSKU[$iblock['IBLOCK_DB']['ID']] as $key => $propProduct) {
                 if ($propProduct != "" && $arOffer[$key] != null)
                     $offer .= "<" . $key . ">" . $this->PrepareValue($arOffer[$key]) . "</" . $key . ">\n";
             }

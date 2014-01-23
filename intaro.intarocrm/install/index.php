@@ -832,19 +832,30 @@ class intaro_intarocrm extends CModule {
                     "color" =>"color",
                     "weight" => "weight",
                     "size" => "size",
+                    "length" => "length",
+                    "width" => "width",
+                    "height" => "height",
                 );
             
             $propertiesSKU = array();
+            $propertiesUnitSKU = array();
             foreach ($iblockProperties as $prop) {
                 foreach ($_POST['IBLOCK_PROPERTY_SKU'. '_' . $prop] as $iblock => $val) {
                     $propertiesSKU[$iblock][$prop] = $val;
                 }
+                foreach ($_POST['IBLOCK_PROPERTY_UNIT_SKU'. '_' . $prop] as $iblock => $val) {
+                    $propertiesUnitSKU[$iblock][$prop] = $val;
+                }
             }
             
             $propertiesProduct = array();
+            $propertiesUnitProduct = array();
             foreach ($iblockProperties as $prop) {
                 foreach ($_POST['IBLOCK_PROPERTY_PRODUCT'. '_' . $prop] as $iblock => $val) {
                     $propertiesProduct[$iblock][$prop] = $val;
+                }
+                foreach ($_POST['IBLOCK_PROPERTY_UNIT_PRODUCT'. '_' . $prop] as $iblock => $val) {
+                    $propertiesUnitProduct[$iblock][$prop] = $val;
                 }
             }
 
@@ -874,7 +885,9 @@ class intaro_intarocrm extends CModule {
                 $arOldValues = Array(
                     'IBLOCK_EXPORT' => $iblocks,
                     'IBLOCK_PROPERTY_SKU' => $propertiesSKU,
+                    'IBLOCK_PROPERTY_UNIT_SKU' => $propertiesUnitSKU,
                     'IBLOCK_PROPERTY_PRODUCT' => $propertiesProduct,
+                    'IBLOCK_PROPERTY_UNIT_PRODUCT' => $propertiesUnitProduct,
                     'SETUP_FILE_NAME' => $filename,
                     'SETUP_PROFILE_NAME' => $profileName
                 );
@@ -882,7 +895,7 @@ class intaro_intarocrm extends CModule {
                 $oldValues = $arOldValues;
                 $APPLICATION->IncludeAdminFile(
                     GetMessage('MODULE_INSTALL_TITLE'),
-                    $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step4.php'
+                    $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step5.php'
                 );
                 return;
             }
@@ -899,7 +912,9 @@ class intaro_intarocrm extends CModule {
 
                 $loader = new ICMLLoader();
                 $loader->iblocks = $iblocks;
+                $loader->propertiesUnitProduct = $propertiesUnitProduct;
                 $loader->propertiesProduct = $propertiesProduct;
+                $loader->propertiesUnitSKU = $propertiesUnitSKU;
                 $loader->propertiesSKU = $propertiesSKU;
                 $loader->filename = $filename;
                 $loader->application = $APPLICATION;
@@ -918,7 +933,7 @@ class intaro_intarocrm extends CModule {
                         }
                     }
                 }
-                $ar = $this->GetProfileSetupVars($iblocks, $propertiesProduct, $propertiesSKU, $filename);
+                $ar = $this->GetProfileSetupVars($iblocks, $propertiesProduct, $propertiesUnitProduct, $propertiesSKU, $propertiesUnitSKU, $filename);
                 $PROFILE_ID = CCatalogExport::Add(array(
                     "LAST_USE"      => false,
                     "FILE_NAME"     => $this->INTARO_CRM_EXPORT,
@@ -1099,7 +1114,7 @@ class intaro_intarocrm extends CModule {
         unlink($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/intarocrm_setup.php');
     }
 
-    function GetProfileSetupVars($iblocks, $propertiesProduct, $propertiesSKU, $filename) {
+    function GetProfileSetupVars($iblocks, $propertiesProduct, $propertiesUnitProduct, $propertiesSKU, $propertiesUnitSKU, $filename) {
         // Get string like IBLOCK_EXPORT[0]=3&
         // IBLOCK_EXPORT[1]=6&
         // IBLOCK_PROPERTY_ARTICLE[0]=ARTICLE&
@@ -1113,9 +1128,15 @@ class intaro_intarocrm extends CModule {
         foreach ($propertiesSKU as $iblock => $arr) 
             foreach ($arr as $id => $val)
                 $strVars .= 'IBLOCK_PROPERTY_SKU_' . $id . '[' . $iblock . ']=' . $val . '&';
+        foreach ($propertiesUnitSKU as $iblock => $arr) 
+            foreach ($arr as $id => $val)
+                $strVars .= 'IBLOCK_PROPERTY_UNIT_SKU_' . $id . '[' . $iblock . ']=' . $val . '&';
         foreach ($propertiesProduct as $iblock => $arr) 
             foreach ($arr as $id => $val)
                 $strVars .= 'IBLOCK_PROPERTY_PRODUCT_' . $id . '[' . $iblock . ']=' . $val . '&';
+        foreach ($propertiesUnitProduct as $iblock => $arr) 
+            foreach ($arr as $id => $val)
+                $strVars .= 'IBLOCK_PROPERTY_UNIT_PRODUCT_' . $id . '[' . $iblock . ']=' . $val . '&';
         
         $strVars .= 'SETUP_FILE_NAME=' . urlencode($filename);
         
