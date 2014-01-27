@@ -52,4 +52,3 @@ $MESS ['HOUSE'] = 'Строение / корпус';
 $MESS ['ADDRESS_SHORT'] = 'Краткий адрес';
 $MESS ['ADDRESS_FULL'] = 'Детальный адрес';
 
-$MESS ['ORDER_TYPE_INFO'] = 'Тип заказа:';

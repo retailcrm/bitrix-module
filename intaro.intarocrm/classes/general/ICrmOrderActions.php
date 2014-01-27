@@ -370,7 +370,7 @@ class ICrmOrderActions
         // pushing existing orders
         foreach ($orderHistory as $order) {
 
-            if(!isset($order['externalId']) && !$order['externalId']) {
+            if(!isset($order['externalId']) || !$order['externalId']) {
 
                 // we dont need new orders without any customers (can check only for externalId)
                 if(!isset($order['customer']['externalId']) && !$order['customer']['externalId'])
@@ -710,6 +710,16 @@ class ICrmOrderActions
                 if($arFields['CANCELED'] == 'Y')
                     $wasCanaceled = true;
 
+                $resultDeliveryTypeId = $optionsDelivTypes[$order['deliveryType']];
+
+                if(isset($order['deliveryService']) && !empty($order['deliveryService'])) {
+                    if (strpos($order['deliveryService']['code'], "-") !== false)
+                        $deliveryServiceCode = explode("-", $order['deliveryService']['code'], 2);
+
+                    if ($deliveryServiceCode)
+                        $resultDeliveryTypeId = $resultDeliveryTypeId . ':' . $deliveryServiceCode[1];
+                }
+
                 // orderUpdate
                 $arFields = self::clearArr(array(
                     'PRICE_DELIVERY'   => $order['deliveryCost'],
@@ -719,7 +729,7 @@ class ICrmOrderActions
                     'PAY_SYSTEM_ID'    => $optionsPayTypes[$order['paymentType']],
                     //'PAYED'            => $optionsPayment[$order['paymentStatus']],
                     //'PERSON_TYPE_ID' => $optionsOrderTypes[$order['orderType']],
-                    'DELIVERY_ID'      => $optionsDelivTypes[$order['deliveryType']],
+                    'DELIVERY_ID'      => $resultDeliveryTypeId,
                     'STATUS_ID'        => $optionsPayStatuses[$order['status']],
                     'REASON_CANCELED'  => $order['statusComment'],
                     'USER_DESCRIPTION' => $order['customerComment'],
@@ -884,6 +894,22 @@ class ICrmOrderActions
         else
             $resultDeliveryTypeId = $arFields['DELIVERY_ID'];
 
+        // deliveryService
+        $deliveryService = array();
+        if(count($arId) > 1) {
+            $dbDeliveryType = CSaleDeliveryHandler::GetBySID($arId[0]);
+
+            if ($arDeliveryType = $dbDeliveryType->GetNext()) {
+                foreach($arDeliveryType['PROFILES'] as $id => $profile) {
+                    if($id == $arId[1]) {
+                        $deliveryService = array(
+                            'code' => $arId[0] . '-' . $id,
+                            'name' => $profile['TITLE']
+                        );
+                    }
+                }
+            }
+        }
 
         $resOrder = array();
         $resOrderDeliveryAddress = array();
@@ -993,6 +1019,7 @@ class ICrmOrderActions
             'paymentStatus'   => $arParams['optionsPayment'][$arFields['PAYED']],
             'orderType'       => $arParams['optionsOrderTypes'][$arFields['PERSON_TYPE_ID']],
             'deliveryType'    => $arParams['optionsDelivTypes'][$resultDeliveryTypeId],
+            'deliveryService' => $deliveryService,
             'status'          => $arParams['optionsPayStatuses'][$arFields['STATUS_ID']],
             'statusComment'   => $arFields['REASON_CANCELED'],
             'customerComment' => $arFields['USER_DESCRIPTION'],
