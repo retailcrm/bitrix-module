@@ -16,9 +16,20 @@ $iblockProperties = Array(
         "color" =>"color",
         "weight" => "weight",
         "size" => "size",
+        "length" => "length",
+        "width" => "width",
+        "height" => "height",
     );
 $IBLOCK_PROPERTY_SKU = array();
+$IBLOCK_PROPERTY_UNIT_SKU = array();
 foreach ($iblockProperties as $prop) {
+    
+    $skuUnitProps = ('IBLOCK_PROPERTY_UNIT_SKU' . "_" . $prop);
+    $skuUnitProps = $$skuUnitProps;
+    foreach ($skuUnitProps as $iblock => $val) {
+        $IBLOCK_PROPERTY_UNIT_SKU[$iblock][$prop] = $val;
+    }
+    
     $skuProps = ('IBLOCK_PROPERTY_SKU' . "_" . $prop);
     $skuProps = $$skuProps;
     foreach ($skuProps as $iblock => $val) {
@@ -26,10 +37,18 @@ foreach ($iblockProperties as $prop) {
     }
 }
 $IBLOCK_PROPERTY_PRODUCT = array();
+$IBLOCK_PROPERTY_UNIT_PRODUCT = array();
 foreach ($iblockProperties as $prop) {
-    $skuProps = "IBLOCK_PROPERTY_PRODUCT" . "_" . $prop;
-    $skuProps = $$skuProps;
-    foreach ($skuProps as $iblock => $val) {
+    
+    $productUnitProps = "IBLOCK_PROPERTY_UNIT_PRODUCT" . "_" . $prop;
+    $productUnitProps = $$productUnitProps;
+    foreach ($productUnitProps as $iblock => $val) {
+        $IBLOCK_PROPERTY_UNIT_PRODUCT[$iblock][$prop] = $val;
+    }
+    
+    $productProps = "IBLOCK_PROPERTY_PRODUCT" . "_" . $prop;
+    $productProps = $$productProps;
+    foreach ($productProps as $iblock => $val) {
         $IBLOCK_PROPERTY_PRODUCT[$iblock][$prop] = $val;
     }
 }
@@ -38,7 +57,9 @@ foreach ($iblockProperties as $prop) {
 $loader = new ICMLLoader();
 $loader->iblocks = $IBLOCK_EXPORT;
 $loader->propertiesSKU = $IBLOCK_PROPERTY_SKU;
+$loader->propertiesUnitSKU = $IBLOCK_PROPERTY_UNIT_SKU;
 $loader->propertiesProduct = $IBLOCK_PROPERTY_PRODUCT;
+$loader->propertiesUnitProduct = $IBLOCK_PROPERTY_UNIT_PRODUCT;
 $loader->filename = $SETUP_FILE_NAME;
 $loader->application = $APPLICATION;
 $loader->Load();

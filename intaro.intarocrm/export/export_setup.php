@@ -4,8 +4,11 @@ $iblockProperties = Array(
             "article" => "article",
             "manufacturer" => "manufacturer",
             "color" =>"color",
-            "weight" => "weight",
             "size" => "size",
+            "weight" => "weight",
+            "length" => "length",
+            "width" => "width",
+            "height" => "height",
         );
 
 if(!check_bitrix_sessid()) return;
@@ -14,7 +17,6 @@ __IncludeLang(GetLangFileName($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/intaro.
 
 if (($ACTION == 'EXPORT' || $ACTION == 'EXPORT_EDIT' || $ACTION == 'EXPORT_COPY') && $STEP == 1)
 {
-        
 
 	if (isset($arOldSetupVars['SETUP_FILE_NAME']))
             $SETUP_FILE_NAME = $arOldSetupVars['SETUP_FILE_NAME'];
@@ -24,15 +26,25 @@ if (($ACTION == 'EXPORT' || $ACTION == 'EXPORT_EDIT' || $ACTION == 'EXPORT_COPY'
             $IBLOCK_EXPORT = $arOldSetupVars['IBLOCK_EXPORT'];
 
         $IBLOCK_PROPERTY_SKU = array();
+        $IBLOCK_PROPERTY_UNIT_SKU = array();
         foreach ($iblockProperties as $prop) {
             foreach ($arOldSetupVars['IBLOCK_PROPERTY_SKU'. '_' . $prop] as $iblock => $val) {
                 $IBLOCK_PROPERTY_SKU[$iblock][$prop] = $val;
             }
+            foreach ($arOldSetupVars['IBLOCK_PROPERTY_UNIT_SKU'. '_' . $prop] as $iblock => $val) {
+                $IBLOCK_PROPERTY_UNIT_SKU[$iblock][$prop] = $val;
+            }
         }
+        
+        
         $IBLOCK_PROPERTY_PRODUCT = array();
+        $IBLOCK_PROPERTY_UNIT_PRODUCT = array();
         foreach ($iblockProperties as $prop) {
             foreach ($arOldSetupVars['IBLOCK_PROPERTY_PRODUCT'. '_' . $prop] as $iblock => $val) {
                 $IBLOCK_PROPERTY_PRODUCT[$iblock][$prop] = $val;
+            }
+            foreach ($arOldSetupVars['IBLOCK_PROPERTY_UNIT_PRODUCT'. '_' . $prop] as $iblock => $val) {
+                $IBLOCK_PROPERTY_UNIT_PRODUCT[$iblock][$prop] = $val;
             }
         }
 }
@@ -97,24 +109,56 @@ if ($STEP==1)
         "article" => GetMessage("PROPERTY_ARTICLE_HEADER_NAME"),
         "manufacturer" => GetMessage("PROPERTY_MANUFACTURER_HEADER_NAME"),
         "color" => GetMessage("PROPERTY_COLOR_HEADER_NAME"),
-        "weight" => GetMessage("PROPERTY_WEIGHT_HEADER_NAME"),
         "size" => GetMessage("PROPERTY_SIZE_HEADER_NAME"),
+        "weight" => GetMessage("PROPERTY_WEIGHT_HEADER_NAME"),
+        "length" => GetMessage("PROPERTY_LENGTH_HEADER_NAME"),
+        "width" => GetMessage("PROPERTY_WIDTH_HEADER_NAME"),
+        "height" => GetMessage("PROPERTY_HEIGHT_HEADER_NAME"),
+    );
+    
+    $iblockFieldsName = Array(
+        
+        "weight" => Array("code" => "catalog_size" , "name" => GetMessage("SELECT_WEIGHT_PROPERTY_NAME"), 'unit' => 'mass'),
+        "length" => Array("code" => "catalog_length" , "name" => GetMessage("SELECT_LENGTH_PROPERTY_NAME"), 'unit' => 'length'),
+        "width" => Array("code" => "catalog_width" , "name" => GetMessage("SELECT_WIDTH_PROPERTY_NAME"), 'unit' => 'length'),
+        "height" => Array("code" => "catalog_height" , "name" => GetMessage("SELECT_HEIGHT_PROPERTY_NAME"), 'unit' => 'length'),
     );
     
     $iblockPropertiesHint = Array(
         "article" => Array("ARTICLE", "ART", "ARTNUMBER", "ARTICUL", "ARTIKUL"),
         "manufacturer" => Array("MANUFACTURER", "PROISVODITEL", "PROISVOD", "PROISV"),
         "color" => Array("COLOR", "CVET"),
-        "weight" => Array("WEIGHT", "VES", "VEC"),
         "size" => Array("SIZE", "RAZMER"),
+        "weight" => Array("WEIGHT", "VES", "VEC"),
+        "length" => Array("LENGTH", "DLINA"),
+        "width" => Array("WIDTH", "SHIRINA"),
+        "height" => Array("HEIGHT", "VISOTA"),
     );
-
-
+    
+    $units = Array(
+        'length' => Array(
+            'mm' => GetMessage("UNIT_MEASUREMENT_MM"),
+            'cm' => GetMessage("UNIT_MEASUREMENT_CM"),
+            'm' => GetMessage("UNIT_MEASUREMENT_M"),
+        ),
+        'mass' => Array(
+            'mg' => GetMessage("UNIT_MEASUREMENT_MG"),
+            'g' => GetMessage("UNIT_MEASUREMENT_G"),
+            'kg' => GetMessage("UNIT_MEASUREMENT_KG"),
+        )
+    );
+    
+    $hintUnit = Array(
+        'length' => 'mm',
+        'mass' => 'g'
+    );
+    
     $boolAll = false;
     $intCountChecked = 0;
     $intCountAvailIBlock = 0;
     $arIBlockList = array();
     $db_res = CIBlock::GetList(Array("IBLOCK_TYPE"=>"ASC", "NAME"=>"ASC"),array('CHECK_PERMISSIONS' => 'Y','MIN_PERMISSION' => 'W'));
+    
     while ($iblock = $db_res->Fetch())
     {
             if ($arCatalog = CCatalog::GetByIDExt($iblock["ID"]))
@@ -136,6 +180,13 @@ if ($STEP==1)
                                     $oldPropertySKU[$key] = $IBLOCK_PROPERTY_SKU[$iblock['ID']][$key];
                                 }
                             }
+                            
+                            $oldPropertyUnitSKU = null;
+                            if (isset($IBLOCK_PROPERTY_UNIT_SKU[$iblock['ID']])) {
+                                foreach ($iblockPropertiesName as $key => $prop) {
+                                    $oldPropertyUnitSKU[$key] = $IBLOCK_PROPERTY_UNIT_SKU[$iblock['ID']][$key];
+                                }
+                            }
                         } 
                         
                         
@@ -148,6 +199,13 @@ if ($STEP==1)
                         if (isset($IBLOCK_PROPERTY_PRODUCT[$iblock['ID']])) {
                             foreach ($iblockPropertiesName as $key => $prop) {
                                 $oldPropertyProduct[$key] = $IBLOCK_PROPERTY_PRODUCT[$iblock['ID']][$key];
+                            }
+                        }
+                        
+                        $oldPropertyUnitProduct = null;
+                        if (isset($IBLOCK_PROPERTY_UNIT_PRODUCT[$iblock['ID']])) {
+                            foreach ($iblockPropertiesName as $key => $prop) {
+                                $oldPropertyUnitProduct[$key] = $IBLOCK_PROPERTY_UNIT_PRODUCT[$iblock['ID']][$key];
                             }
                         }
                         
@@ -172,7 +230,9 @@ if ($STEP==1)
                             'PROPERTIES_SKU' => $propertiesSKU,
                             'PROPERTIES_PRODUCT' => $propertiesProduct,
                             'OLD_PROPERTY_SKU_SELECT' => $oldPropertySKU,
+                            'OLD_PROPERTY_UNIT_SKU_SELECT' => $oldPropertyUnitSKU,
                             'OLD_PROPERTY_PRODUCT_SELECT' => $oldPropertyProduct,
+                            'OLD_PROPERTY_UNIT_PRODUCT_SELECT' => $oldPropertyUnitProduct,
                             'SITE_LIST' => '('.implode(' ',$arSiteList).')',
                         );
 
@@ -189,9 +249,6 @@ if ($STEP==1)
         $intCountChecked = $intCountAvailIBlock;
         $boolAll = true;
     }
-
-    
-    
 
     ?>
 
@@ -241,80 +298,219 @@ if ($STEP==1)
                     </thead>
                     <tbody>
                         
-                        <? foreach ($iblockPropertiesName as $key => $property): ?>
-                        <? $productSelected = false;?>
-                        <tr class="adm-list-table-row">
-                            <td class="adm-list-table-cell">
-                                    <? echo htmlspecialcharsex($property); ?>
-                            </td>
-                            <td class="adm-list-table-cell">
-                                    <select
-                                        style="width: 200px;"
-                                        id="IBLOCK_PROPERTY_PRODUCT_<?=$key?><?=$arIBlock["ID"]?>"
-                                        name="IBLOCK_PROPERTY_PRODUCT_<?=$key?>[<?=$arIBlock["ID"]?>]"
-                                        class="property-export"
-                                        onchange="propertyChange(this);">
-                                            <option value=""></option>
-                                            <? foreach ($arIBlock['PROPERTIES_PRODUCT'] as $prop): ?>
-                                                <option value="<?=$prop['CODE'] ?>"
-                                                    <?
-                                                    if ($arIBlock['OLD_PROPERTY_PRODUCT_SELECT'] != null) {
-                                                        if ($prop["CODE"] == $arIBlock['OLD_PROPERTY_PRODUCT_SELECT'][$key]  ) {
-                                                            echo " selected";
-                                                            $productSelected = true;
-                                                        }
-                                                    } else {
-                                                        foreach ($iblockPropertiesHint[$key] as $hint) {
-                                                            if ($prop["CODE"] == $hint  ) {
+                          <? foreach ($iblockPropertiesName as $key => $property): ?>
+                            
+                            <? $productSelected = false;?>
+
+                            <tr class="adm-list-table-row">
+                                <td class="adm-list-table-cell">
+                                        <? echo htmlspecialcharsex($property); ?>
+                                </td>
+                                
+                                <td class="adm-list-table-cell">
+                                        <select
+                                            style="width: 200px;"
+                                            id="IBLOCK_PROPERTY_PRODUCT_<?=$key?><?=$arIBlock["ID"]?>"
+                                            name="IBLOCK_PROPERTY_PRODUCT_<?=$key?>[<?=$arIBlock["ID"]?>]"
+                                            class="property-export"
+                                            onchange="propertyChange(this);">
+                                                <option value=""></option>
+                                                <?if (version_compare(SM_VERSION, '14.0.0', '>=') && array_key_exists($key, $iblockFieldsName) && $arIBlock['PROPERTIES_SKU'] == null) :?>
+                                                    <optgroup label="<?=GetMessage("SELECT_FIELD_NAME");?>">
+                                                        <? foreach ($iblockFieldsName as $keyField => $field): ?>
+
+                                                            <? if ($keyField == $key): ?>
+                                                                <option value="<?=$field['code'];?>"
+                                                                    <?
+                                                                    if ($arIBlock['OLD_PROPERTY_PRODUCT_SELECT'] != null) {
+                                                                        if ($field['code'] == $arIBlock['OLD_PROPERTY_PRODUCT_SELECT'][$key]  ) {
+                                                                            echo " selected";
+                                                                            $productSelected = true;
+                                                                        }
+                                                                    } else {
+                                                                        foreach ($iblockPropertiesHint[$key] as $hint) {
+                                                                            if ($field['code'] == $hint  ) {
+                                                                                echo " selected";
+                                                                                $productSelected = true;
+                                                                                break;
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                    ?>
+                                                                    >
+                                                            
+                                                                    <?=$field['name'];?>
+                                                                </option>
+                                                            <? endif; ?>
+
+                                                        <? endforeach;?>
+                                                    </optgroup>
+                                                    <optgroup label="<?=GetMessage("SELECT_PROPERTY_NAME");?>">
+                                                <?endif; ?>
+
+                                                <? foreach ($arIBlock['PROPERTIES_PRODUCT'] as $prop): ?>
+                                                    <option value="<?=$prop['CODE'] ?>"
+                                                        <?
+                                                        if ($arIBlock['OLD_PROPERTY_PRODUCT_SELECT'] != null) {
+                                                            if ($prop["CODE"] == $arIBlock['OLD_PROPERTY_PRODUCT_SELECT'][$key]  ) {
                                                                 echo " selected";
                                                                 $productSelected = true;
-                                                                break;
-                                                            }
-                                                        }
-                                                    }
-                                                    ?>
-                                                    >
-                                                        <?=$prop["NAME"];?>
-                                                </option>
-                                            <? endforeach;?>
-                                    </select>
-                            </td>
-                            <? if ($arIBlock['PROPERTIES_SKU'] != null): ?>
-                                <td class="adm-list-table-cell">
-                                    <select
-                                        style="width: 200px;"
-                                        id="IBLOCK_PROPERTY_SKU_<?=$key?><?=$arIBlock["ID"]?>"
-                                        name="IBLOCK_PROPERTY_SKU_<?=$key?>[<?=$arIBlock["ID"]?>]"
-                                        class="property-export"
-                                        onchange="propertyChange(this);">
-                                        
-                                            <option value=""></option>
-                                            <? foreach ($arIBlock['PROPERTIES_SKU'] as $prop): ?>
-                                                <option value="<?=$prop['CODE'] ?>"
-                                                    <?
-                                                    if (!$productSelected) {
-                                                        if ($arIBlock['OLD_PROPERTY_SKU_SELECT'] != null) {
-                                                            if ($prop["CODE"] == $arIBlock['OLD_PROPERTY_SKU_SELECT'][$key]  ) {
-                                                                echo " selected";
                                                             }
                                                         } else {
                                                             foreach ($iblockPropertiesHint[$key] as $hint) {
                                                                 if ($prop["CODE"] == $hint  ) {
                                                                     echo " selected";
+                                                                    $productSelected = true;
                                                                     break;
                                                                 }
                                                             }
                                                         }
-                                                    }
-                                                    ?>
-                                                    >
-                                                        <?=$prop["NAME"];?>
-                                                </option>
-                                            <? endforeach;?>
-                                    </select>
+                                                        ?>
+                                                        >
+                                                            <?=$prop["NAME"];?>
+                                                    </option>
+                                                <? endforeach;?>
+                                                <?if (version_compare(SM_VERSION, '14.0.0', '>=')  && array_key_exists($key, $iblockFieldsName)){?>
+                                                    </optgroup>
+                                                <?}?>
+                                                    
+                                        </select>
+                                    
+                                        <?if (array_key_exists($key, $iblockFieldsName)) :?>
+                                            <select
+                                                style="width: 100px; margin-left: 50px;"
+                                                id="IBLOCK_PROPERTY_UNIT_PRODUCT_<?=$key?><?=$arIBlock["ID"]?>"
+                                                name="IBLOCK_PROPERTY_UNIT_PRODUCT_<?=$key?>[<?=$arIBlock["ID"]?>]"
+                                                >
+                                                <? foreach ($units as $unitTypeName => $unitType): ?>
+                                                    <? if ($unitTypeName == $iblockFieldsName[$key]['unit']): ?>
+                                                        <? foreach ($unitType as $keyUnit => $unit): ?>
+                                                            <option value="<?=$keyUnit;?>"
+                                                                <?
+                                                                    if ($arIBlock['OLD_PROPERTY_UNIT_PRODUCT_SELECT'] != null) {
+                                                                        if ($keyUnit == $arIBlock['OLD_PROPERTY_UNIT_PRODUCT_SELECT'][$key]  ) {
+                                                                            echo " selected";
+                                                                        }
+                                                                    } else {
+                                                                        if ($keyUnit == $hintUnit[$unitTypeName]) {
+                                                                            echo " selected";
+                                                                        }
+                                                                    }
+                                                                ?>
+                                                                >
+                                                                    <?=$unit?>
+                                                            </option>
+                                                        <? endforeach;?>
+                                                    <?endif; ?>
+                                                <? endforeach;?>
+                                            </select>
+                                        <?endif; ?>
                                 </td>
-                            <? endif;?>
-                        </tr>
+                                
+                                <? if ($arIBlock['PROPERTIES_SKU'] != null): ?>
+                                    <td class="adm-list-table-cell">
+                                        <select
+                                            style="width: 200px;"
+                                            id="IBLOCK_PROPERTY_SKU_<?=$key?><?=$arIBlock["ID"]?>"
+                                            name="IBLOCK_PROPERTY_SKU_<?=$key?>[<?=$arIBlock["ID"]?>]"
+                                            class="property-export"
+                                            onchange="propertyChange(this);">
+
+                                                <option value=""></option>
+                                                <?if (version_compare(SM_VERSION, '14.0.0', '>=') && array_key_exists($key, $iblockFieldsName)) :?>
+                                                    <optgroup label="<?=GetMessage("SELECT_FIELD_NAME");?>">
+                                                        <? foreach ($iblockFieldsName as $keyField => $field): ?>
+
+                                                            <? if ($keyField == $key) :?>
+                                                                <option value="<?=$field['code'];?>"
+                                                                    <?          
+                                                                        if (!$productSelected) {
+                                                                            if ($arIBlock['OLD_PROPERTY_SKU_SELECT'] != null) {
+                                                                                if ($field['code'] == $arIBlock['OLD_PROPERTY_SKU_SELECT'][$key]  ) {
+                                                                                    echo " selected";
+                                                                                }
+                                                                            } else {
+                                                                                foreach ($iblockPropertiesHint[$key] as $hint) {
+                                                                                    if ($field['code'] == $hint  ) {
+                                                                                        echo " selected";
+                                                                                        break;
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                        ?>
+                                                                        >
+                                                                    
+                                                                        <?=$field['name'];?>
+                                                                </option>
+                                                            <? endif; ?>
+
+                                                        <? endforeach;?>
+                                                    </optgroup>
+                                                    <optgroup label="<?=GetMessage("SELECT_PROPERTY_NAME");?>">
+                                                <? endif; ?>
+
+                                                <? foreach ($arIBlock['PROPERTIES_SKU'] as $prop): ?>
+                                                    <option value="<?=$prop['CODE'] ?>"
+                                                        <?
+                                                        if (!$productSelected) {
+                                                            if ($arIBlock['OLD_PROPERTY_SKU_SELECT'] != null) {
+                                                                if ($prop["CODE"] == $arIBlock['OLD_PROPERTY_SKU_SELECT'][$key]  ) {
+                                                                    echo " selected";
+                                                                }
+                                                            } else {
+                                                                foreach ($iblockPropertiesHint[$key] as $hint) {
+                                                                    if ($prop["CODE"] == $hint  ) {
+                                                                        echo " selected";
+                                                                        break;
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                        ?>
+                                                        >
+                                                            <?=$prop["NAME"];?>
+                                                    </option>
+                                                <? endforeach;?>
+                                                <? if (version_compare(SM_VERSION, '14.0.0', '>=')  && array_key_exists($key, $iblockFieldsName)) : ?>
+                                                    </optgroup>
+                                                <? endif; ?>
+                                        </select>
+                                        
+                                        <?if (array_key_exists($key, $iblockFieldsName)) :?>
+                                            <select
+                                                style="width: 100px; margin-left: 50px;"
+                                                id="IBLOCK_PROPERTY_UNIT_SKU_<?=$key?><?=$arIBlock["ID"]?>"
+                                                name="IBLOCK_PROPERTY_UNIT_SKU_<?=$key?>[<?=$arIBlock["ID"]?>]"
+                                                >
+                                                <? foreach ($units as $unitTypeName => $unitType): ?>
+                                                    <? if ($unitTypeName == $iblockFieldsName[$key]['unit']): ?>
+                                                        <? foreach ($unitType as $keyUnit => $unit): ?>
+                                                            <option value="<?=$keyUnit;?>"
+                                                                <?
+                                                                    if ($arIBlock['OLD_PROPERTY_UNIT_SKU_SELECT'] != null) {
+                                                                        if ($keyUnit == $arIBlock['OLD_PROPERTY_UNIT_SKU_SELECT'][$key]  ) {
+                                                                            echo " selected";
+                                                                        }
+                                                                    } else {
+                                                                        if ($keyUnit == $hintUnit[$unitTypeName]) {
+                                                                            echo " selected";
+                                                                        }
+                                                                    }
+                                                                ?>
+                                                                >
+                                                                <?=$unit?>
+                                                            </option>
+                                                        <? endforeach;?>
+                                                    <?endif; ?>
+                                                <? endforeach;?>
+                                            </select>
+                                        <?endif; ?>
+                                    </td>
+                                    
+                                <? endif;?>
+                            </tr>
+                            
                         <? endforeach;?>
                     </tbody>
                 </table>
@@ -444,7 +640,9 @@ if ($STEP==1)
     $vals = "SETUP_FILE_NAME,IBLOCK_EXPORT";
     foreach ($iblockProperties as $val) {
         $vals .= ",IBLOCK_PROPERTY_SKU_" . $val;
+        $vals .= ",IBLOCK_PROPERTY_UNIT_SKU_" . $val;
         $vals .= ",IBLOCK_PROPERTY_PRODUCT_" . $val;
+        $vals .= ",IBLOCK_PROPERTY_UNIT_PRODUCT_" . $val;
     }
     
     ?>
