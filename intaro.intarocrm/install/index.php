@@ -807,7 +807,6 @@ class intaro_intarocrm extends CModule {
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_LAST_ID, 0);
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_DISCHARGE, 1);
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_FAILED_IDS, serialize(array()));
-            COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_HISTORY_DATE, date('Y-m-d H:i:s'));
             
             $APPLICATION->IncludeAdminFile(
                     GetMessage('MODULE_INSTALL_TITLE'),
@@ -1158,6 +1157,9 @@ class intaro_intarocrm extends CModule {
             $api_key = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, 0);
             $this->INTARO_CRM_API = new \IntaroCrm\RestApi($api_host, $api_key);
             $this->INTARO_CRM_API->statisticUpdate();
+
+            // in fin order
+            COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_HISTORY_DATE, date('Y-m-d H:i:s'));
 
             $APPLICATION->IncludeAdminFile(
                     GetMessage('MODULE_INSTALL_TITLE'), 

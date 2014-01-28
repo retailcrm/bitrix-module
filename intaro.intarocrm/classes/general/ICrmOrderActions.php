@@ -20,6 +20,7 @@ class ICrmOrderActions
 
     /**
      * Mass order uploading, without repeating; always returns true, but writes error log
+     * @param $pSize
      * @param $failed -- flag to export failed orders
      * @return boolean
      */
@@ -365,7 +366,6 @@ class ICrmOrderActions
 
         $dateStart = COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_HISTORY_DATE, null);
 
-
         if(!$dateStart) {
             $dateStart = new \DateTime();
             $dateStart = $dateStart->format('Y-m-d H:i:s');
@@ -373,7 +373,14 @@ class ICrmOrderActions
 
         $orderHistory = $api->orderHistory($dateStart);
 
+        echo $dateStart;
+        echo '<br />';
+
         $dateStart = new \DateTime($dateStart);
+
+        echo json_encode($orderHistory);
+
+        self::eventLog('ICrmOrderActions::orderHistory', 'history_log', json_encode($orderHistory));
 
         // pushing existing orders
         foreach ($orderHistory as $order) {
@@ -399,7 +406,7 @@ class ICrmOrderActions
                                 $arUser = $dbUser->Fetch();
                                 $registeredUserID = $arUser['ID'];
                             } else {
-                                $loginEmail ? $login = $order['customer']['email'] : $login = 'user_' . (microtime(true) * 100);
+                                $login = 'user_' . (microtime(true) * 100);
                                 $registerNewUser = true;
                             }
                         }
@@ -504,7 +511,7 @@ class ICrmOrderActions
                                 break;
                         }
 
-                        if (count($optionsOrderProps[$arFields['PERSON_TYPE_ID']] > 4)) {
+                        if (count($optionsOrderProps[$arFields['PERSON_TYPE_ID']]) > 4) {
                             switch ($ar['CODE']) {
                                 /* case $optionsOrderProps[$arFields['PERSON_TYPE_ID']]['country']: $resOrderDeliveryAddress['country'] = self::toJSON($ar['VALUE']);
                                   break;
@@ -573,7 +580,7 @@ class ICrmOrderActions
                     if (isset($order['deliveryAddress']['text']))
                         self::addOrderProperty($optionsOrderProps[$arFields['PERSON_TYPE_ID']]['text'], self::fromJSON($order['deliveryAddress']['text']), $order['externalId']);
 
-                    if (count($optionsOrderProps[$arFields['PERSON_TYPE_ID']] > 4)) {
+                    if (count($optionsOrderProps[$arFields['PERSON_TYPE_ID']]) > 4) {
                         if (isset($order['deliveryAddress']['street']))
                             self::addOrderProperty($optionsOrderProps[$arFields['PERSON_TYPE_ID']]['street'],
                                     self::fromJSON($order['deliveryAddress']['street']), $order['externalId']);
@@ -875,10 +882,10 @@ class ICrmOrderActions
      *
      * creates order or returns array of order and customer for mass upload
      *
-     * @param type $orderId
-     * @param type $api
-     * @param type $arParams
-     * @param type $send
+     * @param array $arFields
+     * @param $api
+     * @param $arParams
+     * @param $send
      * @return boolean
      * @return array - array('order' = $order, 'customer' => $customer)
      */
@@ -1117,7 +1124,7 @@ class ICrmOrderActions
      * removes all empty fields from arrays
      * working with nested arrs
      *
-     * @param type $arr
+     * @param array $arr
      * @return boolean
      */
     public static function clearArr($arr) {
@@ -1137,9 +1144,9 @@ class ICrmOrderActions
 
     /**
      *
-     * @global type $APPLICATION
-     * @param type $str in SITE_CHARSET
-     * @return type $str in utf-8
+     * @global $APPLICATION
+     * @param $str in SITE_CHARSET
+     * @return  $str in utf-8
      */
     public static function toJSON($str) {
         global $APPLICATION;
@@ -1149,9 +1156,9 @@ class ICrmOrderActions
 
     /**
      *
-     * @global type $APPLICATION
-     * @param type $str in utf-8
-     * @return type $str in SITE_CHARSET
+     * @global $APPLICATION
+     * @param $str in utf-8
+     * @return $str in SITE_CHARSET
      */
     public static function fromJSON($str) {
         global $APPLICATION;
