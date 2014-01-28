@@ -383,23 +383,23 @@ class ICrmOrderActions
                 // we dont need new orders without any customers (can check only for externalId)
                 if(!isset($order['customer']['externalId']) && !$order['customer']['externalId']) {
                     if($loginEmail) {
-                        if (!$order['email']) {
+                        if (!$order['customer']['email']) {
                             $login = 'user_' . (microtime(true) * 100);
                             $server_name = 0 < strlen(SITE_SERVER_NAME)?
                                 SITE_SERVER_NAME : 'server.com';
-                            $order['email'] = $login . '@' . $server_name;
+                            $order['customer']['email'] = $login . '@' . $server_name;
                             $registerNewUser = true;
                         } else {
                             // if email already used
                             $dbUser = CUser::GetList(($by = 'ID'), ($sort = 'ASC'), array('=EMAIL' => $order['email']));
                             if ($dbUser->SelectedRowsCount() == 0) {
-                                $loginEmail ? $login = $order['email'] : $login = 'user_' . (microtime(true) * 100);
+                                $loginEmail ? $login = $order['customer']['email'] : $login = 'user_' . (microtime(true) * 100);
                                 $registerNewUser = true;
                             } elseif ($dbUser->SelectedRowsCount() == 1) {
                                 $arUser = $dbUser->Fetch();
                                 $registeredUserID = $arUser['ID'];
                             } else {
-                                $loginEmail ? $login = $order['email'] : $login = 'user_' . (microtime(true) * 100);
+                                $loginEmail ? $login = $order['customer']['email'] : $login = 'user_' . (microtime(true) * 100);
                                 $registerNewUser = true;
                             }
                         }
@@ -410,7 +410,7 @@ class ICrmOrderActions
                                 COption::SetOptionString('main', 'captcha_registration', 'N');
                             $userPassword = randString(10);
                             $newUser = $USER->Register($login, $order['customer']['firstName'], $order['customer']['lastName'],
-                                $userPassword,  $userPassword, $order['email']);
+                                $userPassword,  $userPassword, $order['customer']['email']);
                             if ($useCaptcha == 'Y')
                                 COption::SetOptionString('main', 'captcha_registration', 'Y');
                             if ($newUser['TYPE'] == 'ERROR') {
