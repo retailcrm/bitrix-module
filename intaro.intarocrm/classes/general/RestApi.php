@@ -122,12 +122,12 @@ class RestApi
     /**
      * Обновление externalId у заказов с переданными id
      *
-     * @param array $orders- массив, содержащий id и externalId заказа
+     * @param array $orders - массив, содержащий id и externalId заказа
      * @return array
      */
-    public function orderFixExternalIds($order)
+    public function orderFixExternalIds($orders)
     {
-        $dataJson = json_encode($order);
+        $dataJson = json_encode($orders);
         $this->parameters['orders'] = $dataJson;
 
         $url = $this->apiUrl.'orders/fix-external-ids';
@@ -238,6 +238,22 @@ class RestApi
         $result = $this->curlRequest($url, 'POST');
         if (is_null($result) && isset($result['uploaded']))
             return $result['uploaded'];
+        return $result;
+    }
+
+    /**
+     * Обновление externalId у клиентов с переданными id
+     *
+     * @param array $customers- массив, содержащий id и externalId заказа
+     * @return array
+     */
+    public function customerFixExternalIds($customers)
+    {
+        $dataJson = json_encode($customers);
+        $this->parameters['customers'] = $dataJson;
+
+        $url = $this->apiUrl.'customers/fix-external-ids';
+        $result = $this->curlRequest($url, 'POST');
         return $result;
     }
 

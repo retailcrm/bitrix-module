@@ -358,14 +358,22 @@ class ICrmOrderActions
         $optionsSites = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_SITES, 0));
         $optionsOrderProps = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_PROPS, 0));
 
+        //use email as login for new customers
+        $loginEmail = true;
+
         $api = new IntaroCrm\RestApi($api_host, $api_key);
 
         $dateStart = COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_HISTORY_DATE, null);
 
+
+        if(!$dateStart) {
+            $dateStart = new \DateTime();
+            $dateStart = $dateStart->format('Y-m-d H:i:s');
+        }
+
         $orderHistory = $api->orderHistory($dateStart);
 
-        if($dateStart)
-            $dateStart = new \DateTime($dateStart);
+        $dateStart = new \DateTime($dateStart);
 
         // pushing existing orders
         foreach ($orderHistory as $order) {
@@ -373,8 +381,58 @@ class ICrmOrderActions
             if(!isset($order['externalId']) || !$order['externalId']) {
 
                 // we dont need new orders without any customers (can check only for externalId)
-                if(!isset($order['customer']['externalId']) && !$order['customer']['externalId'])
-                    continue;
+                if(!isset($order['customer']['externalId']) && !$order['customer']['externalId']) {
+                    if($loginEmail) {
+                        if (!$order['email']) {
+                            $login = 'user_' . (microtime(true) * 100);
+                            $server_name = 0 < strlen(SITE_SERVER_NAME)?
+                                SITE_SERVER_NAME : 'server.com';
+                            $order['email'] = $login . '@' . $server_name;
+                            $registerNewUser = true;
+                        } else {
+                            // if email already used
+                            $dbUser = CUser::GetList(($by = 'ID'), ($sort = 'ASC'), array('=EMAIL' => $order['email']));
+                            if ($dbUser->SelectedRowsCount() == 0) {
+                                $loginEmail ? $login = $order['email'] : $login = 'user_' . (microtime(true) * 100);
+                                $registerNewUser = true;
+                            } elseif ($dbUser->SelectedRowsCount() == 1) {
+                                $arUser = $dbUser->Fetch();
+                                $registeredUserID = $arUser['ID'];
+                            } else {
+                                $loginEmail ? $login = $order['email'] : $login = 'user_' . (microtime(true) * 100);
+                                $registerNewUser = true;
+                            }
+                        }
+
+                        if($registerNewUser) {
+                            $useCaptcha = COption::GetOptionString('main', 'captcha_registration', 'N');
+                            if ($useCaptcha == 'Y')
+                                COption::SetOptionString('main', 'captcha_registration', 'N');
+                            $userPassword = randString(10);
+                            $newUser = $USER->Register($login, $order['customer']['firstName'], $order['customer']['lastName'],
+                                $userPassword,  $userPassword, $order['email']);
+                            if ($useCaptcha == 'Y')
+                                COption::SetOptionString('main', 'captcha_registration', 'Y');
+                            if ($newUser['TYPE'] == 'ERROR') {
+                                self::eventLog('ICrmOrderActions::orderHistory', 'CUser::Register', $newUser['MESSAGE']);
+                                continue;
+                            } else {
+                                $registeredUserID = $USER->GetID();
+                                $USER->Logout();
+                            }
+                        }
+
+                        $order['customer']['externalId'] = $registeredUserID;
+                    }
+
+                    $api->customerFixExternalIds(array(array('id' => $order['customer']['id'], 'externalId' => $order['customer']['externalId'])));
+
+                    if ($api->getStatusCode() != 200) {
+                        //handle err - write log & continue
+                        self::eventLog('ICrmOrderActions::orderHistory', 'IntaroCrm\RestApi::customerFixExternalIds', $api->getLastError());
+                        continue;
+                    }
+                }
 
                 // new order
                $newOrderFields = array(
