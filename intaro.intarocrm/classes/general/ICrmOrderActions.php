@@ -373,14 +373,9 @@ class ICrmOrderActions
 
         $orderHistory = $api->orderHistory($dateStart);
 
-        echo $dateStart;
-        echo '<br />';
-
         $dateStart = new \DateTime($dateStart);
 
         echo json_encode($orderHistory);
-
-        self::eventLog('ICrmOrderActions::orderHistory', 'history_log', json_encode($orderHistory));
 
         // pushing existing orders
         foreach ($orderHistory as $order) {
