@@ -92,6 +92,69 @@ $arResult['orderProps'] = array(
     )
 );
 
+//ajax update deliveryServices
+if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') && isset($_POST['ajax']) && ($_POST['ajax'] == 1)) {
+    $result = array();
+
+    $api_host = COption::GetOptionString($mid, $CRM_API_HOST_OPTION, 0);
+    $api_key = COption::GetOptionString($mid, $CRM_API_KEY_OPTION, 0);
+
+    $api = new IntaroCrm\RestApi($api_host, $api_key);
+
+    //check connection & apiKey valid
+    if ((int) $api->getStatusCode() != 200) {
+        $APPLICATION->RestartBuffer();
+        header('Content-Type: application/x-javascript; charset=' . LANG_CHARSET);
+        die(json_encode(array('success' => false, 'errMsg' => $api->getStatusCode())));
+    }
+
+    $optionsDelivTypes = unserialize(COption::GetOptionString($mid, $CRM_DELIVERY_TYPES_ARR, 0));
+
+    // bitrix deliveryServicesList
+    $dbDeliveryServicesList = CSaleDeliveryHandler::GetList(
+        array(
+            'SORT' => 'ASC',
+            'NAME' => 'ASC'
+        ),
+        array(
+            'ACTIVE' => 'Y'
+        )
+    );
+
+    if ($arDeliveryServicesList = $dbDeliveryServicesList->Fetch()) {
+        do {
+
+            if(!$optionsDelivTypes[$arDeliveryServicesList['SID']]) {
+                self::eventLog('options.php', 'No delivery type relations established', $arDeliveryServicesList['SID'] . ':' . $id);
+                continue;
+            }
+
+            foreach($arDeliveryServicesList['PROFILES'] as $id => $profile) {
+
+                // send to crm
+                $this->INTARO_CRM_API->deliveryServiceEdit(ICrmOrderActions::clearArr(array(
+                    'code' => $arDeliveryServicesList['SID'] . '-' . $id,
+                    'name' => ICrmOrderActions::toJSON($profile['TITLE']),
+                    'deliveryType' => $arDeliveryServicesList['SID']
+                )));
+
+                // error pushing dt
+                if ($this->INTARO_CRM_API->getStatusCode() != 200) {
+                    if ($this->INTARO_CRM_API->getStatusCode() != 201) {
+                        //handle err
+                        self::eventLog('options.php', 'IntaroCrm\RestApi::deliveryServiceEdit', $this->INTARO_CRM_API->getLastError());
+                    }
+                }
+            }
+
+        } while ($arDeliveryServicesList = $dbDeliveryServicesList->Fetch());
+    }
+
+    $APPLICATION->RestartBuffer();
+    header('Content-Type: application/x-javascript; charset=' . LANG_CHARSET);
+    die(json_encode(array('success' => true)));
+}
+
 //update connection settings
 if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     $api_host = htmlspecialchars(trim($_POST['api_host']));

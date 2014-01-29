@@ -668,6 +668,7 @@ class intaro_intarocrm extends CModule {
                     do {
                         //auto delivery types
                         $deliveryTypesArr[$arDeliveryServicesList['SID']] = htmlspecialchars(trim($_POST['delivery-type-' . $arDeliveryServicesList['SID']]));
+
                     } while ($arDeliveryServicesList = $dbDeliveryServicesList->Fetch());
                 }
             } elseif (htmlspecialchars(trim($_POST['delivery-types-export'])) == 'true') {
