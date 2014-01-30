@@ -26,14 +26,18 @@ foreach ($iblockProperties as $prop) {
     
     $skuUnitProps = ('IBLOCK_PROPERTY_UNIT_SKU' . "_" . $prop);
     $skuUnitProps = $$skuUnitProps;
-    foreach ($skuUnitProps as $iblock => $val) {
-        $IBLOCK_PROPERTY_UNIT_SKU[$iblock][$prop] = $val;
+    if (is_array($skuUnitProps)) {
+        foreach ($skuUnitProps as $iblock => $val) {
+            $IBLOCK_PROPERTY_UNIT_SKU[$iblock][$prop] = $val;
+        }
     }
     
     $skuProps = ('IBLOCK_PROPERTY_SKU' . "_" . $prop);
     $skuProps = $$skuProps;
-    foreach ($skuProps as $iblock => $val) {
-        $IBLOCK_PROPERTY_SKU[$iblock][$prop] = $val;
+    if (is_array($skuProps)) {
+        foreach ($skuProps as $iblock => $val) {
+            $IBLOCK_PROPERTY_SKU[$iblock][$prop] = $val;
+        }
     }
 }
 $IBLOCK_PROPERTY_PRODUCT = array();
@@ -42,14 +46,18 @@ foreach ($iblockProperties as $prop) {
     
     $productUnitProps = "IBLOCK_PROPERTY_UNIT_PRODUCT" . "_" . $prop;
     $productUnitProps = $$productUnitProps;
-    foreach ($productUnitProps as $iblock => $val) {
-        $IBLOCK_PROPERTY_UNIT_PRODUCT[$iblock][$prop] = $val;
+    if (is_array($productUnitProps)) {
+        foreach ($productUnitProps as $iblock => $val) {
+            $IBLOCK_PROPERTY_UNIT_PRODUCT[$iblock][$prop] = $val;
+        }
     }
     
     $productProps = "IBLOCK_PROPERTY_PRODUCT" . "_" . $prop;
     $productProps = $$productProps;
-    foreach ($productProps as $iblock => $val) {
-        $IBLOCK_PROPERTY_PRODUCT[$iblock][$prop] = $val;
+    if (is_array($productProps)) {
+        foreach ($productProps as $iblock => $val) {
+            $IBLOCK_PROPERTY_PRODUCT[$iblock][$prop] = $val;
+        }
     }
 }
 
