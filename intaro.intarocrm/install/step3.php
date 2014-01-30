@@ -96,7 +96,7 @@ $defaultOrderProps = array(
             <input type="submit" name="inst" value="<?php echo GetMessage("MOD_NEXT_STEP"); ?>" class="adm-btn-save">
         </div>
         <div align="left" style="float:right; width:50%; position:relative; visible: none;">
-            <input type="submit" name="start" value="<?php echo GetMessage("MOD_PREV_STEP"); ?>" class="adm-btn-save">
+            <input type="submit" name="back" value="<?php echo GetMessage("MOD_PREV_STEP"); ?>" class="adm-btn-save">
         </div>
     </div>
 </form>

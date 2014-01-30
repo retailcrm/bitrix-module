@@ -20,6 +20,7 @@ class ICrmOrderActions
 
     /**
      * Mass order uploading, without repeating; always returns true, but writes error log
+     * @param $pSize
      * @param $failed -- flag to export failed orders
      * @return boolean
      */
@@ -362,19 +363,71 @@ class ICrmOrderActions
 
         $dateStart = COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_HISTORY_DATE, null);
 
+        if(!$dateStart) {
+            $dateStart = new \DateTime();
+            $dateStart = $dateStart->format('Y-m-d H:i:s');
+        }
+
         $orderHistory = $api->orderHistory($dateStart);
 
-        if($dateStart)
-            $dateStart = new \DateTime($dateStart);
+        $dateStart = new \DateTime($dateStart);
 
         // pushing existing orders
         foreach ($orderHistory as $order) {
 
-            if(!isset($order['externalId']) && !$order['externalId']) {
+            if(!isset($order['externalId']) || !$order['externalId']) {
 
                 // we dont need new orders without any customers (can check only for externalId)
-                if(!isset($order['customer']['externalId']) && !$order['customer']['externalId'])
+                if(!isset($order['customer']['externalId']) && !$order['customer']['externalId']) {
+                    if (!$order['customer']['email']) {
+                        $login = 'user_' . (microtime(true) * 100);
+                        $server_name = 0 < strlen(SITE_SERVER_NAME)?
+                            SITE_SERVER_NAME : 'server.com';
+                        $order['customer']['email'] = $login . '@' . $server_name;
+                        $registerNewUser = true;
+                    } else {
+                        // if email already used
+                        $dbUser = CUser::GetList(($by = 'ID'), ($sort = 'ASC'), array('=EMAIL' => $order['email']));
+                        if ($dbUser->SelectedRowsCount() == 0) {
+                            $login = $order['customer']['email'];
+                            $registerNewUser = true;
+                        } elseif ($dbUser->SelectedRowsCount() == 1) {
+                            $arUser = $dbUser->Fetch();
+                            $registeredUserID = $arUser['ID'];
+                        } else {
+                            $login = 'user_' . (microtime(true) * 100);
+                            $registerNewUser = true;
+                        }
+                    }
+                    if($registerNewUser) {
+                        $useCaptcha = COption::GetOptionString('main', 'captcha_registration', 'N');
+                        if ($useCaptcha == 'Y')
+                            COption::SetOptionString('main', 'captcha_registration', 'N');
+                        $userPassword = randString(10);
+                        $newUser = $USER->Register($login, $order['customer']['firstName'], $order['customer']['lastName'],
+                            $userPassword,  $userPassword, $order['customer']['email']);
+                        if ($useCaptcha == 'Y')
+                            COption::SetOptionString('main', 'captcha_registration', 'Y');
+                        if ($newUser['TYPE'] == 'ERROR') {
+                            self::eventLog('ICrmOrderActions::orderHistory', 'CUser::Register', $newUser['MESSAGE']);
+                            continue;
+                        } else {
+                            $registeredUserID = $USER->GetID();
+                            $USER->Logout();
+                        }
+                    }
+
+                    $order['customer']['externalId'] = $registeredUserID;
+                }
+
+                $api->customerFixExternalIds(array(array('id' => $order['customer']['id'], 'externalId' => $order['customer']['externalId'])));
+
+                if ($api->getStatusCode() != 200) {
+                    //handle err - write log & continue
+                    self::eventLog('ICrmOrderActions::orderHistory', 'IntaroCrm\RestApi::customerFixExternalIds', $api->getLastError());
                     continue;
+                }
+
 
                 // new order
                $newOrderFields = array(
@@ -446,7 +499,7 @@ class ICrmOrderActions
                                 break;
                         }
 
-                        if (count($optionsOrderProps[$arFields['PERSON_TYPE_ID']] > 4)) {
+                        if (count($optionsOrderProps[$arFields['PERSON_TYPE_ID']]) > 4) {
                             switch ($ar['CODE']) {
                                 /* case $optionsOrderProps[$arFields['PERSON_TYPE_ID']]['country']: $resOrderDeliveryAddress['country'] = self::toJSON($ar['VALUE']);
                                   break;
@@ -515,7 +568,7 @@ class ICrmOrderActions
                     if (isset($order['deliveryAddress']['text']))
                         self::addOrderProperty($optionsOrderProps[$arFields['PERSON_TYPE_ID']]['text'], self::fromJSON($order['deliveryAddress']['text']), $order['externalId']);
 
-                    if (count($optionsOrderProps[$arFields['PERSON_TYPE_ID']] > 4)) {
+                    if (count($optionsOrderProps[$arFields['PERSON_TYPE_ID']]) > 4) {
                         if (isset($order['deliveryAddress']['street']))
                             self::addOrderProperty($optionsOrderProps[$arFields['PERSON_TYPE_ID']]['street'],
                                     self::fromJSON($order['deliveryAddress']['street']), $order['externalId']);
@@ -710,6 +763,16 @@ class ICrmOrderActions
                 if($arFields['CANCELED'] == 'Y')
                     $wasCanaceled = true;
 
+                $resultDeliveryTypeId = $optionsDelivTypes[$order['deliveryType']];
+
+                if(isset($order['deliveryService']) && !empty($order['deliveryService'])) {
+                    if (strpos($order['deliveryService']['code'], "-") !== false)
+                        $deliveryServiceCode = explode("-", $order['deliveryService']['code'], 2);
+
+                    if ($deliveryServiceCode)
+                        $resultDeliveryTypeId = $resultDeliveryTypeId . ':' . $deliveryServiceCode[1];
+                }
+
                 // orderUpdate
                 $arFields = self::clearArr(array(
                     'PRICE_DELIVERY'   => $order['deliveryCost'],
@@ -719,7 +782,7 @@ class ICrmOrderActions
                     'PAY_SYSTEM_ID'    => $optionsPayTypes[$order['paymentType']],
                     //'PAYED'            => $optionsPayment[$order['paymentStatus']],
                     //'PERSON_TYPE_ID' => $optionsOrderTypes[$order['orderType']],
-                    'DELIVERY_ID'      => $optionsDelivTypes[$order['deliveryType']],
+                    'DELIVERY_ID'      => $resultDeliveryTypeId,
                     'STATUS_ID'        => $optionsPayStatuses[$order['status']],
                     'REASON_CANCELED'  => $order['statusComment'],
                     'USER_DESCRIPTION' => $order['customerComment'],
@@ -807,10 +870,10 @@ class ICrmOrderActions
      *
      * creates order or returns array of order and customer for mass upload
      *
-     * @param type $orderId
-     * @param type $api
-     * @param type $arParams
-     * @param type $send
+     * @param array $arFields
+     * @param $api
+     * @param $arParams
+     * @param $send
      * @return boolean
      * @return array - array('order' = $order, 'customer' => $customer)
      */
@@ -884,6 +947,22 @@ class ICrmOrderActions
         else
             $resultDeliveryTypeId = $arFields['DELIVERY_ID'];
 
+        // deliveryService
+        $deliveryService = array();
+        if(count($arId) > 1) {
+            $dbDeliveryType = CSaleDeliveryHandler::GetBySID($arId[0]);
+
+            if ($arDeliveryType = $dbDeliveryType->GetNext()) {
+                foreach($arDeliveryType['PROFILES'] as $id => $profile) {
+                    if($id == $arId[1]) {
+                        $deliveryService = array(
+                            'code' => $arId[0] . '-' . $id,
+                            'name' => $profile['TITLE']
+                        );
+                    }
+                }
+            }
+        }
 
         $resOrder = array();
         $resOrderDeliveryAddress = array();
@@ -993,6 +1072,7 @@ class ICrmOrderActions
             'paymentStatus'   => $arParams['optionsPayment'][$arFields['PAYED']],
             'orderType'       => $arParams['optionsOrderTypes'][$arFields['PERSON_TYPE_ID']],
             'deliveryType'    => $arParams['optionsDelivTypes'][$resultDeliveryTypeId],
+            'deliveryService' => $deliveryService,
             'status'          => $arParams['optionsPayStatuses'][$arFields['STATUS_ID']],
             'statusComment'   => $arFields['REASON_CANCELED'],
             'customerComment' => $arFields['USER_DESCRIPTION'],
@@ -1032,8 +1112,8 @@ class ICrmOrderActions
      * removes all empty fields from arrays
      * working with nested arrs
      *
-     * @param type $arr
-     * @return boolean
+     * @param array $arr
+     * @return array
      */
     public static function clearArr($arr) {
         if(!$arr || !is_array($arr))
@@ -1052,9 +1132,9 @@ class ICrmOrderActions
 
     /**
      *
-     * @global type $APPLICATION
-     * @param type $str in SITE_CHARSET
-     * @return type $str in utf-8
+     * @global $APPLICATION
+     * @param $str in SITE_CHARSET
+     * @return  $str in utf-8
      */
     public static function toJSON($str) {
         global $APPLICATION;
@@ -1064,9 +1144,9 @@ class ICrmOrderActions
 
     /**
      *
-     * @global type $APPLICATION
-     * @param type $str in utf-8
-     * @return type $str in SITE_CHARSET
+     * @global $APPLICATION
+     * @param $str in utf-8
+     * @return $str in SITE_CHARSET
      */
     public static function fromJSON($str) {
         global $APPLICATION;

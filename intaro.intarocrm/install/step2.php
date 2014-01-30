@@ -91,14 +91,13 @@ $defaultPayment = array(
             });
             
             return false;
-        }); 
-        
+        });
+
         $('input[name="delivery-types-export"]').click(function() {
             if($(this).val() === 'true')
                 $('tr.delivery-types').hide('slow');
             else if($(this).val() === 'false')
-                $('tr.delivery-types').show('show');
-                
+                $('tr.delivery-types').show('slow');
         });
     });
 </script>
@@ -142,7 +141,7 @@ $defaultPayment = array(
             <?php foreach($arResult['bitrixDeliveryTypesList'] as $bitrixDeliveryType): ?>
             <tr class="delivery-types" style="display: none;">
                 <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $bitrixDeliveryType['ID']; ?>">
-		<?php echo $bitrixDeliveryType['NAME']; ?>
+		    <?php echo $bitrixDeliveryType['NAME']; ?>
                 </td>
                 <td width="50%" class="adm-detail-content-cell-r">
                     <select name="delivery-type-<?php echo $bitrixDeliveryType['ID']; ?>" class="typeselect">

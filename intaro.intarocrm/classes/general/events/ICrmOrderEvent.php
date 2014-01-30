@@ -75,7 +75,9 @@ class ICrmOrderEvent {
     /**
      * writeDataOnOrderCreate via api
      * 
-     * @param integer $ID - Order Id
+     * @param $ID - Order Id
+     * @param array $arFields
+     * @return boolean
      */
     function writeDataOnOrderCreate($ID, $arFields) {
         
