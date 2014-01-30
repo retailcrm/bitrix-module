@@ -122,12 +122,12 @@ class RestApi
     /**
      * Обновление externalId у заказов с переданными id
      *
-     * @param array $orders- массив, содержащий id и externalId заказа
+     * @param array $orders - массив, содержащий id и externalId заказа
      * @return array
      */
-    public function orderFixExternalIds($order)
+    public function orderFixExternalIds($orders)
     {
-        $dataJson = json_encode($order);
+        $dataJson = json_encode($orders);
         $this->parameters['orders'] = $dataJson;
 
         $url = $this->apiUrl.'orders/fix-external-ids';
@@ -242,6 +242,22 @@ class RestApi
     }
 
     /**
+     * Обновление externalId у клиентов с переданными id
+     *
+     * @param array $customers- массив, содержащий id и externalId заказа
+     * @return array
+     */
+    public function customerFixExternalIds($customers)
+    {
+        $dataJson = json_encode($customers);
+        $this->parameters['customers'] = $dataJson;
+
+        $url = $this->apiUrl.'customers/fix-external-ids';
+        $result = $this->curlRequest($url, 'POST');
+        return $result;
+    }
+
+    /**
      * Удаление клиента
      *
      * @param string $id - идентификатор
@@ -309,6 +325,34 @@ class RestApi
         $this->parameters['deliveryType'] = $dataJson;
 
         $url = $this->apiUrl.'reference/delivery-types/'.$deliveryType['code'].'/edit';
+        $result = $this->curlRequest($url, 'POST');
+        return $result;
+    }
+
+    /**
+     * Получение списка служб доставки
+     *
+     * @return array - массив типов доставки
+     */
+    public function deliveryServicesList()
+    {
+        $url = $this->apiUrl.'reference/delivery-services';
+        $result = $this->curlRequest($url);
+        return $result;
+    }
+
+    /**
+     * Редактирование службы доставки
+     *
+     * @param array $deliveryService - информация о типе доставки
+     * @return array
+     */
+    public function deliveryServiceEdit($deliveryService)
+    {
+        $dataJson = json_encode($deliveryService);
+        $this->parameters['deliveryService'] = $dataJson;
+
+        $url = $this->apiUrl.'reference/delivery-services/'.$deliveryService['code'].'/edit';
         $result = $this->curlRequest($url, 'POST');
         return $result;
     }
