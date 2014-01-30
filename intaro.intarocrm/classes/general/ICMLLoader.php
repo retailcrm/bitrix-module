@@ -281,7 +281,8 @@ class ICMLLoader {
                              
                             // Compile products to array
                             $products[$product['ID']] = $product;
-                            
+                            $products[$product['ID']]['offers'] = array();
+                                    
                             $detailPicture = intval($product["DETAIL_PICTURE"]);
                             $previewPicture = intval($product["PREVIEW_PICTURE"]);
 
@@ -399,10 +400,6 @@ class ICMLLoader {
                                     
                                     foreach ($product['offers'] as $offer) {
                                         
-                                        if ($product["ID"] == 33)
-                                        {
-                                            $a = 10;
-                                        }
 
                                         $offer['PRODUCT_ID'] = $product["ID"];
                                         $offer['DETAIL_PAGE_URL'] = $product["DETAIL_PAGE_URL"];
