@@ -34,9 +34,43 @@ class ICMLLoader {
 
     public function Load()
     {
-            global $USER;
-            if(!isset($USER))
-                $USER = new CUser;
+            if(!isset($_SESSION["SESS_AUTH"]["USER_ID"]) || !$_SESSION["SESS_AUTH"]["USER_ID"]) {
+                // for agent; to add order User
+                $rsUser = CUser::GetByLogin('intarocrm');
+
+                if($arUser = $rsUser->Fetch()) {
+                    $USER = new CUser;
+                    $USER->Authorize($arUser['ID']);
+                } else {
+                    $login = 'intarocrm';
+                    $serverName = 0 < strlen(SITE_SERVER_NAME)? SITE_SERVER_NAME : 'server.com';
+                    $email = $login . '@' . $serverName;
+                    $userPassword = randString(10);
+
+                    $user = new CUser;
+                    $arFields = array(
+                        "NAME"              => $login,
+                        "LAST_NAME"         => $login,
+                        "EMAIL"             => $email,
+                        "LOGIN"             => $login,
+                        "LID"               => "ru",
+                        "ACTIVE"            => "Y",
+                        "GROUP_ID"          => array(2),
+                        "PASSWORD"          => $userPassword,
+                        "CONFIRM_PASSWORD"  => $userPassword
+                    );
+
+                    $id = $user->Add($arFields);
+
+                    if (!$id) {
+                        self::eventLog('ICrmOrderActions::orderHistory', 'USER', $user->LAST_ERROR);
+                        return;
+                    }
+
+                    $USER = new CUser;
+                    $USER->Authorize($id);
+                }
+            }
             
             $this->isLogged = true;
             
