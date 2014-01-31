@@ -383,6 +383,8 @@ class intaro_intarocrm extends CModule {
                                 '<optgroup label="' . $orderStatusGroup['name'] . '">';
 
                         foreach ($orderStatusGroup['statuses'] as $payment) {
+                            if(!isset($arResult['paymentList'][$payment])) continue;
+
                             if ($paymentStatusesArr[$bitrixPaymentStatus['ID']] == $arResult['paymentList'][$payment]['code']) {
                                 $input['payment-status-' . $bitrixPaymentStatus['ID']] .=
                                         '<option value="' . $arResult['paymentList'][$payment]['code'] . '" selected>';

@@ -191,10 +191,12 @@ $defaultPayment = array(
                         <?php foreach($arResult['paymentGroupList'] as $orderStatusGroup): if(!empty($orderStatusGroup['statuses'])) : ?>
                         <optgroup label="<?php echo $APPLICATION->ConvertCharset($orderStatusGroup['name'], 'utf-8', SITE_CHARSET); ?>">
                             <?php foreach($orderStatusGroup['statuses'] as $payment): ?>
-                            <option value="<?php echo $arResult['paymentList'][$payment]['code']; ?>" 
-                                <?php if ($defaultPayStatuses[$bitrixPaymentStatus['ID']] == $arResult['paymentList'][$payment]['code']) echo 'selected'; ?>>
-                                <?php echo $APPLICATION->ConvertCharset($arResult['paymentList'][$payment]['name'], 'utf-8', SITE_CHARSET); ?>
-                            </option>
+                                <?php if(isset($arResult['paymentList'][$payment])): ?>
+                                    <option value="<?php echo $arResult['paymentList'][$payment]['code']; ?>"
+                                        <?php if ($defaultPayStatuses[$bitrixPaymentStatus['ID']] == $arResult['paymentList'][$payment]['code']) echo 'selected'; ?>>
+                                        <?php echo $APPLICATION->ConvertCharset($arResult['paymentList'][$payment]['name'], 'utf-8', SITE_CHARSET); ?>
+                                    </option>
+                                <?php endif; ?>
                             <?php endforeach; ?>
                         </optgroup>
                         <?php endif; endforeach; ?>
