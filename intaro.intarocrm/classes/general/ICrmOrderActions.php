@@ -491,7 +491,7 @@ class ICrmOrderActions
                                     CSaleOrderPropsValue::Update($ar['ID'], array('VALUE' => self::fromJSON($order['deliveryAddress']['text'])));
                                 break;
                             case 'LOCATION': if (isset($order['deliveryAddress']['city'])) {
-                                    $cityId = self::getLocationCityId($order['deliveryAddress']['city']);
+                                    $cityId = self::getLocationCityId(self::fromJSON($order['deliveryAddress']['city']));
                                     if (!$cityId)
                                         break;
                                     CSaleOrderPropsValue::Update($ar['ID'], array('VALUE' => $cityId));
@@ -562,8 +562,16 @@ class ICrmOrderActions
                         self::addOrderProperty($optionsOrderProps[$arFields['PERSON_TYPE_ID']]['index'],
                                 self::fromJSON($order['deliveryAddress']['index']), $order['externalId']);
 
-                    if (isset($order['deliveryAddress']['city']))
+                    if (isset($order['deliveryAddress']['city'])) {
                         self::addOrderProperty($optionsOrderProps[$arFields['PERSON_TYPE_ID']]['city'], self::fromJSON($order['deliveryAddress']['city']), $order['externalId']);
+                        self::addOrderProperty('CITY', self::fromJSON($order['deliveryAddress']['city']), $order['externalId']);
+
+                        $cityId = self::getLocationCityId(self::fromJSON($order['deliveryAddress']['city']));
+                        if ($cityId)
+                            self::addOrderProperty('LOCATION', $cityId, $order['externalId']);
+                        else
+                            self::addOrderProperty('LOCATION', 0, $order['externalId']);
+                    }
 
                     if (isset($order['deliveryAddress']['text']))
                         self::addOrderProperty($optionsOrderProps[$arFields['PERSON_TYPE_ID']]['text'], self::fromJSON($order['deliveryAddress']['text']), $order['externalId']);
@@ -756,7 +764,7 @@ class ICrmOrderActions
                 if(!isset($order['deliveryCost']))
                     $order['deliveryCost'] = $arFields['PRICE_DELIVERY'];
 
-                if(!isset($order['summ']) || (isset($order['summ']) && !$order['summ']))
+                if(!isset($order['summ']) || (isset($order['summ']) && !$order['summ'] && $order['summ'] !== 0))
                     $order['summ'] = $arFields['PRICE'] - $arFields['PRICE_DELIVERY'];
 
                 $wasCanaceled = false;
@@ -776,7 +784,7 @@ class ICrmOrderActions
                 // orderUpdate
                 $arFields = self::clearArr(array(
                     'PRICE_DELIVERY'   => $order['deliveryCost'],
-                    'PRICE'            => $order['summ'] + (double) $order['deliveryCost'],
+                    'PRICE'            => $order['summ'] ? $order['summ'] + (double) $order['deliveryCost'] : 0,
                     'DATE_MARKED'      => $order['markDatetime'],
                     'USER_ID'          => $userId, //$order['customer']
                     'PAY_SYSTEM_ID'    => $optionsPayTypes[$order['paymentType']],
