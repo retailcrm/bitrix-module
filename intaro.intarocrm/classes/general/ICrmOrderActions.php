@@ -380,7 +380,7 @@ class ICrmOrderActions
                 // we dont need new orders without any customers (can check only for externalId)
                 if(!isset($order['customer']['externalId']) && !$order['customer']['externalId']) {
                     if (!$order['customer']['email']) {
-                        $login = 'user_' . (microtime(true) * 1000) . mt_rand(1, 1000);
+                        $login = 'user_' . (microtime(true) * 10000) . mt_rand(1, 1000);
                         $server_name = 0 < strlen(SITE_SERVER_NAME)?
                             SITE_SERVER_NAME : 'server.com';
                         $order['customer']['email'] = $login . '@' . $server_name;
@@ -395,7 +395,7 @@ class ICrmOrderActions
                             $arUser = $dbUser->Fetch();
                             $registeredUserID = $arUser['ID'];
                         } else {
-                            $login = 'user_' . (microtime(true) * 1000) . mt_rand(1, 1000);
+                            $login = 'user_' . (microtime(true) * 10000) . mt_rand(1, 1000);
                             $registerNewUser = true;
                         }
                     }
@@ -784,7 +784,7 @@ class ICrmOrderActions
                 // orderUpdate
                 $arFields = self::clearArr(array(
                     'PRICE_DELIVERY'   => $order['deliveryCost'],
-                    'PRICE'            => $order['summ'] ? $order['summ'] + (double) $order['deliveryCost'] : 0,
+                    'PRICE'            => $order['summ'] + (double) $order['deliveryCost'],
                     'DATE_MARKED'      => $order['markDatetime'],
                     'USER_ID'          => $userId, //$order['customer']
                     'PAY_SYSTEM_ID'    => $optionsPayTypes[$order['paymentType']],
