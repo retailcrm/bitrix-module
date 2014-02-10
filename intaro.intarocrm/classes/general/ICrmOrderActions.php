@@ -376,8 +376,8 @@ class ICrmOrderActions
         foreach ($orderHistory as $order) {
 
             // custom orderType functunion
-            if(function_exists('intarocrm_get_order_type_c')) {
-                $orderType = intarocrm_get_order_type_c($order);
+            if(function_exists('intarocrm_set_order_type')) {
+                $orderType = intarocrm_set_order_type($order);
                 if($orderType)
                     $optionsOrderTypes[$order['orderType']] = $orderType;
             }
@@ -1112,8 +1112,8 @@ class ICrmOrderActions
         }
 
         // custom orderType functunion
-        if(function_exists('intarocrm_get_order_type_b')) {
-            $orderType = intarocrm_get_order_type_b($arFields);
+        if(function_exists('intarocrm_get_order_type')) {
+            $orderType = intarocrm_get_order_type($arFields);
             if($orderType)
                 $resOrder['orderType'] = $orderType;
         }
