@@ -1105,6 +1105,13 @@ class ICrmOrderActions
             $resOrder['patronymic'] = $contactNameArr[2];
         }
 
+        // custom orderType functunion
+        if(function_exists('intarocrm_get_order_type')) {
+            $orderType = intarocrm_get_order_type($arFields);
+            if($orderType)
+                $resOrder['orderType'] = $orderType;
+        }
+
         $resOrder = self::clearArr($resOrder);
 
         if($send)
