@@ -375,6 +375,13 @@ class ICrmOrderActions
         // pushing existing orders
         foreach ($orderHistory as $order) {
 
+            // custom orderType functunion
+            if(function_exists('intarocrm_get_order_type_c')) {
+                $orderType = intarocrm_get_order_type_c($order);
+                if($orderType)
+                    $optionsOrderTypes[$order['orderType']] = $orderType;
+            }
+
             if(!isset($order['externalId']) || !$order['externalId']) {
 
                 // we dont need new orders without any customers (can check only for externalId)
@@ -427,7 +434,6 @@ class ICrmOrderActions
                     self::eventLog('ICrmOrderActions::orderHistory', 'IntaroCrm\RestApi::customerFixExternalIds', $api->getLastError());
                     continue;
                 }
-
 
                 // new order
                $newOrderFields = array(
@@ -1106,8 +1112,8 @@ class ICrmOrderActions
         }
 
         // custom orderType functunion
-        if(function_exists('intarocrm_get_order_type')) {
-            $orderType = intarocrm_get_order_type($arFields);
+        if(function_exists('intarocrm_get_order_type_b')) {
+            $orderType = intarocrm_get_order_type_b($arFields);
             if($orderType)
                 $resOrder['orderType'] = $orderType;
         }
