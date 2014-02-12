@@ -376,7 +376,7 @@ class ICrmOrderActions
         foreach ($orderHistory as $order) {
 
             // custom orderType functunion
-            if(function_exists('intarocrm_set_order_type')) {
+            if(function_exists('intarocrm_get_order_type') && function_exists('intarocrm_set_order_type')) {
                 $orderType = intarocrm_set_order_type($order);
                 if($orderType)
                     $optionsOrderTypes[$order['orderType']] = $orderType;
@@ -470,6 +470,14 @@ class ICrmOrderActions
             }
 
             if(isset($order['externalId']) && $order['externalId']) {
+
+                // custom orderType functunion
+                if(function_exists('intarocrm_get_order_type') && function_exists('intarocrm_set_order_type')) {
+                    $orderType = intarocrm_set_order_type($order);
+                    if($orderType)
+                        $optionsOrderTypes[$order['orderType']] = $orderType;
+                }
+
                 $arFields = CSaleOrder::GetById($order['externalId']);
 
                 // incorrect order
@@ -1112,7 +1120,7 @@ class ICrmOrderActions
         }
 
         // custom orderType functunion
-        if(function_exists('intarocrm_get_order_type')) {
+        if(function_exists('intarocrm_get_order_type') && function_exists('intarocrm_set_order_type')) {
             $orderType = intarocrm_get_order_type($arFields);
             if($orderType)
                 $resOrder['orderType'] = $orderType;
