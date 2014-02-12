@@ -375,14 +375,32 @@ class ICrmOrderActions
         // pushing existing orders
         foreach ($orderHistory as $order) {
 
-            // custom orderType functunion
-            if(function_exists('intarocrm_get_order_type') && function_exists('intarocrm_set_order_type')) {
-                $orderType = intarocrm_set_order_type($order);
-                if($orderType)
-                    $optionsOrderTypes[$order['orderType']] = $orderType;
-            }
-
             if(!isset($order['externalId']) || !$order['externalId']) {
+
+                // custom orderType functunion
+                if(function_exists('intarocrm_set_order_type')) {
+                    $orderType = intarocrm_set_order_type($order);
+                    if($orderType)
+                        $optionsOrderTypes[$order['orderType']] = $orderType;
+                    else {
+                        $dbOrderTypesList = CSalePersonType::GetList(
+                            array(
+                                "SORT" => "ASC",
+                                "NAME" => "ASC"
+                            ),
+                            array(
+                                "ACTIVE" => "Y",
+                            ),
+                            false,
+                            false,
+                            array()
+                        );
+
+                        if ($arOrderTypesList = $dbOrderTypesList->Fetch())
+                            $optionsOrderTypes[$order['orderType']] = $arOrderTypesList['ID'];
+
+                    }
+                }
 
                 // we dont need new orders without any customers (can check only for externalId)
                 if(!isset($order['customer']['externalId']) && !$order['customer']['externalId']) {
@@ -472,10 +490,28 @@ class ICrmOrderActions
             if(isset($order['externalId']) && $order['externalId']) {
 
                 // custom orderType functunion
-                if(function_exists('intarocrm_get_order_type') && function_exists('intarocrm_set_order_type')) {
+                if(function_exists('intarocrm_set_order_type')) {
                     $orderType = intarocrm_set_order_type($order);
                     if($orderType)
                         $optionsOrderTypes[$order['orderType']] = $orderType;
+                    else {
+                        $dbOrderTypesList = CSalePersonType::GetList(
+                            array(
+                                "SORT" => "ASC",
+                                "NAME" => "ASC"
+                            ),
+                            array(
+                                "ACTIVE" => "Y",
+                            ),
+                            false,
+                            false,
+                            array()
+                        );
+
+                        if ($arOrderTypesList = $dbOrderTypesList->Fetch())
+                            $optionsOrderTypes[$order['orderType']] = $arOrderTypesList['ID'];
+
+                    }
                 }
 
                 $arFields = CSaleOrder::GetById($order['externalId']);
@@ -1120,7 +1156,7 @@ class ICrmOrderActions
         }
 
         // custom orderType functunion
-        if(function_exists('intarocrm_get_order_type') && function_exists('intarocrm_set_order_type')) {
+        if(function_exists('intarocrm_get_order_type')) {
             $orderType = intarocrm_get_order_type($arFields);
             if($orderType)
                 $resOrder['orderType'] = $orderType;
