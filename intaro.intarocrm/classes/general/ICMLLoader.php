@@ -23,13 +23,23 @@ class ICMLLoader {
     protected $logFile = '/bitrix/catalog_export/i_crm_load_log.txt';
     protected $fpLog;
     
+    
     protected $measurement = array (
-        'mm' => 1,
-        'cm' => 10,
+        'mm' => 1,          // 1 mm = 1 mm
+        'cm' => 10,         // 1 cm = 10 mm
         'm' => 1000,
-        'mg' => 0.001,
+        'mg' => 0.001,      // 0.001 g = 1 mg
         'g' => 1,
         'kg' => 1000,
+    );
+    
+    protected $measurementLink = array (
+        'mm' => 'mm',
+        'cm' => 'mm',
+        'm' => 'mm',
+        'mg' => 'g',
+        'g' => 'g',
+        'kg' => 'g',
     );
 
     public function Load()
@@ -375,6 +385,7 @@ class ICMLLoader {
                                         
                                         if (array_key_exists($key, $this->propertiesUnitProduct[$id])) {
                                             $resPropertiesProduct[$key] *= $this->measurement[$this->propertiesUnitProduct[$id][$key]];
+                                            $resPropertiesProduct[$key . "_UNIT"] = $this->measurementLink[$this->propertiesUnitProduct[$id][$key]];
                                         }
                                     }
                                 }
@@ -424,6 +435,7 @@ class ICMLLoader {
                                                 
                                                 if (array_key_exists($key, $this->propertiesUnitSKU[$id])) {
                                                     $offer[$key] *= $this->measurement[$this->propertiesUnitSKU[$id][$key]];
+                                                    $offer[$key . "_UNIT"] = $this->measurementLink[$this->propertiesUnitSKU[$id][$key]];
                                                 }
                                             }
                                             
@@ -447,7 +459,7 @@ class ICMLLoader {
                                     $product['QUANTITY'] = $product["CATALOG_QUANTITY"];
 
                                     foreach ($resPropertiesProduct as $key => $propProduct) {
-                                        if ($this->propertiesProduct[$id][$key] != "") {
+                                        if ($this->propertiesProduct[$id][$key] != "" || $this->propertiesProduct[$id][str_replace("_UNIT", "", $key)] != "") {
                                             $product[$key] =  $propProduct;
                                         }
                                     }
@@ -513,12 +525,20 @@ class ICMLLoader {
             $offer .= "<productName>" . $this->PrepareValue($arOffer["PRODUCT_NAME"]) . "</productName>\n";
 
             foreach ($this->propertiesProduct[$iblock['IBLOCK_DB']['ID']] as $key => $propProduct) {
-                if ($propProduct != "" && $arOffer[$key] != null)
-                    $offer .= "<" . $key . ">" . $this->PrepareValue($arOffer[$key]) . "</" . $key . ">\n";
+                if ($propProduct != "" && $arOffer[$key] != null) {
+                    if ($key === "manufacturer") 
+                        $offer .= "<vendor>" . $this->PrepareValue($arOffer[$key]) . "</vendor>\n";
+                    else
+                        $offer .= "<param name=\"" . $key . "\" " . (isset($arOffer[$key . "_UNIT"]) ? 'unit="' . $arOffer[$key . "_UNIT"] . '"' : "") . ">" . $this->PrepareValue($arOffer[$key]) . "</param>\n";
+                }
             }
             foreach ($this->propertiesSKU[$iblock['IBLOCK_DB']['ID']] as $key => $propProduct) {
-                if ($propProduct != "" && $arOffer[$key] != null)
-                    $offer .= "<" . $key . ">" . $this->PrepareValue($arOffer[$key]) . "</" . $key . ">\n";
+                if ($propProduct != "" && $arOffer[$key] != null) {
+                    if ($key === "manufacturer")
+                        $offer .= "<vendor>" . $this->PrepareValue($arOffer[$key]) . "</vendor>\n";
+                    else
+                        $offer .= "<param name=\"" . $key . "\" " . ( isset($arOffer[$key . "_UNIT"]) ? 'unit="' . $arOffer[$key . "_UNIT"] . '"' : "") . ">" . $this->PrepareValue($arOffer[$key]) . "</param>\n";
+                }
             }
 
             $offer.= "</offer>\n";
