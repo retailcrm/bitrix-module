@@ -318,7 +318,7 @@ class ICMLLoader {
                             
                             // Link picture to product
                             $products[$pictures[$file['ID']]]['PICTURE'] = "http://" . 
-                                            $iblock['IBLOCK_DB']['SERVER_NAME'] . 
+                                            $_SERVER['SERVER_NAME'] . 
                                             '/upload/' . $file['SUBDIR'] . 
                                             '/' . $file['FILE_NAME'] ;
                         }
@@ -513,7 +513,7 @@ class ICMLLoader {
             }
 
             $offer .= "<picture>" . $this->PrepareValue($arOffer["PICTURE"]) . "</picture>\n";
-            $offer .= "<url>http://" . $this->PrepareValue($iblock['IBLOCK_DB']['SERVER_NAME']) . $this->PrepareValue($arOffer['DETAIL_PAGE_URL']) . "</url>\n";
+            $offer .= "<url>http://" . $_SERVER['SERVER_NAME'] . $this->PrepareValue($arOffer['DETAIL_PAGE_URL']) . "</url>\n";
 
             $offer .= "<price>" . $this->PrepareValue($arOffer['PRICE']) . "</price>\n";
             foreach ($categories as $category)
