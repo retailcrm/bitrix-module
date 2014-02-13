@@ -1160,6 +1160,8 @@ class ICrmOrderActions
             $orderType = intarocrm_get_order_type($arFields);
             if($orderType)
                 $resOrder['orderType'] = $orderType;
+            else
+                $orderType['orderType'] = 'new';
         }
 
         $resOrder = self::clearArr($resOrder);
