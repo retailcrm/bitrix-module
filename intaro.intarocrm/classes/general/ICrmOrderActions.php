@@ -852,7 +852,7 @@ class ICrmOrderActions
                 CSaleOrder::Update($order['externalId'], $arFields);
 
                 // set STATUS_ID
-                if($optionsPayStatuses[$order['status']])
+                if($order['status'] && $optionsPayStatuses[$order['status']])
                     CSaleOrder::StatusOrder($order['externalId'], $optionsPayStatuses[$order['status']]);
 
                 // uncancel order
