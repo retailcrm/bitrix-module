@@ -478,6 +478,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     $optionsDischarge = COption::GetOptionString($mid, $CRM_ORDER_DISCHARGE, 0);
     $optionsOrderProps = unserialize(COption::GetOptionString($mid, $CRM_ORDER_PROPS, 0));
 
+    $isCustomOrderType = function_exists('intarocrm_set_order_type') || function_exists('intarocrm_get_order_type');
+
     $aTabs = array(
         array(
             "DIV" => "edit1",
@@ -680,6 +682,11 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     <tr class="heading">
         <td colspan="2"><b><?php echo GetMessage('ORDER_TYPES_LIST'); ?></b></td>
     </tr>
+    <?php if($isCustomOrderType): ?>
+    <tr>
+        <td colspan="2" style="text-align: center!important; padding-bottom:10px;"><b style="color:#c24141;"><?php echo GetMessage('ORDER_TYPES_LIST_CUSTOM'); ?></b></td>
+    </tr>
+    <?php endif; ?>
     <?php foreach($arResult['bitrixOrderTypesList'] as $bitrixOrderType): ?>
     <tr>
        <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $bitrixOrderType['ID']; ?>">
