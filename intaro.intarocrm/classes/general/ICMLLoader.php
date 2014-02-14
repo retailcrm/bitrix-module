@@ -317,7 +317,7 @@ class ICMLLoader {
                         while($file = $dbFiles->GetNext()) {
                             
                             // Link picture to product
-                            $products[$pictures[$file['ID']]]['PICTURE'] = "http://" . 
+                            $products[$pictures[$file['ID']]]['PICTURE'] = ($_SERVER["HTTPS"] == 'on' ? "https://" : "http://") . 
                                             $_SERVER['SERVER_NAME'] . 
                                             '/upload/' . $file['SUBDIR'] . 
                                             '/' . $file['FILE_NAME'] ;
@@ -513,7 +513,7 @@ class ICMLLoader {
             }
 
             $offer .= "<picture>" . $this->PrepareValue($arOffer["PICTURE"]) . "</picture>\n";
-            $offer .= "<url>http://" . $_SERVER['SERVER_NAME'] . $this->PrepareValue($arOffer['DETAIL_PAGE_URL']) . "</url>\n";
+            $offer .= "<url>" . ($_SERVER["HTTPS"] == 'on' ? "https://" : "http://") . $_SERVER['SERVER_NAME'] . $this->PrepareValue($arOffer['DETAIL_PAGE_URL']) . "</url>\n";
 
             $offer .= "<price>" . $this->PrepareValue($arOffer['PRICE']) . "</price>\n";
             foreach ($categories as $category)
