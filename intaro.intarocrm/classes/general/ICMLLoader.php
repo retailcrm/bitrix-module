@@ -18,12 +18,13 @@ class ICMLLoader {
     protected $fp;
     protected $mainSection = 1000000;
     protected $pageSize = 500;
-    
+    protected $offerPageSize = 50;
+
     protected $isLogged = false;
     protected $logFile = '/bitrix/catalog_export/i_crm_load_log.txt';
     protected $fpLog;
-    
-    
+
+
     protected $measurement = array (
         'mm' => 1,          // 1 mm = 1 mm
         'cm' => 10,         // 1 cm = 10 mm
@@ -32,7 +33,7 @@ class ICMLLoader {
         'g' => 1,
         'kg' => 1000,
     );
-    
+
     protected $measurementLink = array (
         'mm' => 'mm',
         'cm' => 'mm',
@@ -45,18 +46,18 @@ class ICMLLoader {
     public function Load()
     {
             global $USER;
-            if(!isset($_SESSION["SESS_AUTH"]["USER_ID"]) || !$_SESSION["SESS_AUTH"]["USER_ID"]) 
+            if(!isset($_SESSION["SESS_AUTH"]["USER_ID"]) || !$_SESSION["SESS_AUTH"]["USER_ID"])
                 $USER = new CUser;
-            
+
             $this->isLogged = true;
-            
+
             $defaultSite = CSite::GetList($by="def", $order="desc", Array())->Fetch();
             $this->encodingDefault = $defaultSite["CHARSET"];
-            
+
             $this->PrepareSettings();
 
             $this->fp = $this->PrepareFile($this->filename. '.tmp');
-            
+
             if ($this->isLogged) {
                 $this->fpLog = $this->PrepareFile($this->logFile);
                 $this->WriteLog("Start Loading");
@@ -77,10 +78,10 @@ class ICMLLoader {
             if ($this->isLogged) {
                 $this->WriteLog("Loading was ended successfully (peek memory usage: " . memory_get_peak_usage() . ")");
             }
-            
+
             $this->CloseFile($this->fp);
             $this->CloseFile($this->fpLog);
-            
+
             unlink($_SERVER["DOCUMENT_ROOT"] . $this->filename);
             rename($_SERVER["DOCUMENT_ROOT"] . $this->filename. '.tmp', $_SERVER["DOCUMENT_ROOT"] . $this->filename);
 
@@ -155,7 +156,7 @@ class ICMLLoader {
     {
             @fwrite($this->fp, $offers);
     }
-    
+
     protected function WriteLog($text)
     {
         if ($this->isLogged)
@@ -179,20 +180,15 @@ class ICMLLoader {
             $categories = array();
             foreach ($this->iblocks as $id)
             {
-                $filter = Array(
-                                "IBLOCK_ID" => $id,
-
-                                );
+                $filter = array("IBLOCK_ID" => $id);
 
                 $dbRes = CIBlockSection::GetList(array("left_margin" => "asc"), $filter);
                 $hasCategories = false;
-                while ($arRes = $dbRes->Fetch())
-                {
-                        $categories[$arRes['ID']] = $arRes;
-                        $hasCategories = true;
+                while ($arRes = $dbRes->Fetch()) {
+                    $categories[$arRes['ID']] = $arRes;
+                    $hasCategories = true;
                 }
-                if (!$hasCategories)
-                {
+                if (!$hasCategories) {
                     $iblock = CIBlock::GetByID($id)->Fetch();
 
                     $arRes = Array();
@@ -228,23 +224,21 @@ class ICMLLoader {
                     $iblockOffer = CCatalogSKU::GetInfoByProductIBlock($id);
 
                     $arSelect = Array (
-                                    "ID",
-                                    "LID",
-                                    "IBLOCK_ID",
-                                    "IBLOCK_SECTION_ID",
-                                    "ACTIVE",
-                                    "ACTIVE_FROM",
-                                    "ACTIVE_TO",
-                                    "NAME",
-                                    "DETAIL_PICTURE",
-                                    "DETAIL_TEXT",
-                                    "DETAIL_PICTURE",
-                                    "LANG_DIR",
-                                    "DETAIL_PAGE_URL",
-                                    "CATALOG_GROUP_1"
-                            );
-                    
-
+                        "ID",
+                        "LID",
+                        "IBLOCK_ID",
+                        "IBLOCK_SECTION_ID",
+                        "ACTIVE",
+                        "ACTIVE_FROM",
+                        "ACTIVE_TO",
+                        "NAME",
+                        "DETAIL_PICTURE",
+                        "DETAIL_TEXT",
+                        "DETAIL_PICTURE",
+                        "LANG_DIR",
+                        "DETAIL_PAGE_URL",
+                        "CATALOG_GROUP_1"
+                    );
                     // Set selected properties
                     foreach ($this->propertiesProduct[$id] as $key => $propProduct) {
                         if ($this->propertiesProduct[$id][$key] != "") {
@@ -253,46 +247,48 @@ class ICMLLoader {
                         }
                     }
 
+                    $arSelectOffer = Array (
+                        'ID',
+                        'ACTIVE',
+                        "NAME",
+                        "DETAIL_TEXT",
+                        "DETAIL_PAGE_URL",
+                        "DETAIL_PICTURE",
+                        'PROPERTY_' . $iblockOffer['SKU_PROPERTY_ID'],
+                        "CATALOG_GROUP_1"
+                    );
+                    // Set selected properties
+                    foreach ($this->propertiesSKU[$id] as $key => $propSKU) {
+                        if ($this->propertiesSKU[$id][$key] != "") {
+                            $arSelectOffer[] =  "PROPERTY_" . $propSKU;
+                            $arSelectOffer[] =  "PROPERTY_" . $propSKU . ".NAME";
+                        }
+                    }
 
                     // Set filter
-                    $filter = Array (
-                                    "IBLOCK_ID" => $id,
-                                    "INCLUDE_SUBSECTIONS" => "Y"
-                            );
-
-                    $order = Array(
-                        "id"
+                    $filter = array(
+                        "IBLOCK_ID" => $id,
+                        "INCLUDE_SUBSECTIONS" => "Y",
                     );
-                    
-                    // Counter of pagenumber
-                    $count = 1;
-                    $isThisTheEnd = false;
-                    
+                    $order = array("id");
+                    $arNavStatParams = Array(
+                        "iNumPage" => 1,
+                        "nPageSize" => $this->pageSize,
+                    );
+
                     // Cycle page to page
-                    while (!$isThisTheEnd) {
-
-                        $arNavStatParams = Array(
-
-                            "iNumPage" => $count,
-                            "nPageSize" => $this->pageSize,
-                        );
-                        
+                    do {
                         // Get products on this page
                         $dbResProducts = CIBlockElement::GetList($order, $filter, false, $arNavStatParams, $arSelect);
-                        
-                        // It's last page
-                        if ($dbResProducts->NavPageCount == $count) {
-                            $isThisTheEnd = true;
-                        }
-                        
+
                         $pictures = array();
                         $products = array();
                         while ($product = $dbResProducts->GetNext()) {
-                             
+
                             // Compile products to array
                             $products[$product['ID']] = $product;
                             $products[$product['ID']]['offers'] = array();
-                                    
+
                             $detailPicture = intval($product["DETAIL_PICTURE"]);
                             $previewPicture = intval($product["PREVIEW_PICTURE"]);
 
@@ -307,65 +303,45 @@ class ICMLLoader {
                                 $pictures[$picture] = $product['ID'];
                             }
                         }
-                        unset($product, $dbResProducts);
+                        unset($product);
                         unset($detailPicture, $previewPicture, $picture);
-                        
+
                         $pictureIDs = array_keys($pictures);
-                        
+
                         // Get pathes of pictures
                         $dbFiles = CFile::GetList(Array(), Array("@ID" => implode(',', $pictureIDs)));
                         while($file = $dbFiles->GetNext()) {
-                            
+
                             // Link picture to product
-                            $products[$pictures[$file['ID']]]['PICTURE'] = ($_SERVER["HTTPS"] == 'on' ? "https://" : "http://") . 
-                                            $_SERVER['SERVER_NAME'] . 
-                                            '/upload/' . $file['SUBDIR'] . 
+                            $products[$pictures[$file['ID']]]['PICTURE'] = ($_SERVER["HTTPS"] == 'on' ? "https://" : "http://") .
+                                            $_SERVER['SERVER_NAME'] .
+                                            '/upload/' . $file['SUBDIR'] .
                                             '/' . $file['FILE_NAME'] ;
                         }
                         unset($pictures);
-                        
-                        
+
                         if (!empty($iblockOffer['IBLOCK_ID'])) {
-
-                            
-                            $productIDs = array_keys($products);
-                            
-                            $arSelectOffer = Array (
-                                            'ID',
-                                            'ACTIVE',
-                                            "NAME",
-                                            "DETAIL_TEXT",
-                                            "DETAIL_PAGE_URL",
-                                            "DETAIL_PICTURE",
-                                            'PROPERTY_' . $iblockOffer['SKU_PROPERTY_ID'],
-                                            "CATALOG_GROUP_1"
-                                    );
-                            $arFilterOffer = Array (
-                                            'IBLOCK_ID' => $iblockOffer['IBLOCK_ID'],
-                                            'PROPERTY_' . $iblockOffer['SKU_PROPERTY_ID'] => $productIDs
-                                    );
-
-                            // Set selected properties
-                            foreach ($this->propertiesSKU[$id] as $key => $propSKU) {
-                                if ($this->propertiesSKU[$id][$key] != "") {
-                                    $arSelectOffer[] =  "PROPERTY_" . $propSKU;
-                                    $arSelectOffer[] =  "PROPERTY_" . $propSKU . ".NAME";
-                                }
-                            }
+                            $arFilterOffer = array(
+                                'IBLOCK_ID' => $iblockOffer['IBLOCK_ID'],
+                                'PROPERTY_' . $iblockOffer['SKU_PROPERTY_ID'] => array_keys($products),
+                            );
 
                             // Get all offers for products on this page
-                            $dbResOffers = CIBlockElement::GetList(array(), $arFilterOffer, false, false, $arSelectOffer);
-                            
+                            $dbResOffers = CIBlockElement::GetList(
+                                array(),
+                                $arFilterOffer,
+                                false,
+                                array('nTopCount' => $this->pageSize * $this->offerPageSize),
+                                $arSelectOffer
+                            );
+
                             while ($offer = $dbResOffers->GetNext()) {
-                                
                                 // Link offers to products
                                 $products[$offer['PROPERTY_' . $iblockOffer['SKU_PROPERTY_ID'] . '_VALUE']]['offers'][$offer['ID']] = $offer;
                             }
                             unset($offer, $dbResOffers);
                         }
-                        
 
-                        
                         $stringOffers = "";
                         foreach ($products as $product) {
 
@@ -373,16 +349,16 @@ class ICMLLoader {
                                 $resPropertiesProduct = Array();
                                 foreach ($this->propertiesProduct[$id] as $key => $propProduct) {
                                     $resPropertiesProduct[$key] = "";
-                                    
+
                                     if ($propProduct != "") {
-                                        
-                                        if (isset ($product["PROPERTY_" . $propProduct . "_NAME"])) 
+
+                                        if (isset ($product["PROPERTY_" . $propProduct . "_NAME"]))
                                             $resPropertiesProduct[$key] =  $product["PROPERTY_" . $propProduct . "_NAME"];
                                         elseif (isset ($product[$propProduct]))
                                             $resPropertiesProduct[$key] =  $product[$propProduct];
                                         else
                                             $resPropertiesProduct[$key] =  $product["PROPERTY_" . $propProduct . "_VALUE"];
-                                        
+
                                         if (array_key_exists($key, $this->propertiesUnitProduct[$id])) {
                                             $resPropertiesProduct[$key] *= $this->measurement[$this->propertiesUnitProduct[$id][$key]];
                                             $resPropertiesProduct[$key . "_UNIT"] = $this->measurementLink[$this->propertiesUnitProduct[$id][$key]];
@@ -408,9 +384,9 @@ class ICMLLoader {
 
                                 $existOffer = false;
                                 if (!empty($iblockOffer['IBLOCK_ID'])) {
-                                    
+
                                     foreach ($product['offers'] as $offer) {
-                                        
+
 
                                         $offer['PRODUCT_ID'] = $product["ID"];
                                         $offer['DETAIL_PAGE_URL'] = $product["DETAIL_PAGE_URL"];
@@ -419,28 +395,28 @@ class ICMLLoader {
                                         $offer['PRODUCT_ACTIVE'] = $product["ACTIVE"];
                                         $offer['PRICE'] = $offer['CATALOG_PRICE_1'];
                                         $offer['QUANTITY'] = $offer["CATALOG_QUANTITY"];
-                                        
+
                                         // Get properties of product
-                                        
+
                                         foreach ($this->propertiesSKU[$id] as $key => $propSKU) {
-                                            
+
                                             if ($propSKU != "") {
-                                                
-                                                if (isset ($offer["PROPERTY_" . $propSKU . "_NAME"])) 
+
+                                                if (isset ($offer["PROPERTY_" . $propSKU . "_NAME"]))
                                                     $offer[$key] =  $offer["PROPERTY_" . $propSKU . "_NAME"];
                                                 elseif (isset ($offer[$propSKU]))
                                                     $offer[$key] = $offer[$propSKU];
-                                                else 
+                                                else
                                                     $offer[$key] =  $offer["PROPERTY_" . $propSKU . "_VALUE"];
-                                                
+
                                                 if (array_key_exists($key, $this->propertiesUnitSKU[$id])) {
                                                     $offer[$key] *= $this->measurement[$this->propertiesUnitSKU[$id][$key]];
                                                     $offer[$key . "_UNIT"] = $this->measurementLink[$this->propertiesUnitSKU[$id][$key]];
                                                 }
                                             }
-                                            
+
                                         }
-                                        
+
                                         foreach ($resPropertiesProduct as $key => $propProduct) {
                                             if ($this->propertiesProduct[$id][$key] != "" && !isset($offer[$key]))
                                                 $offer[$key] =  $propProduct;
@@ -469,15 +445,17 @@ class ICMLLoader {
 
                         }
                         unset($products);
-                        
-                        if ($this->isLogged) 
-                            $this->WriteLog(($this->pageSize * $count) . " product(s) has been loaded from " . $id . " IB (memory usage: " . memory_get_usage() . ")");
-                        $count++;
+
+                        if ($this->isLogged)
+                            $this->WriteLog(($this->pageSize * $arNavStatParams['iNumPage']) . " product(s) has been loaded from " . $id . " IB (memory usage: " . memory_get_usage() . ")");
                         if ($stringOffers != "") {
                             $this->WriteOffers($stringOffers);
                             $stringOffers = "";
                         }
+
+                        $arNavStatParams['iNumPage'] = $dbResProducts->NavPageNomer + 1;
                     }
+                    while ($dbResProducts->NavPageNomer < $dbResProducts->NavPageCount);
             }
     }
 
@@ -488,10 +466,10 @@ class ICMLLoader {
             $offer .= "<offer id=\"" .$this->PrepareValue($arOffer["ID"]) . "\" ".
                     "productId=\"" . $this->PrepareValue($arOffer["PRODUCT_ID"]) . "\" ".
                     "quantity=\"" . $this->PrepareValue(DoubleVal($arOffer['QUANTITY'])) . "\">\n";
-            
+
             if ($arOffer['PRODUCT_ACTIVE'] == "N")
                 $offer .= "<productActivity>" .  $this->PrepareValue($arOffer['PRODUCT_ACTIVE']) . "</productActivity>\n";
-            
+
             $keys = array_keys($categories);
             if (strpos($arOffer['DETAIL_PAGE_URL'], "#SECTION_PATH#") !== false) {
                 if (count($categories) != 0) {
@@ -526,10 +504,10 @@ class ICMLLoader {
 
             foreach ($this->propertiesProduct[$iblock['IBLOCK_DB']['ID']] as $key => $propProduct) {
                 if ($propProduct != "" && $arOffer[$key] != null) {
-                    if ($key === "manufacturer") 
+                    if ($key === "manufacturer")
                         $offer .= "<vendor>" . $this->PrepareValue($arOffer[$key]) . "</vendor>\n";
                     else
-                        $offer .= "<param name=\"" . $key . "\" " . (isset($arOffer[$key . "_UNIT"]) ? 'unit="' . $arOffer[$key . "_UNIT"] . '"' : "") . ">" . $this->PrepareValue($arOffer[$key]) . "</param>\n";
+                        $offer .= '<param name="' . $key . '"' . (isset($arOffer[$key . "_UNIT"]) ? ' unit="' . $arOffer[$key . "_UNIT"] . '"' : "") . ">" . $this->PrepareValue($arOffer[$key]) . "</param>\n";
                 }
             }
             foreach ($this->propertiesSKU[$iblock['IBLOCK_DB']['ID']] as $key => $propProduct) {
@@ -537,12 +515,11 @@ class ICMLLoader {
                     if ($key === "manufacturer")
                         $offer .= "<vendor>" . $this->PrepareValue($arOffer[$key]) . "</vendor>\n";
                     else
-                        $offer .= "<param name=\"" . $key . "\" " . ( isset($arOffer[$key . "_UNIT"]) ? 'unit="' . $arOffer[$key . "_UNIT"] . '"' : "") . ">" . $this->PrepareValue($arOffer[$key]) . "</param>\n";
+                        $offer .= '<param name="' . $key . '"' . (isset($arOffer[$key . "_UNIT"]) ? ' unit="' . $arOffer[$key . "_UNIT"] . '"' : "") . ">" . $this->PrepareValue($arOffer[$key]) . "</param>\n";
                 }
             }
 
             $offer.= "</offer>\n";
             return $offer;
     }
-
 }
