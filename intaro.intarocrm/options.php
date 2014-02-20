@@ -717,7 +717,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         <td colspan="2"><b><?php echo GetMessage('ORDER_TYPE_INFO') . ' ' . $bitrixOrderType['NAME']; ?></b></td>
     </tr>
     
-    <?php $countProps = 0; foreach($arResult['orderProps'] as $orderProp): ?>
+    <?php $countProps = 1; foreach($arResult['orderProps'] as $orderProp): ?>
     <?php if($orderProp['ID'] == 'text'): ?>
     <tr class="heading">
         <td colspan="2" style="background-color: transparent;">
