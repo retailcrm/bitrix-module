@@ -368,9 +368,9 @@ class ICrmOrderActions
             $dateStart = $dateStart->format('Y-m-d H:i:s');
         }
 
-        $orderHistory = $api->orderHistory($dateStart);
+        $dateFinish = new \DateTime();
 
-        $dateStart = new \DateTime($dateStart);
+        $orderHistory = $api->orderHistory($dateStart);
 
         // pushing existing orders
         foreach ($orderHistory as $order) {
@@ -866,13 +866,11 @@ class ICrmOrderActions
                 // set PAYED
                 if($optionsPayment[$order['paymentStatus']])
                     CSaleOrder::PayOrder($order['externalId'], $optionsPayment[$order['paymentStatus']]);
-
-                $dateStart = new \DateTime();
             }
         }
 
         if(count($orderHistory))
-            COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_HISTORY_DATE, $dateStart->format('Y-m-d H:i:s'));
+            COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_HISTORY_DATE, $dateFinish->format('Y-m-d H:i:s'));
 
         $USER->Logout();
         if($realUser) $USER->Authorize($realUser);
