@@ -282,8 +282,6 @@ class ICrmOrderActions
     public static function orderHistory() {
         global $USER;
 
-        $GLOBALS['INTARO_CRM_FROM_HISTORY'] = true;
-
         if(isset($_SESSION["SESS_AUTH"]["USER_ID"]) && $_SESSION["SESS_AUTH"]["USER_ID"]) {
             $realUser = $USER->GetID();
             $USER->Logout();
@@ -373,6 +371,8 @@ class ICrmOrderActions
         $dateFinish = new \DateTime();
 
         $orderHistory = $api->orderHistory($dateStart);
+
+        $GLOBALS['INTARO_CRM_FROM_HISTORY'] = false;
 
         // pushing existing orders
         foreach ($orderHistory as $order) {
@@ -874,6 +874,8 @@ class ICrmOrderActions
 
         $USER->Logout();
         if($realUser) $USER->Authorize($realUser);
+
+        $GLOBALS['INTARO_CRM_FROM_HISTORY'] = false;
 
         return true;
     }
