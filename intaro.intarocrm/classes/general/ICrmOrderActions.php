@@ -1130,7 +1130,7 @@ class ICrmOrderActions
             'paymentStatus'   => $arParams['optionsPayment'][$arFields['PAYED']],
             'orderType'       => $arParams['optionsOrderTypes'][$arFields['PERSON_TYPE_ID']],
             'deliveryType'    => $arParams['optionsDelivTypes'][$resultDeliveryTypeId],
-            'deliveryService' => $deliveryService,
+            'deliveryService' => ($arParams['optionsDelivTypes'][$resultDeliveryTypeId]) ? $deliveryService : '',
             'status'          => $arParams['optionsPayStatuses'][$arFields['STATUS_ID']],
             'statusComment'   => $arFields['REASON_CANCELED'],
             'customerComment' => $arFields['USER_DESCRIPTION'],
