@@ -59,6 +59,9 @@ class ICrmOrderEvent {
      * @param mixed $arFields - Order arFields for sending template
      */
     function onSendOrderMail($ID, &$eventName, &$arFields) {
+        if(isset($GLOBALS['INTARO_CRM_FROM_HISTORY']) && $GLOBALS['INTARO_CRM_FROM_HISTORY'])
+            return;
+
         if(self::writeDataOnOrderCreate($ID)) 
             COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, $ID);
         else {
@@ -160,6 +163,9 @@ class ICrmOrderEvent {
      * @return boolean
      */
     function onSaleCancelOrder($ID, $cancel, $reason) {
+        if(isset($GLOBALS['INTARO_CRM_FROM_HISTORY']) && $GLOBALS['INTARO_CRM_FROM_HISTORY'])
+            return;
+
         if(!$ID || !$cancel)
             return true;
         
@@ -223,6 +229,9 @@ class ICrmOrderEvent {
      * @return boolean
      */
     function onSalePayOrder($ID, $payed) {
+        if(isset($GLOBALS['INTARO_CRM_FROM_HISTORY']) && $GLOBALS['INTARO_CRM_FROM_HISTORY'])
+            return;
+
         if(!$ID || !$payed || ($payed != 'Y'))
             return true;
         
@@ -258,8 +267,7 @@ class ICrmOrderEvent {
         );
         
         $api->orderEdit($order);
-        
- 
+
         // error pushing order
         if ($api->getStatusCode() != 201)
             ICrmOrderActions::eventLog('ICrmOrderEvent::onSalePayOrder', 'IntaroCrm\RestApi::orderEdit', $api->getLastError());
