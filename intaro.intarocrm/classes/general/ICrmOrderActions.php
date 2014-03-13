@@ -372,7 +372,7 @@ class ICrmOrderActions
 
         $orderHistory = $api->orderHistory($dateStart);
 
-        $GLOBALS['INTARO_CRM_FROM_HISTORY'] = false;
+        $GLOBALS['INTARO_CRM_FROM_HISTORY'] = true;
 
         // pushing existing orders
         foreach ($orderHistory as $order) {
