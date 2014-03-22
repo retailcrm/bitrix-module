@@ -283,6 +283,34 @@ class RestApi
         return $result;
     }
 
+    /**
+     * Получение списка служб доставки
+     *
+     * @return array - массив типов доставки
+     */
+    public function deliveryServicesList()
+    {
+        $url = $this->apiUrl.'reference/delivery-services';
+        $result = $this->curlRequest($url);
+        return $result;
+    }
+
+    /**
+     * Редактирование службы доставки
+     *
+     * @param array $deliveryService - информация о типе доставки
+     * @return array
+     */
+    public function deliveryServiceEdit($deliveryService)
+    {
+        $dataJson = json_encode($deliveryService);
+        $this->parameters['deliveryService'] = $dataJson;
+
+        $url = $this->apiUrl.'reference/delivery-services/'.$deliveryService['code'].'/edit';
+        $result = $this->curlRequest($url, 'POST');
+        return $result;
+    }
+
 
     /**
      * Получение списка типов оплаты
