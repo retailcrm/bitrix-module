@@ -1,5 +1,5 @@
 <?
 $arModuleVersion = array(
-        "VERSION" => "1.0.2",
-        "VERSION_DATE" => "2014-03-14 20:56:00",
+        "VERSION" => "1.0.3",
+        "VERSION_DATE" => "2014-03-22 14:51:00",
 );

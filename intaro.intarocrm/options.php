@@ -101,13 +101,27 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_RE
 
     $api = new IntaroCrm\RestApi($api_host, $api_key);
 
-    $api->paymentStatusesList();
+    try {
+        $api->paymentStatusesList();
+    } catch (\IntaroCrm\Exception\ApiException $e) {
+        ICrmOrderActions::eventLog(
+            'intaro.crm/options.php', 'IntaroCrm\RestApi::paymentStatusesList',
+            $e->getCode() . ': ' . $e->getMessage()
+        );
 
-    //check connection & apiKey valid
-    if ((int) $api->getStatusCode() != 200) {
         $APPLICATION->RestartBuffer();
         header('Content-Type: application/x-javascript; charset=' . LANG_CHARSET);
-        die(json_encode(array('success' => false, 'errMsg' => $api->getStatusCode())));
+        die(json_encode(array('success' => false, 'errMsg' => $e->getCode())));
+
+    } catch (\IntaroCrm\Exception\CurlException $e) {
+        ICrmOrderActions::eventLog(
+            'intaro.crm/options.php', 'IntaroCrm\RestApi::paymentStatusesList::CurlException',
+            $e->getCode() . ': ' . $e->getMessage()
+        );
+
+        $APPLICATION->RestartBuffer();
+        header('Content-Type: application/x-javascript; charset=' . LANG_CHARSET);
+        die(json_encode(array('success' => false, 'errMsg' => $e->getCode())));
     }
 
     $optionsDelivTypes = unserialize(COption::GetOptionString($mid, $CRM_DELIVERY_TYPES_ARR, 0));
@@ -134,18 +148,23 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_RE
             foreach($arDeliveryServicesList['PROFILES'] as $id => $profile) {
 
                 // send to crm
-                $api->deliveryServiceEdit(ICrmOrderActions::clearArr(array(
-                    'code' => $arDeliveryServicesList['SID'] . '-' . $id,
-                    'name' => ICrmOrderActions::toJSON($profile['TITLE']),
-                    'deliveryType' => $arDeliveryServicesList['SID']
-                )));
+                try {
+                    $api->deliveryServiceEdit(ICrmOrderActions::clearArr(array(
+                        'code' => $arDeliveryServicesList['SID'] . '-' . $id,
+                        'name' => ICrmOrderActions::toJSON($profile['TITLE']),
+                        'deliveryType' => $arDeliveryServicesList['SID']
+                    )));
+                } catch (\IntaroCrm\Exception\ApiException $e) {
+                    ICrmOrderActions::eventLog(
+                        'intaro.crm/options.php', 'IntaroCrm\RestApi::deliveryServiceEdit',
+                        $e->getCode() . ': ' . $e->getMessage()
+                    );
 
-                // error pushing dt
-                if ($api->getStatusCode() != 200) {
-                    if ($api->getStatusCode() != 201) {
-                        //handle err
-                        ICrmOrderActions::eventLog('options.php', 'IntaroCrm\RestApi::deliveryServiceEdit', $api->getLastError());
-                    }
+                } catch (\IntaroCrm\Exception\CurlException $e) {
+                    ICrmOrderActions::eventLog(
+                        'intaro.crm/options.php', 'IntaroCrm\RestApi::deliveryServiceEdit::CurlException',
+                        $e->getCode() . ': ' . $e->getMessage()
+                    );
                 }
             }
 
@@ -170,17 +189,29 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             
     if($api_host && $api_key) {
         $api = new IntaroCrm\RestApi($api_host, $api_key);
-            
-        $api->paymentStatusesList();
-            
-        //check connection & apiKey valid
-        if((int) $api->getStatusCode() != 200) {
-            $uri .= '&errc=ERR_' . $api->getStatusCode();
+        try {
+            $api->paymentStatusesList();
+        } catch (\IntaroCrm\Exception\ApiException $e) {
+            ICrmOrderActions::eventLog(
+                'intaro.crm/options.php', 'IntaroCrm\RestApi::paymentStatusesList',
+                $e->getCode() . ': ' . $e->getMessage()
+            );
+
+            $uri .= '&errc=ERR_' . $e->getCode();
             LocalRedirect($uri);
-        } else {
-            COption::SetOptionString($mid, 'api_host', $api_host);
-            COption::SetOptionString($mid, 'api_key', $api_key);
-        }   
+
+        } catch (\IntaroCrm\Exception\CurlException $e) {
+            ICrmOrderActions::eventLog(
+                'intaro.crm/options.php', 'IntaroCrm\RestApi::paymentStatusesList::CurlException',
+                $e->getCode() . ': ' . $e->getMessage()
+            );
+
+            $uri .= '&errc=ERR_' . $e->getCode();
+            LocalRedirect($uri);
+        }
+
+        COption::SetOptionString($mid, 'api_host', $api_host);
+        COption::SetOptionString($mid, 'api_key', $api_key);
     }
     
     //bitrix orderTypesList -- personTypes
@@ -349,17 +380,30 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         $arResult['arSites'][] = $ar;
 
     //prepare crm lists
-    $arResult['orderTypesList'] = $api->orderTypesList();
-    $arResult['deliveryTypesList'] = $api->deliveryTypesList();
-    $arResult['deliveryServicesList'] = $api->deliveryServicesList();
-    $arResult['paymentTypesList'] = $api->paymentTypesList();
-    $arResult['paymentStatusesList'] = $api->paymentStatusesList(); // --statuses
-    $arResult['paymentList'] = $api->orderStatusesList();
-    $arResult['paymentGroupList'] = $api->orderStatusGroupsList(); // -- statuses groups
-            
-    //check connection & apiKey valid
-    if ((int) $api->getStatusCode() != 200)
-        echo CAdminMessage::ShowMessage(GetMessage('ERR_' . $api->getStatusCode()));
+    try {
+        $arResult['orderTypesList'] = $api->orderTypesList();
+        $arResult['deliveryTypesList'] = $api->deliveryTypesList();
+        $arResult['deliveryServicesList'] = $api->deliveryServicesList();
+        $arResult['paymentTypesList'] = $api->paymentTypesList();
+        $arResult['paymentStatusesList'] = $api->paymentStatusesList(); // --statuses
+        $arResult['paymentList'] = $api->orderStatusesList();
+        $arResult['paymentGroupList'] = $api->orderStatusGroupsList(); // -- statuses groups
+    } catch (\IntaroCrm\Exception\ApiException $e) {
+        ICrmOrderActions::eventLog(
+            'intaro.crm/options.php', 'IntaroCrm\RestApi::*List',
+            $e->getCode() . ': ' . $e->getMessage()
+        );
+
+        echo CAdminMessage::ShowMessage(GetMessage('ERR_' . $e->getCode()));
+
+    } catch (\IntaroCrm\Exception\CurlException $e) {
+        ICrmOrderActions::eventLog(
+            'intaro.crm/options.php', 'IntaroCrm\RestApi::*List::CurlException',
+            $e->getCode() . ': ' . $e->getMessage()
+        );
+
+        echo CAdminMessage::ShowMessage(GetMessage('ERR_' . $e->getCode()));
+    }
 
     //bitrix orderTypesList -- personTypes
     $dbOrderTypesList = CSalePersonType::GetList(

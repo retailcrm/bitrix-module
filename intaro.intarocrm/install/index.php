@@ -196,20 +196,48 @@ class intaro_intarocrm extends CModule {
                 $this->INTARO_CRM_API = new \IntaroCrm\RestApi($api_host, $api_key);
 
                 //prepare crm lists
-                $arResult['orderTypesList'] = $this->INTARO_CRM_API->orderTypesList();
+                try {
+                    $arResult['orderTypesList'] = $this->INTARO_CRM_API->orderTypesList();
+                } catch (\IntaroCrm\Exception\ApiException $e) {
+                    ICrmOrderActions::eventLog(
+                        'intaro.crm/install/index.php', 'IntaroCrm\RestApi::orderTypesList',
+                        $e->getCode() . ': ' . $e->getMessage()
+                    );
 
-                if ((int) $this->INTARO_CRM_API->getStatusCode() != 200) {
+                    $APPLICATION->RestartBuffer();
+                    header('Content-Type: application/x-javascript; charset=' . LANG_CHARSET);
+                    die(json_encode(array("success" => false)));
+
+                } catch (\IntaroCrm\Exception\CurlException $e) {
+                    ICrmOrderActions::eventLog(
+                        'intaro.crm/install/index.php', 'IntaroCrm\RestApi::orderTypesList::CurlException',
+                        $e->getCode() . ': ' . $e->getMessage()
+                    );
+
                     $APPLICATION->RestartBuffer();
                     header('Content-Type: application/x-javascript; charset=' . LANG_CHARSET);
                     die(json_encode(array("success" => false)));
                 }
 
-                $arResult['deliveryTypesList'] = $this->INTARO_CRM_API->deliveryTypesList();
-                $arResult['deliveryServicesList'] = $this->INTARO_CRM_API->deliveryServicesList();
-                $arResult['paymentTypesList'] = $this->INTARO_CRM_API->paymentTypesList();
-                $arResult['paymentStatusesList'] = $this->INTARO_CRM_API->paymentStatusesList(); // --statuses
-                $arResult['paymentList'] = $this->INTARO_CRM_API->orderStatusesList();
-                $arResult['paymentGroupList'] = $this->INTARO_CRM_API->orderStatusGroupsList(); // -- statuses groups
+                try {
+                    $arResult['deliveryTypesList'] = $this->INTARO_CRM_API->deliveryTypesList();
+                    $arResult['deliveryServicesList'] = $this->INTARO_CRM_API->deliveryServicesList();
+                    $arResult['paymentTypesList'] = $this->INTARO_CRM_API->paymentTypesList();
+                    $arResult['paymentStatusesList'] = $this->INTARO_CRM_API->paymentStatusesList(); // --statuses
+                    $arResult['paymentList'] = $this->INTARO_CRM_API->orderStatusesList();
+                    $arResult['paymentGroupList'] = $this->INTARO_CRM_API->orderStatusGroupsList(); // -- statuses groups
+                } catch (\IntaroCrm\Exception\ApiException $e) {
+                    ICrmOrderActions::eventLog(
+                        'intaro.crm/install/index.php', 'IntaroCrm\RestApi::*List',
+                        $e->getCode() . ': ' . $e->getMessage()
+                    );
+
+                } catch (\IntaroCrm\Exception\CurlException $e) {
+                    ICrmOrderActions::eventLog(
+                        'intaro.crm/install/index.php', 'IntaroCrm\RestApi::*List::CurlException',
+                        $e->getCode() . ': ' . $e->getMessage()
+                    );
+                }
                 //bitrix orderTypesList -- personTypes
                 $dbOrderTypesList = CSalePersonType::GetList(
                                 array(
@@ -480,15 +508,33 @@ class intaro_intarocrm extends CModule {
 
             $this->INTARO_CRM_API = new \IntaroCrm\RestApi($api_host, $api_key);
 
-            $this->INTARO_CRM_API->paymentStatusesList();
+            try {
+                $this->INTARO_CRM_API->paymentStatusesList();
+            } catch (\IntaroCrm\Exception\ApiException $e) {
+                ICrmOrderActions::eventLog(
+                    'intaro.crm/install/index.php', 'IntaroCrm\RestApi::paymentStatusesList',
+                    $e->getCode() . ': ' . $e->getMessage()
+                );
 
-            //check connection & apiKey valid
-            if ((int) $this->INTARO_CRM_API->getStatusCode() != 200) {
-                $arResult['errCode'] = 'ERR_' . $this->INTARO_CRM_API->getStatusCode();
+                $arResult['errCode'] = 'ERR_' . $e->getCode();
 
                 $APPLICATION->IncludeAdminFile(
-                        GetMessage('MODULE_INSTALL_TITLE'), 
-                        $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step1.php'
+                    GetMessage('MODULE_INSTALL_TITLE'),
+                    $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step1.php'
+                );
+
+                return;
+            } catch (\IntaroCrm\Exception\CurlException $e) {
+                ICrmOrderActions::eventLog(
+                    'intaro.crm/install/index.php', 'IntaroCrm\RestApi::paymentStatusesList::CurlException',
+                    $e->getCode() . ': ' . $e->getMessage()
+                );
+
+                $arResult['errCode'] = 'ERR_' . $e->getCode();
+
+                $APPLICATION->IncludeAdminFile(
+                    GetMessage('MODULE_INSTALL_TITLE'),
+                    $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step1.php'
                 );
 
                 return;
@@ -499,14 +545,26 @@ class intaro_intarocrm extends CModule {
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_SITES, serialize($orderSites));
 
             //prepare crm lists
-            $arResult['orderTypesList'] = $this->INTARO_CRM_API->orderTypesList();
-            $arResult['deliveryTypesList'] = $this->INTARO_CRM_API->deliveryTypesList();
-            $arResult['deliveryServicesList'] = $this->INTARO_CRM_API->deliveryServicesList();
-            $arResult['paymentTypesList'] = $this->INTARO_CRM_API->paymentTypesList();
-            $arResult['paymentStatusesList'] = $this->INTARO_CRM_API->paymentStatusesList(); // --statuses
-            $arResult['paymentList'] = $this->INTARO_CRM_API->orderStatusesList();
-            $arResult['paymentGroupList'] = $this->INTARO_CRM_API->orderStatusGroupsList(); // -- statuses groups
+            try {
+                $arResult['orderTypesList'] = $this->INTARO_CRM_API->orderTypesList();
+                $arResult['deliveryTypesList'] = $this->INTARO_CRM_API->deliveryTypesList();
+                $arResult['deliveryServicesList'] = $this->INTARO_CRM_API->deliveryServicesList();
+                $arResult['paymentTypesList'] = $this->INTARO_CRM_API->paymentTypesList();
+                $arResult['paymentStatusesList'] = $this->INTARO_CRM_API->paymentStatusesList(); // --statuses
+                $arResult['paymentList'] = $this->INTARO_CRM_API->orderStatusesList();
+                $arResult['paymentGroupList'] = $this->INTARO_CRM_API->orderStatusGroupsList(); // -- statuses groups
+            } catch (\IntaroCrm\Exception\ApiException $e) {
+                ICrmOrderActions::eventLog(
+                    'intaro.crm/install/index.php', 'IntaroCrm\RestApi::*List',
+                    $e->getCode() . ': ' . $e->getMessage()
+                );
 
+            } catch (\IntaroCrm\Exception\CurlException $e) {
+                ICrmOrderActions::eventLog(
+                    'intaro.crm/install/index.php', 'IntaroCrm\RestApi::*List::CurlException',
+                    $e->getCode() . ': ' . $e->getMessage()
+                );
+            }
             //bitrix orderTypesList -- personTypes
             $dbOrderTypesList = CSalePersonType::GetList(
                             array(
@@ -691,21 +749,27 @@ class intaro_intarocrm extends CModule {
                         $deliveryTypesArr[$arDeliveryTypesList['ID']] = $resultDeliveryTypeId;
 
                         // send to crm
-                        $this->INTARO_CRM_API->deliveryTypeEdit(ICrmOrderActions::clearArr(array(
-                                    'code' => $resultDeliveryTypeId,
-                                    'name' => ICrmOrderActions::toJSON($arDeliveryTypesList['NAME']),
-                                    'defaultCost' => $arDeliveryTypesList['PRICE'],
-                                    'description' => ICrmOrderActions::toJSON($arDeliveryTypesList['DESCRIPTION']),
-                                    'paymentTypes' => ''
-                        )));
+                        try {
+                            $this->INTARO_CRM_API->deliveryTypeEdit(ICrmOrderActions::clearArr(array(
+                                'code' => $resultDeliveryTypeId,
+                                'name' => ICrmOrderActions::toJSON($arDeliveryTypesList['NAME']),
+                                'defaultCost' => $arDeliveryTypesList['PRICE'],
+                                'description' => ICrmOrderActions::toJSON($arDeliveryTypesList['DESCRIPTION']),
+                                'paymentTypes' => ''
+                            )));
+                        } catch (\IntaroCrm\Exception\ApiException $e) {
+                            ICrmOrderActions::eventLog(
+                                'intaro.crm/install/index.php', 'IntaroCrm\RestApi::deliveryTypeEdit',
+                                $e->getCode() . ': ' . $e->getMessage()
+                            );
 
-                        // error pushing dt
-                        if ($this->INTARO_CRM_API->getStatusCode() != 200) {
-                            if ($this->INTARO_CRM_API->getStatusCode() != 201) {
-                                //handle err
-                                ICrmOrderActions::eventLog('install/index.php', 'IntaroCrm\RestApi::deliveryTypeEdit', $this->INTARO_CRM_API->getLastError());
-                            }
+                        } catch (\IntaroCrm\Exception\CurlException $e) {
+                            ICrmOrderActions::eventLog(
+                                'intaro.crm/install/index.php', 'IntaroCrm\RestApi::deliveryTypeEdit::CurlException',
+                                $e->getCode() . ': ' . $e->getMessage()
+                            );
                         }
+
                     } while ($arDeliveryTypesList = $dbDeliveryTypesList->Fetch());
                 }
 
@@ -715,37 +779,47 @@ class intaro_intarocrm extends CModule {
                         $deliveryTypesArr[$arDeliveryServicesList['SID']] = $arDeliveryServicesList['SID'];
 
                         // send to crm
-                        $this->INTARO_CRM_API->deliveryTypeEdit(ICrmOrderActions::clearArr(array(
-                            'code' => $arDeliveryServicesList['SID'],
-                            'name' => ICrmOrderActions::toJSON($arDeliveryServicesList['NAME']),
-                            'defaultCost' => 0,
-                            'description' => ICrmOrderActions::toJSON($arDeliveryTypesList['DESCRIPTION']),
-                            'paymentTypes' => ''
-                        )));
+                        try {
+                            $this->INTARO_CRM_API->deliveryTypeEdit(ICrmOrderActions::clearArr(array(
+                                'code' => $arDeliveryServicesList['SID'],
+                                'name' => ICrmOrderActions::toJSON($arDeliveryServicesList['NAME']),
+                                'defaultCost' => 0,
+                                'description' => ICrmOrderActions::toJSON($arDeliveryTypesList['DESCRIPTION']),
+                                'paymentTypes' => ''
+                            )));
+                        } catch (\IntaroCrm\Exception\ApiException $e) {
+                            ICrmOrderActions::eventLog(
+                                'intaro.crm/install/index.php', 'IntaroCrm\RestApi::deliveryTypeEdit',
+                                $e->getCode() . ': ' . $e->getMessage()
+                            );
 
-                        // error pushing dt
-                        if ($this->INTARO_CRM_API->getStatusCode() != 200) {
-                            if ($this->INTARO_CRM_API->getStatusCode() != 201) {
-                                //handle err
-                                ICrmOrderActions::eventLog('install/index.php', 'IntaroCrm\RestApi::deliveryTypeEdit', $this->INTARO_CRM_API->getLastError());
-                            }
+                        } catch (\IntaroCrm\Exception\CurlException $e) {
+                            ICrmOrderActions::eventLog(
+                                'intaro.crm/install/index.php', 'IntaroCrm\RestApi::deliveryTypeEdit::CurlException',
+                                $e->getCode() . ': ' . $e->getMessage()
+                            );
                         }
 
                         foreach($arDeliveryServicesList['PROFILES'] as $id => $profile) {
 
                             // send to crm
-                            $this->INTARO_CRM_API->deliveryServiceEdit(ICrmOrderActions::clearArr(array(
-                                'code' => $arDeliveryServicesList['SID'] . '-' . $id,
-                                'name' => ICrmOrderActions::toJSON($profile['TITLE']),
-                                'deliveryType' => $arDeliveryServicesList['SID']
-                            )));
+                            try {
+                                $this->INTARO_CRM_API->deliveryServiceEdit(ICrmOrderActions::clearArr(array(
+                                    'code' => $arDeliveryServicesList['SID'] . '-' . $id,
+                                    'name' => ICrmOrderActions::toJSON($profile['TITLE']),
+                                    'deliveryType' => $arDeliveryServicesList['SID']
+                                )));
+                            } catch (\IntaroCrm\Exception\ApiException $e) {
+                                ICrmOrderActions::eventLog(
+                                    'intaro.crm/install/index.php', 'IntaroCrm\RestApi::deliveryServiceEdit',
+                                    $e->getCode() . ': ' . $e->getMessage()
+                                );
 
-                            // error pushing dt
-                            if ($this->INTARO_CRM_API->getStatusCode() != 200) {
-                                if ($this->INTARO_CRM_API->getStatusCode() != 201) {
-                                    //handle err
-                                    ICrmOrderActions::eventLog('install/index.php', 'IntaroCrm\RestApi::deliveryServiceEdit', $this->INTARO_CRM_API->getLastError());
-                                }
+                            } catch (\IntaroCrm\Exception\CurlException $e) {
+                                ICrmOrderActions::eventLog(
+                                    'intaro.crm/install/index.php', 'IntaroCrm\RestApi::deliveryServiceEdit::CurlException',
+                                    $e->getCode() . ': ' . $e->getMessage()
+                                );
                             }
                         }
 
@@ -1159,8 +1233,20 @@ class intaro_intarocrm extends CModule {
             $api_host = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, 0);
             $api_key = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, 0);
             $this->INTARO_CRM_API = new \IntaroCrm\RestApi($api_host, $api_key);
-            $this->INTARO_CRM_API->statisticUpdate();
+            try {
+                $this->INTARO_CRM_API->statisticUpdate();
+            } catch (\IntaroCrm\Exception\ApiException $e) {
+                ICrmOrderActions::eventLog(
+                    'intaro.crm/install/index.php', 'IntaroCrm\RestApi::statisticUpdate',
+                    $e->getCode() . ': ' . $e->getMessage()
+                );
 
+            } catch (\IntaroCrm\Exception\CurlException $e) {
+                ICrmOrderActions::eventLog(
+                    'intaro.crm/install/index.php', 'IntaroCrm\RestApi::statisticUpdate::CurlException',
+                    $e->getCode() . ': ' . $e->getMessage()
+                );
+            }
             // in fin order
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_HISTORY_DATE, date('Y-m-d H:i:s'));
 

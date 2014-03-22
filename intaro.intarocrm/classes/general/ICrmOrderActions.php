@@ -108,26 +108,45 @@ class ICrmOrderActions
                 $lastOrderId = $arOrder['ID'];
 
                 if ($orderCount >= $pSize) {
-                    $customers = $api->customerUpload($resCustomers);
 
-                    // error pushing customers
-                    if ($api->getStatusCode() != 201) {
-                        //handle err
-                        //self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::customerUpload', $api->getLastError());
+                    try {
+                        $customers = $api->customerUpload($resCustomers);
+                    } catch (\IntaroCrm\Exception\ApiException $e) {
+                        self::eventLog(
+                            'ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::customerUpload',
+                            $e->getCode() . ': ' . $e->getMessage()
+                        );
 
-                        if ($api->getStatusCode() != 460) // some orders were sent
-                            return false; // in pack mode return errors
+                        if($e->getCode() != 201)
+                            if($e->getCode() != 460)
+                                return false;
+                    } catch (\IntaroCrm\Exception\CurlException $e) {
+                        self::eventLog(
+                            'ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::customerUpload::CurlException',
+                            $e->getCode() . ': ' . $e->getMessage()
+                        );
+
+                        return false;
                     }
 
-                    $orders = $api->orderUpload($resOrders);
+                    try {
+                        $orders = $api->orderUpload($resOrders);
+                    } catch (\IntaroCrm\Exception\ApiException $e) {
+                        self::eventLog(
+                            'ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload',
+                            $e->getCode() . ': ' . $e->getMessage()
+                        );
 
-                    // error pushing orders
-                    if ($api->getStatusCode() != 201) {
-                        //handle err
-                        self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload', $api->getLastError());
+                        if($e->getCode() != 201)
+                            if($e->getCode() != 460)
+                                return false;
+                    } catch (\IntaroCrm\Exception\CurlException $e) {
+                        self::eventLog(
+                            'ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload::CurlException',
+                            $e->getCode() . ': ' . $e->getMessage()
+                        );
 
-                        if ($api->getStatusCode() != 460) // some orders were sent
-                            return false; // in pack mode return errors
+                        return false;
                     }
 
                     if ($lastOrderId)
@@ -137,26 +156,44 @@ class ICrmOrderActions
                 }
             }
             if (!empty($resOrders)) {
-                $customers = $api->customerUpload($resCustomers);
+                try {
+                    $customers = $api->customerUpload($resCustomers);
+                } catch (\IntaroCrm\Exception\ApiException $e) {
+                    self::eventLog(
+                        'ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::customerUpload',
+                        $e->getCode() . ': ' . $e->getMessage()
+                    );
 
-                // error pushing customers
-                if ($api->getStatusCode() != 201) {
-                    //handle err
-                    //self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::customerUpload', $api->getLastError());
+                    if($e->getCode() != 201)
+                        if($e->getCode() != 460)
+                            return false;
+                } catch (\IntaroCrm\Exception\CurlException $e) {
+                    self::eventLog(
+                        'ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::customerUpload::CurlException',
+                        $e->getCode() . ': ' . $e->getMessage()
+                    );
 
-                    if ($api->getStatusCode() != 460) // some orders were sent
-                        return false; // in pack mode return errors
+                    return false;
                 }
 
-                $orders = $api->orderUpload($resOrders);
+                try {
+                    $orders = $api->orderUpload($resOrders);
+                } catch (\IntaroCrm\Exception\ApiException $e) {
+                    self::eventLog(
+                        'ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload',
+                        $e->getCode() . ': ' . $e->getMessage()
+                    );
 
-                // error pushing orders
-                if ($api->getStatusCode() != 201) {
-                    //handle err
-                    self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload', $api->getLastError());
+                    if($e->getCode() != 201)
+                        if($e->getCode() != 460)
+                            return false;
+                } catch (\IntaroCrm\Exception\CurlException $e) {
+                    self::eventLog(
+                        'ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload::CurlException',
+                        $e->getCode() . ': ' . $e->getMessage()
+                    );
 
-                    if ($api->getStatusCode() != 460) // some orders were sent
-                        return false; // in pack mode return errors
+                    return false;
                 }
             }
 
@@ -188,26 +225,44 @@ class ICrmOrderActions
                 $recOrders[] = $arOrder['ID'];
 
                 if ($orderCount >= $pSize) {
-                    $customers = $api->customerUpload($resCustomers);
+                    try {
+                        $customers = $api->customerUpload($resCustomers);
+                    } catch (\IntaroCrm\Exception\ApiException $e) {
+                        self::eventLog(
+                            'ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::customerUpload',
+                            $e->getCode() . ': ' . $e->getMessage()
+                        );
 
-                    // error pushing customers
-                    if ($api->getStatusCode() != 201) {
-                        //handle err
-                        //self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::customerUpload', $api->getLastError());
+                        if($e->getCode() != 201)
+                            if($e->getCode() != 460)
+                                return false;
+                    } catch (\IntaroCrm\Exception\CurlException $e) {
+                        self::eventLog(
+                            'ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::customerUpload::CurlException',
+                            $e->getCode() . ': ' . $e->getMessage()
+                        );
 
-                        if ($api->getStatusCode() != 460) // some orders were sent
-                            return false; // in pack mode return errors
+                        return false;
                     }
 
-                    $orders = $api->orderUpload($resOrders);
+                    try {
+                        $orders = $api->orderUpload($resOrders);
+                    } catch (\IntaroCrm\Exception\ApiException $e) {
+                        self::eventLog(
+                            'ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload',
+                            $e->getCode() . ': ' . $e->getMessage()
+                        );
 
-                    // error pushing orders
-                    if ($api->getStatusCode() != 201) {
-                        //handle err
-                        self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload', $api->getLastError());
+                        if($e->getCode() != 201)
+                            if($e->getCode() != 460)
+                                return false;
+                    } catch (\IntaroCrm\Exception\CurlException $e) {
+                        self::eventLog(
+                            'ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload::CurlException',
+                            $e->getCode() . ': ' . $e->getMessage()
+                        );
 
-                        if ($api->getStatusCode() != 460) // some orders were sent
-                            return false; // in pack mode return errors
+                        return false;
                     }
 
                     if (!empty($recOrders)) {
@@ -219,26 +274,44 @@ class ICrmOrderActions
                 }
             }
             if (!empty($resOrders)) {
-                $customers = $api->customerUpload($resCustomers);
+                try {
+                    $customers = $api->customerUpload($resCustomers);
+                } catch (\IntaroCrm\Exception\ApiException $e) {
+                    self::eventLog(
+                        'ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::customerUpload',
+                        $e->getCode() . ': ' . $e->getMessage()
+                    );
 
-                // error pushing customers
-                if ($api->getStatusCode() != 201) {
-                    //handle err
-                    //self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::customerUpload', $api->getLastError());
+                    if($e->getCode() != 201)
+                        if($e->getCode() != 460)
+                            return false;
+                } catch (\IntaroCrm\Exception\CurlException $e) {
+                    self::eventLog(
+                        'ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::customerUpload::CurlException',
+                        $e->getCode() . ': ' . $e->getMessage()
+                    );
 
-                    if ($api->getStatusCode() != 460) // some orders were sent
-                        return false; // in pack mode return errors
+                    return false;
                 }
 
-                $orders = $api->orderUpload($resOrders);
+                try {
+                    $orders = $api->orderUpload($resOrders);
+                } catch (\IntaroCrm\Exception\ApiException $e) {
+                    self::eventLog(
+                        'ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload',
+                        $e->getCode() . ': ' . $e->getMessage()
+                    );
 
-                // error pushing orders
-                if ($api->getStatusCode() != 201) {
-                    //handle err
-                    self::eventLog('ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload', $api->getLastError());
+                    if($e->getCode() != 201)
+                        if($e->getCode() != 460)
+                            return false;
+                } catch (\IntaroCrm\Exception\CurlException $e) {
+                    self::eventLog(
+                        'ICrmOrderActions::uploadOrders', 'IntaroCrm\RestApi::orderUpload::CurlException',
+                        $e->getCode() . ': ' . $e->getMessage()
+                    );
 
-                    if ($api->getStatusCode() != 460) // some orders were sent
-                        return false; // in pack mode return errors
+                    return false;
                 }
             }
 
@@ -368,9 +441,25 @@ class ICrmOrderActions
             $dateStart = $dateStart->format('Y-m-d H:i:s');
         }
 
-        $dateFinish = new \DateTime();
+        try {
+            $orderHistory = $api->orderHistory($dateStart);
+        } catch (\IntaroCrm\Exception\ApiException $e) {
+            self::eventLog(
+                'ICrmOrderActions::orderHistory', 'IntaroCrm\RestApi::orderHistory',
+                $e->getCode() . ': ' . $e->getMessage()
+            );
 
-        $orderHistory = $api->orderHistory($dateStart);
+            return true;
+        } catch (\IntaroCrm\Exception\CurlException $e) {
+            self::eventLog(
+                'ICrmOrderActions::orderHistory', 'IntaroCrm\RestApi::orderHistory::CurlException',
+                $e->getCode() . ': ' . $e->getMessage()
+            );
+
+            return true;
+        }
+
+        $dateFinish = $api->getGeneratedAt();
 
         $GLOBALS['INTARO_CRM_FROM_HISTORY'] = true;
 
@@ -447,11 +536,21 @@ class ICrmOrderActions
                     $order['customer']['externalId'] = $registeredUserID;
                 }
 
-                $api->customerFixExternalIds(array(array('id' => $order['customer']['id'], 'externalId' => $order['customer']['externalId'])));
+                try {
+                    $api->customerFixExternalIds(array(array('id' => $order['customer']['id'], 'externalId' => $order['customer']['externalId'])));
+                } catch (\IntaroCrm\Exception\ApiException $e) {
+                    self::eventLog(
+                        'ICrmOrderActions::orderHistory', 'IntaroCrm\RestApi::customerFixExternalIds',
+                        $e->getCode() . ': ' . $e->getMessage()
+                    );
 
-                if ($api->getStatusCode() != 200) {
-                    //handle err - write log & continue
-                    self::eventLog('ICrmOrderActions::orderHistory', 'IntaroCrm\RestApi::customerFixExternalIds', $api->getLastError());
+                    continue;
+                } catch (\IntaroCrm\Exception\CurlException $e) {
+                    self::eventLog(
+                        'ICrmOrderActions::orderHistory', 'IntaroCrm\RestApi::customerFixExternalIds::CurlException',
+                        $e->getCode() . ': ' . $e->getMessage()
+                    );
+
                     continue;
                 }
 
@@ -480,11 +579,21 @@ class ICrmOrderActions
                 if(isset($GLOBALS['ICRM_ACCOUNT_NUMBER']))
                     unset($GLOBALS['ICRM_ACCOUNT_NUMBER']);
 
-                $api->orderFixExternalIds(array(array('id' => $order['id'], 'externalId' => $order['externalId'])));
+                try {
+                    $api->orderFixExternalIds(array(array('id' => $order['id'], 'externalId' => $order['externalId'])));
+                } catch (\IntaroCrm\Exception\ApiException $e) {
+                    self::eventLog(
+                        'ICrmOrderActions::orderHistory', 'IntaroCrm\RestApi::orderFixExternalIds',
+                        $e->getCode() . ': ' . $e->getMessage()
+                    );
 
-                if ($api->getStatusCode() != 200) {
-                    //handle err - write log & continue
-                    self::eventLog('ICrmOrderActions::orderHistory', 'IntaroCrm\RestApi::orderFixExternalIds', $api->getLastError());
+                    continue;
+                } catch (\IntaroCrm\Exception\CurlException $e) {
+                    self::eventLog(
+                        'ICrmOrderActions::orderHistory', 'IntaroCrm\RestApi::orderFixExternalIds::CurlException',
+                        $e->getCode() . ': ' . $e->getMessage()
+                    );
+
                     continue;
                 }
             }
@@ -985,14 +1094,24 @@ class ICrmOrderActions
             'createdAt'  => $createdAt
         ));
 
-        if($send)
-            $customer = $api->customerEdit($customer);
+        if($send) {
+            try {
+                $customer = $api->customerEdit($customer);
+            } catch (\IntaroCrm\Exception\ApiException $e) {
+                self::eventLog(
+                    'ICrmOrderActions::orderCreate', 'IntaroCrm\RestApi::customerEdit',
+                    $e->getCode() . ': ' . $e->getMessage()
+                );
 
-        // error pushing customer
-        if (!$customer) {
-            //handle err
-            self::eventLog('ICrmOrderActions::orderCreate', 'IntaroCrm\RestApi::customerEdit', $api->getLastError());
-            return false;
+                return false;
+            } catch (\IntaroCrm\Exception\CurlException $e) {
+                self::eventLog(
+                    'ICrmOrderActions::orderCreate', 'IntaroCrm\RestApi::customerEdit::CurlException',
+                    $e->getCode() . ': ' . $e->getMessage()
+                );
+
+                return false;
+            }
         }
 
         // delivery types
@@ -1166,8 +1285,25 @@ class ICrmOrderActions
 
         $resOrder = self::clearArr($resOrder);
 
-        if($send)
-            return $api->orderEdit($resOrder);
+        if($send) {
+            try {
+                return $api->orderEdit($resOrder);
+            } catch (\IntaroCrm\Exception\ApiException $e) {
+                self::eventLog(
+                    'ICrmOrderActions::orderCreate', 'IntaroCrm\RestApi::orderEdit',
+                    $e->getCode() . ': ' . $e->getMessage()
+                );
+
+                return false;
+            } catch (\IntaroCrm\Exception\CurlException $e) {
+                self::eventLog(
+                    'ICrmOrderActions::orderCreate', 'IntaroCrm\RestApi::orderEdit::CurlException',
+                    $e->getCode() . ': ' . $e->getMessage()
+                );
+
+                return false;
+            }
+        }
 
         return array(
             'order'    => $resOrder,

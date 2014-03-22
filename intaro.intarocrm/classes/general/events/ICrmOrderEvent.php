@@ -212,12 +212,20 @@ class ICrmOrderEvent {
                 'managerComment' => $arOrder['COMMENTS']
             );
         }
-        
-        $api->orderEdit($order);
- 
-        // error pushing order
-        if ($api->getStatusCode() != 201)
-            ICrmOrderActions::eventLog('ICrmOrderEvent::onSaleCancelOrder', 'IntaroCrm\RestApi::orderEdit', $api->getLastError());
+
+        try {
+            $api->orderEdit($order);
+        } catch (\IntaroCrm\Exception\ApiException $e) {
+            ICrmOrderActions::eventLog(
+                'ICrmOrderEvent::onSaleCancelOrder', 'IntaroCrm\RestApi::orderEdit',
+                $e->getCode() . ': ' . $e->getMessage()
+            );
+        } catch (\IntaroCrm\Exception\CurlException $e) {
+            ICrmOrderActions::eventLog(
+                'ICrmOrderEvent::onSaleCancelOrder', 'IntaroCrm\RestApi::orderEdit::CurlException',
+                $e->getCode() . ': ' . $e->getMessage()
+            );
+        }
         
         return true;
     }
@@ -268,9 +276,19 @@ class ICrmOrderEvent {
         
         $api->orderEdit($order);
 
-        // error pushing order
-        if ($api->getStatusCode() != 201)
-            ICrmOrderActions::eventLog('ICrmOrderEvent::onSalePayOrder', 'IntaroCrm\RestApi::orderEdit', $api->getLastError());
+        try {
+            $api->orderEdit($order);
+        } catch (\IntaroCrm\Exception\ApiException $e) {
+            ICrmOrderActions::eventLog(
+                'ICrmOrderEvent::onSalePayOrder', 'IntaroCrm\RestApi::orderEdit',
+                $e->getCode() . ': ' . $e->getMessage()
+            );
+        } catch (\IntaroCrm\Exception\CurlException $e) {
+            ICrmOrderActions::eventLog(
+                'ICrmOrderEvent::onSalePayOrder', 'IntaroCrm\RestApi::orderEdit::CurlException',
+                $e->getCode() . ': ' . $e->getMessage()
+            );
+        }
         
         return true;
     }
