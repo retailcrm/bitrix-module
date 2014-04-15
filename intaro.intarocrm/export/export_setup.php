@@ -20,6 +20,8 @@ if (($ACTION == 'EXPORT' || $ACTION == 'EXPORT_EDIT' || $ACTION == 'EXPORT_COPY'
 
 	if (isset($arOldSetupVars['SETUP_FILE_NAME']))
             $SETUP_FILE_NAME = $arOldSetupVars['SETUP_FILE_NAME'];
+	if (isset($arOldSetupVars['LOAD_PURCHASE_PRICE']))
+            $LOAD_PURCHASE_PRICE = $arOldSetupVars['LOAD_PURCHASE_PRICE'];
 	if (isset($arOldSetupVars['SETUP_PROFILE_NAME']))
             $SETUP_PROFILE_NAME = $arOldSetupVars['SETUP_PROFILE_NAME'];
         if (isset($arOldSetupVars['IBLOCK_EXPORT']))
@@ -35,8 +37,8 @@ if (($ACTION == 'EXPORT' || $ACTION == 'EXPORT_EDIT' || $ACTION == 'EXPORT_COPY'
                 $IBLOCK_PROPERTY_UNIT_SKU[$iblock][$prop] = $val;
             }
         }
-        
-        
+
+
         $IBLOCK_PROPERTY_PRODUCT = array();
         $IBLOCK_PROPERTY_UNIT_PRODUCT = array();
         foreach ($iblockProperties as $prop) {
@@ -96,7 +98,7 @@ if ($STEP==1)
 			?><input type="hidden" name="PROFILE_ID" value="<? echo intval($PROFILE_ID); ?>"><?
 		}
 		?>
-                        
+
     <h3><?=GetMessage("SETTINGS_INFOBLOCK");?></h3>
     <font class="text"><?=GetMessage("EXPORT_CATALOGS");?><br><br></font>
     <?
@@ -104,7 +106,7 @@ if ($STEP==1)
     {
             $IBLOCK_EXPORT = array();
     }
-    
+
     $iblockPropertiesName = Array(
         "article" => GetMessage("PROPERTY_ARTICLE_HEADER_NAME"),
         "manufacturer" => GetMessage("PROPERTY_MANUFACTURER_HEADER_NAME"),
@@ -115,15 +117,15 @@ if ($STEP==1)
         "width" => GetMessage("PROPERTY_WIDTH_HEADER_NAME"),
         "height" => GetMessage("PROPERTY_HEIGHT_HEADER_NAME"),
     );
-    
+
     $iblockFieldsName = Array(
-        
+
         "weight" => Array("code" => "catalog_size" , "name" => GetMessage("SELECT_WEIGHT_PROPERTY_NAME"), 'unit' => 'mass'),
         "length" => Array("code" => "catalog_length" , "name" => GetMessage("SELECT_LENGTH_PROPERTY_NAME"), 'unit' => 'length'),
         "width" => Array("code" => "catalog_width" , "name" => GetMessage("SELECT_WIDTH_PROPERTY_NAME"), 'unit' => 'length'),
         "height" => Array("code" => "catalog_height" , "name" => GetMessage("SELECT_HEIGHT_PROPERTY_NAME"), 'unit' => 'length'),
     );
-    
+
     $iblockPropertiesHint = Array(
         "article" => Array("ARTICLE", "ART", "ARTNUMBER", "ARTICUL", "ARTIKUL"),
         "manufacturer" => Array("MANUFACTURER", "PROISVODITEL", "PROISVOD", "PROISV"),
@@ -134,7 +136,7 @@ if ($STEP==1)
         "width" => Array("WIDTH", "SHIRINA"),
         "height" => Array("HEIGHT", "VISOTA"),
     );
-    
+
     $units = Array(
         'length' => Array(
             'mm' => GetMessage("UNIT_MEASUREMENT_MM"),
@@ -147,18 +149,18 @@ if ($STEP==1)
             'kg' => GetMessage("UNIT_MEASUREMENT_KG"),
         )
     );
-    
+
     $hintUnit = Array(
         'length' => 'mm',
         'mass' => 'g'
     );
-    
+
     $boolAll = false;
     $intCountChecked = 0;
     $intCountAvailIBlock = 0;
     $arIBlockList = array();
     $db_res = CIBlock::GetList(Array("IBLOCK_TYPE"=>"ASC", "NAME"=>"ASC"),array('CHECK_PERMISSIONS' => 'Y','MIN_PERMISSION' => 'W'));
-    
+
     while ($iblock = $db_res->Fetch())
     {
             if ($arCatalog = CCatalog::GetByIDExt($iblock["ID"]))
@@ -169,46 +171,46 @@ if ($STEP==1)
                         if ($arCatalog['CATALOG_TYPE'] == "X" || $arCatalog['CATALOG_TYPE'] == "P")
                         {
                             $iblockOffer = CCatalogSKU::GetInfoByProductIBlock($iblock["ID"]);
-                            
+
                             $db_properties = CIBlock::GetProperties($iblockOffer['IBLOCK_ID'], Array());
                             while($prop = $db_properties->Fetch())
                                 $propertiesSKU[] = $prop;
-                            
+
                             $oldPropertySKU = null;
                             if (isset($IBLOCK_PROPERTY_SKU[$iblock['ID']])) {
                                 foreach ($iblockPropertiesName as $key => $prop) {
                                     $oldPropertySKU[$key] = $IBLOCK_PROPERTY_SKU[$iblock['ID']][$key];
                                 }
                             }
-                            
+
                             $oldPropertyUnitSKU = null;
                             if (isset($IBLOCK_PROPERTY_UNIT_SKU[$iblock['ID']])) {
                                 foreach ($iblockPropertiesName as $key => $prop) {
                                     $oldPropertyUnitSKU[$key] = $IBLOCK_PROPERTY_UNIT_SKU[$iblock['ID']][$key];
                                 }
                             }
-                        } 
-                        
-                        
+                        }
+
+
                         $propertiesProduct = null;
                         $db_properties = CIBlock::GetProperties($iblock['ID'], Array());
                         while($prop = $db_properties->Fetch())
                             $propertiesProduct[] = $prop;
-                            
+
                         $oldPropertyProduct = null;
                         if (isset($IBLOCK_PROPERTY_PRODUCT[$iblock['ID']])) {
                             foreach ($iblockPropertiesName as $key => $prop) {
                                 $oldPropertyProduct[$key] = $IBLOCK_PROPERTY_PRODUCT[$iblock['ID']][$key];
                             }
                         }
-                        
+
                         $oldPropertyUnitProduct = null;
                         if (isset($IBLOCK_PROPERTY_UNIT_PRODUCT[$iblock['ID']])) {
                             foreach ($iblockPropertiesName as $key => $prop) {
                                 $oldPropertyUnitProduct[$key] = $IBLOCK_PROPERTY_UNIT_PRODUCT[$iblock['ID']][$key];
                             }
                         }
-                        
+
                         $arSiteList = array();
                         $rsSites = CIBlock::GetSite($iblock["ID"]);
                         while ($arSite = $rsSites->Fetch())
@@ -220,7 +222,7 @@ if ($STEP==1)
                             $boolExport = (in_array($iblock['ID'], $IBLOCK_EXPORT));
                         else
                             $boolExport = true;
-                        
+
 
                         $arIBlockList[] = array(
                             'ID' => $iblock['ID'],
@@ -253,12 +255,12 @@ if ($STEP==1)
     ?>
 
     <font class="text" style="font-weight: bold;"><?=GetMessage("CHECK_ALL_INFOBLOCKS");?></font>
-    <input 
-        style="vertical-align: middle;" 
-        type="checkbox" 
-        name="icml_export_all" 
-        id="icml_export_all" 
-        value="Y" 
+    <input
+        style="vertical-align: middle;"
+        type="checkbox"
+        name="icml_export_all"
+        id="icml_export_all"
+        value="Y"
         onclick="checkAll(this,<? echo $intCountAvailIBlock; ?>);"
         <? echo ($boolAll ? ' checked' : ''); ?>>
     </br>
@@ -283,7 +285,7 @@ if ($STEP==1)
                 <table class="adm-list-table" id="export_setup" <?=($arIBlock['PROPERTIES_SKU'] == null ? 'style="width: 66%;"': "" )?> >
                     <thead>
                         <tr class="adm-list-table-header">
-                            <td class="adm-list-table-cell">    
+                            <td class="adm-list-table-cell">
                                 <div class="adm-list-table-cell-inner"><?=GetMessage("LOADED_PROPERTY");?></div>
                             </td>
                             <td class="adm-list-table-cell">
@@ -297,16 +299,16 @@ if ($STEP==1)
                         </tr>
                     </thead>
                     <tbody>
-                        
+
                           <? foreach ($iblockPropertiesName as $key => $property): ?>
-                            
+
                             <? $productSelected = false;?>
 
                             <tr class="adm-list-table-row">
                                 <td class="adm-list-table-cell">
                                         <? echo htmlspecialcharsex($property); ?>
                                 </td>
-                                
+
                                 <td class="adm-list-table-cell">
                                         <select
                                             style="width: 200px;"
@@ -338,7 +340,7 @@ if ($STEP==1)
                                                                     }
                                                                     ?>
                                                                     >
-                                                            
+
                                                                     <?=$field['name'];?>
                                                                 </option>
                                                             <? endif; ?>
@@ -373,9 +375,9 @@ if ($STEP==1)
                                                 <?if (version_compare(SM_VERSION, '14.0.0', '>=')  && array_key_exists($key, $iblockFieldsName)){?>
                                                     </optgroup>
                                                 <?}?>
-                                                    
+
                                         </select>
-                                    
+
                                         <?if (array_key_exists($key, $iblockFieldsName)) :?>
                                             <select
                                                 style="width: 100px; margin-left: 50px;"
@@ -406,7 +408,7 @@ if ($STEP==1)
                                             </select>
                                         <?endif; ?>
                                 </td>
-                                
+
                                 <? if ($arIBlock['PROPERTIES_SKU'] != null): ?>
                                     <td class="adm-list-table-cell">
                                         <select
@@ -423,7 +425,7 @@ if ($STEP==1)
 
                                                             <? if ($keyField == $key) :?>
                                                                 <option value="<?=$field['code'];?>"
-                                                                    <?          
+                                                                    <?
                                                                         if (!$productSelected) {
                                                                             if ($arIBlock['OLD_PROPERTY_SKU_SELECT'] != null) {
                                                                                 if ($field['code'] == $arIBlock['OLD_PROPERTY_SKU_SELECT'][$key]  ) {
@@ -440,7 +442,7 @@ if ($STEP==1)
                                                                         }
                                                                         ?>
                                                                         >
-                                                                    
+
                                                                         <?=$field['name'];?>
                                                                 </option>
                                                             <? endif; ?>
@@ -476,7 +478,7 @@ if ($STEP==1)
                                                     </optgroup>
                                                 <? endif; ?>
                                         </select>
-                                        
+
                                         <?if (array_key_exists($key, $iblockFieldsName)) :?>
                                             <select
                                                 style="width: 100px; margin-left: 50px;"
@@ -507,10 +509,10 @@ if ($STEP==1)
                                             </select>
                                         <?endif; ?>
                                     </td>
-                                    
+
                                 <? endif;?>
                             </tr>
-                            
+
                         <? endforeach;?>
                     </tbody>
                 </table>
@@ -518,8 +520,8 @@ if ($STEP==1)
                 <br>
             </div>
         </div>
-        
-        
+
+
         <? endforeach;?>
     </div>
 
@@ -527,7 +529,7 @@ if ($STEP==1)
     <br>
 
     <h3><?=GetMessage("SETTINGS_EXPORT");?></h3>
-    
+
     <font class="text"><?=GetMessage("FILENAME");?><br><br></font>
     <input type="text" name="SETUP_FILE_NAME"
            value="<?=htmlspecialcharsbx(strlen($SETUP_FILE_NAME) > 0 ?
@@ -538,6 +540,11 @@ if ($STEP==1)
                                             '/bitrix/catalog_export/'))
                                         .'intarocrm'/* .mt_rand(0, 999999) */.'.xml'
                                         ); ?>" size="50">
+    <br>
+    <br>
+
+    <font class="text"><?=GetMessage("LOAD_PURCHASE_PRICE");?>&nbsp;</font>
+    <input type="checkbox" name="LOAD_PURCHASE_PRICE" value="Y" <?= $LOAD_PURCHASE_PRICE == 'Y' ? 'checked' : '' ?>>
 
     <br>
     <br>
@@ -562,7 +569,7 @@ if ($STEP==1)
             function checkAll(obj,cnt)
             {
                 for (i = 0; i < cnt; i++)
-                { 
+                {
                     if (obj.checked)
                         BX.removeClass('IBLOCK_EXPORT_TABLE'+(i+1),"iblock-export-table-display-none");
                 }
@@ -576,16 +583,16 @@ if ($STEP==1)
                         transition : BX.easing.transitions.linear,
                         step : function(state){
                             for (i = 0; i < cnt; i++)
-                                { 
+                                {
                                     BX('IBLOCK_EXPORT_TABLE'+(i+1)).style.opacity = state.opacity/100;
                                 }
                         },
                         complete : function() {
                              for (i = 0; i < cnt; i++)
-                                { 
+                                {
                                     if (!obj.checked)
                                         BX.addClass('IBLOCK_EXPORT_TABLE'+(i+1),"iblock-export-table-display-none");
-                                }  
+                                }
                         }
                 });
                 easing.animate();
@@ -611,7 +618,7 @@ if ($STEP==1)
                         },
                         complete : function() {
                              if (!obj.checked)
-                                BX.addClass(table,"iblock-export-table-display-none");   
+                                BX.addClass(table,"iblock-export-table-display-none");
                         }
                 });
                 easing.animate();
@@ -637,14 +644,14 @@ if ($STEP==1)
     <?=bitrix_sessid_post();?>
 
     <?
-    $vals = "SETUP_FILE_NAME,IBLOCK_EXPORT";
+    $vals = "LOAD_PURCHASE_PRICE,SETUP_FILE_NAME,IBLOCK_EXPORT";
     foreach ($iblockProperties as $val) {
         $vals .= ",IBLOCK_PROPERTY_SKU_" . $val;
         $vals .= ",IBLOCK_PROPERTY_UNIT_SKU_" . $val;
         $vals .= ",IBLOCK_PROPERTY_PRODUCT_" . $val;
         $vals .= ",IBLOCK_PROPERTY_UNIT_PRODUCT_" . $val;
     }
-    
+
     ?>
     <input type="hidden" name="lang" value="<?echo LANGUAGE_ID ?>">
     <input type="hidden" name="ACT_FILE" value="<?echo htmlspecialcharsbx($_REQUEST["ACT_FILE"]) ?>">

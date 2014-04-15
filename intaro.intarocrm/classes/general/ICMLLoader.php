@@ -14,6 +14,7 @@ class ICMLLoader {
     public $application;
     public $encoding = 'utf-8';
     public $encodingDefault = 'utf-8';
+    public $loadPurchasePrice = false;
 
     protected $fp;
     protected $mainSection = 1000000;
@@ -394,6 +395,7 @@ class ICMLLoader {
                                         $offer['PRODUCT_NAME'] = $product["NAME"];
                                         $offer['PRODUCT_ACTIVE'] = $product["ACTIVE"];
                                         $offer['PRICE'] = $offer['CATALOG_PRICE_1'];
+                                        $offer['PURCHASE_PRICE'] = $offer['CATALOG_PURCHASING_PRICE'];
                                         $offer['QUANTITY'] = $offer["CATALOG_QUANTITY"];
 
                                         // Get properties of product
@@ -432,6 +434,7 @@ class ICMLLoader {
                                     $product['PRODUCT_NAME'] = $product["NAME"];
                                     $product['PRODUCT_ACTIVE'] = $product["ACTIVE"];
                                     $product['PRICE'] = $product['CATALOG_PRICE_1'];
+                                    $product['PURCHASE_PRICE'] = $product['CATALOG_PURCHASING_PRICE'];
                                     $product['QUANTITY'] = $product["CATALOG_QUANTITY"];
 
                                     foreach ($resPropertiesProduct as $key => $propProduct) {
@@ -494,6 +497,9 @@ class ICMLLoader {
             $offer .= "<url>" . ($_SERVER["HTTPS"] == 'on' ? "https://" : "http://") . $_SERVER['SERVER_NAME'] . $this->PrepareValue($arOffer['DETAIL_PAGE_URL']) . "</url>\n";
 
             $offer .= "<price>" . $this->PrepareValue($arOffer['PRICE']) . "</price>\n";
+            if ($arOffer['PURCHASE_PRICE'] && $this->loadPurchasePrice) {
+                $offer .= "<purchasePrice>" . $this->PrepareValue($arOffer['PURCHASE_PRICE']) . "</purchasePrice>\n";
+            }
             foreach ($categories as $category)
                 $offer .= "<categoryId>" . $category['ID'] . "</categoryId>\n";
 
