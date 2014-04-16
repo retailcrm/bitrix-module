@@ -23,7 +23,7 @@ $iblockProperties = Array(
 $IBLOCK_PROPERTY_SKU = array();
 $IBLOCK_PROPERTY_UNIT_SKU = array();
 foreach ($iblockProperties as $prop) {
-    
+
     $skuUnitProps = ('IBLOCK_PROPERTY_UNIT_SKU' . "_" . $prop);
     $skuUnitProps = $$skuUnitProps;
     if (is_array($skuUnitProps)) {
@@ -31,7 +31,7 @@ foreach ($iblockProperties as $prop) {
             $IBLOCK_PROPERTY_UNIT_SKU[$iblock][$prop] = $val;
         }
     }
-    
+
     $skuProps = ('IBLOCK_PROPERTY_SKU' . "_" . $prop);
     $skuProps = $$skuProps;
     if (is_array($skuProps)) {
@@ -43,7 +43,7 @@ foreach ($iblockProperties as $prop) {
 $IBLOCK_PROPERTY_PRODUCT = array();
 $IBLOCK_PROPERTY_UNIT_PRODUCT = array();
 foreach ($iblockProperties as $prop) {
-    
+
     $productUnitProps = "IBLOCK_PROPERTY_UNIT_PRODUCT" . "_" . $prop;
     $productUnitProps = $$productUnitProps;
     if (is_array($productUnitProps)) {
@@ -51,7 +51,7 @@ foreach ($iblockProperties as $prop) {
             $IBLOCK_PROPERTY_UNIT_PRODUCT[$iblock][$prop] = $val;
         }
     }
-    
+
     $productProps = "IBLOCK_PROPERTY_PRODUCT" . "_" . $prop;
     $productProps = $$productProps;
     if (is_array($productProps)) {
@@ -70,4 +70,5 @@ $loader->propertiesProduct = $IBLOCK_PROPERTY_PRODUCT;
 $loader->propertiesUnitProduct = $IBLOCK_PROPERTY_UNIT_PRODUCT;
 $loader->filename = $SETUP_FILE_NAME;
 $loader->application = $APPLICATION;
+$loader->loadPurchasePrice = $LOAD_PURCHASE_PRICE == 'Y';
 $loader->Load();
