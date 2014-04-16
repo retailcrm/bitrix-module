@@ -664,12 +664,20 @@ class ICrmOrderActions
                                     CSaleOrderPropsValue::Update($ar['ID'], array('VALUE' => self::fromJSON($order['deliveryAddress']['text'])));
                                 break;
                             case 'LOCATION': if (isset($order['deliveryAddress']['city'])) {
-                                    $cityId = self::getLocationCityId(self::fromJSON($order['deliveryAddress']['city']));
-                                    if (!$cityId)
+                                    $prop = CSaleOrderProps::GetByID($ar['ORDER_PROPS_ID']);
+
+                                    if($prop['TYPE'] == 'LOCATION') {
+                                        $cityId = self::getLocationCityId(self::fromJSON($order['deliveryAddress']['city']));
+                                        if (!$cityId)
+                                            break;
+
+                                        CSaleOrderPropsValue::Update($ar['ID'], array('VALUE' => $cityId));
                                         break;
-                                    CSaleOrderPropsValue::Update($ar['ID'], array('VALUE' => $cityId));
+                                    }
+
+                                    CSaleOrderPropsValue::Update($ar['ID'], array('VALUE' => self::fromJSON($order['deliveryAddress']['city'])));
                                 }
-                                break;
+                            break;
                         }
 
                         if (count($optionsOrderProps[$arFields['PERSON_TYPE_ID']]) > 4) {
@@ -1174,8 +1182,14 @@ class ICrmOrderActions
                 case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['text']: $resOrderDeliveryAddress['text'] = self::toJSON($ar['VALUE']);
                     break;
                 case 'LOCATION': if(!isset($resOrderDeliveryAddress['city']) && !$resOrderDeliveryAddress['city']) {
-                        $resOrderDeliveryAddress['city'] = CSaleLocation::GetByID($ar['VALUE']);
-                        $resOrderDeliveryAddress['city'] = self::toJSON($resOrderDeliveryAddress['city']['CITY_NAME_LANG']);
+                        $prop = CSaleOrderProps::GetByID($ar['ORDER_PROPS_ID']);
+                        if($prop['TYPE'] == 'LOCATION') {
+                            $resOrderDeliveryAddress['city'] = CSaleLocation::GetByID($ar['VALUE']);
+                            $resOrderDeliveryAddress['city'] = self::toJSON($resOrderDeliveryAddress['city']['CITY_NAME_LANG']);
+                            break;
+                        }
+                        $resOrderDeliveryAddress['city'] = self::toJSON($ar['VALUE']);
+                        break;
                     }
                     break;
                 case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['fio']: $contactNameArr = self::explodeFIO($ar['VALUE']);
