@@ -645,7 +645,7 @@ class ICrmOrderActions
                             case $optionsOrderProps[$arFields['PERSON_TYPE_ID']]['index']: if (isset($order['deliveryAddress']['index']))
                                     CSaleOrderPropsValue::Update($ar['ID'], array('VALUE' => self::fromJSON($order['deliveryAddress']['index'])));
                                 break;
-                            case 'CITY': if (isset($order['deliveryAddress']['city'])) {
+                            case ($ar['CODE'] == 'CITY') or ($ar['CODE'] == 'LOCATION'): if (isset($order['deliveryAddress']['city'])) {
                                     $prop = CSaleOrderProps::GetByID($ar['ORDER_PROPS_ID']);
 
                                     if($prop['TYPE'] == 'LOCATION') {
@@ -663,21 +663,6 @@ class ICrmOrderActions
                             case $optionsOrderProps[$arFields['PERSON_TYPE_ID']]['text']: if (isset($order['deliveryAddress']['text']))
                                     CSaleOrderPropsValue::Update($ar['ID'], array('VALUE' => self::fromJSON($order['deliveryAddress']['text'])));
                                 break;
-                            case 'LOCATION': if (isset($order['deliveryAddress']['city'])) {
-                                    $prop = CSaleOrderProps::GetByID($ar['ORDER_PROPS_ID']);
-
-                                    if($prop['TYPE'] == 'LOCATION') {
-                                        $cityId = self::getLocationCityId(self::fromJSON($order['deliveryAddress']['city']));
-                                        if (!$cityId)
-                                            break;
-
-                                        CSaleOrderPropsValue::Update($ar['ID'], array('VALUE' => $cityId));
-                                        break;
-                                    }
-
-                                    CSaleOrderPropsValue::Update($ar['ID'], array('VALUE' => self::fromJSON($order['deliveryAddress']['city'])));
-                                }
-                            break;
                         }
 
                         if (count($optionsOrderProps[$arFields['PERSON_TYPE_ID']]) > 4) {
@@ -1200,7 +1185,7 @@ class ICrmOrderActions
                     break;
             }
 
-            if (count($arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']] > 4)) {
+            if (count($arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]) > 4) {
                 switch ($ar['CODE']) {
                     /*case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['country']: $resOrderDeliveryAddress['country'] = self::toJSON($ar['VALUE']);
                         break;
