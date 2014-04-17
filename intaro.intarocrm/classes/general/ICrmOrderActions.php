@@ -1225,7 +1225,13 @@ class ICrmOrderActions
                 $propCancel = (int)$propCancel['VALUE'];
             }
 
-            $pr = CCatalogProduct::GetList(array('ID' => $p['PRODUCT_ID']))->Fetch();
+            $pr = CCatalogProduct::GetList(
+                array(),
+                array('ID' => $p['PRODUCT_ID']),
+                false,
+                array('nTopCount' => 1)
+            )->Fetch();
+
             if ($pr)
                 $pr = $pr['PURCHASING_PRICE'];
             else
@@ -1243,6 +1249,9 @@ class ICrmOrderActions
             if (!$propCancel) {
                 $item['initialPrice'] = (double) $p['PRICE'] + (double) $p['DISCOUNT_PRICE'];
                 $item['discount'] = $p['DISCOUNT_PRICE'];
+                if ($pr) {
+                    $item['purchasePrice'] = $pr;
+                }
             }
 
             $items[] = $item;
