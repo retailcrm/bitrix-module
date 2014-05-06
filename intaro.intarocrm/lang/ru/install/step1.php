@@ -5,6 +5,7 @@ $MESS ['ICRM_API_HOST'] = 'Адрес IntaroCRM:';
 $MESS ['ICRM_API_KEY'] = 'Ключ авторизации:';
 $MESS ['ICRM_SITES'] = 'Активные сайты:';
 $MESS ['ERR_404'] = 'Возможно неверно введен адрес IntaroCRM.';
+$MESS ['ERR_6'] = 'Возможно неверно введен адрес IntaroCRM.';
 $MESS ['ERR_403'] = 'Неверный apiKey.';
 $MESS ['ERR_0'] = 'Превышено время ожидания ответа от сервера.';
 $MESS ['ERR_FIELDS_API_HOST'] = 'Неверно заполнены поля.';
