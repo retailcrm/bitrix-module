@@ -74,6 +74,8 @@ class intaro_intarocrm extends CModule {
         include($this->INSTALL_PATH . '/../classes/general/RestApi.php');
         include($this->INSTALL_PATH . '/../classes/general/ICrmOrderActions.php');
         include($this->INSTALL_PATH . '/../classes/general/ICMLLoader.php');
+        include($this->INSTALL_PATH . '/../classes/general/Exception/ApiException.php');
+        include($this->INSTALL_PATH . '/../classes/general/Exception/CurlException.php');
 
         $step = intval($_REQUEST['step']);
 
