@@ -958,8 +958,8 @@ class ICrmOrderActions
                    isset($order['delivery']['data']) && $order['delivery']['data']) {
                     if(CModule::IncludeModule(self::$MULTISHIP_MODULE_VER)) {
                       $data = json_decode($order['delivery']['data'], true);
-                      if(isset($data['ms_id']) && $data['ms_id'])
-                          $resultDeliveryTypeId = $resultDeliveryTypeId . ':' . $data['ms_id'];
+                      if(isset($data['service']) && $data['service'])
+                          $resultDeliveryTypeId = $resultDeliveryTypeId . ':' . $data['service'];
                     }
                 }
 
