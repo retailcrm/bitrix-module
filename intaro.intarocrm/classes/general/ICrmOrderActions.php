@@ -15,6 +15,9 @@ class ICrmOrderActions
     protected static $CRM_ORDER_PROPS = 'order_props';
     protected static $CRM_ORDER_FAILED_IDS = 'order_failed_ids';
     protected static $CRM_ORDER_HISTORY_DATE = 'order_history_date';
+    protected static $CRM_MULTISHIP_INTEGRATION_CODE = 'multiship';
+    protected static $MUTLISHIP_DELIVERY_TYPE = 'mlsp';
+    protected static $MULTISHIP_MODULE_VER = 'multiship.v2';
 
     const CANCEL_PROPERTY_CODE = 'INTAROCRM_IS_CANCELED';
 
@@ -950,6 +953,16 @@ class ICrmOrderActions
                         $resultDeliveryTypeId = $resultDeliveryTypeId . ':' . $deliveryServiceCode[1];
                 }
 
+                if(isset($order['delivery']) && $order['delivery'] && isset($order['delivery']['integrationCode']) &&
+                   $order['delivery']['integrationCode'] == self::$CRM_MULTISHIP_INTEGRATION_CODE &&
+                   isset($order['delivery']['data']) && $order['delivery']['data']) {
+                    if(CModule::IncludeModule(self::$MULTISHIP_MODULE_VER)) {
+                      $data = json_decode($order['delivery']['data'], true);
+                      if(isset($data['ms_id']) && $data['ms_id'])
+                          $resultDeliveryTypeId = $resultDeliveryTypeId . ':' . $data['ms_id'];
+                    }
+                }
+
                 // orderUpdate
                 $arFields = self::clearArr(array(
                     'PRICE_DELIVERY'   => $order['deliveryCost'],
@@ -1262,6 +1275,14 @@ class ICrmOrderActions
             'service' => ($arParams['optionsDelivTypes'][$resultDeliveryTypeId]) ? $deliveryService : '',
             'address' => $resOrderDeliveryAddress
         );
+
+        if($arParams['optionsDelivTypes'][$resultDeliveryTypeId] == self::$MUTLISHIP_DELIVERY_TYPE) {
+            if(CModule::IncludeModule(self::$MULTISHIP_MODULE_VER)) {
+                $multishipArr = DBOrdersMlsp::GetByOI($arFields['ID']);
+                $delivery['data'] = json_encode(array('ms_id' => $multishipArr['MULTISHIP_ID']));
+                $delivery['integrationCode'] = 'multiship';
+            }
+        }
 
         $resOrder = array(
             'number'          => $arFields['ACCOUNT_NUMBER'],
