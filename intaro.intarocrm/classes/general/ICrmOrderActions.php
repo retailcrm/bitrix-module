@@ -955,11 +955,10 @@ class ICrmOrderActions
 
                 if(isset($order['delivery']) && $order['delivery'] && isset($order['delivery']['integrationCode']) &&
                    $order['delivery']['integrationCode'] == self::$CRM_MULTISHIP_INTEGRATION_CODE &&
-                   isset($order['delivery']['data']) && $order['delivery']['data']) {
+                   isset($order['delivery']['data']) && $order['delivery']['data'] &&
+                   isset($order['delivery']['data']['service']) && $order['delivery']['data']['service']) {
                     if(CModule::IncludeModule(self::$MULTISHIP_MODULE_VER)) {
-                      $data = json_decode($order['delivery']['data'], true);
-                      if(isset($data['service']) && $data['service'])
-                          $resultDeliveryTypeId = $resultDeliveryTypeId . ':' . $data['service'];
+                        $resultDeliveryTypeId = $resultDeliveryTypeId . ':' . $order['delivery']['data']['service'];
                     }
                 }
 
