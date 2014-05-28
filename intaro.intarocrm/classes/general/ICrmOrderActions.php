@@ -1072,6 +1072,11 @@ class ICrmOrderActions
         $lastName = self::toJSON($arUser['LAST_NAME']);
         $patronymic = self::toJSON($arUser['SECOND_NAME']);
 
+        // convert encoding for comment
+        $statusComment   = self::toJson($arFields['REASON_CANCELED']);
+        $customerComment = self::toJson($arFields['USER_DESCRIPTION']);
+        $managerComment  = self::toJson($arFields['COMMENTS']);
+
         $phones = array();
 
         $phonePersonal = array(
@@ -1278,9 +1283,9 @@ class ICrmOrderActions
             'deliveryType'    => $arParams['optionsDelivTypes'][$resultDeliveryTypeId],
             'deliveryService' => ($arParams['optionsDelivTypes'][$resultDeliveryTypeId]) ? $deliveryService : '',
             'status'          => $arParams['optionsPayStatuses'][$arFields['STATUS_ID']],
-            'statusComment'   => $arFields['REASON_CANCELED'],
-            'customerComment' => $arFields['USER_DESCRIPTION'],
-            'managerComment'  => $arFields['COMMENTS'],
+            'statusComment'   => $statusComment,
+            'customerComment' => $customerComment,
+            'managerComment'  => $managerComment,
             'createdAt'       => $createdAt,
             'deliveryAddress' => $resOrderDeliveryAddress,
             'discount'        => $arFields['DISCOUNT_VALUE'],
