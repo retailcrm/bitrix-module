@@ -964,9 +964,9 @@ class ICrmOrderActions
                     //'PERSON_TYPE_ID' => $optionsOrderTypes[$order['orderType']],
                     'DELIVERY_ID'      => $resultDeliveryTypeId,
                     'STATUS_ID'        => $optionsPayStatuses[$order['status']],
-                    'REASON_CANCELED'  => $order['statusComment'],
-                    'USER_DESCRIPTION' => $order['customerComment'],
-                    'COMMENTS'         => $order['managerComment']
+                    'REASON_CANCELED'  => self::fromJSON($order['statusComment']),
+                    'USER_DESCRIPTION' => self::fromJSON($order['customerComment']),
+                    'COMMENTS'         => self::fromJSON($order['managerComment'])
                 ));
 
                 CSaleOrder::Update($order['externalId'], $arFields);
