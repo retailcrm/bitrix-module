@@ -815,6 +815,12 @@ class ICrmOrderActions
 
                     if (!$p) {
                         $p = CIBlockElement::GetByID($item['offer']['externalId'])->Fetch();
+                        // select iblock to obtain an CATALOG_XML_ID
+                        $iblock = CIBlock::GetByID($p['IBLOCK_ID'])->Fetch();
+                        $p['CATALOG_XML_ID'] = $iblock['XML_ID'];
+                        // product field XML_ID is called PRODUCT_XML_ID in basket 
+                        $p['PRODUCT_XML_ID'] = $p['XML_ID'];
+                        unset($p['XML_ID']); 
                     }
                     else {
                         //for basket props updating (in props we save cancel status)
