@@ -302,5 +302,7 @@ class ICrmOrderEvent {
     function onBeforeOrderAccountNumberSet($ID, $value) {
         if(isset($GLOBALS['ICRM_ACCOUNT_NUMBER']) && $GLOBALS['ICRM_ACCOUNT_NUMBER'])
             return $GLOBALS['ICRM_ACCOUNT_NUMBER'];
+
+        return false;
     }
 }
