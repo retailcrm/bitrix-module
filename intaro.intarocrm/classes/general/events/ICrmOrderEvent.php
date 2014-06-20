@@ -57,6 +57,9 @@ class ICrmOrderEvent {
         
         if(isset($GLOBALS['INTARO_CRM_ORDER_ADD']) && $GLOBALS['INTARO_CRM_ORDER_ADD'])
             return;
+
+        if(isset($GLOBALS['INTARO_CRM_ORDER_RESERVE']) && $GLOBALS['INTARO_CRM_ORDER_RESERVE'])
+            return;
         
         if(isset($GLOBALS['INTARO_CRM_FROM_HISTORY']) && $GLOBALS['INTARO_CRM_FROM_HISTORY'])
             return;
