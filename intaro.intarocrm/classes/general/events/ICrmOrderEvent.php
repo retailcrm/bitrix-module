@@ -25,6 +25,27 @@ class ICrmOrderEvent {
         $GLOBALS['INTARO_CRM_ORDER_ADD'] = true;
         return;
     }
+
+    /**
+     * OnSaleBeforeReserveOrder
+     *
+     * @param mixed $arFields - Order arFields
+     */
+    function OnSaleBeforeReserveOrder($arFields = array()) {
+        $GLOBALS['INTARO_CRM_ORDER_RESERVE'] = true;
+        return;
+    }
+
+    /**
+     * OnSaleReserveOrder
+     *
+     * @param mixed $arFields - Order arFields
+     */
+    function OnSaleReserveOrder($arFields = array()) {
+        if(isset($GLOBALS['INTARO_CRM_ORDER_RESERVE']) && $GLOBALS['INTARO_CRM_ORDER_RESERVE'])
+            unset($GLOBALS['INTARO_CRM_ORDER_RESERVE']);
+        return;
+    }
     
     /**
      * onUpdateOrder

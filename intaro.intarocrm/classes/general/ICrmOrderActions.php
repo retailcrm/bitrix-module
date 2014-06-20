@@ -600,7 +600,7 @@ class ICrmOrderActions
 
             if(isset($order['externalId']) && $order['externalId']) {
 
-                // custom orderType functunion
+                // custom orderType function
                 if(function_exists('intarocrm_set_order_type')) {
                     $orderType = intarocrm_set_order_type($order);
                     if($orderType)
@@ -969,22 +969,23 @@ class ICrmOrderActions
                     'COMMENTS'         => self::fromJSON($order['managerComment'])
                 ));
 
-                CSaleOrder::Update($order['externalId'], $arFields);
+                if(!empty($arFields))
+                    CSaleOrder::Update($order['externalId'], $arFields);
 
                 // set STATUS_ID
-                if($order['status'] && $optionsPayStatuses[$order['status']])
+                if(isset($order['status']) && $order['status'] && $optionsPayStatuses[$order['status']])
                     CSaleOrder::StatusOrder($order['externalId'], $optionsPayStatuses[$order['status']]);
 
                 // uncancel order
-                if($wasCanaceled && ($optionsPayStatuses[$order['status']] != 'YY'))
+                if(isset($order['status']) && $order['status'] && $wasCanaceled && ($optionsPayStatuses[$order['status']] != 'YY'))
                     CSaleOrder::CancelOrder($order['externalId'], "N", $order['statusComment']);
 
                 // cancel order
-                if($optionsPayStatuses[$order['status']] == 'YY')
+                if(isset($order['status']) && $order['status'] && $optionsPayStatuses[$order['status']] == 'YY')
                     CSaleOrder::CancelOrder($order['externalId'], "Y", $order['statusComment']);
 
                 // set PAYED
-                if($optionsPayment[$order['paymentStatus']])
+                if(isset($order['paymentStatus']) && $order['paymentStatus'] && $optionsPayment[$order['paymentStatus']])
                     CSaleOrder::PayOrder($order['externalId'], $optionsPayment[$order['paymentStatus']]);
             }
         }
@@ -1042,6 +1043,19 @@ class ICrmOrderActions
     public static function orderHistoryAgent() {
         self::orderHistory();
         return 'ICrmOrderActions::orderHistoryAgent();';
+    }
+
+    /**
+     *
+     * Agent function
+     *
+     * @return self name
+     */
+
+    public static function orderAgent() {
+        self::uploadOrdersAgent();
+        self::orderHistory();
+        return 'ICrmOrderActions::orderAgent();';
     }
 
     /**
@@ -1109,26 +1123,6 @@ class ICrmOrderActions
             'phones'     => $phones,
             'createdAt'  => $createdAt
         ));
-
-        if($send) {
-            try {
-                $customer = $api->customerEdit($customer);
-            } catch (\IntaroCrm\Exception\ApiException $e) {
-                self::eventLog(
-                    'ICrmOrderActions::orderCreate', 'IntaroCrm\RestApi::customerEdit',
-                    $e->getCode() . ': ' . $e->getMessage()
-                );
-
-                return false;
-            } catch (\IntaroCrm\Exception\CurlException $e) {
-                self::eventLog(
-                    'ICrmOrderActions::orderCreate', 'IntaroCrm\RestApi::customerEdit::CurlException',
-                    $e->getCode() . ': ' . $e->getMessage()
-                );
-
-                return false;
-            }
-        }
 
         // delivery types
         $arId = array();
@@ -1275,6 +1269,7 @@ class ICrmOrderActions
         $createdAt = $createdAt->format('Y-m-d H:i:s');
 
         $resOrder = array(
+            'customer'        => $customer,
             'number'          => $arFields['ACCOUNT_NUMBER'],
             'phone'           => $resOrder['phone'],
             'email'           => $resOrder['email'],
@@ -1298,7 +1293,6 @@ class ICrmOrderActions
             'items'           => $items
         );
 
-
         if(isset($arParams['optionsSites']) && is_array($arParams['optionsSites'])
                 && in_array($arFields['LID'], $arParams['optionsSites']))
             $resOrder['site'] = $arFields['LID'];
@@ -1312,7 +1306,7 @@ class ICrmOrderActions
             $resOrder['patronymic'] = $contactNameArr[2];
         }
 
-        // custom orderType functunion
+        // custom orderType function
         if(function_exists('intarocrm_get_order_type')) {
             $orderType = intarocrm_get_order_type($arFields);
             if($orderType)
@@ -1321,9 +1315,42 @@ class ICrmOrderActions
                 $orderType['orderType'] = 'new';
         }
 
+        // custom order & customer fields function
+        if(function_exists('intarocrm_before_order_send')) {
+            $newResOrder = intarocrm_before_order_send($resOrder);
+
+            if(is_array($newResOrder) && !empty($newResOrder))
+                $resOrder = $newResOrder;
+
+        }
+
         $resOrder = self::clearArr($resOrder);
 
+        if(isset($resOrder['customer']) && is_array($resOrder['customer']) && !empty($resOrder['customer'])) {
+            $customer = $resOrder['customer'];
+            unset($resOrder['customer']);
+        }
+
         if($send) {
+
+            try {
+                $customer = $api->customerEdit($customer);
+            } catch (\IntaroCrm\Exception\ApiException $e) {
+                self::eventLog(
+                    'ICrmOrderActions::orderCreate', 'IntaroCrm\RestApi::customerEdit',
+                    $e->getCode() . ': ' . $e->getMessage()
+                );
+
+                return false;
+            } catch (\IntaroCrm\Exception\CurlException $e) {
+                self::eventLog(
+                    'ICrmOrderActions::orderCreate', 'IntaroCrm\RestApi::customerEdit::CurlException',
+                    $e->getCode() . ': ' . $e->getMessage()
+                );
+
+                return false;
+            }
+
             try {
                 return $api->orderEdit($resOrder);
             } catch (\IntaroCrm\Exception\ApiException $e) {

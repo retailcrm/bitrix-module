@@ -477,6 +477,18 @@ if (!empty($oldValues)) {
     <input id="load-now" type="checkbox" name="LOAD_NOW" value="now" checked >
     <br>
     <br>
+    <font class="text"><?=GetMessage("BASE_PRICE");?>&nbsp;</font>
+    <select name="price-types" class="typeselect">
+        <option value=""></option>
+        <?php foreach($arResult['PRICE_TYPES'] as $priceType): ?>
+            <option value="<?php echo $priceType['ID']; ?>"
+                <?php if($priceType['BASE'] == 'Y') echo 'selected'; ?>>
+                <?php echo $priceType['NAME']; ?>
+            </option>
+        <?php endforeach; ?>
+    </select>
+    <br>
+    <br>
     <br>
 
     <div id="profile-field" >
