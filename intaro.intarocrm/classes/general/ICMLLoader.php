@@ -25,6 +25,8 @@ class ICMLLoader {
     protected $logFile = '/bitrix/catalog_export/i_crm_load_log.txt';
     protected $fpLog;
 
+    protected $MODULE_ID = 'intaro.intarocrm';
+    protected $CRM_CATALOG_BASE_PRICE = 'catalog_base_price';
 
     protected $measurement = array (
         'mm' => 1,          // 1 mm = 1 mm
@@ -218,6 +220,10 @@ class ICMLLoader {
 
     protected function BuildOffers(&$allCategories)
     {
+
+        $basePriceId = COption::GetOptionString($this->MODULE_ID, $this->CRM_CATALOG_BASE_PRICE, 1);
+
+
             foreach ($this->iblocks as $key => $id)
             {
                     // Get Info by infoblocks
@@ -238,7 +244,7 @@ class ICMLLoader {
                         "DETAIL_PICTURE",
                         "LANG_DIR",
                         "DETAIL_PAGE_URL",
-                        "CATALOG_GROUP_1"
+                        "CATALOG_GROUP_" . $basePriceId
                     );
                     // Set selected properties
                     foreach ($this->propertiesProduct[$id] as $key => $propProduct) {
@@ -256,7 +262,7 @@ class ICMLLoader {
                         "DETAIL_PAGE_URL",
                         "DETAIL_PICTURE",
                         'PROPERTY_' . $iblockOffer['SKU_PROPERTY_ID'],
-                        "CATALOG_GROUP_1"
+                        "CATALOG_GROUP_" . $basePriceId
                     );
                     // Set selected properties
                     foreach ($this->propertiesSKU[$id] as $key => $propSKU) {
@@ -394,7 +400,7 @@ class ICMLLoader {
                                         $offer['PICTURE'] = $product["PICTURE"];
                                         $offer['PRODUCT_NAME'] = $product["NAME"];
                                         $offer['PRODUCT_ACTIVE'] = $product["ACTIVE"];
-                                        $offer['PRICE'] = $offer['CATALOG_PRICE_1'];
+                                        $offer['PRICE'] = $offer['CATALOG_PRICE_' . $basePriceId];
                                         $offer['PURCHASE_PRICE'] = $offer['CATALOG_PURCHASING_PRICE'];
                                         $offer['QUANTITY'] = $offer["CATALOG_QUANTITY"];
 

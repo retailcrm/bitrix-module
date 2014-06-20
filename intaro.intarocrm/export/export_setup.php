@@ -15,6 +15,19 @@ if(!check_bitrix_sessid()) return;
 
 __IncludeLang(GetLangFileName($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/intaro.intarocrm/lang/", "/icml_export_setup.php"));
 
+$MODULE_ID = 'intaro.intarocrm';
+$CRM_CATALOG_BASE_PRICE = 'catalog_base_price';
+$basePriceId = COption::GetOptionString($MODULE_ID, $CRM_CATALOG_BASE_PRICE, 1);
+
+$arResult['PRICE_TYPES'] = array();
+$dbPriceType = CCatalogGroup::GetList(
+    array("SORT" => "ASC"), array(), array(), array(), array("ID", "NAME", "BASE")
+);
+
+while ($arPriceType = $dbPriceType->Fetch()) {
+    $arResult['PRICE_TYPES'][$arPriceType['ID']] = $arPriceType;
+}
+
 if (($ACTION == 'EXPORT' || $ACTION == 'EXPORT_EDIT' || $ACTION == 'EXPORT_COPY') && $STEP == 1)
 {
 
@@ -550,6 +563,20 @@ if ($STEP==1)
     <br>
     <br>
 
+    <font class="text"><?=GetMessage("BASE_PRICE");?>&nbsp;</font>
+    <select name="price-types" class="typeselect">
+        <option value=""></option>
+        <?php foreach($arResult['PRICE_TYPES'] as $priceType): ?>
+            <option value="<?php echo $priceType['ID']; ?>"
+                <?php if($priceType['ID'] == $basePriceId) echo 'selected'; ?>>
+                <?php echo $priceType['NAME']; ?>
+            </option>
+        <?php endforeach; ?>
+    </select>
+
+    <br>
+    <br>
+    <br>
 
     <?if ($ACTION=="EXPORT_SETUP" || $ACTION == 'EXPORT_EDIT' || $ACTION == 'EXPORT_COPY'):?>
         <font class="text"><?=GetMessage("PROFILE_NAME");?><br><br></font>
@@ -562,7 +589,6 @@ if ($STEP==1)
         <br>
         <br>
     <?endif;?>
-
 
     <script type="text/javascript" src="/bitrix/js/main/jquery/jquery-1.7.min.js"></script>
     <script type="text/javascript">
@@ -667,6 +693,7 @@ if ($STEP==1)
 }
 elseif ($STEP==2)
 {
+    COption::SetOptionString($MODULE_ID, $CRM_CATALOG_BASE_PRICE, htmlspecialchars(trim($_POST['price-types'])));
 	$FINITE = true;
 }
 

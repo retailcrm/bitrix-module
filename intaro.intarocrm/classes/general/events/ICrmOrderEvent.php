@@ -25,6 +25,27 @@ class ICrmOrderEvent {
         $GLOBALS['INTARO_CRM_ORDER_ADD'] = true;
         return;
     }
+
+    /**
+     * OnSaleBeforeReserveOrder
+     *
+     * @param mixed $arFields - Order arFields
+     */
+    function OnSaleBeforeReserveOrder($arFields = array()) {
+        $GLOBALS['INTARO_CRM_ORDER_RESERVE'] = true;
+        return;
+    }
+
+    /**
+     * OnSaleReserveOrder
+     *
+     * @param mixed $arFields - Order arFields
+     */
+    function OnSaleReserveOrder($arFields = array()) {
+        if(isset($GLOBALS['INTARO_CRM_ORDER_RESERVE']) && $GLOBALS['INTARO_CRM_ORDER_RESERVE'])
+            unset($GLOBALS['INTARO_CRM_ORDER_RESERVE']);
+        return;
+    }
     
     /**
      * onUpdateOrder
@@ -35,6 +56,9 @@ class ICrmOrderEvent {
     function onUpdateOrder($ID, $arFields) {
         
         if(isset($GLOBALS['INTARO_CRM_ORDER_ADD']) && $GLOBALS['INTARO_CRM_ORDER_ADD'])
+            return;
+
+        if(isset($GLOBALS['INTARO_CRM_ORDER_RESERVE']) && $GLOBALS['INTARO_CRM_ORDER_RESERVE'])
             return;
         
         if(isset($GLOBALS['INTARO_CRM_FROM_HISTORY']) && $GLOBALS['INTARO_CRM_FROM_HISTORY'])
@@ -302,5 +326,7 @@ class ICrmOrderEvent {
     function onBeforeOrderAccountNumberSet($ID, $value) {
         if(isset($GLOBALS['ICRM_ACCOUNT_NUMBER']) && $GLOBALS['ICRM_ACCOUNT_NUMBER'])
             return $GLOBALS['ICRM_ACCOUNT_NUMBER'];
+
+        return false;
     }
 }

@@ -36,6 +36,7 @@ class intaro_intarocrm extends CModule {
     var $CRM_ORDER_DISCHARGE = 'order_discharge';
     var $CRM_ORDER_FAILED_IDS = 'order_failed_ids';
     var $CRM_ORDER_HISTORY_DATE = 'order_history_date';
+    var $CRM_CATALOG_BASE_PRICE = 'catalog_base_price';
     var $INSTALL_PATH;
 
     function intaro_intarocrm() {
@@ -980,6 +981,17 @@ class intaro_intarocrm extends CModule {
             if (!CModule::IncludeModule("catalog")) {
                 $arResult['errCode'] = 'ERR_CATALOG';
             }
+
+            $arResult['PRICE_TYPES'] = array();
+
+            $dbPriceType = CCatalogGroup::GetList(
+                array("SORT" => "ASC"), array(), array(), array(), array("ID", "NAME", "BASE")
+            );
+
+            while ($arPriceType = $dbPriceType->Fetch()) {
+                $arResult['PRICE_TYPES'][$arPriceType['ID']] = $arPriceType;
+            }
+
             $APPLICATION->IncludeAdminFile(
                     GetMessage('MODULE_INSTALL_TITLE'),
                     $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/step5.php'
@@ -1095,6 +1107,11 @@ class intaro_intarocrm extends CModule {
             RegisterModuleDependences("sale", "OnOrderNewSendEmail", $this->MODULE_ID, "ICrmOrderEvent", "onSendOrderMail");
             RegisterModuleDependences("sale", "OnOrderUpdate", $this->MODULE_ID, "ICrmOrderEvent", "onUpdateOrder");
             RegisterModuleDependences("sale", "OnBeforeOrderAdd", $this->MODULE_ID, "ICrmOrderEvent", "onBeforeOrderAdd");
+            RegisterModuleDependences("sale", "OnSaleBeforeReserveOrder", $this->MODULE_ID, "ICrmOrderEvent", "OnSaleBeforeReserveOrder");
+            RegisterModuleDependences("sale", "OnSaleReserveOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSaleReserveOrder");
+
+            COption::SetOptionString($this->MODULE_ID, $this->CRM_CATALOG_BASE_PRICE, htmlspecialchars(trim($_POST['price-types'])));
+
             $this->CopyFiles();
             if (isset($_POST['LOAD_NOW'])) {
 
@@ -1208,28 +1225,16 @@ class intaro_intarocrm extends CModule {
             }
 
             //agent
-            
             $dateAgent = new DateTime();
             $intAgent = new DateInterval('PT60S'); // PT60S - 60 sec;
             $dateAgent->add($intAgent);
 
             CAgent::AddAgent(
-                    "ICrmOrderActions::uploadOrdersAgent();", $this->MODULE_ID, "N", 600, // interval - 10 mins
+                    "ICrmOrderActions::orderAgent();", $this->MODULE_ID, "N", 600, // interval - 10 mins
                     $dateAgent->format('d.m.Y H:i:s'), // date of first check
                     "Y", // agent is active
                     $dateAgent->format('d.m.Y H:i:s'), // date of first start
                     30
-            );
-            
-            CAgent::AddAgent(
-                "ICrmOrderActions::orderHistoryAgent();",
-                 $this->MODULE_ID,
-                 "N",
-                 600, // interval - 10 mins
-                 $dateAgent->format('d.m.Y H:i:s'), // date of first check
-                 "Y", // agent is active
-                 $dateAgent->format('d.m.Y H:i:s'), // date of first start
-                 30
             );
 
             $api_host = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, 0);
@@ -1264,6 +1269,7 @@ class intaro_intarocrm extends CModule {
 
         CAgent::RemoveAgent("ICrmOrderActions::uploadOrdersAgent();", $this->MODULE_ID);
         CAgent::RemoveAgent("ICrmOrderActions::orderHistoryAgent();", $this->MODULE_ID);
+        CAgent::RemoveAgent("ICrmOrderActions::orderAgent();", $this->MODULE_ID);
 
         COption::RemoveOption($this->MODULE_ID, $this->CRM_API_HOST_OPTION);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_API_KEY_OPTION);
@@ -1277,6 +1283,7 @@ class intaro_intarocrm extends CModule {
         COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_DISCHARGE);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_FAILED_IDS);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_HISTORY_DATE);
+        COption::RemoveOption($this->MODULE_ID, $this->CRM_CATALOG_BASE_PRICE);
 
         UnRegisterModuleDependences("sale", "OnSalePayOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSalePayOrder");
         UnRegisterModuleDependences("sale", "OnSaleCancelOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSaleCancelOrder");
@@ -1284,6 +1291,8 @@ class intaro_intarocrm extends CModule {
         UnRegisterModuleDependences("sale", "OnOrderUpdate", $this->MODULE_ID, "ICrmOrderEvent", "onUpdateOrder");
         UnRegisterModuleDependences("sale", "OnBeforeOrderAdd", $this->MODULE_ID, "ICrmOrderEvent", "onBeforeOrderAdd");
         UnRegisterModuleDependences("sale", "OnBeforeOrderAccountNumberSet", $this->MODULE_ID, "ICrmOrderEvent", "onBeforeOrderAccountNumberSet");
+        UnRegisterModuleDependences("sale", "OnSaleBeforeReserveOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSaleBeforeReserveOrder");
+        UnRegisterModuleDependences("sale", "OnSaleReserveOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSaleReserveOrder");
         if (CModule::IncludeModule("catalog")) {
             if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/' . $this->INTARO_CRM_EXPORT . '_run.php')) {
                 $dbProfile = CCatalogExport::GetList(array(), array("FILE_NAME" => $this->INTARO_CRM_EXPORT));
