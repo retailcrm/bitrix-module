@@ -162,6 +162,29 @@ class RestApi
     }
 
     /**
+     * Получение списка клиентов в соответсвии с запросом
+     *
+     * @param string $phone - телефон
+     * @param string $email - почтовый адрес
+     * @param string $fio - фио пользователя
+     * @param int $limit - ограничение на размер выборки
+     * @param int $offset - сдвиг
+     * @return array - массив клиентов
+     */
+    public function customers($phone = null, $email = null, $fio = null, $limit = 200, $offset = 0)
+    {
+        $url = $this->apiUrl.'customers';
+        $this->parameters['phone'] = $phone;
+        $this->parameters['email'] = $email;
+        $this->parameters['fio'] = $fio;
+        $this->parameters['limit'] = $limit;
+        $this->parameters['offset'] = $offset;
+
+        $result = $this->curlRequest($url);
+        return $result;
+    }
+
+    /**
      * Создание клиента
      *
      * @param array $customer - информация о клиенте
@@ -534,9 +557,11 @@ class RestApi
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_FAILONERROR, FALSE);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);// allow redirects
+        //curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);// allow redirects
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); // return into a variable
         curl_setopt($ch, CURLOPT_TIMEOUT, 30); // times out after 30s
+        //curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+
 
         if ($method == 'POST')
         {
