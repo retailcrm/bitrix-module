@@ -439,7 +439,7 @@ class ICMLLoader {
                                     $product['PRODUCT_ID'] = $product["ID"];
                                     $product['PRODUCT_NAME'] = $product["NAME"];
                                     $product['PRODUCT_ACTIVE'] = $product["ACTIVE"];
-                                    $product['PRICE'] = $product['CATALOG_PRICE_1'];
+                                    $product['PRICE'] = $product['CATALOG_PRICE_' . $basePriceId];
                                     $product['PURCHASE_PRICE'] = $product['CATALOG_PURCHASING_PRICE'];
                                     $product['QUANTITY'] = $product["CATALOG_QUANTITY"];
 
