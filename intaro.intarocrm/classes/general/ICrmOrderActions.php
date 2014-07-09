@@ -464,10 +464,32 @@ class ICrmOrderActions
 
         $dateFinish = $api->getGeneratedAt();
 
+        // default orderType
+        $defaultOrderType = 1;
+
+        // if it not a ph. entity
+        $dbOrderTypesList = CSalePersonType::GetList(
+            array(
+                "SORT" => "ASC",
+                "NAME" => "ASC"
+            ),
+            array(
+                "ACTIVE" => "Y",
+            ),
+            false,
+            false,
+            array()
+        );
+
+        if ($arOrderTypesList = $dbOrderTypesList->Fetch())
+            $defaultOrderType = $arOrderTypesList['ID'];
+
         // apiv3 !
         if(!$dateFinish) $dateFinish = new \DateTime();
 
         $GLOBALS['INTARO_CRM_FROM_HISTORY'] = true;
+
+        self::eventLog('ICrmOrderActions::orderHistory', '$orderHistory', json_encode($orderHistory));
 
         // pushing existing orders
         foreach ($orderHistory as $order) {
@@ -479,24 +501,8 @@ class ICrmOrderActions
                     $orderType = intarocrm_set_order_type($order);
                     if($orderType)
                         $optionsOrderTypes[$order['orderType']] = $orderType;
-                    else {
-                        $dbOrderTypesList = CSalePersonType::GetList(
-                            array(
-                                "SORT" => "ASC",
-                                "NAME" => "ASC"
-                            ),
-                            array(
-                                "ACTIVE" => "Y",
-                            ),
-                            false,
-                            false,
-                            array()
-                        );
-
-                        if ($arOrderTypesList = $dbOrderTypesList->Fetch())
-                            $optionsOrderTypes[$order['orderType']] = $arOrderTypesList['ID'];
-
-                    }
+                    else 
+                        $optionsOrderTypes[$order['orderType']] = $defaultOrderType;
                 }
 
                 // we dont need new orders without any customers (can check only for externalId)
@@ -563,7 +569,7 @@ class ICrmOrderActions
                 // new order
                $newOrderFields = array(
                     'LID'              => $defaultSiteId,
-                    'PERSON_TYPE_ID'   => ($optionsOrderTypes[$order['orderType']]) ? $optionsOrderTypes[$order['orderType']] : 1,
+                    'PERSON_TYPE_ID'   => ($optionsOrderTypes[$order['orderType']]) ? $optionsOrderTypes[$order['orderType']] : $defaultOrderType,
                     'PAYED'            => 'N',
                     'CANCELED'         => 'N',
                     'STATUS_ID'        => 'N',
@@ -576,6 +582,8 @@ class ICrmOrderActions
                     'DISCOUNT_VALUE'   => 0,
                     'USER_DESCRIPTION' => ''
                 );
+
+                self::eventLog('ICrmOrderActions::orderHistory', '$newOrderFields', json_encode($newOrderFields));
 
                 if(isset($order['number']) && $order['number'])
                     $GLOBALS['ICRM_ACCOUNT_NUMBER'] = $order['number'];
@@ -611,24 +619,8 @@ class ICrmOrderActions
                     $orderType = intarocrm_set_order_type($order);
                     if($orderType)
                         $optionsOrderTypes[$order['orderType']] = $orderType;
-                    else {
-                        $dbOrderTypesList = CSalePersonType::GetList(
-                            array(
-                                "SORT" => "ASC",
-                                "NAME" => "ASC"
-                            ),
-                            array(
-                                "ACTIVE" => "Y",
-                            ),
-                            false,
-                            false,
-                            array()
-                        );
-
-                        if ($arOrderTypesList = $dbOrderTypesList->Fetch())
-                            $optionsOrderTypes[$order['orderType']] = $arOrderTypesList['ID'];
-
-                    }
+                    else
+                        $optionsOrderTypes[$order['orderType']] = $defaultOrderType;
                 }
 
                 $arFields = CSaleOrder::GetById($order['externalId']);
