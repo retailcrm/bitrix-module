@@ -348,11 +348,11 @@ class intaro_intarocrm extends CModule {
                 $paymentArr['Y'] = htmlspecialchars(trim($_POST['payment-Y']));
                 $paymentArr['N'] = htmlspecialchars(trim($_POST['payment-N']));
 
-                COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_TYPES_ARR, serialize($orderTypesArr));
-                COption::SetOptionString($this->MODULE_ID, $this->CRM_DELIVERY_TYPES_ARR, serialize($deliveryTypesArr));
-                COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT_TYPES, serialize($paymentTypesArr));
-                COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT_STATUSES, serialize($paymentStatusesArr));
-                COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT, serialize($paymentArr));
+                COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_TYPES_ARR, serialize(ICrmOrderActions::clearArr($orderTypesArr)));
+                COption::SetOptionString($this->MODULE_ID, $this->CRM_DELIVERY_TYPES_ARR, serialize(ICrmOrderActions::clearArr($deliveryTypesArr)));
+                COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT_TYPES, serialize(ICrmOrderActions::clearArr($paymentTypesArr)));
+                COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT_STATUSES, serialize(ICrmOrderActions::clearArr($paymentStatusesArr)));
+                COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT, serialize(ICrmOrderActions::clearArr($paymentArr)));
 
                 // generate updated select inputs  
                 $input = array();
@@ -879,11 +879,11 @@ class intaro_intarocrm extends CModule {
                 $arResult['arProp'][$arProp['PERSON_TYPE_ID']][] = $arProp;
             }
 
-            COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_TYPES_ARR, serialize($orderTypesArr));
-            COption::SetOptionString($this->MODULE_ID, $this->CRM_DELIVERY_TYPES_ARR, serialize($deliveryTypesArr));
-            COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT_TYPES, serialize($paymentTypesArr));
-            COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT_STATUSES, serialize($paymentStatusesArr));
-            COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT, serialize($paymentArr));
+            COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_TYPES_ARR, serialize(ICrmOrderActions::clearArr($orderTypesArr)));
+            COption::SetOptionString($this->MODULE_ID, $this->CRM_DELIVERY_TYPES_ARR, serialize(ICrmOrderActions::clearArr($deliveryTypesArr)));
+            COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT_TYPES, serialize(ICrmOrderActions::clearArr($paymentTypesArr)));
+            COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT_STATUSES, serialize(ICrmOrderActions::clearArr($paymentStatusesArr)));
+            COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT, serialize(ICrmOrderActions::clearArr($paymentArr)));
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_LAST_ID, 0);
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_DISCHARGE, 1);
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_FAILED_IDS, serialize(array()));
@@ -966,7 +966,7 @@ class intaro_intarocrm extends CModule {
                 $orderPropsArr[$orderType['ID']] = $_orderPropsArr;
             }
             
-            COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_PROPS, serialize($orderPropsArr));
+            COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_PROPS, serialize(ICrmOrderActions::clearArr($orderPropsArr)));
                        
             $APPLICATION->IncludeAdminFile(
                     GetMessage('MODULE_INSTALL_TITLE'),
