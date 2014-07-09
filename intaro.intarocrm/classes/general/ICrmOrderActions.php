@@ -563,7 +563,7 @@ class ICrmOrderActions
                 // new order
                $newOrderFields = array(
                     'LID'              => $defaultSiteId,
-                    'PERSON_TYPE_ID'   => $optionsOrderTypes[$order['orderType']],
+                    'PERSON_TYPE_ID'   => ($optionsOrderTypes[$order['orderType']]) ? $optionsOrderTypes[$order['orderType']] : 1,
                     'PAYED'            => 'N',
                     'CANCELED'         => 'N',
                     'STATUS_ID'        => 'N',
