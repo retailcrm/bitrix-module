@@ -489,8 +489,6 @@ class ICrmOrderActions
 
         $GLOBALS['INTARO_CRM_FROM_HISTORY'] = true;
 
-        self::eventLog('ICrmOrderActions::orderHistory', '$orderHistory', json_encode($orderHistory));
-
         // pushing existing orders
         foreach ($orderHistory as $order) {
 
@@ -582,8 +580,6 @@ class ICrmOrderActions
                     'DISCOUNT_VALUE'   => 0,
                     'USER_DESCRIPTION' => ''
                 );
-
-                self::eventLog('ICrmOrderActions::orderHistory', '$newOrderFields', json_encode($newOrderFields));
 
                 if(isset($order['number']) && $order['number'])
                     $GLOBALS['ICRM_ACCOUNT_NUMBER'] = $order['number'];
