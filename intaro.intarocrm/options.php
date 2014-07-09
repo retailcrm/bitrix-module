@@ -357,14 +357,14 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         $orderPropsArr[$orderType['ID']] = $_orderPropsArr;
     }
     
-    COption::SetOptionString($mid, $CRM_ORDER_TYPES_ARR, serialize($orderTypesArr));
-    COption::SetOptionString($mid, $CRM_DELIVERY_TYPES_ARR, serialize($deliveryTypesArr));
-    COption::SetOptionString($mid, $CRM_PAYMENT_TYPES, serialize($paymentTypesArr));
-    COption::SetOptionString($mid, $CRM_PAYMENT_STATUSES, serialize($paymentStatusesArr));
-    COption::SetOptionString($mid, $CRM_PAYMENT, serialize($paymentArr));
-    COption::SetOptionString($mid, $CRM_ORDER_SITES, serialize($orderSites));
-    COption::SetOptionString($mid, $CRM_ORDER_DISCHARGE, $orderDischarge);
-    COption::SetOptionString($mid, $CRM_ORDER_PROPS, serialize($orderPropsArr));
+    COption::SetOptionString($mid, $CRM_ORDER_TYPES_ARR, serialize(ICrmOrderActions::clearArr($orderTypesArr)));
+    COption::SetOptionString($mid, $CRM_DELIVERY_TYPES_ARR, serialize(ICrmOrderActions::clearArr($deliveryTypesArr)));
+    COption::SetOptionString($mid, $CRM_PAYMENT_TYPES, serialize(ICrmOrderActions::clearArr($paymentTypesArr)));
+    COption::SetOptionString($mid, $CRM_PAYMENT_STATUSES, serialize(ICrmOrderActions::clearArr($paymentStatusesArr)));
+    COption::SetOptionString($mid, $CRM_PAYMENT, serialize(ICrmOrderActions::clearArr($paymentArr)));
+    COption::SetOptionString($mid, $CRM_ORDER_SITES, serialize(ICrmOrderActions::clearArr($orderSites)));
+    COption::SetOptionString($mid, $CRM_ORDER_DISCHARGE, ICrmOrderActions::clearArr($orderDischarge));
+    COption::SetOptionString($mid, $CRM_ORDER_PROPS, serialize(ICrmOrderActions::clearArr($orderPropsArr)));
 
     $uri .= '&ok=Y';
     LocalRedirect($uri);
