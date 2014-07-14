@@ -363,7 +363,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     COption::SetOptionString($mid, $CRM_PAYMENT_STATUSES, serialize(ICrmOrderActions::clearArr($paymentStatusesArr)));
     COption::SetOptionString($mid, $CRM_PAYMENT, serialize(ICrmOrderActions::clearArr($paymentArr)));
     COption::SetOptionString($mid, $CRM_ORDER_SITES, serialize(ICrmOrderActions::clearArr($orderSites)));
-    COption::SetOptionString($mid, $CRM_ORDER_DISCHARGE, ICrmOrderActions::clearArr($orderDischarge));
+    COption::SetOptionString($mid, $CRM_ORDER_DISCHARGE, $orderDischarge);
     COption::SetOptionString($mid, $CRM_ORDER_PROPS, serialize(ICrmOrderActions::clearArr($orderPropsArr)));
 
     $uri .= '&ok=Y';
