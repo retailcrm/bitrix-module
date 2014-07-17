@@ -927,8 +927,8 @@ class ICrmOrderActions
                     CSaleBasket::DeleteAll($userId);
                 }
 
-                if(!isset($order['deliveryCost']))
-                    $order['deliveryCost'] = $arFields['PRICE_DELIVERY'];
+                if(!isset($order['delivery']) || !isset($order['delivery']['cost']))
+                    $order['delivery']['cost'] = $arFields['PRICE_DELIVERY'];
 
                 if(!isset($order['summ']) || (isset($order['summ']) && !$order['summ'] && $order['summ'] !== 0))
                     $order['summ'] = $arFields['PRICE'] - $arFields['PRICE_DELIVERY'];
@@ -958,7 +958,7 @@ class ICrmOrderActions
 
                 // orderUpdate
                 $arFields = self::clearArr(array(
-                    'PRICE_DELIVERY'   => $order['deliveryCost'],
+                    'PRICE_DELIVERY'   => $order['delivery']['cost'],
                     'PRICE'            => $order['summ'] + (double) $order['delivery']['cost'],
                     'DATE_MARKED'      => $order['markDatetime'],
                     'USER_ID'          => $userId, //$order['customer']
@@ -1265,7 +1265,8 @@ class ICrmOrderActions
         $delivery = array(
             'code'    => $arParams['optionsDelivTypes'][$resultDeliveryTypeId],
             'service' => ($arParams['optionsDelivTypes'][$resultDeliveryTypeId]) ? $deliveryService : '',
-            'address' => $resOrderDeliveryAddress
+            'address' => $resOrderDeliveryAddress,
+            'cost'    => $arFields['PRICE_DELIVERY']
         );
 
         if($arParams['optionsDelivTypes'][$resultDeliveryTypeId] == self::$MUTLISHIP_DELIVERY_TYPE) {
@@ -1281,7 +1282,6 @@ class ICrmOrderActions
             'number'          => $arFields['ACCOUNT_NUMBER'],
             'phone'           => $resOrder['phone'],
             'email'           => $resOrder['email'],
-            'deliveryCost'    => $arFields['PRICE_DELIVERY'],
             'summ'            => $arFields['PRICE'],
             'markDateTime'    => $arFields['DATE_MARKED'],
             'externalId'      => $arFields['ID'],
