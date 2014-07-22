@@ -505,7 +505,7 @@ class ICrmOrderActions
 
                 // we dont need new orders without any customers (can check only for externalId)
                 if(!isset($order['customer']['externalId']) && !$order['customer']['externalId']) {
-                    if(!isset($order['customer']['id'])) continue; // if no id then skip
+                    if(!isset($order['customer']['id']) || !$order['customer']['id']) continue; // if no id then skip
                     if (!$order['customer']['email']) {
                         $login = 'user_' . (microtime(true) * 10000) . mt_rand(1, 1000);
                         $server_name = 0 < strlen(SITE_SERVER_NAME)?
