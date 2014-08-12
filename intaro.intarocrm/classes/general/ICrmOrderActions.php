@@ -1222,7 +1222,7 @@ class ICrmOrderActions
 
         $items = array();
 
-        $rsOrderBasket = CSaleBasket::GetList(array('PRODUCT_ID' => 'ASC'), array('ORDER_ID' => $arFields['ID']));
+        $rsOrderBasket = CSaleBasket::GetList(array('ID' => 'ASC'), array('ORDER_ID' => $arFields['ID']));
         while ($p = $rsOrderBasket->Fetch()) {
             //for basket props updating (in props we save cancel status)
             $propCancel = CSaleBasket::GetPropsList(
