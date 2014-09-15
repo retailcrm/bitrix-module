@@ -695,10 +695,10 @@ class ICrmOrderActions
 
                     switch ($ar['CODE']) {
                         case $optionsOrderProps[$arFields['PERSON_TYPE_ID']]['fio']:
-                                if (isset($order['firstName']))
-                                    $contactName['firstName'] = self::fromJSON($order['firstName']);
                                 if (isset($order['lastName']))
                                     $contactName['lastName'] = self::fromJSON($order['lastName']);
+                                if (isset($order['firstName']))
+                                    $contactName['firstName'] = self::fromJSON($order['firstName']);
                                 if (isset($order['patronymic']))
                                     $contactName['patronymic'] = self::fromJSON($order['patronymic']);
 
