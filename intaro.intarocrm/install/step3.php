@@ -71,7 +71,7 @@ $defaultOrderProps = array(
                 </td>
             </tr>
             <?php endif; ?>
-            <tr <?php if ($countProps > 4) echo 'class="address-detail-' . $bitrixOrderType['ID'] . '"'; if(($countProps > 4) && (count($defaultOrderProps[$bitrixOrderType['ID']]) < 6)) echo 'style="display:none;"';?>>
+            <tr <?php if ($countProps > 3) echo 'class="address-detail-' . $bitrixOrderType['ID'] . '"'; if(($countProps > 3) && (count($defaultOrderProps[$bitrixOrderType['ID']]) < 6)) echo 'style="display:none;"';?>>
                 <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $orderProp['ID']; ?>">
                     <?php echo $orderProp['NAME']; ?>
                 </td>
