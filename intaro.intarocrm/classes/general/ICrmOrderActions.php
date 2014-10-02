@@ -1234,7 +1234,7 @@ class ICrmOrderActions
                 $propCancel = (int)$propCancel['VALUE'];
             }
 
-            $pr = CCatalogProduct::GetList(array('ID' => $p['PRODUCT_ID']))->Fetch();
+            $pr = CCatalogProduct::GetList(array(), array('ID' => $p['PRODUCT_ID']))->Fetch();
             if ($pr)
                 $pr = $pr['PURCHASING_PRICE'];
             else
@@ -1247,6 +1247,10 @@ class ICrmOrderActions
                 'productName'     => self::toJSON($p['NAME']),
                 'comment'         => $p['NOTES'],
             );
+
+            //if this item generated through admin interface, then unset productId
+            if(empty($pr))
+                unset($item['productId']);
 
             //if it is canceled product don't send price
             if (!$propCancel) {
