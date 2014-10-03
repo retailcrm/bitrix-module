@@ -362,7 +362,8 @@ class ICrmOrderActions
             $realUser = $USER->GetID();
             $USER->Logout();
         } else { // for agent; to add order User
-            $rsUser = CUser::GetByLogin('intarocrm');
+            // find similar login! (email / name can be used as login, due to settings diff)
+            $rsUser = CUser::GetList(($by='id'), ($order='desc'), array('LOGIN' => '%intarocrm%'));
 
             if($arUser = $rsUser->Fetch()) {
                 $USER = new CUser;
@@ -531,7 +532,7 @@ class ICrmOrderActions
                         if ($useCaptcha == 'Y')
                             COption::SetOptionString('main', 'captcha_registration', 'N');
                         $userPassword = randString(10);
-                        $newUser = $USER->Register($login, $order['customer']['firstName'], $order['customer']['lastName'],
+                        $newUser = $USER->Register($login, self::fromJSON($order['customer']['firstName']), self::fromJSON($order['customer']['lastName']),
                             $userPassword,  $userPassword, $order['customer']['email']);
                         if ($useCaptcha == 'Y')
                             COption::SetOptionString('main', 'captcha_registration', 'Y');
@@ -695,6 +696,7 @@ class ICrmOrderActions
 
                     switch ($ar['CODE']) {
                         case $optionsOrderProps[$arFields['PERSON_TYPE_ID']]['fio']:
+                                $contactName = array(); // cleanup
                                 if (isset($order['lastName']))
                                     $contactName['lastName'] = self::fromJSON($order['lastName']);
                                 if (isset($order['firstName']))
@@ -776,6 +778,7 @@ class ICrmOrderActions
                     self::addOrderProperty($optionsOrderProps[$arFields['PERSON_TYPE_ID']]['email'],
                             self::fromJSON($order['email']), $order['externalId']);
 
+                $contactName = array(); // cleanup
                 if (isset($order['firstName']))
                     $contactName['firstName'] = self::fromJSON($order['firstName']);
                 if (isset($order['lastName']))
@@ -976,17 +979,20 @@ class ICrmOrderActions
                 if(!empty($arFields))
                     CSaleOrder::Update($order['externalId'], $arFields);
 
-                // set STATUS_ID
-                if(isset($order['status']) && $order['status'] && $optionsPayStatuses[$order['status']])
-                    CSaleOrder::StatusOrder($order['externalId'], $optionsPayStatuses[$order['status']]);
+                if(isset($order['status']) && $order['status']) {
+                    if(isset($optionsPayStatuses[$order['status']]) && $optionsPayStatuses[$order['status']]) {
+                        // set STATUS_ID
+                        CSaleOrder::StatusOrder($order['externalId'], $optionsPayStatuses[$order['status']]);
 
-                // uncancel order
-                if(isset($order['status']) && $order['status'] && $wasCanaceled && ($optionsPayStatuses[$order['status']] != 'YY'))
-                    CSaleOrder::CancelOrder($order['externalId'], "N", $order['statusComment']);
+                        // uncancel order
+                        if($wasCanaceled && ($optionsPayStatuses[$order['status']] != 'YY'))
+                            CSaleOrder::CancelOrder($order['externalId'], "N", $order['statusComment']);
 
-                // cancel order
-                if(isset($order['status']) && $order['status'] && $optionsPayStatuses[$order['status']] == 'YY')
-                    CSaleOrder::CancelOrder($order['externalId'], "Y", $order['statusComment']);
+                        // cancel order
+                        if($optionsPayStatuses[$order['status']] == 'YY')
+                            CSaleOrder::CancelOrder($order['externalId'], "Y", $order['statusComment']);
+                    }
+                }
 
                 // set PAYED
                 if(isset($order['paymentStatus']) && $order['paymentStatus'] && $optionsPayment[$order['paymentStatus']])
