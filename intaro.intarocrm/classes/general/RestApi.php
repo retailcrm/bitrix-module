@@ -133,7 +133,8 @@ class RestApi
      */
     public function orderHistory($startDate = null, $endDate = null, $limit = 100, $offset = 0)
     {
-        $url = $this->apiUrl.'orders/history&skipMychanges=true';
+        $url = $this->apiUrl.'orders/history';
+        $this->parameters['skipMyChanges'] = true;
         $this->parameters['startDate'] = $startDate;
         $this->parameters['endDate'] = $endDate;
         $this->parameters['limit'] = $limit;
