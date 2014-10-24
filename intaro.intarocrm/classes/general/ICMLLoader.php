@@ -411,15 +411,15 @@ class ICMLLoader {
                                             if ($propSKU != "") {
 
                                                 if (isset ($offer["PROPERTY_" . $propSKU . "_NAME"]))
-                                                    $offer[$key] =  $offer["PROPERTY_" . $propSKU . "_NAME"];
+                                                    $offer['_PROP_' . $key] =  $offer["PROPERTY_" . $propSKU . "_NAME"];
                                                 elseif (isset ($offer[$propSKU]))
-                                                    $offer[$key] = $offer[$propSKU];
+                                                    $offer['_PROP_' . $key] = $offer[$propSKU];
                                                 else
-                                                    $offer[$key] =  $offer["PROPERTY_" . $propSKU . "_VALUE"];
+                                                    $offer['_PROP_' . $key] =  $offer["PROPERTY_" . $propSKU . "_VALUE"];
 
                                                 if (array_key_exists($key, $this->propertiesUnitSKU[$id])) {
-                                                    $offer[$key] *= $this->measurement[$this->propertiesUnitSKU[$id][$key]];
-                                                    $offer[$key . "_UNIT"] = $this->measurementLink[$this->propertiesUnitSKU[$id][$key]];
+                                                    $offer['_PROP_' . $key] *= $this->measurement[$this->propertiesUnitSKU[$id][$key]];
+                                                    $offer['_PROP_' . $key . "_UNIT"] = $this->measurementLink[$this->propertiesUnitSKU[$id][$key]];
                                                 }
                                             }
 
@@ -427,7 +427,7 @@ class ICMLLoader {
 
                                         foreach ($resPropertiesProduct as $key => $propProduct) {
                                             if ($this->propertiesProduct[$id][$key] != "" && !isset($offer[$key]))
-                                                $offer[$key] =  $propProduct;
+                                                $offer['_PROP_' . $key] =  $propProduct;
                                         }
 
                                         $stringOffers .= $this->BuildOffer($offer, $categories, $iblock, $allCategories);
@@ -445,7 +445,7 @@ class ICMLLoader {
 
                                     foreach ($resPropertiesProduct as $key => $propProduct) {
                                         if ($this->propertiesProduct[$id][$key] != "" || $this->propertiesProduct[$id][str_replace("_UNIT", "", $key)] != "") {
-                                            $product[$key] =  $propProduct;
+                                            $product['_PROP_' . $key] =  $propProduct;
                                         }
                                     }
 
@@ -515,19 +515,19 @@ class ICMLLoader {
             $offer .= "<productName>" . $this->PrepareValue($arOffer["PRODUCT_NAME"]) . "</productName>\n";
 
             foreach ($this->propertiesProduct[$iblock['IBLOCK_DB']['ID']] as $key => $propProduct) {
-                if ($propProduct != "" && $arOffer[$key] != null) {
+                if ($propProduct != "" && $arOffer['_PROP_' . $key] != null) {
                     if ($key === "manufacturer")
-                        $offer .= "<vendor>" . $this->PrepareValue($arOffer[$key]) . "</vendor>\n";
+                        $offer .= "<vendor>" . $this->PrepareValue($arOffer['_PROP_' . $key]) . "</vendor>\n";
                     else
-                        $offer .= '<param name="' . $key . '"' . (isset($arOffer[$key . "_UNIT"]) ? ' unit="' . $arOffer[$key . "_UNIT"] . '"' : "") . ">" . $this->PrepareValue($arOffer[$key]) . "</param>\n";
+                        $offer .= '<param name="' . $key . '"' . (isset($arOffer['_PROP_' . $key . "_UNIT"]) ? ' unit="' . $arOffer['_PROP_' . $key . "_UNIT"] . '"' : "") . ">" . $this->PrepareValue($arOffer['_PROP_' . $key]) . "</param>\n";
                 }
             }
             foreach ($this->propertiesSKU[$iblock['IBLOCK_DB']['ID']] as $key => $propProduct) {
-                if ($propProduct != "" && $arOffer[$key] != null) {
+                if ($propProduct != "" && $arOffer['_PROP_' . $key] != null) {
                     if ($key === "manufacturer")
-                        $offer .= "<vendor>" . $this->PrepareValue($arOffer[$key]) . "</vendor>\n";
+                        $offer .= "<vendor>" . $this->PrepareValue($arOffer['_PROP_' . $key]) . "</vendor>\n";
                     else
-                        $offer .= '<param name="' . $key . '"' . (isset($arOffer[$key . "_UNIT"]) ? ' unit="' . $arOffer[$key . "_UNIT"] . '"' : "") . ">" . $this->PrepareValue($arOffer[$key]) . "</param>\n";
+                        $offer .= '<param name="' . $key . '"' . (isset($arOffer['_PROP_' . $key . "_UNIT"]) ? ' unit="' . $arOffer['_PROP_' . $key . "_UNIT"] . '"' : "") . ">" . $this->PrepareValue($arOffer['_PROP_' . $key]) . "</param>\n";
                 }
             }
 
