@@ -363,7 +363,7 @@ class ICrmOrderActions
             $USER->Logout();
         } else { // for agent; to add order User
             // find similar login! (email / name can be used as login, due to settings diff)
-            $rsUser = CUser::GetList(($by='id'), ($order='desc'), array('LOGIN' => '%intarocrm%'));
+            $rsUser = CUser::GetList(($by='ID'), ($order='DESC'), array('LOGIN' => '%intarocrm%'));
 
             if($arUser = $rsUser->Fetch()) {
                 $USER = new CUser;
@@ -1241,10 +1241,11 @@ class ICrmOrderActions
             }
 
             $pr = CCatalogProduct::GetList(array(), array('ID' => $p['PRODUCT_ID']))->Fetch();
-            if ($pr)
-                $pr = $pr['PURCHASING_PRICE'];
-            else
+
+            if(!$pr) {
                 $pr = '';
+                unset($item['productId']);
+            } else $pr = $pr['PURCHASING_PRICE'];
 
             $item = array(
                 'discountPercent' => 0,
