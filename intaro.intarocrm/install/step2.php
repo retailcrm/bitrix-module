@@ -36,7 +36,7 @@ $defaultPayStatuses = array (
 
 $defaultPayment = array(
     'Y' => 'paid',
-    'N' => 'not-paid'   
+    'N' => 'not-paid'
 );
 
 ?>
@@ -51,17 +51,17 @@ $defaultPayment = array(
 
 <script type="text/javascript" src="/bitrix/js/main/jquery/jquery-1.7.min.js"></script>
 <script type="text/javascript">
-    $(document).ready(function() { 
-        $('input[name="update"]').live('click', function() {          
+    $(document).ready(function() {
+        $('input[name="update"]').live('click', function() {
             $('input[name="step"]').val(2);
             BX.showWait();
             var updButton = this;
             // hide next step button
             $(updButton).css('opacity', '0.5').attr('disabled', 'disabled');
-            
+
             var handlerUrl = $(this).parents('form').attr('action');
             var data = $(this).parents('form').serialize() + '&ajax=1';
-            
+
             $.ajax({
                 type: 'POST',
                 url: handlerUrl,
@@ -72,12 +72,12 @@ $defaultPayment = array(
                         $.each(response.result, function(i,item){
                             $('select[name="' + i + '"]').replaceWith(item);
                         });
-                    } 
-                    
+                    }
+
                     BX.closeWait();
                     $(updButton).css('opacity', '1').removeAttr('disabled');
                     $('input[name="step"]').val(3);
-                    
+
                     if(!response.success)
                         alert('<?php echo GetMessage('MESS_5'); ?>');
                 },
@@ -85,11 +85,11 @@ $defaultPayment = array(
                     BX.closeWait();
                     $(updButton).css('opacity', '1').removeAttr('disabled');
                     $('input[name="step"]').val(3);
-                    
+
                     alert('<?php echo GetMessage('MESS_5'); ?>');
                 }
             });
-            
+
             return false;
         });
 
@@ -122,7 +122,7 @@ $defaultPayment = array(
                 <td colspan="2"><b><?php echo GetMessage('INFO_1'); ?></b></td>
             </tr>
             <tr align="center">
-                <td colspan="2"><?php echo GetMessage('INFO_2') . " " . "<a href='". $api_host ."/admin/statuses' target=_blank>" . GetMessage('URL_1') . "</a>" . " " . 'IntaroCRM.'; ?></td>
+                <td colspan="2"><?php echo GetMessage('INFO_2') . " " . "<a href='". $api_host ."/admin/statuses' target=_blank>" . GetMessage('URL_1') . "</a>" . " " . 'retailCRM.'; ?></td>
             </tr>
             <tr align="center">
                 <td colspan="2"><?php echo GetMessage('INFO_3'); ?></td>
@@ -147,7 +147,7 @@ $defaultPayment = array(
                     <select name="delivery-type-<?php echo $bitrixDeliveryType['ID']; ?>" class="typeselect">
                         <option value=""></option>
                         <?php foreach($arResult['deliveryTypesList'] as $deliveryType): ?>
-                        <option value="<?php echo $deliveryType['code']; ?>" 
+                        <option value="<?php echo $deliveryType['code']; ?>"
                             <?php if($defaultDelivTypes[$bitrixDeliveryType['ID']] == $deliveryType['code']) echo 'selected'; ?>>
                             <?php echo $APPLICATION->ConvertCharset($deliveryType['name'], 'utf-8', SITE_CHARSET); ?>
                         </option>
@@ -168,7 +168,7 @@ $defaultPayment = array(
                     <select name="payment-type-<?php echo $bitrixPaymentType['ID']; ?>" class="typeselect">
                         <option value=""></option>
                         <?php foreach($arResult['paymentTypesList'] as $paymentType): ?>
-                        <option value="<?php echo $paymentType['code']; ?>" 
+                        <option value="<?php echo $paymentType['code']; ?>"
                             <?php if($defaultPayTypes[$bitrixPaymentType['ID']] == $paymentType['code']) echo 'selected'; ?>>
                             <?php echo $APPLICATION->ConvertCharset($paymentType['name'], 'utf-8', SITE_CHARSET); ?>
                         </option>
@@ -216,7 +216,7 @@ $defaultPayment = array(
                     <select name="payment-<?php echo $bitrixPayment['ID']; ?>" class="typeselect">
                         <option value=""></option>
                         <?php foreach($arResult['paymentStatusesList'] as $paymentStatus): ?>
-                        <option value="<?php echo $paymentStatus['code']; ?>" 
+                        <option value="<?php echo $paymentStatus['code']; ?>"
                             <?php if($defaultPayment[$bitrixPayment['ID']] == $paymentStatus['code']) echo 'selected'; ?>>
                             <?php echo $APPLICATION->ConvertCharset($paymentStatus['name'], 'utf-8', SITE_CHARSET); ?>
                         </option>
@@ -237,7 +237,7 @@ $defaultPayment = array(
                     <select name="order-type-<?php echo $bitrixOrderType['ID']; ?>" class="typeselect">
                         <option value=""></option>
                         <?php foreach($arResult['orderTypesList'] as $orderType): ?>
-                        <option value="<?php echo $orderType['code']; ?>" 
+                        <option value="<?php echo $orderType['code']; ?>"
                             <?php if($defaultOrderTypes[$bitrixOrderType['ID']] == $orderType['code']) echo 'selected'; ?>>
                             <?php echo $APPLICATION->ConvertCharset($orderType['name'], 'utf-8', SITE_CHARSET); ?>
                         </option>

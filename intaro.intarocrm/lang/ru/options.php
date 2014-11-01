@@ -1,9 +1,9 @@
-<?php 
+<?php
 $MESS ['ICRM_OPTIONS_GENERAL_TAB'] = 'Общие настройки';
 $MESS ['ICRM_OPTIONS_IMPORT_TAB'] = 'Настройки импорта';
 $MESS ['ICRM_OPTIONS_ORDER_PROPS_TAB'] = 'Cоответствия полей свойств заказа';
 $MESS ['ICRM_CONN_SETTINGS'] = 'Настройка соединения';
-$MESS ['ICRM_API_HOST'] = 'Адрес Intaro CRM:';
+$MESS ['ICRM_API_HOST'] = 'Адрес retailCRM:';
 $MESS ['ICRM_API_KEY'] = 'Ключ авторизации:';
 $MESS ['ICRM_SITES'] = 'Активные сайты:';
 
@@ -24,16 +24,16 @@ $MESS ['ERR_403'] = 'Неверный apiKey.';
 $MESS ['ERR_0'] = 'Превышено время ожидания ответа от сервера.';
 $MESS ['ICRM_OPTIONS_OK'] = 'Изменения успешно сохранены.';
 $MESS ['CANCELED'] = 'Флаг «Отменен»';
-$MESS ['INFO_1'] = ' Задайте соответствие между справочниками 1C-Битрикс и справочниками IntaroCRM.';
+$MESS ['INFO_1'] = ' Задайте соответствие между справочниками 1C-Битрикс и справочниками retailCRM.';
 
 $MESS ['ICRM_OPTIONS_ORDER_DISCHARGE_TAB'] = 'Режим выгрузки заказов';
 $MESS ['ORDER_DISCH'] = 'Режим выгрузки заказов';
 $MESS ['DISCHARGE_AGENT'] = 'Выгрузка заказов с помощью агента';
 $MESS ['DISCHARGE_EVENTS'] = 'Выгрузка заказов по событию';
 
-$MESS ['INFO_2'] = ' Задайте соответствие между полями заказа 1C-Битрикс и IntaroCRM.';
+$MESS ['INFO_2'] = ' Задайте соответствие между полями заказа 1C-Битрикс и retailCRM.';
 
-$MESS ['ORDER_PROPS'] = 'Настройки соответствия полей заказа IntaroCRM свойствам заказа 1С-Битрикс';
+$MESS ['ORDER_PROPS'] = 'Настройки соответствия полей заказа retailCRM свойствам заказа 1С-Битрикс';
 $MESS ['FIO'] = 'Ф.И.О.';
 $MESS ['ZIP'] = 'Индекс';
 $MESS ['ADDRESS'] = 'Адрес (строкой)';
