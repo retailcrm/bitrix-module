@@ -1284,7 +1284,7 @@ class ICrmOrderActions
         if($arParams['optionsDelivTypes'][$resultDeliveryTypeId] == self::$MUTLISHIP_DELIVERY_TYPE) {
             if(CModule::IncludeModule(self::$MULTISHIP_MODULE_VER)) {
                 $multishipArr = DBOrdersMlsp::GetByOI($arFields['ID']);
-                $delivery['data'] = json_encode(array('ms_id' => $multishipArr['MULTISHIP_ID']));
+                $delivery['data'] = array('ms_id' => $multishipArr['MULTISHIP_ID']);
                 $delivery['integrationCode'] = 'multiship';
             }
         }
