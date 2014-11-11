@@ -1255,10 +1255,6 @@ class ICrmOrderActions
                 'comment'         => $p['NOTES'],
             );
 
-            //if this item generated through admin interface, then unset productId
-            if(empty($pr))
-                unset($item['productId']);
-
             //if it is canceled product don't send price
             if (!$propCancel) {
                 $item['initialPrice'] = (double) $p['PRICE'] + (double) $p['DISCOUNT_PRICE'];
