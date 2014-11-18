@@ -490,12 +490,18 @@ class ICrmOrderActions
 
         $GLOBALS['INTARO_CRM_FROM_HISTORY'] = true;
 
+        // clear intarocrm user basket
+        CSaleBasket::DeleteAll($USER->GetID());
+
         // pushing existing orders
         foreach ($orderHistory as $order) {
+            if(function_exists('intarocrm_order_pre_persist')) {
+                $order = intarocrm_order_pre_persist($order);
+            }
 
             if(!isset($order['externalId']) || !$order['externalId']) {
 
-                // custom orderType functunion
+                // custom orderType function
                 if(function_exists('intarocrm_set_order_type')) {
                     $orderType = intarocrm_set_order_type($order);
                     if($orderType)
@@ -997,11 +1003,18 @@ class ICrmOrderActions
                 // set PAYED
                 if(isset($order['paymentStatus']) && $order['paymentStatus'] && $optionsPayment[$order['paymentStatus']])
                     CSaleOrder::PayOrder($order['externalId'], $optionsPayment[$order['paymentStatus']]);
+
+                if(function_exists('intarocrm_order_post_persist')) {
+                    intarocrm_order_post_persist($order);
+                }
             }
         }
 
         if(count($orderHistory))
             COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_HISTORY_DATE, $dateFinish->format('Y-m-d H:i:s'));
+
+        // clear intarocrm user basket
+        CSaleBasket::DeleteAll($USER->GetID());
 
         $USER->Logout();
         if($realUser) $USER->Authorize($realUser);
