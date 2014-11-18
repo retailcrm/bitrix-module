@@ -359,12 +359,12 @@ class ICMLLoader {
 
                                     if ($propProduct != "") {
 
-                                        if (isset ($product["PROPERTY_" . $propProduct . "_NAME"]))
-                                            $resPropertiesProduct[$key] =  $product["PROPERTY_" . $propProduct . "_NAME"];
-                                        elseif (isset ($product[$propProduct]))
-                                            $resPropertiesProduct[$key] =  $product[$propProduct];
-                                        else
+                                        if (isset($product["PROPERTY_" . $propProduct . "_NAME"]))
+                                            $resPropertiesProduct[$key] =  $product["PROPERTY_" . $propProduct . "_NAME"];                                            
+                                        elseif (isset($product["PROPERTY_" . $propProduct . "_VALUE"]))
                                             $resPropertiesProduct[$key] =  $product["PROPERTY_" . $propProduct . "_VALUE"];
+                                        elseif (isset($product[$propProduct]))
+                                            $resPropertiesProduct[$key] =  $product[$propProduct];
 
                                         if (array_key_exists($key, $this->propertiesUnitProduct[$id])) {
                                             $resPropertiesProduct[$key] *= $this->measurement[$this->propertiesUnitProduct[$id][$key]];
@@ -412,10 +412,10 @@ class ICMLLoader {
 
                                                 if (isset ($offer["PROPERTY_" . $propSKU . "_NAME"]))
                                                     $offer['_PROP_' . $key] =  $offer["PROPERTY_" . $propSKU . "_NAME"];
-                                                elseif (isset ($offer[$propSKU]))
-                                                    $offer['_PROP_' . $key] = $offer[$propSKU];
-                                                else
+                                                elseif (isset($offer["PROPERTY_" . $propSKU . "_VALUE"]))
                                                     $offer['_PROP_' . $key] =  $offer["PROPERTY_" . $propSKU . "_VALUE"];
+                                                elseif (isset($offer[$propSKU]))
+                                                    $offer['_PROP_' . $key] = $offer[$propSKU];
 
                                                 if (array_key_exists($key, $this->propertiesUnitSKU[$id])) {
                                                     $offer['_PROP_' . $key] *= $this->measurement[$this->propertiesUnitSKU[$id][$key]];
