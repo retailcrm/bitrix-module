@@ -1230,7 +1230,7 @@ class intaro_intarocrm extends CModule {
             $dateAgent->add($intAgent);
 
             CAgent::AddAgent(
-                    "ICrmOrderActions::orderAgent();", $this->MODULE_ID, "N", 600, // interval - 10 mins
+                    "ICrmOrderActions::forkedOrderAgent();", $this->MODULE_ID, "N", 600, // interval - 10 mins
                     $dateAgent->format('d.m.Y H:i:s'), // date of first check
                     "Y", // agent is active
                     $dateAgent->format('d.m.Y H:i:s'), // date of first start
@@ -1270,6 +1270,7 @@ class intaro_intarocrm extends CModule {
         CAgent::RemoveAgent("ICrmOrderActions::uploadOrdersAgent();", $this->MODULE_ID);
         CAgent::RemoveAgent("ICrmOrderActions::orderHistoryAgent();", $this->MODULE_ID);
         CAgent::RemoveAgent("ICrmOrderActions::orderAgent();", $this->MODULE_ID);
+        CAgent::RemoveAgent("ICrmOrderActions::forkedOrderAgent();", $this->MODULE_ID);
 
         COption::RemoveOption($this->MODULE_ID, $this->CRM_API_HOST_OPTION);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_API_KEY_OPTION);
@@ -1319,11 +1320,18 @@ class intaro_intarocrm extends CModule {
         CopyDirFiles(
                 $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/export/', $_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/', true, true
         );
+
+        if(mkdir($_SERVER['DOCUMENT_ROOT'] . '/retailcrm/')) {
+            CopyDirFiles(
+                $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/retailcrm/', $_SERVER['DOCUMENT_ROOT'] . '/retailcrm/', true, true
+            );
+        }
     }
 
     function DeleteFiles() {
         unlink($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/intarocrm_run.php');
         unlink($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/intarocrm_setup.php');
+        unlink($_SERVER['DOCUMENT_ROOT'] . '/retailcrm/');
     }
 
     function GetProfileSetupVars($iblocks, $propertiesProduct, $propertiesUnitProduct, $propertiesSKU, $propertiesUnitSKU, $filename) {
