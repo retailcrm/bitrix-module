@@ -18,6 +18,7 @@ class ICrmOrderActions
     protected static $CRM_MULTISHIP_INTEGRATION_CODE = 'multiship';
     protected static $MUTLISHIP_DELIVERY_TYPE = 'mlsp';
     protected static $MULTISHIP_MODULE_VER = 'multiship.v2';
+    protected static $COMPOSER_AUTOLOAD = '/../process/vendor/autoload.php';
 
     const CANCEL_PROPERTY_CODE = 'INTAROCRM_IS_CANCELED';
 
@@ -29,7 +30,7 @@ class ICrmOrderActions
      */
     public static function uploadOrders($pSize = 50, $failed = false) {
 
-        //COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, 0); // -- for test
+        // COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, 0); // -- for test
 
         if (!CModule::IncludeModule("iblock")) {
             //handle err
@@ -351,7 +352,7 @@ class ICrmOrderActions
 
     /**
      *
-     * History update
+     * History update, cron usage only
      * @global CUser $USER
      * @return boolean
      */
@@ -1083,7 +1084,28 @@ class ICrmOrderActions
 
     /**
      *
-     * creates order or returns array of order and customer for mass upload
+     * Agent function
+     *
+     * @return self name
+     */
+
+    public static function forkedOrderAgent() {
+        if(self::isForkable()) {
+            file_get_contens(
+                ($_SERVER['HTTPS'] == 'on' ? 'https://' : 'http://') .
+                $_SERVER['SERVER_NAME'] . '/intaro/agent.php'
+            );
+
+        } else {
+            self::orderAgent();
+        }
+
+        return 'ICrmOrderActions::forkedOrderAgent();';
+    }
+
+    /**
+     *
+     * Creates order or returns array of order and customer for mass upload
      *
      * @param array $arFields
      * @param $api
@@ -1500,5 +1522,17 @@ class ICrmOrderActions
 
         if($location = $dbLocation->Fetch())
                 return $location['ID'];
+    }
+
+    /*
+     * Returns true if a not a crontab
+     * or if $dir exists
+    */
+    public static function isForkable() {
+        $fork = COption::GetOptionString('main', 'agents_use_crontab', 'N');
+        if($fork === 'N') return true;
+
+        $dir = $_SERVER['DOCUMENT_ROOT'] . '/retailcrm/agent.php';
+        return file_exists($dir) && is_dir($dir);
     }
 }
