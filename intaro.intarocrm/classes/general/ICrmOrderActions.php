@@ -18,7 +18,6 @@ class ICrmOrderActions
     protected static $CRM_MULTISHIP_INTEGRATION_CODE = 'multiship';
     protected static $MUTLISHIP_DELIVERY_TYPE = 'mlsp';
     protected static $MULTISHIP_MODULE_VER = 'multiship.v2';
-    protected static $COMPOSER_AUTOLOAD = '/../process/vendor/autoload.php';
 
     const CANCEL_PROPERTY_CODE = 'INTAROCRM_IS_CANCELED';
 
