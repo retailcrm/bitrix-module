@@ -1089,7 +1089,7 @@ class ICrmOrderActions
      */
 
     public static function forkedOrderAgent() {
-        if(self::isForkable()&& is_callable('curl_init')) {
+        if(self::isForkable() && is_callable('curl_init')) {
             $ch = curl_init();
             curl_setopt($ch,CURLOPT_URL,
                 ($_SERVER['HTTPS'] == 'on' ? 'https://' : 'http://') .
@@ -1533,9 +1533,11 @@ class ICrmOrderActions
     */
     public static function isForkable() {
         $fork = COption::GetOptionString('main', 'agents_use_crontab', 'N');
-        if($fork === 'N') return true;
+        if($fork === 'N') {
+            $dir = $_SERVER['DOCUMENT_ROOT'] . '/retailcrm/agent.php';
+            return file_exists($dir) && is_dir($dir);
+        }
 
-        $dir = $_SERVER['DOCUMENT_ROOT'] . '/retailcrm/agent.php';
-        return file_exists($dir) && is_dir($dir);
+        return false;
     }
 }
