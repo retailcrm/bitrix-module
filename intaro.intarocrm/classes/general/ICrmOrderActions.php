@@ -1090,12 +1090,16 @@ class ICrmOrderActions
      */
 
     public static function forkedOrderAgent() {
-        if(self::isForkable()) {
-            file_get_contens(
+        if(self::isForkable()&& is_callable('curl_init')) {
+            $ch = curl_init();
+            curl_setopt($ch,CURLOPT_URL,
                 ($_SERVER['HTTPS'] == 'on' ? 'https://' : 'http://') .
                 $_SERVER['SERVER_NAME'] . '/intaro/agent.php'
             );
-
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            //curl_setopt($ch,CURLOPT_HEADER, true); // headers
+            curl_exec($ch);
+            curl_close($ch);
         } else {
             self::orderAgent();
         }
