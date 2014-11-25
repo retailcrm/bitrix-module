@@ -1331,7 +1331,8 @@ class intaro_intarocrm extends CModule {
     function DeleteFiles() {
         unlink($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/intarocrm_run.php');
         unlink($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/intarocrm_setup.php');
-        unlink($_SERVER['DOCUMENT_ROOT'] . '/retailcrm/');
+        unlink($_SERVER['DOCUMENT_ROOT'] . '/retailcrm/agent.php');
+        rmdir($_SERVER['DOCUMENT_ROOT'] . '/retailcrm/');
     }
 
     function GetProfileSetupVars($iblocks, $propertiesProduct, $propertiesUnitProduct, $propertiesSKU, $propertiesUnitSKU, $filename) {
