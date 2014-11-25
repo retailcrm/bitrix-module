@@ -1100,7 +1100,7 @@ class ICrmOrderActions
             curl_exec($ch);
             curl_close($ch);
         } else {
-            self::orderAgent();
+            self::notForkedOrderAgent();
         }
 
         return 'ICrmOrderActions::orderAgent();';
