@@ -1096,10 +1096,19 @@ class ICrmOrderActions
             break;
         }
 
+        if(!empty($defaultSite)) {
+            $serverName = $defaultSite['SERVER_NAME'];
+        } else {
+            if(isset($_SERVER['SERVER_NAME']) && $_SERVER['SERVER_NAME'])
+                $serverName = $_SERVER['SERVER_NAME'];
+            else
+                $serverName = '';
+        }
+
         if(self::isForkable($defaultSite)) {
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, ($_SERVER['HTTPS'] == 'on' ? 'https://' : 'http://') .
-                $_SERVER['SERVER_NAME'] . '/retailcrm/agent.php');
+                $serverName . '/retailcrm/agent.php');
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             //curl_setopt($ch,CURLOPT_HEADER, true); // headers
             curl_exec($ch);
