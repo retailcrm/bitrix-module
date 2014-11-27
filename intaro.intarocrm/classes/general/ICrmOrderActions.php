@@ -1089,7 +1089,14 @@ class ICrmOrderActions
      */
 
     public static function orderAgent() {
-        if(self::isForkable()) {
+        $rsSites = CSite::GetList($by, $sort, array('DEF' => 'Y'));
+        $defaultSite = array();
+        while ($ar = $rsSites->Fetch()) {
+            $defaultSite = $ar;
+            break;
+        }
+
+        if(self::isForkable($defaultSite)) {
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, ($_SERVER['HTTPS'] == 'on' ? 'https://' : 'http://') .
                 $_SERVER['SERVER_NAME'] . '/retailcrm/agent.php');
@@ -1529,13 +1536,20 @@ class ICrmOrderActions
      * Returns true if a not a crontab
      * or if $dir exists
     */
-    public static function isForkable() {
-        $fork = COption::GetOptionString('main', 'agents_use_crontab', 'N');
-        if($fork === 'N') {
-            $file = $_SERVER['DOCUMENT_ROOT'] . '/retailcrm/agent.php';
-            return file_exists($file) && is_callable('curl_init') &&
-                   isset($_SERVER['SERVER_NAME']) && $_SERVER['SERVER_NAME'];
+    public static function isForkable($defaultSite = array()) {
+        $docRoot = !empty($defaultSite) ? $defaultSite['ABS_DOC_ROOT'] : $_SERVER['DOCUMENT_ROOT'];
+        if(!empty($defaultSite)) {
+            $serverName = $defaultSite['SERVER_NAME'];
+        } else {
+            if(isset($_SERVER['SERVER_NAME']) && $_SERVER['SERVER_NAME'])
+                $serverName = $_SERVER['SERVER_NAME'];
+            else
+                $serverName = '';
         }
+
+        $fork = COption::GetOptionString('main', 'agents_use_crontab', 'N');
+        if($fork === 'N')
+            return file_exists($docRoot . '/retailcrm/agent.php') && is_callable('curl_init') && $serverName;
 
         return false;
     }

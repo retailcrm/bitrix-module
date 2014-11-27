@@ -1320,18 +1320,32 @@ class intaro_intarocrm extends CModule {
                 $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/export/', $_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/', true, true
         );
 
-        if(mkdir($_SERVER['DOCUMENT_ROOT'] . '/retailcrm/')) {
+        $rsSites = CSite::GetList($by, $sort, array('DEF' => 'Y'));
+        $defaultSite = array();
+        while ($ar = $rsSites->Fetch()) {
+            $defaultSite = $ar;
+            break;
+        }
+
+        if(mkdir($defaultSite['ABS_DOC_ROOT'] . '/retailcrm/')) {
             CopyDirFiles(
-                $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/retailcrm/', $_SERVER['DOCUMENT_ROOT'] . '/retailcrm/', true, true
+                $defaultSite['ABS_DOC_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/retailcrm/', $defaultSite['ABS_DOC_ROOT'] . '/retailcrm/', true, true
             );
         }
     }
 
     function DeleteFiles() {
+        $rsSites = CSite::GetList($by, $sort, array('DEF' => 'Y'));
+        $defaultSite = array();
+        while ($ar = $rsSites->Fetch()) {
+            $defaultSite = $ar;
+            break;
+        }
+
         unlink($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/intarocrm_run.php');
         unlink($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/intarocrm_setup.php');
-        unlink($_SERVER['DOCUMENT_ROOT'] . '/retailcrm/agent.php');
-        rmdir($_SERVER['DOCUMENT_ROOT'] . '/retailcrm/');
+        unlink($defaultSite['ABS_DOC_ROOT'] . '/retailcrm/agent.php');
+        rmdir($defaultSite['ABS_DOC_ROOT'] . '/retailcrm/');
     }
 
     function GetProfileSetupVars($iblocks, $propertiesProduct, $propertiesUnitProduct, $propertiesSKU, $propertiesUnitSKU, $filename) {
