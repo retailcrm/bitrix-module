@@ -1095,7 +1095,7 @@ class ICrmOrderActions
                 $_SERVER['SERVER_NAME'] . '/retailcrm/agent.php');
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             //curl_setopt($ch,CURLOPT_HEADER, true); // headers
-            $result = curl_exec($ch);
+            curl_exec($ch);
             curl_close($ch);
         } else {
             self::notForkedOrderAgent();
