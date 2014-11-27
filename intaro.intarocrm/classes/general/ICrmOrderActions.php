@@ -1091,13 +1091,11 @@ class ICrmOrderActions
     public static function orderAgent() {
         if(self::isForkable()) {
             $ch = curl_init();
-            curl_setopt($ch,CURLOPT_URL,
-                ($_SERVER['HTTPS'] == 'on' ? 'https://' : 'http://') .
-                $_SERVER['SERVER_NAME'] . '/intaro/agent.php'
-            );
+            curl_setopt($ch, CURLOPT_URL, ($_SERVER['HTTPS'] == 'on' ? 'https://' : 'http://') .
+                $_SERVER['SERVER_NAME'] . '/retailcrm/agent.php');
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             //curl_setopt($ch,CURLOPT_HEADER, true); // headers
-            curl_exec($ch);
+            $result = curl_exec($ch);
             curl_close($ch);
         } else {
             self::notForkedOrderAgent();
@@ -1535,7 +1533,8 @@ class ICrmOrderActions
         $fork = COption::GetOptionString('main', 'agents_use_crontab', 'N');
         if($fork === 'N') {
             $file = $_SERVER['DOCUMENT_ROOT'] . '/retailcrm/agent.php';
-            return file_exists($file) && is_callable('curl_init');
+            return file_exists($file) && is_callable('curl_init') &&
+                   isset($_SERVER['SERVER_NAME']) && $_SERVER['SERVER_NAME'];
         }
 
         return false;

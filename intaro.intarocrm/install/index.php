@@ -1230,7 +1230,7 @@ class intaro_intarocrm extends CModule {
             $dateAgent->add($intAgent);
 
             CAgent::AddAgent(
-                    "ICrmOrderActions::forkedOrderAgent();", $this->MODULE_ID, "N", 600, // interval - 10 mins
+                    "ICrmOrderActions::orderAgent();", $this->MODULE_ID, "N", 600, // interval - 10 mins
                     $dateAgent->format('d.m.Y H:i:s'), // date of first check
                     "Y", // agent is active
                     $dateAgent->format('d.m.Y H:i:s'), // date of first start
@@ -1270,7 +1270,7 @@ class intaro_intarocrm extends CModule {
         CAgent::RemoveAgent("ICrmOrderActions::uploadOrdersAgent();", $this->MODULE_ID);
         CAgent::RemoveAgent("ICrmOrderActions::orderHistoryAgent();", $this->MODULE_ID);
         CAgent::RemoveAgent("ICrmOrderActions::orderAgent();", $this->MODULE_ID);
-        CAgent::RemoveAgent("ICrmOrderActions::forkedOrderAgent();", $this->MODULE_ID);
+        CAgent::RemoveAgent("ICrmOrderActions::orderAgent();", $this->MODULE_ID);
 
         COption::RemoveOption($this->MODULE_ID, $this->CRM_API_HOST_OPTION);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_API_KEY_OPTION);
