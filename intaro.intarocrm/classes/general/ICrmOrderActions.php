@@ -1073,7 +1073,7 @@ class ICrmOrderActions
      */
 
     public static function notForkedOrderAgent() {
-        //self::uploadOrdersAgent();
+        self::uploadOrdersAgent();
         self::orderHistory();
         return 'ICrmOrderActions::notForkedOrderAgent();';
     }
