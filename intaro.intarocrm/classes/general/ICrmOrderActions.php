@@ -358,7 +358,7 @@ class ICrmOrderActions
     public static function orderHistory() {
         global $USER;
         if (is_object($USER) == false) {
-            $USER = new CUser;
+            $USER = new RetailUser;
         }
 
         if (!CModule::IncludeModule("iblock")) {
@@ -1015,7 +1015,7 @@ class ICrmOrderActions
         if (count($orderHistory)) {
             COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_HISTORY_DATE, $dateFinish->format('Y-m-d H:i:s'));
         }
-
+        $USER = new CUser;
         $GLOBALS['INTARO_CRM_FROM_HISTORY'] = false;
 
         return true;
@@ -1523,5 +1523,18 @@ class ICrmOrderActions
 
         if($location = $dbLocation->Fetch())
                 return $location['ID'];
+    }
+}
+
+class RetailUser extends CUser
+{
+    public function GetID()
+    {
+        $rsUser = CUser::GetList(($by='ID'), ($order='DESC'), array('LOGIN' => '%retailcrm%'));
+        if ($arUser = $rsUser->Fetch()) {
+            return $arUser['ID'];
+        } else {
+            return null;
+        }
     }
 }
