@@ -478,7 +478,7 @@ class ICrmOrderActions
                     $registerNewUser = true;
 
                     if (!isset($order['customer']['email'])) {
-                        $login = $order['customer']['email'] = uniqid('user_' . time()) . '@retaicrm.com';
+                        $login = $order['customer']['email'] = uniqid('user_' . time()) . '@crm.com';
                     } else {
                         $dbUser = CUser::GetList(($by = 'ID'), ($sort = 'ASC'), array('=EMAIL' => $order['email']));
                         switch ($dbUser->SelectedRowsCount()) {
@@ -491,7 +491,7 @@ class ICrmOrderActions
                                 $registerNewUser = false;
                                 break;
                             default:
-                                $login = uniqid('user_' . time()) . '@retaicrm.com';
+                                $login = uniqid('user_' . time()) . '@crm.com';
                         }
                     }
 
@@ -1015,7 +1015,7 @@ class ICrmOrderActions
         if (count($orderHistory)) {
             COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_HISTORY_DATE, $dateFinish->format('Y-m-d H:i:s'));
         }
-        $USER = new CUser;
+
         $GLOBALS['INTARO_CRM_FROM_HISTORY'] = false;
 
         return true;
@@ -1073,7 +1073,7 @@ class ICrmOrderActions
      */
 
     public static function notForkedOrderAgent() {
-        self::uploadOrdersAgent();
+        //self::uploadOrdersAgent();
         self::orderHistory();
         return 'ICrmOrderActions::notForkedOrderAgent();';
     }
@@ -1530,11 +1530,30 @@ class RetailUser extends CUser
 {
     public function GetID()
     {
+
         $rsUser = CUser::GetList(($by='ID'), ($order='DESC'), array('LOGIN' => '%retailcrm%'));
         if ($arUser = $rsUser->Fetch()) {
             return $arUser['ID'];
         } else {
-            return null;
+            $retailUser = new CUser;
+            $userPassword = uniqid();
+            $arFields = array(
+                           "NAME"              => 'retailcrm',
+                           "LAST_NAME"         => 'retailcrm',
+                           "EMAIL"             => 'retailcrm@retailcrm.com',
+                           "LOGIN"             => 'retailcrm',
+                           "LID"               => "ru",
+                           "ACTIVE"            => "Y",
+                           "GROUP_ID"          => array(2),
+                           "PASSWORD"          => $userPassword,
+                           "CONFIRM_PASSWORD"  => $userPassword
+                        );
+            $id = $retailUser->Add($arFields);
+            if (!$id) {
+                return null;
+            } else {
+                return $id;
+            }
         }
     }
 }
