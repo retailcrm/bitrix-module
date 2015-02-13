@@ -1073,7 +1073,7 @@ class ICrmOrderActions
      */
 
     public static function notForkedOrderAgent() {
-        //self::uploadOrdersAgent();
+        self::uploadOrdersAgent();
         self::orderHistory();
         return 'ICrmOrderActions::notForkedOrderAgent();';
     }
@@ -1238,12 +1238,6 @@ class ICrmOrderActions
 
             if (count($arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]) > 4) {
                 switch ($ar['CODE']) {
-                    /*case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['country']: $resOrderDeliveryAddress['country'] = self::toJSON($ar['VALUE']);
-                        break;
-                    case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['region']: $resOrderDeliveryAddress['region'] = self::toJSON($ar['VALUE']);
-                        break;
-                    case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['city']: $resOrderDeliveryAddress['city'] = self::toJSON($ar['VALUE']);
-                        break; */
                     case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['street']: $resOrderDeliveryAddress['street'] = self::toJSON($ar['VALUE']);
                         break;
                     case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['building']: $resOrderDeliveryAddress['building'] = self::toJSON($ar['VALUE']);
@@ -1333,14 +1327,11 @@ class ICrmOrderActions
             'paymentType'     => $arParams['optionsPayTypes'][$arFields['PAY_SYSTEM_ID']],
             'paymentStatus'   => $arParams['optionsPayment'][$arFields['PAYED']],
             'orderType'       => $arParams['optionsOrderTypes'][$arFields['PERSON_TYPE_ID']],
-            /*'deliveryType'    => $arParams['optionsDelivTypes'][$resultDeliveryTypeId],
-            'deliveryService' => ($arParams['optionsDelivTypes'][$resultDeliveryTypeId]) ? $deliveryService : '',*/
             'status'          => $arParams['optionsPayStatuses'][$arFields['STATUS_ID']],
             'statusComment'   => $statusComment,
             'customerComment' => $customerComment,
             'managerComment'  => $managerComment,
             'createdAt'       => $createdAt,
-            //'deliveryAddress' => $resOrderDeliveryAddress,
             'delivery'        => $delivery,
             'discount'        => $arFields['DISCOUNT_VALUE'],
             'items'           => $items
