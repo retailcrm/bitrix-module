@@ -1529,15 +1529,15 @@ class RetailUser extends CUser
             $retailUser = new CUser;
             $userPassword = uniqid();
             $arFields = array(
-                           "NAME"              => 'retailcrm',
-                           "LAST_NAME"         => 'retailcrm',
-                           "EMAIL"             => 'retailcrm@retailcrm.com',
-                           "LOGIN"             => 'retailcrm',
-                           "LID"               => "ru",
-                           "ACTIVE"            => "Y",
-                           "GROUP_ID"          => array(2),
-                           "PASSWORD"          => $userPassword,
-                           "CONFIRM_PASSWORD"  => $userPassword
+                           "NAME"             => 'retailcrm',
+                           "LAST_NAME"        => 'retailcrm',
+                           "EMAIL"            => 'retailcrm@retailcrm.com',
+                           "LOGIN"            => 'retailcrm',
+                           "LID"              => "ru",
+                           "ACTIVE"           => "Y",
+                           "GROUP_ID"         => array(2),
+                           "PASSWORD"         => $userPassword,
+                           "CONFIRM_PASSWORD" => $userPassword
                         );
             $id = $retailUser->Add($arFields);
             if (!$id) {
