@@ -1047,8 +1047,9 @@ class ICrmOrderActions
     public static function uploadOrdersAgent() {
         self::uploadOrders();
         $failedIds = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_FAILED_IDS, 0));
-        if(is_array($failedIds) && !empty($failedIds))
-            self::uploadOrders(50, true); // upload failed orders
+        if (is_array($failedIds) && !empty($failedIds)) {
+            self::uploadOrders(50, true);
+        }
 
         return 'ICrmOrderActions::uploadOrdersAgent();';
     }
@@ -1060,44 +1061,13 @@ class ICrmOrderActions
      * @return self name
      */
 
-    public static function orderHistoryAgent() {
-        self::orderHistory();
-        return 'ICrmOrderActions::orderHistoryAgent();';
-    }
-
-    /**
-     *
-     * Agent function
-     *
-     * @return self name
-     */
-
-    public static function notForkedOrderAgent() {
-        self::uploadOrdersAgent();
-        self::orderHistory();
-        return 'ICrmOrderActions::notForkedOrderAgent();';
-    }
-
-    /**
-     *
-     * Agent function
-     *
-     * @return self name
-     */
-
     public static function orderAgent() {
-        $rsSites = CSite::GetList($by, $sort, array('DEF' => 'Y'));
-        $defaultSite = array();
-        while ($ar = $rsSites->Fetch()) {
-            $defaultSite = $ar;
-            break;
-        }
-
         if(COption::GetOptionString('main', 'agents_use_crontab', 'N') != 'N') {
             define('NO_AGENT_CHECK', true);
         }
 
-        self::notForkedOrderAgent();
+        self::uploadOrdersAgent();
+        self::orderHistory();
 
         return 'ICrmOrderActions::orderAgent();';
     }
@@ -1520,7 +1490,7 @@ class RetailUser extends CUser
     public function GetID()
     {
 
-        $rsUser = CUser::GetList(($by='ID'), ($order='DESC'), array('LOGIN' => '%retailcrm%'));
+        $rsUser = CUser::GetList(($by='ID'), ($order='DESC'), array('LOGIN' => 'retailcrm%'));
         if ($arUser = $rsUser->Fetch()) {
             return $arUser['ID'];
         } else {
