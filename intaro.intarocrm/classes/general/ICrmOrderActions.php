@@ -1094,9 +1094,7 @@ class ICrmOrderActions
         }
 
         if(COption::GetOptionString('main', 'agents_use_crontab', 'N') != 'N') {
-            $docRoot = count($defaultSite) > 0 ? $defaultSite['ABS_DOC_ROOT'] : $_SERVER['DOCUMENT_ROOT'];
             define('NO_AGENT_CHECK', true);
-            require($docRoot . '/bitrix/modules/main/include/prolog_before.php');
         }
 
         self::notForkedOrderAgent();
