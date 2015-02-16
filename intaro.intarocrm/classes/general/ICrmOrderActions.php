@@ -1310,12 +1310,8 @@ class ICrmOrderActions
             $resOrder['site'] = $arFields['LID'];
 
         // parse fio
-        if(count($contactNameArr) == 1) {
-            $resOrder['firstName'] = $contactNameArr[0];
-        } else {
-            $resOrder['lastName'] = $contactNameArr[0];
-            $resOrder['firstName'] = $contactNameArr[1];
-            $resOrder['patronymic'] = $contactNameArr[2];
+        if(count($contactNameArr) > 0) {
+            $resOrder = array_merge($resOrder, $contactNameArr);
         }
 
         // custom orderType function
@@ -1396,18 +1392,19 @@ class ICrmOrderActions
      * @return array
      */
     public static function clearArr($arr) {
-        if(!$arr || !is_array($arr))
-            return false;
-
-        foreach($arr as $key => $value) {
-            if((!($value) && $value !== 0) || (is_array($value) && empty($value)))
-                unset($arr[$key]);
-
-            if(is_array($value) && !empty($value))
-                $arr[$key] = self::clearArr($value);
+        if (is_array($arr) === false) {
+            return $arr;
         }
 
-        return $arr;
+        $result = array();
+        foreach ($arr as $index => $node ) {
+            $result[ $index ] = is_array($node) === true ? self::clearArr($node) : trim($node);
+            if ($result[ $index ] == '' || $result[ $index ] === null || count($result[ $index ]) < 1) {
+                unset($result[ $index ]);
+            }
+        }
+
+        return $result;
     }
 
     /**
@@ -1434,21 +1431,33 @@ class ICrmOrderActions
         return $APPLICATION->ConvertCharset($str, 'utf-8', SITE_CHARSET);
     }
 
-    public static function explodeFIO($str) {
-        if(!$str)
-            return array();
-
-        $array = explode(" ", self::toJSON($str), 3);
-        $newArray = array();
-
-        foreach($array as $ar) {
-            if(!$ar)
-                continue;
-
-            $newArray[] = $ar;
+    public static function explodeFIO($fio) {
+        $newFio = empty($fio) ? false : explode(" ", self::toJSON($fio), 3);
+        $result = array();
+        switch (count($newFio)) {
+            default:
+            case 0:
+                $result['firstName']  = $fio;
+                break;
+            case 1:
+                $result['firstName']  = $newFio[0];
+                break;
+            case 2:
+                $result = array(
+                    'lastName'  => $newFio[1],
+                    'firstName' => $newFio[0]
+                );
+                break;
+            case 3:
+                $result = array(
+                    'lastName'   => $newFio[1],
+                    'firstName'  => $newFio[0],
+                    'patronymic' => $newFio[2]
+                );
+                break;
         }
 
-        return $newArray;
+        return $result;
     }
 
     public static function addOrderProperty($code, $value, $order) {
