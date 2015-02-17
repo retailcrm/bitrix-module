@@ -357,62 +357,21 @@ class ICrmOrderActions
      */
     public static function orderHistory() {
         global $USER;
-
-        if(isset($_SESSION["SESS_AUTH"]["USER_ID"]) && $_SESSION["SESS_AUTH"]["USER_ID"]) {
-            $realUser = $USER->GetID();
-            $USER->Logout();
-        } else { // for agent; to add order User
-            // find similar login! (email / name can be used as login, due to settings diff)
-            $rsUser = CUser::GetList(($by='ID'), ($order='DESC'), array('LOGIN' => '%intarocrm%'));
-
-            if($arUser = $rsUser->Fetch()) {
-                $USER = new CUser;
-                $USER->Authorize($arUser['ID']);
-            } else {
-                $login = 'intarocrm';
-                $serverName = 0 < strlen(SITE_SERVER_NAME)? SITE_SERVER_NAME : 'server.com';
-                $email = $login . '@' . $serverName;
-                $userPassword = randString(10);
-
-                $user = new CUser;
-                $arFields = array(
-                    "NAME"              => $login,
-                    "LAST_NAME"         => $login,
-                    "EMAIL"             => $email,
-                    "LOGIN"             => $login,
-                    "LID"               => "ru",
-                    "ACTIVE"            => "Y",
-                    "GROUP_ID"          => array(2),
-                    "PASSWORD"          => $userPassword,
-                    "CONFIRM_PASSWORD"  => $userPassword
-                );
-
-                $id = $user->Add($arFields);
-
-                if (!$id) {
-                    self::eventLog('ICrmOrderActions::orderHistory', 'USER', $user->LAST_ERROR);
-                    return;
-                }
-
-                $USER = new CUser;
-                $USER->Authorize($id);
-            }
+        if (is_object($USER) == false) {
+            $USER = new RetailUser;
         }
 
         if (!CModule::IncludeModule("iblock")) {
-            //handle err
             self::eventLog('ICrmOrderActions::orderHistory', 'iblock', 'module not found');
             return true;
         }
 
         if (!CModule::IncludeModule("sale")) {
-            //handle err
             self::eventLog('ICrmOrderActions::orderHistory', 'sale', 'module not found');
             return true;
         }
 
         if (!CModule::IncludeModule("catalog")) {
-            //handle err
             self::eventLog('ICrmOrderActions::orderHistory', 'catalog', 'module not found');
             return true;
         }
@@ -486,12 +445,11 @@ class ICrmOrderActions
             $defaultOrderType = $arOrderTypesList['ID'];
 
         // apiv3 !
-        if(!$dateFinish) $dateFinish = new \DateTime();
+        if (!$dateFinish) {
+            $dateFinish = new \DateTime();
+        }
 
         $GLOBALS['INTARO_CRM_FROM_HISTORY'] = true;
-
-        // clear intarocrm user basket
-        CSaleBasket::DeleteAll($USER->GetID());
 
         // pushing existing orders
         foreach ($orderHistory as $order) {
@@ -499,77 +457,86 @@ class ICrmOrderActions
                 $order = intarocrm_order_pre_persist($order);
             }
 
-            if(!isset($order['externalId']) || !$order['externalId']) {
+            if (!isset($order['externalId'])) {
 
                 // custom orderType function
-                if(function_exists('intarocrm_set_order_type')) {
+                if (function_exists('intarocrm_set_order_type')) {
                     $orderType = intarocrm_set_order_type($order);
-                    if($orderType)
+                    if ($orderType) {
                         $optionsOrderTypes[$order['orderType']] = $orderType;
-                    else 
+                    } else {
                         $optionsOrderTypes[$order['orderType']] = $defaultOrderType;
+                    }
                 }
 
                 // we dont need new orders without any customers (can check only for externalId)
-                if(!isset($order['customer']['externalId']) && !$order['customer']['externalId']) {
-                    if(!isset($order['customer']['id']) || !$order['customer']['id']) continue; // if no id then skip
-                    if (!$order['customer']['email']) {
-                        $login = 'user_' . (microtime(true) * 10000) . mt_rand(1, 1000);
-                        $server_name = 0 < strlen(SITE_SERVER_NAME)?
-                            SITE_SERVER_NAME : 'server.com';
-                        $order['customer']['email'] = $login . '@' . $server_name;
-                        $registerNewUser = true;
+                if (!isset($order['customer']['externalId'])) {
+                    if (!isset($order['customer']['id'])) {
+                        continue;
+                    }
+
+                    $registerNewUser = true;
+
+                    if (!isset($order['customer']['email'])) {
+                        $login = $order['customer']['email'] = uniqid('user_' . time()) . '@crm.com';
                     } else {
-                        // if email already used
                         $dbUser = CUser::GetList(($by = 'ID'), ($sort = 'ASC'), array('=EMAIL' => $order['email']));
-                        if ($dbUser->SelectedRowsCount() == 0) {
-                            $login = $order['customer']['email'];
-                            $registerNewUser = true;
-                        } elseif ($dbUser->SelectedRowsCount() == 1) {
-                            $arUser = $dbUser->Fetch();
-                            $registeredUserID = $arUser['ID'];
-                        } else {
-                            $login = 'user_' . (microtime(true) * 10000) . mt_rand(1, 1000);
-                            $registerNewUser = true;
+                        switch ($dbUser->SelectedRowsCount()) {
+                            case 0:
+                                $login = $order['customer']['email'];
+                                break;
+                            case 1:
+                                $arUser = $dbUser->Fetch();
+                                $registeredUserID = $arUser['ID'];
+                                $registerNewUser = false;
+                                break;
+                            default:
+                                $login = uniqid('user_' . time()) . '@crm.com';
                         }
                     }
-                    if($registerNewUser) {
-                        $useCaptcha = COption::GetOptionString('main', 'captcha_registration', 'N');
-                        if ($useCaptcha == 'Y')
-                            COption::SetOptionString('main', 'captcha_registration', 'N');
-                        $userPassword = randString(10);
-                        $newUser = $USER->Register($login, self::fromJSON($order['customer']['firstName']), self::fromJSON($order['customer']['lastName']),
-                            $userPassword,  $userPassword, $order['customer']['email']);
-                        if ($useCaptcha == 'Y')
-                            COption::SetOptionString('main', 'captcha_registration', 'Y');
-                        if ($newUser['TYPE'] == 'ERROR') {
-                            self::eventLog('ICrmOrderActions::orderHistory', 'CUser::Register', $newUser['MESSAGE']);
+
+                    if ($registerNewUser === true) {
+                        $userPassword = uniqid();
+
+                        $newUser = new CUser;
+                        $arFields = array(
+                            "NAME"              => self::fromJSON($order['customer']['firstName']),
+                            "LAST_NAME"         => self::fromJSON($order['customer']['lastName']),
+                            "EMAIL"             => $order['customer']['email'],
+                            "LOGIN"             => $login,
+                            "LID"               => "ru",
+                            "ACTIVE"            => "Y",
+                            "PASSWORD"          => $userPassword,
+                            "CONFIRM_PASSWORD"  => $userPassword
+                        );
+
+                        $registeredUserID = $newUser->Add($arFields);
+
+                        if ($registeredUserID === false) {
+                            self::eventLog('ICrmOrderActions::orderHistory', 'CUser::Register', 'Error register user');
                             continue;
-                        } else {
-                            $registeredUserID = $USER->GetID();
-                            $USER->Logout();
+                        }
+ 
+                        try {
+                            $api->customerFixExternalIds(array(array('id' => $order['customer']['id'], 'externalId' => $registeredUserID)));
+                        } catch (\IntaroCrm\Exception\ApiException $e) {
+                            self::eventLog(
+                                'ICrmOrderActions::orderHistory', 'IntaroCrm\RestApi::customerFixExternalIds',
+                                $e->getCode() . ': ' . $e->getMessage()
+                            );
+                        
+                            continue;
+                        } catch (\IntaroCrm\Exception\CurlException $e) {
+                            self::eventLog(
+                                'ICrmOrderActions::orderHistory', 'IntaroCrm\RestApi::customerFixExternalIds::CurlException',
+                                $e->getCode() . ': ' . $e->getMessage()
+                            );
+                        
+                            continue;
                         }
                     }
 
                     $order['customer']['externalId'] = $registeredUserID;
-                }
-
-                try {
-                    $api->customerFixExternalIds(array(array('id' => $order['customer']['id'], 'externalId' => $order['customer']['externalId'])));
-                } catch (\IntaroCrm\Exception\ApiException $e) {
-                    self::eventLog(
-                        'ICrmOrderActions::orderHistory', 'IntaroCrm\RestApi::customerFixExternalIds',
-                        $e->getCode() . ': ' . $e->getMessage()
-                    );
-
-                    continue;
-                } catch (\IntaroCrm\Exception\CurlException $e) {
-                    self::eventLog(
-                        'ICrmOrderActions::orderHistory', 'IntaroCrm\RestApi::customerFixExternalIds::CurlException',
-                        $e->getCode() . ': ' . $e->getMessage()
-                    );
-
-                    continue;
                 }
 
                 // new order
@@ -589,71 +556,74 @@ class ICrmOrderActions
                     'USER_DESCRIPTION' => ''
                 );
 
-                if(isset($order['number']) && $order['number'])
-                    $GLOBALS['ICRM_ACCOUNT_NUMBER'] = $order['number'];
+                $externalId = CSaleOrder::Add($newOrderFields);
+                if (!isset($order['externalId'])) {
+                    try {
+                        $api->orderFixExternalIds(array(array('id' => $order['id'], 'externalId' => $externalId)));
+                    } catch (\IntaroCrm\Exception\ApiException $e) {
+                        self::eventLog(
+                            'ICrmOrderActions::orderHistory', 'IntaroCrm\RestApi::orderFixExternalIds',
+                            $e->getCode() . ': ' . $e->getMessage()
+                        );
 
-                $order['externalId'] = CSaleOrder::Add($newOrderFields);
+                        continue;
+                    } catch (\IntaroCrm\Exception\CurlException $e) {
+                        self::eventLog(
+                            'ICrmOrderActions::orderHistory', 'IntaroCrm\RestApi::orderFixExternalIds::CurlException',
+                            $e->getCode() . ': ' . $e->getMessage()
+                        );
 
-                if(isset($GLOBALS['ICRM_ACCOUNT_NUMBER']))
-                    unset($GLOBALS['ICRM_ACCOUNT_NUMBER']);
-
-                try {
-                    $api->orderFixExternalIds(array(array('id' => $order['id'], 'externalId' => $order['externalId'])));
-                } catch (\IntaroCrm\Exception\ApiException $e) {
-                    self::eventLog(
-                        'ICrmOrderActions::orderHistory', 'IntaroCrm\RestApi::orderFixExternalIds',
-                        $e->getCode() . ': ' . $e->getMessage()
-                    );
-
-                    continue;
-                } catch (\IntaroCrm\Exception\CurlException $e) {
-                    self::eventLog(
-                        'ICrmOrderActions::orderHistory', 'IntaroCrm\RestApi::orderFixExternalIds::CurlException',
-                        $e->getCode() . ': ' . $e->getMessage()
-                    );
-
-                    continue;
+                        continue;
+                    }
                 }
+                $order['externalId'] = $externalId;
             }
 
-            if(isset($order['externalId']) && $order['externalId']) {
+            if (isset($order['externalId']) && $order['externalId']) {
 
                 // custom orderType function
-                if(function_exists('intarocrm_set_order_type')) {
+                if (function_exists('intarocrm_set_order_type')) {
                     $orderType = intarocrm_set_order_type($order);
-                    if($orderType)
+                    if ($orderType) {
                         $optionsOrderTypes[$order['orderType']] = $orderType;
-                    else
+                    } else {
                         $optionsOrderTypes[$order['orderType']] = $defaultOrderType;
+                    }
                 }
 
                 $arFields = CSaleOrder::GetById($order['externalId']);
 
                 // incorrect order
-                if(!$arFields || empty($arFields))
+                if ($arFields === false || empty($arFields)) {
                     continue;
+                }
 
                 $LID = $arFields['LID'];
                 $userId = $arFields['USER_ID'];
 
-                if(isset($order['customer']['externalId']) && $order['customer']['externalId'])
+                if(isset($order['customer']['externalId']) && !is_null($order['customer']['externalId'])) {
                     $userId = $order['customer']['externalId'];
+                }
 
                 $rsOrderProps = CSaleOrderPropsValue::GetList(array(), array('ORDER_ID' => $arFields['ID']));
 
                 while ($ar = $rsOrderProps->Fetch()) {
                     if (isset($order['delivery']) && isset($order['delivery']['address']) && $order['delivery']['address']) {
                         switch ($ar['CODE']) {
-                            case $optionsOrderProps[$arFields['PERSON_TYPE_ID']]['index']: if (isset($order['delivery']['address']['index']))
-                                CSaleOrderPropsValue::Update($ar['ID'], array('VALUE' => self::fromJSON($order['delivery']['address']['index'])));
+                            case $optionsOrderProps[$arFields['PERSON_TYPE_ID']]['index']:
+                                if (isset($order['delivery']['address']['index'])) {
+                                    CSaleOrderPropsValue::Update($ar['ID'], array('VALUE' => self::fromJSON($order['delivery']['address']['index'])));
+                                }
                                 break;
-                            case ($ar['CODE'] == 'CITY') or ($ar['CODE'] == 'LOCATION'): if (isset($order['delivery']['address']['city'])) {
+                            case ($ar['CODE'] == 'CITY') || ($ar['CODE'] == 'LOCATION'):
+                                if (isset($order['delivery']['address']['city'])) {
                                     $prop = CSaleOrderProps::GetByID($ar['ORDER_PROPS_ID']);
 
                                     if($prop['TYPE'] == 'LOCATION') {
                                         $cityId = self::getLocationCityId(self::fromJSON($order['delivery']['address']['city']));
-                                        if (!$cityId)
+                                        if (!$cityId) {
                                             break;
+                                        }
 
                                         CSaleOrderPropsValue::Update($ar['ID'], array('VALUE' => $cityId));
                                        break;
@@ -662,19 +632,15 @@ class ICrmOrderActions
                                     CSaleOrderPropsValue::Update($ar['ID'], array('VALUE' => self::fromJSON($order['delivery']['address']['city'])));
                                 }
                                 break;
-                            case $optionsOrderProps[$arFields['PERSON_TYPE_ID']]['text']: if (isset($order['delivery']['address']['text']))
+                            case $optionsOrderProps[$arFields['PERSON_TYPE_ID']]['text']:
+                                if (isset($order['delivery']['address']['text'])) {
                                     CSaleOrderPropsValue::Update($ar['ID'], array('VALUE' => self::fromJSON($order['delivery']['address']['text'])));
+                                }
                                 break;
                         }
 
                         if (count($optionsOrderProps[$arFields['PERSON_TYPE_ID']]) > 4) {
                             switch ($ar['CODE']) {
-                                /* case $optionsOrderProps[$arFields['PERSON_TYPE_ID']]['country']: $resOrderDeliveryAddress['country'] = self::toJSON($ar['VALUE']);
-                                  break;
-                                  case $optionsOrderProps[$arFields['PERSON_TYPE_ID']]['region']: $resOrderDeliveryAddress['region'] = self::toJSON($ar['VALUE']);
-                                  break;
-                                  case $optionsOrderProps[$arFields['PERSON_TYPE_ID']]['city']: $resOrderDeliveryAddress['city'] = self::toJSON($ar['VALUE']);
-                                  break; */
                                 case $optionsOrderProps[$arFields['PERSON_TYPE_ID']]['street']: if (isset($order['delivery']['address']['street']))
                                     CSaleOrderPropsValue::Update($ar['ID'], array('VALUE' => self::fromJSON($order['delivery']['address']['street'])));
                                     break;
@@ -703,98 +669,120 @@ class ICrmOrderActions
                     switch ($ar['CODE']) {
                         case $optionsOrderProps[$arFields['PERSON_TYPE_ID']]['fio']:
                                 $contactName = array(); // cleanup
-                                if (isset($order['lastName']))
+                                if (isset($order['lastName'])) {
                                     $contactName['lastName'] = self::fromJSON($order['lastName']);
-                                if (isset($order['firstName']))
+                                }
+                                if (isset($order['firstName'])) {
                                     $contactName['firstName'] = self::fromJSON($order['firstName']);
-                                if (isset($order['patronymic']))
+                                }
+                                if (isset($order['patronymic'])) {
                                     $contactName['patronymic'] = self::fromJSON($order['patronymic']);
-
-                                if (!isset($contactName) || empty($contactName))
+                                }
+                                if (!isset($contactName) || empty($contactName)) {
                                     break;
+                                }
 
                                 CSaleOrderPropsValue::Update($ar['ID'], array('VALUE' => implode(" ", $contactName)));
                             break;
-                        case $optionsOrderProps[$arFields['PERSON_TYPE_ID']]['phone']: if (isset($order['phone']))
+                        case $optionsOrderProps[$arFields['PERSON_TYPE_ID']]['phone']:
+                            if (isset($order['phone'])) {
                                 CSaleOrderPropsValue::Update($ar['ID'], array('VALUE' => self::fromJSON($order['phone'])));
+                            }
                             break;
-                        case $optionsOrderProps[$arFields['PERSON_TYPE_ID']]['email']: if (isset($order['email']))
+                        case $optionsOrderProps[$arFields['PERSON_TYPE_ID']]['email']:
+                            if (isset($order['email'])) {
                                 CSaleOrderPropsValue::Update($ar['ID'], array('VALUE' => self::fromJSON($order['email'])));
+                            }
                             break;
                     }
 
                 }
 
                 // here check if smth wasnt added or new propetties
-                if (isset($order['delivery']) && isset($order['delivery']['address']) && $order['delivery']['address']) {
-                    if (isset($order['delivery']['address']['index']))
+                if (isset($order['delivery']) && isset($order['delivery']['address']) && count($order['delivery']['address']) > 0) {
+                    if (isset($order['delivery']['address']['index'])) {
                         self::addOrderProperty($optionsOrderProps[$arFields['PERSON_TYPE_ID']]['index'],
                                 self::fromJSON($order['delivery']['address']['index']), $order['externalId']);
+                    }
 
                     if (isset($order['delivery']['address']['city'])) {
                         self::addOrderProperty($optionsOrderProps[$arFields['PERSON_TYPE_ID']]['city'], self::fromJSON($order['delivery']['address']['city']), $order['externalId']);
                         self::addOrderProperty('CITY', self::fromJSON($order['delivery']['address']['city']), $order['externalId']);
 
                         $cityId = self::getLocationCityId(self::fromJSON($order['delivery']['address']['city']));
-                        if ($cityId)
+                        if ($cityId) {
                             self::addOrderProperty('LOCATION', $cityId, $order['externalId']);
-                        else
+                        } else {
                             self::addOrderProperty('LOCATION', 0, $order['externalId']);
+                        }
                     }
 
-                    if (isset($order['delivery']['address']['text']))
+                    if (isset($order['delivery']['address']['text'])) {
                         self::addOrderProperty($optionsOrderProps[$arFields['PERSON_TYPE_ID']]['text'], self::fromJSON($order['delivery']['address']['text']), $order['externalId']);
+                    }
 
                     if (count($optionsOrderProps[$arFields['PERSON_TYPE_ID']]) > 4) {
-                        if (isset($order['delivery']['address']['street']))
+                        if (isset($order['delivery']['address']['street'])) {
                             self::addOrderProperty($optionsOrderProps[$arFields['PERSON_TYPE_ID']]['street'],
                                     self::fromJSON($order['delivery']['address']['street']), $order['externalId']);
+                        }
 
-                        if (isset($order['delivery']['address']['building']))
+                        if (isset($order['delivery']['address']['building'])) {
                             self::addOrderProperty($optionsOrderProps[$arFields['PERSON_TYPE_ID']]['building'],
                                     self::fromJSON($order['delivery']['address']['bulding']), $order['externalId']);
+                        }
 
-                        if (isset($order['delivery']['address']['flat']))
+                        if (isset($order['delivery']['address']['flat'])) {
                             self::addOrderProperty($optionsOrderProps[$arFields['PERSON_TYPE_ID']]['flat'],
                                     self::fromJSON($order['delivery']['address']['flat']), $order['externalId']);
+                        }
 
-                        if (isset($order['delivery']['address']['intercomcode']))
+                        if (isset($order['delivery']['address']['intercomcode'])) {
                             self::addOrderProperty($optionsOrderProps[$arFields['PERSON_TYPE_ID']]['intercomcode'],
                                     self::fromJSON($order['delivery']['address']['intercomcode']), $order['externalId']);
+                        }
 
-                        if (isset($order['delivery']['address']['floor']))
+                        if (isset($order['delivery']['address']['floor'])) {
                             self::addOrderProperty($optionsOrderProps[$arFields['PERSON_TYPE_ID']]['floor'],
                                     self::fromJSON($order['delivery']['address']['floor']), $order['externalId']);
+                        }
 
-                        if (isset($order['delivery']['address']['block']))
+                        if (isset($order['delivery']['address']['block'])) {
                             self::addOrderProperty($optionsOrderProps[$arFields['PERSON_TYPE_ID']]['block'],
                                     self::fromJSON($order['delivery']['address']['block']), $order['externalId']);
+                        }
 
-                        if (isset($order['delivery']['address']['house']))
+                        if (isset($order['delivery']['address']['house'])) {
                             self::addOrderProperty($optionsOrderProps[$arFields['PERSON_TYPE_ID']]['house'],
                                     self::fromJSON($order['delivery']['address']['house']), $order['externalId']);
+                        }
                     }
                 }
 
-                if (isset($order['phone']))
+                if (isset($order['phone'])) {
                     self::addOrderProperty($optionsOrderProps[$arFields['PERSON_TYPE_ID']]['phone'],
                             self::fromJSON($order['phone']), $order['externalId']);
+                }
 
                 if (isset($order['email']))
                     self::addOrderProperty($optionsOrderProps[$arFields['PERSON_TYPE_ID']]['email'],
                             self::fromJSON($order['email']), $order['externalId']);
 
                 $contactName = array(); // cleanup
-                if (isset($order['firstName']))
+                if (isset($order['firstName'])) {
                     $contactName['firstName'] = self::fromJSON($order['firstName']);
-                if (isset($order['lastName']))
+                }
+                if (isset($order['lastName'])) {
                     $contactName['lastName'] = self::fromJSON($order['lastName']);
-                if (isset($order['patronymic']))
+                }
+                if (isset($order['patronymic'])) {
                     $contactName['patronymic'] = self::fromJSON($order['patronymic']);
+                }
 
-                if (isset($contactName) && !empty($contactName))
+                if (isset($contactName) && !empty($contactName)) {
                     self::addOrderProperty($optionsOrderProps[$arFields['PERSON_TYPE_ID']]['fio'],
                             implode(" ", $contactName), $order['externalId']);
+                }
 
                 foreach($order['items'] as $item) {
                     // del from basket
@@ -803,14 +791,16 @@ class ICrmOrderActions
                             array('PRODUCT_ID' => 'ASC'),
                             array('ORDER_ID' => $order['externalId'], 'PRODUCT_ID' => $item['id']))->Fetch();
 
-                        if($p)
+                        if ($p) {
                             CSaleBasket::Delete($p['ID']);
+                        }
 
                          continue;
                     }
 
-                    if(!isset($item['offer']) && !$item['offer']['externalId'])
+                    if (!isset($item['offer']) && !isset($item['offer']['externalId'])) {
                         continue;
+                    }
 
                     $p = CSaleBasket::GetList(
                             array('PRODUCT_ID' => 'ASC'),
@@ -825,8 +815,7 @@ class ICrmOrderActions
                         // product field XML_ID is called PRODUCT_XML_ID in basket 
                         $p['PRODUCT_XML_ID'] = $p['XML_ID'];
                         unset($p['XML_ID']); 
-                    }
-                    else {
+                    } else {
                         //for basket props updating (in props we save cancel status)
                         $propResult = CSaleBasket::GetPropsList(
                           array(''),
@@ -869,8 +858,9 @@ class ICrmOrderActions
                             'CUSTOM_PRICE'           => 'Y'
                         );
 
-                        if (isset($item['initialPrice']) && $item['initialPrice'])
+                        if (isset($item['initialPrice']) && $item['initialPrice']) {
                             $arProduct['PRICE'] = (double) $item['initialPrice'];
+                        }
 
                         if (isset($item['discount'])) {
                             $arProduct['DISCOUNT_PRICE'] = $item['discount'];
@@ -882,11 +872,13 @@ class ICrmOrderActions
                             $arProduct['DISCOUNT_PRICE'] = $arProduct['DISCOUNT_PRICE'] + $arProduct['PRICE'] - $newPrice;
                         }
 
-                        if(isset($item['discount']) || isset($item['discountPercent']))
+                        if(isset($item['discount']) || isset($item['discountPercent'])) {
                             $arProduct['PRICE'] -= $arProduct['DISCOUNT_PRICE'];
+                        }
 
-                        if (isset($item['offer']['name']) && $item['offer']['name'])
+                        if (isset($item['offer']['name']) && $item['offer']['name']) {
                             $arProduct['NAME'] = self::fromJSON($item['offer']['name']);
+                        }
 
                         if (isset($item['isCanceled'])) {
                             //for product excluding from order
@@ -902,8 +894,9 @@ class ICrmOrderActions
 
                     if (!isset($item['isCanceled'])) {
                         // update old
-                        if (isset($item['initialPrice']) && $item['initialPrice'])
+                        if (isset($item['initialPrice']) && $item['initialPrice']) {
                                 $arProduct['PRICE'] = (double) $item['initialPrice'];
+                        }
 
                         if (isset($item['discount'])) {
                             $arProduct['DISCOUNT_PRICE'] = $item['discount'];
@@ -915,37 +908,39 @@ class ICrmOrderActions
                             $arProduct['DISCOUNT_PRICE'] = $arProduct['DISCOUNT_PRICE'] + $arProduct['PRICE'] - $newPrice;
                         }
 
-                        if(isset($item['discount']) || isset($item['discountPercent']))
+                        if(isset($item['discount']) || isset($item['discountPercent'])) {
                             $arProduct['PRICE'] -= $arProduct['DISCOUNT_PRICE'];
+                        }
 
                         $arProduct = self::updateCancelProp($arProduct, 0);
-                    }
-                    else {
+                    } else {
                         //for product excluding from order
                         $arProduct['PRICE'] = 0;
                         $arProduct = self::updateCancelProp($arProduct, 1);
                     }
 
 
-                    if (isset($item['quantity']) && $item['quantity'])
+                    if (isset($item['quantity']) && $item['quantity']) {
                         $arProduct['QUANTITY'] = $item['quantity'];
+                    }
 
-                    if (isset($item['offer']['name']) && $item['offer']['name'])
+                    if (isset($item['offer']['name']) && $item['offer']['name']) {
                         $arProduct['NAME'] = self::fromJSON($item['offer']['name']);
+                    }
 
                     CSaleBasket::Update($p['ID'], $arProduct);
                     CSaleBasket::DeleteAll($userId);
                 }
 
-                if(!isset($order['delivery']) || !isset($order['delivery']['cost']))
+                if (!isset($order['delivery']) || !isset($order['delivery']['cost'])) {
                     $order['delivery']['cost'] = $arFields['PRICE_DELIVERY'];
+                }
 
-                if(!isset($order['summ']) || (isset($order['summ']) && !$order['summ'] && $order['summ'] !== 0))
+                if (!isset($order['summ']) || (isset($order['summ']) && !$order['summ'] && $order['summ'] !== 0)) {
                     $order['summ'] = $arFields['PRICE'] - $arFields['PRICE_DELIVERY'];
+                }
 
-                $wasCanaceled = false;
-                if($arFields['CANCELED'] == 'Y')
-                    $wasCanaceled = true;
+                $wasCanaceled = $arFields['CANCELED'] == 'Y' ? true : false;
 
                 $resultDeliveryTypeId = $optionsDelivTypes[$order['delivery']['code']];
 
@@ -971,10 +966,8 @@ class ICrmOrderActions
                     'PRICE_DELIVERY'   => $order['delivery']['cost'],
                     'PRICE'            => $order['summ'] + (double) $order['delivery']['cost'],
                     'DATE_MARKED'      => $order['markDatetime'],
-                    'USER_ID'          => $userId, //$order['customer']
+                    'USER_ID'          => $userId,
                     'PAY_SYSTEM_ID'    => $optionsPayTypes[$order['paymentType']],
-                    //'PAYED'            => $optionsPayment[$order['paymentStatus']],
-                    //'PERSON_TYPE_ID' => $optionsOrderTypes[$order['orderType']],
                     'DELIVERY_ID'      => $resultDeliveryTypeId,
                     'STATUS_ID'        => $optionsPayStatuses[$order['status']],
                     'REASON_CANCELED'  => self::fromJSON($order['statusComment']),
@@ -982,8 +975,14 @@ class ICrmOrderActions
                     'COMMENTS'         => self::fromJSON($order['managerComment'])
                 ));
 
-                if(!empty($arFields))
+                if (isset($order['discount'])) {
+                    $arFields['DISCOUNT_VALUE'] = $order['discount'];
+                    $arFields['PRICE'] -= $order['discount'];
+                }
+
+                if(!empty($arFields)) {
                     CSaleOrder::Update($order['externalId'], $arFields);
+                }
 
                 if(isset($order['status']) && $order['status']) {
                     if(isset($optionsPayStatuses[$order['status']]) && $optionsPayStatuses[$order['status']]) {
@@ -991,18 +990,21 @@ class ICrmOrderActions
                         CSaleOrder::StatusOrder($order['externalId'], $optionsPayStatuses[$order['status']]);
 
                         // uncancel order
-                        if($wasCanaceled && ($optionsPayStatuses[$order['status']] != 'YY'))
+                        if($wasCanaceled && ($optionsPayStatuses[$order['status']] != 'YY')) {
                             CSaleOrder::CancelOrder($order['externalId'], "N", $order['statusComment']);
+                        }
 
                         // cancel order
-                        if($optionsPayStatuses[$order['status']] == 'YY')
+                        if($optionsPayStatuses[$order['status']] == 'YY') {
                             CSaleOrder::CancelOrder($order['externalId'], "Y", $order['statusComment']);
+                        }
                     }
                 }
 
                 // set PAYED
-                if(isset($order['paymentStatus']) && $order['paymentStatus'] && $optionsPayment[$order['paymentStatus']])
+                if(isset($order['paymentStatus']) && $order['paymentStatus'] && $optionsPayment[$order['paymentStatus']]) {
                     CSaleOrder::PayOrder($order['externalId'], $optionsPayment[$order['paymentStatus']]);
+                }
 
                 if(function_exists('intarocrm_order_post_persist')) {
                     intarocrm_order_post_persist($order);
@@ -1010,14 +1012,9 @@ class ICrmOrderActions
             }
         }
 
-        if(count($orderHistory))
+        if (count($orderHistory)) {
             COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_HISTORY_DATE, $dateFinish->format('Y-m-d H:i:s'));
-
-        // clear intarocrm user basket
-        CSaleBasket::DeleteAll($USER->GetID());
-
-        $USER->Logout();
-        if($realUser) $USER->Authorize($realUser);
+        }
 
         $GLOBALS['INTARO_CRM_FROM_HISTORY'] = false;
 
@@ -1050,8 +1047,9 @@ class ICrmOrderActions
     public static function uploadOrdersAgent() {
         self::uploadOrders();
         $failedIds = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_FAILED_IDS, 0));
-        if(is_array($failedIds) && !empty($failedIds))
-            self::uploadOrders(50, true); // upload failed orders
+        if (is_array($failedIds) && !empty($failedIds)) {
+            self::uploadOrders(50, true);
+        }
 
         return 'ICrmOrderActions::uploadOrdersAgent();';
     }
@@ -1063,59 +1061,13 @@ class ICrmOrderActions
      * @return self name
      */
 
-    public static function orderHistoryAgent() {
-        self::orderHistory();
-        return 'ICrmOrderActions::orderHistoryAgent();';
-    }
+    public static function orderAgent() {
+        if(COption::GetOptionString('main', 'agents_use_crontab', 'N') != 'N') {
+            define('NO_AGENT_CHECK', true);
+        }
 
-    /**
-     *
-     * Agent function
-     *
-     * @return self name
-     */
-
-    public static function notForkedOrderAgent() {
         self::uploadOrdersAgent();
         self::orderHistory();
-        return 'ICrmOrderActions::notForkedOrderAgent();';
-    }
-
-    /**
-     *
-     * Agent function
-     *
-     * @return self name
-     */
-
-    public static function orderAgent() {
-        $rsSites = CSite::GetList($by, $sort, array('DEF' => 'Y'));
-        $defaultSite = array();
-        while ($ar = $rsSites->Fetch()) {
-            $defaultSite = $ar;
-            break;
-        }
-
-        if(!empty($defaultSite)) {
-            $serverName = $defaultSite['SERVER_NAME'];
-        } else {
-            if(isset($_SERVER['SERVER_NAME']) && $_SERVER['SERVER_NAME'])
-                $serverName = $_SERVER['SERVER_NAME'];
-            else
-                $serverName = '';
-        }
-
-        if(self::isForkable($defaultSite)) {
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, ($_SERVER['HTTPS'] == 'on' ? 'https://' : 'http://') .
-                $serverName . '/retailcrm/agent.php');
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            //curl_setopt($ch,CURLOPT_HEADER, true); // headers
-            curl_exec($ch);
-            curl_close($ch);
-        } else {
-            self::notForkedOrderAgent();
-        }
 
         return 'ICrmOrderActions::orderAgent();';
     }
@@ -1254,12 +1206,6 @@ class ICrmOrderActions
 
             if (count($arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]) > 4) {
                 switch ($ar['CODE']) {
-                    /*case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['country']: $resOrderDeliveryAddress['country'] = self::toJSON($ar['VALUE']);
-                        break;
-                    case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['region']: $resOrderDeliveryAddress['region'] = self::toJSON($ar['VALUE']);
-                        break;
-                    case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['city']: $resOrderDeliveryAddress['city'] = self::toJSON($ar['VALUE']);
-                        break; */
                     case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['street']: $resOrderDeliveryAddress['street'] = self::toJSON($ar['VALUE']);
                         break;
                     case $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']]['building']: $resOrderDeliveryAddress['building'] = self::toJSON($ar['VALUE']);
@@ -1349,14 +1295,11 @@ class ICrmOrderActions
             'paymentType'     => $arParams['optionsPayTypes'][$arFields['PAY_SYSTEM_ID']],
             'paymentStatus'   => $arParams['optionsPayment'][$arFields['PAYED']],
             'orderType'       => $arParams['optionsOrderTypes'][$arFields['PERSON_TYPE_ID']],
-            /*'deliveryType'    => $arParams['optionsDelivTypes'][$resultDeliveryTypeId],
-            'deliveryService' => ($arParams['optionsDelivTypes'][$resultDeliveryTypeId]) ? $deliveryService : '',*/
             'status'          => $arParams['optionsPayStatuses'][$arFields['STATUS_ID']],
             'statusComment'   => $statusComment,
             'customerComment' => $customerComment,
             'managerComment'  => $managerComment,
             'createdAt'       => $createdAt,
-            //'deliveryAddress' => $resOrderDeliveryAddress,
             'delivery'        => $delivery,
             'discount'        => $arFields['DISCOUNT_VALUE'],
             'items'           => $items
@@ -1367,12 +1310,8 @@ class ICrmOrderActions
             $resOrder['site'] = $arFields['LID'];
 
         // parse fio
-        if(count($contactNameArr) == 1) {
-            $resOrder['firstName'] = $contactNameArr[0];
-        } else {
-            $resOrder['lastName'] = $contactNameArr[0];
-            $resOrder['firstName'] = $contactNameArr[1];
-            $resOrder['patronymic'] = $contactNameArr[2];
+        if(count($contactNameArr) > 0) {
+            $resOrder = array_merge($resOrder, $contactNameArr);
         }
 
         // custom orderType function
@@ -1453,18 +1392,19 @@ class ICrmOrderActions
      * @return array
      */
     public static function clearArr($arr) {
-        if(!$arr || !is_array($arr))
-            return false;
-
-        foreach($arr as $key => $value) {
-            if((!($value) && $value !== 0) || (is_array($value) && empty($value)))
-                unset($arr[$key]);
-
-            if(is_array($value) && !empty($value))
-                $arr[$key] = self::clearArr($value);
+        if (is_array($arr) === false) {
+            return $arr;
         }
 
-        return $arr;
+        $result = array();
+        foreach ($arr as $index => $node ) {
+            $result[ $index ] = is_array($node) === true ? self::clearArr($node) : trim($node);
+            if ($result[ $index ] == '' || $result[ $index ] === null || count($result[ $index ]) < 1) {
+                unset($result[ $index ]);
+            }
+        }
+
+        return $result;
     }
 
     /**
@@ -1491,21 +1431,33 @@ class ICrmOrderActions
         return $APPLICATION->ConvertCharset($str, 'utf-8', SITE_CHARSET);
     }
 
-    public static function explodeFIO($str) {
-        if(!$str)
-            return array();
-
-        $array = explode(" ", self::toJSON($str), 3);
-        $newArray = array();
-
-        foreach($array as $ar) {
-            if(!$ar)
-                continue;
-
-            $newArray[] = $ar;
+    public static function explodeFIO($fio) {
+        $newFio = empty($fio) ? false : explode(" ", self::toJSON($fio), 3);
+        $result = array();
+        switch (count($newFio)) {
+            default:
+            case 0:
+                $result['firstName']  = $fio;
+                break;
+            case 1:
+                $result['firstName']  = $newFio[0];
+                break;
+            case 2:
+                $result = array(
+                    'lastName'  => $newFio[1],
+                    'firstName' => $newFio[0]
+                );
+                break;
+            case 3:
+                $result = array(
+                    'lastName'   => $newFio[1],
+                    'firstName'  => $newFio[0],
+                    'patronymic' => $newFio[2]
+                );
+                break;
         }
 
-        return $newArray;
+        return $result;
     }
 
     public static function addOrderProperty($code, $value, $order) {
@@ -1540,26 +1492,36 @@ class ICrmOrderActions
         if($location = $dbLocation->Fetch())
                 return $location['ID'];
     }
+}
 
-    /*
-     * Returns true if a not a crontab
-     * or if $dir exists
-    */
-    public static function isForkable($defaultSite = array()) {
-        $docRoot = !empty($defaultSite) ? $defaultSite['ABS_DOC_ROOT'] : $_SERVER['DOCUMENT_ROOT'];
-        if(!empty($defaultSite)) {
-            $serverName = $defaultSite['SERVER_NAME'];
+class RetailUser extends CUser
+{
+    public function GetID()
+    {
+
+        $rsUser = CUser::GetList(($by='ID'), ($order='DESC'), array('LOGIN' => 'retailcrm%'));
+        if ($arUser = $rsUser->Fetch()) {
+            return $arUser['ID'];
         } else {
-            if(isset($_SERVER['SERVER_NAME']) && $_SERVER['SERVER_NAME'])
-                $serverName = $_SERVER['SERVER_NAME'];
-            else
-                $serverName = '';
+            $retailUser = new CUser;
+            $userPassword = uniqid();
+            $arFields = array(
+                           "NAME"             => 'retailcrm',
+                           "LAST_NAME"        => 'retailcrm',
+                           "EMAIL"            => 'retailcrm@retailcrm.com',
+                           "LOGIN"            => 'retailcrm',
+                           "LID"              => "ru",
+                           "ACTIVE"           => "Y",
+                           "GROUP_ID"         => array(2),
+                           "PASSWORD"         => $userPassword,
+                           "CONFIRM_PASSWORD" => $userPassword
+                        );
+            $id = $retailUser->Add($arFields);
+            if (!$id) {
+                return null;
+            } else {
+                return $id;
+            }
         }
-
-        $fork = COption::GetOptionString('main', 'agents_use_crontab', 'N');
-        if($fork === 'N')
-            return file_exists($docRoot . '/retailcrm/agent.php') && is_callable('curl_init') && $serverName;
-
-        return false;
     }
 }
