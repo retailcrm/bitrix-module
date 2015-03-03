@@ -10,6 +10,13 @@ if (!CModule::IncludeModule("catalog"))
 if (!CModule::IncludeModule("intaro.intarocrm"))
     return;
 
+$rsSites = CSite::GetList($by, $sort, array('ACTIVE' => 'Y'));
+while ($ar = $rsSites->Fetch()){
+    if($ar['DEF'] == 'Y'){
+        $SERVER_NAME = $ar['SERVER_NAME'];//разделить потом с учетом многосайтовости
+    }
+}
+
 $iblockProperties = Array(
         "article" => "article",
         "manufacturer" => "manufacturer",
@@ -69,6 +76,7 @@ $loader->propertiesUnitSKU = $IBLOCK_PROPERTY_UNIT_SKU;
 $loader->propertiesProduct = $IBLOCK_PROPERTY_PRODUCT;
 $loader->propertiesUnitProduct = $IBLOCK_PROPERTY_UNIT_PRODUCT;
 $loader->filename = $SETUP_FILE_NAME;
+$loader->serverName = $SERVER_NAME;
 $loader->application = $APPLICATION;
 $loader->loadPurchasePrice = $LOAD_PURCHASE_PRICE == 'Y';
 $loader->Load();

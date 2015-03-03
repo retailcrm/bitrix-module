@@ -1,14 +1,13 @@
 <?php
-$MESS ['MODULE_NAME'] = 'retailCRM';
-$MESS ['MODULE_DESCRIPTION'] = 'Модуль интеграции с retailCRM — специализированной CRM для e-commerce';
+$MESS ['INTARO_MODULE_NAME'] = 'retailCRM';
+$MESS ['MODULE_DESCRIPTION'] = 'Модуль интеграции с retailCRM - специализированной CRM для e-commerce';
 $MESS ['MODULE_PARTNER_NAME'] = 'Интаро Софт';
-$MESS ['MODULE_PARTNER_URI'] = 'http://intaro.ru';
+$MESS ['MODULE_PARTNER_URI'] = 'http://www.retailcrm.ru';
 $MESS ['MODULE_INSTALL_TITLE'] = 'Установка модуля';
 $MESS ['MODULE_UNINSTALL_TITLE'] = 'Удаление модуля';
 $MESS ['CANCELED'] = 'Флаг «Отменен»';
 $MESS ['ERR_SALE'] = 'Отсутствует модуль sale! Дальнейшая установка невозможна.';
 $MESS ['ERR_IBLOCK'] = 'Отсутствует модуль iblock! Дальнейшая установка невозможна.';
-$MESS ['ERR_CATALOG'] = 'Отсутствует модуль catalog! Дальнейшая установка невозможна.';
 $MESS ['ERR_CATALOG'] = 'Отсутствует модуль catalog! Дальнейшая установка невозможна.';
 $MESS ['INTAROCRM_CURL_ERR'] = 'Для работы модуля интеграции с retailCRM требуется PHP-расширение CURL.';
 $MESS ['ERR_ARTICLE_IBLOCK'] = 'Не установлены артикулы';

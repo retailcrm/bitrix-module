@@ -7,6 +7,7 @@ class ICMLLoader {
 
     public $iblocks;
     public $filename;
+    public $serverName;
     public $propertiesSKU;
     public $propertiesUnitSKU;
     public $propertiesProduct;
@@ -321,7 +322,7 @@ class ICMLLoader {
 
                             // Link picture to product
                             $products[$pictures[$file['ID']]]['PICTURE'] = ($_SERVER["HTTPS"] == 'on' ? "https://" : "http://") .
-                                            $_SERVER['SERVER_NAME'] .
+                                            $this->serverName .
                                             '/upload/' . $file['SUBDIR'] .
                                             '/' . $file['FILE_NAME'] ;
                         }
@@ -500,7 +501,7 @@ class ICMLLoader {
             }
 
             $offer .= "<picture>" . $this->PrepareValue($arOffer["PICTURE"]) . "</picture>\n";
-            $offer .= "<url>" . ($_SERVER["HTTPS"] == 'on' ? "https://" : "http://") . $_SERVER['SERVER_NAME'] . $this->PrepareValue($arOffer['DETAIL_PAGE_URL']) . "</url>\n";
+            $offer .= "<url>" . ($_SERVER["HTTPS"] == 'on' ? "https://" : "http://") . $this->serverName . $this->PrepareValue($arOffer['DETAIL_PAGE_URL']) . "</url>\n";
 
             $offer .= "<price>" . $this->PrepareValue($arOffer['PRICE']) . "</price>\n";
             if ($arOffer['PURCHASE_PRICE'] && $this->loadPurchasePrice) {

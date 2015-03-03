@@ -11,7 +11,7 @@
     <input type="hidden" name="lang" value="<?php echo LANGUAGE_ID ?>">
     <input type="hidden" name="id" value="intaro.intarocrm">
     <input type="hidden" name="install" value="Y">
-    <input type="hidden" name="step" value="11">
+    <input type="hidden" name="step" value="2">
 
     <table class="adm-detail-content-table edit-table" id="edit1_edit_table">
         <tbody>
@@ -29,14 +29,18 @@
             <tr align="center">
                 <td colspan="2">&nbsp;</td>
             </tr>
+            <?php foreach ($arResult['arSites'] as $site): ?>
             <tr>
-                <td width="50%" class="adm-detail-content-cell-l"><?php echo GetMessage('ICRM_API_HOST'); ?></td>
-                <td width="50%" class="adm-detail-content-cell-r"><input type="text" id="api_host" name="api_host" value=""></td>
+                <td width="50%" class="adm-detail-content-cell-l"><?php echo $site['NAME'] . ' (' . $site['LID'] . ')'; ?></td>
+                <td width="50%" class="adm-detail-content-cell-r">
+                    <select class="typeselect" name="sites-id-<?php echo $site['LID']?>">
+                        <?php foreach ($arResult['sitesList'] as $sitesList): ?>
+                            <option value="<?php echo $sitesList['code'] ?>"><?php echo $sitesList['name']?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </td>
             </tr>
-            <tr>
-                <td width="50%" class="adm-detail-content-cell-l"><?php echo GetMessage('ICRM_API_KEY'); ?></td>
-                <td width="50%" class="adm-detail-content-cell-r"><input type="text" id="api_key" name="api_key" value=""></td>
-            </tr>
+            <?php endforeach; ?>
         </tbody>
     </table>
     <br />

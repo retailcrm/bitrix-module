@@ -1,6 +1,7 @@
 <?php
-namespace IntaroCrm\Exception;
 
-class CurlException extends \Exception
+namespace RetailCrm\Exception;
+
+class CurlException extends \RuntimeException
 {
 }
