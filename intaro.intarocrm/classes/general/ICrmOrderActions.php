@@ -381,7 +381,7 @@ class ICrmOrderActions
         }
 
         try {
-            $orderHistory = $api->orderHistory($dateStart)->orders;
+            $orderHistory = $api->orderHistory($dateStart);
         } catch (\RetailCrm\Exception\CurlException $e) {
             self::eventLog(
                 'ICrmOrderActions::orderHistory', 'RetailCrm\RestApi::orderHistory::CurlException',
@@ -391,6 +391,8 @@ class ICrmOrderActions
             return false;
         }
 
+        $orderHistory = isset($orderHistory->orders) ? $orderHistory->orders : array();
+        
         $dateFinish = $api->getGeneratedAt();
         if (is_null($dateFinish) || $dateFinish == false) {
             $dateFinish = new \DateTime();
@@ -771,7 +773,7 @@ class ICrmOrderActions
             }
         }
 
-        if (count($orderHistory)) {
+        if (count($orderHistory) > 0) {
             COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_HISTORY_DATE, $dateFinish->format('Y-m-d H:i:s'));
         }
 
