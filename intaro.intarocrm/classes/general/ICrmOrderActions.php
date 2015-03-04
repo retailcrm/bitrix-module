@@ -214,7 +214,10 @@ class ICrmOrderActions
                 } else {
                     $prop = CSaleOrderProps::GetByID($ar['ORDER_PROPS_ID']);
                     if ($prop['TYPE'] == 'LOCATION') {
-                        $ar['VALUE'] = CSaleLocation::GetByID(CSaleLocation::getLocationIDbyCODE($ar['VALUE']));
+                        $ar['VALUE'] = CSaleLocation::GetByID(
+                                method_exists('CSaleLocation', 'getLocationIDbyCODE') ?
+                                CSaleLocation::getLocationIDbyCODE($ar['VALUE']) : $ar['VALUE']
+                        );
                         $ar['VALUE'] = $ar['VALUE']['CITY_NAME_LANG'];
                     }
 
@@ -847,7 +850,8 @@ class ICrmOrderActions
         if (is_string($value) === false) {
             return false;
         } elseif ($location = CSaleLocation::GetList(array(), array("LID" => LANGUAGE_ID, "CITY_NAME" => $value))->Fetch()) {
-            return CSaleLocation::getLocationCODEbyID($location['ID']);
+            return method_exists('CSaleLocation', 'getLocationCODEbyID') ? 
+                        CSaleLocation::getLocationCODEbyID($location['ID']) : $location['ID'];
         } else {
             return false;
         }
