@@ -15,6 +15,10 @@ $CRM_ORDER_LAST_ID = 'order_last_id';
 $CRM_ORDER_SITES = 'sites_ids';
 $CRM_ORDER_DISCHARGE = 'order_discharge';
 $CRM_ORDER_PROPS = 'order_props';
+$CRM_LEGAL_DETAILS = 'legal_details';
+$CRM_CUSTOM_FIELDS = 'custom_fields';
+$CRM_CONTRAGENT_TYPE = 'contragent_type';
+$CRM_SITES_LIST= 'sites_list';
 
 if(!CModule::IncludeModule('intaro.intarocrm') 
         || !CModule::IncludeModule('sale'))
@@ -28,69 +32,43 @@ if($_GET['ok'] && $_GET['ok'] == 'Y') echo CAdminMessage::ShowNote(GetMessage('I
 
 $arResult = array();
 
-$arResult['orderProps'] = array(
-    array(
-        'NAME' => GetMessage('FIO'),
-        'ID'   => 'fio'
-    ),
-    array(
-        'NAME' => GetMessage('PHONE'),
-        'ID'   => 'phone'
-    ),
-    array(
-        'NAME' => GetMessage('EMAIL'),
-        'ID'   => 'email'
-    ),
-    array(
-        'NAME' => GetMessage('ADDRESS'),
-        'ID'   => 'text'
-    ),
-    // address
-    /* array(
-        'NAME' => GetMessage('COUNTRY'),
-        'ID'   => 'country'
-    ),
-    array(
-        'NAME' => GetMessage('REGION'),
-        'ID'   => 'region'
-    ),
-    array(
-        'NAME' => GetMessage('CITY'),
-        'ID'   => 'city'
-    ),*/
-    array(
-        'NAME' => GetMessage('ZIP'),
-        'ID'   => 'index'
-    ),
-    array(
-        'NAME' => GetMessage('STREET'),
-        'ID'   => 'street'
-    ),
-    array(
-        'NAME' => GetMessage('BUILDING'),
-        'ID'   => 'building'
-    ),
-    array(
-        'NAME' => GetMessage('FLAT'),
-        'ID'   => 'flat'
-    ),
-    array(
-        'NAME' => GetMessage('INTERCOMCODE'),
-        'ID'   => 'intercomcode'
-    ),
-    array(
-        'NAME' => GetMessage('FLOOR'),
-        'ID'   => 'floor'
-    ),
-    array(
-        'NAME' => GetMessage('BLOCK'),
-        'ID'   => 'block'
-    ),
-    array(
-        'NAME' => GetMessage('HOUSE'),
-        'ID'   => 'house'
-    )
-);
+if (file_exists($_SERVER["DOCUMENT_ROOT"] . '/bitrix/modules/intaro.intarocrm/classes/general/config/options.xml')) {
+    $options = simplexml_load_file($_SERVER["DOCUMENT_ROOT"] . '/bitrix/modules/intaro.intarocrm/classes/general/config/options.xml'); 
+    
+    foreach($options->contragents->contragent as $contragent)
+    {
+        $type["NAME"] = $APPLICATION->ConvertCharset((string)$contragent, 'utf-8', SITE_CHARSET);
+        $type["ID"] = (string)$contragent["id"];
+        $arResult['contragentType'][] = $type;
+        unset ($type);
+    }
+    foreach($options->fields->field as $field)
+    {
+        $type["NAME"] = $APPLICATION->ConvertCharset((string)$field, 'utf-8', SITE_CHARSET);
+        $type["ID"] = (string)$field["id"];
+
+        if ($field["group"] == 'custom') {
+            $arResult['customFields'][] = $type;
+        } elseif(!$field["group"]){
+            $arResult['orderProps'][] = $type;
+        } else{
+            $groups = explode(",", (string)$field["group"]);
+            foreach ($groups as $group) {   
+                $type["GROUP"][] = trim($group);   
+            }
+            $arResult['legalDetails'][] = $type;
+        }
+        unset($type);
+    }
+}
+//else error
+
+$arResult['arSites'] = array();
+
+$rsSites = CSite::GetList($by, $sort, array('ACTIVE' => 'Y'));
+while ($ar = $rsSites->Fetch()){
+    $arResult['arSites'][] = $ar;
+}
 
 //ajax update deliveryServices
 if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') && isset($_POST['ajax']) && ($_POST['ajax'] == 1)) {
@@ -99,23 +77,13 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_RE
     $api_host = COption::GetOptionString($mid, $CRM_API_HOST_OPTION, 0);
     $api_key = COption::GetOptionString($mid, $CRM_API_KEY_OPTION, 0);
 
-    $api = new IntaroCrm\RestApi($api_host, $api_key);
+    $api = new RetailCrm\RestApi($api_host, $api_key);
 
     try {
         $api->paymentStatusesList();
-    } catch (\IntaroCrm\Exception\ApiException $e) {
+    } catch (\RetailCrm\Exception\CurlException $e) {
         ICrmOrderActions::eventLog(
-            'intaro.crm/options.php', 'IntaroCrm\RestApi::paymentStatusesList',
-            $e->getCode() . ': ' . $e->getMessage()
-        );
-
-        $APPLICATION->RestartBuffer();
-        header('Content-Type: application/x-javascript; charset=' . LANG_CHARSET);
-        die(json_encode(array('success' => false, 'errMsg' => $e->getCode())));
-
-    } catch (\IntaroCrm\Exception\CurlException $e) {
-        ICrmOrderActions::eventLog(
-            'intaro.crm/options.php', 'IntaroCrm\RestApi::paymentStatusesList::CurlException',
+            'intaro.crm/options.php', 'RetailCrm\RestApi::paymentStatusesList::CurlException',
             $e->getCode() . ': ' . $e->getMessage()
         );
 
@@ -133,7 +101,8 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_RE
             'NAME' => 'ASC'
         ),
         array(
-            'ACTIVE' => 'Y'
+            'ACTIVE'  => 'Y',
+            'SITE_ID' => $arResult['arSites'][0]['LID']
         )
     );
 
@@ -154,15 +123,9 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_RE
                         'name' => ICrmOrderActions::toJSON($profile['TITLE']),
                         'deliveryType' => $arDeliveryServicesList['SID']
                     )));
-                } catch (\IntaroCrm\Exception\ApiException $e) {
+                } catch (\RetailCrm\Exception\CurlException $e) {
                     ICrmOrderActions::eventLog(
-                        'intaro.crm/options.php', 'IntaroCrm\RestApi::deliveryServiceEdit',
-                        $e->getCode() . ': ' . $e->getMessage()
-                    );
-
-                } catch (\IntaroCrm\Exception\CurlException $e) {
-                    ICrmOrderActions::eventLog(
-                        'intaro.crm/options.php', 'IntaroCrm\RestApi::deliveryServiceEdit::CurlException',
+                        'intaro.crm/options.php', 'RetailCrm\RestApi::deliveryServiceEdit::CurlException',
                         $e->getCode() . ': ' . $e->getMessage()
                     );
                 }
@@ -176,33 +139,83 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_RE
     die(json_encode(array('success' => true)));
 }
 
+//upload orders after install module
+if(!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') && isset($_POST['ajax']) && $_POST['ajax'] == 2){
+    $step = $_POST['step'];
+    $orders = $_POST['orders'];
+    $countStep = 50; // 50 orders on step
+    
+    if($orders){
+        $ordersArr = explode(',', $orders);
+        $orders = array();
+        foreach($ordersArr as $_ordersArr){
+            $ordersList = explode('-', trim($_ordersArr));
+            if(count($ordersList) > 1){
+                for($i = (int)trim($ordersList[0]); $i <= (int)trim($ordersList[count($ordersList) - 1]); $i++){
+                    $orders[] = $i;
+                }
+            } else{
+                $orders[] = (int)$ordersList[0];
+            }
+        }
+        
+        $splitedOrders = array_chunk($orders, $countStep);
+        $stepOrders = $splitedOrders[$step];
+
+        ICrmOrderActions::uploadOrders($countStep, false, $stepOrders);
+        
+        $percent = round((($step * $countStep + count($stepOrders)) * 100 / count($orders)), 1);
+        $step++;
+
+        if(!$splitedOrders[$step]){
+            $step='end';
+        }
+        
+        $res = array("step" => $step, "percent" => $percent, 'stepOrders' => $stepOrders);
+    } else{
+        $orders = array();
+        
+        for($i = 1; $i <= $countStep; $i++){
+            $orders[] = $i + $step * $countStep;
+        }
+        
+        ICrmOrderActions::uploadOrders($countStep, false, $orders);
+        
+        $step++;
+        $countLeft = (int) CSaleOrder::GetList(array("ID" => "ASC"), array('>ID' => $step * $countStep), array());
+        $countAll = (int) CSaleOrder::GetList(array("ID" => "ASC"), array(), array());
+        $percent = round(100 - ($countLeft * 100 / $countAll), 1);
+        
+        if($countLeft == 0){
+            $step = 'end';
+        }
+        
+        $res = array("step" => $step, "percent" => $percent, 'stepOrders' => $orders);
+    }
+
+    $APPLICATION->RestartBuffer();
+    header('Content-Type: application/x-javascript; charset=' . LANG_CHARSET);
+    die(json_encode($res));
+}
+
 //update connection settings
 if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     $api_host = htmlspecialchars(trim($_POST['api_host']));
     $api_key = htmlspecialchars(trim($_POST['api_key']));
-    
-    // if empty so select all? or exception --not obligatory
-    $orderSites = array();
-    /*foreach ($_POST[$CRM_ORDER_SITES] as $site) {
-        $orderSites[] = htmlspecialchars(trim($site));
-    }*/
+
+    //bitrix site list
+    $siteListArr = array(); 
+    foreach ($arResult['arSites'] as $arSites) {
+        $siteListArr[$arSites['LID']] = htmlspecialchars(trim($_POST['sites-id-' . $arSites['LID']]));
+    }
             
     if($api_host && $api_key) {
-        $api = new IntaroCrm\RestApi($api_host, $api_key);
+        $api = new RetailCrm\RestApi($api_host, $api_key);
         try {
             $api->paymentStatusesList();
-        } catch (\IntaroCrm\Exception\ApiException $e) {
+        } catch (\RetailCrm\Exception\CurlException $e) {
             ICrmOrderActions::eventLog(
-                'intaro.crm/options.php', 'IntaroCrm\RestApi::paymentStatusesList',
-                $e->getCode() . ': ' . $e->getMessage()
-            );
-
-            $uri .= '&errc=ERR_' . $e->getCode();
-            LocalRedirect($uri);
-
-        } catch (\IntaroCrm\Exception\CurlException $e) {
-            ICrmOrderActions::eventLog(
-                'intaro.crm/options.php', 'IntaroCrm\RestApi::paymentStatusesList::CurlException',
+                'intaro.crm/options.php', 'RetailCrm\RestApi::paymentStatusesList::CurlException',
                 $e->getCode() . ': ' . $e->getMessage()
             );
 
@@ -267,7 +280,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             'NAME' => 'ASC'
         ),
         array(
-            'ACTIVE' => 'Y'
+            'ACTIVE'  => 'Y',
+            'SITE_ID' => $arResult['arSites'][0]['LID']
         )
     );
 
@@ -349,22 +363,51 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         $propsCount = 0;
         $_orderPropsArr = array();
         foreach ($arResult['orderProps'] as $orderProp) {
-            if ((!(int) htmlspecialchars(trim($_POST['address-detail-' . $orderType['ID']]))) && $propsCount > 4)
+            if ((!(int) htmlspecialchars(trim($_POST['address-detail-' . $orderType['ID']]))) && $propsCount > 4){
                 break;
+            }
             $_orderPropsArr[$orderProp['ID']] = htmlspecialchars(trim($_POST['order-prop-' . $orderProp['ID'] . '-' . $orderType['ID']]));
             $propsCount++;
         }
         $orderPropsArr[$orderType['ID']] = $_orderPropsArr;
     }
     
+    //legal details props
+    $legalDetailsArr = array();
+    foreach ($orderTypesList as $orderType) {
+        $_legalDetailsArr = array();
+        foreach ($arResult['legalDetails'] as $legalDetails) {
+            $_legalDetailsArr[$legalDetails['ID']] = htmlspecialchars(trim($_POST['legal-detail-' . $legalDetails['ID'] . '-' . $orderType['ID']]));
+        }
+        $legalDetailsArr[$orderType['ID']] = $_legalDetailsArr;
+    }
+
+    $customFieldsArr = array();
+    foreach ($orderTypesList as $orderType) {
+        $_customFieldsArr = array();
+        foreach ($arResult['customFields'] as $custom) {
+            $_customFieldsArr[$custom['ID']] = htmlspecialchars(trim($_POST['custom-fields-' . $custom['ID'] . '-' . $orderType['ID']]));
+        }
+        $customFieldsArr[$orderType['ID']] = $_customFieldsArr;
+    }
+
+    //contragents type list
+    $contragentTypeArr = array();
+    foreach ($orderTypesList as $orderType) {
+        $contragentTypeArr[$orderType['ID']] = htmlspecialchars(trim($_POST['contragent-type-' . $orderType['ID']]));
+    }
+        
+    COption::SetOptionString($mid, $CRM_SITES_LIST, serialize(ICrmOrderActions::clearArr($siteListArr)));
     COption::SetOptionString($mid, $CRM_ORDER_TYPES_ARR, serialize(ICrmOrderActions::clearArr($orderTypesArr)));
     COption::SetOptionString($mid, $CRM_DELIVERY_TYPES_ARR, serialize(ICrmOrderActions::clearArr($deliveryTypesArr)));
     COption::SetOptionString($mid, $CRM_PAYMENT_TYPES, serialize(ICrmOrderActions::clearArr($paymentTypesArr)));
     COption::SetOptionString($mid, $CRM_PAYMENT_STATUSES, serialize(ICrmOrderActions::clearArr($paymentStatusesArr)));
     COption::SetOptionString($mid, $CRM_PAYMENT, serialize(ICrmOrderActions::clearArr($paymentArr)));
-    COption::SetOptionString($mid, $CRM_ORDER_SITES, serialize(ICrmOrderActions::clearArr($orderSites)));
     COption::SetOptionString($mid, $CRM_ORDER_DISCHARGE, $orderDischarge);
-    COption::SetOptionString($mid, $CRM_ORDER_PROPS, serialize(ICrmOrderActions::clearArr($orderPropsArr)));
+    COption::SetOptionString($mid, $CRM_ORDER_PROPS, serialize(ICrmOrderActions::clearArr($orderPropsArr)));    
+    COption::SetOptionString($mid, $CRM_CONTRAGENT_TYPE, serialize(ICrmOrderActions::clearArr($contragentTypeArr)));    
+    COption::SetOptionString($mid, $CRM_LEGAL_DETAILS, serialize(ICrmOrderActions::clearArr($legalDetailsArr)));
+    COption::SetOptionString($mid, $CRM_CUSTOM_FIELDS, serialize(ICrmOrderActions::clearArr($customFieldsArr)));
 
     $uri .= '&ok=Y';
     LocalRedirect($uri);
@@ -372,33 +415,21 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     $api_host = COption::GetOptionString($mid, $CRM_API_HOST_OPTION, 0);
     $api_key = COption::GetOptionString($mid, $CRM_API_KEY_OPTION, 0);
 
-    $api = new IntaroCrm\RestApi($api_host, $api_key);
-    
-    $arResult['arSites'] = array();
-    $rsSites = CSite::GetList($by, $sort, array());
-    while ($ar = $rsSites->Fetch())
-        $arResult['arSites'][] = $ar;
+    $api = new RetailCrm\RestApi($api_host, $api_key);
 
     //prepare crm lists
     try {
-        $arResult['orderTypesList'] = $api->orderTypesList();
-        $arResult['deliveryTypesList'] = $api->deliveryTypesList();
-        $arResult['deliveryServicesList'] = $api->deliveryServicesList();
-        $arResult['paymentTypesList'] = $api->paymentTypesList();
-        $arResult['paymentStatusesList'] = $api->paymentStatusesList(); // --statuses
-        $arResult['paymentList'] = $api->orderStatusesList();
-        $arResult['paymentGroupList'] = $api->orderStatusGroupsList(); // -- statuses groups
-    } catch (\IntaroCrm\Exception\ApiException $e) {
+        $arResult['orderTypesList'] = $api->orderTypesList()->orderTypes;
+        $arResult['deliveryTypesList'] = $api->deliveryTypesList()->deliveryTypes;
+        $arResult['deliveryServicesList'] = $api->deliveryServicesList()->deliveryServices;
+        $arResult['paymentTypesList'] = $api->paymentTypesList()->paymentTypes;
+        $arResult['paymentStatusesList'] = $api->paymentStatusesList()->paymentStatuses; // --statuses
+        $arResult['paymentList'] = $api->orderStatusesList()->statuses;
+        $arResult['paymentGroupList'] = $api->orderStatusGroupsList()->statusGroups; // -- statuses groups
+        $arResult['sitesList'] = $api->sitesList()->sites; 
+    } catch (\RetailCrm\Exception\CurlException $e) {
         ICrmOrderActions::eventLog(
-            'intaro.crm/options.php', 'IntaroCrm\RestApi::*List',
-            $e->getCode() . ': ' . $e->getMessage()
-        );
-
-        echo CAdminMessage::ShowMessage(GetMessage('ERR_' . $e->getCode()));
-
-    } catch (\IntaroCrm\Exception\CurlException $e) {
-        ICrmOrderActions::eventLog(
-            'intaro.crm/options.php', 'IntaroCrm\RestApi::*List::CurlException',
+            'intaro.crm/options.php', 'RetailCrm\RestApi::*List::CurlException',
             $e->getCode() . ': ' . $e->getMessage()
         );
 
@@ -410,16 +441,16 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         array(
             "SORT" => "ASC",
             "NAME" => "ASC"
-         ),
+        ),
         array(
             "ACTIVE" => "Y",
         ),
         false,
         false,
         array()
-     );
+    );
             
-     if ($arOrderTypesList = $dbOrderTypesList->Fetch()) {
+    if ($arOrderTypesList = $dbOrderTypesList->Fetch()) {
         do {
             $arResult['bitrixOrderTypesList'][] = $arOrderTypesList;     
         } while ($arOrderTypesList = $dbOrderTypesList->Fetch());
@@ -452,7 +483,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             'NAME' => 'ASC'
         ),
         array(
-            'ACTIVE' => 'Y'
+            'ACTIVE'  => 'Y',
+            'SITE_ID' => $arResult['arSites'][0]['LID']
         )
     );
 
@@ -511,16 +543,19 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     while ($arProp = $dbProp->GetNext()) {
         $arResult['arProp'][$arProp['PERSON_TYPE_ID']][] = $arProp;
     }
-
+    
     //saved cat params
     $optionsOrderTypes = unserialize(COption::GetOptionString($mid, $CRM_ORDER_TYPES_ARR, 0));
     $optionsDelivTypes = unserialize(COption::GetOptionString($mid, $CRM_DELIVERY_TYPES_ARR, 0));
     $optionsPayTypes = unserialize(COption::GetOptionString($mid, $CRM_PAYMENT_TYPES, 0));
     $optionsPayStatuses = unserialize(COption::GetOptionString($mid, $CRM_PAYMENT_STATUSES, 0)); // --statuses
     $optionsPayment = unserialize(COption::GetOptionString($mid, $CRM_PAYMENT, 0));
-    $optionsSites = unserialize(COption::GetOptionString($mid, $CRM_ORDER_SITES, 0));
+    $optionsSitesList = unserialize(COption::GetOptionString($mid, $CRM_SITES_LIST, 0));
     $optionsDischarge = COption::GetOptionString($mid, $CRM_ORDER_DISCHARGE, 0);
-    $optionsOrderProps = unserialize(COption::GetOptionString($mid, $CRM_ORDER_PROPS, 0));
+    $optionsOrderProps = unserialize(COption::GetOptionString($mid, $CRM_ORDER_PROPS, 0));    
+    $optionsContragentType = unserialize(COption::GetOptionString($mid, $CRM_CONTRAGENT_TYPE, 0));    
+    $optionsLegalDetails = unserialize(COption::GetOptionString($mid, $CRM_LEGAL_DETAILS, 0));
+    $optionsCustomFields = unserialize(COption::GetOptionString($mid, $CRM_CUSTOM_FIELDS, 0));
 
     $isCustomOrderType = function_exists('intarocrm_set_order_type') || function_exists('intarocrm_get_order_type');
 
@@ -564,8 +599,24 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                 $('tr.address-detail-' + orderType).show('slow');
             else if(parseInt($(this).val()) === 0)
                 $('tr.address-detail-' + orderType).hide('slow');
+        });
+
+        $('tr.contragent-type select').change(function(){
+            splitName = $(this).attr('name').split('-');
+            contragentType = $(this).val();
+            orderType = splitName[2];
+            
+            $('tr.legal-detail-' + orderType).hide();
+            $('.legal-detail-title-' + orderType).hide();
+
+            $('tr.legal-detail-' + orderType).each(function(){
+                if($(this).hasClass(contragentType)){
+                    $(this).show();
+                    $('.legal-detail-title-' + orderType).show();
+                }
             });
-     });
+        });
+    });    
 
     $('input[name="update-delivery-services"]').live('click', function() {
         BX.showWait();
@@ -617,16 +668,27 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         <td width="50%" class="adm-detail-content-cell-l"><?php echo GetMessage('ICRM_API_KEY'); ?></td>
         <td width="50%" class="adm-detail-content-cell-r"><input type="text" id="api_key" name="api_key" value="<?php echo $api_key; ?>"></td>
     </tr>
-    <!--<tr>
-        <td width="50%" class="adm-detail-content-cell-l"><?php echo GetMessage('ICRM_SITES'); ?></td>
+    <?php if(count($arResult['arSites'])>1):?>
+    <tr class="heading">
+        <td colspan="2" style="background-color: transparent;">
+            <b>
+                <?php echo GetMessage('ICRM_SITES'); ?>
+            </b>
+        </td>
+    </tr>   
+    <?php foreach ($arResult['arSites'] as $site): ?>
+    <tr>
+        <td width="50%" class="adm-detail-content-cell-l"><?php echo $site['NAME'] . ' (' . $site['LID'] . ')'; ?></td>
         <td width="50%" class="adm-detail-content-cell-r">
-            <select id="sites_ids" name="sites_ids[]" multiple="multiple" size="3">
-                <?php foreach ($arResult['arSites'] as $site): ?>
-                    <option value="<?php echo $site['LID'] ?>" <?php if(in_array($site['LID'], $optionsSites)) echo 'selected="selected"'; ?>><?php echo $site['NAME'] . ' (' . $site['LID'] . ')' ?></option>
+            <select class="typeselect" name="sites-id-<?php echo $site['LID']?>">
+                <?php foreach ($arResult['sitesList'] as $sitesList): ?>
+                    <option value="<?php echo $sitesList['code'] ?>" <?php if($sitesList['code'] == $optionsSitesList[$site['LID']]) echo 'selected="selected"'; ?>><?php echo $sitesList['name']?></option>
                 <?php endforeach; ?>
             </select>
         </td>
-    </tr>-->
+    </tr>
+    <?php endforeach; ?>
+    <?php endif;?>
 <?php $tabControl->BeginNextTab(); ?>
     <input type="hidden" name="tab" value="catalog">
     <tr align="center">
@@ -760,8 +822,21 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     <tr class="heading">
         <td colspan="2"><b><?php echo GetMessage('ORDER_TYPE_INFO') . ' ' . $bitrixOrderType['NAME']; ?></b></td>
     </tr>
-    
-    <?php $countProps = 1; foreach($arResult['orderProps'] as $orderProp): ?>
+    <tr class="contragent-type">
+        <td width="50%" class="adm-detail-content-cell-l">
+            <?php echo GetMessage('CONTRAGENTS_TYPES_LIST'); ?>
+        </td>
+        <td width="50%" class="adm-detail-content-cell-r">
+            <select name="contragent-type-<?php echo $bitrixOrderType['ID']; ?>" class="typeselect">         
+                <?php foreach ($arResult['contragentType'] as $contragentType): ?>
+                <option value="<?php echo $contragentType["ID"]; ?>" <?php if ($optionsContragentType[$bitrixOrderType['ID']] == $contragentType['ID']) echo 'selected'; ?>>
+                    <?php echo $contragentType["NAME"]; ?>
+                </option>
+                <?php endforeach; ?>
+            </select>
+        </td>
+    </tr>
+    <?php $countProps = 1; foreach($arResult['orderProps'] as $orderProp): ?>    
     <?php if($orderProp['ID'] == 'text'): ?>
     <tr class="heading">
         <td colspan="2" style="background-color: transparent;">
@@ -788,7 +863,58 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         </td>
     </tr>
     <?php $countProps++; endforeach; ?>
+    <?if (isset($arResult['customFields']) && count($arResult['customFields']) > 0):?>
+        <tr class="heading custom-detail-title">
+            <td colspan="2" style="background-color: transparent;">
+                <b>
+                    <?=GetMessage("ORDER_CUSTOM"); ?>
+                </b>
+            </td>
+        </tr>
+        <?foreach($arResult['customFields'] as $customFields):?>
+            <tr class="custom-detail-<?=$customFields['ID'];?>">
+                <td width="50%" class="" name="">
+                    <?=$customFields['NAME']; ?>
+                </td>
+                <td width="50%" class="">
+                    <select name="custom-fields-<?=$customFields['ID'] . '-' . $bitrixOrderType['ID']; ?>" class="typeselect">
+                        <option value=""></option>              
+                        <?foreach ($arResult['arProp'][$bitrixOrderType['ID']] as $arProp):?>
+                            <option value="<?=$arProp['CODE']?>" <?php if ($optionsCustomFields[$bitrixOrderType['ID']][$customFields['ID']] == $arProp['CODE']) echo 'selected'; ?>>
+                            <?=$arProp['NAME']; ?>
+                            </option>
+                        <?endforeach;?>
+                    </select>
+                </td>
+            </tr>
+        <?endforeach;?>
+    <?endif;?>
+    <tr class="heading legal-detail-title-<?php echo $bitrixOrderType['ID'];?>" <?php if(count($optionsLegalDetails[$bitrixOrderType['ID']])<1) echo 'style="display:none"'; ?>>
+        <td colspan="2" style="background-color: transparent;">
+            <b>
+                <?php echo GetMessage('LEGAL_DETAIL'); ?>
+            </b>
+        </td>
+    </tr>
+    <?php foreach($arResult['legalDetails'] as $legalDetails): ?>
+    <tr class="legal-detail-<?php echo $bitrixOrderType['ID'];?> <?php foreach($legalDetails['GROUP'] as $gr) echo $gr . ' ';?>" <?php if(!in_array($optionsContragentType[$bitrixOrderType['ID']], $legalDetails['GROUP'])) echo 'style="display:none"'; ?>>
+        <td width="50%" class="" name="<?php ?>">
+            <?php echo $legalDetails['NAME']; ?>
+        </td>
+        <td width="50%" class="">
+            <select name="legal-detail-<?php echo $legalDetails['ID'] . '-' . $bitrixOrderType['ID']; ?>" class="typeselect">
+                <option value=""></option>              
+                <?php foreach ($arResult['arProp'][$bitrixOrderType['ID']] as $arProp): ?>
+                <option value="<?php echo $arProp['CODE']; ?>" <?php if ($optionsLegalDetails[$bitrixOrderType['ID']][$legalDetails['ID']] == $arProp['CODE']) echo 'selected'; ?>>
+                    <?php echo $arProp['NAME']; ?>
+                </option>
+                <?php endforeach; ?>
+            </select>
+        </td>
+    </tr>   
     <?php endforeach; ?>
+    <?php endforeach; ?>
+    
 <?php $tabControl->BeginNextTab(); ?>
     <input type="hidden" name="tab" value="catalog">
     <tr class="heading">
@@ -803,9 +929,173 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         </td>
     </tr>  
 <?php $tabControl->Buttons(); ?>
-<input type="hidden" name="Update" value="Y" />
-<input type="submit" title="<?php echo GetMessage('ICRM_OPTIONS_SUBMIT_TITLE'); ?>" value="<?php echo GetMessage('ICRM_OPTIONS_SUBMIT_VALUE'); ?>" name="btn-update" class="adm-btn-save" />
+    <input type="hidden" name="Update" value="Y" />
+    <input type="submit" title="<?php echo GetMessage('ICRM_OPTIONS_SUBMIT_TITLE'); ?>" value="<?php echo GetMessage('ICRM_OPTIONS_SUBMIT_VALUE'); ?>" name="btn-update" class="adm-btn-save" />
 <?php $tabControl->End(); ?>
-</form>
-
+</form>    
 <?php } ?>
+
+<?php //order upload?>
+<?php if($_GET['upl'] == 1){?>
+<style type="text/css">
+    .instal-load-label {
+        color: #000;
+        margin-bottom: 15px;
+    }
+
+    .instal-progress-bar-outer {
+        height: 32px;
+        border:1px solid;
+        border-color:#9ba6a8 #b1bbbe #bbc5c9 #b1bbbe;
+        -webkit-box-shadow: 1px 1px 0 #fff, inset 0 2px 2px #c0cbce;
+        box-shadow: 1px 1px 0 #fff, inset 0 2px 2px #c0cbce;
+        background-color:#cdd8da;
+        background-image:-webkit-linear-gradient(top, #cdd8da, #c3ced1);
+        background-image:-moz-linear-gradient(top, #cdd8da, #c3ced1);
+        background-image:-ms-linear-gradient(top, #cdd8da, #c3ced1);
+        background-image:-o-linear-gradient(top, #cdd8da, #c3ced1);
+        background-image:linear-gradient(top, #ced9db, #c3ced1);
+        border-radius: 2px;
+        text-align: center;
+        color: #6a808e;
+        text-shadow: 0 1px rgba(255,255,255,0.85);
+        font-size: 18px;
+        line-height: 35px;
+        font-weight: bold;
+    }
+
+    .instal-progress-bar-alignment {
+        height: 28px;
+        margin: 0;
+        position: relative;
+    }
+
+    .instal-progress-bar-inner {
+        height: 28px;
+        border-radius: 2px;
+        border-top: solid 1px #52b9df;
+        background-color:#2396ce;
+        background-image:-webkit-linear-gradient(top, #27a8d7, #2396ce, #1c79c0);
+        background-image:-moz-linear-gradient(top, #27a8d7, #2396ce, #1c79c0);
+        background-image:-ms-linear-gradient(top, #27a8d7, #2396ce, #1c79c0);
+        background-image:-o-linear-gradient(top, #27a8d7, #2396ce, #1c79c0);
+        background-image:linear-gradient(top, #27a8d7, #2396ce, #1c79c0);
+        position: absolute;
+        overflow: hidden;
+        top: 1px;
+        left:0;
+    }
+
+    .instal-progress-bar-inner-text {
+        color: #fff;
+        text-shadow: 0 1px rgba(0,0,0,0.2);
+        font-size: 18px;
+        line-height: 32px;
+        font-weight: bold;
+        text-align: center;
+        position: absolute;
+        left: -2px;
+        top: -2px;
+    }
+    
+    .order-upload-button{
+        padding: 1px 13px 2px;
+        height:28px;
+    }
+    
+    .order-upload-button div{
+        float:right; 
+        position:relative; 
+        visible: none;
+    }
+</style>
+
+<script type="text/javascript">
+    $(document).ready(function() { 
+        $('#percent').width($('.instal-progress-bar-outer').width());
+
+        $(window).resize(function(){ // strechin progress bar
+            $('#percent').width($('.instal-progress-bar-outer').width());
+        });
+
+        // orderUpload function
+        function orderUpload() {
+
+            var handlerUrl = $('#upload-orders').attr('action');
+            var step       = $('input[name="step"]').val();
+            var orders     = $('input[name="orders"]').val();
+            var data = 'orders=' + orders + '&step=' + step + '&ajax=2';
+
+            // ajax request
+            $.ajax({
+                type: 'POST',
+                url: handlerUrl,
+                data: data,
+                dataType: 'json',
+                success: function(response) {
+                    $('input[name="step"]').val(response.step);
+                    if(response.step == 'end'){
+                        $('input[name="step"]').val(0);
+                        BX.closeWait();
+                    }
+                    else{
+                        orderUpload();   
+                    }
+                    $('#indicator').css('width', response.percent + '%');
+                    $('#percent').html(response.percent + '%');
+                    $('#percent2').html(response.percent + '%');
+
+                },
+                error: function () {
+                    BX.closeWait();
+                    $('#status').text('<?php echo GetMessage('MESS_4'); ?>');
+
+                    alert('<?php echo GetMessage('MESS_5'); ?>');
+                }
+            });
+        }
+
+        $('input[name="start"]').live('click', function() {  
+            BX.showWait();
+
+            orderUpload();
+
+            return false;
+        });
+    });
+</script>
+<br>
+<form id="upload-orders" action="<?php echo $uri; ?>" method="POST">
+    <input type="hidden" name="step" value="0">
+    <div class="adm-detail-content-item-block">
+        <table class="adm-detail-content-table edit-table" id="edit1_edit_table">
+            <tbody>
+                <tr class="heading">
+                    <td colspan="2"><b><?php echo GetMessage('ORDER_UPLOAD'); ?></b></td>
+                </tr>
+                <tr>
+                    <td class="adm-detail-content-cell-r"><?php echo GetMessage('ORDER_NUMBERS'); ?> <input id="order-nombers" style="width:86%" type="text" value="" name="orders"></td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="instal-load-block" id="result">
+            <div class="instal-load-label" id="status"><?php echo GetMessage('ORDER_UPLOAD_INFO'); ?></div>
+
+            <div class="instal-progress-bar-outer">
+                <div class="instal-progress-bar-alignment" style="width: 100%;">
+                    <div class="instal-progress-bar-inner" id="indicator" style="width: 0%;">
+                        <div class="instal-progress-bar-inner-text" style="width: 100%;" id="percent">0%</div>
+                    </div>
+                    <span id="percent2">0%</span>
+                </div>
+            </div>
+        </div>
+        <br />
+        <div class="order-upload-button">
+            <div align="left">
+                <input type="submit" name="start" value="Начать выгрузку" class="adm-btn-save">
+            </div>
+        </div>
+    </div>
+</form>
+<?php }?>

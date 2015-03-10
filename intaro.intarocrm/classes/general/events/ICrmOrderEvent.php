@@ -14,7 +14,11 @@ class ICrmOrderEvent {
     protected static $CRM_PAYMENT = 'payment_arr'; //order payment Y/N
     protected static $CRM_ORDER_LAST_ID = 'order_last_id';
     protected static $CRM_ORDER_PROPS = 'order_props';
+    protected static $CRM_LEGAL_DETAILS = 'legal_details';
+    protected static $CRM_CUSTOM_FIELDS = 'custom_fields';
+    protected static $CRM_CONTRAGENT_TYPE = 'contragent_type';
     protected static $CRM_ORDER_FAILED_IDS = 'order_failed_ids';
+    protected static $CRM_SITES_LIST = 'sites_list';
     
     /**
      * onBeforeOrderAdd
@@ -54,13 +58,12 @@ class ICrmOrderEvent {
      * @param mixed $arFields - Order arFields
      */
     function onUpdateOrder($ID, $arFields) {
-        
         if(isset($GLOBALS['INTARO_CRM_ORDER_ADD']) && $GLOBALS['INTARO_CRM_ORDER_ADD'])
             return;
 
         if(isset($GLOBALS['INTARO_CRM_ORDER_RESERVE']) && $GLOBALS['INTARO_CRM_ORDER_RESERVE'])
             return;
-        
+
         if(isset($GLOBALS['INTARO_CRM_FROM_HISTORY']) && $GLOBALS['INTARO_CRM_FROM_HISTORY'])
             return;
         
@@ -125,8 +128,7 @@ class ICrmOrderEvent {
             ICrmOrderActions::eventLog('ICrmOrderEvent::writeDataOnOrderCreate', 'catalog', 'module not found');
             return true;
         }
-        
-        $GLOBALS['INTARO_CRM_ORDER_ADD'] = false;
+
         $GLOBALS['INTARO_CRM_FROM_HISTORY'] = false;
 
         $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
@@ -138,21 +140,29 @@ class ICrmOrderEvent {
         $optionsPayTypes = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_TYPES, 0));
         $optionsPayStatuses = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_STATUSES, 0)); // --statuses
         $optionsPayment = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT, 0));
+        $optionsSitesList = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_SITES_LIST, 0));
         $optionsOrderProps = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_PROPS, 0));
+        $optionsLegalDetails = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_LEGAL_DETAILS, 0));
+        $optionsContragentType = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_CONTRAGENT_TYPE, 0));
+        $optionsCustomFields = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_CUSTOM_FIELDS, 0));
 
-        $api = new IntaroCrm\RestApi($api_host, $api_key);
+        $api = new RetailCrm\RestApi($api_host, $api_key);
 
         $arParams = ICrmOrderActions::clearArr(array(
-            'optionsOrderTypes'  => $optionsOrderTypes,
-            'optionsDelivTypes'  => $optionsDelivTypes,
-            'optionsPayTypes'    => $optionsPayTypes,
-            'optionsPayStatuses' => $optionsPayStatuses,
-            'optionsPayment'     => $optionsPayment,
-            'optionsOrderProps'  => $optionsOrderProps
+            'optionsOrderTypes'     => $optionsOrderTypes,
+            'optionsDelivTypes'     => $optionsDelivTypes,
+            'optionsPayTypes'       => $optionsPayTypes,
+            'optionsPayStatuses'    => $optionsPayStatuses,
+            'optionsPayment'        => $optionsPayment,
+            'optionsOrderProps'     => $optionsOrderProps,
+            'optionsLegalDetails'   => $optionsLegalDetails,
+            'optionsContragentType' => $optionsContragentType,
+            'optionsSitesList'      => $optionsSitesList,
+            'optionsCustomFields'   => $optionsCustomFields
         ));
-        
+
         $arOrder = CSaleOrder::GetById($ID);
-        
+
         if (is_array($arFields) && !empty($arFields)) {
 
             $arFieldsNew = array(
@@ -168,9 +178,13 @@ class ICrmOrderEvent {
             $arFieldsNew = array_merge($arFieldsNew, $arFields);
             $arOrder = $arFieldsNew;
         }
-
-        $result = ICrmOrderActions::orderCreate($arOrder, $api, $arParams, true);
-        
+        if(count($optionsSitesList)>1){
+            $result = ICrmOrderActions::orderCreate($arOrder, $api, $arParams, true, $optionsSitesList[$arOrder['LID']]);
+        }
+        else{
+            $result = ICrmOrderActions::orderCreate($arOrder, $api, $arParams, true);
+        }       
+         
         if(!$result) {
             ICrmOrderActions::eventLog('ICrmOrderEvent::writeDataOnOrderCreate', 'ICrmOrderActions::orderCreate', 'error during creating order');
             return false;
@@ -217,7 +231,7 @@ class ICrmOrderEvent {
         //saved cat params
         $optionsPayStatuses = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_STATUSES, 0)); // --statuses
 
-        $api = new IntaroCrm\RestApi($api_host, $api_key);
+        $api = new RetailCrm\RestApi($api_host, $api_key);
 
         $order = array();
 
@@ -239,14 +253,9 @@ class ICrmOrderEvent {
 
         try {
             $api->orderEdit($order);
-        } catch (\IntaroCrm\Exception\ApiException $e) {
+        } catch (\RetailCrm\Exception\CurlException $e) {
             ICrmOrderActions::eventLog(
-                'ICrmOrderEvent::onSaleCancelOrder', 'IntaroCrm\RestApi::orderEdit',
-                $e->getCode() . ': ' . $e->getMessage()
-            );
-        } catch (\IntaroCrm\Exception\CurlException $e) {
-            ICrmOrderActions::eventLog(
-                'ICrmOrderEvent::onSaleCancelOrder', 'IntaroCrm\RestApi::orderEdit::CurlException',
+                'ICrmOrderEvent::onSaleCancelOrder', 'RetailCrm\RestApi::orderEdit::CurlException',
                 $e->getCode() . ': ' . $e->getMessage()
             );
         }
@@ -291,7 +300,7 @@ class ICrmOrderEvent {
         //saved cat params
         $optionsPayment = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT, 0));
 
-        $api = new IntaroCrm\RestApi($api_host, $api_key);
+        $api = new RetailCrm\RestApi($api_host, $api_key);
         
         $order = array(
             'externalId'    => (int) $ID,
@@ -302,14 +311,9 @@ class ICrmOrderEvent {
 
         try {
             $api->orderEdit($order);
-        } catch (\IntaroCrm\Exception\ApiException $e) {
+        } catch (\RetailCrm\Exception\CurlException $e) {
             ICrmOrderActions::eventLog(
-                'ICrmOrderEvent::onSalePayOrder', 'IntaroCrm\RestApi::orderEdit',
-                $e->getCode() . ': ' . $e->getMessage()
-            );
-        } catch (\IntaroCrm\Exception\CurlException $e) {
-            ICrmOrderActions::eventLog(
-                'ICrmOrderEvent::onSalePayOrder', 'IntaroCrm\RestApi::orderEdit::CurlException',
+                'ICrmOrderEvent::onSalePayOrder', 'RetailCrm\RestApi::orderEdit::CurlException',
                 $e->getCode() . ': ' . $e->getMessage()
             );
         }

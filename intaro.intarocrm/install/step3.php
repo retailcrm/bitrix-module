@@ -19,7 +19,6 @@ $defaultOrderProps = array(
         'email' => 'EMAIL'
     )
 );
-
 ?>
 <script type="text/javascript" src="/bitrix/js/main/jquery/jquery-1.7.min.js"></script>
 <script type="text/javascript">
@@ -32,7 +31,23 @@ $defaultOrderProps = array(
                 $('tr.address-detail-' + orderType).show('slow');
             else if(parseInt($(this).val()) === 0)
                 $('tr.address-detail-' + orderType).hide('slow');
+        });
+        
+        $('tr.contragent-type select').change(function(){
+            splitName = $(this).attr('name').split('-');
+            contragentType = $(this).val();
+            orderType = splitName[2];
+            
+            $('tr.legal-detail-' + orderType).hide();
+            $('.legal-detail-title-' + orderType).hide();
+
+            $('tr.legal-detail-' + orderType).each(function(){
+                if($(this).hasClass(contragentType)){
+                    $(this).show();
+                    $('.legal-detail-title-' + orderType).show();
+                }
             });
+        });
      });
 </script>
 
@@ -60,6 +75,21 @@ $defaultOrderProps = array(
             <tr class="heading">
                 <td colspan="2"><b><?php echo GetMessage('ORDER_TYPE_INFO') . ' ' . $bitrixOrderType['NAME']; ?></b></td>
             </tr>
+            <tr class="contragent-type">
+                <td width="50%" class="adm-detail-content-cell-l">
+                    <?php echo GetMessage('CONTRAGENT_TYPE'); ?>
+                </td>
+                <td width="50%" class="adm-detail-content-cell-r">
+                    <select name="contragent-type-<?php echo $bitrixOrderType['ID']; ?>" class="typeselect">         
+                        <?php foreach ($arResult['contragentType'] as $contragentType): ?>
+                        <option value="<?php echo $contragentType["ID"]; ?>" <?php if ($optionsContragentType[$bitrixOrderType['ID']] == $contragentType['ID']) echo 'selected'; ?>>
+                            <?php echo $contragentType["NAME"]; ?>
+                        </option>
+                        <?php endforeach; ?>
+                    </select>
+                </td>
+            </tr>
+            
             <?php $countProps = 0; foreach($arResult['orderProps'] as $orderProp): ?>
             <?php if($orderProp['ID'] == 'text'): ?>
             <tr class="heading">
@@ -71,23 +101,78 @@ $defaultOrderProps = array(
                 </td>
             </tr>
             <?php endif; ?>
+            
             <tr <?php if ($countProps > 3) echo 'class="address-detail-' . $bitrixOrderType['ID'] . '"'; if(($countProps > 3) && (count($defaultOrderProps[$bitrixOrderType['ID']]) < 6)) echo 'style="display:none;"';?>>
                 <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $orderProp['ID']; ?>">
                     <?php echo $orderProp['NAME']; ?>
                 </td>
-        <td width="50%" class="adm-detail-content-cell-r">
-            <select name="order-prop-<?php echo $orderProp['ID'] . '-' . $bitrixOrderType['ID']; ?>" class="typeselect">
-                <option value=""></option>              
-                <?php foreach ($arResult['arProp'][$bitrixOrderType['ID']] as $arProp): ?>
-                <option value="<?php echo $arProp['CODE']; ?>" <?php if ($defaultOrderProps[$bitrixOrderType['ID']][$orderProp['ID']] == $arProp['CODE']) echo 'selected'; ?>>
-                    <?php echo $arProp['NAME']; ?>
-                </option>
-                <?php endforeach; ?>
-            </select>
-        </td>
-    </tr>
-    <?php $countProps++; endforeach; ?>
-    <?php endforeach; ?>
+                <td width="50%" class="adm-detail-content-cell-r">
+                    <select name="order-prop-<?php echo $orderProp['ID'] . '-' . $bitrixOrderType['ID']; ?>" class="typeselect">
+                        <option value=""></option>              
+                        <?php foreach ($arResult['arProp'][$bitrixOrderType['ID']] as $arProp): ?>
+                        <option value="<?php echo $arProp['CODE']; ?>" <?php if ($defaultOrderProps[$bitrixOrderType['ID']][$orderProp['ID']] == $arProp['CODE']) echo 'selected'; ?>>
+                            <?php echo $arProp['NAME']; ?>
+                        </option>
+                        <?php endforeach; ?>
+                    </select>
+                </td>
+            </tr>
+            <?php $countProps++; endforeach; ?>
+
+            <?if (isset($arResult['customFields']) && count($arResult['customFields']) > 0):?>
+                <tr class="heading custom-detail-title">
+                    <td colspan="2" style="background-color: transparent;">
+                        <b>
+                            <?=GetMessage("ORDER_CUSTOM"); ?>
+                        </b>
+                    </td>
+                </tr>
+                <?foreach($arResult['customFields'] as $customFields):?>
+                    <tr class="custom-detail-<?=$customFields['ID'];?>">
+                        <td width="50%" class="" name="">
+                            <?=$customFields['NAME']; ?>
+                        </td>
+                        <td width="50%" class="">
+                            <select name="custom-fields-<?=$customFields['ID'] . '-' . $bitrixOrderType['ID']; ?>" class="typeselect">
+                                <option value=""></option>              
+                                <?foreach ($arResult['arProp'][$bitrixOrderType['ID']] as $arProp):?>
+                                    <option value="<?=$arProp['CODE']?>" <?php if ($optionsCustomFields[$bitrixOrderType['ID']][$customFields['ID']] == $arProp['CODE']) echo 'selected'; ?>>
+                                    <?=$arProp['NAME']; ?>
+                                    </option>
+                                <?endforeach;?>
+                            </select>
+                        </td>
+                    </tr>
+        <?endforeach;?>
+            <?endif;?>
+    
+            <tr class="heading legal-detail-title-<?php echo $bitrixOrderType['ID'];?>" style="display:none">
+                <td colspan="2" style="background-color: transparent;">
+                    <b>
+                        <?php echo GetMessage("ORDER_LEGAL_INFO"); ?>
+                    </b>
+                </td>
+            </tr>
+            
+            <?php foreach($arResult['legalDetails'] as $legalDetails): ?>
+            <tr class="legal-detail-<?php echo $bitrixOrderType['ID'];?> <?php foreach($legalDetails['GROUP'] as $gr) echo $gr . ' ';?>" style="display:none">
+                <td width="50%" class="adm-detail-content-cell-l">
+                    <?php echo $legalDetails['NAME']; ?>
+                </td>
+                <td width="50%" class="adm-detail-content-cell-r">
+                    <select name="legal-detail-<?php echo $legalDetails['ID'] . '-' . $bitrixOrderType['ID']; ?>" class="typeselect">
+                        <option value=""></option>              
+                        <?php foreach ($arResult['arProp'][$bitrixOrderType['ID']] as $arProp): ?>
+                        <option value="<?php echo $arProp['CODE']; ?>" <?php if ($optionsLegalDetails[$bitrixOrderType['ID']][$legalDetails['ID']] == $arProp['CODE']) echo 'selected'; ?>>
+                            <?php echo $arProp['NAME']; ?>
+                        </option>
+                        <?php endforeach; ?>
+                    </select>
+                </td>
+            </tr>   
+            <?php endforeach; ?>
+
+            <?php endforeach; ?>
         </tbody>
     </table>
     <br />
