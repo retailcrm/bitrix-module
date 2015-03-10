@@ -5,7 +5,7 @@ $MESS ['ICRM_OPTIONS_ORDER_PROPS_TAB'] = 'Cоответствия полей с�
 $MESS ['ICRM_CONN_SETTINGS'] = 'Настройка соединения';
 $MESS ['ICRM_API_HOST'] = 'Адрес retailCRM:';
 $MESS ['ICRM_API_KEY'] = 'Ключ авторизации:';
-$MESS ['ICRM_SITES'] = 'Символьные коды магазинов';
+$MESS ['ICRM_SITES'] = 'Активные сайты';
 
 $MESS ['ICRM_OPTIONS_CATALOG_TAB'] = 'Настройка справочников';
 $MESS ['DELIVERY_TYPES_LIST'] = 'Способы доставки';
