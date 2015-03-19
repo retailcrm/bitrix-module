@@ -250,13 +250,20 @@ class ICrmOrderActions
             $item = array(
                 'quantity'        => $p['QUANTITY'],
                 'productId'       => $p['PRODUCT_ID'],
+                'xmlId'           => $p['PRODUCT_XML_ID'],
                 'productName'     => $p['NAME'],
                 'comment'         => $p['NOTES'],
-                'discount'        => $p['DISCOUNT_PRICE']
+                'createdAt'       => new \DateTime($p['DATE_INSERT'])
             );
 
+            $pp = CCatalogProduct::GetByID($p['PRODUCT_ID']);
+            if (is_null($pp['PURCHASING_PRICE']) == false) {
+                $item['purchasePrice'] = $pp['PURCHASING_PRICE'];
+            }
+
             $propCancel = CSaleBasket::GetPropsList(array(), array('BASKET_ID' => $p['ID'], 'CODE' => self::CANCEL_PROPERTY_CODE))->Fetch();
-            if ($propCancel && !(int)$propCancel['VALUE']) {
+            if (!$propCancel || ($propCancel && !(int)$propCancel['VALUE'])) {
+                $item['discount'] = (double) $p['DISCOUNT_PRICE'];
                 $item['initialPrice'] = (double) $p['PRICE'] + (double) $p['DISCOUNT_PRICE'];
             }
 
@@ -293,7 +300,7 @@ class ICrmOrderActions
 
         $customer = $normalizer->normalize($customer, 'customers');
         $order = $normalizer->normalize($order, 'orders');
-        $site = null;
+
         if (isset($arParams['optionsSitesList']) && is_array($arParams['optionsSitesList']) &&
                 array_key_exists($arFields['LID'], $arParams['optionsSitesList'])) {
             $site = $arParams['optionsSitesList'][$arFields['LID']];
@@ -391,7 +398,7 @@ class ICrmOrderActions
             return false;
         }
 
-        $orderHistory = isset($orderHistory->orders) ? $orderHistory->orders : array();
+        $orderHistory = isset($orderHistory['orders']) ? $orderHistory['orders'] : array();
         
         $dateFinish = $api->getGeneratedAt();
         if (is_null($dateFinish) || $dateFinish == false) {
