@@ -17,7 +17,7 @@ __IncludeLang(GetLangFileName($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/intaro.
 
 $MODULE_ID = 'intaro.intarocrm';
 $CRM_CATALOG_BASE_PRICE = 'catalog_base_price';
-$basePriceId = COption::GetOptionString($MODULE_ID, $CRM_CATALOG_BASE_PRICE, 1);
+$basePriceId = COption::GetOptionString($MODULE_ID, $CRM_CATALOG_BASE_PRICE . '_' . $_REQUEST['PROFILE_ID'], 1);
 
 $arResult['PRICE_TYPES'] = array();
 $dbPriceType = CCatalogGroup::GetList(
@@ -665,7 +665,6 @@ if ($STEP==1)
             };
     </script>
 
-
     <?//Следующие переменные должны быть обязательно установлены?>
     <?=bitrix_sessid_post();?>
 
@@ -693,7 +692,7 @@ if ($STEP==1)
 }
 elseif ($STEP==2)
 {
-    COption::SetOptionString($MODULE_ID, $CRM_CATALOG_BASE_PRICE, htmlspecialchars(trim($_POST['price-types'])));
+    COption::SetOptionString($MODULE_ID, $CRM_CATALOG_BASE_PRICE . '_' . $_REQUEST['PROFILE_ID'], htmlspecialchars(trim($_POST['price-types'])));
 	$FINITE = true;
 }
 

@@ -1,5 +1,6 @@
 <?php
 
+ignore_user_abort(true);
 set_time_limit(0);
 
 global $APPLICATION;
@@ -68,8 +69,8 @@ foreach ($iblockProperties as $prop) {
     }
 }
 
-
 $loader = new ICMLLoader();
+$loader->profileID = $PROFILE_ID;
 $loader->iblocks = $IBLOCK_EXPORT;
 $loader->propertiesSKU = $IBLOCK_PROPERTY_SKU;
 $loader->propertiesUnitSKU = $IBLOCK_PROPERTY_UNIT_SKU;

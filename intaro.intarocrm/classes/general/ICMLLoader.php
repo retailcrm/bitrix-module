@@ -5,6 +5,7 @@ IncludeModuleLangFile(__FILE__);
 
 class ICMLLoader {
 
+    public $profileID;
     public $iblocks;
     public $filename;
     public $serverName;
@@ -222,8 +223,11 @@ class ICMLLoader {
     protected function BuildOffers(&$allCategories)
     {
 
-        $basePriceId = COption::GetOptionString($this->MODULE_ID, $this->CRM_CATALOG_BASE_PRICE, 1);
-
+        $basePriceId = COption::GetOptionString(
+            $this->MODULE_ID,
+            $this->CRM_CATALOG_BASE_PRICE . (is_null($this->profileID) === false ? '_' . $this->profileID : ''),
+            1
+        );
 
             foreach ($this->iblocks as $key => $id)
             {
