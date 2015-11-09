@@ -54,9 +54,10 @@ else{
         public function Load()
         {
                 global $USER;
-                if(!isset($_SESSION["SESS_AUTH"]["USER_ID"]) || !$_SESSION["SESS_AUTH"]["USER_ID"])
+                if(!isset($_SESSION["SESS_AUTH"]["USER_ID"]) || !$_SESSION["SESS_AUTH"]["USER_ID"]){
                     $USER = new CUser;
-
+                }
+                
                 $this->isLogged = true;
 
                 $defaultSite = CSite::GetList($by="def", $order="desc", Array())->Fetch();
@@ -282,8 +283,7 @@ else{
 
                         // Set filter
                         $filter = array(
-                            "IBLOCK_ID" => $id,
-                            "INCLUDE_SUBSECTIONS" => "Y",
+                            "IBLOCK_ID" => $id
                         );
                         $order = array("id");
                         $arNavStatParams = Array(
@@ -294,7 +294,18 @@ else{
                         // Cycle page to page
                         do {
                             // Get products on this page
-                            $dbResProducts = CIBlockElement::GetList($order, $filter, false, $arNavStatParams, $arSelect);
+                            $elems = array();
+                            $dbResProductsIds = CIBlockElement::GetList($order, $filter, false, $arNavStatParams, array('ID'));
+                            while($obIds = $dbResProductsIds->Fetch())
+                            {
+                                $elems[] = $obIds['ID'];
+                            }
+                            $arfilter = array(
+                                "IBLOCK_ID" => $id,
+                                "ID" => $elems
+                            );
+
+                            $dbResProducts = CIBlockElement::GetList($order, $arfilter, false, false, $arSelect);
 
                             $pictures = array();
                             $products = array();
@@ -366,14 +377,15 @@ else{
                                         $resPropertiesProduct[$key] = "";
 
                                         if ($propProduct != "") {
-
-                                            if (isset($product["PROPERTY_" . $propProduct . "_NAME"]))
+                                            if (isset($product["PROPERTY_" . $propProduct . "_NAME"])){
                                                 $resPropertiesProduct[$key] =  $product["PROPERTY_" . $propProduct . "_NAME"];                                            
-                                            elseif (isset($product["PROPERTY_" . $propProduct . "_VALUE"]))
+                                            }
+                                            elseif (isset($product["PROPERTY_" . $propProduct . "_VALUE"])){
                                                 $resPropertiesProduct[$key] =  $product["PROPERTY_" . $propProduct . "_VALUE"];
-                                            elseif (isset($product[$propProduct]))
+                                            }
+                                            elseif (isset($product[$propProduct])){
                                                 $resPropertiesProduct[$key] =  $product[$propProduct];
-
+                                            }
                                             if (array_key_exists($key, $this->propertiesUnitProduct[$id])) {
                                                 $resPropertiesProduct[$key] *= $this->measurement[$this->propertiesUnitProduct[$id][$key]];
                                                 $resPropertiesProduct[$key . "_UNIT"] = $this->measurementLink[$this->propertiesUnitProduct[$id][$key]];
@@ -391,7 +403,6 @@ else{
                                             );
                                     }
                                     if (count($categories) == 0) {
-
                                         $catId = $this->mainSection + $id;
                                         $categories[$catId] = $allCategories[$catId];
                                     }
@@ -401,8 +412,6 @@ else{
                                     if (!empty($iblockOffer['IBLOCK_ID'])) {
 
                                         foreach ($product['offers'] as $offer) {
-
-
                                             $offer['PRODUCT_ID'] = $product["ID"];
                                             $offer['DETAIL_PAGE_URL'] = $product["DETAIL_PAGE_URL"];
                                             $offer['PICTURE'] = $product["PICTURE"];
@@ -413,29 +422,28 @@ else{
                                             $offer['QUANTITY'] = $offer["CATALOG_QUANTITY"];
 
                                             // Get properties of product
-
                                             foreach ($this->propertiesSKU[$id] as $key => $propSKU) {
-
                                                 if ($propSKU != "") {
-
-                                                    if (isset ($offer["PROPERTY_" . $propSKU . "_NAME"]))
+                                                    if (isset ($offer["PROPERTY_" . $propSKU . "_NAME"])){
                                                         $offer['_PROP_' . $key] =  $offer["PROPERTY_" . $propSKU . "_NAME"];
-                                                    elseif (isset($offer["PROPERTY_" . $propSKU . "_VALUE"]))
+                                                    }
+                                                    elseif (isset($offer["PROPERTY_" . $propSKU . "_VALUE"])){
                                                         $offer['_PROP_' . $key] =  $offer["PROPERTY_" . $propSKU . "_VALUE"];
-                                                    elseif (isset($offer[$propSKU]))
+                                                    }
+                                                    elseif (isset($offer[$propSKU])){
                                                         $offer['_PROP_' . $key] = $offer[$propSKU];
-
+                                                    }
                                                     if (array_key_exists($key, $this->propertiesUnitSKU[$id])) {
                                                         $offer['_PROP_' . $key] *= $this->measurement[$this->propertiesUnitSKU[$id][$key]];
                                                         $offer['_PROP_' . $key . "_UNIT"] = $this->measurementLink[$this->propertiesUnitSKU[$id][$key]];
                                                     }
                                                 }
-
                                             }
 
                                             foreach ($resPropertiesProduct as $key => $propProduct) {
-                                                if ($this->propertiesProduct[$id][$key] != "" && !isset($offer[$key]))
+                                                if ($this->propertiesProduct[$id][$key] != "" && !isset($offer[$key])){
                                                     $offer['_PROP_' . $key] =  $propProduct;
+                                                }
                                             }
 
                                             $stringOffers .= $this->BuildOffer($offer, $categories, $iblock, $allCategories);
@@ -463,16 +471,17 @@ else{
                             }
                             unset($products);
 
-                            if ($this->isLogged)
+                            if ($this->isLogged){
                                 $this->WriteLog(($this->pageSize * $arNavStatParams['iNumPage']) . " product(s) has been loaded from " . $id . " IB (memory usage: " . memory_get_usage() . ")");
+                            }
                             if ($stringOffers != "") {
                                 $this->WriteOffers($stringOffers);
                                 $stringOffers = "";
                             }
 
-                            $arNavStatParams['iNumPage'] = $dbResProducts->NavPageNomer + 1;
+                            $arNavStatParams['iNumPage'] = $dbResProductsIds->NavPageNomer + 1;
                         }
-                        while ($dbResProducts->NavPageNomer < $dbResProducts->NavPageCount);
+                        while ($dbResProductsIds->NavPageNomer < $dbResProductsIds->NavPageCount);
                 }
         }
 
@@ -484,9 +493,10 @@ else{
                         "productId=\"" . $this->PrepareValue($arOffer["PRODUCT_ID"]) . "\" ".
                         "quantity=\"" . $this->PrepareValue(DoubleVal($arOffer['QUANTITY'])) . "\">\n";
 
-                if ($arOffer['PRODUCT_ACTIVE'] == "N")
+                if ($arOffer['PRODUCT_ACTIVE'] == "N"){
                     $offer .= "<productActivity>" .  $this->PrepareValue($arOffer['PRODUCT_ACTIVE']) . "</productActivity>\n";
-
+                }
+                
                 $keys = array_keys($categories);
                 if (strpos($arOffer['DETAIL_PAGE_URL'], "#SECTION_PATH#") !== false) {
                     if (count($categories) != 0) {
@@ -514,9 +524,10 @@ else{
                 if ($arOffer['PURCHASE_PRICE'] && $this->loadPurchasePrice) {
                     $offer .= "<purchasePrice>" . $this->PrepareValue($arOffer['PURCHASE_PRICE']) . "</purchasePrice>\n";
                 }
-                foreach ($categories as $category)
+                foreach ($categories as $category){
                     $offer .= "<categoryId>" . $category['ID'] . "</categoryId>\n";
-
+                }
+                
                 $offer .= "<name>" . $this->PrepareValue($arOffer["NAME"]) . "</name>\n";
 
                 $offer .= "<xmlId>" . $this->PrepareValue($arOffer["EXTERNAL_ID"]) . "</xmlId>\n";
@@ -524,18 +535,22 @@ else{
 
                 foreach ($this->propertiesProduct[$iblock['IBLOCK_DB']['ID']] as $key => $propProduct) {
                     if ($propProduct != "" && $arOffer['_PROP_' . $key] != null) {
-                        if ($key === "manufacturer")
+                        if ($key === "manufacturer"){
                             $offer .= "<vendor>" . $this->PrepareValue($arOffer['_PROP_' . $key]) . "</vendor>\n";
-                        else
+                        }
+                        else{
                             $offer .= '<param name="' . $key . '"' . (isset($arOffer['_PROP_' . $key . "_UNIT"]) ? ' unit="' . $arOffer['_PROP_' . $key . "_UNIT"] . '"' : "") . ">" . $this->PrepareValue($arOffer['_PROP_' . $key]) . "</param>\n";
+                        }
                     }
                 }
                 foreach ($this->propertiesSKU[$iblock['IBLOCK_DB']['ID']] as $key => $propProduct) {
                     if ($propProduct != "" && $arOffer['_PROP_' . $key] != null) {
-                        if ($key === "manufacturer")
+                        if ($key === "manufacturer"){
                             $offer .= "<vendor>" . $this->PrepareValue($arOffer['_PROP_' . $key]) . "</vendor>\n";
-                        else
+                        }
+                        else{
                             $offer .= '<param name="' . $key . '"' . (isset($arOffer['_PROP_' . $key . "_UNIT"]) ? ' unit="' . $arOffer['_PROP_' . $key . "_UNIT"] . '"' : "") . ">" . $this->PrepareValue($arOffer['_PROP_' . $key]) . "</param>\n";
+                        }
                     }
                 }
 

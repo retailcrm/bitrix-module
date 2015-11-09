@@ -250,7 +250,10 @@ class ICrmOrderEvent {
                 'managerComment' => $arOrder['COMMENTS']
             );
         }
-
+        
+        $log = new Logger();
+        $log->write($order, 'order');
+            
         try {
             $api->orderEdit($order);
         } catch (\RetailCrm\Exception\CurlException $e) {
@@ -307,7 +310,8 @@ class ICrmOrderEvent {
             'paymentStatus' => $optionsPayment[$payed]
         );
         
-        $api->orderEdit($order);
+        $log = new Logger();
+        $log->write($order, 'order');
 
         try {
             $api->orderEdit($order);

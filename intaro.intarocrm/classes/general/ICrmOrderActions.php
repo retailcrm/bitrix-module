@@ -22,7 +22,8 @@ else{
         protected static $CRM_CONTRAGENT_TYPE = 'contragent_type';
         protected static $CRM_ORDER_FAILED_IDS = 'order_failed_ids';
         protected static $CRM_ORDER_HISTORY_DATE = 'order_history_date';
-
+        protected static $CRM_CATALOG_BASE_PRICE = 'catalog_base_price';
+        
         const CANCEL_PROPERTY_CODE = 'INTAROCRM_IS_CANCELED';
 
         /**
@@ -168,7 +169,7 @@ else{
             }
 
             $normalizer = new RestNormalizer();
-            $normalizer->setValidation(__DIR__ . '/config/retailcrm.json');
+            $normalizer->setValidation($_SERVER["DOCUMENT_ROOT"].'/bitrix/modules/intaro.intarocrm/classes/general/config/retailcrm.json');
 
             $customer = array();
 
@@ -309,7 +310,11 @@ else{
                     array_key_exists($arFields['LID'], $arParams['optionsSitesList'])) {
                 $site = $arParams['optionsSitesList'][$arFields['LID']];
             }
-
+            
+            $log = new Logger();
+            $log->write($customer, 'customer');
+            $log->write($order, 'order');
+            
             if($send) {
                 if (!self::apiMethod($api, 'customerEdit', __METHOD__, $customer, $site)) {
                     return false;
@@ -403,7 +408,10 @@ else{
             }
 
             $orderHistory = isset($orderHistory['orders']) ? $orderHistory['orders'] : array();
-
+            
+            $log = new Logger();
+            $log->write($orderHistory, 'history');
+            
             $dateFinish = $api->getGeneratedAt();
             if (is_null($dateFinish) || $dateFinish == false) {
                 $dateFinish = new \DateTime();
@@ -442,7 +450,7 @@ else{
 
                         $registerNewUser = true;
 
-                        if (!isset($order['customer']['email'])) {
+                        if (!isset($order['customer']['email']) || $order['customer']['email'] == '') {
                             $login = $order['customer']['email'] = uniqid('user_' . time()) . '@crm.com';
                         } else {
                             $dbUser = CUser::GetList(($by = 'ID'), ($sort = 'ASC'), array('=EMAIL' => $order['email']));
@@ -621,95 +629,234 @@ else{
                     foreach($order['items'] as $item) {
                         if(isset($item['deleted']) && $item['deleted']) {
                             if ($p = CSaleBasket::GetList(array(), array('ORDER_ID' => $order['externalId'], 'PRODUCT_ID' => $item['id']))->Fetch()) {
-                                CSaleBasket::Delete($p['ID']);
+                                if(!CSaleBasket::Delete($p['ID'])){
+                                    self::eventLog('ICrmOrderActions::orderHistory', 'CSaleBasket::Delete', 'Error element delete');
+                                }
                             }
+                            else{
+                                $prp = CSaleBasket::GetPropsList(array(), array("ORDER_ID" => $order['externalId'], "CODE" => 'ID', "VALUE" => $item['id']))->Fetch();
+                                if(!CSaleBasket::Delete($prp['BASKET_ID'])){
+                                    self::eventLog('ICrmOrderActions::orderHistory', 'CSaleBasket::Delete', 'Error castom element delete');
+                                }
+                            }
+                            
                             continue;
                         }
-
+                        
                         if (isset($item['offer']) === false && isset($item['offer']['externalId']) === false) {
                             continue;
                         }
+                        
+                        $res = CIBlockElement::GetByID($item['offer']['externalId'])->Fetch();    
 
-                        $p = CSaleBasket::GetList(array(),array('ORDER_ID' => $order['externalId'], 'PRODUCT_ID' => $item['offer']['externalId']))->Fetch();
+                        if($res){
+                            $p = CSaleBasket::GetList(array(),array('ORDER_ID' => $order['externalId'], 'PRODUCT_ID' => $item['offer']['externalId']))->Fetch();
 
-                        if ($p == false) {
-                            $p = CIBlockElement::GetByID($item['offer']['externalId'])->Fetch();
-                            $iblock = CIBlock::GetByID($p['IBLOCK_ID'])->Fetch();
-                            $p['CATALOG_XML_ID'] = $iblock['XML_ID'];
-                            $p['PRODUCT_XML_ID'] = $p['XML_ID'];
-                            unset($p['XML_ID']); 
-                        } elseif ($propResult = CSaleBasket::GetPropsList(array(''),array('BASKET_ID' => $p['ID']))) {
-                            while ($r = $propResult->Fetch()) {
-                                $p['PROPS'][] = $r;
+                            if ($p == false) {
+                                $p = CIBlockElement::GetByID($item['offer']['externalId'])->GetNext();
+                                $iblock = CIBlock::GetByID($p['IBLOCK_ID'])->Fetch();
+                                $p['CATALOG_XML_ID'] = $iblock['XML_ID'];
+                                $p['PRODUCT_XML_ID'] = $p['XML_ID'];
+                                unset($p['XML_ID']); 
+                            } elseif ($propResult = CSaleBasket::GetPropsList(array(''),array('BASKET_ID' => $p['ID']))) {
+                                while ($r = $propResult->Fetch()) {
+                                    unset($r['ID']);
+                                    unset($r['BASKET_ID']);
+                                    $p['PROPS'][] = $r;
+                                }
                             }
-                        }
+                            
+                            $arProduct = array();
 
-                        $arProduct = array();
+                            if (isset($item['created']) && $item['created'] == true) {
+                                $productPrice = GetCatalogProductPrice($item['offer']['externalId'], COption::GetOptionString(self::$MODULE_ID, self::$CRM_CATALOG_BASE_PRICE, 0));
+                                $arProduct = array(
+                                    'FUSER_ID'               => $userId,
+                                    'ORDER_ID'               => $order['externalId'],
+                                    'QUANTITY'               => $item['quantity'],
+                                    'CURRENCY'               => $productPrice['CURRENCY'],
+                                    'LID'                    => $LID,
+                                    'PRODUCT_ID'             => $item['offer']['externalId'],
+                                    'PRODUCT_PRICE_ID'       => $p['PRODUCT_PRICE_ID'],
+                                    'WEIGHT'                 => $p['WEIGHT'],
+                                    'DELAY'                  => $p['DELAY'],
+                                    'CAN_BUY'                => $p['CAN_BUY'],
+                                    'MODULE'                 => $p['MODULE'],
+                                    'NOTES'                  => $item['comment'] ?: $p['NOTES'],
+                                    'PRODUCT_PROVIDER_CLASS' => $p['PRODUCT_PROVIDER_CLASS'],
+                                    'DETAIL_PAGE_URL'        => $p['DETAIL_PAGE_URL'],
+                                    'CATALOG_XML_ID'         => $p['CATALOG_XML_ID'],
+                                    'PRODUCT_XML_ID'         => $p['PRODUCT_XML_ID'],
+                                    'CUSTOM_PRICE'           => 'Y'
+                                );
+                            }
+                            
+                            if (isset($item['isCanceled']) == false) {
+                                if (isset($item['initialPrice']) && $item['initialPrice']) {
+                                    $arProduct['PRICE'] = (double) $item['initialPrice'];
+                                }
+                                if (isset($item['discount'])) {
+                                    $arProduct['DISCOUNT_PRICE'] = $item['discount'];
+                                }
+                                if (isset($item['discountPercent'])) {
+                                    $arProduct['DISCOUNT_VALUE'] = $item['discountPercent'];
+                                    $newPrice = round($arProduct['PRICE'] / 100 * (100 - $arProduct['DISCOUNT_VALUE']), 2);
+                                    $arProduct['DISCOUNT_PRICE'] = $arProduct['DISCOUNT_PRICE'] + $arProduct['PRICE'] - $newPrice;
+                                }
+                                if(isset($item['discount']) || isset($item['discountPercent'])) {
+                                    $arProduct['PRICE'] -= $arProduct['DISCOUNT_PRICE'];
+                                }
+                                if (isset($item['offer']['name']) && $item['offer']['name']) {
+                                    $arProduct['NAME'] = self::fromJSON($item['offer']['name']);
+                                }
+                                $arProduct = self::updateCancelProp($arProduct, 0);
+                            } elseif (isset($item['isCanceled'])) {
+                                $arProduct['PRICE'] = 0;
+                                $arProduct = self::updateCancelProp($arProduct, 1);
+                            }
 
-                        if (isset($item['created']) && $item['created'] == true) {
-                            $productPrice = GetCatalogProductPrice($item['offer']['externalId'], 1);
-                            $arProduct = array(
-                                'FUSER_ID'               => $userId,
-                                'ORDER_ID'               => $order['externalId'],
-                                'QUANTITY'               => $item['quantity'],
-                                'CURRENCY'               => $productPrice['CURRENCY'],
-                                'LID'                    => $LID,
-                                'PRODUCT_ID'             => $item['offer']['externalId'],
-                                'PRODUCT_PRICE_ID'       => $p['PRODUCT_PRICE_ID'],
-                                'WEIGHT'                 => $p['WEIGHT'],
-                                'DELAY'                  => $p['DELAY'],
-                                'CAN_BUY'                => $p['CAN_BUY'],
-                                'MODULE'                 => $p['MODULE'],
-                                'NOTES'                  => $item['comment'] ?: $p['NOTES'],
-                                'PRODUCT_PROVIDER_CLASS' => $p['PRODUCT_PROVIDER_CLASS'],
-                                'DETAIL_PAGE_URL'        => $p['DETAIL_PAGE_URL'],
-                                'CATALOG_XML_ID'         => $p['CATALOG_XML_ID'],
-                                'PRODUCT_XML_ID'         => $p['PRODUCT_XML_ID'],
-                                'CUSTOM_PRICE'           => 'Y'
-                            );
-                        }
+                            if (isset($item['created']) && $item['created'] == true) {
+                                if(!Add2BasketByProductID($item['offer']['externalId'], $item['quantity'], $arProduct, $p['PROPS'])){
+                                    self::eventLog('ICrmOrderActions::orderHistory', 'Add2BasketByProductID', 'Error element add');
+                                }
+                                
+                                continue;
+                            }
 
-                        if (isset($item['isCanceled']) == false) {
-                            if (isset($item['initialPrice']) && $item['initialPrice']) {
-                                $arProduct['PRICE'] = (double) $item['initialPrice'];
+                            if (count($p['PROPS']) > 0) {
+                                $arProduct['PROPS'] = $p['PROPS'];
                             }
-                            if (isset($item['discount'])) {
-                                $arProduct['DISCOUNT_PRICE'] = $item['discount'];
-                            }
-                            if (isset($item['discountPercent'])) {
-                                $arProduct['DISCOUNT_VALUE'] = $item['discountPercent'];
-                                $newPrice = round($arProduct['PRICE'] / 100 * (100 - $arProduct['DISCOUNT_VALUE']), 2);
-                                $arProduct['DISCOUNT_PRICE'] = $arProduct['DISCOUNT_PRICE'] + $arProduct['PRICE'] - $newPrice;
-                            }
-                            if(isset($item['discount']) || isset($item['discountPercent'])) {
-                                $arProduct['PRICE'] -= $arProduct['DISCOUNT_PRICE'];
+                            if (isset($item['quantity']) && $item['quantity']) {
+                                $arProduct['QUANTITY'] = $item['quantity'];
                             }
                             if (isset($item['offer']['name']) && $item['offer']['name']) {
                                 $arProduct['NAME'] = self::fromJSON($item['offer']['name']);
                             }
-                            $arProduct = self::updateCancelProp($arProduct, 0);
-                        } elseif (isset($item['isCanceled'])) {
-                            $arProduct['PRICE'] = 0;
-                            $arProduct = self::updateCancelProp($arProduct, 1);
-                        }
 
-                        if (isset($item['created']) && $item['created'] == true) {
-                            CSaleBasket::Add($arProduct);
-                            continue;
+                            if(!CSaleBasket::Update($p['ID'], $arProduct)){
+                                self::eventLog('ICrmOrderActions::orderHistory', 'CSaleBasket::Update', 'Error element update');
+                            }
+                            CSaleBasket::DeleteAll($userId);
                         }
+                        else{
+                            $arProduct = array();
+                            
+                            if (isset($item['created']) && $item['created'] == true) {
+                                $arProduct = array(
+                                    'FUSER_ID'               => $userId,
+                                    'ORDER_ID'               => $order['externalId'],
+                                    'LID'                    => $LID,
+                                    'NOTES'                  => $item['comment'],
+                                );
+                            }
+                            
+                            if (isset($item['isCanceled']) == false) {
+                                if (isset($item['initialPrice']) && $item['initialPrice']) {
+                                    $arProduct['PRICE'] = (double) $item['initialPrice'];
+                                }
+                                if (isset($item['discount'])) {
+                                    $arProduct['DISCOUNT_PRICE'] = $item['discount'];
+                                }
+                                if (isset($item['discountPercent'])) {
+                                    $arProduct['DISCOUNT_VALUE'] = $item['discountPercent'];
+                                    $newPrice = round($arProduct['PRICE'] / 100 * (100 - $arProduct['DISCOUNT_VALUE']), 2);
+                                    $arProduct['DISCOUNT_PRICE'] = $arProduct['DISCOUNT_PRICE'] + $arProduct['PRICE'] - $newPrice;
+                                }
+                                if(isset($item['discount']) || isset($item['discountPercent'])) {
+                                    $arProduct['PRICE'] -= $arProduct['DISCOUNT_PRICE'];
+                                }
+                                if (isset($item['offer']['name']) && $item['offer']['name']) {
+                                    $arProduct['NAME'] = self::fromJSON($item['offer']['name']);
+                                }
+                                $arProduct = self::updateCancelProp($arProduct, 0);
+                            } elseif (isset($item['isCanceled'])) {
+                                $arProduct['PRICE'] = 0;
+                                $arProduct = self::updateCancelProp($arProduct, 1);
+                            }
+                            
+                            if (isset($item['quantity']) && $item['quantity']) {
+                                $arProduct['QUANTITY'] = $item['quantity'];
+                            }
+                            if (isset($item['offer']['name']) && $item['offer']['name']) {
+                                $arProduct['NAME'] = self::fromJSON($item['offer']['name']);
+                            }
+                            
+                            if (isset($item['created']) && $item['created'] == true) {
+                                $iBlocks = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_CATALOG_IBLOCKS, 0));
+                                $iBlock = array_shift($iBlocks);
+                                
+                                $newSection = new CIBlockSection;
+                                $newSectionFields = Array(
+                                    "ACTIVE"    => 'N',
+                                    "IBLOCK_ID" => $iBlock,
+                                    "NAME"      => 'RetailCRM',
+                                    "CODE"      => 'RetailCRM',
+                                );
+                                $resSection = $newSection->Add($newSectionFields);
+                                if(!$resSection){
+                                    self::eventLog('ICrmOrderActions::orderHistory', 'CIBlockSection::Add', 'Error castom section add');
+                                    
+                                    continue;
+                                }
 
-                        if (count($p['PROPS']) > 0) {
-                            $arProduct['PROPS'] = $p['PROPS'];
-                        }
-                        if (isset($item['quantity']) && $item['quantity']) {
-                            $arProduct['QUANTITY'] = $item['quantity'];
-                        }
-                        if (isset($item['offer']['name']) && $item['offer']['name']) {
-                            $arProduct['NAME'] = self::fromJSON($item['offer']['name']);
-                        }
+                                $arLoadProductArray = Array(
+                                    "IBLOCK_SECTION_ID" => $resSection,
+                                    "IBLOCK_ID"         => $iBlock,
+                                    "NAME"              => $item['offer']['name'] ? $item['offer']['name'] : 'RetailCrmElement',
+                                    "CODE"              => 'RetailCrmElement',
+                                    "ACTIVE"            => 'Y'
+                                );
+                                $el = new CIBlockElement;
+                                $PRODUCT_ID = $el->Add($arLoadProductArray, false, false, true); 
+                                if(!$PRODUCT_ID){
+                                    self::eventLog('ICrmOrderActions::orderHistory', 'CIBlockElement::Add', 'Error castom element add');
+                                    
+                                    continue;
+                                }
 
-                        CSaleBasket::Update($p['ID'], $arProduct);
-                        CSaleBasket::DeleteAll($userId);
+                                if(!CCatalogProduct::Add(array("ID" => $PRODUCT_ID))){
+                                    self::eventLog('ICrmOrderActions::orderHistory', 'CCatalogProduct::Add', 'Error product add');
+                                    
+                                    continue;
+                                }
+
+                                $arFields = Array(
+                                    "PRODUCT_ID" => $PRODUCT_ID,
+                                    "CATALOG_GROUP_ID" => COption::GetOptionString(self::$MODULE_ID, self::$CRM_CATALOG_BASE_PRICE, 0),
+                                    "PRICE" => $item['initialPrice'] ? $item['initialPrice'] : 1,
+                                    "CURRENCY" => CCurrency::GetBaseCurrency(),
+                                );
+                                if(!CPrice::Add($arFields)){
+                                    self::eventLog('ICrmOrderActions::orderHistory', 'CPrice::Add', 'Error price add');
+                                    
+                                    continue;
+                                }
+                                
+                                $Params = array(
+                                    array(
+                                        'NAME' => 'id',
+                                        'CODE' => 'ID',
+                                        'VALUE' => $item['offer']['externalId']
+                                    )
+                                );
+                                if(!Add2BasketByProductID($PRODUCT_ID, $item['quantity'], $arProduct, $Params)){
+                                    self::eventLog('ICrmOrderActions::orderHistory', 'Add2BasketByProductID', 'Error add to basket');
+                                    
+                                    continue;
+                                } 
+
+                                if(!CIBlockSection::Delete($resSection)){
+                                    self::eventLog('ICrmOrderActions::orderHistory', 'CIBlockSection::Delete', 'Error delete section');
+                                    
+                                    continue;
+                                } 
+                                
+                                continue;
+                            }
+                            
+                            $prp = CSaleBasket::GetPropsList(array(), array("ORDER_ID" => $order['externalId'], "CODE" => 'ID', "VALUE" => $item['offer']['externalId']))->Fetch();
+                            CSaleBasket::Update($prp['BASKET_ID'], $arProduct);
+                        }
                     }
 
                     if (isset($order['delivery']) === false || isset($order['delivery']['cost']) === false) {

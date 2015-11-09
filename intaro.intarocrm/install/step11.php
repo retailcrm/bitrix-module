@@ -34,6 +34,7 @@
                 <td width="50%" class="adm-detail-content-cell-l"><?php echo $site['NAME'] . ' (' . $site['LID'] . ')'; ?></td>
                 <td width="50%" class="adm-detail-content-cell-r">
                     <select class="typeselect" name="sites-id-<?php echo $site['LID']?>">
+                        <option value=""></option>
                         <?php foreach ($arResult['sitesList'] as $sitesList): ?>
                             <option value="<?php echo $sitesList['code'] ?>"><?php echo $sitesList['name']?></option>
                         <?php endforeach; ?>

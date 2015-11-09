@@ -272,6 +272,9 @@
         "managerId": {
             "type": "int"
         },
+        "deliveryTime": {
+            "type": "string"
+        },
         "paymentType": {
             "type": "string"
         },
@@ -293,7 +296,7 @@
         "quantity": {
             "type": "double",
             "default": 1,
-            "min": 1,
+            "min": 0,
             "decimals": 1
         },
         "properties": {

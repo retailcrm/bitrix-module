@@ -172,7 +172,7 @@ class RestNormalizer
                 $formatted[ $code ] = $this->formatting($value, true);
             }
 
-            if ($formatted[ $code ] === null || $formatted[ $code ] == '' || count($formatted[ $code ]) < 1) {
+            if ($formatted[ $code ] === null || $formatted[ $code ] === '' || count($formatted[ $code ]) < 1) {
                 if ($this->clear === true) {
                     unset($formatted[ $code ]);
                 }

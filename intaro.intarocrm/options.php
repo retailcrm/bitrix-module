@@ -426,7 +426,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         $arResult['paymentStatusesList'] = $api->paymentStatusesList()->paymentStatuses; // --statuses
         $arResult['paymentList'] = $api->orderStatusesList()->statuses;
         $arResult['paymentGroupList'] = $api->orderStatusGroupsList()->statusGroups; // -- statuses groups
-        $arResult['sitesList'] = $api->sitesList()->sites; 
+        $arResult['sitesList'] = $APPLICATION->ConvertCharsetArray($api->sitesList()->sites, 'utf-8', SITE_CHARSET);
     } catch (\RetailCrm\Exception\CurlException $e) {
         ICrmOrderActions::eventLog(
             'intaro.crm/options.php', 'RetailCrm\RestApi::*List::CurlException',
@@ -434,6 +434,10 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         );
 
         echo CAdminMessage::ShowMessage(GetMessage('ERR_' . $e->getCode()));
+    }
+    catch (InvalidArgumentException $e) {
+        $badKey = true;
+        echo CAdminMessage::ShowMessage(GetMessage('ERR_403'));
     }
 
     //bitrix orderTypesList -- personTypes
@@ -525,7 +529,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
 
     if ($arPaymentStatusesList = $dbPaymentStatusesList->Fetch()) {
         do {
-            $arResult['bitrixPaymentStatusesList'][] = $arPaymentStatusesList;
+            $arResult['bitrixPaymentStatusesList'][$arPaymentStatusesList['ID']] = $arPaymentStatusesList;
         } while ($arPaymentStatusesList = $dbPaymentStatusesList->Fetch());
     }
     $arResult['bitrixPaymentStatusesList'][] = array(
@@ -681,6 +685,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         <td width="50%" class="adm-detail-content-cell-l"><?php echo $site['NAME'] . ' (' . $site['LID'] . ')'; ?></td>
         <td width="50%" class="adm-detail-content-cell-r">
             <select class="typeselect" name="sites-id-<?php echo $site['LID']?>">
+                <option value=""></option>
                 <?php foreach ($arResult['sitesList'] as $sitesList): ?>
                     <option value="<?php echo $sitesList['code'] ?>" <?php if($sitesList['code'] == $optionsSitesList[$site['LID']]) echo 'selected="selected"'; ?>><?php echo $sitesList['name']?></option>
                 <?php endforeach; ?>
@@ -689,6 +694,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     </tr>
     <?php endforeach; ?>
     <?php endif;?>
+<?php if(!$badKey):?>
 <?php $tabControl->BeginNextTab(); ?>
     <input type="hidden" name="tab" value="catalog">
     <tr align="center">
@@ -928,6 +934,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             </b>
         </td>
     </tr>  
+<?php endif;?>
 <?php $tabControl->Buttons(); ?>
     <input type="hidden" name="Update" value="Y" />
     <input type="submit" title="<?php echo GetMessage('ICRM_OPTIONS_SUBMIT_TITLE'); ?>" value="<?php echo GetMessage('ICRM_OPTIONS_SUBMIT_VALUE'); ?>" name="btn-update" class="adm-btn-save" />
@@ -1093,7 +1100,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         <br />
         <div class="order-upload-button">
             <div align="left">
-                <input type="submit" name="start" value="Начать выгрузку" class="adm-btn-save">
+                <input type="submit" name="start" value="<?php echo GetMessage('ORDER_UPL_START'); ?>" class="adm-btn-save">
             </div>
         </div>
     </div>

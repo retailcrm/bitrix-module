@@ -40,6 +40,7 @@ class intaro_intarocrm extends CModule {
     var $CRM_ORDER_FAILED_IDS = 'order_failed_ids';
     var $CRM_ORDER_HISTORY_DATE = 'order_history_date';
     var $CRM_CATALOG_BASE_PRICE = 'catalog_base_price';
+    var $CRM_CATALOG_IBLOCKS = 'catalog_base_iblocks';
     var $INSTALL_PATH;
 
     function intaro_intarocrm() {
@@ -188,7 +189,7 @@ class intaro_intarocrm extends CModule {
             $this->INTARO_CRM_API = new RetailCrm\RestApi($api_host, $api_key);
             //api key ok and sites list
             try {
-                $arResult['sitesList'] = $this->INTARO_CRM_API->sitesList()->sites;
+                $arResult['sitesList'] = $APPLICATION->ConvertCharsetArray($this->INTARO_CRM_API->sitesList()->sites, 'utf-8', SITE_CHARSET);
             } catch (\RetailCrm\Exception\CurlException $e) {
                 ICrmOrderActions::eventLog(
                     'intaro.crm/install/index.php', 'RetailCrm\RestApi::sitesList',
@@ -376,7 +377,7 @@ class intaro_intarocrm extends CModule {
                 $paymentStatusesArr['YY'] = htmlspecialchars(trim($_POST['payment-status-YY']));
                 if ($arPaymentStatusesList = $dbPaymentStatusesList->Fetch()) {
                     do {
-                        $arResult['bitrixPaymentStatusesList'][] = $arPaymentStatusesList;
+                        $arResult['bitrixPaymentStatusesList'][$arPaymentStatusesList['ID']] = $arPaymentStatusesList;
                         $paymentStatusesArr[$arPaymentStatusesList['ID']] = htmlspecialchars(trim($_POST['payment-status-' . $arPaymentStatusesList['ID']]));
                     } while ($arPaymentStatusesList = $dbPaymentStatusesList->Fetch());
                 }
@@ -686,7 +687,7 @@ class intaro_intarocrm extends CModule {
 
             if ($arPaymentStatusesList = $dbPaymentStatusesList->Fetch()) {
                 do {
-                    $arResult['bitrixPaymentStatusesList'][] = $arPaymentStatusesList;
+                    $arResult['bitrixPaymentStatusesList'][$arPaymentStatusesList['ID']] = $arPaymentStatusesList;
                 } while ($arPaymentStatusesList = $dbPaymentStatusesList->Fetch());
             }
 
@@ -1165,6 +1166,7 @@ class intaro_intarocrm extends CModule {
             RegisterModuleDependences("sale", "OnSaleReserveOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSaleReserveOrder");
 
             COption::SetOptionString($this->MODULE_ID, $this->CRM_CATALOG_BASE_PRICE, htmlspecialchars(trim($_POST['price-types'])));
+            COption::SetOptionString($this->MODULE_ID, $this->CRM_CATALOG_IBLOCKS, $iblocks);
 
             $this->CopyFiles();
             if (isset($_POST['LOAD_NOW'])) {
@@ -1343,6 +1345,7 @@ class intaro_intarocrm extends CModule {
         COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_FAILED_IDS);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_HISTORY_DATE);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_CATALOG_BASE_PRICE);
+        COption::RemoveOption($this->MODULE_ID, $this->CRM_CATALOG_IBLOCKS);
 
         UnRegisterModuleDependences("sale", "OnSalePayOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSalePayOrder");
         UnRegisterModuleDependences("sale", "OnSaleCancelOrder", $this->MODULE_ID, "ICrmOrderEvent", "onSaleCancelOrder");

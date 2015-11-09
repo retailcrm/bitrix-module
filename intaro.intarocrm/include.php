@@ -3,6 +3,7 @@ CModule::AddAutoloadClasses(
     'intaro.intarocrm', // module name
     array (
         'RestNormalizer'                            => 'classes/general/RestNormalizer.php',
+        'Logger'                                    => 'classes/general/Logger.php',
         'RetailCrm\RestApi'                         => 'classes/general/RestApi.php',
         'RetailCrm\Response\ApiResponse'            => 'classes/general/Response/ApiResponse.php',
         'ICrmOrderActions'                          => 'classes/general/ICrmOrderActions.php',
