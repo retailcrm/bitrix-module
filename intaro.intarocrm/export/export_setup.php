@@ -136,7 +136,7 @@ else{
 
         $iblockFieldsName = Array(
 
-            "weight" => Array("code" => "catalog_size" , "name" => GetMessage("SELECT_WEIGHT_PROPERTY_NAME"), 'unit' => 'mass'),
+            "weight" => Array("code" => "catalog_weight" , "name" => GetMessage("SELECT_WEIGHT_PROPERTY_NAME"), 'unit' => 'mass'),
             "length" => Array("code" => "catalog_length" , "name" => GetMessage("SELECT_LENGTH_PROPERTY_NAME"), 'unit' => 'length'),
             "width" => Array("code" => "catalog_width" , "name" => GetMessage("SELECT_WIDTH_PROPERTY_NAME"), 'unit' => 'length'),
             "height" => Array("code" => "catalog_height" , "name" => GetMessage("SELECT_HEIGHT_PROPERTY_NAME"), 'unit' => 'length'),
@@ -696,6 +696,7 @@ else{
     elseif ($STEP==2)
     {
         COption::SetOptionString($MODULE_ID, $CRM_CATALOG_BASE_PRICE . '_' . $_REQUEST['PROFILE_ID'], htmlspecialchars(trim($_POST['price-types'])));
+        COption::SetOptionString($MODULE_ID, 'catalog_base_iblocks', serialize($IBLOCK_EXPORT));
         $FINITE = true;
     }
 }
