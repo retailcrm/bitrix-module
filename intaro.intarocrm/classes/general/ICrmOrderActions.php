@@ -898,6 +898,10 @@ else{
                         'COMMENTS'         => self::fromJSON($order['managerComment'])
                     ));
 
+                    if (! date_create_from_format('Y-m-d H:i:s', $arFields['DATE_MARKED'])) {
+                        unset($arFields['DATE_MARKED']);
+                    }
+
                     if (isset($order['discount'])) {
                         $arFields['DISCOUNT_VALUE'] = $order['discount'];
                         $arFields['PRICE'] -= $order['discount'];
