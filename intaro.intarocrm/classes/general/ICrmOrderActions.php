@@ -904,7 +904,15 @@ else{
                     }
 
                     if(!empty($arFields)) {
-                        CSaleOrder::Update($order['externalId'], $arFields);
+                        try {
+                            CSaleOrder::Update($order['externalId'], $arFields);
+                        } catch (Exception $e) {
+                            self::eventLog(
+                                'ICrmOrderActions::orderHistory', 'CSaleOrder::Update',
+                                $e->getCode() . ': ' . $e->getMessage() . ' (order external id: '.$order['externalId'].')'
+                            );
+                            continue;
+                        }
                     }
 
                     if(isset($order['status']) && $order['status']) {
