@@ -80,6 +80,7 @@ class intaro_intarocrm extends CModule {
         include($this->INSTALL_PATH . '/../classes/general/Response/ApiResponse.php');
         include($this->INSTALL_PATH . '/../classes/general/ICrmOrderActions.php');
         include($this->INSTALL_PATH . '/../classes/general/ICMLLoader.php');
+        include($this->INSTALL_PATH . '/../classes/general/Logger.php');
         include($this->INSTALL_PATH . '/../classes/general/Exception/InvalidJsonException.php');
         include($this->INSTALL_PATH . '/../classes/general/Exception/CurlException.php');
         include($this->INSTALL_PATH . '/../classes/general/RestNormalizer.php');
