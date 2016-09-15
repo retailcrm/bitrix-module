@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<options>
+    <contragents>
+        <contragent id="individual">Физ. лицо</contragent>
+        <contragent id="legal-entity">Юр. лицо</contragent>
+        <contragent id="enterpreneur">ИП</contragent>
+    </contragents>
+    <fields>
+        <field id="fio">Ф.И.О.</field>
+        <field id="phone">Телефон</field>
+        <field id="email">E-mail</field>
+        <field id="text">Адрес (строкой)</field>
+        <field id="city">Город</field>
+        <field id="index">Индекс</field>
+        <field id="street">Улица</field>
+        <field id="building">Номер дома</field>
+        <field id="flat">Квартира</field>
+        <field id="intercomcode">Домофон</field>
+        <field id="floor">Этаж</field>
+        <field id="block">Подъезд</field>
+        <field id="house">Строение / корпус</field>
+
+        <field id="legalName" group="legal-entity, enterpreneur">Полное наименование</field>
+        <field id="legalAddress" group="legal-entity, enterpreneur">Адрес регистрации (Юридический адрес)</field>
+        <field id="INN" group="legal-entity, enterpreneur">ИНН</field>
+        <field id="OKPO" group="legal-entity, enterpreneur">ОКПО</field>
+        <field id="BIK" group="legal-entity, enterpreneur">БИК</field>
+        <field id="bank" group="legal-entity, enterpreneur">Банк</field>
+        <field id="bankAddress" group="legal-entity, enterpreneur">Адрес банка</field>
+        <field id="corrAccount" group="legal-entity, enterpreneur">Корреспондентский счет</field>
+        <field id="bankAccount" group="legal-entity, enterpreneur">Расчетный счет</field>
+        
+        <field id="KPP" group="legal-entity">КПП</field>
+        <field id="OGRN" group="legal-entity">ОГРН</field>
+        
+        <field id="OGRNIP" group="enterpreneur">ОГРНИП</field>
+        <field id="certificateNumber" group="enterpreneur">Номер свидетельства</field>
+        <field id="certificateDate" group="enterpreneur">Дата свидетельства</field>
+
+    </fields>
+</options>
