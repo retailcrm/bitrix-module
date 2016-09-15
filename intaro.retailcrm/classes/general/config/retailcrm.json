@@ -1,0 +1,385 @@
+{
+    "customers": {
+        "externalId": {
+            "type": "string",
+            "required": true
+        },
+        "firstName": {
+            "type": "string"
+        },
+        "lastName": {
+            "type": "string"
+        },
+        "patronymic": {
+            "type": "string"
+        },
+        "email": {
+            "type": "string"
+        },
+        "number": {
+            "type": "string"
+        },
+        "site": {
+            "type": "string"
+        },
+        "index": {
+            "type": "string"
+        },
+        "country": {
+            "type": "string"
+        },
+        "region": {
+            "type": "string"
+        },
+        "city": {
+            "type": "string"
+        },
+        "street": {
+            "type": "string"
+        },
+        "building": {
+            "type": "string"
+        },
+        "flat": {
+            "type": "string"
+        },
+        "intercomCode": {
+            "type": "string"
+        },
+        "floor": {
+            "type": "int"
+        },
+        "block": {
+            "type": "int"
+        },
+        "house": {
+            "type": "string"
+        },
+        "metro": {
+            "type": "string"
+        },
+        "notes": {
+            "type": "string"
+        },
+        "text": {
+            "type": "string"
+        },
+        "createdAt": {
+            "type": "datetime",
+            "format": "Y-m-d H:i:s"
+        },
+        "vip": {
+            "type": "bool",
+            "default": false
+        },
+        "bad": {
+            "type": "bool",
+            "default": false
+        },
+        "commentary": {
+            "type": "string"
+        },
+        "customFields": {
+            "type": "skip"
+        },
+        "contragentType": {
+            "type": "enum",
+            "default": "individual",
+            "values": ["individual", "legal-entity", "enterpreneur"]
+        },
+        "legalName": {
+            "type": "string"
+        },
+        "legalAddress": {
+            "type": "string"
+        },
+        "INN": {
+            "type": "string"
+        },
+        "OKPO": {
+            "type": "string"
+        },
+        "KPP": {
+            "type": "string"
+        },
+        "OGRN": {
+            "type": "string"
+        },
+        "OGRNIP": {
+            "type": "string"
+        },
+        "certificateNumber": {
+            "type": "string"
+        },
+        "certificateDate": {
+            "type": "datetime",
+            "format": "Y-m-d"
+        },
+        "BIK": {
+            "type": "string"
+        },
+        "bank": {
+            "type": "string"
+        },
+        "bankAddress": {
+            "type": "string"
+        },
+        "corrAccount": {
+            "type": "string"
+        },
+        "bankAccount": {
+            "type": "string"
+        },
+        "managerId": {
+            "type": "int"
+        }
+    },
+    "orders": {
+        "number": {
+            "type": "string"
+        },
+        "externalId": {
+            "type": "string",
+            "required": true
+        },
+        "createdAt": {
+            "type": "datetime",
+            "format": "Y-m-d H:i:s"
+        },
+        "discount": {
+            "type": "double",
+            "default": 0,
+            "min": 0,
+            "decimals": 2
+        },
+        "discountPercent": {
+            "type": "double",
+            "default": 0,
+            "max": 100,
+            "min": 0,
+            "decimals": 2
+        },
+        "mark": {
+            "type": "int",
+            "max": 10,
+            "min": 0
+        },
+        "markDatetime": {
+            "type": "datetime",
+            "format": "Y-m-d H:i:s"
+        },
+        "firstName": {
+            "type": "string"
+        },
+        "lastName": {
+            "type": "string"
+        },
+        "patronymic": {
+            "type": "string"
+        },
+        "phone": {
+            "type": "string"
+        },
+        "additionalPhone": {
+            "type": "string"
+        },
+        "email": {
+            "type": "string"
+        },
+        "site": {
+            "type": "string"
+        },
+        "call": {
+            "type": "bool",
+            "default": false
+        },
+        "expired": {
+            "type": "bool",
+            "default": false
+        },
+        "customerComment": {
+            "type": "string"
+        },
+        "managerComment": {
+            "type": "string"
+        },
+        "paymentDetail": {
+            "type": "string"
+        },
+        "statusComment": {
+            "type": "string"
+        },
+        "customFields": {
+            "type": "skip"
+        },
+        "contragentType": {
+            "type": "enum",
+            "default": "individual",
+            "values": ["individual", "legal-entity", "enterpreneur"]
+        },
+        "legalName": {
+            "type": "string"
+        },
+        "legalAddress": {
+            "type": "string"
+        },
+        "INN": {
+            "type": "string"
+        },
+        "OKPO": {
+            "type": "string"
+        },
+        "KPP": {
+            "type": "string"
+        },
+        "OGRN": {
+            "type": "string"
+        },
+        "OGRNIP": {
+            "type": "string"
+        },
+        "certificateNumber": {
+            "type": "string"
+        },
+        "certificateDate": {
+            "type": "datetime",
+            "format": "Y-m-d"
+        },
+        "BIK": {
+            "type": "string"
+        },
+        "bank": {
+            "type": "string"
+        },
+        "bankAddress": {
+            "type": "string"
+        },
+        "corrAccount": {
+            "type": "string"
+        },
+        "bankAccount": {
+            "type": "string"
+        },
+        "orderType": {
+            "type": "string"
+        },
+        "orderMethod": {
+            "type": "string"
+        },
+        "customerId": {
+            "type": "string"
+        },
+        "managerId": {
+            "type": "int"
+        },
+        "deliveryTime": {
+            "type": "string"
+        },
+        "paymentType": {
+            "type": "string"
+        },
+        "paymentStatus": {
+            "type": "string"
+        },
+        "status": {
+            "type": "string"
+        },
+        "sourceId": {
+            "type": "string"
+        },
+        "initialPrice": {
+            "type": "double",
+            "default": 0,
+            "min": 0,
+            "decimals": 2
+        },
+        "quantity": {
+            "type": "double",
+            "default": 1,
+            "min": 0,
+            "decimals": 1
+        },
+        "properties": {
+            "type": "skip"
+        },
+        "productId": {
+            "type": "string"
+        },
+        "productName": {
+            "type": "string"
+        },
+        "comment": {
+            "type": "string"
+        },
+        "purchasePrice": {
+            "type": "double",
+            "default": 0,
+            "min": 0,
+            "decimals": 1
+        },
+        "code": {
+            "type": "string"
+        },
+        "integrationCode": {
+            "type": "string"
+        },
+        "data": {
+            "type": "skip"
+        },
+        "service": {
+            "type": "skip"
+        },
+        "cost": {
+            "type": "string"
+        },
+        "date": {
+            "type": "datetime",
+            "format": "Y-m-d"
+        },
+        "index": {
+            "type": "string"
+        },
+        "country": {
+            "type": "string"
+        },
+        "region": {
+            "type": "string"
+        },
+        "city": {
+            "type": "string"
+        },
+        "street": {
+            "type": "string"
+        },
+        "building": {
+            "type": "string"
+        },
+        "flat": {
+            "type": "string"
+        },
+        "intercomCode": {
+            "type": "string"
+        },
+        "floor": {
+            "type": "int"
+        },
+        "block": {
+            "type": "int"
+        },
+        "house": {
+            "type": "string"
+        },
+        "metro": {
+            "type": "string"
+        },
+        "notes": {
+            "type": "string"
+        },
+        "text": {
+            "type": "string"
+        },
+        "shipmentStore": {
+            "type": "string"
+        }
+    }
+}
