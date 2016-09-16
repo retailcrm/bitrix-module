@@ -91,18 +91,12 @@ class intaro_retailcrm extends CModule {
         include($this->INSTALL_PATH . '/../classes/general/ApiClient.php');
         include($this->INSTALL_PATH . '/../classes/general/Http/Client.php');
         include($this->INSTALL_PATH . '/../classes/general/Response/ApiResponse.php');
-<<<<<<< HEAD:intaro.intarocrm/install/index.php
-        include($this->INSTALL_PATH . '/../classes/general/ICrmOrderActions.php');
-        include($this->INSTALL_PATH . '/../classes/general/ICMLLoader.php');
-        include($this->INSTALL_PATH . '/../classes/general/Logger.php');
-=======
         include($this->INSTALL_PATH . '/../classes/general/RCrmActions.php');
         include($this->INSTALL_PATH . '/../classes/general/user/RetailCrmUser.php');
         include($this->INSTALL_PATH . '/../classes/general/order/RetailCrmOrder.php');
         include($this->INSTALL_PATH . '/../classes/general/history/RetailCrmHistory.php');
         include($this->INSTALL_PATH . '/../classes/general/events/RetailCrmEvent.php');
         include($this->INSTALL_PATH . '/../classes/general/icml/RetailCrmICML.php');
->>>>>>> upstream/master:intaro.retailcrm/install/index.php
         include($this->INSTALL_PATH . '/../classes/general/Exception/InvalidJsonException.php');
         include($this->INSTALL_PATH . '/../classes/general/Exception/CurlException.php');
         include($this->INSTALL_PATH . '/../classes/general/RestNormalizer.php');
@@ -793,6 +787,7 @@ class intaro_retailcrm extends CModule {
             }
             //order upload
             if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') && isset($_POST['ajax']) && ($_POST['ajax'] == 1)) {
+                $historyTime = Date('');
                 RetailCrmOrder::uploadOrders(); // each 50
 
                 $lastUpOrderId = COption::GetOptionString($this->MODULE_ID, $this->CRM_ORDER_LAST_ID, 0);
@@ -1289,13 +1284,6 @@ class intaro_retailcrm extends CModule {
     }
 
     function GetProfileSetupVars($iblocks, $propertiesProduct, $propertiesUnitProduct, $propertiesSKU, $propertiesUnitSKU, $filename) {
-        // Get string like IBLOCK_EXPORT[0]=3&
-        // IBLOCK_EXPORT[1]=6&
-        // IBLOCK_PROPERTY_ARTICLE[0]=ARTICLE&
-        // IBLOCK_PROPERTY_ARTICLE[1]=ARTNUMBER&
-        // SETUP_FILE_NAME=%2Fbitrix%2Fcatalog_export%2Ftestintarocrm.xml
-
-        //$arProfileFields = explode(",", $SETUP_FIELDS_LIST);
         $strVars = "";
         foreach ($iblocks as $key => $val) 
             $strVars .= 'IBLOCK_EXPORT[' . $key . ']=' . $val . '&';
@@ -1318,10 +1306,12 @@ class intaro_retailcrm extends CModule {
     }
     
     function historyLoad($api, $method){
-        $historyFilter = array();
+        $page = null;
+        $i = 0;
         while(true){
+            $i++;
             try {
-                $history = $api->$method($historyFilter);
+                $history = $api->$method(array(), $page);
             } catch (\RetailCrm\Exception\CurlException $e) {
                 RCrmActions::eventLog(
                     'RetailCrmHistory::' . $method, 'RetailCrm\RestApi::' . $method . '::CurlException',
@@ -1348,11 +1338,11 @@ class intaro_retailcrm extends CModule {
                 break;
             }   
 
-            if($history['pagination']['totalPageCount'] == 1){        
+            if($history['pagination']['totalPageCount'] == $history['pagination']['currentPage']){        
                 break;
             }
 
-            $historyFilter['sinceId'] = $end['id'];
+            $page = $history['pagination']['totalPageCount'];
         }
 
         return $end['id'];
