@@ -51,4 +51,60 @@ class RetailCrmUser
         return $customer;
     }
     
+    public static function customerEdit($arFields, $api, $optionsSitesList = array()){
+        if (empty($arFields)) {
+            RCrmActions::eventLog('RetailCrmUser::orderEdit', 'empty($arFields)', 'incorrect customer');
+            return false;
+        }
+       
+        $customer = array(
+            'externalId'     => $arFields['ID'],
+            'firstName'      => $arFields['NAME'],
+            'lastName'       => $arFields['LAST_NAME'],
+            'patronymic'     => $arFields['SECOND_NAME'],
+            'email'          => $arFields['EMAIL']
+        );
+        if(isset($arFields['PERSONAL_PHONE'])){
+            $customer['phones'][]['number'] = $arFields['PERSONAL_PHONE'];
+        }
+        if(isset($arFields['WORK_PHONE'])){
+            $customer['phones'][]['number'] = $arFields['WORK_PHONE'];
+        }
+        
+        $found = false;
+        if(count($optionsSitesList)>1){
+            foreach($optionsSitesList as $site){
+                $userCrm = RCrmActions::apiMethod($api, 'customersGet', __METHOD__, $arFields['ID'], $site);
+                if(isset($userCrm['customer'])){
+                    $found = true;
+                    break;
+                }
+            }
+        }
+        else{
+            $site = null;
+            $userCrm = RCrmActions::apiMethod($api, 'customersGet', __METHOD__, $arFields['ID'], $site);
+            if(isset($userCrm['customer'])){
+                $found = true;
+            }
+        }
+        
+        if($found){
+            $normalizer = new RestNormalizer();
+            $customer = $normalizer->normalize($customer, 'customers');
+
+            $log = new Logger();
+            $log->write($customer, 'customer');
+        
+            if (function_exists('retailcrmBeforeCustomerSend')) {
+                $newResCustomer = intarocrm_before_customer_send($customer);
+                if (is_array($newResCustomer) && !empty($newResCustomer)) {
+                    $customer = $newResCustomer;
+                }
+            }
+            RCrmActions::apiMethod($api, 'customersEdit', __METHOD__, $customer, $site);
+        }
+        
+        return true;
+    }
 }

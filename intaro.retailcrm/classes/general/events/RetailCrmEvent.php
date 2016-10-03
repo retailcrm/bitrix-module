@@ -2,7 +2,6 @@
 /**
  * RCrmEvent
  */
-
 class RetailCrmEvent {    
     protected static $MODULE_ID = 'intaro.retailcrm';
     protected static $CRM_API_HOST_OPTION = 'api_host';
@@ -34,33 +33,18 @@ class RetailCrmEvent {
             return;
         }
         
-        $customer = array(
-            'externalId'     => $arFields['ID'],
-            'firstName'      => $arFields['NAME'],
-            'lastName'       => $arFields['LAST_NAME'],
-            'patronymic'     => $arFields['SECOND_NAME'],
-            'email'          => $arFields['EMAIL']
-        );
-        if(isset($arFields['PERSONAL_PHONE'])){
-            $customer['phones'][]['number'] = $arFields['PERSONAL_PHONE'];
-        }
-        if(isset($arFields['WORK_PHONE'])){
-            $customer['phones'][]['number'] = $arFields['WORK_PHONE'];
-        }
-        
-        if (function_exists('retailcrmBeforeCustomerSend')) {
-            $newResCustomer = intarocrm_before_customer_send($customer);
-            if (is_array($newResCustomer) && !empty($newResCustomer)) {
-                $customer = $newResCustomer;
-            }
-        }
         $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
         $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
-
         $api = new RetailCrm\ApiClient($api_host, $api_key);
         
-        //ищем юзера по id и др. данным.
-        //апдейтим если находим
+        $optionsSitesList = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_SITES_LIST, 0));
+        
+        $resultOrder = RetailCrmUser::customerEdit($arFields, $api, $optionsSitesList);
+        if(!$resultOrder) {
+            RCrmActions::eventLog('RetailCrmEvent::OnAfterUserUpdate', 'RetailCrmUser::customerEdit', 'error update customer');
+        }
+
+        return true; 
     }
     
     /**
@@ -68,10 +52,10 @@ class RetailCrmEvent {
      * 
      * @param mixed $arFields - User arFields
      */
-    function onBeforeOrderAdd($arFields = array()) {
-        $GLOBALS['RETAILCRM_ORDER_OLD_EVENT'] = false;
-        return;
-    }
+//    function onBeforeOrderAdd($arFields = array()) {
+//        $GLOBALS['RETAILCRM_ORDER_OLD_EVENT'] = false;
+//        return;
+//    }
     
     /**
      * OnOrderSave
@@ -118,7 +102,6 @@ class RetailCrmEvent {
 
     function orderSave($event){
         if($GLOBALS['RETAILCRM_ORDER_OLD_EVENT'] !== false && $GLOBALS['RETAIL_CRM_HISTORY'] !== true && $GLOBALS['RETAILCRM_ORDER_DELETE'] !== true){
-
             if (!CModule::IncludeModule('iblock')) {
                 RCrmActions::eventLog('RetailCrmEvent::orderSave', 'iblock', 'module not found');
                 return true;
