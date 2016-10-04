@@ -33,24 +33,6 @@ class RestNormalizer
     }
 
     /**
-     * Installation file validation
-     * @param string $file The path to the file validation
-     * @return void
-     * @access public
-     * @final
-     */
-//    final public function setValidation($file = false)
-//    {
-//        if ($file === false || is_null($file) || is_file($file) === false) {
-//                $file = $this->server . '/bitrix/modules/intaro.intarocrm/classes/general/config/retailcrm.json';
-//        }
-//        if (json_decode(file_get_contents($file)) === null || $this->parseConfig($file) === false) {
-//            ICrmOrderActions::eventLog('RestNormalizer', 'intaro.retailcrm', 'Incorrect file normalize.');
-//                return false;
-//        }
-//    }
-
-    /**
      * Parsing the file validation
      * @param string $file The path to the file validation
      * @return boolean
@@ -117,10 +99,9 @@ class RestNormalizer
         $formatted = array();
 
         foreach ($data as $code => $value) {
-
             if (isset($this->validation[ $code ]) && $this->validation[ $code ]['type'] == 'skip') {
                 $formatted[ $code ] = $value;
-            }elseif (isset($this->validation[ $code ]) && is_array($value) === false) {
+            } elseif (isset($this->validation[ $code ]) && is_array($value) === false) {
                 $formatted[ $code ] = $this->setFormat($value, $this->validation[ $code ]);
             } elseif (is_array($value)) {
                 $formatted[ $code ] = $this->formatting($value, true);
@@ -208,7 +189,7 @@ class RestNormalizer
         } elseif (isset($validation['min']) && mb_strlen($data) < $validation['min']) {
             $pad = isset($validation['pad']) && mb_strlen($validation['pad']) == 1 ? $validation['pad'] : ' ';
             $data .= str_repeat($pad, $validation['min'] - mb_strlen($data));
-        }elseif (isset($validation['max']) && mb_strlen($data) > $validation['max']) {
+        } elseif (isset($validation['max']) && mb_strlen($data) > $validation['max']) {
             $data = mb_substr($data, 0, $validation['max']);
         }
 

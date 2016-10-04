@@ -36,23 +36,21 @@ $arResult = array();
 if (file_exists($_SERVER["DOCUMENT_ROOT"] . '/bitrix/modules/intaro.retailcrm/classes/general/config/options.xml')) {
     $options = simplexml_load_file($_SERVER["DOCUMENT_ROOT"] . '/bitrix/modules/intaro.retailcrm/classes/general/config/options.xml'); 
     
-    foreach($options->contragents->contragent as $contragent)
-    {
+    foreach($options->contragents->contragent as $contragent) {
         $type["NAME"] = $APPLICATION->ConvertCharset((string)$contragent, 'utf-8', SITE_CHARSET);
         $type["ID"] = (string)$contragent["id"];
         $arResult['contragentType'][] = $type;
         unset ($type);
     }
-    foreach($options->fields->field as $field)
-    {
+    foreach($options->fields->field as $field) {
         $type["NAME"] = $APPLICATION->ConvertCharset((string)$field, 'utf-8', SITE_CHARSET);
         $type["ID"] = (string)$field["id"];
 
         if ($field["group"] == 'custom') {
             $arResult['customFields'][] = $type;
-        } elseif(!$field["group"]){
+        } elseif (!$field["group"]) {
             $arResult['orderProps'][] = $type;
-        } else{
+        } else {
             $groups = explode(",", (string)$field["group"]);
             foreach ($groups as $group) {   
                 $type["GROUP"][] = trim($group);   
@@ -86,11 +84,11 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_RE
     $optionsDelivTypes = unserialize(COption::GetOptionString($mid, $CRM_DELIVERY_TYPES_ARR, 0));
     $arDeliveryServiceAll = \Bitrix\Sale\Delivery\Services\Manager::getActiveList();
 
-    foreach($optionsDelivTypes as $key => $deliveryType){
-        foreach($arDeliveryServiceAll as $deliveryService){
-            if($deliveryService['PARENT_ID'] != 0 && $deliveryService['PARENT_ID'] == $key){
+    foreach ($optionsDelivTypes as $key => $deliveryType) {
+        foreach ($arDeliveryServiceAll as $deliveryService) {
+            if ($deliveryService['PARENT_ID'] != 0 && $deliveryService['PARENT_ID'] == $key) {
                 $srv = explode(':', $deliveryService['CODE']);
-                if(count($srv) == 2){
+                if (count($srv) == 2) {
                     try {
                         $api->deliveryServicesEdit(RCrmActions::clearArr(array(
                             'code' => $srv[1],
@@ -114,18 +112,18 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_RE
 }
 
 //upload orders after install module
-if(!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') && isset($_POST['ajax']) && $_POST['ajax'] == 2){
+if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') && isset($_POST['ajax']) && $_POST['ajax'] == 2) {
     $step = $_POST['step'];
     $orders = $_POST['orders'];
     $countStep = 50; // 50 orders on step
     
-    if($orders){
+    if ($orders) {
         $ordersArr = explode(',', $orders);
         $orders = array();
-        foreach($ordersArr as $_ordersArr){
+        foreach ($ordersArr as $_ordersArr) {
             $ordersList = explode('-', trim($_ordersArr));
-            if(count($ordersList) > 1){
-                for($i = (int)trim($ordersList[0]); $i <= (int)trim($ordersList[count($ordersList) - 1]); $i++){
+            if (count($ordersList) > 1) {
+                for ($i = (int)trim($ordersList[0]); $i <= (int)trim($ordersList[count($ordersList) - 1]); $i++) {
                     $orders[] = $i;
                 }
             } else{
@@ -141,14 +139,13 @@ if(!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_REQ
         $percent = round((($step * $countStep + count($stepOrders)) * 100 / count($orders)), 1);
         $step++;
 
-        if(!$splitedOrders[$step]){
-            $step='end';
+        if (!$splitedOrders[$step]) {
+            $step = 'end';
         }
         
         $res = array("step" => $step, "percent" => $percent, 'stepOrders' => $stepOrders);
-    } else{
-        $orders = array();
-        
+    } else {
+        $orders = array();    
         for($i = 1; $i <= $countStep; $i++){
             $orders[] = $i + $step * $countStep;
         }
@@ -160,7 +157,7 @@ if(!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_REQ
         $countAll = (int) CSaleOrder::GetList(array("ID" => "ASC"), array(), array());
         $percent = round(100 - ($countLeft * 100 / $countAll), 1);
         
-        if($countLeft == 0){
+        if ($countLeft == 0) {
             $step = 'end';
         }
         
@@ -183,7 +180,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         $siteListArr[$arSites['LID']] = htmlspecialchars(trim($_POST['sites-id-' . $arSites['LID']]));
     }
             
-    if($api_host && $api_key) {
+    if ($api_host && $api_key) {
         $api = new RetailCrm\ApiClient($api_host, $api_key);
         try {
             $api->paymentStatusesList();
@@ -205,7 +202,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     $orderTypesList = RCrmActions::OrderTypesList($arResult['arSites']);
     
     $orderTypesArr = array();
-    foreach($orderTypesList as $orderType){
+    foreach ($orderTypesList as $orderType) {
         $orderTypesArr[$orderType['ID']] = htmlspecialchars(trim($_POST['order-type-' . $orderType['ID']]));
     }
       
@@ -213,7 +210,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     $arResult['bitrixDeliveryTypesList'] = RCrmActions::DeliveryList();
 
     $deliveryTypesArr = array();
-    foreach($arResult['bitrixDeliveryTypesList'] as $delivery){
+    foreach ($arResult['bitrixDeliveryTypesList'] as $delivery) {
         $deliveryTypesArr[$delivery['ID']] = htmlspecialchars(trim($_POST['delivery-type-' . $delivery['ID']]));
     }
 
@@ -221,7 +218,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     $arResult['bitrixPaymentTypesList'] = RCrmActions::PaymentList();
             
     $paymentTypesArr = array();
-    foreach($arResult['bitrixPaymentTypesList'] as $payment){
+    foreach ($arResult['bitrixPaymentTypesList'] as $payment) {
         $paymentTypesArr[$payment['ID']] = htmlspecialchars(trim($_POST['payment-type-' . $payment['ID']]));
     }  
            
@@ -231,9 +228,9 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     $paymentStatusesArr = array();
     $canselOrderArr = array();
     //$paymentStatusesArr['YY'] = htmlspecialchars(trim($_POST['payment-status-YY']));
-    foreach($arResult['bitrixStatusesList'] as $status){
+    foreach ($arResult['bitrixStatusesList'] as $status) {
         $paymentStatusesArr[$status['ID']] = htmlspecialchars(trim($_POST['payment-status-' . $status['ID']]));
-        if(trim($_POST['order-cansel-' . $status['ID']]) == 'Y'){
+        if (trim($_POST['order-cansel-' . $status['ID']]) == 'Y') {
             $canselOrderArr[] = $status['ID'];
         }
     }
@@ -249,15 +246,14 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     // 0 - agent
     // 1 - event
     $orderDischarge = 0;
-    $orderDischarge = (int) htmlspecialchars(trim($_POST['order-discharge']));
-///////////тут дописать\\\\\\\\\\\\\\\    
+    $orderDischarge = (int) htmlspecialchars(trim($_POST['order-discharge']));   
     if (($orderDischarge != $previousDischarge) && ($orderDischarge == 0)) {
         // remove depenedencies
         UnRegisterModuleDependences("sale", "OnOrderNewSendEmail", $mid, "ICrmOrderEvent", "onSendOrderMail");
         UnRegisterModuleDependences("sale", "OnOrderUpdate", $mid, "ICrmOrderEvent", "onUpdateOrder");
         UnRegisterModuleDependences("sale", "OnBeforeOrderAdd", $mid, "ICrmOrderEvent", "onBeforeOrderAdd");
         
-    } else if (($orderDischarge != $previousDischarge) && ($orderDischarge == 1)) {
+    } elseif (($orderDischarge != $previousDischarge) && ($orderDischarge == 1)) {
         // event dependencies
         RegisterModuleDependences("sale", "OnOrderNewSendEmail", $mid, "ICrmOrderEvent", "onSendOrderMail");
         RegisterModuleDependences("sale", "OnOrderUpdate", $mid, "ICrmOrderEvent", "onUpdateOrder");
@@ -269,7 +265,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         $propsCount = 0;
         $_orderPropsArr = array();
         foreach ($arResult['orderProps'] as $orderProp) {
-            if ((!(int) htmlspecialchars(trim($_POST['address-detail-' . $orderType['ID']]))) && $propsCount > 4){
+            if ((!(int) htmlspecialchars(trim($_POST['address-detail-' . $orderType['ID']]))) && $propsCount > 4) {
                 break;
             }
             $_orderPropsArr[$orderProp['ID']] = htmlspecialchars(trim($_POST['order-prop-' . $orderProp['ID'] . '-' . $orderType['ID']]));
@@ -324,7 +320,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
 } else {
     $api_host = COption::GetOptionString($mid, $CRM_API_HOST_OPTION, 0);
     $api_key = COption::GetOptionString($mid, $CRM_API_KEY_OPTION, 0);
-
     $api = new RetailCrm\ApiClient($api_host, $api_key);
 
     //prepare crm lists
@@ -360,10 +355,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     
     //bitrix statusesList
     $arResult['bitrixPaymentStatusesList'] = RCrmActions::StatusesList();
-    /*$arResult['bitrixPaymentStatusesList'][] = array(
-        'ID'   => 'YY',
-        'NAME' => GetMessage('CANCELED')
-    );*/
     
     //bitrix pyament Y/N
     $arResult['bitrixPaymentList'][0]['NAME'] = GetMessage('PAYMENT_Y');

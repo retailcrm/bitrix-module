@@ -34,8 +34,9 @@ class RetailCrmOrder
      * @return boolean
      * @return array - array('order' = $order, 'customer' => $customer)
      */
-    public static function orderSend($arFields, $api, $arParams, $send = false, $site = null, $methodApi = 'ordersEdit') {
-        if(!$api || empty($arParams)) { // add cond to check $arParams
+    public static function orderSend($arFields, $api, $arParams, $send = false, $site = null, $methodApi = 'ordersEdit')
+    {
+        if (!$api || empty($arParams)) { // add cond to check $arParams
             return false;
         }
         if (empty($arFields)) {
@@ -63,13 +64,13 @@ class RetailCrmOrder
                 'cost' => $arFields['PRICE_DELIVERY']
             ),
         );
-        if(isset($_COOKIE['_rc']) && $_COOKIE['_rc'] != ''){
+        if (isset($_COOKIE['_rc']) && $_COOKIE['_rc'] != '') {
             $order['customer']['browserId'] = $_COOKIE['_rc'];
         }
         $order['contragent']['contragentType'] = $arParams['optionsContragentType'][$arFields['PERSON_TYPE_ID']];
 
         //свойства
-        foreach($arFields['PROPS']['properties'] as $prop){
+        foreach ($arFields['PROPS']['properties'] as $prop) {
             if ($search = array_search($prop['CODE'], $arParams['optionsLegalDetails'][$arFields['PERSON_TYPE_ID']])) {
                 $order['contragent'][$search] = $prop['VALUE'][0];//юр данные заказа
             } elseif ($search = array_search($prop['CODE'], $arParams['optionsCustomFields'][$arFields['PERSON_TYPE_ID']])) {
@@ -105,7 +106,7 @@ class RetailCrmOrder
         }
 
         //корзина
-        foreach($arFields['BASKET'] as $product){
+        foreach ($arFields['BASKET'] as $product) {
             $item = array(
                 'quantity'        => $product['QUANTITY'],
                 'offer'           => array('externalId' => $product['PRODUCT_ID'],
@@ -159,7 +160,8 @@ class RetailCrmOrder
      * @param $failed -- flag to export failed orders
      * @return boolean
      */
-    public static function uploadOrders($pSize = 50, $failed = false, $orderList = false) {
+    public static function uploadOrders($pSize = 50, $failed = false, $orderList = false)
+    {
         if (!CModule::IncludeModule("iblock")) {
             RCrmActions::eventLog('RetailCrmOrder::uploadOrders', 'iblock', 'module not found');
             return true;
@@ -191,7 +193,7 @@ class RetailCrmOrder
                 'limit'   => $pSize,
                 'select'  => array('ID')
             ));
-            while($arOrder = $dbOrder->fetch()){
+            while ($arOrder = $dbOrder->fetch()) {
                 $orderIds[] = $arOrder['ID'];
             }
         }
@@ -230,9 +232,9 @@ class RetailCrmOrder
         );
 
         $recOrders = array();
-        foreach($orderIds as $orderId){
+        foreach ($orderIds as $orderId) {
             $id = \Bitrix\Sale\Order::load($orderId);
-            if(!$id){
+            if (!$id) {
                 continue;
             }
             $order = self::orderObjToArr($id);
@@ -243,7 +245,7 @@ class RetailCrmOrder
             $arCustomers = RetailCrmUser::customerSend($user, $api, $optionsContragentType[$order['PERSON_TYPE_ID']], false, $site);
             $arOrders = self::orderSend($order, $api, $arParams, false, $site); 
 
-            if (!$arCustomers || !$arOrders){
+            if (!$arCustomers || !$arOrders) {
                 continue;
             }
             
@@ -253,8 +255,8 @@ class RetailCrmOrder
             $recOrders[] = $orderId;
         }
 
-        if(count($resOrders) > 0){
-            foreach($resCustomers as $key => $customerLoad){
+        if (count($resOrders) > 0) {
+            foreach ($resCustomers as $key => $customerLoad) {
                 $site = count($optionsSitesList) > 1 ? $optionsSitesList[$key] : null;
                 if (RCrmActions::apiMethod($api, 'customersUpload', __METHOD__, $customerLoad, $site) === false) {
                     return false;
@@ -263,7 +265,7 @@ class RetailCrmOrder
                     time_nanosleep(0, 250000000);
                 }
             }
-            foreach($resOrders as $key => $orderLoad){
+            foreach ($resOrders as $key => $orderLoad) {
                 $site = count($optionsSitesList) > 1 ? $optionsSitesList[$key] : null;
                 if (RCrmActions::apiMethod($api, 'ordersUpload', __METHOD__, $orderLoad, $site) === false) {
                     return false;
@@ -282,7 +284,8 @@ class RetailCrmOrder
         return true;
     }
 
-    public static function orderObjToArr($obOrder){
+    public static function orderObjToArr($obOrder)
+    {
         $arOrder = array(
             'ID'               => $obOrder->getId(),
             'NUMBER'           => $obOrder->getField('ACCOUNT_NUMBER'),
@@ -304,14 +307,13 @@ class RetailCrmOrder
         );
         
         $shipmentList = $obOrder->getShipmentCollection();
-        foreach($shipmentList as $shipmentData){
-            if($shipmentData->getDeliveryId()){
+        foreach ($shipmentList as $shipmentData) {
+            if ($shipmentData->getDeliveryId()) {
                 $delivery = \Bitrix\Sale\Delivery\Services\Manager::getById($shipmentData->getDeliveryId());
-                if($delivery['PARENT_ID']){
+                if ($delivery['PARENT_ID']) {
                     $servise = explode(':', $delivery['CODE']);
                     $shipment = array('id' => $delivery['PARENT_ID'], 'service' => $servise[1]);
-                }
-                else{
+                } else {
                     $shipment = array('id' => $delivery['ID']);
                 }
                 $arOrder['DELIVERYS'][] = $shipment;
@@ -319,7 +321,7 @@ class RetailCrmOrder
         }
 
         $basketItems = $obOrder->getBasket();
-        foreach($basketItems as $item){
+        foreach ($basketItems as $item) {
             $arOrder['BASKET'][] = $item->getFields();
         }
      

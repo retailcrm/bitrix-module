@@ -2,8 +2,9 @@
 IncludeModuleLangFile(__FILE__);
 class RetailCrmUser
 {
-    public static function customerSend($arFields, $api, $contragentType, $send = false, $site = null){//только на создание  
-        if(!$api || empty($contragentType)) { // add cond to check $arParams
+    public static function customerSend($arFields, $api, $contragentType, $send = false, $site = null)
+    {  
+        if (!$api || empty($contragentType)) { // add cond to check $arParams
             return false;
         }
         if (empty($arFields)) {
@@ -19,13 +20,13 @@ class RetailCrmUser
             'createdAt'      => new \DateTime($arFields['DATE_REGISTER']),
             'contragentType' => $contragentType
         );
-        if(isset($arFields['PERSONAL_PHONE'])){
+        if (isset($arFields['PERSONAL_PHONE'])) {
             $customer['phones'][]['number'] = $arFields['PERSONAL_PHONE'];
         }
-        if(isset($arUser['WORK_PHONE'])){
+        if (isset($arUser['WORK_PHONE'])) {
             $customer['phones'][]['number'] = $arFields['WORK_PHONE'];
         }
-        if(isset($_COOKIE['_rc']) && $_COOKIE['_rc'] != ''){
+        if (isset($_COOKIE['_rc']) && $_COOKIE['_rc'] != '') {
             $customer['browserId'] = $_COOKIE['_rc'];
         }
 
@@ -42,7 +43,7 @@ class RetailCrmUser
         $log = new Logger();
         $log->write($customer, 'customer');
   
-        if($send) {
+        if ($send) {
             if (!RCrmActions::apiMethod($api, 'customersCreate', __METHOD__, $customer, $site)) {
                 return false;
             }
@@ -64,32 +65,31 @@ class RetailCrmUser
             'patronymic'     => $arFields['SECOND_NAME'],
             'email'          => $arFields['EMAIL']
         );
-        if(isset($arFields['PERSONAL_PHONE'])){
+        if (isset($arFields['PERSONAL_PHONE'])) {
             $customer['phones'][]['number'] = $arFields['PERSONAL_PHONE'];
         }
-        if(isset($arFields['WORK_PHONE'])){
+        if (isset($arFields['WORK_PHONE'])) {
             $customer['phones'][]['number'] = $arFields['WORK_PHONE'];
         }
         
         $found = false;
-        if(count($optionsSitesList)>1){
-            foreach($optionsSitesList as $site){
+        if (count($optionsSitesList) > 1) {
+            foreach ($optionsSitesList as $site) {
                 $userCrm = RCrmActions::apiMethod($api, 'customersGet', __METHOD__, $arFields['ID'], $site);
-                if(isset($userCrm['customer'])){
+                if (isset($userCrm['customer'])) {
                     $found = true;
                     break;
                 }
             }
-        }
-        else{
+        } else {
             $site = null;
             $userCrm = RCrmActions::apiMethod($api, 'customersGet', __METHOD__, $arFields['ID'], $site);
-            if(isset($userCrm['customer'])){
+            if (isset($userCrm['customer'])) {
                 $found = true;
             }
         }
         
-        if($found){
+        if ($found) {
             $normalizer = new RestNormalizer();
             $customer = $normalizer->normalize($customer, 'customers');
 

@@ -7,23 +7,25 @@ class RCrmActions
 
     const CANCEL_PROPERTY_CODE = 'INTAROCRM_IS_CANCELED';
 
-    public static function SitesList(){
+    public static function SitesList()
+    {
         $arSites = array();
         $rsSites = CSite::GetList($by, $sort, array('ACTIVE' => 'Y'));
-        while ($ar = $rsSites->Fetch()){
+        while ($ar = $rsSites->Fetch()) {
             $arSites[] = $ar;   
         }
         
         return $arSites;
     }
     
-    public static function OrderTypesList($arSites){
+    public static function OrderTypesList($arSites)
+    {
         $orderTypesList = array();            
-        foreach($arSites as $site){
+        foreach ($arSites as $site) {
             $personTypes = \Bitrix\Sale\PersonType::load($site['LID']);
             $bitrixOrderTypesList = array();
-            foreach($personTypes as $personType){
-                if(!array_key_exists($personType['ID'], $orderTypesList)){
+            foreach ($personTypes as $personType) {
+                if (!array_key_exists($personType['ID'], $orderTypesList)) {
                     $bitrixOrderTypesList[$personType['ID']] = $personType;
                 }
                 asort($bitrixOrderTypesList);
@@ -34,12 +36,13 @@ class RCrmActions
         return $orderTypesList;
     }
     
-    public static function DeliveryList(){
+    public static function DeliveryList()
+    {
         $bitrixDeliveryTypesList = array();
         $arDeliveryServiceAll = \Bitrix\Sale\Delivery\Services\Manager::getActiveList();
         $noOrderId = \Bitrix\Sale\Delivery\Services\EmptyDeliveryService::getEmptyDeliveryServiceId();
-        foreach($arDeliveryServiceAll as $arDeliveryService){
-            if($arDeliveryService['PARENT_ID'] == '0' && $arDeliveryService['ID'] != $noOrderId){
+        foreach ($arDeliveryServiceAll as $arDeliveryService) {
+            if ($arDeliveryService['PARENT_ID'] == '0' && $arDeliveryService['ID'] != $noOrderId) {
                 $bitrixDeliveryTypesList[] = $arDeliveryService;
             }
         }
@@ -47,36 +50,38 @@ class RCrmActions
         return $bitrixDeliveryTypesList;
     }  
     
-    public static function PaymentList(){
+    public static function PaymentList()
+    {
         $bitrixPaymentTypesList = array();
         $dbPaymentAll = \Bitrix\Sale\PaySystem\Manager::getList(array(
             'select' => array('ID', 'NAME'),
             'filter' => array('ACTIVE' => 'Y')
         ));
-        while($payment = $dbPaymentAll->fetch())
-        {
+        while ($payment = $dbPaymentAll->fetch()) {
             $bitrixPaymentTypesList[] = $payment;
         }
         
         return $bitrixPaymentTypesList;
     }   
     
-    public static function StatusesList(){
+    public static function StatusesList()
+    {
         $bitrixPaymentStatusesList = array();
         $arStatusesAll = \Bitrix\Sale\OrderStatus::getAllStatusesNames();
-        foreach($arStatusesAll as $key => $arStatus){
+        foreach ($arStatusesAll as $key => $arStatus) {
             $bitrixPaymentStatusesList[$key] = array('ID' => $key, 'NAME' => $arStatus);
         }
         
         return $bitrixPaymentStatusesList;
     }   
     
-    public static function OrderPropsList(){
+    public static function OrderPropsList()
+    {
         $bitrixPropsList = array();
         $arPropsAll = \Bitrix\Sale\Internals\OrderPropsTable::getList(array(
             'select' => array('*')
         ));
-        while ($prop = $arPropsAll->Fetch()){
+        while ($prop = $arPropsAll->Fetch()) {
             $bitrixPropsList[$prop['PERSON_TYPE_ID']][] = $prop;
         }
         
@@ -87,8 +92,8 @@ class RCrmActions
      * w+ event in bitrix log
      */
 
-    public static function eventLog($auditType, $itemId, $description) {
-
+    public static function eventLog($auditType, $itemId, $description)
+    {
         CEventLog::Add(array(
             "SEVERITY"      => "SECURITY",
             "AUDIT_TYPE_ID" => $auditType,
@@ -105,7 +110,8 @@ class RCrmActions
      * @return self name
      */
 
-    public static function uploadOrdersAgent() {
+    public static function uploadOrdersAgent()
+    {
         RetailCrmOrder::uploadOrders();
         $failedIds = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_FAILED_IDS, 0));
         if (is_array($failedIds) && !empty($failedIds)) {
@@ -122,8 +128,9 @@ class RCrmActions
      * @return self name
      */
 
-    public static function orderAgent() {
-        if(COption::GetOptionString('main', 'agents_use_crontab', 'N') != 'N') {
+    public static function orderAgent()
+    {
+        if (COption::GetOptionString('main', 'agents_use_crontab', 'N') != 'N') {
             define('NO_AGENT_CHECK', true);
         }
 
@@ -141,7 +148,8 @@ class RCrmActions
      * @param array $arr
      * @return array
      */
-    public static function clearArr($arr) {
+    public static function clearArr($arr)
+    {
         if (is_array($arr) === false) {
             return $arr;
         }
@@ -163,7 +171,8 @@ class RCrmActions
      * @param $str in SITE_CHARSET
      * @return  $str in utf-8
      */
-    public static function toJSON($str) {
+    public static function toJSON($str)
+    {
         global $APPLICATION;
 
         return $APPLICATION->ConvertCharset($str, SITE_CHARSET, 'utf-8');
@@ -175,13 +184,15 @@ class RCrmActions
      * @param $str in utf-8
      * @return $str in SITE_CHARSET
      */
-    public static function fromJSON($str) {
+    public static function fromJSON($str)
+    {
         global $APPLICATION;
 
         return $APPLICATION->ConvertCharset($str, 'utf-8', SITE_CHARSET);
     }
 
-    public static function explodeFIO($fio) {
+    public static function explodeFIO($fio)
+    {
         $newFio = empty($fio) ? false : explode(" ", $fio, 3);
         $result = array();
         switch (count($newFio)) {
@@ -210,8 +221,9 @@ class RCrmActions
         return $result;
     }
 
-    public static function apiMethod($api, $methodApi, $method, $params, $site = null) {
-        switch($methodApi){
+    public static function apiMethod($api, $methodApi, $method, $params, $site = null)
+    {
+        switch ($methodApi) {
             case 'ordersGet':
             case 'ordersEdit':
             case 'customersGet':
