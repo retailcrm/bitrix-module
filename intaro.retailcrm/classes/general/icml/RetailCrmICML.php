@@ -49,7 +49,7 @@ class RetailCrmICML
     public function Load()
     {
             global $USER;
-            if(!isset($_SESSION["SESS_AUTH"]["USER_ID"]) || !$_SESSION["SESS_AUTH"]["USER_ID"]){
+            if (!isset($_SESSION["SESS_AUTH"]["USER_ID"]) || !$_SESSION["SESS_AUTH"]["USER_ID"]) {
                 $USER = new CUser;
             }
 
@@ -64,10 +64,9 @@ class RetailCrmICML
             $responseBody = curl_exec($curlHandler);
             $statusCode = curl_getinfo($curlHandler, CURLINFO_HTTP_CODE);
             curl_close($curlHandler);
-            if($statusCode == 200){
+            if ($statusCode == 200) {
                 $this->protocol = 'https://';
-            }
-            else{
+            } else {
                 $this->protocol = 'http://';
             }
             
@@ -124,6 +123,7 @@ class RetailCrmICML
         $newText = $this->application->ConvertCharset($text, $this->encodingDefault, $this->encoding);
         $newText = strip_tags($newText);
         $newText = str_replace("&", "&#x26;", $newText);
+        
         return $newText;
     }
 
@@ -132,10 +132,11 @@ class RetailCrmICML
             $fullFilename = $_SERVER["DOCUMENT_ROOT"] . $filename;
             CheckDirPath($fullFilename);
 
-            if ($fp = @fopen($fullFilename, "w"))
+            if ($fp = @fopen($fullFilename, "w")){
                 return $fp;
-            else
+            } else {
                 return false;
+            }
     }
 
     protected function PreWriteCatalog()
@@ -175,8 +176,9 @@ class RetailCrmICML
 
     protected function WriteLog($text)
     {
-        if ($this->isLogged)
+        if ($this->isLogged) {
             @fwrite($this->fpLog, Date("Y:m:d H:i:s") . ": " . $text . "\n");
+        }
     }
 
     protected function PostWriteCatalog()
@@ -194,8 +196,7 @@ class RetailCrmICML
     protected function GetCategories()
     {
             $categories = array();
-            foreach ($this->iblocks as $id)
-            {
+            foreach ($this->iblocks as $id) {
                 $filter = array("IBLOCK_ID" => $id);
 
                 $dbRes = CIBlockSection::GetList(array("left_margin" => "asc"), $filter);
@@ -214,6 +215,7 @@ class RetailCrmICML
                     $categories[$arRes['ID']] = $arRes;
                 }
             }
+            
             return $categories;
 
     }
@@ -240,8 +242,7 @@ class RetailCrmICML
             1
         );
 
-        foreach ($this->iblocks as $key => $id)
-        {
+        foreach ($this->iblocks as $key => $id) {
             // Get Info by infoblocks
             $iblock['IBLOCK_DB'] = CIBlock::GetByID($id)->Fetch();
             $iblockOffer = CCatalogSKU::GetInfoByProductIBlock($id);
@@ -266,7 +267,7 @@ class RetailCrmICML
                 }
             }
 
-            $arSelectOffer = Array (
+            $arSelectOffer = array(
                 'ID',
                 'ACTIVE',
                 "NAME",
@@ -288,7 +289,7 @@ class RetailCrmICML
                 "IBLOCK_ID" => $id
             );
             $order = array("id");
-            $arNavStatParams = Array(
+            $arNavStatParams = array(
                 "iNumPage" => 1,
                 "nPageSize" => $this->pageSize,
             );
@@ -298,8 +299,7 @@ class RetailCrmICML
                 // Get products on this page
                 $elems = array();
                 $dbResProductsIds = CIBlockElement::GetList($order, $filter, false, $arNavStatParams, array('ID'));
-                while($obIds = $dbResProductsIds->Fetch())
-                {
+                while ($obIds = $dbResProductsIds->Fetch()) {
                     $elems[] = $obIds['ID'];
                 }
                 $arfilter = array(
@@ -312,7 +312,6 @@ class RetailCrmICML
                 $pictures = array();
                 $products = array();
                 while ($product = $dbResProducts->GetNext()) {
-
                     // Compile products to array
                     $products[$product['ID']] = $product;
                     $products[$product['ID']]['offers'] = array();
@@ -320,13 +319,11 @@ class RetailCrmICML
                     $detailPicture = intval($product["DETAIL_PICTURE"]);
                     $previewPicture = intval($product["PREVIEW_PICTURE"]);
 
-                    if ($detailPicture > 0 || $previewPicture > 0)
-                    {
+                    if ($detailPicture > 0 || $previewPicture > 0) {
                         $picture = $detailPicture;
                         if ($picture <= 0) {
                                 $picture = $previewPicture;
                         }
-
                         // Link pictureID and productID
                         $pictures[$picture] = $product['ID'];
                     }
@@ -337,9 +334,8 @@ class RetailCrmICML
                 $pictureIDs = array_keys($pictures);
 
                 // Get pathes of pictures
-                $dbFiles = CFile::GetList(Array(), Array("@ID" => implode(',', $pictureIDs)));
-                while($file = $dbFiles->GetNext()) {
-
+                $dbFiles = CFile::GetList(array(), array("@ID" => implode(',', $pictureIDs)));
+                while ($file = $dbFiles->GetNext()) {
                     // Link picture to product
                     $products[$pictures[$file['ID']]]['PICTURE'] = $this->protocol .
                                     $this->serverName .
@@ -372,20 +368,17 @@ class RetailCrmICML
 
                 $stringOffers = "";
                 foreach ($products as $product) {
-
                         // Get properties of product
                         $resPropertiesProduct = Array();
                         foreach ($this->propertiesProduct[$id] as $key => $propProduct) {
                             $resPropertiesProduct[$key] = "";
 
                             if ($propProduct != "") {
-                                if (isset($product["PROPERTY_" . $propProduct . "_NAME"])){
+                                if (isset($product["PROPERTY_" . $propProduct . "_NAME"])) {
                                     $resPropertiesProduct[$key] =  $product["PROPERTY_" . $propProduct . "_NAME"];                                            
-                                }
-                                elseif (isset($product["PROPERTY_" . $propProduct . "_VALUE"])){
+                                } elseif (isset($product["PROPERTY_" . $propProduct . "_VALUE"])) {
                                     $resPropertiesProduct[$key] =  $product["PROPERTY_" . $propProduct . "_VALUE"];
-                                }
-                                elseif (isset($product[$propProduct])){
+                                } elseif (isset($product[$propProduct])) {
                                     $resPropertiesProduct[$key] =  $product[$propProduct];
                                 }
                                 if (array_key_exists($key, $this->propertiesUnitProduct[$id])) {
@@ -396,13 +389,13 @@ class RetailCrmICML
                         }
 
                         // Get categories of product
-                        $categories = Array();
+                        $categories = array();
                         $dbResCategories = CIBlockElement::GetElementGroups($product['ID'], true);
                         while ($arResCategory = $dbResCategories->Fetch()) {
                             $categories[$arResCategory["ID"]] = array(
                                 'ID' => $arResCategory["ID"],
                                 'NAME' => $arResCategory["NAME"],
-                                );
+                            );
                         }
                         if (count($categories) == 0) {
                             $catId = $this->mainSection + $id;
@@ -412,7 +405,6 @@ class RetailCrmICML
 
                         $existOffer = false;
                         if (!empty($iblockOffer['IBLOCK_ID'])) {
-
                             foreach ($product['offers'] as $offer) {
                                 $offer['PRODUCT_ID'] = $product["ID"];
                                 $offer['DETAIL_PAGE_URL'] = $product["DETAIL_PAGE_URL"];
@@ -426,13 +418,11 @@ class RetailCrmICML
                                 // Get properties of product
                                 foreach ($this->propertiesSKU[$id] as $key => $propSKU) {
                                     if ($propSKU != "") {
-                                        if (isset ($offer["PROPERTY_" . $propSKU . "_NAME"])){
+                                        if (isset ($offer["PROPERTY_" . $propSKU . "_NAME"])) {
                                             $offer['_PROP_' . $key] =  $offer["PROPERTY_" . $propSKU . "_NAME"];
-                                        }
-                                        elseif (isset($offer["PROPERTY_" . $propSKU . "_VALUE"])){
+                                        } elseif (isset($offer["PROPERTY_" . $propSKU . "_VALUE"])) {
                                             $offer['_PROP_' . $key] =  $offer["PROPERTY_" . $propSKU . "_VALUE"];
-                                        }
-                                        elseif (isset($offer[$propSKU])){
+                                        } elseif (isset($offer[$propSKU])) {
                                             $offer['_PROP_' . $key] = $offer[$propSKU];
                                         }
                                         if (array_key_exists($key, $this->propertiesUnitSKU[$id])) {
@@ -443,7 +433,7 @@ class RetailCrmICML
                                 }
 
                                 foreach ($resPropertiesProduct as $key => $propProduct) {
-                                    if ($this->propertiesProduct[$id][$key] != "" && !isset($offer[$key])){
+                                    if ($this->propertiesProduct[$id][$key] != "" && !isset($offer[$key])) {
                                         $offer['_PROP_' . $key] =  $propProduct;
                                     }
                                 }
@@ -453,7 +443,6 @@ class RetailCrmICML
                             }
                         }
                         if (!$existOffer) {
-
                             $product['PRODUCT_ID'] = $product["ID"];
                             $product['PRODUCT_NAME'] = $product["NAME"];
                             $product['PRODUCT_ACTIVE'] = $product["ACTIVE"];
@@ -473,7 +462,7 @@ class RetailCrmICML
                 }
                 unset($products);
 
-                if ($this->isLogged){
+                if ($this->isLogged) {
                     $this->WriteLog(($this->pageSize * $arNavStatParams['iNumPage']) . " product(s) has been loaded from " . $id . " IB (memory usage: " . memory_get_usage() . ")");
                 }
                 if ($stringOffers != "") {
@@ -482,8 +471,7 @@ class RetailCrmICML
                 }
 
                 $arNavStatParams['iNumPage'] = $dbResProductsIds->NavPageNomer + 1;
-            }
-            while ($dbResProductsIds->NavPageNomer < $dbResProductsIds->NavPageCount);
+            } while ($dbResProductsIds->NavPageNomer < $dbResProductsIds->NavPageCount);
         }
     }
 
@@ -494,23 +482,23 @@ class RetailCrmICML
                 "productId=\"" . $this->PrepareValue($arOffer["PRODUCT_ID"]) . "\" ".
                 "quantity=\"" . $this->PrepareValue(DoubleVal($arOffer['QUANTITY'])) . "\">\n";
 
-        if ($arOffer['PRODUCT_ACTIVE'] == "N"){
+        if ($arOffer['PRODUCT_ACTIVE'] == "N") {
             $offer .= "<productActivity>" .  $this->PrepareValue($arOffer['PRODUCT_ACTIVE']) . "</productActivity>\n";
         }
 
         $keys = array_keys($categories);
         if (strpos($arOffer['DETAIL_PAGE_URL'], "#SECTION_PATH#") !== false) {
             if (count($categories) != 0) {
-
                 $category = $allCategories[$keys[0]];
                 $path = $category['CODE'];
 
-                if(intval($category["IBLOCK_SECTION_ID"] ) != 0) {
+                if (intval($category["IBLOCK_SECTION_ID"] ) != 0) {
                     while (true) {
                         $category = $allCategories[$category['IBLOCK_SECTION_ID']];
                         $path = $category['CODE'] . '/' . $path;
-                        if(intval($category["IBLOCK_SECTION_ID"] ) == 0)
+                        if(intval($category["IBLOCK_SECTION_ID"]) == 0){
                             break;
+                        }
                     }
                 }
 
@@ -525,7 +513,7 @@ class RetailCrmICML
         if ($arOffer['PURCHASE_PRICE'] && $this->loadPurchasePrice) {
             $offer .= "<purchasePrice>" . $this->PrepareValue($arOffer['PURCHASE_PRICE']) . "</purchasePrice>\n";
         }
-        foreach ($categories as $category){
+        foreach ($categories as $category) {
             $offer .= "<categoryId>" . $category['ID'] . "</categoryId>\n";
         }
 
@@ -536,26 +524,25 @@ class RetailCrmICML
 
         foreach ($this->propertiesProduct[$iblock['IBLOCK_DB']['ID']] as $key => $propProduct) {
             if ($propProduct != "" && $arOffer['_PROP_' . $key] != null) {
-                if ($key === "manufacturer"){
+                if ($key === "manufacturer") {
                     $offer .= "<vendor>" . $this->PrepareValue($arOffer['_PROP_' . $key]) . "</vendor>\n";
-                }
-                else{
+                } else {
                     $offer .= '<param name="' . $key . '"' . (isset($arOffer['_PROP_' . $key . "_UNIT"]) ? ' unit="' . $arOffer['_PROP_' . $key . "_UNIT"] . '"' : "") . ">" . $this->PrepareValue($arOffer['_PROP_' . $key]) . "</param>\n";
                 }
             }
         }
         foreach ($this->propertiesSKU[$iblock['IBLOCK_DB']['ID']] as $key => $propProduct) {
             if ($propProduct != "" && $arOffer['_PROP_' . $key] != null) {
-                if ($key === "manufacturer"){
+                if ($key === "manufacturer") {
                     $offer .= "<vendor>" . $this->PrepareValue($arOffer['_PROP_' . $key]) . "</vendor>\n";
-                }
-                else{
+                } else {
                     $offer .= '<param name="' . $key . '"' . (isset($arOffer['_PROP_' . $key . "_UNIT"]) ? ' unit="' . $arOffer['_PROP_' . $key . "_UNIT"] . '"' : "") . ">" . $this->PrepareValue($arOffer['_PROP_' . $key]) . "</param>\n";
                 }
             }
         }
 
         $offer.= "</offer>\n";
+        
         return $offer;
     }    
 }

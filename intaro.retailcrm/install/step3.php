@@ -24,7 +24,6 @@ else{
         )
     );
 }
-echo"<pre>";var_export($arResult);echo"</pre>";
 ?>
 <script type="text/javascript" src="/bitrix/js/main/jquery/jquery-1.7.min.js"></script>
 <script type="text/javascript">

@@ -25,7 +25,8 @@ class RetailCrmHistory
 
     const CANCEL_PROPERTY_CODE = 'INTAROCRM_IS_CANCELED';
 
-    public static function customerHistory(){
+    public static function customerHistory()
+    {
         if (!CModule::IncludeModule("iblock")) {
             RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'iblock', 'module not found');
             return false;
@@ -46,11 +47,11 @@ class RetailCrmHistory
         
         $historyFilter = array();
         $historyStart = COption::GetOptionString(self::$MODULE_ID, self::$CRM_CUSTOMER_HISTORY);
-        if($historyStart && $historyStart > 0){
+        if ($historyStart && $historyStart > 0) {
             $historyFilter['sinceId'] = $historyStart;
         }
         
-        while(true){
+        while (true) {
             try {
                 $customerHistory = $api->customersHistory($historyFilter);
             } catch (\RetailCrm\Exception\CurlException $e) {
@@ -83,7 +84,7 @@ class RetailCrmHistory
 
             $newUser = new CUser;
             
-            foreach($customers as $customer){
+            foreach ($customers as $customer) {
                 if (function_exists('retailCrmBeforeCustomerSave')) {
                     $newResCustomer = retailCrmBeforeCustomerSave($customer);
                     if (is_array($newResCustomer) && !empty($newResCustomer)) {
@@ -91,7 +92,7 @@ class RetailCrmHistory
                     }
                 }
                                 
-                if(isset($customer['deleted'])){
+                if (isset($customer['deleted'])) {
                     continue;
                 }
                 
@@ -158,43 +159,42 @@ class RetailCrmHistory
                     $customer['externalId'] = $registeredUserID;
                 }
                 
-                if(isset($customer['externalId'])){
+                if (isset($customer['externalId'])) {
                     $arUser = array();
-                    if(array_key_exists('firstName', $customer)){
+                    if (array_key_exists('firstName', $customer)) {
                         $arUser["NAME"] = $customer['firstName'] ? RCrmActions::fromJSON($customer['firstName']) : '';
                     }
-                    if(array_key_exists('lastName', $customer)){
+                    if (array_key_exists('lastName', $customer)) {
                         $arUser["LAST_NAME"] = $customer['lastName'] ? RCrmActions::fromJSON($customer['lastName']) : '';
                     }
-                    if(array_key_exists('patronymic', $customer)){
+                    if (array_key_exists('patronymic', $customer)) {
                         $arUser["SECOND_NAME"] = $customer['patronymic'] ? RCrmActions::fromJSON($customer['patronymic']) : '';
                     }
                     
-                    if(array_key_exists('email', $customer)){
+                    if (array_key_exists('email', $customer)) {
                         $arUser["EMAIL"] = $customer['email'] ? RCrmActions::fromJSON($customer['email']) : '';
                     }
                     
-                    if(isset($customer['phones'])){
+                    if (isset($customer['phones'])) {
                         $user = CUser::GetList(($by="ID"), ($order="desc"), array('ID' => $customer['externalId']), array('FIELDS' => array('PERSONAL_PHONE', 'PERSONAL_MOBILE')))->fetch();
-                        foreach($customer['phones'] as $phone){
-                            if(isset($phone['old_number']) && in_array($phone['old_number'], $user)){
+                        foreach ($customer['phones'] as $phone) {
+                            if (isset($phone['old_number']) && in_array($phone['old_number'], $user)) {
                                 $key = array_search($phone['old_number'], $user);
-                                if(isset($phone['number'])){
+                                if (isset($phone['number'])) {
                                     $arUser[$key] = $phone['number'];
                                     $user[$key] = $phone['number'];
-                                }
-                                else{
+                                } else {
                                     $arUser[$key] = '';
                                     $user[$key] = '';
                                 }
                             }
-                            if(isset($phone['number'])){
-                                if((!isset($user['PERSONAL_PHONE']) || strlen($user['PERSONAL_PHONE']) == 0)  && $user['PERSONAL_MOBILE'] != $phone['number']){
+                            if (isset($phone['number'])) {
+                                if ((!isset($user['PERSONAL_PHONE']) || strlen($user['PERSONAL_PHONE']) == 0)  && $user['PERSONAL_MOBILE'] != $phone['number']) {
                                     $arUser['PERSONAL_PHONE'] = $phone['number'];
                                     $user['PERSONAL_PHONE'] = $phone['number'];
                                     continue;
                                 }
-                                if((!isset($user['PERSONAL_MOBILE']) || strlen($user['PERSONAL_MOBILE']) == 0) && $user['PERSONAL_PHONE'] != $phone['number']){
+                                if ((!isset($user['PERSONAL_MOBILE']) || strlen($user['PERSONAL_MOBILE']) == 0) && $user['PERSONAL_PHONE'] != $phone['number']) {
                                     $arUser['PERSONAL_MOBILE'] = $phone['number'];
                                     $user['PERSONAL_MOBILE'] = $phone['number'];
                                     continue;
@@ -204,7 +204,7 @@ class RetailCrmHistory
                     }
 
                     $u = $newUser->Update($customer['externalId'], $arUser);
-                    if(!$u){
+                    if (!$u) {
                         RCrmActions::eventLog('RetailCrmHistory::customerHistory', 'Error update user', $newUser->LAST_ERROR);
                     }
                     
@@ -220,7 +220,7 @@ class RetailCrmHistory
             $end = array_pop($customerH);
             COption::SetOptionString(self::$MODULE_ID, self::$CRM_CUSTOMER_HISTORY, $end['id']);
             
-            if($customerHistory['pagination']['totalPageCount'] == 1){
+            if ($customerHistory['pagination']['totalPageCount'] == 1) {
                 return true;
             }
             //новый фильтр для истории
@@ -228,7 +228,8 @@ class RetailCrmHistory
         }
     }
     
-    public static function orderHistory() {
+    public static function orderHistory()
+    {
         global $USER;
         if (is_object($USER) == false) {
             $USER = new RetailUser;
@@ -282,11 +283,11 @@ class RetailCrmHistory
         
         $historyFilter = array();
         $historyStart = COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_HISTORY);
-        if($historyStart && $historyStart > 0){
+        if ($historyStart && $historyStart > 0) {
             $historyFilter['sinceId'] = $historyStart;
         }      
 
-        while(true){
+        while (true) {
             try {
                 $orderHistory = $api->ordersHistory($historyFilter);
             } catch (\RetailCrm\Exception\CurlException $e) {
@@ -309,7 +310,7 @@ class RetailCrmHistory
 
             $log = new Logger();
             $log->write($orderH, 'orderHistory');
-            if(count($orderH) == 0){
+            if (count($orderH) == 0) {
                 return true;
             }
             
@@ -326,7 +327,7 @@ class RetailCrmHistory
                     }
                 }
                 
-                if(isset($order['deleted'])){
+                if (isset($order['deleted'])) {
                     continue;
                 }
 
@@ -371,13 +372,15 @@ class RetailCrmHistory
                                 "PASSWORD"          => $userPassword,
                                 "CONFIRM_PASSWORD"  => $userPassword
                             );
-                            if($order['customer']['phones'][0]){
+                            if ($order['customer']['phones'][0]) {
                                 $arFields['PERSONAL_PHONE'] = $order['customer']['phones'][0];
                             }
-                            if($order['customer']['phones'][1]){
+                            if ($order['customer']['phones'][1]) {
                                 $arFields['PERSONAL_MOBILE'] = $order['customer']['phones'][1];
                             }
+                            
                             $registeredUserID = $newUser->Add($arFields);
+                            
                             if ($registeredUserID === false) {
                                 RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'CUser::Register', 'Error register user');
                                 continue;
@@ -405,10 +408,9 @@ class RetailCrmHistory
                         $order['customer']['externalId'] = $registeredUserID;
                     }
 
-                    if(isset($optionsSitesList)){
+                    if (isset($optionsSitesList)) {
                         $site = array_search($order['site'], $optionsSitesList);
-                    }
-                    else{
+                    } else {
                         $site = CSite::GetDefSite();
                     }
                     
@@ -434,8 +436,7 @@ class RetailCrmHistory
 
                             continue;
                         }
-                    }
-                    else{
+                    } else {
                         RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'Bitrix\Sale\Order::create', 'Error order create');
                     }
                     $order['externalId'] = $externalId;
@@ -444,47 +445,45 @@ class RetailCrmHistory
                 if (isset($order['externalId']) && $order['externalId']) {
                     $newOrder = Bitrix\Sale\Order::load($order['externalId']);
 
-                    if(!$newOrder instanceof \Bitrix\Sale\Order){
+                    if (!$newOrder instanceof \Bitrix\Sale\Order) {
                         RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'Bitrix\Sale\Order::load', 'Error order load');
                         continue;
                     }
 
-					if($optionsOrderNumbers == 'Y' && isset($order['number'])){
+					if ($optionsOrderNumbers == 'Y' && isset($order['number'])) {
                         $newOrder->setField('ACCOUNT_NUMBER', $order['number']);
 					}
-					//var_dump(array($order['externalId'], $newOrder->getField('PERSON_TYPE_ID'), $optionsOrderTypes, $order));
+
                     $personType = $newOrder->getField('PERSON_TYPE_ID');
-                    if($optionsOrderTypes[$order['orderType']]){
-                        if($personType != $optionsOrderTypes[$order['orderType']] && $personType != 0){
+                    if ($optionsOrderTypes[$order['orderType']]) {
+                        if ($personType != $optionsOrderTypes[$order['orderType']] && $personType != 0) {
                             $propsRemove = true;
                         }
                         $personType = $optionsOrderTypes[$order['orderType']];
                         $newOrder->setField('PERSON_TYPE_ID', $personType);
-                    }
-                    elseif($personType == 0){
+                    } elseif ($personType == 0) {
                         RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'orderType not found', 'PERSON_TYPE_ID = 0');
                     }                  
                     
                     //status
-                    if($optionsPayStatuses[$order['status']]){
+                    if ($optionsPayStatuses[$order['status']]) {
                         $newOrder->setField('STATUS_ID', $optionsPayStatuses[$order['status']]);
-                        if(in_array($optionsPayStatuses[$order['status']], $optionsCanselOrder)){
+                        if (in_array($optionsPayStatuses[$order['status']], $optionsCanselOrder)) {
                             $newOrder->setField('CANCELED', 'Y');
-                        }
-                        else{
+                        } else {
                             $newOrder->setField('CANCELED', 'N');
                         }
                     }
                     
-					if(array_key_exists('statusComment', $order)){
+					if (array_key_exists('statusComment', $order)) {
                         self::setProp($newOrder, $order['statusComment'], 'REASON_CANCELED');
 					}
 
                     $propertyCollection = $newOrder->getPropertyCollection();
                     $propertyCollectionArr = $propertyCollection->getArray();
                     $nProps = array();
-                    foreach($propertyCollectionArr['properties'] as $orderProp){
-                        if($orderProp['ID'][0] == 'n'){
+                    foreach ($propertyCollectionArr['properties'] as $orderProp) {
+                        if ($orderProp['ID'][0] == 'n') {
                             $orderProp['ID'] = substr($orderProp['ID'], 1);
                             $orderProp['ID'] = $propertyCollection->getItemById($orderProp['ID'])->getField('ORDER_PROPS_ID');
                         }
@@ -492,8 +491,8 @@ class RetailCrmHistory
                     }
                     $propertyCollectionArr['properties'] = $nProps;
                     
-                    if($propsRemove){//удаляем старые свойства
-                        foreach($propertyCollectionArr['properties'] as $orderProp){
+                    if ($propsRemove) {//удаляем старые свойства
+                        foreach ($propertyCollectionArr['properties'] as $orderProp) {
                             $somePropValue = $propertyCollection->getItemByOrderPropertyId($orderProp['ID']);
                             self::setProp($somePropValue);
                         }
@@ -511,21 +510,21 @@ class RetailCrmHistory
                     }
                     
                     $propsKey = array();
-                    foreach($propertyCollectionArr['properties'] as $prop){
+                    foreach ($propertyCollectionArr['properties'] as $prop) {
                         $propsKey[$prop['CODE']]['ID'] = $prop['ID'];
                         $propsKey[$prop['CODE']]['TYPE'] = $prop['TYPE'];
                     }
                     //fio
-                    if($order['firstName'] || $order['lastName'] || $order['patronymic']){
+                    if ($order['firstName'] || $order['lastName'] || $order['patronymic']) {
                         $fio = '';
-                        foreach($propertyCollectionArr['properties'] as $prop){
-                            if(in_array($optionsOrderProps[$personType]['fio'], $prop)){
+                        foreach ($propertyCollectionArr['properties'] as $prop) {
+                            if (in_array($optionsOrderProps[$personType]['fio'], $prop)) {
                                 $fio = $newOrder->getPropertyCollection()->getItemByOrderPropertyId($prop['ID']);
                             }
                         }
 
                         $fio = RCrmActions::explodeFIO($fio);
-                        if($fio){
+                        if ($fio) {
                             $order['fio'] = trim(
                                 implode(
                                     ' ',
@@ -536,8 +535,7 @@ class RetailCrmHistory
                                     )
                                 )
                             );
-                        }
-                        else{
+                        } else {
                             $order['fio'] = trim(
                                 implode(
                                     ' ',
@@ -553,21 +551,19 @@ class RetailCrmHistory
                     
                     //optionsOrderProps
 
-                    if($optionsOrderProps[$personType]){
-                        foreach($optionsOrderProps[$personType] as $key => $orderProp){
-                            if(array_key_exists($key, $order)){
+                    if ($optionsOrderProps[$personType]) {
+                        foreach ($optionsOrderProps[$personType] as $key => $orderProp) {
+                            if (array_key_exists($key, $order)) {
                                 $somePropValue = $propertyCollection->getItemByOrderPropertyId($propsKey[$orderProp]['ID']);
                                 self::setProp($somePropValue, $order[$key]);
-                            }
-                            elseif(array_key_exists($key, $order['delivery']['address'])){
-                                if($propsKey[$key]['TYPE'] == 'LOCATION'){
+                            } elseif (array_key_exists($key, $order['delivery']['address'])) {
+                                if ($propsKey[$key]['TYPE'] == 'LOCATION') {
                                     $parameters['filter']['NAME'] = $order['delivery']['address'][$key];
                                     $parameters['filter']['LANGUAGE_ID'] = 'ru';
                                     $location = \Bitrix\Sale\Location\LocationTable::getListFast($parameters)->fetch();
                                     $somePropValue = $propertyCollection->getItemByOrderPropertyId($propsKey[$orderProp]['ID']);
                                     self::setProp($somePropValue, $location['CODE']);
-                                }
-                                else{
+                                } else {
                                     $somePropValue = $propertyCollection->getItemByOrderPropertyId($propsKey[$orderProp]['ID']);
                                     self::setProp($somePropValue, $order['delivery']['address'][$key]);
                                 }
@@ -575,39 +571,38 @@ class RetailCrmHistory
                         }
                     }
                     //optionsLegalDetails
-                    if($optionsLegalDetails[$personType]){
-                        foreach($optionsLegalDetails[$personType] as $key => $orderProp){
-                            if(array_key_exists($key, $order)){
+                    if ($optionsLegalDetails[$personType]) {
+                        foreach ($optionsLegalDetails[$personType] as $key => $orderProp) {
+                            if (array_key_exists($key, $order)) {
                                 $somePropValue = $propertyCollection->getItemByOrderPropertyId($propsKey[$orderProp]['ID']);
-
                                 self::setProp($somePropValue, $order[$key]);
                             }
                         }
                     }
-                    if($propsRemove){
+                    if ($propsRemove) {
                         $order = $orderDump;
                     }
 
                     //paymentStatus
-                    if($optionsPayment[$order['paymentStatus']]){
+                    if ($optionsPayment[$order['paymentStatus']]) {
                         $newOrder->setFieldNoDemand('PAYED', $optionsPayment[$order['paymentStatus']]);
                     }
                     //comments
-                    if(array_key_exists('customerComment', $order)){
+                    if (array_key_exists('customerComment', $order)) {
                         self::setProp($newOrder, $order['customerComment'], 'USER_DESCRIPTION');
                     }
-                    if(array_key_exists('managerComment', $order)){
+                    if (array_key_exists('managerComment', $order)) {
                         self::setProp($newOrder, $order['managerComment'], 'COMMENTS');
                     }
 
                     //items
                     $basket = $newOrder->getBasket();
 
-                    foreach($order['items'] as $product){
+                    foreach ($order['items'] as $product) {
                         $item = self::getExistsItem($basket, 'catalog', $product['offer']['externalId']);
-                        if(!$item){
+                        if (!$item) {
                             $item = $basket->createItem('catalog', $product['offer']['externalId']);
-                            if($item instanceof \Bitrix\Sale\Basket){
+                            if ($item instanceof \Bitrix\Sale\Basket) {
                                 $elem = self::getInfoElement();
                                 $item->setFields(array(
                                     'CURRENCY' => \Bitrix\Currency\CurrencyManager::getBaseCurrency(),
@@ -616,19 +611,18 @@ class RetailCrmHistory
                                     'NAME' => $elem['NAME'],
                                     'DETAIL_PAGE_URL' => $elem['URL']
                                 ));
-                            }
-                            else{
+                            } else {
                                 RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'createItem', 'Error item add');
                                 continue;
                             }
                         }
 
-                        if($product['quantity']){
+                        if ($product['quantity']) {
                             $item->setFieldNoDemand('QUANTITY', $product['quantity']);
                         }
                         
-                        if(array_key_exists('discount', $product) || array_key_exists('discountPercent', $product)){
-                            if(!isset($orderCrm)){
+                        if (array_key_exists('discount', $product) || array_key_exists('discountPercent', $product)) {
+                            if (!isset($orderCrm)) {
                                 try {
                                     $orderCrm = $api->ordersGet($order['id'], 'id');
                                 } catch (\RetailCrm\Exception\CurlException $e) {
@@ -639,14 +633,14 @@ class RetailCrmHistory
                                 }
                             }
 
-                            foreach($orderCrm['order']['items'] as $itemCrm){
-                                if($itemCrm['offer']['externalId'] == $product['offer']['externalId']){
+                            foreach ($orderCrm['order']['items'] as $itemCrm) {
+                                if ($itemCrm['offer']['externalId'] == $product['offer']['externalId']) {
                                     $itemCost = $itemCrm['initialPrice'] - $itemCrm['discount'] - round(($itemCrm['initialPrice'] / 100 * $itemCrm['discountPercent']), 2);
                                     break;
                                 }
                             }
 
-                            if(isset($itemCost) && $itemCost > 0){
+                            if (isset($itemCost) && $itemCost > 0) {
                                 $item->setField('CUSTOM_PRICE', 'Y');
                                 $item->setField('PRICE', $itemCost);
                                 $item->setField('DISCOUNT_NAME', '');
@@ -654,7 +648,7 @@ class RetailCrmHistory
                             }
                         }
                         
-                        if($product['delete']){
+                        if ($product['delete']) {
                             $item->delete();
                         }
                         $basket->save();
@@ -662,14 +656,13 @@ class RetailCrmHistory
                     }
                     
                     $orderSumm = 0;
-                    foreach($basket as $item){
+                    foreach ($basket as $item) {
                         $orderSumm += $item->getFinalPrice(); 
                     }
 
-                    if(array_key_exists('cost', $order['delivery'])){
+                    if (array_key_exists('cost', $order['delivery'])) {
                         $deliverySumm = $order['delivery']['cost'];
-                    }
-                    else{
+                    } else {
                         $deliverySumm = $newOrder->getDeliveryPrice();
                     }
 
@@ -680,14 +673,14 @@ class RetailCrmHistory
                     $newOrder->save();
                     
                     //payment
-                    if(array_key_exists('paymentType', $order)){
+                    if (array_key_exists('paymentType', $order)) {
                         self::paySystemUpdate($order, $optionsPayTypes);
                     }
                     
                     //delivery
-                    if(array_key_exists('code', $order['delivery'])/* || array_key_exists('service', $order['delivery'])*/){
+                    if (array_key_exists('code', $order['delivery'])/* || array_key_exists('service', $order['delivery'])*/) {
                         //если пусто, удаляем, если нет, update или add
-                        if(!isset($orderCrm)){
+                        if (!isset($orderCrm)) {
                             try {
                                 $orderCrm = $api->ordersGet($order['id'], 'id');
                             } catch (\RetailCrm\Exception\CurlException $e) {
@@ -699,17 +692,17 @@ class RetailCrmHistory
                         }
                         self::shipmentUpdate($orderCrm['order'], $optionsDelivTypes);
                     }
-                    if(isset($orderCrm)){
+                    if (isset($orderCrm)) {
                        unset($orderCrm); 
                     }
                     
                     //delivery cost
-                    if(array_key_exists('cost', $order['delivery'])){//сделать такую же для оплаты при изменении суммы
+                    if (array_key_exists('cost', $order['delivery'])) {
                         $shipment = Bitrix\Sale\Shipment::getList(array(
                             'filter' => array('ORDER_ID' => $order['externalId'], 'SYSTEM' => 'N'),
                             'order' => array('ID')
                         ))->fetch();
-                        if($shipment){
+                        if ($shipment) {
                             Bitrix\Sale\Internals\ShipmentTable::update($shipment['ID'], array('BASE_PRICE_DELIVERY' => $order['delivery']['cost'], 'PRICE_DELIVERY' => $order['delivery']['cost'], 'CUSTOM_PRICE_DELIVERY' => 'Y'));
                         }
                         
@@ -717,7 +710,9 @@ class RetailCrmHistory
                     }  
                     
                     Bitrix\Sale\OrderTable::update($order['externalId'], array('MARKED' => 'N', 'EMP_MARKED_ID' => '', 'REASON_MARKED' => ''));
-
+                    
+                    self::updateShipmentItem($order['externalId']);
+                    
                     if (function_exists('retailCrmAfterOrderSave')) {
                         retailCrmAfterOrderSave($order);
                     }
@@ -730,7 +725,7 @@ class RetailCrmHistory
             $end = array_pop($orderH);
             COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_HISTORY, $end['id']);
             
-            if($orderHistory['pagination']['totalPageCount'] == 1){
+            if ($orderHistory['pagination']['totalPageCount'] == 1) {
                 return true;
             }
             //новый фильтр для истории
@@ -739,79 +734,76 @@ class RetailCrmHistory
         
     }
     
-    public static function assemblyCustomer($customerHistory){
+    public static function assemblyCustomer($customerHistory)
+    {
         $server = \Bitrix\Main\Context::getCurrent()->getServer()->getDocumentRoot();
         $fields = array();
         if (file_exists($server . '/bitrix/modules/intaro.retailcrm/classes/general/config/objects.xml')) {
             $objects = simplexml_load_file($server . '/bitrix/modules/intaro.retailcrm/classes/general/config/objects.xml'); 
-            foreach($objects->fields->field as $object)
-            {
+            foreach ($objects->fields->field as $object) {
                 $fields[(string)$object["group"]][(string)$object["id"]] = (string)$object;
             }
         }
         $customers = array();
         foreach ($customerHistory as $change) {
             $change['customer'] = self::removeEmpty($change['customer']);
-            if($customers[$change['customer']['id']]){  
+            if ($customers[$change['customer']['id']]) {  
                 $customers[$change['customer']['id']] = array_merge($customers[$change['customer']['id']], $change['customer']);
-            }
-            else{
+            } else {
                 $customers[$change['customer']['id']] = $change['customer'];
             }
             
-            if($change['customer']['contragent']['contragentType']){
+            if ($change['customer']['contragent']['contragentType']) {
                 $change['customer']['contragentType'] = self::newValue($change['customer']['contragent']['contragentType']);
                 unset($change['customer']['contragent']);
             }
             
-            if($fields['customer'][$change['field']] == 'phones'){
+            if ($fields['customer'][$change['field']] == 'phones') {
                 $key = count($customers[$change['customer']['id']]['phones']);
-                if(isset($change['oldValue'])){
+                if (isset($change['oldValue'])) {
                     $customers[$change['customer']['id']]['phones'][$key]['old_number'] = $change['oldValue'];
                 }
-                if(isset($change['newValue'])){
+                if (isset($change['newValue'])) {
                     $customers[$change['customer']['id']]['phones'][$key]['number'] = $change['newValue'];
                 }
-            }
-            else{
-                if($fields['customerAddress'][$change['field']]){
+            } else {
+                if ($fields['customerAddress'][$change['field']]) {
                     $customers[$change['customer']['id']]['address'][$fields['customerAddress'][$change['field']]] = $change['newValue'];
-                }
-                elseif($fields['customerContragent'][$change['field']]){
+                } elseif ($fields['customerContragent'][$change['field']]) {
                     $customers[$change['customer']['id']]['contragent'][$fields['customerContragent'][$change['field']]] = $change['newValue'];
-                }
-                elseif($fields['customer'][$change['field']]){
+                } elseif ($fields['customer'][$change['field']]) {
                     $customers[$change['customer']['id']][$fields['customer'][$change['field']]] = self::newValue($change['newValue']);
                 }
                 
-                if(isset($change['created'])){
+                if (isset($change['created'])) {
                     $customers[$change['customer']['id']]['create'] = 1;
                 }
 
-                if(isset($change['deleted'])){
+                if (isset($change['deleted'])) {
                     $customers[$change['customer']['id']]['deleted'] = 1;
                 }
             }
         }
+        
         return $customers;
     }
     
-    public static function assemblyOrder($orderHistory){
+    public static function assemblyOrder($orderHistory)
+    {
         $server = \Bitrix\Main\Context::getCurrent()->getServer()->getDocumentRoot();
         if (file_exists($server . '/bitrix/modules/intaro.retailcrm/classes/general/config/objects.xml')) {
             $objects = simplexml_load_file($server . '/bitrix/modules/intaro.retailcrm/classes/general/config/objects.xml'); 
-            foreach($objects->fields->field as $object)
-            {
+            foreach ($objects->fields->field as $object) {
                 $fields[(string)$object["group"]][(string)$object["id"]] = (string)$object;
             }
         }
         $orders = array();
         foreach ($orderHistory as $change) {
             $change['order'] = self::removeEmpty($change['order']);
-            if($change['order']['items']){
+            if ($change['order']['items']) {
                 $items = array();
-                foreach($change['order']['items'] as $item){
-                    if(isset($change['created'])){
+                foreach ($change['order']['items'] as $item) {
+                    if (isset($change['created'])) {
                         $item['create'] = 1;          
                     }
                     $items[$item['id']] = $item;
@@ -819,113 +811,103 @@ class RetailCrmHistory
                 $change['order']['items'] = $items;
             }
 
-            if($change['order']['contragent']['contragentType']){
+            if ($change['order']['contragent']['contragentType']) {
                 $change['order']['contragentType'] = self::newValue($change['order']['contragent']['contragentType']);
                 unset($change['order']['contragent']);
             }
 
-            if($orders[$change['order']['id']]){  
+            if ($orders[$change['order']['id']]) {  
                 $orders[$change['order']['id']] = array_merge($orders[$change['order']['id']], $change['order']);
-            }
-            else{
+            } else {
                 $orders[$change['order']['id']] = $change['order'];
             } 
 
-            if($change['item']){
-                if($orders[$change['order']['id']]['items'][$change['item']['id']]){   
+            if ($change['item']) {
+                if ($orders[$change['order']['id']]['items'][$change['item']['id']]) {   
                     $orders[$change['order']['id']]['items'][$change['item']['id']] = array_merge($orders[$change['order']['id']]['items'][$change['item']['id']], $change['item']);
-                }
-                else{
+                } else {
                     $orders[$change['order']['id']]['items'][$change['item']['id']] = $change['item'];
                 }
 
-                if(empty($change['oldValue']) && $change['field'] == 'order_product'){
+                if (empty($change['oldValue']) && $change['field'] == 'order_product') {
                     $orders[$change['order']['id']]['items'][$change['item']['id']]['create'] = 1;
                     unset($orders[$change['order']['id']]['items'][$change['item']['id']]['delete']);
                 }
-                if(empty($change['newValue']) && $change['field'] == 'order_product'){
+                if (empty($change['newValue']) && $change['field'] == 'order_product') {
                     $orders[$change['order']['id']]['items'][$change['item']['id']]['delete'] = 1;
                 }
-                if(!$orders[$change['order']['id']]['items'][$change['item']['id']]['create'] && $fields['item'][$change['field']]){
+                if (!$orders[$change['order']['id']]['items'][$change['item']['id']]['create'] && $fields['item'][$change['field']]) {
                     $orders[$change['order']['id']]['items'][$change['item']['id']][$fields['item'][$change['field']]] = $change['newValue'];
                 }
-            }
-            else{
-                if($fields['delivery'][$change['field']] == 'service'){
+            } else {
+                if ($fields['delivery'][$change['field']] == 'service') {
                     $orders[$change['order']['id']]['delivery']['service']['code'] = self::newValue($change['newValue']);
-                }
-                elseif($fields['delivery'][$change['field']]){
+                } elseif ($fields['delivery'][$change['field']]) {
                     $orders[$change['order']['id']]['delivery'][$fields['delivery'][$change['field']]] = self::newValue($change['newValue']);
-                }
-                elseif($fields['orderAddress'][$change['field']]){
+                } elseif ($fields['orderAddress'][$change['field']]) {
                     $orders[$change['order']['id']]['delivery']['address'][$fields['orderAddress'][$change['field']]] = $change['newValue'];
-                }
-                elseif($fields['integrationDelivery'][$change['field']]){
+                } elseif ($fields['integrationDelivery'][$change['field']]) {
                     $orders[$change['order']['id']]['delivery']['service'][$fields['integrationDelivery'][$change['field']]] = self::newValue($change['newValue']);
-                }
-                elseif($fields['customerContragent'][$change['field']]){
+                } elseif ($fields['customerContragent'][$change['field']]) {
                     $orders[$change['order']['id']][$fields['customerContragent'][$change['field']]] = self::newValue($change['newValue']);
-                }
-                elseif(strripos($change['field'], 'custom_') !== false){
+                } elseif (strripos($change['field'], 'custom_') !== false) {
                     $orders[$change['order']['id']]['customFields'][str_replace('custom_', '', $change['field'])] = self::newValue($change['newValue']);
-                }
-                elseif($fields['order'][$change['field']]){
+                } elseif ($fields['order'][$change['field']]){
                     $orders[$change['order']['id']][$fields['order'][$change['field']]] = self::newValue($change['newValue']);
                 }
 
-                if(isset($change['created'])){
+                if (isset($change['created'])) {
                     $orders[$change['order']['id']]['create'] = 1;
                 }
 
-                if(isset($change['deleted'])){
+                if (isset($change['deleted'])) {
                     $orders[$change['order']['id']]['deleted'] = 1;
                 }
             }    
         }
+        
         return $orders;
     }
     
-    public static function shipmentUpdate($orderCrm, $optionsDelivTypes){
-        if(isset($orderCrm['delivery']['code'])){
+    public static function shipmentUpdate($orderCrm, $optionsDelivTypes)
+    {
+        if (isset($orderCrm['delivery']['code'])) {
             $crmCode = $orderCrm['delivery']['code'];
             
-            if(isset($orderCrm['delivery']['data']['deliveryType'])){
+            if (isset($orderCrm['delivery']['data']['deliveryType'])) {
                 $crmService = $orderCrm['delivery']['data']['deliveryType'];
-            }
-            elseif (isset($orderCrm['delivery']['service'])) {
+            } elseif (isset($orderCrm['delivery']['service'])) {
                 $crmService = $orderCrm['delivery']['service'];
             }
 
             //подбираем код битриксового сервиса 
             $arDeliveryServiceAll = \Bitrix\Sale\Delivery\Services\Manager::getActiveList();
-            foreach($arDeliveryServiceAll as $arDeliveryService){
+            foreach ($arDeliveryServiceAll as $arDeliveryService) {
                 $arDeliveryCode[$arDeliveryService['CODE']] = $arDeliveryService['ID'];
                 $arDeliveryID[$arDeliveryService['ID']] = $arDeliveryService;
-                if($arDeliveryService['ID'] == $optionsDelivTypes[$crmCode]){
+                if ($arDeliveryService['ID'] == $optionsDelivTypes[$crmCode]) {
                     $dCode = $arDeliveryService['CODE'] . ':' . $crmService;
                 } 
             }
             //будем менять доставку на этот id
-            if($crmService && $arDeliveryCode[$dCode]){
+            if ($crmService && $arDeliveryCode[$dCode]) {
                 $nowDelivery = $arDeliveryCode[$dCode];
-            }
-            else{
+            } else {
                 $nowDelivery = $optionsDelivTypes[$crmCode];
             }
             
             //найти текущую доставку в заказе
             $cnt = Bitrix\Sale\Internals\ShipmentTable::getCount(array('ORDER_ID' => $orderCrm['externalId']));
-            if($cnt > 0){//обновляем 
+            if ($cnt > 0) {//обновляем 
                 $obDeliverys = \Bitrix\Sale\Shipment::getList(array('filter' => array('ORDER_ID' => $orderCrm['externalId']),
                                                                     'order' => array('ID')));
-                while($arDelivery = $obDeliverys->fetch()){
-                    if($arDelivery['DELIVERY_ID'] != $nowDelivery){
+                while ($arDelivery = $obDeliverys->fetch()) {
+                    if ($arDelivery['DELIVERY_ID'] != $nowDelivery) {
                         \Bitrix\Sale\OrderTable::update($orderCrm['externalId'], array('DELIVERY_ID' => $nowDelivery));
                         \Bitrix\Sale\Internals\ShipmentTable::update($arDelivery['ID'], array('DELIVERY_ID' => $nowDelivery, 'DELIVERY_NAME' => $arDeliveryID[$nowDelivery]['NAME']));
                     }
                 }
-            }
-            else{//создаем
+            } else {//создаем
                 \Bitrix\Sale\OrderTable::update($orderCrm['externalId'], array('DELIVERY_ID' => $nowDelivery));
                 $shipmentSystem = \Bitrix\Sale\Internals\ShipmentTable::add(array(
                     'ORDER_ID' => $orderCrm['externalId'],
@@ -965,19 +947,18 @@ class RetailCrmHistory
                     'DATE_INSERT'=> new \Bitrix\Main\Type\DateTime()
                 ));
             }   
-        }
-        else{
+        } else {
             //ищем у заказа на сайте доставки и удаляем/заменяем на без доставки
             $noOrderId = \Bitrix\Sale\Delivery\Services\EmptyDeliveryService::getEmptyDeliveryServiceId();
             \Bitrix\Sale\OrderTable::update($orderCrm['externalId'], array('DELIVERY_ID' => $noOrderId));
             $obDeliverys = Bitrix\Sale\Shipment::getList(array('filter' => array('ORDER_ID' => $orderCrm['externalId']),
                                                                'order' => array('ID')));
             $create = true;
-            while($arDelivery = $obDeliverys->fetch()){
+            while ($arDelivery = $obDeliverys->fetch()) {
                 \Bitrix\Sale\Internals\ShipmentTable::update($arDelivery['ID'], array('DELIVERY_ID' => $noOrderId, 'DELIVERY_NAME' => 'Без доставки'));
                 $create = false;
             }
-            if($create){
+            if ($create) {
                 $shipmentSystem = \Bitrix\Sale\Internals\ShipmentTable::add(array(
                     'ORDER_ID' => $orderCrm['externalId'],
                     'STATUS_ID' => 'DN',
@@ -1021,28 +1002,87 @@ class RetailCrmHistory
         return true;
     }
     
-    public static function paySystemUpdate($order, $optionsPayment){
-        if(isset($order['paymentType'])){
-            if($optionsPayment[$order['paymentType']]){
+    public static function updateShipmentItem($orderId)
+    {
+        $orderBasket = \Bitrix\Sale\Internals\BasketTable::getList(array(
+            'filter' => array('ORDER_ID' => $orderId),
+            'select' => array('ID', 'QUANTITY')
+        ));
+        $basketItems = array();
+        while ($basketItem = $orderBasket->fetch()) {
+            $basketItems[] = $basketItem;
+            $bItems[] = $basketItem['ID'];
+        }
+
+        $obShipments = \Bitrix\Sale\Internals\ShipmentTable::getList(array(
+            'filter' => array('ORDER_ID' => $orderId),
+            'select' => array('ID')
+        ));
+        $shipmentItems = array();
+        while ($arShipment = $obShipments->fetch()) {
+            $dlvBaslet = \Bitrix\Sale\Internals\ShipmentItemTable::getList(array(
+                'order'  => array('ORDER_DELIVERY_ID'),
+                'filter' => array('ORDER_DELIVERY_ID' => $arShipment['ID'])
+            ));
+            $shipmentItems[$arShipment['ID']] = array();
+            while ($item = $dlvBaslet->fetch()) {
+                $shipmentItems[$arShipment['ID']][] = $item;
+            }
+        }
+
+        foreach ($basketItems as $basketItem) {
+            foreach ($shipmentItems as $key => $arShipmentItems) {
+                $found = false;
+                foreach ($arShipmentItems as $elShipmentItem) {
+                    if (!in_array($elShipmentItem['BASKET_ID'], $bItems)) {
+                        //удаляем элемент
+                        \Bitrix\Sale\Internals\ShipmentItemTable::delete($elShipmentItem['ID']);
+                    }
+                    if ($elShipmentItem['BASKET_ID'] == $basketItem['ID']) {
+                        //нашли
+                        $found = true;
+                        //проверяем кол-во, если нужно, обновляем
+                        if ($elShipmentItem['QUANTITY'] != $basketItem['QUANTITY']) {
+                            \Bitrix\Sale\Internals\ShipmentItemTable::update($elShipmentItem['ID'], array('QUANTITY' => $basketItem['QUANTITY']));
+                        }
+
+                    }
+                }
+                if (!$found) {
+                    //добавляем 
+                    \Bitrix\Sale\Internals\ShipmentItemTable::add(array(
+                        'ORDER_DELIVERY_ID' => $key,
+                        'BASKET_ID'         => $basketItem['ID'],
+                        'DATE_INSERT'       => new \Bitrix\Main\Type\DateTime(),
+                        'QUANTITY'          => $basketItem['QUANTITY'],
+                        'RESERVED_QUANTITY' => '0.00',
+                    ));
+                }
+            }
+        }
+    }
+
+    public static function paySystemUpdate($order, $optionsPayment)
+    {
+        if (isset($order['paymentType'])) {
+            if ($optionsPayment[$order['paymentType']]) {
                 $paymentList = RCrmActions::PaymentList();
                 $arPayments = array();
                 $arPaymentsName = array();
-                foreach($paymentList as $payment){
+                foreach ($paymentList as $payment) {
                     $arPayments[] = $payment['ID'];
                     $arPaymentsName[$payment['ID']] = $payment['NAME'];
                 }
                 
-                if(in_array($optionsPayment[$order['paymentType']], $arPayments)){
+                if (in_array($optionsPayment[$order['paymentType']], $arPayments)) {
                     \Bitrix\Sale\OrderTable::update($order['externalId'], array('PAY_SYSTEM_ID' => $optionsPayment[$order['paymentType']]));
                     $payment = \Bitrix\Sale\Payment::getList(array(
                         'filter' => array('ORDER_ID' => $order['externalId']),
                         'order' => array('ID')
                     ))->fetch();
-                    if($payment){
-                        //если уже существует, update
+                    if ($payment) {//если уже существует, update
                         \Bitrix\Sale\Internals\PaymentTable::update($payment['ID'], array('PAY_SYSTEM_ID' => $optionsPayment[$order['paymentType']], 'PAY_SYSTEM_NAME' => $arPaymentsName[$optionsPayment[$order['paymentType']]], 'SUM' => $order['summ']));
-                    }
-                    else{
+                    } else {
                         \Bitrix\Sale\Internals\PaymentTable::add(array(
                             'ORDER_ID' => $order['externalId'],
                             'PAID' => 'N',
@@ -1058,46 +1098,42 @@ class RetailCrmHistory
                         ));
                     }
                     //запись в историю
-                }
-                else{
-                    //ошибка, нет такой активной платежной системы
+                } else {//ошибка, нет такой активной платежной системы
                     RCrmActions::eventLog('RetailCrmHistory::paySystemUpdate', 'RCrmActions::PaymentList()', 'Error paySystem not found');
                 }
-            }
-            else{
-                //ошибка, возможно платежная система не сопоставлена
+            } else {//ошибка, возможно платежная система не сопоставлена
                 RCrmActions::eventLog('RetailCrmHistory::paySystemUpdate', 'RCrmActions::PaymentList()', 'Error paySystem not found in option');;
             }
-        }
-        else{
+        } else {
             \Bitrix\Sale\OrderTable::update($order['externalId'], array('PAY_SYSTEM_ID' => ''));
             $payment = \Bitrix\Sale\Payment::getList(array(
                 'filter' => array('ORDER_ID' => $order['externalId']),
                 'order' => array('ID')
             ))->fetch();
             
-            if($payment['ID']){
+            if ($payment['ID']) {
                 \Bitrix\Sale\Internals\PaymentTable::delete($payment['ID']);
             }
             //запись в историю
         }
     }
     
-    public static function newValue($value){
-        if(isset($value['code'])){
+    public static function newValue($value)
+    {
+        if (isset($value['code'])) {
             return $value['code'];
-        }
-        else{
+        } else {
             return $value;
         }
     }
     
-    public static function removeEmpty($inputArray){
+    public static function removeEmpty($inputArray)
+    {
         $outputArray = array();
-        if (!empty($inputArray)){
-            foreach ($inputArray as $key => $element){
-                if(!empty($element) || $element === 0 || $element === '0'){
-                    if (is_array($element)){
+        if (!empty($inputArray)) {
+            foreach ($inputArray as $key => $element) {
+                if (!empty($element) || $element === 0 || $element === '0') {
+                    if (is_array($element)) {
                         $element = self::removeEmpty($element);
                     }
                     $outputArray[$key] = $element;
@@ -1108,30 +1144,28 @@ class RetailCrmHistory
         return $outputArray;
     }
     
-    public static function setProp($obj, $value, $prop){
-		if(!isset($obj)){
+    public static function setProp($obj, $value, $prop)
+    {
+		if (!isset($obj)) {
             return false;
         }
-        if($prop && $value){
+        if ($prop && $value) {
             $obj->setField($prop, $value);
-        }
-        elseif($value){
+        } elseif ($value) {
             $obj->setValue($value);
-        }
-        else{
+        } else {
             $obj->delete();
         }
 
         return true;
     }
     
-    public static function getExistsItem($basket, $moduleId, $productId){
-		foreach ($basket as $basketItem)
-		{
+    public static function getExistsItem($basket, $moduleId, $productId)
+    {
+		foreach ($basket as $basketItem) {
 			$itemExists = ($basketItem->getField('PRODUCT_ID') == $productId && $basketItem->getField('MODULE') == $moduleId);
 
-			if ($itemExists)
-			{
+			if ($itemExists) {
                 return $basketItem;
 			}
 		}
@@ -1139,13 +1173,15 @@ class RetailCrmHistory
 		return false;
 	}
     
-    public static function getInfoElement($offerId){
+    public static function getInfoElement($offerId)
+    {
         $elementInfo = CIBlockElement::GetByID($offerId)->fetch();
         $url = CAllIBlock::ReplaceDetailUrl($elementInfo['DETAIL_PAGE_URL'], $elementInfo, false, 'E');
         $info = array(
             'NAME' => $elementInfo['NAME'],
             'URL' => $url,
         );
+        
         return $info;
     }
 }   

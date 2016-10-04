@@ -1,40 +1,41 @@
 <?php
 if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/export_run.php")){
     require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/export_run.php");
-}
-else{
+} else {
     ignore_user_abort(true);
     set_time_limit(0);
 
     global $APPLICATION;
-    if (!CModule::IncludeModule("iblock"))
+    if (!CModule::IncludeModule("iblock")){
         return;
-    if (!CModule::IncludeModule("catalog"))
+    }
+    if (!CModule::IncludeModule("catalog")){
         return;
-    if (!CModule::IncludeModule("intaro.retailcrm"))
+    }
+    if (!CModule::IncludeModule("intaro.retailcrm")){
         return;
-
+    }
+    
     $rsSites = CSite::GetList($by, $sort, array('ACTIVE' => 'Y'));
-    while ($ar = $rsSites->Fetch()){
-        if($ar['DEF'] == 'Y'){
+    while ($ar = $rsSites->Fetch()) {
+        if ($ar['DEF'] == 'Y') {
             $SERVER_NAME = $ar['SERVER_NAME'];
         }
     }
 
-    $iblockProperties = Array(
-            "article" => "article",
-            "manufacturer" => "manufacturer",
-            "color" =>"color",
-            "weight" => "weight",
-            "size" => "size",
-            "length" => "length",
-            "width" => "width",
-            "height" => "height",
-        );
+    $iblockProperties = array(
+        "article" => "article",
+        "manufacturer" => "manufacturer",
+        "color" =>"color",
+        "weight" => "weight",
+        "size" => "size",
+        "length" => "length",
+        "width" => "width",
+        "height" => "height",
+    );
     $IBLOCK_PROPERTY_SKU = array();
     $IBLOCK_PROPERTY_UNIT_SKU = array();
     foreach ($iblockProperties as $prop) {
-
         $skuUnitProps = ('IBLOCK_PROPERTY_UNIT_SKU' . "_" . $prop);
         $skuUnitProps = $$skuUnitProps;
         if (is_array($skuUnitProps)) {
@@ -54,7 +55,6 @@ else{
     $IBLOCK_PROPERTY_PRODUCT = array();
     $IBLOCK_PROPERTY_UNIT_PRODUCT = array();
     foreach ($iblockProperties as $prop) {
-
         $productUnitProps = "IBLOCK_PROPERTY_UNIT_PRODUCT" . "_" . $prop;
         $productUnitProps = $$productUnitProps;
         if (is_array($productUnitProps)) {

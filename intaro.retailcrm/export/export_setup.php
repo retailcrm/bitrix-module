@@ -1,22 +1,23 @@
 <?
 if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/export_setup.php")){
     require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/export_setup.php");
-}
-else{
-    $iblockProperties = Array(
-                "article" => "article",
-                "manufacturer" => "manufacturer",
-                "color" =>"color",
-                "size" => "size",
-                "weight" => "weight",
-                "length" => "length",
-                "width" => "width",
-                "height" => "height",
-            );
+} else {
+    $iblockProperties = array(
+        "article" => "article",
+        "manufacturer" => "manufacturer",
+        "color" =>"color",
+        "size" => "size",
+        "weight" => "weight",
+        "length" => "length",
+        "width" => "width",
+        "height" => "height",
+    );
 
-    if(!check_bitrix_sessid()) return;
+    if(!check_bitrix_sessid()) {
+        return;
+    }
 
-    __IncludeLang(GetLangFileName($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/intaro.retailcrm/lang/", "/icml_export_setup.php"));
+    __IncludeLang(GetLangFileName($_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/intaro.retailcrm/lang/", "/icml_export_setup.php"));
 
     $MODULE_ID = 'intaro.retailcrm';
     $CRM_CATALOG_BASE_PRICE = 'catalog_base_price';
@@ -33,7 +34,6 @@ else{
 
     if (($ACTION == 'EXPORT' || $ACTION == 'EXPORT_EDIT' || $ACTION == 'EXPORT_COPY') && $STEP == 1)
     {
-
         if (isset($arOldSetupVars['SETUP_FILE_NAME']))
                 $SETUP_FILE_NAME = $arOldSetupVars['SETUP_FILE_NAME'];
         if (isset($arOldSetupVars['LOAD_PURCHASE_PRICE']))

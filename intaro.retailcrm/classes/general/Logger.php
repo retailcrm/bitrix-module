@@ -14,8 +14,7 @@ class Logger
     {
         $rsSites = CSite::GetList($by, $sort, array('DEF' => 'Y'));
         $ar = $rsSites->Fetch();
-        if (!is_dir($ar['ABS_DOC_ROOT'] . $this->logPath . '/'))
-        {
+        if (!is_dir($ar['ABS_DOC_ROOT'] . $this->logPath . '/')) {
             mkdir($ar['ABS_DOC_ROOT'] . $this->logPath . '/');
         }
         $file = $ar['ABS_DOC_ROOT'] . $this->logPath . '/' . $file . '.log';  
@@ -24,7 +23,7 @@ class Logger
         $data['DATA'] = $dump;
 
         $f = fopen($file, "a+");
-        fwrite($f, print_r($data,true));
+        fwrite($f, print_r($data, true));
         fclose($f); 
 
         // if filesize more than 5 Mb rotate it

@@ -2,7 +2,8 @@
 /**
  * RCrmEvent
  */
-class RetailCrmEvent {    
+class RetailCrmEvent
+{    
     protected static $MODULE_ID = 'intaro.retailcrm';
     protected static $CRM_API_HOST_OPTION = 'api_host';
     protected static $CRM_API_KEY_OPTION = 'api_key';
@@ -24,12 +25,13 @@ class RetailCrmEvent {
      * 
      * @param mixed $arFields - User arFields
      */
-    function OnAfterUserUpdate($arFields) {        
-        if(isset($GLOBALS['RETAIL_CRM_HISTORY']) && $GLOBALS['RETAIL_CRM_HISTORY']){
+    function OnAfterUserUpdate($arFields)
+    {        
+        if (isset($GLOBALS['RETAIL_CRM_HISTORY']) && $GLOBALS['RETAIL_CRM_HISTORY']) {
             return;
         }
         
-        if(!$arFields['RESULT']){
+        if (!$arFields['RESULT']) {
             return;
         }
         
@@ -40,7 +42,7 @@ class RetailCrmEvent {
         $optionsSitesList = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_SITES_LIST, 0));
         
         $resultOrder = RetailCrmUser::customerEdit($arFields, $api, $optionsSitesList);
-        if(!$resultOrder) {
+        if (!$resultOrder) {
             RCrmActions::eventLog('RetailCrmEvent::OnAfterUserUpdate', 'RetailCrmUser::customerEdit', 'error update customer');
         }
 
@@ -63,10 +65,11 @@ class RetailCrmEvent {
      * @param mixed $ID - Order id  
      * @param mixed $arFields - Order arFields
      */
-    function OnOrderSave($ID, $arFields, $arOrder, $isNew) {
-        $GLOBALS['RETAILCRM_EVENT_OLD'] = true;
-        return;
-    }
+//    function OnOrderSave($ID, $arFields, $arOrder, $isNew)
+//    {
+//        $GLOBALS['RETAILCRM_EVENT_OLD'] = true;
+//        return;
+//    }
     
     /**
      * onUpdateOrder
@@ -74,8 +77,9 @@ class RetailCrmEvent {
      * @param mixed $ID - Order id  
      * @param mixed $arFields - Order arFields
      */
-    function onUpdateOrder($ID, $arFields) {
-        if(isset($GLOBALS['RETAIL_CRM_HISTORY']) && $GLOBALS['RETAIL_CRM_HISTORY']){
+    function onUpdateOrder($ID, $arFields)
+    {
+        if (isset($GLOBALS['RETAIL_CRM_HISTORY']) && $GLOBALS['RETAIL_CRM_HISTORY']) {
             $GLOBALS['RETAILCRM_ORDER_OLD_EVENT'] = false;            
             return;
         }  
@@ -89,7 +93,8 @@ class RetailCrmEvent {
      * 
      * @param object $event - Order object
      */
-    function orderDelete($event){
+    function orderDelete($event)
+    {
         $GLOBALS['RETAILCRM_ORDER_DELETE'] = true; 
         return;
     }
@@ -100,8 +105,9 @@ class RetailCrmEvent {
      * @param object $event - Order object
      */
 
-    function orderSave($event){
-        if($GLOBALS['RETAILCRM_ORDER_OLD_EVENT'] !== false && $GLOBALS['RETAIL_CRM_HISTORY'] !== true && $GLOBALS['RETAILCRM_ORDER_DELETE'] !== true){
+    function orderSave($event)
+    {
+        if ($GLOBALS['RETAILCRM_ORDER_OLD_EVENT'] !== false && $GLOBALS['RETAIL_CRM_HISTORY'] !== true && $GLOBALS['RETAILCRM_ORDER_DELETE'] !== true) {
             if (!CModule::IncludeModule('iblock')) {
                 RCrmActions::eventLog('RetailCrmEvent::orderSave', 'iblock', 'module not found');
                 return true;
@@ -118,13 +124,11 @@ class RetailCrmEvent {
             }
 
            //проверка на существование getParameter("ENTITY")
-            if(method_exists($event, 'getId')){
+            if (method_exists($event, 'getId')) {
                 $obOrder = $event;
-            }
-            elseif(method_exists($event, 'getParameter')){
+            } elseif (method_exists($event, 'getParameter')) {
                 $obOrder = $event->getParameter("ENTITY");
-            }
-            else{
+            } else {
                 RCrmActions::eventLog('RetailCrmEvent::orderSave', 'events', 'event error');
                 return true;
             }
@@ -162,23 +166,22 @@ class RetailCrmEvent {
             ));
              
             //многосайтовость
-            $site = count($optionsSitesList)>1 ? $optionsSitesList[$arOrder['LID']] : null;
+            $site = count($optionsSitesList) > 1 ? $optionsSitesList[$arOrder['LID']] : null;
             
             //проверка на новый заказ
             $orderCrm = RCrmActions::apiMethod($api, 'ordersGet', __METHOD__, $arOrder['ID'], $site);
-            if(isset($orderCrm['order'])){
+            if (isset($orderCrm['order'])) {
                 $methodApi = 'ordersEdit';
-            }
-            else{
+            } else {
                 $methodApi = 'ordersCreate';
             }
 
             //user
             $userCrm = RCrmActions::apiMethod($api, 'customersGet', __METHOD__, $arOrder['USER_ID'], $site);
-            if(!isset($userCrm['customer'])){
+            if (!isset($userCrm['customer'])) {
                 $arUser = Bitrix\Main\UserTable::getById($arOrder['USER_ID'])->fetch();
                 $resultUser = RetailCrmUser::customerSend($arUser, $api, $optionsContragentType[$arOrder['PERSON_TYPE_ID']], true, $site);
-                if(!$resultUser) {
+                if (!$resultUser) {
                     RCrmActions::eventLog('RetailCrmEvent::orderSave', 'RetailCrmUser::customerSend', 'error during creating customer');
                     return true;
                 }
@@ -186,7 +189,7 @@ class RetailCrmEvent {
 
             //order
             $resultOrder = RetailCrmOrder::orderSend($arOrder, $api, $arParams, true, $site, $methodApi);
-            if(!$resultOrder) {
+            if (!$resultOrder) {
                 RCrmActions::eventLog('RetailCrmEvent::orderSave', 'RetailCrmOrder::orderSend', 'error during creating order');
                 return true;
             }
