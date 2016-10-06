@@ -680,7 +680,8 @@ class intaro_retailcrm extends CModule
                 }
             } elseif (htmlspecialchars(trim($_POST['delivery-types-export'])) == 'true') {//отправка доставок в црм
                 // send to intaro crm and save delivery types!
-                foreach ($optionsDelivTypes as $deliveryType) {
+                $arDeliveryServiceAll = \Bitrix\Sale\Delivery\Services\Manager::getActiveList();
+                foreach ($arResult['bitrixDeliveryTypesList'] as $deliveryType) {
                     $load = true;
                     try {
                         $this->RETAIL_CRM_API->deliveryTypesEdit(RCrmActions::clearArr(array(
@@ -698,7 +699,8 @@ class intaro_retailcrm extends CModule
                         );
                     }
                     if ($load) {
-                        foreach ($optionsDelivTypes as $deliveryService) {
+                        $deliveryTypesArr[$deliveryType['ID']] = $deliveryType['ID'];
+                        foreach ($arDeliveryServiceAll as $deliveryService) {
                             if ($deliveryService['PARENT_ID'] != 0 && $deliveryService['PARENT_ID'] == $deliveryType['ID']) {
                                 $srv = explode(':', $deliveryService['CODE']);
                                 if (count($srv) == 2) {
@@ -710,7 +712,7 @@ class intaro_retailcrm extends CModule
                                         )));
                                     } catch (\RetailCrm\Exception\CurlException $e) {
                                         RCrmActions::eventLog(
-                                            'intaro.retailcrm/options.php', 'RetailCrm\ApiClient::deliveryServiceEdit::CurlException',
+                                            'intaro.crm/install/index.php', 'RetailCrm\ApiClient::deliveryServiceEdit::CurlException',
                                             $e->getCode() . ': ' . $e->getMessage()
                                         );
                                     }
