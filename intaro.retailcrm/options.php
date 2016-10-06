@@ -930,7 +930,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                     <td colspan="2"><b><?php echo GetMessage('ORDER_UPLOAD'); ?></b></td>
                 </tr>
                 <tr>
-                    <td class="adm-detail-content-cell-r"><?php echo GetMessage('ORDER_NUMBERS'); ?> <input id="order-nombers" style="width:86%" type="text" value="" name="orders"></td>
+                    <td class="adm-detail-content-cell-r"><?php echo GetMessage('ORDER_NUMBER'); ?> <input id="order-nombers" style="width:86%" type="text" value="" name="orders"></td>
                 </tr>
             </tbody>
         </table>

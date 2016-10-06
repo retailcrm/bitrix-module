@@ -443,6 +443,7 @@ class RetailCrmHistory
                 }
 
                 if (isset($order['externalId']) && $order['externalId']) {
+                    $itemUpdate = false;
                     $newOrder = Bitrix\Sale\Order::load($order['externalId']);
 
                     if (!$newOrder instanceof \Bitrix\Sale\Order) {
@@ -597,62 +598,67 @@ class RetailCrmHistory
 
                     //items
                     $basket = $newOrder->getBasket();
-
-                    foreach ($order['items'] as $product) {
-                        $item = self::getExistsItem($basket, 'catalog', $product['offer']['externalId']);
-                        if (!$item) {
-                            $item = $basket->createItem('catalog', $product['offer']['externalId']);
-                            if ($item instanceof \Bitrix\Sale\Basket) {
-                                $elem = self::getInfoElement();
-                                $item->setFields(array(
-                                    'CURRENCY' => \Bitrix\Currency\CurrencyManager::getBaseCurrency(),
-                                    'LID' => \Bitrix\Main\Context::getCurrent()->getSite(),
-                                    'BASE_PRICE' => $product['initialPrice'],
-                                    'NAME' => $elem['NAME'],
-                                    'DETAIL_PAGE_URL' => $elem['URL']
-                                ));
-                            } else {
-                                RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'createItem', 'Error item add');
+                    if (isset($order['items'])) {
+                        $itemUpdate = true;
+                        foreach ($order['items'] as $product) {
+                            $item = self::getExistsItem($basket, 'catalog', $product['offer']['externalId']);
+                            if (!$item) {
+                                if($product['delete']){
+                                    continue;
+                                }
+                                $item = $basket->createItem('catalog', $product['offer']['externalId']);
+                                if ($item instanceof \Bitrix\Sale\Basket) {
+                                    $elem = self::getInfoElement();
+                                    $item->setFields(array(
+                                        'CURRENCY' => \Bitrix\Currency\CurrencyManager::getBaseCurrency(),
+                                        'LID' => \Bitrix\Main\Context::getCurrent()->getSite(),
+                                        'BASE_PRICE' => $product['initialPrice'],
+                                        'NAME' => $elem['NAME'],
+                                        'DETAIL_PAGE_URL' => $elem['URL']
+                                    ));
+                                } else {
+                                    RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'createItem', 'Error item add');
+                                    continue;
+                                }
+                            }
+                            if ($product['delete']) {
+                                $item->delete();
                                 continue;
                             }
-                        }
 
-                        if ($product['quantity']) {
-                            $item->setFieldNoDemand('QUANTITY', $product['quantity']);
-                        }
-                        
-                        if (array_key_exists('discount', $product) || array_key_exists('discountPercent', $product)) {
-                            if (!isset($orderCrm)) {
-                                try {
-                                    $orderCrm = $api->ordersGet($order['id'], 'id');
-                                } catch (\RetailCrm\Exception\CurlException $e) {
-                                    RCrmActions::eventLog(
-                                        'RetailCrmHistory::orderHistory', 'RetailCrm\RestApi::ordersGet::CurlException',
-                                        $e->getCode() . ': ' . $e->getMessage()
-                                    );
+                            if ($product['quantity']) {
+                                $item->setFieldNoDemand('QUANTITY', $product['quantity']);
+                            }
+
+                            if (array_key_exists('discount', $product) || array_key_exists('discountPercent', $product)) {
+                                if (!isset($orderCrm)) {
+                                    try {
+                                        $orderCrm = $api->ordersGet($order['id'], 'id');
+                                    } catch (\RetailCrm\Exception\CurlException $e) {
+                                        RCrmActions::eventLog(
+                                            'RetailCrmHistory::orderHistory', 'RetailCrm\RestApi::ordersGet::CurlException',
+                                            $e->getCode() . ': ' . $e->getMessage()
+                                        );
+                                    }
+                                }
+
+                                foreach ($orderCrm['order']['items'] as $itemCrm) {
+                                    if ($itemCrm['offer']['externalId'] == $product['offer']['externalId']) {
+                                        $itemCost = $itemCrm['initialPrice'] - $itemCrm['discount'] - round(($itemCrm['initialPrice'] / 100 * $itemCrm['discountPercent']), 2);
+                                        break;
+                                    }
+                                }
+
+                                if (isset($itemCost) && $itemCost > 0) {
+                                    $item->setField('CUSTOM_PRICE', 'Y');
+                                    $item->setField('PRICE', $itemCost);
+                                    $item->setField('DISCOUNT_NAME', '');
+                                    $item->setField('DISCOUNT_VALUE', '');
                                 }
                             }
 
-                            foreach ($orderCrm['order']['items'] as $itemCrm) {
-                                if ($itemCrm['offer']['externalId'] == $product['offer']['externalId']) {
-                                    $itemCost = $itemCrm['initialPrice'] - $itemCrm['discount'] - round(($itemCrm['initialPrice'] / 100 * $itemCrm['discountPercent']), 2);
-                                    break;
-                                }
-                            }
-
-                            if (isset($itemCost) && $itemCost > 0) {
-                                $item->setField('CUSTOM_PRICE', 'Y');
-                                $item->setField('PRICE', $itemCost);
-                                $item->setField('DISCOUNT_NAME', '');
-                                $item->setField('DISCOUNT_VALUE', '');
-                            }
+                            $basket->save();  
                         }
-                        
-                        if ($product['delete']) {
-                            $item->delete();
-                        }
-                        $basket->save();
-                        
                     }
                     
                     $orderSumm = 0;
@@ -678,7 +684,8 @@ class RetailCrmHistory
                     }
                     
                     //delivery
-                    if (array_key_exists('code', $order['delivery'])/* || array_key_exists('service', $order['delivery'])*/) {
+                    if (array_key_exists('code', $order['delivery'])) {
+                        $itemUpdate = true;
                         //если пусто, удаляем, если нет, update или add
                         if (!isset($orderCrm)) {
                             try {
@@ -711,7 +718,9 @@ class RetailCrmHistory
                     
                     Bitrix\Sale\OrderTable::update($order['externalId'], array('MARKED' => 'N', 'EMP_MARKED_ID' => '', 'REASON_MARKED' => ''));
                     
-                    self::updateShipmentItem($order['externalId']);
+                    if ($itemUpdate) {
+                        self::updateShipmentItem($order['externalId']);
+                    }
                     
                     if (function_exists('retailCrmAfterOrderSave')) {
                         retailCrmAfterOrderSave($order);
