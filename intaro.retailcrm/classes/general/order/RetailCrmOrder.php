@@ -128,7 +128,7 @@ class RetailCrmOrder
 
         //отправка
         if (function_exists('retailCrmBeforeOrderSend')) {
-            $newResOrder = retailCrmBeforeOrderSend($order);
+            $newResOrder = retailCrmBeforeOrderSend($order, $arFields);
             if (is_array($newResOrder) && !empty($newResOrder)) {
                 $order = $newResOrder;
             }
