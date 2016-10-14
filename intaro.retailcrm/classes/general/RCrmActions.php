@@ -67,9 +67,15 @@ class RCrmActions
     public static function StatusesList()
     {
         $bitrixPaymentStatusesList = array();
-        $arStatusesAll = \Bitrix\Sale\OrderStatus::getAllStatusesNames();
-        foreach ($arStatusesAll as $key => $arStatus) {
-            $bitrixPaymentStatusesList[$key] = array('ID' => $key, 'NAME' => $arStatus);
+        $obStatuses = \Bitrix\Sale\Internals\StatusTable::getList(array(
+            'filter' => array('TYPE' => 'O'),
+            'select' => array('ID', "NAME" => 'Bitrix\Sale\Internals\StatusLangTable:STATUS.NAME')
+        ));
+        while ($arStatus = $obStatuses->fetch()) {
+            $bitrixPaymentStatusesList[$arStatus['ID']] = array(
+                'ID'   => $arStatus['ID'],
+                'NAME' => $arStatus['NAME'],
+            );
         }
         
         return $bitrixPaymentStatusesList;

@@ -327,6 +327,8 @@ class RetailCrmHistory
                     }
                 }
                 
+                $log->write($order, 'assemblyOrderHistory');
+                
                 if (isset($order['deleted'])) {
                     continue;
                 }
@@ -470,14 +472,14 @@ class RetailCrmHistory
                     if ($optionsPayStatuses[$order['status']]) {
                         $newOrder->setField('STATUS_ID', $optionsPayStatuses[$order['status']]);
                         if (in_array($optionsPayStatuses[$order['status']], $optionsCanselOrder)) {
-                            $newOrder->setField('CANCELED', 'Y');
+                            $newOrder->setFieldNoDemand('CANCELED', 'Y');
                         } else {
-                            $newOrder->setField('CANCELED', 'N');
+                            $newOrder->setFieldNoDemand('CANCELED', 'N');
                         }
                     }
                     
 					if (array_key_exists('statusComment', $order)) {
-                        self::setProp($newOrder, $order['statusComment'], 'REASON_CANCELED');
+                        self::setProp($newOrder, RCrmActions::fromJSON($order['statusComment']), 'REASON_CANCELED');
 					}
 
                     $propertyCollection = $newOrder->getPropertyCollection();
@@ -520,53 +522,44 @@ class RetailCrmHistory
                         $fio = '';
                         foreach ($propertyCollectionArr['properties'] as $prop) {
                             if (in_array($optionsOrderProps[$personType]['fio'], $prop)) {
-                                $fio = $newOrder->getPropertyCollection()->getItemByOrderPropertyId($prop['ID']);
+                                $getFio = $newOrder->getPropertyCollection()->getItemByOrderPropertyId($prop['ID']);
+                                if (method_exists($getFio, 'getValue')) {
+                                    $fio = $getFio->getValue();
+                                }
                             }
                         }
 
                         $fio = RCrmActions::explodeFIO($fio);
+                        $newFio = array();
                         if ($fio) {
-                            $order['fio'] = trim(
-                                implode(
-                                    ' ',
-                                    array(
-                                        isset($order['lastName']) ? $order['lastName'] : (isset($fio['lastName']) ? $fio['lastName'] : ''),
-                                        isset($order['firstName']) ? $order['firstName'] : (isset($fio['firstName']) ? $fio['firstName'] : ''),
-                                        isset($order['patronymic']) ? $order['patronymic'] : (isset($fio['patronymic']) ? $fio['patronymic'] : ''),
-                                    )
-                                )
-                            );
+                            $newFio[] = isset($order['lastName']) ? RCrmActions::fromJSON($order['lastName']) : (isset($fio['lastName']) ? $fio['lastName'] : '');
+                            $newFio[] = isset($order['firstName']) ? RCrmActions::fromJSON($order['firstName']) : (isset($fio['firstName']) ? $fio['firstName'] : '');
+                            $newFio[] = isset($order['patronymic']) ? RCrmActions::fromJSON($order['patronymic']) : (isset($fio['patronymic']) ? $fio['patronymic'] : '');
+                            $order['fio'] = trim(implode(' ', $newFio));
                         } else {
-                            $order['fio'] = trim(
-                                implode(
-                                    ' ',
-                                    array(
-                                        isset($order['lastName']) ? $order['lastName'] : '',
-                                        isset($order['firstName']) ? $order['firstName'] : '',
-                                        isset($order['patronymic']) ? $order['patronymic'] : '',
-                                    )
-                                )
-                            );
+                            $newFio[] = isset($order['lastName']) ? RCrmActions::fromJSON($order['lastName']) : '';
+                            $newFio[] = isset($order['firstName']) ? RCrmActions::fromJSON($order['firstName']) : '';
+                            $newFio[] = isset($order['patronymic']) ? RCrmActions::fromJSON($order['patronymic']) : '';
+                            $order['fio'] = trim(implode(' ', $newFio));
                         }
                     }
                     
                     //optionsOrderProps
-
                     if ($optionsOrderProps[$personType]) {
                         foreach ($optionsOrderProps[$personType] as $key => $orderProp) {
                             if (array_key_exists($key, $order)) {
                                 $somePropValue = $propertyCollection->getItemByOrderPropertyId($propsKey[$orderProp]['ID']);
-                                self::setProp($somePropValue, $order[$key]);
+                                self::setProp($somePropValue, RCrmActions::fromJSON($order[$key]));
                             } elseif (array_key_exists($key, $order['delivery']['address'])) {
                                 if ($propsKey[$key]['TYPE'] == 'LOCATION') {
-                                    $parameters['filter']['NAME'] = $order['delivery']['address'][$key];
+                                    $parameters['filter']['NAME'] = RCrmActions::fromJSON($order['delivery']['address'][$key]);
                                     $parameters['filter']['LANGUAGE_ID'] = 'ru';
                                     $location = \Bitrix\Sale\Location\LocationTable::getListFast($parameters)->fetch();
                                     $somePropValue = $propertyCollection->getItemByOrderPropertyId($propsKey[$orderProp]['ID']);
                                     self::setProp($somePropValue, $location['CODE']);
                                 } else {
                                     $somePropValue = $propertyCollection->getItemByOrderPropertyId($propsKey[$orderProp]['ID']);
-                                    self::setProp($somePropValue, $order['delivery']['address'][$key]);
+                                    self::setProp($somePropValue, RCrmActions::fromJSON($order['delivery']['address'][$key]));
                                 }
                             }
                         }
@@ -590,10 +583,10 @@ class RetailCrmHistory
                     }
                     //comments
                     if (array_key_exists('customerComment', $order)) {
-                        self::setProp($newOrder, $order['customerComment'], 'USER_DESCRIPTION');
+                        self::setProp($newOrder, RCrmActions::fromJSON($order['customerComment']), 'USER_DESCRIPTION');
                     }
                     if (array_key_exists('managerComment', $order)) {
-                        self::setProp($newOrder, $order['managerComment'], 'COMMENTS');
+                        self::setProp($newOrder, RCrmActions::fromJSON($order['managerComment']), 'COMMENTS');
                     }
 
                     //items
@@ -608,12 +601,12 @@ class RetailCrmHistory
                                 }
                                 $item = $basket->createItem('catalog', $product['offer']['externalId']);
                                 if ($item instanceof \Bitrix\Sale\Basket) {
-                                    $elem = self::getInfoElement();
+                                    $elem = self::getInfoElement($product['offer']['externalId']);
                                     $item->setFields(array(
                                         'CURRENCY' => \Bitrix\Currency\CurrencyManager::getBaseCurrency(),
                                         'LID' => \Bitrix\Main\Context::getCurrent()->getSite(),
                                         'BASE_PRICE' => $product['initialPrice'],
-                                        'NAME' => $elem['NAME'],
+                                        'NAME' => $product['name'] ? RCrmActions::fromJSON($product['name']) : $elem['NAME'],
                                         'DETAIL_PAGE_URL' => $elem['URL']
                                     ));
                                 } else {
@@ -1129,7 +1122,7 @@ class RetailCrmHistory
     
     public static function newValue($value)
     {
-        if (isset($value['code'])) {
+        if (array_key_exists('code', $value)) {
             return $value['code'];
         } else {
             return $value;
@@ -1153,12 +1146,12 @@ class RetailCrmHistory
         return $outputArray;
     }
     
-    public static function setProp($obj, $value, $prop)
+    public static function setProp($obj, $value = '', $prop)
     {
 		if (!isset($obj)) {
             return false;
         }
-        if ($prop && $value) {
+        if ($prop) {
             $obj->setField($prop, $value);
         } elseif ($value) {
             $obj->setValue($value);

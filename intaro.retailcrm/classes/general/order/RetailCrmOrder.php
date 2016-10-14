@@ -83,12 +83,13 @@ class RetailCrmOrder
                         $order[$search] = $prop['VALUE'][0];//телефон и почта
                     }
                 } else {//остальное - адрес
-                    if ($prop['TYPE'] == 'LOCATION') {
+                    if ($prop['TYPE'] == 'LOCATION' && isset($prop['VALUE'][0]) && $prop['VALUE'][0] != '') {
                         $arLoc = \Bitrix\Sale\Location\LocationTable::getByCode($prop['VALUE'][0])->fetch();
-                        $location = \Bitrix\Sale\Location\Name\LocationTable::getList(array(
-                            'filter' => array('=LOCATION_ID' => $arLoc['CITY_ID'], 'LANGUAGE_ID'=>'ru')
-                        ))->fetch();
-
+                        if ($arLoc) {
+                            $location = \Bitrix\Sale\Location\Name\LocationTable::getList(array(
+                                'filter' => array('=LOCATION_ID' => $arLoc['CITY_ID'], 'LANGUAGE_ID' => 'ru')
+                            ))->fetch();
+                        }
                         $prop['VALUE'][0] = $location['NAME'];
                     }
 
@@ -100,7 +101,7 @@ class RetailCrmOrder
         //доставки
         if (array_key_exists($arFields['DELIVERYS'][0]['id'], $arParams['optionsDelivTypes'])) {
             $order['delivery']['code'] = $arParams['optionsDelivTypes'][$arFields['DELIVERYS'][0]['id']];
-            if (isset($arFields['DELIVERYS'][0]['service'])) {
+            if (isset($arFields['DELIVERYS'][0]['service']) && $arFields['DELIVERYS'][0]['service'] != '') {
                 $order['delivery']['service'] = $arFields['DELIVERYS'][0]['service'];
             }
         }
@@ -128,7 +129,7 @@ class RetailCrmOrder
 
         //отправка
         if (function_exists('retailCrmBeforeOrderSend')) {
-            $newResOrder = retailCrmBeforeOrderSend($order);
+            $newResOrder = retailCrmBeforeOrderSend($order, $arFields);
             if (is_array($newResOrder) && !empty($newResOrder)) {
                 $order = $newResOrder;
             }
