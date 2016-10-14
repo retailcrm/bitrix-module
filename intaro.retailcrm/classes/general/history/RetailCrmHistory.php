@@ -327,6 +327,8 @@ class RetailCrmHistory
                     }
                 }
                 
+                $log->write($order, 'assemblyOrderHistory');
+                
                 if (isset($order['deleted'])) {
                     continue;
                 }
@@ -470,9 +472,9 @@ class RetailCrmHistory
                     if ($optionsPayStatuses[$order['status']]) {
                         $newOrder->setField('STATUS_ID', $optionsPayStatuses[$order['status']]);
                         if (in_array($optionsPayStatuses[$order['status']], $optionsCanselOrder)) {
-                            $newOrder->setField('CANCELED', 'Y');
+                            $newOrder->setFieldNoDemand('CANCELED', 'Y');
                         } else {
-                            $newOrder->setField('CANCELED', 'N');
+                            $newOrder->setFieldNoDemand('CANCELED', 'N');
                         }
                     }
                     
@@ -520,7 +522,10 @@ class RetailCrmHistory
                         $fio = '';
                         foreach ($propertyCollectionArr['properties'] as $prop) {
                             if (in_array($optionsOrderProps[$personType]['fio'], $prop)) {
-                                $fio = $newOrder->getPropertyCollection()->getItemByOrderPropertyId($prop['ID'])->getValue();
+                                $getFio = $newOrder->getPropertyCollection()->getItemByOrderPropertyId($prop['ID']);
+                                if (method_exists($getFio, 'getValue')) {
+                                    $fio = $getFio->getValue();
+                                }
                             }
                         }
 
@@ -1141,12 +1146,12 @@ class RetailCrmHistory
         return $outputArray;
     }
     
-    public static function setProp($obj, $value, $prop)
+    public static function setProp($obj, $value = '', $prop)
     {
 		if (!isset($obj)) {
             return false;
         }
-        if ($prop && $value) {
+        if ($prop) {
             $obj->setField($prop, $value);
         } elseif ($value) {
             $obj->setValue($value);
