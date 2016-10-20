@@ -102,7 +102,7 @@ class RetailCrmOrder
         if (array_key_exists($arFields['DELIVERYS'][0]['id'], $arParams['optionsDelivTypes'])) {
             $order['delivery']['code'] = $arParams['optionsDelivTypes'][$arFields['DELIVERYS'][0]['id']];
             if (isset($arFields['DELIVERYS'][0]['service']) && $arFields['DELIVERYS'][0]['service'] != '') {
-                $order['delivery']['service'] = $arFields['DELIVERYS'][0]['service'];
+                $order['delivery']['service']['code'] = $arFields['DELIVERYS'][0]['service'];
             }
         }
 
