@@ -600,7 +600,7 @@ class RetailCrmHistory
                                     continue;
                                 }
                                 $item = $basket->createItem('catalog', $product['offer']['externalId']);
-                                if ($item instanceof \Bitrix\Sale\Basket) {
+                                if ($item instanceof \Bitrix\Sale\BasketItem) {
                                     $elem = self::getInfoElement($product['offer']['externalId']);
                                     $item->setFields(array(
                                         'CURRENCY' => \Bitrix\Currency\CurrencyManager::getBaseCurrency(),
@@ -610,7 +610,7 @@ class RetailCrmHistory
                                         'DETAIL_PAGE_URL' => $elem['URL']
                                     ));
                                 } else {
-                                    RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'createItem', 'Error item add');
+                                    RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'createItem', 'Error item id=' . $product['offer']['externalId'] . ' add in order id=' . $order['externalId']);
                                     continue;
                                 }
                             }
@@ -698,7 +698,7 @@ class RetailCrmHistory
                     
                     //delivery cost
                     if (array_key_exists('cost', $order['delivery'])) {
-                        $shipment = Bitrix\Sale\Shipment::getList(array(
+                        $shipment = Bitrix\Sale\Internals\ShipmentTable::getList(array(
                             'filter' => array('ORDER_ID' => $order['externalId'], 'SYSTEM' => 'N'),
                             'order' => array('ID')
                         ))->fetch();
@@ -901,7 +901,7 @@ class RetailCrmHistory
             //найти текущую доставку в заказе
             $cnt = Bitrix\Sale\Internals\ShipmentTable::getCount(array('ORDER_ID' => $orderCrm['externalId']));
             if ($cnt > 0) {//обновляем 
-                $obDeliverys = \Bitrix\Sale\Shipment::getList(array('filter' => array('ORDER_ID' => $orderCrm['externalId']),
+                $obDeliverys = \Bitrix\Sale\Internals\ShipmentTable::getList(array('filter' => array('ORDER_ID' => $orderCrm['externalId']),
                                                                     'order' => array('ID')));
                 while ($arDelivery = $obDeliverys->fetch()) {
                     if ($arDelivery['DELIVERY_ID'] != $nowDelivery) {
@@ -953,7 +953,7 @@ class RetailCrmHistory
             //ищем у заказа на сайте доставки и удаляем/заменяем на без доставки
             $noOrderId = \Bitrix\Sale\Delivery\Services\EmptyDeliveryService::getEmptyDeliveryServiceId();
             \Bitrix\Sale\OrderTable::update($orderCrm['externalId'], array('DELIVERY_ID' => $noOrderId));
-            $obDeliverys = Bitrix\Sale\Shipment::getList(array('filter' => array('ORDER_ID' => $orderCrm['externalId']),
+            $obDeliverys = Bitrix\Sale\Internals\ShipmentTable::getList(array('filter' => array('ORDER_ID' => $orderCrm['externalId']),
                                                                'order' => array('ID')));
             $create = true;
             while ($arDelivery = $obDeliverys->fetch()) {
@@ -1078,7 +1078,7 @@ class RetailCrmHistory
                 
                 if (in_array($optionsPayment[$order['paymentType']], $arPayments)) {
                     \Bitrix\Sale\OrderTable::update($order['externalId'], array('PAY_SYSTEM_ID' => $optionsPayment[$order['paymentType']]));
-                    $payment = \Bitrix\Sale\Payment::getList(array(
+                    $payment = \Bitrix\Sale\Internals\PaymentTable::getList(array(
                         'filter' => array('ORDER_ID' => $order['externalId']),
                         'order' => array('ID')
                     ))->fetch();
