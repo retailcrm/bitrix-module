@@ -263,22 +263,6 @@ class RetailCrmHistory
         $optionsOrderNumbers = COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_NUMBERS, 0);
         $optionsCanselOrder = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_CANSEL_ORDER, 0));
 
-		/*foreach ($optionsOrderProps as $code => $value) {
-            if (isset($optionsLegalDetails[$code])) {
-                $optionsOrderProps[$code] = array_merge($optionsOrderProps[$code], $optionsLegalDetails[$code]);
-            }
-            if (isset($optionsCustomFields[$code])) {
-                $optionsOrderProps[$code] = array_merge($optionsOrderProps[$code], $optionsCustomFields[$code]);
-            }
-            $optionsOrderProps[$code]['location'] = 'LOCATION';
-            if (array_search('CITY', $optionsOrderProps[$code]) == false) {
-                $optionsOrderProps[$code]['city'] = 'CITY';
-            }
-            if (array_search('ZIP', $optionsOrderProps[$code]) == false) {
-                $optionsOrderProps[$code]['index'] = 'ZIP';
-            }
-		}*/
-
         $api = new RetailCrm\ApiClient($api_host, $api_key);
         
         $historyFilter = array();
@@ -329,7 +313,7 @@ class RetailCrmHistory
                 
                 $log->write($order, 'assemblyOrderHistory');
                 
-                if (isset($order['deleted'])) {
+                if ($order['deleted']) {
                     continue;
                 }
 
@@ -410,7 +394,7 @@ class RetailCrmHistory
                         $order['customer']['externalId'] = $registeredUserID;
                     }
 
-                    if (isset($optionsSitesList)) {
+                    if ($optionsSitesList) {
                         $site = array_search($order['site'], $optionsSitesList);
                     } else {
                         $site = CSite::GetDefSite();
@@ -449,8 +433,14 @@ class RetailCrmHistory
                     $newOrder = Bitrix\Sale\Order::load($order['externalId']);
 
                     if (!$newOrder instanceof \Bitrix\Sale\Order) {
-                        RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'Bitrix\Sale\Order::load', 'Error order load');
+                        RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'Bitrix\Sale\Order::load', 'Error order load id=' . $order['externalId']);
                         continue;
+                    }
+                    
+                    if ($optionsSitesList) {
+                        $site = array_search($order['site'], $optionsSitesList);
+                    } else {
+                        $site = CSite::GetDefSite();
                     }
 
 					if ($optionsOrderNumbers == 'Y' && isset($order['number'])) {
@@ -604,7 +594,7 @@ class RetailCrmHistory
                                     $elem = self::getInfoElement($product['offer']['externalId']);
                                     $item->setFields(array(
                                         'CURRENCY' => \Bitrix\Currency\CurrencyManager::getBaseCurrency(),
-                                        'LID' => \Bitrix\Main\Context::getCurrent()->getSite(),
+                                        'LID' => $site,
                                         'BASE_PRICE' => $product['initialPrice'],
                                         'NAME' => $product['name'] ? RCrmActions::fromJSON($product['name']) : $elem['NAME'],
                                         'DETAIL_PAGE_URL' => $elem['URL']
@@ -1101,10 +1091,10 @@ class RetailCrmHistory
                     }
                     //запись в историю
                 } else {//ошибка, нет такой активной платежной системы
-                    RCrmActions::eventLog('RetailCrmHistory::paySystemUpdate', 'RCrmActions::PaymentList()', 'Error paySystem not found');
+                    RCrmActions::eventLog('RetailCrmHistory::paySystemUpdate', 'RCrmActions::PaymentList()', 'Error paySystem not found in order id=' . $order['externalId']);
                 }
             } else {//ошибка, возможно платежная система не сопоставлена
-                RCrmActions::eventLog('RetailCrmHistory::paySystemUpdate', 'RCrmActions::PaymentList()', 'Error paySystem not found in option');;
+                RCrmActions::eventLog('RetailCrmHistory::paySystemUpdate', 'RCrmActions::PaymentList()', 'Error paySystem not found in option in order id=' . $order['externalId']);;
             }
         } else {
             \Bitrix\Sale\OrderTable::update($order['externalId'], array('PAY_SYSTEM_ID' => ''));

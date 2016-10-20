@@ -188,7 +188,7 @@ class RetailCrmOrder
         } elseif ($orderList !== false && count($orderList) > 0) {
             $orderIds = $orderList;
         } else {
-            $dbOrder = \Bitrix\Sale\Order::GetList(array(
+            $dbOrder = \Bitrix\Sale\Internals\OrderTable::GetList(array(
                 'order'   => array("ID" => "ASC"),
                 'filter'  => array('>ID' => $lastUpOrderId),
                 'limit'   => $pSize,
