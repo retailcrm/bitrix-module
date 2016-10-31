@@ -202,6 +202,12 @@ class RetailCrmHistory
                             }
                         }
                     }
+                    if (array_key_exists('index', $customer['address'])) {
+                        $arUser["PERSONAL_ZIP"] = $customer['address']['index'] ? RCrmActions::fromJSON($customer['address']['index']) : '';
+                    }
+                    if (array_key_exists('city', $customer['address'])) {
+                        $arUser["PERSONAL_CITY"] = $customer['address']['city'] ? RCrmActions::fromJSON($customer['address']['city']) : '';
+                    }
 
                     $u = $newUser->Update($customer['externalId'], $arUser);
                     if (!$u) {

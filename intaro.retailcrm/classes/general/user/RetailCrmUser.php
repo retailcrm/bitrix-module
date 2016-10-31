@@ -8,7 +8,7 @@ class RetailCrmUser
             return false;
         }
         if (empty($arFields)) {
-            RCrmActions::eventLog('ICrmOrderActions::orderCreate', 'empty($arFields)', 'incorrect customer');
+            RCrmActions::eventLog('RetailCrmUser::customerSend', 'empty($arFields)', 'incorrect customer');
             return false;
         }
        
@@ -17,6 +17,8 @@ class RetailCrmUser
             'firstName'      => $arFields['NAME'],
             'lastName'       => $arFields['LAST_NAME'],
             'patronymic'     => $arFields['SECOND_NAME'],
+            'email'          => $arFields['EMAIL'],
+            'address'        => array('city' => $arFields['PERSONAL_CITY'], 'text' => $arFields['PERSONAL_STREET'], 'index' => $arFields['PERSONAL_ZIP']),
             'createdAt'      => new \DateTime($arFields['DATE_REGISTER']),
             'contragentType' => $contragentType
         );
@@ -54,7 +56,7 @@ class RetailCrmUser
     
     public static function customerEdit($arFields, $api, $optionsSitesList = array()){
         if (empty($arFields)) {
-            RCrmActions::eventLog('RetailCrmUser::orderEdit', 'empty($arFields)', 'incorrect customer');
+            RCrmActions::eventLog('RetailCrmUser::customerEdit', 'empty($arFields)', 'incorrect customer');
             return false;
         }
        
@@ -63,7 +65,8 @@ class RetailCrmUser
             'firstName'      => $arFields['NAME'],
             'lastName'       => $arFields['LAST_NAME'],
             'patronymic'     => $arFields['SECOND_NAME'],
-            'email'          => $arFields['EMAIL']
+            'email'          => $arFields['EMAIL'],
+            'address'        => array('city' => $arFields['PERSONAL_CITY'], 'text' => $arFields['PERSONAL_STREET'], 'index' => $arFields['PERSONAL_ZIP']),
         );
         if (isset($arFields['PERSONAL_PHONE'])) {
             $customer['phones'][]['number'] = $arFields['PERSONAL_PHONE'];

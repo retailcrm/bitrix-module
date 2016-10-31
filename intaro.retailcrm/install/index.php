@@ -613,6 +613,13 @@ class intaro_retailcrm extends CModule
                     $e->getCode() . ': ' . $e->getMessage()
                 );
             }
+            $delivTypes = array();
+            foreach ($arResult['deliveryTypesList'] as $delivType) {
+                if ($delivType['active'] === true) {
+                    $delivTypes[$delivType['code']] = $delivType;
+                }
+            }
+            $arResult['deliveryTypesList'] = $delivTypes;
             
             //bitrix personTypes
             $arResult['bitrixOrderTypesList'] = RCrmActions::OrderTypesList($arResult['arSites']);

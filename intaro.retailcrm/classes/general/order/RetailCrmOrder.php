@@ -297,7 +297,7 @@ class RetailCrmOrder
             'PERSON_TYPE_ID'   => $obOrder->getPersonTypeId(),
             'CURRENCY'         => $obOrder->getCurrency(),
             'PAYMENTS'         => $obOrder->getPaymentSystemId(),
-            'PAYED'            => $obOrder->isPaid(),
+            'PAYED'            => $obOrder->isPaid() ? 'Y' : 'N',
             'DELIVERYS'        => array(),
             'PRICE_DELIVERY'   => $obOrder->getDeliveryPrice(),
             'PROPS'            => $obOrder->getPropertyCollection()->getArray(),

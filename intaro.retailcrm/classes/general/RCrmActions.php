@@ -236,6 +236,12 @@ class RCrmActions
             case 'customersEdit':
                 try {
                     $result = $api->$methodApi($params, 'externalId', $site);
+                    if (isset($result['errorMsg'])) {
+                        self::eventLog(__CLASS__.'::'.$method, 'RetailCrm\ApiClient::'.$methodApi, $result['errorMsg']);
+                        
+                        $log = new Logger();
+                        $log->write(array($methodApi, $result['errorMsg'], $result['errors'], $params), 'apiErrors');
+                    }
                 } catch (\RetailCrm\Exception\CurlException $e) {
                     self::eventLog(
                         __CLASS__.'::'.$method, 'RetailCrm\ApiClient::'.$methodApi.'::CurlException',
@@ -256,6 +262,13 @@ class RCrmActions
             default:
                 try {
                     $result = $api->$methodApi($params, $site);
+                    if (isset($result['errorMsg'])) {
+                        if ($methodApi != 'customersUpload') {
+                            self::eventLog(__CLASS__.'::'.$method, 'RetailCrm\ApiClient::'.$methodApi, $result['errorMsg']);
+                        }
+                        $log = new Logger();
+                        $log->write(array($methodApi, $result['errorMsg'], $result['errors'], $params), 'apiErrors');
+                    }
                 } catch (\RetailCrm\Exception\CurlException $e) {
                     self::eventLog(
                         __CLASS__.'::'.$method, 'RetailCrm\ApiClient::'.$methodApi.'::CurlException',
