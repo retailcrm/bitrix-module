@@ -249,15 +249,15 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     $orderDischarge = (int) htmlspecialchars(trim($_POST['order-discharge']));   
     if (($orderDischarge != $previousDischarge) && ($orderDischarge == 0)) {
         // remove depenedencies
-        UnRegisterModuleDependences("sale", "OnOrderNewSendEmail", $mid, "ICrmOrderEvent", "onSendOrderMail");
-        UnRegisterModuleDependences("sale", "OnOrderUpdate", $mid, "ICrmOrderEvent", "onUpdateOrder");
-        UnRegisterModuleDependences("sale", "OnBeforeOrderAdd", $mid, "ICrmOrderEvent", "onBeforeOrderAdd");
+        UnRegisterModuleDependences("sale", "OnSaleOrderEntitySaved", $mid, "RetailCrmEvent", "orderSave");
+        UnRegisterModuleDependences("sale", "OnOrderUpdate", $mid, "RetailCrmEvent", "onUpdateOrder");
+        UnRegisterModuleDependences("sale", "OnSaleOrderEntityDelete", $mid, "RetailCrmEvent", "orderDelete");
         
     } elseif (($orderDischarge != $previousDischarge) && ($orderDischarge == 1)) {
         // event dependencies
-        RegisterModuleDependences("sale", "OnOrderNewSendEmail", $mid, "ICrmOrderEvent", "onSendOrderMail");
-        RegisterModuleDependences("sale", "OnOrderUpdate", $mid, "ICrmOrderEvent", "onUpdateOrder");
-        RegisterModuleDependences("sale", "OnBeforeOrderAdd", $mid, "ICrmOrderEvent", "onBeforeOrderAdd");
+        RegisterModuleDependences("sale", "OnSaleOrderEntitySaved", $mid, "RetailCrmEvent", "orderSave");
+        RegisterModuleDependences("sale", "OnOrderUpdate", $mid, "RetailCrmEvent", "onUpdateOrder");
+        RegisterModuleDependences("sale", "OnSaleOrderEntityDelete", $mid, "RetailCrmEvent", "orderDelete");
     }
 
     $orderPropsArr = array();
@@ -343,6 +343,13 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         $badKey = true;
         echo CAdminMessage::ShowMessage(GetMessage('ERR_403'));
     }
+    $delivTypes = array();
+    foreach ($arResult['deliveryTypesList'] as $delivType) {
+        if ($delivType['active'] === true) {
+            $delivTypes[$delivType['code']] = $delivType;
+        }
+    }
+    $arResult['deliveryTypesList'] = $delivTypes;
 
     //bitrix orderTypesList -- personTypes
     $arResult['bitrixOrderTypesList'] = RCrmActions::OrderTypesList($arResult['arSites']);

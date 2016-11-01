@@ -202,6 +202,12 @@ class RetailCrmHistory
                             }
                         }
                     }
+                    if (array_key_exists('index', $customer['address'])) {
+                        $arUser["PERSONAL_ZIP"] = $customer['address']['index'] ? RCrmActions::fromJSON($customer['address']['index']) : '';
+                    }
+                    if (array_key_exists('city', $customer['address'])) {
+                        $arUser["PERSONAL_CITY"] = $customer['address']['city'] ? RCrmActions::fromJSON($customer['address']['city']) : '';
+                    }
 
                     $u = $newUser->Update($customer['externalId'], $arUser);
                     if (!$u) {
@@ -539,10 +545,23 @@ class RetailCrmHistory
                         foreach ($optionsOrderProps[$personType] as $key => $orderProp) {
                             if (array_key_exists($key, $order)) {
                                 $somePropValue = $propertyCollection->getItemByOrderPropertyId($propsKey[$orderProp]['ID']);
-                                self::setProp($somePropValue, RCrmActions::fromJSON($order[$key]));
+                                if ($key == 'fio') {
+                                    self::setProp($somePropValue, $order[$key]);
+                                } else {
+                                    self::setProp($somePropValue, RCrmActions::fromJSON($order[$key]));
+                                }
                             } elseif (array_key_exists($key, $order['delivery']['address'])) {
-                                if ($propsKey[$key]['TYPE'] == 'LOCATION') {
-                                    $parameters['filter']['NAME'] = RCrmActions::fromJSON($order['delivery']['address'][$key]);
+                                if ($propsKey[$orderProp]['TYPE'] == 'LOCATION') {
+                                    $parameters = array();
+                                    $loc = explode('.', $order['delivery']['address'][$key]);
+                                    if (count($loc) == 1) {
+                                        $parameters['filter']['NAME'] = RCrmActions::fromJSON(trim($loc[0]));
+                                    } elseif (count($loc) == 2) {
+                                        $parameters['filter']['NAME'] = RCrmActions::fromJSON(trim($loc[1]));
+                                    } else{
+                                        RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'RetailCrmHistory::setProp', 'Error location ' . $order['delivery']['address'][$key] . ' not found add in order id=' . $order['externalId']);
+                                        continue;
+                                    }
                                     $parameters['filter']['LANGUAGE_ID'] = 'ru';
                                     $location = \Bitrix\Sale\Location\LocationTable::getListFast($parameters)->fetch();
                                     $somePropValue = $propertyCollection->getItemByOrderPropertyId($propsKey[$orderProp]['ID']);
