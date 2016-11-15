@@ -497,7 +497,7 @@ class RetailCrmHistory
                         }
 
                         try {
-                            $orderCrm = $api->ordersGet($order['id'], 'id');
+                            $orderCrm = $api->ordersGet($order['id'], 'id', $order['site']);
                         } catch (\RetailCrm\Exception\CurlException $e) {
                             RCrmActions::eventLog(
                                 'RetailCrmHistory::orderHistory', 'RetailCrm\RestApi::ordersGet0::CurlException',
@@ -552,18 +552,20 @@ class RetailCrmHistory
                                 }
                             } elseif (array_key_exists($key, $order['delivery']['address'])) {
                                 if ($propsKey[$orderProp]['TYPE'] == 'LOCATION') {
-                                    $parameters = array();
-                                    $loc = explode('.', $order['delivery']['address'][$key]);
-                                    if (count($loc) == 1) {
-                                        $parameters['filter']['NAME'] = RCrmActions::fromJSON(trim($loc[0]));
-                                    } elseif (count($loc) == 2) {
-                                        $parameters['filter']['NAME'] = RCrmActions::fromJSON(trim($loc[1]));
-                                    } else{
-                                        RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'RetailCrmHistory::setProp', 'Error location ' . $order['delivery']['address'][$key] . ' not found add in order id=' . $order['externalId']);
-                                        continue;
+                                    if(!empty($order['delivery']['address'][$key])){
+                                        $parameters = array();
+                                        $loc = explode('.', $order['delivery']['address'][$key]);
+                                        if (count($loc) == 1) {
+                                            $parameters['filter']['NAME'] = RCrmActions::fromJSON(trim($loc[0]));
+                                        } elseif (count($loc) == 2) {
+                                            $parameters['filter']['NAME'] = RCrmActions::fromJSON(trim($loc[1]));
+                                        } else{
+                                            RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'RetailCrmHistory::setProp', 'Error location ' . $order['delivery']['address'][$key] . ' not found add in order id=' . $order['externalId']);
+                                            continue;
+                                        }
+                                        $parameters['filter']['LANGUAGE_ID'] = 'ru';
+                                        $location = \Bitrix\Sale\Location\LocationTable::getListFast($parameters)->fetch();
                                     }
-                                    $parameters['filter']['LANGUAGE_ID'] = 'ru';
-                                    $location = \Bitrix\Sale\Location\LocationTable::getListFast($parameters)->fetch();
                                     $somePropValue = $propertyCollection->getItemByOrderPropertyId($propsKey[$orderProp]['ID']);
                                     self::setProp($somePropValue, $location['CODE']);
                                 } else {
@@ -635,22 +637,22 @@ class RetailCrmHistory
                             if (array_key_exists('discount', $product) || array_key_exists('discountPercent', $product)) {
                                 if (!isset($orderCrm)) {
                                     try {
-                                        $orderCrm = $api->ordersGet($order['id'], 'id');
+                                        $orderCrm = $api->ordersGet($order['id'], 'id', $order['site']);
                                     } catch (\RetailCrm\Exception\CurlException $e) {
                                         RCrmActions::eventLog(
-                                            'RetailCrmHistory::orderHistory', 'RetailCrm\RestApi::ordersGet::CurlException',
+                                            'RetailCrmHistory::orderHistory', 'RetailCrm\RestApi::ordersGet1::CurlException',
                                             $e->getCode() . ': ' . $e->getMessage()
                                         );
                                     }
                                 }
-
-                                foreach ($orderCrm['order']['items'] as $itemCrm) {
-                                    if ($itemCrm['offer']['externalId'] == $product['offer']['externalId']) {
-                                        $itemCost = $itemCrm['initialPrice'] - $itemCrm['discount'] - round(($itemCrm['initialPrice'] / 100 * $itemCrm['discountPercent']), 2);
-                                        break;
+                                if (isset($orderCrm['order']['items'])) {
+                                    foreach ($orderCrm['order']['items'] as $itemCrm) {
+                                        if ($itemCrm['offer']['externalId'] == $product['offer']['externalId']) {
+                                            $itemCost = $itemCrm['initialPrice'] - $itemCrm['discount'] - round(($itemCrm['initialPrice'] / 100 * $itemCrm['discountPercent']), 2);
+                                            break;
+                                        }
                                     }
                                 }
-
                                 if (isset($itemCost) && $itemCost > 0) {
                                     $item->setField('CUSTOM_PRICE', 'Y');
                                     $item->setField('PRICE', $itemCost);
@@ -691,7 +693,7 @@ class RetailCrmHistory
                         //если пусто, удаляем, если нет, update или add
                         if (!isset($orderCrm)) {
                             try {
-                                $orderCrm = $api->ordersGet($order['id'], 'id');
+                                $orderCrm = $api->ordersGet($order['id'], 'id', $order['site']);
                             } catch (\RetailCrm\Exception\CurlException $e) {
                                 RCrmActions::eventLog(
                                     'RetailCrmHistory::orderHistory', 'RetailCrm\RestApi::ordersGet2::CurlException',

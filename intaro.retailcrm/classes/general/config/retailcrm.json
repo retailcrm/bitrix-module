@@ -189,6 +189,9 @@
         "site": {
             "type": "string"
         },
+        "countryIso": {
+            "type": "string"
+        },
         "call": {
             "type": "bool",
             "default": false

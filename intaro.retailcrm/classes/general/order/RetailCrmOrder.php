@@ -57,7 +57,7 @@ class RetailCrmOrder
                                      $arParams['optionsOrderTypes'][$arFields['PERSON_TYPE_ID']] : '',
             'status'          => isset($arParams['optionsPayStatuses'][$arFields['STATUS_ID']]) ?
                                      $arParams['optionsPayStatuses'][$arFields['STATUS_ID']] : '',
-            //'statusComment'   => $arFields['REASON_CANCELED'],
+            'statusComment'   => $arFields['REASON_CANCELED'],
             'customerComment' => $arFields['USER_DESCRIPTION'],
             'managerComment'  => $arFields['COMMENTS'],
             'delivery' => array(
@@ -86,9 +86,26 @@ class RetailCrmOrder
                     if ($prop['TYPE'] == 'LOCATION' && isset($prop['VALUE'][0]) && $prop['VALUE'][0] != '') {
                         $arLoc = \Bitrix\Sale\Location\LocationTable::getByCode($prop['VALUE'][0])->fetch();
                         if ($arLoc) {
+                            $server = \Bitrix\Main\Context::getCurrent()->getServer()->getDocumentRoot();
+                            $countrys = array();
+                            if (file_exists($server . '/bitrix/modules/intaro.retailcrm/classes/general/config/objects.xml')) {
+                                $countrysFile = simplexml_load_file($server . '/bitrix/modules/intaro.retailcrm/classes/general/config/country.xml'); 
+                                foreach ($countrysFile->country as $country) {
+                                    $countrys[RCrmActions::fromJSON((string) $country->name)] = (string) $country->alpha;
+                                }
+                            }
                             $location = \Bitrix\Sale\Location\Name\LocationTable::getList(array(
                                 'filter' => array('=LOCATION_ID' => $arLoc['CITY_ID'], 'LANGUAGE_ID' => 'ru')
                             ))->fetch();
+                            if (count($countrys) > 0) {
+                                $countryOrder = \Bitrix\Sale\Location\Name\LocationTable::getList(array(
+                                    'filter' => array('=LOCATION_ID' => $arLoc['COUNTRY_ID'], 'LANGUAGE_ID' => 'ru')
+                                ))->fetch();
+                                if(isset($countrys[$countryOrder['NAME']])){
+                                    $order['countryIso'] = $countrys[$countryOrder['NAME']];
+                                }
+                            }
+                            
                         }
                         $prop['VALUE'][0] = $location['NAME'];
                     }
@@ -305,6 +322,7 @@ class RetailCrmOrder
             'BASKET'           => array(),
             'USER_DESCRIPTION' => $obOrder->getField('USER_DESCRIPTION'),
             'COMMENTS'         => $obOrder->getField('COMMENTS'),
+            'REASON_CANCELED'  => $obOrder->getField('REASON_CANCELED'),
         );
         
         $shipmentList = $obOrder->getShipmentCollection();

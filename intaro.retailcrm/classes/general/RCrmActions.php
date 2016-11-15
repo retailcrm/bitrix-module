@@ -42,7 +42,7 @@ class RCrmActions
         $arDeliveryServiceAll = \Bitrix\Sale\Delivery\Services\Manager::getActiveList();
         $noOrderId = \Bitrix\Sale\Delivery\Services\EmptyDeliveryService::getEmptyDeliveryServiceId();
         foreach ($arDeliveryServiceAll as $arDeliveryService) {
-            if ($arDeliveryService['PARENT_ID'] == '0' && $arDeliveryService['ID'] != $noOrderId) {
+            if (($arDeliveryService['PARENT_ID'] == '0' || $arDeliveryService['PARENT_ID'] == null) && $arDeliveryService['ID'] != $noOrderId) {
                 $bitrixDeliveryTypesList[] = $arDeliveryService;
             }
         }
