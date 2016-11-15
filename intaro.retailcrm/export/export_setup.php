@@ -333,7 +333,7 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
                                                 class="property-export"
                                                 onchange="propertyChange(this);">
                                                     <option value=""></option>
-                                                    <?if (version_compare(SM_VERSION, '14.0.0', '>=') && array_key_exists($key, $iblockFieldsName) && $arIBlock['PROPERTIES_SKU'] == null) :?>
+                                                    <?if (version_compare(SM_VERSION, '14.0.0', '>=') && array_key_exists($key, $iblockFieldsName)) :?>
                                                         <optgroup label="<?=GetMessage("SELECT_FIELD_NAME");?>">
                                                             <? foreach ($iblockFieldsName as $keyField => $field): ?>
 
@@ -554,7 +554,7 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
                                                 'catalog',
                                                 'export_default_path',
                                                 '/bitrix/catalog_export/'))
-                                            .'retailcrm'/* .mt_rand(0, 999999) */.'.xml'
+                                            .'retailcrm'.'.xml'
                                             ); ?>" size="50">
         <br>
         <br>
