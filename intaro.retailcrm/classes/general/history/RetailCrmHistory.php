@@ -256,7 +256,7 @@ class RetailCrmHistory
         $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
         $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
 
-        $optionsOrderTypes = array_flip(unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_TYPES_ARR, 0)));
+        $optionsOrderTypes = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_TYPES_ARR, 0));
         $optionsDelivTypes = array_flip(unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_DELIVERY_TYPES_ARR, 0)));
         $optionsPayTypes = array_flip(unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_TYPES, 0)));
         $optionsPayStatuses = array_flip(unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_STATUSES, 0))); // --statuses
@@ -449,11 +449,21 @@ class RetailCrmHistory
                         $site = CSite::GetDefSite();
                     }
 
-					if ($optionsOrderNumbers == 'Y' && isset($order['number'])) {
+                    if ($optionsOrderNumbers == 'Y' && isset($order['number'])) {
                         $newOrder->setField('ACCOUNT_NUMBER', $order['number']);
-					}
+                    }
 
                     $personType = $newOrder->getField('PERSON_TYPE_ID');
+                    
+                    $nType = array();
+                    $tList = RCrmActions::OrderTypesList(array(array('LID' => $site)));
+                    foreach($tList as $type){
+                        if (isset($optionsOrderTypes[$type['ID']])) {
+                            $nType[$optionsOrderTypes[$type['ID']]] = $type['ID'];
+                        }
+                    }
+                    $optionsOrderTypes = $nType;
+                    
                     if ($optionsOrderTypes[$order['orderType']]) {
                         if ($personType != $optionsOrderTypes[$order['orderType']] && $personType != 0) {
                             $propsRemove = true;

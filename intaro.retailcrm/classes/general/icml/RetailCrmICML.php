@@ -45,6 +45,13 @@ class RetailCrmICML
         'g' => 'g',
         'kg' => 'g',
     );
+    
+    protected $measure = array (
+        'pc. 1' => 'pc',
+        'm' => 'm',
+        'l' => 'l',
+        'kg' => 'kg',
+    );
 
     public function Load()
     {
@@ -55,7 +62,7 @@ class RetailCrmICML
 
             $this->isLogged = true;
 
-            $defaultSite = CSite::GetList($by="def", $order="desc", Array('DEF' => 'Y'))->Fetch();
+            $defaultSite = CSite::GetList($by = "def", $order = "desc", array('DEF' => 'Y'))->Fetch();
             $this->encodingDefault = $defaultSite["CHARSET"];
             
             $url = 'https://' . $this->serverName;
@@ -539,6 +546,14 @@ class RetailCrmICML
                     $offer .= '<param name="' . $key . '"' . (isset($arOffer['_PROP_' . $key . "_UNIT"]) ? ' unit="' . $arOffer['_PROP_' . $key . "_UNIT"] . '"' : "") . ">" . $this->PrepareValue($arOffer['_PROP_' . $key]) . "</param>\n";
                 }
             }
+        }
+        if (isset($arOffer["MEASURE"]['SYMBOL_INTL'])) {
+            if ($this->measure[$arOffer["MEASURE"]['SYMBOL_INTL']]) {
+                $offer .= '<unit code="' . $this->measure[$this->PrepareValue($arOffer["MEASURE"]['SYMBOL_INTL'])] . '" />' . "\n";
+            } else {
+                $offer .= '<unit code="' . $this->PrepareValue($arOffer["MEASURE"]['SYMBOL_INTL']) . '" name="' . $this->PrepareValue($arOffer["MEASURE"]['MEASURE_TITLE']) . '" sym="' . $this->PrepareValue($arOffer["MEASURE"]['SYMBOL_RUS']) . '" />' . "\n";
+            }
+            
         }
 
         $offer.= "</offer>\n";

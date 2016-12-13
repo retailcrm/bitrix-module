@@ -1197,8 +1197,6 @@ class intaro_retailcrm extends CModule
                     $e->getCode() . ': ' . $e->getMessage()
                 );
             }
-            // in fin order
-            COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_HISTORY_DATE, date('Y-m-d H:i:s'));
 
             $APPLICATION->IncludeAdminFile(
                     GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step6.php'
