@@ -199,7 +199,9 @@ class RCrmActions
 
     public static function explodeFIO($fio)
     {
+        $fio = preg_replace('|[\s]+|s', ' ', trim($fio));
         $newFio = empty($fio) ? false : explode(" ", $fio, 3);
+        
         $result = array();
         switch (count($newFio)) {
             default:
@@ -263,7 +265,7 @@ class RCrmActions
                 try {
                     $result = $api->$methodApi($params, $site);
                     if (isset($result['errorMsg'])) {
-                        if ($methodApi != 'customersUpload') {
+                        if ($methodApi != 'customersUpload' && $methodApi != 'ordersUpload') {
                             self::eventLog(__CLASS__.'::'.$method, 'RetailCrm\ApiClient::'.$methodApi, $result['errorMsg']);
                         }
                         $log = new Logger();
