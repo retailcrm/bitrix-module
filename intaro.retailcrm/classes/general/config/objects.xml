@@ -71,6 +71,13 @@
         <field id="order_product.discount_percent" group="item">discountPercent</field>
         <field id="order_product.quantity" group="item">quantity</field>
         <field id="order_product.status" group="item">status</field>
+        <field id="order_product.discount_total" group="item">discountTotal</field>
+        
+        <field id="payments.status" group="payment">status</field>
+        <field id="payments.type" group="payment">type</field>
+        <field id="payments.external_id" group="payment">externalId</field>
+        <field id="payments.amount" group="payment">amount</field>
+        <field id="payments.comment" group="payment">comment</field>
         
         <field id="delivery_type" group="delivery">code</field>
         <field id="delivery_service" group="delivery">service</field>

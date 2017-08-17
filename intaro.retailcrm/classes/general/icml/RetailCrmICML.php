@@ -45,7 +45,7 @@ class RetailCrmICML
         'g' => 'g',
         'kg' => 'g',
     );
-    
+
     protected $measure = array (
         'pc. 1' => 'pc',
         'm' => 'm',
@@ -271,12 +271,11 @@ class RetailCrmICML
                 if ($this->propertiesProduct[$id][$key] != "") {
                     $arSelect[] =  "PROPERTY_" . $propProduct;
                     $arSelect[] =  "PROPERTY_" . $propProduct . ".NAME";
-                }
+                }               
             }
 
             $arSelectOffer = array(
                 'ID',
-                'ACTIVE',
                 "NAME",
                 "DETAIL_PAGE_URL",
                 "DETAIL_PICTURE",
@@ -417,7 +416,7 @@ class RetailCrmICML
                                 $offer['DETAIL_PAGE_URL'] = $product["DETAIL_PAGE_URL"];
                                 $offer['PICTURE'] = $product["PICTURE"];
                                 $offer['PRODUCT_NAME'] = $product["NAME"];
-                                $offer['PRODUCT_ACTIVE'] = $offer["ACTIVE"];
+                                $offer['PRODUCT_ACTIVE'] = $product["ACTIVE"];
                                 $offer['PRICE'] = $offer['CATALOG_PRICE_' . $basePriceId];
                                 $offer['PURCHASE_PRICE'] = $offer['CATALOG_PURCHASING_PRICE'];
                                 $offer['QUANTITY'] = $offer["CATALOG_QUANTITY"];
@@ -553,7 +552,7 @@ class RetailCrmICML
             } else {
                 $offer .= '<unit code="' . $this->PrepareValue($arOffer["MEASURE"]['SYMBOL_INTL']) . '" name="' . $this->PrepareValue($arOffer["MEASURE"]['MEASURE_TITLE']) . '" sym="' . $this->PrepareValue($arOffer["MEASURE"]['SYMBOL_RUS']) . '" />' . "\n";
             }
-            
+
         }
 
         $offer.= "</offer>\n";

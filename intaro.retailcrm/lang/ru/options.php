@@ -69,3 +69,24 @@ $MESS ['ORDER_UPL_START'] = 'Начать выгрузку';
 $MESS ['OTHER_OPTIONS'] = 'Прочие настройки';
 $MESS ['ORDERS_OPTIONS'] = 'Настройки заказов';
 $MESS ['ORDER_NUMBERS'] = 'Транслировать номера заказов созданных в црм в магазин';
+
+$MESS ['CRM_API_VERSION'] = 'Версия API клиента';
+
+$MESS ['INVENTORIES_UPLOAD'] = 'Включить выгрузку остатков в разрезе складов';
+$MESS ['INVENTORIES'] = 'Склады';
+$MESS ['SHOPS_INVENTORIES_UPLOAD'] = 'Магазины в которые будут грузиться остатки';
+$MESS ['IBLOCKS_UPLOAD'] = 'Инфоблоки товаров';
+
+$MESS ['PRICES_UPLOAD'] = 'Включить выгрузку типов цен для товаров';
+$MESS ['PRICE_TYPES'] = 'Выгружаемые типы цен';
+$MESS ['SHOPS_PRICES_UPLOAD'] = 'Магазины в которые будут грузиться дополнительные типы цен';
+
+$MESS ['DEMON_COLLECTOR'] = 'Активировать Демон Collector';
+$MESS ['DEMON_KEY'] = 'Ключ сайта:';
+
+$MESS ['UNIVERSAL_ANALYTICS'] = 'Включить интеграцию с UA';
+$MESS ['ID_UA'] = 'Идентификатор отслеживания:';
+$MESS ['INDEX_UA'] = 'Индекс пользовательского параметра:';
+
+$MESS ['API_NOT_FOUND'] = 'Неверная версия API';
+$MESS ['API_NOT_WORK'] = 'Выбранная версия API не поддерживается';

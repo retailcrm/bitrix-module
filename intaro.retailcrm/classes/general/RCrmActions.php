@@ -42,7 +42,7 @@ class RCrmActions
         $arDeliveryServiceAll = \Bitrix\Sale\Delivery\Services\Manager::getActiveList();
         $noOrderId = \Bitrix\Sale\Delivery\Services\EmptyDeliveryService::getEmptyDeliveryServiceId();
         foreach ($arDeliveryServiceAll as $arDeliveryService) {
-            if (($arDeliveryService['PARENT_ID'] == '0' || $arDeliveryService['PARENT_ID'] == null) && $arDeliveryService['ID'] != $noOrderId) {
+            if ($arDeliveryService['PARENT_ID'] == '0' && $arDeliveryService['ID'] != $noOrderId) {
                 $bitrixDeliveryTypesList[] = $arDeliveryService;
             }
         }
@@ -81,7 +81,7 @@ class RCrmActions
         return $bitrixPaymentStatusesList;
     }   
     
-    public static function OrderPropsList()
+    public static function OrderPropsList()    
     {
         $bitrixPropsList = array();
         $arPropsAll = \Bitrix\Sale\Internals\OrderPropsTable::getList(array(
@@ -93,6 +93,57 @@ class RCrmActions
         
         return $bitrixPropsList;
     } 
+    
+    public static function PricesExportList()    
+    {
+        $priceId = COption::GetOptionString(self::$MODULE_ID, 'catalog_base_price', 0);
+        $catalogExportPrices = array();
+        $dbPriceType = CCatalogGroup::GetList(array(), array('!ID' => $priceId), false, false, array('ID', 'NAME', 'NAME_LANG'));
+        while ($arPriceType = $dbPriceType->Fetch())
+        {
+            $catalogExportPrices[$arPriceType['ID']] = $arPriceType;
+        }
+        
+        return $catalogExportPrices;
+    } 
+    
+    public static function StoresExportList()    
+    {
+        $catalogExportStores = array();
+        $dbStores = CCatalogStore::GetList(array(), array("ACTIVE" => "Y"), false, false, array('ID', 'TITLE'));
+        while ($stores = $dbStores->Fetch()) {
+            $catalogExportStores[] = $stores;
+        }
+        
+        return $catalogExportStores;
+    } 
+    
+    public static function IblocksExportList()
+    {
+        $catalogExportIblocks = array();
+        $dbIblocks = CIBlock::GetList(array("IBLOCK_TYPE" => "ASC", "NAME" => "ASC"), array('CHECK_PERMISSIONS' => 'Y','MIN_PERMISSION' => 'W'));
+        while ($iblock = $dbIblocks->Fetch()) {
+            if ($arCatalog = CCatalog::GetByIDExt($iblock["ID"])) {
+                if($arCatalog['CATALOG_TYPE'] == "D" || $arCatalog['CATALOG_TYPE'] == "X" || $arCatalog['CATALOG_TYPE'] == "P") {
+                    $catalogExportIblocks[$iblock['ID']] = array(
+                        'ID' => $iblock['ID'],
+                        'IBLOCK_TYPE_ID' => $iblock['IBLOCK_TYPE_ID'],
+                        'LID' => $iblock['LID'],
+                        'CODE' => $iblock['CODE'],
+                        'NAME' => $iblock['NAME'],
+                    );
+
+                    if ($arCatalog['CATALOG_TYPE'] == "X" || $arCatalog['CATALOG_TYPE'] == "P") {
+                        $iblockOffer = CCatalogSKU::GetInfoByProductIBlock($iblock["ID"]);
+                        $catalogExportIblocks[$iblock['ID']]['SKU'] = $iblockOffer;
+                    }
+                }
+            }
+        }
+        
+        return $catalogExportIblocks;
+    }
+    
     /**
      *
      * w+ event in bitrix log
@@ -199,10 +250,14 @@ class RCrmActions
 
     public static function explodeFIO($fio)
     {
-        $fio = preg_replace('|[\s]+|s', ' ', trim($fio));
-        $newFio = empty($fio) ? false : explode(" ", $fio, 3);
-        
         $result = array();
+        $fio = preg_replace("/ +/", " ", trim($fio));
+        if (empty($fio)) {
+            return $result;
+        } else {
+            $newFio = explode(" ", $fio, 3);
+        }
+        
         switch (count($newFio)) {
             default:
             case 0:
@@ -232,61 +287,62 @@ class RCrmActions
     public static function apiMethod($api, $methodApi, $method, $params, $site = null)
     {
         switch ($methodApi) {
+            case 'ordersPaymentDelete':          
+            case 'ordersHistory':
+            case 'customerHistory':                
+            case 'ordersFixExternalIds':
+            case 'customersFixExternalIds':
+                return self::proxy($api, $methodApi, $method, array($params));
+                
+            case 'orderGet':
+                return self::proxy($api, 'ordersGet', $method, array($params, 'id', $site));
+                
             case 'ordersGet':
             case 'ordersEdit':
             case 'customersGet':
             case 'customersEdit':
-                try {
-                    $result = $api->$methodApi($params, 'externalId', $site);
-                    if (isset($result['errorMsg'])) {
-                        self::eventLog(__CLASS__.'::'.$method, 'RetailCrm\ApiClient::'.$methodApi, $result['errorMsg']);
-                        
-                        $log = new Logger();
-                        $log->write(array($methodApi, $result['errorMsg'], $result['errors'], $params), 'apiErrors');
-                    }
-                } catch (\RetailCrm\Exception\CurlException $e) {
-                    self::eventLog(
-                        __CLASS__.'::'.$method, 'RetailCrm\ApiClient::'.$methodApi.'::CurlException',
-                        $e->getCode() . ': ' . $e->getMessage()
-                    );
-
-                    return false;
-                } catch (InvalidArgumentException $e) {
-                    self::eventLog(
-                        __CLASS__.'::'.$method, 'RetailCrm\ApiClient::'.$methodApi.'::InvalidArgumentException',
-                        $e->getCode() . ': ' . $e->getMessage()
-                    );
-                    
-                    return false;
-                }
-                return $result;
+            case 'ordersPaymentEdit':
+                return self::proxy($api, $methodApi, $method, array($params, 'externalId', $site));
 
             default:
-                try {
-                    $result = $api->$methodApi($params, $site);
-                    if (isset($result['errorMsg'])) {
-                        if ($methodApi != 'customersUpload' && $methodApi != 'ordersUpload') {
-                            self::eventLog(__CLASS__.'::'.$method, 'RetailCrm\ApiClient::'.$methodApi, $result['errorMsg']);
-                        }
-                        $log = new Logger();
-                        $log->write(array($methodApi, $result['errorMsg'], $result['errors'], $params), 'apiErrors');
-                    }
-                } catch (\RetailCrm\Exception\CurlException $e) {
-                    self::eventLog(
-                        __CLASS__.'::'.$method, 'RetailCrm\ApiClient::'.$methodApi.'::CurlException',
-                        $e->getCode() . ': ' . $e->getMessage()
-                    );
-
-                    return false;
-                } catch (InvalidArgumentException $e) {
-                    self::eventLog(
-                        __CLASS__.'::'.$method, 'RetailCrm\ApiClient::'.$methodApi.'::InvalidArgumentException',
-                        $e->getCode() . ': ' . $e->getMessage()
-                    );
-                    
-                    return false;
-                }
-                return $result;
+                return self::proxy($api, $methodApi, $method, array($params, $site));
         }        
+    }
+    
+    private function proxy($api, $methodApi, $method, $params) {
+        try {
+            $result = call_user_func_array(array($api, $methodApi), $params);
+
+            if ($result->getStatusCode() !== 200 && $result->getStatusCode() !== 201) {
+                $log = new Logger();
+                if ($methodApi == 'customersUpload' || $methodApi == 'ordersUpload') {
+                    $log->write(array($methodApi, $result['errorMsg'], $result['errors'], $params), 'uploadApiErrors');
+                } else {
+                    self::eventLog(__CLASS__ . '::' . $method, 'RetailCrm\ApiClient::' . $methodApi, $result['errorMsg']);
+                    $log->write(array($methodApi, $result['errorMsg'], $result['errors'], $params), 'apiErrors');
+                }
+                if ($result->getStatusCode() == 460) {
+                    return true;
+                }
+
+                return false;
+            }
+        } catch (\RetailCrm\Exception\CurlException $e) {
+            self::eventLog(
+                __CLASS__ . '::' . $method, 'RetailCrm\ApiClient::' . $methodApi . '::CurlException',
+                $e->getCode() . ': ' . $e->getMessage()
+            );
+
+            return false;
+        } catch (InvalidArgumentException $e) {
+            self::eventLog(
+                __CLASS__ . '::' . $method, 'RetailCrm\ApiClient::' . $methodApi . '::InvalidArgumentException',
+                $e->getCode() . ': ' . $e->getMessage()
+            );
+
+            return false;
+        }
+        
+        return $result;
     }
 }

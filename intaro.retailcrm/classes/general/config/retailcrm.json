@@ -132,9 +132,6 @@
         },
         "managerId": {
             "type": "int"
-        },
-        "browserId": {
-            "type": "string"
         }
     },
     "orders": {
@@ -148,6 +145,19 @@
         "createdAt": {
             "type": "datetime",
             "format": "Y-m-d H:i:s"
+        },
+        "discountManualAmount": {
+            "type": "double",
+            "default": 0,
+            "min": 0,
+            "decimals": 2
+        },
+        "discountManualPercent": {
+            "type": "double",
+            "default": 0,
+            "max": 100,
+            "min": 0,
+            "decimals": 2
         },
         "discount": {
             "type": "double",
@@ -190,9 +200,6 @@
             "type": "string"
         },
         "site": {
-            "type": "string"
-        },
-        "countryIso": {
             "type": "string"
         },
         "call": {
@@ -286,6 +293,19 @@
         },
         "paymentStatus": {
             "type": "string"
+        },
+        "type": {
+            "type": "string"
+        },
+        "amount": {
+            "type": "double",
+            "default": 0,
+            "min": 0,
+            "decimals": 2
+        },
+        "paidAt": {
+            "type": "datetime",
+            "format": "Y-m-d H:i:s"
         },
         "status": {
             "type": "string"
@@ -385,15 +405,6 @@
             "type": "string"
         },
         "shipmentStore": {
-            "type": "string"
-        },
-        "from": {
-            "type": "skip"
-        },
-        "to": {
-            "type": "skip"
-        },
-        "custom": {
             "type": "string"
         }
     }

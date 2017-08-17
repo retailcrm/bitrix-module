@@ -64,7 +64,7 @@ class RestNormalizer
         if (is_null($file) || is_file($file) === false
             || json_decode(file_get_contents($file)) === null
             || $this->parseConfig($file) === false) {
-                RCrmActions::eventLog('RestNormalizer', 'intaro.retailcrm', 'Incorrect file normalize.');
+                ICrmOrderActions::eventLog('RestNormalizer', 'intaro.retailcrm', 'Incorrect file normalize.');
                 return false;
         }
         
@@ -79,7 +79,7 @@ class RestNormalizer
         }
 
         if (!is_array($data) || count($data) < 1) {
-            RCrmActions::eventLog('RestNormalizer', 'intaro.retailcrm', 'Incorrect data array.');
+            ICrmOrderActions::eventLog('RestNormalizer', 'intaro.retailcrm', 'Incorrect data array.');
             return false;
         }
 
@@ -123,7 +123,7 @@ class RestNormalizer
         if ($skip === false) {
             foreach ($this->validation as $code => $valid) {
                 if (isset($valid['required']) && $valid['required'] === true && isset($formatted[ $code ]) === false) {
-                    RCrmActions::eventLog('RestNormalizer', 'intaro.retailcrm', "NOT VALID: $code");
+                    //ICrmOrderActions::eventLog('RestNormalizer', 'intaro.retailcrm', "NOT VALID: $code");
                 }
             }
 

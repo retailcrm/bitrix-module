@@ -4,7 +4,7 @@ class RetailCrmUser
 {
     public static function customerSend($arFields, $api, $contragentType, $send = false, $site = null)
     {  
-        if (!$api || empty($contragentType)) { // add cond to check $arParams
+        if (!$api || empty($contragentType)) {
             return false;
         }
         if (empty($arFields)) {
@@ -22,13 +22,13 @@ class RetailCrmUser
             'createdAt'      => new \DateTime($arFields['DATE_REGISTER']),
             'contragentType' => $contragentType
         );
-        if (isset($arFields['PERSONAL_PHONE'])) {
+        if (!empty($arFields['PERSONAL_PHONE'])) {
             $customer['phones'][]['number'] = $arFields['PERSONAL_PHONE'];
         }
-        if (isset($arUser['WORK_PHONE'])) {
+        if (!empty($arFields['WORK_PHONE'])) {
             $customer['phones'][]['number'] = $arFields['WORK_PHONE'];
         }
-        if (isset($_COOKIE['_rc']) && $_COOKIE['_rc'] != '') {
+        if ($send && isset($_COOKIE['_rc']) && $_COOKIE['_rc'] != '') {
             $customer['browserId'] = $_COOKIE['_rc'];
         }
 
@@ -36,6 +36,10 @@ class RetailCrmUser
             $newResCustomer = retailCrmBeforeCustomerSend($customer);
             if (is_array($newResCustomer) && !empty($newResCustomer)) {
                 $customer = $newResCustomer;
+            } elseif ($newResCustomer === false) {
+                RCrmActions::eventLog('RetailCrmUser::customerSend', 'retailCrmBeforeCustomerSend()', 'UserID = ' . $arFields['ID'] . '. Sending canceled after retailCrmBeforeCustomerSend');
+                
+                return false;
             }
         }
 
@@ -68,15 +72,15 @@ class RetailCrmUser
             'email'          => $arFields['EMAIL'],
             'address'        => array('city' => $arFields['PERSONAL_CITY'], 'text' => $arFields['PERSONAL_STREET'], 'index' => $arFields['PERSONAL_ZIP']),
         );
-        if (isset($arFields['PERSONAL_PHONE'])) {
+        if (!empty($arFields['PERSONAL_PHONE'])) {
             $customer['phones'][]['number'] = $arFields['PERSONAL_PHONE'];
         }
-        if (isset($arFields['WORK_PHONE'])) {
+        if (!empty($arFields['WORK_PHONE'])) {
             $customer['phones'][]['number'] = $arFields['WORK_PHONE'];
         }
         
         $found = false;
-        if (count($optionsSitesList) > 1) {
+        if (count($optionsSitesList) > 0) {
             foreach ($optionsSitesList as $site) {
                 $userCrm = RCrmActions::apiMethod($api, 'customersGet', __METHOD__, $arFields['ID'], $site);
                 if (isset($userCrm['customer'])) {
@@ -91,7 +95,7 @@ class RetailCrmUser
                 $found = true;
             }
         }
-        
+
         if ($found) {
             $normalizer = new RestNormalizer();
             $customer = $normalizer->normalize($customer, 'customers');
@@ -99,12 +103,17 @@ class RetailCrmUser
             $log = new Logger();
             $log->write($customer, 'customer');
         
-            if (function_exists('retailcrmBeforeCustomerSend')) {
-                $newResCustomer = intarocrm_before_customer_send($customer);
+            if (function_exists('retailCrmBeforeCustomerSend')) {
+                $newResCustomer = retailCrmBeforeCustomerSend($customer);
                 if (is_array($newResCustomer) && !empty($newResCustomer)) {
                     $customer = $newResCustomer;
+                } elseif ($newResCustomer === false) {
+                    RCrmActions::eventLog('RetailCrmUser::customerEdit', 'retailCrmBeforeCustomerSend()', 'UserID = ' . $arFields['ID'] . '. Sending canceled after retailCrmBeforeCustomerSend');
+
+                    return false;
                 }
             }
+
             RCrmActions::apiMethod($api, 'customersEdit', __METHOD__, $customer, $site);
         }
         
