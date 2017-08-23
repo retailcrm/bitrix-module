@@ -138,7 +138,7 @@ class RetailCrmInventories
                 } while($dbResProductsIds->NavPageNomer < $dbResProductsIds->NavPageCount);
             }
         } else {
-            RCrmActions::eventLog('RetailCrmInventories::inventoriesUpload()', '$shops', 'No iblocks selected');
+            RCrmActions::eventLog('RetailCrmInventories::inventoriesUpload()', '$infoBlocks', 'No iblocks selected');
             
             return false;
         }

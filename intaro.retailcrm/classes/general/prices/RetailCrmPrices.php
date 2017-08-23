@@ -38,13 +38,13 @@ class RetailCrmPrices
 	$shops = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PRICE_SHOPS, 0));
 
         if (count($shops) == 0) {
-            RCrmActions::eventLog('RetailCrmInventories::pricesUpload()', '$shops', 'No stores selected for download');
+            RCrmActions::eventLog('RetailCrmPrices::pricesUpload()', '$shops', 'No stores selected for download');
             
             return false;
         }
 
         if (count($prices) == 0) {
-            RCrmActions::eventLog('RetailCrmInventories::pricesUpload()', '$prices', 'No prices selected for download');
+            RCrmActions::eventLog('RetailCrmPrices::pricesUpload()', '$prices', 'No prices selected for download');
             
             return false;
         }
@@ -127,9 +127,11 @@ class RetailCrmPrices
                 } while($dbResProductsIds->NavPageNomer < $dbResProductsIds->NavPageCount);
             }
         } else {
-            RCrmActions::eventLog('RetailCrmInventories::pricesUpload()', '$shops', 'No iblocks selected');
+            RCrmActions::eventLog('RetailCrmPrices::pricesUpload()', '$infoBlocks', 'No iblocks selected');
             
             return false;
         }
+        
+        return 'RetailCrmPrices::pricesUpload();';
     }
 }

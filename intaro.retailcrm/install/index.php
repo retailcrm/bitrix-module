@@ -44,7 +44,7 @@ class intaro_retailcrm extends CModule
     var $CRM_ORDER_HISTORY = 'order_history';
     var $CRM_CUSTOMER_HISTORY = 'customer_history';
     var $CRM_CATALOG_BASE_PRICE = 'catalog_base_price';
-    var $CRM_CATALOG_IBLOCKS = 'catalog_base_iblocks';
+    //var $CRM_CATALOG_IBLOCKS = 'catalog_base_iblocks';
     var $CRM_ORDER_NUMBERS = 'order_numbers';
     var $CRM_CANSEL_ORDER = 'cansel_order';
     
@@ -62,8 +62,7 @@ class intaro_retailcrm extends CModule
     var $CRM_COLL_KEY = 'coll_key';
     
     var $CRM_UA = 'ua';
-    var $CRM_UA_INDEX = 'ua_index';
-    var $CRM_UA_ID = 'ua_id';
+    var $CRM_UA_KEYS = 'ua_keys';
     
     var $CRM_API_VERSION = 'api_version';
     
@@ -112,7 +111,6 @@ class intaro_retailcrm extends CModule
             }
         }
 
-        //запилить проверку на версию api
         include($this->INSTALL_PATH . '/../classes/general/Http/Client.php');
         include($this->INSTALL_PATH . '/../classes/general/Response/ApiResponse.php');
         include($this->INSTALL_PATH . '/../classes/general/RCrmActions.php');
@@ -243,6 +241,8 @@ class intaro_retailcrm extends CModule
                 $APPLICATION->IncludeAdminFile(
                     GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step1.php'
                 );
+                
+                return;
             }
             
             COption::SetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, $api_host);
@@ -255,7 +255,7 @@ class intaro_retailcrm extends CModule
             $APPLICATION->IncludeAdminFile(
                 GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step11.php'
             );
-        } else if ($step == 2) {//��������, ������, ���� �������
+        } else if ($step == 2) {//доставки, оплаты, типы заказов
             if (!CModule::IncludeModule("sale")) {
                 $arResult['errCode'] = 'ERR_SALE';
             }
@@ -282,8 +282,8 @@ class intaro_retailcrm extends CModule
                 $api_key = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, 0);
 
                 foreach ($arResult['arSites'] as $site) {
-                    if ($_POST['sites-id-'.$site['LID']] && !empty($_POST['sites-id-'.$site['LID']])) {
-                        $siteCode[$site['LID']] = htmlspecialchars(trim($_POST['sites-id-'.$site['LID']]));
+                    if ($_POST['sites-id-' . $site['LID']] && !empty($_POST['sites-id-' . $site['LID']])) {
+                        $siteCode[$site['LID']] = htmlspecialchars(trim($_POST['sites-id-' . $site['LID']]));
                     }
                 }
                 if (count($arResult['arSites']) != count($siteCode)) {
@@ -291,6 +291,7 @@ class intaro_retailcrm extends CModule
                     $APPLICATION->IncludeAdminFile(
                         GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step11.php'
                     );
+                    
                     return;
                 }
 
@@ -310,8 +311,9 @@ class intaro_retailcrm extends CModule
                 if (!$api_host || !$api_key) {
                     $arResult['errCode'] = 'ERR_FIELDS_API_HOST';
                     $APPLICATION->IncludeAdminFile(
-                            GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step1.php'
+                        GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step1.php'
                     );
+                    
                     return;
                 }
                 
@@ -323,6 +325,8 @@ class intaro_retailcrm extends CModule
                     $APPLICATION->IncludeAdminFile(
                         GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step1.php'
                     );
+                    
+                    return;
                 }
                 
                 COption::SetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, $api_host);
@@ -627,6 +631,7 @@ class intaro_retailcrm extends CModule
             
             $customerH = self::historyLoad($api, 'customersHistory');
             COption::SetOptionString($this->MODULE_ID, $this->CRM_CUSTOMER_HISTORY, $customerH);
+       
             //если есть старое значение, переделываем его на новый лад, иначе вычисляем
             if ($historyDate = COption::GetOptionString($this->OLD_MODULE_ID, 'order_history_date', 0)) {
                 try {
@@ -653,12 +658,25 @@ class intaro_retailcrm extends CModule
             } else {
                 $orderH = self::historyLoad($api, 'ordersHistory');
             }
-            
+
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_HISTORY, $orderH);
-            
+ 
             if ($orderLastId = COption::GetOptionString($this->OLD_MODULE_ID, $this->CRM_ORDER_LAST_ID, 0)) {
                 COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_LAST_ID, $orderLastId);
+            } else {
+                $dbOrder = \Bitrix\Sale\Internals\OrderTable::GetList(array(
+                        'order'   => array("ID" => "DESC"),
+                        'limit'   => 1,
+                        'select'  => array('ID')
+                ));
+                $arOrder = $dbOrder->fetch();
+                if (!empty($arOrder['ID'])) {
+                    COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_LAST_ID, $arOrder['ID']);
+                } else {
+                    COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_LAST_ID, 0);
+                }
             }
+            
             if ($orderFailedIds = COption::GetOptionString($this->OLD_MODULE_ID, $this->CRM_ORDER_FAILED_IDS, 0)) {
                 COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_FAILED_IDS, $orderFailedIds);
             }
@@ -791,7 +809,7 @@ class intaro_retailcrm extends CModule
             RegisterModuleDependences("sale", "OnSaleOrderEntityDelete", $this->MODULE_ID, "RetailCrmEvent", "orderDelete");
             
             COption::SetOptionString($this->MODULE_ID, $this->CRM_CATALOG_BASE_PRICE, htmlspecialchars(trim($_POST['price-types'])));
-            COption::SetOptionString($this->MODULE_ID, $this->CRM_CATALOG_IBLOCKS, $iblocks);
+            //COption::SetOptionString($this->MODULE_ID, $this->CRM_CATALOG_IBLOCKS, $iblocks);
             
             COption::SetOptionString($this->MODULE_ID, $this->CRM_INVENTORIES_UPLOAD, 'N');
             COption::SetOptionString($this->MODULE_ID, $this->CRM_PRICES_UPLOAD, 'N');
@@ -966,7 +984,7 @@ class intaro_retailcrm extends CModule
         COption::RemoveOption($this->MODULE_ID, $this->CRM_CUSTOMER_HISTORY);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_HISTORY);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_CATALOG_BASE_PRICE);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_CATALOG_IBLOCKS);
+        //COption::RemoveOption($this->MODULE_ID, $this->CRM_CATALOG_IBLOCKS);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_NUMBERS);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_CANSEL_ORDER);
         
@@ -984,8 +1002,7 @@ class intaro_retailcrm extends CModule
         COption::RemoveOption($this->MODULE_ID, $this->CRM_COLL_KEY);
         
         COption::RemoveOption($this->MODULE_ID, $this->CRM_UA);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_UA_INDEX);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_UA_ID);
+        COption::RemoveOption($this->MODULE_ID, $this->CRM_UA_KEYS);
         
         COption::RemoveOption($this->MODULE_ID, $this->CRM_API_VERSION);
 
@@ -1067,41 +1084,60 @@ class intaro_retailcrm extends CModule
     function historyLoad($api, $method)
     {
         $page = null;
-        $i = 0;
-        while (true) {
-            $i++;
-            try {
-                $history = $api->$method(array(), $page);
-            } catch (\RetailCrm\Exception\CurlException $e) {
-                RCrmActions::eventLog(
-                    'RetailCrmHistory::' . $method, 'RetailCrm\RestApi::' . $method . '::CurlException',
-                    $e->getCode() . ': ' . $e->getMessage()
-                );
-                $end['id'] = 0;
+        $end['id'] = 0;
 
-                return $end['id'];
-            } catch (InvalidArgumentException $e) {
-                RCrmActions::eventLog(
-                    'RetailCrmHistory::' . $method, 'RetailCrm\RestApi::' . $method . '::InvalidArgumentException',
-                    $e->getCode() . ': ' . $e->getMessage()
-                );
-                $end['id'] = 0;
+        try {
+            $history = $api->$method(array(), $page);
+        } catch (\RetailCrm\Exception\CurlException $e) {
+            RCrmActions::eventLog(
+                'RetailCrmHistory::' . $method, 'RetailCrm\RestApi::' . $method . '::CurlException',
+                $e->getCode() . ': ' . $e->getMessage()
+            );
 
-                return $end['id'];
+            return $end['id'];
+        } catch (InvalidArgumentException $e) {
+            RCrmActions::eventLog(
+                'RetailCrmHistory::' . $method, 'RetailCrm\RestApi::' . $method . '::InvalidArgumentException',
+                $e->getCode() . ': ' . $e->getMessage()
+            );
+
+            return $end['id'];
+        }
+        if ($history['pagination']['totalPageCount'] > $history['pagination']['currentPage']) {
+            $page = $history['pagination']['totalPageCount'];
+            while (true) {
+                try {
+                    $history = $api->$method(array(), $page);
+                } catch (\RetailCrm\Exception\CurlException $e) {
+                    RCrmActions::eventLog(
+                        'RetailCrmHistory::' . $method, 'RetailCrm\RestApi::' . $method . '::CurlException',
+                        $e->getCode() . ': ' . $e->getMessage()
+                    );
+
+                    return $end['id'];
+                } catch (InvalidArgumentException $e) {
+                    RCrmActions::eventLog(
+                        'RetailCrmHistory::' . $method, 'RetailCrm\RestApi::' . $method . '::InvalidArgumentException',
+                        $e->getCode() . ': ' . $e->getMessage()
+                    );
+
+                    return $end['id'];
+                }
+                
+                if (isset($history['history'])) {
+                    $end = array_pop($history['history']);
+                    
+                    break;
+                } else {
+                    $page--;
+                }
             }
-
-            if (isset($history['history'])) {
+        } else {
+            if (isset($history['history']) && count($history['history']) > 0) {
                 $end = array_pop($history['history']);
             } else {
                 $end['id'] = 0;
-                break;
-            }   
-
-            if ($history['pagination']['totalPageCount'] == $history['pagination']['currentPage']) {        
-                break;
             }
-
-            $page = $history['pagination']['totalPageCount'];
         }
 
         return $end['id'];
@@ -1110,7 +1146,7 @@ class intaro_retailcrm extends CModule
     function ping($api_host, $api_key)
     {
         global $APPLICATION;
-        include($this->INSTALL_PATH . '/../classes/general/Http/Client.php');
+
         $versions = array('v5', 'v4');
         foreach ($versions as $version) {
             $client = new RetailCrm\Http\Client($api_host . '/api/' . $version, array('apiKey' => $api_key));

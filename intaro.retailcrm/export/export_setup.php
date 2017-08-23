@@ -96,10 +96,7 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
         echo ShowError(implode('<br />', $arSetupErrors));
 
 
-    if ($STEP==1)
-    {
-
-
+    if ($STEP==1) {
     ?>
 
     <style type="text/css">
@@ -179,86 +176,84 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
 
         while ($iblock = $db_res->Fetch())
         {
-                if ($arCatalog = CCatalog::GetByIDExt($iblock["ID"]))
+            if ($arCatalog = CCatalog::GetByIDExt($iblock["ID"]))
+            {
+                if($arCatalog['CATALOG_TYPE'] == "D" || $arCatalog['CATALOG_TYPE'] == "X" || $arCatalog['CATALOG_TYPE'] == "P")
                 {
-                        if($arCatalog['CATALOG_TYPE'] == "D" || $arCatalog['CATALOG_TYPE'] == "X" || $arCatalog['CATALOG_TYPE'] == "P")
-                        {
-                            $propertiesSKU = null;
-                            if ($arCatalog['CATALOG_TYPE'] == "X" || $arCatalog['CATALOG_TYPE'] == "P")
-                            {
-                                $iblockOffer = CCatalogSKU::GetInfoByProductIBlock($iblock["ID"]);
+                    $propertiesSKU = null;
+                    if ($arCatalog['CATALOG_TYPE'] == "X" || $arCatalog['CATALOG_TYPE'] == "P")
+                    {
+                        $iblockOffer = CCatalogSKU::GetInfoByProductIBlock($iblock["ID"]);
 
-                                $db_properties = CIBlock::GetProperties($iblockOffer['IBLOCK_ID'], Array());
-                                while($prop = $db_properties->Fetch())
-                                    $propertiesSKU[] = $prop;
+                        $db_properties = CIBlock::GetProperties($iblockOffer['IBLOCK_ID'], Array());
+                        while($prop = $db_properties->Fetch())
+                            $propertiesSKU[] = $prop;
 
-                                $oldPropertySKU = null;
-                                if (isset($IBLOCK_PROPERTY_SKU[$iblock['ID']])) {
-                                    foreach ($iblockPropertiesName as $key => $prop) {
-                                        $oldPropertySKU[$key] = $IBLOCK_PROPERTY_SKU[$iblock['ID']][$key];
-                                    }
-                                }
-
-                                $oldPropertyUnitSKU = null;
-                                if (isset($IBLOCK_PROPERTY_UNIT_SKU[$iblock['ID']])) {
-                                    foreach ($iblockPropertiesName as $key => $prop) {
-                                        $oldPropertyUnitSKU[$key] = $IBLOCK_PROPERTY_UNIT_SKU[$iblock['ID']][$key];
-                                    }
-                                }
+                        $oldPropertySKU = null;
+                        if (isset($IBLOCK_PROPERTY_SKU[$iblock['ID']])) {
+                            foreach ($iblockPropertiesName as $key => $prop) {
+                                $oldPropertySKU[$key] = $IBLOCK_PROPERTY_SKU[$iblock['ID']][$key];
                             }
-
-
-                            $propertiesProduct = null;
-                            $db_properties = CIBlock::GetProperties($iblock['ID'], Array());
-                            while($prop = $db_properties->Fetch())
-                                $propertiesProduct[] = $prop;
-
-                            $oldPropertyProduct = null;
-                            if (isset($IBLOCK_PROPERTY_PRODUCT[$iblock['ID']])) {
-                                foreach ($iblockPropertiesName as $key => $prop) {
-                                    $oldPropertyProduct[$key] = $IBLOCK_PROPERTY_PRODUCT[$iblock['ID']][$key];
-                                }
-                            }
-
-                            $oldPropertyUnitProduct = null;
-                            if (isset($IBLOCK_PROPERTY_UNIT_PRODUCT[$iblock['ID']])) {
-                                foreach ($iblockPropertiesName as $key => $prop) {
-                                    $oldPropertyUnitProduct[$key] = $IBLOCK_PROPERTY_UNIT_PRODUCT[$iblock['ID']][$key];
-                                }
-                            }
-
-                            $arSiteList = array();
-                            $rsSites = CIBlock::GetSite($iblock["ID"]);
-                            while ($arSite = $rsSites->Fetch())
-                            {
-                                $arSiteList[] = $arSite["SITE_ID"];
-                            }
-
-                            if (count($IBLOCK_EXPORT) != 0)
-                                $boolExport = (in_array($iblock['ID'], $IBLOCK_EXPORT));
-                            else
-                                $boolExport = true;
-
-
-                            $arIBlockList[] = array(
-                                'ID' => $iblock['ID'],
-                                'NAME' => $iblock['NAME'],
-                                'IBLOCK_TYPE_ID' => $iblock['IBLOCK_TYPE_ID'],
-                                'IBLOCK_EXPORT' => $boolExport,
-                                'PROPERTIES_SKU' => $propertiesSKU,
-                                'PROPERTIES_PRODUCT' => $propertiesProduct,
-                                'OLD_PROPERTY_SKU_SELECT' => $oldPropertySKU,
-                                'OLD_PROPERTY_UNIT_SKU_SELECT' => $oldPropertyUnitSKU,
-                                'OLD_PROPERTY_PRODUCT_SELECT' => $oldPropertyProduct,
-                                'OLD_PROPERTY_UNIT_PRODUCT_SELECT' => $oldPropertyUnitProduct,
-                                'SITE_LIST' => '('.implode(' ',$arSiteList).')',
-                            );
-
-                            if ($boolExport)
-                                    $intCountChecked++;
-                            $intCountAvailIBlock++;
                         }
+
+                        $oldPropertyUnitSKU = null;
+                        if (isset($IBLOCK_PROPERTY_UNIT_SKU[$iblock['ID']])) {
+                            foreach ($iblockPropertiesName as $key => $prop) {
+                                $oldPropertyUnitSKU[$key] = $IBLOCK_PROPERTY_UNIT_SKU[$iblock['ID']][$key];
+                            }
+                        }
+                    }
+
+                    $propertiesProduct = null;
+                    $db_properties = CIBlock::GetProperties($iblock['ID'], Array());
+                    while($prop = $db_properties->Fetch())
+                        $propertiesProduct[] = $prop;
+
+                    $oldPropertyProduct = null;
+                    if (isset($IBLOCK_PROPERTY_PRODUCT[$iblock['ID']])) {
+                        foreach ($iblockPropertiesName as $key => $prop) {
+                            $oldPropertyProduct[$key] = $IBLOCK_PROPERTY_PRODUCT[$iblock['ID']][$key];
+                        }
+                    }
+
+                    $oldPropertyUnitProduct = null;
+                    if (isset($IBLOCK_PROPERTY_UNIT_PRODUCT[$iblock['ID']])) {
+                        foreach ($iblockPropertiesName as $key => $prop) {
+                            $oldPropertyUnitProduct[$key] = $IBLOCK_PROPERTY_UNIT_PRODUCT[$iblock['ID']][$key];
+                        }
+                    }
+
+                    $arSiteList = array();
+                    $rsSites = CIBlock::GetSite($iblock["ID"]);
+                    while ($arSite = $rsSites->Fetch())
+                    {
+                        $arSiteList[] = $arSite["SITE_ID"];
+                    }
+
+                    if (count($IBLOCK_EXPORT) != 0)
+                        $boolExport = (in_array($iblock['ID'], $IBLOCK_EXPORT));
+                    else
+                        $boolExport = true;
+
+                    $arIBlockList[] = array(
+                        'ID' => $iblock['ID'],
+                        'NAME' => $iblock['NAME'],
+                        'IBLOCK_TYPE_ID' => $iblock['IBLOCK_TYPE_ID'],
+                        'IBLOCK_EXPORT' => $boolExport,
+                        'PROPERTIES_SKU' => $propertiesSKU,
+                        'PROPERTIES_PRODUCT' => $propertiesProduct,
+                        'OLD_PROPERTY_SKU_SELECT' => $oldPropertySKU,
+                        'OLD_PROPERTY_UNIT_SKU_SELECT' => $oldPropertyUnitSKU,
+                        'OLD_PROPERTY_PRODUCT_SELECT' => $oldPropertyProduct,
+                        'OLD_PROPERTY_UNIT_PRODUCT_SELECT' => $oldPropertyUnitProduct,
+                        'SITE_LIST' => '('.implode(' ',$arSiteList).')',
+                    );
+
+                    if ($boolExport)
+                            $intCountChecked++;
+                    $intCountAvailIBlock++;
                 }
+            }
         }
         if (count($IBLOCK_EXPORT) != 0) {
             if ($intCountChecked == $intCountAvailIBlock)
@@ -267,7 +262,6 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
             $intCountChecked = $intCountAvailIBlock;
             $boolAll = true;
         }
-
         ?>
 
         <font class="text" style="font-weight: bold;"><?=GetMessage("CHECK_ALL_INFOBLOCKS");?></font>
@@ -317,7 +311,6 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
                         <tbody>
 
                               <? foreach ($iblockPropertiesName as $key => $property): ?>
-
                                 <? $productSelected = false;?>
 
                                 <tr class="adm-list-table-row">
@@ -696,7 +689,6 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
     elseif ($STEP==2)
     {
         COption::SetOptionString($MODULE_ID, $CRM_CATALOG_BASE_PRICE . '_' . $_REQUEST['PROFILE_ID'], htmlspecialchars(trim($_POST['price-types'])));
-        COption::SetOptionString($MODULE_ID, 'catalog_base_iblocks', serialize($IBLOCK_EXPORT));
         $FINITE = true;
     }
 }

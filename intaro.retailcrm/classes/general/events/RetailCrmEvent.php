@@ -48,29 +48,7 @@ class RetailCrmEvent
         }
 
         return true; 
-    }
-    
-    /**
-     * onBeforeOrderAdd
-     * 
-     * @param mixed $arFields - User arFields
-     */
-//    function onBeforeOrderAdd($arFields = array()) {
-//        $GLOBALS['RETAILCRM_ORDER_OLD_EVENT'] = false;
-//        return;
-//    }
-    
-    /**
-     * OnOrderSave
-     * 
-     * @param mixed $ID - Order id  
-     * @param mixed $arFields - Order arFields
-     */
-//    function OnOrderSave($ID, $arFields, $arOrder, $isNew)
-//    {
-//        $GLOBALS['RETAILCRM_EVENT_OLD'] = true;
-//        return;
-//    }
+    }    
     
     /**
      * onUpdateOrder

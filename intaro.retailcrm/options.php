@@ -36,8 +36,7 @@ $CRM_COLLECTOR = 'collector';
 $CRM_COLL_KEY = 'coll_key';
 
 $CRM_UA = 'ua';
-$CRM_UA_INDEX = 'ua_index';
-$CRM_UA_ID = 'ua_id';
+$CRM_UA_KEYS = 'ua_keys';
 
 $CRM_API_VERSION = 'api_version';
 
@@ -324,7 +323,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     $bitrixStoresArr = array();
     $bitrixShopsArr = array();
     $bitrixIblocksInventories = array();
-    if(htmlspecialchars(trim($_POST['inventories-upload']))){
+    if(htmlspecialchars(trim($_POST['inventories-upload'])) == 'Y'){
         $inventoriesUpload = 'Y';
         $dateAgent = new DateTime();
         $intAgent = new DateInterval('PT60S'); // PT60S - 60 sec;
@@ -362,7 +361,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     //prices
     $bitrixPricesArr = array();
     $bitrixIblocksPrices = array();
-    if(htmlspecialchars(trim($_POST['prices-upload']))){
+    if(htmlspecialchars(trim($_POST['prices-upload'])) == 'Y'){
         $pricesUpload = 'Y';
         
         $dateAgent = new DateTime();
@@ -399,9 +398,13 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     }  
     
     //demon
-    if(htmlspecialchars(trim($_POST['collector']))){
+    if (htmlspecialchars(trim($_POST['collector'])) == 'Y') {
         $collector = 'Y';
-        $collectorKey = trim($_POST['collector-id']); 
+        $collectorKeys = array();
+        foreach ($arResult['arSites'] as $site) {
+            $collectorKeys[$site['LID']] = trim($_POST['collector-id-' . $site['LID']]);
+        }
+        //$collectorKey = trim($_POST['collector-id']); 
         RegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmCollector", "add");
     } else  {
         $collector = 'N';
@@ -409,10 +412,15 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     }
     
     //UA
-    if(htmlspecialchars(trim($_POST['ua-integration']))){
+    if (htmlspecialchars(trim($_POST['ua-integration'])) == 'Y') {
         $ua = 'Y';
-        $uaId = trim($_POST['ua-id']);
-        $uaIndex = trim($_POST['ua-index']);
+        $uaKeys = array();
+        foreach ($arResult['arSites'] as $site) {
+            $uaKeys[$site['LID']]['ID'] = trim($_POST['ua-id-' . $site['LID']]);
+            $uaKeys[$site['LID']]['INDEX'] = trim($_POST['ua-index-' . $site['LID']]);
+        }
+//        $uaId = trim($_POST['ua-id']);
+//        $uaIndex = trim($_POST['ua-index']);
         RegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmUa", "add");
     } else  {
         $ua = 'N';
@@ -482,11 +490,11 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     COption::SetOptionString($mid, $CRM_IBLOCKS_PRICES, serialize(RCrmActions::clearArr($bitrixIblocksPrices)));  
     
     COption::SetOptionString($mid, $CRM_COLLECTOR, $collector);
-    COption::SetOptionString($mid, $CRM_COLL_KEY, $collectorKey);
+    COption::SetOptionString($mid, $CRM_COLL_KEY, serialize(RCrmActions::clearArr($collectorKeys)));
     
     COption::SetOptionString($mid, $CRM_UA, $ua);
-    COption::SetOptionString($mid, $CRM_UA_INDEX, $uaIndex);
-    COption::SetOptionString($mid, $CRM_UA_ID, $uaId);
+    COption::SetOptionString($mid, $CRM_UA_KEYS, serialize(RCrmActions::clearArr($uaKeys)));
+    //COption::SetOptionString($mid, $CRM_UA_ID, $uaId);
 
     $uri .= '&ok=Y';
     LocalRedirect($uri);
@@ -577,11 +585,10 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     $optionIblocksPrices = unserialize(COption::GetOptionString($mid, $CRM_IBLOCKS_PRICES, 0));
     
     $optionCollector = COption::GetOptionString($mid, $CRM_COLLECTOR, 0);
-    $optionCollectorKey = COption::GetOptionString($mid, $CRM_COLL_KEY);
+    $optionCollectorKeys = unserialize(COption::GetOptionString($mid, $CRM_COLL_KEY));
     
     $optionUa = COption::GetOptionString($mid, $CRM_UA, 0);
-    $optionUaIndex = COption::GetOptionString($mid, $CRM_UA_INDEX);
-    $optionUaId = COption::GetOptionString($mid, $CRM_UA_ID);
+    $optionUaKeys = unserialize(COption::GetOptionString($mid, $CRM_UA_KEYS));
     
     $version = COption::GetOptionString($mid, $CRM_API_VERSION, 0);
 
@@ -734,6 +741,13 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     .option-other-empty{
         border-bottom: 15px solid #f5f9f9 !important;
     }
+    .option-head{
+        text-align: center; 
+        padding: 10px;
+        font-size: 14px;
+        color: #4b6267;
+    }
+    
 </style>
 <form method="POST" action="<?php echo $uri; ?>" id="FORMACTION">
 <?php
@@ -777,7 +791,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
 <?php if(!$badKey):?>
 <?php $tabControl->BeginNextTab(); ?>
     <input type="hidden" name="tab" value="catalog">
-    <tr align="center">
+    <tr class="option-head">
         <td colspan="2"><b><?php echo GetMessage('INFO_1'); ?></b></td>
     </tr>
     <tr class="heading">
@@ -920,10 +934,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     <?php endforeach; ?>
 <?php $tabControl->BeginNextTab(); ?>
     <input type="hidden" name="tab" value="catalog">
-    <tr class="heading">
-        <td colspan="2"><b><?php echo GetMessage('ORDER_PROPS'); ?></b></td>
-    </tr>
-    <tr align="center">
+    <tr class="option-head">
         <td colspan="2"><b><?php echo GetMessage('INFO_2'); ?></b></td>
     </tr>
     <?php foreach($arResult['bitrixOrderTypesList'] as $bitrixOrderType): ?>
@@ -1028,15 +1039,15 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     <tr class="heading">
         <td colspan="2" class="option-other-bottom"><b><?php echo GetMessage('ORDERS_OPTIONS'); ?></b></td>
     </tr>    
-    <tr class="heading">
-        <td colspan="2" class="option-other-top option-other-bottom">
+    <tr>
+        <td colspan="2" class="option-head option-other-top option-other-bottom">
             <b>
                 <label><input class="addr" type="checkbox" name="order-numbers" value="Y" <?php if($optionsOrderNumbers == 'Y') echo "checked"; ?>> <?php echo GetMessage('ORDER_NUMBERS'); ?></label>
             </b>
         </td>
     </tr>  
-    <tr class="heading">
-        <td colspan="2" class="option-other-top option-other-bottom">
+    <tr>
+        <td colspan="2" class="option-head option-other-top option-other-bottom">
             <b>
                 <label><input class="addr" type="radio" name="order-discharge" value="0" <?php if($optionsDischarge == 0) echo "checked"; ?>><?php echo GetMessage('DISCHARGE_AGENT'); ?></label>
                 <label><input class="addr" type="radio" name="order-discharge" value="1" <?php if($optionsDischarge == 1) echo "checked"; ?>><?php echo GetMessage('DISCHARGE_EVENTS'); ?></label>
@@ -1046,8 +1057,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     <tr class="heading" >
         <td colspan="2" class="option-other-heading"><b><?php echo GetMessage('CRM_API_VERSION'); ?></b></td>
     </tr>    
-    <tr class="heading">
-        <td colspan="2" class="option-other-top option-other-bottom">
+    <tr>
+        <td colspan="2" class="option-head option-other-top option-other-bottom">
             <select name="api_version" class="typeselect">  
                 <?php for($v = 4; $v <= 5; $v++) { 
                     $ver = 'v' . $v; ?>
@@ -1066,9 +1077,9 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             </b>
         </td>
     </tr>  
-    <tr class="heading inventories" <?php if($optionInventotiesUpload !== 'Y') echo 'style="display: none;"'; ?>>
-        <td colspan="2" class="option-other-top option-other-bottom">
-            <label><?php echo GetMessage('INVENTORIES'); ?></label>
+    <tr class="inventories" <?php if($optionInventotiesUpload !== 'Y') echo 'style="display: none;"'; ?>>
+        <td colspan="2" class="option-head option-other-top option-other-bottom">
+            <b><label><?php echo GetMessage('INVENTORIES'); ?></label></b>
         </td>
     </tr>  
     <?php foreach ($arResult['bitrixStoresExportList'] as $catalogExportStore): ?>
@@ -1084,8 +1095,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         </td>
     </tr>
     <?php endforeach; ?>
-    <tr class="heading inventories" <?php if($optionInventotiesUpload !== 'Y') echo 'style="display: none;"'; ?>>
-        <td colspan="2" class="option-other-top option-other-bottom">
+    <tr class="inventories" <?php if($optionInventotiesUpload !== 'Y') echo 'style="display: none;"'; ?>>
+        <td colspan="2" class="option-head option-other-top option-other-bottom">
             <b>
                 <label><?php echo GetMessage('SHOPS_INVENTORIES_UPLOAD'); ?></label>
             </b>
@@ -1098,8 +1109,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         </td>
     </tr>  
     <?php endforeach;?>   
-    <tr class="heading inventories" <?php if($optionInventotiesUpload !== 'Y') echo 'style="display: none;"'; ?>>
-        <td colspan="2" class="option-other-top option-other-bottom">
+    <tr class="inventories" <?php if($optionInventotiesUpload !== 'Y') echo 'style="display: none;"'; ?>>
+        <td colspan="2" class="option-head option-other-top option-other-bottom">
             <b>
                 <label><?php echo GetMessage('IBLOCKS_UPLOAD'); ?></label>
             </b>
@@ -1121,8 +1132,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             </b>
         </td>
     </tr>  
-    <tr class="heading prices" <?php if($optionPricesUpload !== 'Y') echo 'style="display: none;"'; ?>>
-        <td colspan="2" class="option-other-top option-other-bottom">
+    <tr class="prices" <?php if($optionPricesUpload !== 'Y') echo 'style="display: none;"'; ?>>
+        <td colspan="2" class="option-head option-other-top option-other-bottom">
             <b>
                 <label><?php echo GetMessage('PRICE_TYPES'); ?></label>
             </b>
@@ -1141,8 +1152,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         </td>
     </tr>
     <?php endforeach;?>
-    <tr class="heading prices" <?php if($optionPricesUpload !== 'Y') echo 'style="display: none;"'; ?>>
-        <td colspan="2" class="option-other-top option-other-bottom">
+    <tr class="prices" <?php if($optionPricesUpload !== 'Y') echo 'style="display: none;"'; ?>>
+        <td colspan="2" class="option-head option-other-top option-other-bottom">
             <b>
                 <label><?php echo GetMessage('SHOPS_PRICES_UPLOAD'); ?></label>
             </b>
@@ -1155,8 +1166,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         </td>
     </tr>  
     <?php endforeach;?>
-    <tr class="heading prices" <?php if($optionPricesUpload !== 'Y') echo 'style="display: none;"'; ?>>
-        <td colspan="2" class="option-other-top option-other-bottom">
+    <tr class="prices" <?php if($optionPricesUpload !== 'Y') echo 'style="display: none;"'; ?>>
+        <td colspan="2" class="option-head option-other-top option-other-bottom">
             <b>
                 <label><?php echo GetMessage('IBLOCKS_UPLOAD'); ?></label>
             </b>
@@ -1178,32 +1189,45 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             </b>
         </td>
     </tr>  
+    <tr class="r-coll">
+        <td class="option-head" colspan="2">
+            <b><?php echo GetMessage('ICRM_SITES'); ?></b>
+        </td>
+    </tr> 
+    <?php foreach ($arResult['arSites'] as $sitesList): ?>
     <tr class="r-coll" <?php if($optionCollector !== 'Y') echo 'style="display: none;"'; ?>>
-        <td class="adm-detail-content-cell-l" width="50%"><?php echo GetMessage('DEMON_KEY'); ?></td>
+        <td class="adm-detail-content-cell-l" width="50%"><?php echo GetMessage('DEMON_KEY'); ?> <?php echo $sitesList['NAME']; ?> (<?php echo $sitesList['LID']; ?>)</td>
         <td class="adm-detail-content-cell-r" width="50%">
-            <input name="collector-id" value="<?php echo $optionCollectorKey; ?>" type="text">
+            <input name="collector-id-<?echo $sitesList['LID'];?>" value="<?php echo $optionCollectorKeys[$sitesList['LID']]; ?>" type="text">
         </td>
     </tr>
-    
+    <?php endforeach;?>
     <tr class="heading r-ua-button">
         <td colspan="2" class="option-other-heading">
             <b>
                 <label><input class="addr" type="checkbox" name="ua-integration" value="Y" <?php if($optionUa === 'Y') echo "checked"; ?>><?php echo GetMessage('UNIVERSAL_ANALYTICS'); ?></label>
             </b>
         </td>
-    </tr>  
+    </tr> 
+    <?php foreach ($arResult['arSites'] as $sitesList): ?>
+    <tr class="r-ua">
+        <td class="option-head" colspan="2">
+            <b><?php echo $sitesList['NAME']; ?> (<?php echo $sitesList['LID']; ?>)</b>
+        </td>
+    </tr>    
     <tr class="r-ua" <?php if($optionUa !== 'Y') echo 'style="display: none;"'; ?>>
         <td class="adm-detail-content-cell-l" width="50%"><?php echo GetMessage('ID_UA'); ?></td>
         <td class="adm-detail-content-cell-r" width="50%">
-            <input name="ua-id" value="<?php echo $optionUaIndex; ?>" type="text">
+            <input name="ua-id-<?echo $sitesList['LID'];?>" value="<?php echo $optionUaKeys[$sitesList['LID']]['ID']; ?>" type="text">
         </td>
     </tr>
     <tr class="r-ua" <?php if($optionUa !== 'Y') echo 'style="display: none;"'; ?>>
         <td class="adm-detail-content-cell-l" width="50%"><?php echo GetMessage('INDEX_UA'); ?></td>
         <td class="adm-detail-content-cell-r" width="50%">
-            <input name="ua-index" value="<?php echo $optionUaId; ?>" type="text">
+            <input name="ua-index-<?echo $sitesList['LID'];?>" value="<?php echo $optionUaKeys[$sitesList['LID']]['INDEX']; ?>" type="text">
         </td>
     </tr>
+    <?php endforeach;?>
 <?php endif;?>
 <?php $tabControl->Buttons(); ?>
     <input type="hidden" name="Update" value="Y" />

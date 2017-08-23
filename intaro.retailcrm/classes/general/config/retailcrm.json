@@ -131,8 +131,11 @@
             "type": "string"
         },
         "managerId": {
-            "type": "int"
-        }
+             "type": "int"
+        },
+        "browserId": {
+            "type": "string"
+         }
     },
     "orders": {
         "number": {
@@ -200,6 +203,9 @@
             "type": "string"
         },
         "site": {
+            "type": "string"
+        },
+        "countryIso": {
             "type": "string"
         },
         "call": {
@@ -405,6 +411,15 @@
             "type": "string"
         },
         "shipmentStore": {
+            "type": "string"
+        },
+        "from": {
+            "type": "skip"
+        },
+        "to": {
+            "type": "skip"
+        },
+        "custom": {
             "type": "string"
         }
     }

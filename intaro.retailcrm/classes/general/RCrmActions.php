@@ -42,7 +42,7 @@ class RCrmActions
         $arDeliveryServiceAll = \Bitrix\Sale\Delivery\Services\Manager::getActiveList();
         $noOrderId = \Bitrix\Sale\Delivery\Services\EmptyDeliveryService::getEmptyDeliveryServiceId();
         foreach ($arDeliveryServiceAll as $arDeliveryService) {
-            if ($arDeliveryService['PARENT_ID'] == '0' && $arDeliveryService['ID'] != $noOrderId) {
+            if (($arDeliveryService['PARENT_ID'] == '0' || $arDeliveryService['PARENT_ID'] == null) && $arDeliveryService['ID'] != $noOrderId) {
                 $bitrixDeliveryTypesList[] = $arDeliveryService;
             }
         }
@@ -63,7 +63,7 @@ class RCrmActions
         
         return $bitrixPaymentTypesList;
     }   
-    
+
     public static function StatusesList()
     {
         $bitrixPaymentStatusesList = array();
@@ -79,9 +79,9 @@ class RCrmActions
         }
         
         return $bitrixPaymentStatusesList;
-    }   
-    
-    public static function OrderPropsList()    
+    }
+
+    public static function OrderPropsList()
     {
         $bitrixPropsList = array();
         $arPropsAll = \Bitrix\Sale\Internals\OrderPropsTable::getList(array(
@@ -251,7 +251,7 @@ class RCrmActions
     public static function explodeFIO($fio)
     {
         $result = array();
-        $fio = preg_replace("/ +/", " ", trim($fio));
+        $fio = preg_replace('|[\s]+|s', ' ', trim($fio));
         if (empty($fio)) {
             return $result;
         } else {
@@ -314,12 +314,23 @@ class RCrmActions
             $result = call_user_func_array(array($api, $methodApi), $params);
 
             if ($result->getStatusCode() !== 200 && $result->getStatusCode() !== 201) {
+                $arResult = (array)$result;
                 $log = new Logger();
                 if ($methodApi == 'customersUpload' || $methodApi == 'ordersUpload') {
-                    $log->write(array($methodApi, $result['errorMsg'], $result['errors'], $params), 'uploadApiErrors');
+                    $log->write(array(
+                        'methodApi' => $methodApi, 
+                        'errorMsg' => $arResult['errorMsg'], 
+                        'errors' => !empty($arResult['errors']) ? $arResult['errors'] : '', 
+                        'params' => $params
+                    ), 'uploadApiErrors');
                 } else {
-                    self::eventLog(__CLASS__ . '::' . $method, 'RetailCrm\ApiClient::' . $methodApi, $result['errorMsg']);
-                    $log->write(array($methodApi, $result['errorMsg'], $result['errors'], $params), 'apiErrors');
+                    self::eventLog(__CLASS__ . '::' . $method, 'RetailCrm\ApiClient::' . $methodApi, $arResult['errorMsg']);
+                    $log->write(array(
+                        'methodApi' => $methodApi, 
+                        'errorMsg' => $arResult['errorMsg'], 
+                        'errors' => !empty($arResult['errors']) ? $arResult['errors'] : '', 
+                        'params' => $params
+                    ), 'apiErrors');
                 }
                 if ($result->getStatusCode() == 460) {
                     return true;

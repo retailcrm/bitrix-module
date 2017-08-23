@@ -157,11 +157,6 @@ class RetailCrmOrder
         $normalizer = new RestNormalizer();
         $order = $normalizer->normalize($order, 'orders');
 
-        if (isset($arParams['optionsSitesList']) && is_array($arParams['optionsSitesList']) &&
-                array_key_exists($arFields['LID'], $arParams['optionsSitesList'])) {
-            $site = $arParams['optionsSitesList'][$arFields['LID']];
-        }
-
         $log = new Logger();
         $log->write($order, 'order');
 
@@ -316,7 +311,7 @@ class RetailCrmOrder
             'PERSON_TYPE_ID'   => $obOrder->getPersonTypeId(),
             'CURRENCY'         => $obOrder->getCurrency(),
             'PAYMENTS'         => $obOrder->getPaymentSystemId(),
-            'PAYED'            => $obOrder->isPaid(),
+            'PAYED'            => $obOrder->isPaid() ? 'Y' : 'N',
             'DELIVERYS'        => array(),
             'PRICE_DELIVERY'   => $obOrder->getDeliveryPrice(),
             'PROPS'            => $obOrder->getPropertyCollection()->getArray(),
@@ -324,6 +319,7 @@ class RetailCrmOrder
             'BASKET'           => array(),
             'USER_DESCRIPTION' => $obOrder->getField('USER_DESCRIPTION'),
             'COMMENTS'         => $obOrder->getField('COMMENTS'),
+            'REASON_CANCELED'  => $obOrder->getField('REASON_CANCELED'),
         );
         
         $shipmentList = $obOrder->getShipmentCollection();

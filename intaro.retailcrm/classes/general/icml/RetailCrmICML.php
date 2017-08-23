@@ -55,59 +55,59 @@ class RetailCrmICML
 
     public function Load()
     {
-            global $USER;
-            if (!isset($_SESSION["SESS_AUTH"]["USER_ID"]) || !$_SESSION["SESS_AUTH"]["USER_ID"]) {
-                $USER = new CUser;
-            }
+        global $USER;
+        if (!isset($_SESSION["SESS_AUTH"]["USER_ID"]) || !$_SESSION["SESS_AUTH"]["USER_ID"]) {
+            $USER = new CUser;
+        }
 
-            $this->isLogged = true;
+        $this->isLogged = true;
 
-            $defaultSite = CSite::GetList($by = "def", $order = "desc", array('DEF' => 'Y'))->Fetch();
-            $this->encodingDefault = $defaultSite["CHARSET"];
-            
-            $url = 'https://' . $this->serverName;
-            $curlHandler = curl_init();
-            curl_setopt($curlHandler, CURLOPT_URL, $url);
-            $responseBody = curl_exec($curlHandler);
-            $statusCode = curl_getinfo($curlHandler, CURLINFO_HTTP_CODE);
-            curl_close($curlHandler);
-            if ($statusCode == 200) {
-                $this->protocol = 'https://';
-            } else {
-                $this->protocol = 'http://';
-            }
-            
-            $this->PrepareSettings();
+        $defaultSite = CSite::GetList($by = "def", $order = "desc", array('DEF' => 'Y'))->Fetch();
+        $this->encodingDefault = $defaultSite["CHARSET"];
 
-            $this->fp = $this->PrepareFile($this->filename. '.tmp');
+        $url = 'https://' . $this->serverName;
+        $curlHandler = curl_init();
+        curl_setopt($curlHandler, CURLOPT_URL, $url);
+        $responseBody = curl_exec($curlHandler);
+        $statusCode = curl_getinfo($curlHandler, CURLINFO_HTTP_CODE);
+        curl_close($curlHandler);
+        if ($statusCode == 200) {
+            $this->protocol = 'https://';
+        } else {
+            $this->protocol = 'http://';
+        }
 
-            if ($this->isLogged) {
-                $this->fpLog = $this->PrepareFile($this->logFile);
-                $this->WriteLog("Start Loading");
-            }
+        $this->PrepareSettings();
 
-            $this->PreWriteCatalog();
+        $this->fp = $this->PrepareFile($this->filename. '.tmp');
 
-            $categories = $this->GetCategories();
+        if ($this->isLogged) {
+            $this->fpLog = $this->PrepareFile($this->logFile);
+            $this->WriteLog("Start Loading");
+        }
 
-            $this->WriteCategories($categories);
+        $this->PreWriteCatalog();
 
-            $this->PreWriteOffers();
-            $this->BuildOffers($categories);
-            $this->PostWriteOffers();
+        $categories = $this->GetCategories();
 
-            $this->PostWriteCatalog();
+        $this->WriteCategories($categories);
 
-            if ($this->isLogged) {
-                $this->WriteLog("Loading was ended successfully (peek memory usage: " . memory_get_peak_usage() . ")");
-            }
+        $this->PreWriteOffers();
+        $this->BuildOffers($categories);
+        $this->PostWriteOffers();
 
-            $this->CloseFile($this->fp);
-            $this->CloseFile($this->fpLog);
-            unlink($defaultSite['ABS_DOC_ROOT'] . $this->filename);
-            rename($defaultSite['ABS_DOC_ROOT'] . $this->filename. '.tmp', $defaultSite['ABS_DOC_ROOT'] . $this->filename);
+        $this->PostWriteCatalog();
 
-            return true;
+        if ($this->isLogged) {
+            $this->WriteLog("Loading was ended successfully (peek memory usage: " . memory_get_peak_usage() . ")");
+        }
+
+        $this->CloseFile($this->fp);
+        $this->CloseFile($this->fpLog);
+        unlink($defaultSite['ABS_DOC_ROOT'] . $this->filename);
+        rename($defaultSite['ABS_DOC_ROOT'] . $this->filename. '.tmp', $defaultSite['ABS_DOC_ROOT'] . $this->filename);
+
+        return true;
 
     }
 
@@ -136,49 +136,48 @@ class RetailCrmICML
 
     protected function PrepareFile($filename)
     {
-            $fullFilename = $_SERVER["DOCUMENT_ROOT"] . $filename;
-            CheckDirPath($fullFilename);
+        $fullFilename = $_SERVER["DOCUMENT_ROOT"] . $filename;
+        CheckDirPath($fullFilename);
 
-            if ($fp = @fopen($fullFilename, "w")){
-                return $fp;
-            } else {
-                return false;
-            }
+        if ($fp = @fopen($fullFilename, "w")){
+            return $fp;
+        } else {
+            return false;
+        }
     }
 
     protected function PreWriteCatalog()
     {
-            @fwrite($this->fp, "<yml_catalog date=\"" . $this->PrepareValue(Date("Y-m-d H:i:s")) . "\">\n
-                <shop>\n
-                <name>" . $this->PrepareValue(COption::GetOptionString("main", "site_name", ""))."</name>\n
-                <company>" . $this->PrepareValue(COption::GetOptionString("main", "site_name", ""))."</company>\n"
-                    );
-
+        @fwrite($this->fp, "<yml_catalog date=\"" . $this->PrepareValue(Date("Y-m-d H:i:s")) . "\">\n
+            <shop>\n
+            <name>" . $this->PrepareValue(COption::GetOptionString("main", "site_name", ""))."</name>\n
+            <company>" . $this->PrepareValue(COption::GetOptionString("main", "site_name", ""))."</company>\n"
+        );
     }
 
     protected function WriteCategories($categories)
     {
-            $stringCategories = "";
-            @fwrite($this->fp, "<categories>\n");
-            foreach ($categories as $category) {
-                $stringCategories .= $this->BuildCategory($category);
-            }
-            @fwrite($this->fp, $stringCategories);
-            @fwrite($this->fp, "</categories>\n");
+        $stringCategories = "";
+        @fwrite($this->fp, "<categories>\n");
+        foreach ($categories as $category) {
+            $stringCategories .= $this->BuildCategory($category);
+        }
+        @fwrite($this->fp, $stringCategories);
+        @fwrite($this->fp, "</categories>\n");
     }
     protected function PreWriteOffers()
     {
-            @fwrite($this->fp, "<offers>\n");
+        @fwrite($this->fp, "<offers>\n");
     }
 
-        protected function PostWriteOffers()
+    protected function PostWriteOffers()
     {
-            @fwrite($this->fp, "</offers>\n");
+        @fwrite($this->fp, "</offers>\n");
     }
 
-        protected function WriteOffers($offers)
+    protected function WriteOffers($offers)
     {
-            @fwrite($this->fp, $offers);
+        @fwrite($this->fp, $offers);
     }
 
     protected function WriteLog($text)
@@ -190,53 +189,51 @@ class RetailCrmICML
 
     protected function PostWriteCatalog()
     {
-            @fwrite($this->fp, "</shop>\n
-                </yml_catalog>\n");
+        @fwrite($this->fp, "</shop>\n
+            </yml_catalog>\n");
     }
 
     protected function CloseFile($fp)
     {
-            @fclose($fp);
+        @fclose($fp);
     }
-
 
     protected function GetCategories()
     {
-            $categories = array();
-            foreach ($this->iblocks as $id) {
-                $filter = array("IBLOCK_ID" => $id);
+        $categories = array();
+        foreach ($this->iblocks as $id) {
+            $filter = array("IBLOCK_ID" => $id);
 
-                $dbRes = CIBlockSection::GetList(array("left_margin" => "asc"), $filter);
-                $hasCategories = false;
-                while ($arRes = $dbRes->Fetch()) {
-                    $categories[$arRes['ID']] = $arRes;
-                    $hasCategories = true;
-                }
-                if (!$hasCategories) {
-                    $iblock = CIBlock::GetByID($id)->Fetch();
-
-                    $arRes = Array();
-                    $arRes['ID'] = $this->mainSection + $id;
-                    $arRes['IBLOCK_SECTION_ID'] = 0;
-                    $arRes['NAME'] = sprintf(GetMessage('ROOT_CATEGORY_FOR_CATALOG'), $iblock['NAME']);
-                    $categories[$arRes['ID']] = $arRes;
-                }
+            $dbRes = CIBlockSection::GetList(array("left_margin" => "asc"), $filter);
+            $hasCategories = false;
+            while ($arRes = $dbRes->Fetch()) {
+                $categories[$arRes['ID']] = $arRes;
+                $hasCategories = true;
             }
-            
-            return $categories;
+            if (!$hasCategories) {
+                $iblock = CIBlock::GetByID($id)->Fetch();
 
+                $arRes = Array();
+                $arRes['ID'] = $this->mainSection + $id;
+                $arRes['IBLOCK_SECTION_ID'] = 0;
+                $arRes['NAME'] = sprintf(GetMessage('ROOT_CATEGORY_FOR_CATALOG'), $iblock['NAME']);
+                $categories[$arRes['ID']] = $arRes;
+            }
+        }
+
+        return $categories;
     }
 
     protected function BuildCategory($arCategory)
     {
-            return "
-                    <category id=\"" . $this->PrepareValue($arCategory["ID"]) . "\""
-                    . ( intval($arCategory["IBLOCK_SECTION_ID"] ) > 0 ?
-                            " parentId=\"" . $this->PrepareValue($arCategory["IBLOCK_SECTION_ID"]) . "\""
-                            :"")
-                    . ">"
-                    . $this->PrepareValue($arCategory["NAME"])
-                    . "</category>\n";
+        return "
+                <category id=\"" . $this->PrepareValue($arCategory["ID"]) . "\""
+                . ( intval($arCategory["IBLOCK_SECTION_ID"] ) > 0 ?
+                        " parentId=\"" . $this->PrepareValue($arCategory["IBLOCK_SECTION_ID"]) . "\""
+                        :"")
+                . ">"
+                . $this->PrepareValue($arCategory["NAME"])
+                . "</category>\n";
 
     }
 
@@ -271,7 +268,7 @@ class RetailCrmICML
                 if ($this->propertiesProduct[$id][$key] != "") {
                     $arSelect[] =  "PROPERTY_" . $propProduct;
                     $arSelect[] =  "PROPERTY_" . $propProduct . ".NAME";
-                }               
+                }
             }
 
             $arSelectOffer = array(

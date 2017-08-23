@@ -35,7 +35,7 @@ class RetailCrmOrder
      * @return array - array('order' = $order, 'customer' => $customer)
      */
     public static function orderSend($arFields, $api, $arParams, $send = false, $site = null, $methodApi = 'ordersEdit')
-    {
+    {      
         if (!$api || empty($arParams)) { // add cond to check $arParams
             return false;
         }
@@ -144,9 +144,11 @@ class RetailCrmOrder
         foreach ($arFields['PAYMENTS'] as $payment) {
             $pm = array(
                 'type' => isset($arParams['optionsPayTypes'][$payment['PAY_SYSTEM_ID']]) ? $arParams['optionsPayTypes'][$payment['PAY_SYSTEM_ID']] : '',
-                'externalId' => $payment['ID'],
                 'amount' => $payment['SUM']
             );
+            if (!empty($payment['ID'])) {
+                $pm['externalId'] = $payment['ID'];
+            }
             if (!empty($payment['DATE_PAID'])) {
                 $pm['paidAt'] = new \DateTime($payment['DATE_PAID']);
             }
@@ -155,8 +157,9 @@ class RetailCrmOrder
             }
             $payments[] = $pm;
         }
-        $order['payments'] = $payments;
-
+        if (count($payments) > 0) {
+            $order['payments'] = $payments;
+        }
         //отправка
         if (function_exists('retailCrmBeforeOrderSend')) {
             $newResOrder = retailCrmBeforeOrderSend($order, $arFields);
@@ -171,11 +174,6 @@ class RetailCrmOrder
 
         $normalizer = new RestNormalizer();
         $order = $normalizer->normalize($order, 'orders');
-
-        /*if (isset($arParams['optionsSitesList']) && is_array($arParams['optionsSitesList']) &&
-                array_key_exists($arFields['LID'], $arParams['optionsSitesList'])) {
-            $site = $arParams['optionsSitesList'][$arFields['LID']];
-        }*/
 
         $log = new Logger();
         $log->write($order, 'order');
@@ -336,7 +334,11 @@ class RetailCrmOrder
         
         if (count($resOrders) > 0) {
             foreach ($resCustomers as $key => $customerLoad) {
-                $site = count($optionsSitesList) > 1 ? $optionsSitesList[$key] : null;
+                if(array_key_exists($key, $optionsSitesList)) {
+                    $site = $optionsSitesList[$key];   
+                } else {
+                    $site = null;
+                }
                 if (RCrmActions::apiMethod($api, 'customersUpload', __METHOD__, $customerLoad, $site) === false) {
                     return false;
                 }
@@ -345,7 +347,11 @@ class RetailCrmOrder
                 }
             }
             foreach ($resOrders as $key => $orderLoad) {
-                $site = count($optionsSitesList) > 1 ? $optionsSitesList[$key] : null;
+                if(array_key_exists($key, $optionsSitesList)) {
+                    $site = $optionsSitesList[$key];   
+                } else {
+                    $site = null;
+                }
                 if (RCrmActions::apiMethod($api, 'ordersUpload', __METHOD__, $orderLoad, $site) === false) {
                     return false;
                 }
@@ -382,6 +388,7 @@ class RetailCrmOrder
             'BASKET'           => array(),
             'USER_DESCRIPTION' => $obOrder->getField('USER_DESCRIPTION'),
             'COMMENTS'         => $obOrder->getField('COMMENTS'),
+            'REASON_CANCELED'  => $obOrder->getField('REASON_CANCELED'),
         );
         
         $shipmentList = $obOrder->getShipmentCollection();

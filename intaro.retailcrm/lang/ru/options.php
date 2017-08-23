@@ -82,7 +82,7 @@ $MESS ['PRICE_TYPES'] = 'Выгружаемые типы цен';
 $MESS ['SHOPS_PRICES_UPLOAD'] = 'Магазины в которые будут грузиться дополнительные типы цен';
 
 $MESS ['DEMON_COLLECTOR'] = 'Активировать Демон Collector';
-$MESS ['DEMON_KEY'] = 'Ключ сайта:';
+$MESS ['DEMON_KEY'] = 'Ключ для';
 
 $MESS ['UNIVERSAL_ANALYTICS'] = 'Включить интеграцию с UA';
 $MESS ['ID_UA'] = 'Идентификатор отслеживания:';

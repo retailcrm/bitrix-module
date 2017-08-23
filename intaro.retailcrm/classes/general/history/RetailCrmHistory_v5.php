@@ -64,8 +64,8 @@ class RetailCrmHistory
             $log->write($customerH, 'customerHistory');
             
             if (count($customerH) == 0) {
-                if ($customerHistory['totalPageCount'] > $customerHistory['currentPage']) {
-                    $historyFilter['page'] = $customerHistory['currentPage'] + 1;
+                if ($customerHistory['history']['totalPageCount'] > $customerHistory['history']['currentPage']) {
+                    $historyFilter['page'] = $customerHistory['history']['currentPage'] + 1;
                     
                     continue;
                 }
@@ -270,8 +270,8 @@ class RetailCrmHistory
             $log->write($orderH, 'orderHistory');
             
             if (count($orderH) == 0) {
-                if ($orderHistory['totalPageCount'] > $orderHistory['currentPage']) {
-                    $historyFilter['page'] = $orderHistory['currentPage'] + 1;
+                if ($orderHistory['history']['totalPageCount'] > $orderHistory['history']['currentPage']) {
+                    $historyFilter['page'] = $orderHistory['history']['currentPage'] + 1;
                     
                     continue;
                 }
@@ -549,7 +549,7 @@ class RetailCrmHistory
                             if (array_key_exists($key, $order)) {
                                 $somePropValue = $propertyCollection->getItemByOrderPropertyId($propsKey[$orderProp]['ID']);
                                 if ($key == 'fio') {
-                                self::setProp($somePropValue, $order[$key]);
+                                    self::setProp($somePropValue, $order[$key]);
                                 } else {
                                     self::setProp($somePropValue, RCrmActions::fromJSON($order[$key]));
                                 }
