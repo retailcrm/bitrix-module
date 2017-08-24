@@ -4,6 +4,7 @@ class RCrmActions
 {
     public static $MODULE_ID = 'intaro.retailcrm';
     public static $CRM_ORDER_FAILED_IDS = 'order_failed_ids';
+    public static $CRM_API_VERSION = 'api_version';
 
     const CANCEL_PROPERTY_CODE = 'INTAROCRM_IS_CANCELED';
 
@@ -175,7 +176,7 @@ class RCrmActions
             RetailCrmOrder::uploadOrders(50, true);
         }
 
-        return 'RCrmActions::uploadOrdersAgent();';
+        return;
     }
 
     /**
@@ -310,25 +311,35 @@ class RCrmActions
     }
     
     private function proxy($api, $methodApi, $method, $params) {
+        $log = new Logger();
+        $version = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_VERSION, 0);
         try {
             $result = call_user_func_array(array($api, $methodApi), $params);
 
             if ($result->getStatusCode() !== 200 && $result->getStatusCode() !== 201) {
-                $arResult = (array)$result;
-                $log = new Logger();
-                if ($methodApi == 'customersUpload' || $methodApi == 'ordersUpload') {
+                if ($methodApi == 'ordersGet' || $methodApi == 'customersGet') {
                     $log->write(array(
-                        'methodApi' => $methodApi, 
-                        'errorMsg' => $arResult['errorMsg'], 
-                        'errors' => !empty($arResult['errors']) ? $arResult['errors'] : '', 
+                        'api' => $version,
+                        'methodApi' => $methodApi,
+                        'errorMsg' => !empty($result['errorMsg']) ? $result['errorMsg'] : '',
+                        'errors' => !empty($result['errors']) ? $result['errors'] : '',
+                        'params' => $params
+                    ), 'apiErrors');
+                } elseif ($methodApi == 'customersUpload' || $methodApi == 'ordersUpload') {
+                    $log->write(array(
+                        'api' => $version,
+                        'methodApi' => $methodApi,
+                        'errorMsg' => !empty($result['errorMsg']) ? $result['errorMsg'] : '',
+                        'errors' => !empty($result['errors']) ? $result['errors'] : '',
                         'params' => $params
                     ), 'uploadApiErrors');
                 } else {
-                    self::eventLog(__CLASS__ . '::' . $method, 'RetailCrm\ApiClient::' . $methodApi, $arResult['errorMsg']);
+                    self::eventLog(__CLASS__ . '::' . $method, 'RetailCrm\ApiClient::' . $methodApi, !empty($result['errorMsg']) ? $result['errorMsg'] : '');
                     $log->write(array(
-                        'methodApi' => $methodApi, 
-                        'errorMsg' => $arResult['errorMsg'], 
-                        'errors' => !empty($arResult['errors']) ? $arResult['errors'] : '', 
+                        'api' => $version,
+                        'methodApi' => $methodApi,
+                        'errorMsg' => !empty($result['errorMsg']) ? $result['errorMsg'] : '',
+                        'errors' => !empty($result['errors']) ? $result['errors'] : '',
                         'params' => $params
                     ), 'apiErrors');
                 }
@@ -343,6 +354,13 @@ class RCrmActions
                 __CLASS__ . '::' . $method, 'RetailCrm\ApiClient::' . $methodApi . '::CurlException',
                 $e->getCode() . ': ' . $e->getMessage()
             );
+            $log->write(array(
+                'api' => $version,
+                'methodApi' => $methodApi, 
+                'errorMsg' => $e->getMessage(), 
+                'errors' => $e->getCode(), 
+                'params' => $params
+            ), 'apiErrors');
 
             return false;
         } catch (InvalidArgumentException $e) {
@@ -350,6 +368,13 @@ class RCrmActions
                 __CLASS__ . '::' . $method, 'RetailCrm\ApiClient::' . $methodApi . '::InvalidArgumentException',
                 $e->getCode() . ': ' . $e->getMessage()
             );
+            $log->write(array(
+                'api' => $version,
+                'methodApi' => $methodApi, 
+                'errorMsg' => $e->getMessage(), 
+                'errors' => $e->getCode(), 
+                'params' => $params
+            ), 'apiErrors');
 
             return false;
         }

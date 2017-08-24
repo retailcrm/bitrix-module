@@ -361,6 +361,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     //prices
     $bitrixPricesArr = array();
     $bitrixIblocksPrices = array();
+    $bitrixPriceShopsArr = array();
     if(htmlspecialchars(trim($_POST['prices-upload'])) == 'Y'){
         $pricesUpload = 'Y';
         
@@ -398,13 +399,12 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     }  
     
     //demon
+    $collectorKeys = array();
     if (htmlspecialchars(trim($_POST['collector'])) == 'Y') {
         $collector = 'Y';
-        $collectorKeys = array();
         foreach ($arResult['arSites'] as $site) {
             $collectorKeys[$site['LID']] = trim($_POST['collector-id-' . $site['LID']]);
         }
-        //$collectorKey = trim($_POST['collector-id']); 
         RegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmCollector", "add");
     } else  {
         $collector = 'N';
@@ -412,15 +412,13 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     }
     
     //UA
+    $uaKeys = array();
     if (htmlspecialchars(trim($_POST['ua-integration'])) == 'Y') {
         $ua = 'Y';
-        $uaKeys = array();
         foreach ($arResult['arSites'] as $site) {
             $uaKeys[$site['LID']]['ID'] = trim($_POST['ua-id-' . $site['LID']]);
             $uaKeys[$site['LID']]['INDEX'] = trim($_POST['ua-index-' . $site['LID']]);
         }
-//        $uaId = trim($_POST['ua-id']);
-//        $uaIndex = trim($_POST['ua-index']);
         RegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmUa", "add");
     } else  {
         $ua = 'N';
@@ -494,7 +492,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     
     COption::SetOptionString($mid, $CRM_UA, $ua);
     COption::SetOptionString($mid, $CRM_UA_KEYS, serialize(RCrmActions::clearArr($uaKeys)));
-    //COption::SetOptionString($mid, $CRM_UA_ID, $uaId);
 
     $uri .= '&ok=Y';
     LocalRedirect($uri);
@@ -1049,8 +1046,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     <tr>
         <td colspan="2" class="option-head option-other-top option-other-bottom">
             <b>
-                <label><input class="addr" type="radio" name="order-discharge" value="0" <?php if($optionsDischarge == 0) echo "checked"; ?>><?php echo GetMessage('DISCHARGE_AGENT'); ?></label>
                 <label><input class="addr" type="radio" name="order-discharge" value="1" <?php if($optionsDischarge == 1) echo "checked"; ?>><?php echo GetMessage('DISCHARGE_EVENTS'); ?></label>
+                <label><input class="addr" type="radio" name="order-discharge" value="0" <?php if($optionsDischarge == 0) echo "checked"; ?>><?php echo GetMessage('DISCHARGE_AGENT'); ?></label>
             </b>
         </td>
     </tr>  
@@ -1189,7 +1186,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             </b>
         </td>
     </tr>  
-    <tr class="r-coll">
+    <tr class="r-coll" <?php if($optionCollector !== 'Y') echo 'style="display: none;"'; ?>>
         <td class="option-head" colspan="2">
             <b><?php echo GetMessage('ICRM_SITES'); ?></b>
         </td>
@@ -1210,7 +1207,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         </td>
     </tr> 
     <?php foreach ($arResult['arSites'] as $sitesList): ?>
-    <tr class="r-ua">
+    <tr class="r-ua" <?php if($optionUa !== 'Y') echo 'style="display: none;"'; ?>>
         <td class="option-head" colspan="2">
             <b><?php echo $sitesList['NAME']; ?> (<?php echo $sitesList['LID']; ?>)</b>
         </td>
