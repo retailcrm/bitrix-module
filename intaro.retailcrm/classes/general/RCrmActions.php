@@ -343,6 +343,11 @@ class RCrmActions
                         'params' => $params
                     ), 'apiErrors');
                 }
+                
+                if (function_exists('retailCrmApiResult')) {
+                    retailCrmApiResult($methodApi, false, $result->getStatusCode());
+                }
+            
                 if ($result->getStatusCode() == 460) {
                     return true;
                 }
@@ -361,6 +366,10 @@ class RCrmActions
                 'errors' => $e->getCode(), 
                 'params' => $params
             ), 'apiErrors');
+            
+            if (function_exists('retailCrmApiResult')) {
+                retailCrmApiResult($methodApi, false, 'CurlException');
+            }
 
             return false;
         } catch (InvalidArgumentException $e) {
@@ -375,8 +384,16 @@ class RCrmActions
                 'errors' => $e->getCode(), 
                 'params' => $params
             ), 'apiErrors');
+            
+            if (function_exists('retailCrmApiResult')) {
+                retailCrmApiResult($methodApi, false, 'ArgumentException');
+            }
 
             return false;
+        }
+        
+        if (function_exists('retailCrmApiResult')) {
+            retailCrmApiResult($methodApi, true, $result->getStatusCode());
         }
         
         return $result;

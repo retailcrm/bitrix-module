@@ -107,7 +107,7 @@ class RetailCrmEvent
                 return true;
             }
 
-           //проверка на существование getParameter("ENTITY")
+           //exists getParameter("ENTITY")
             if (method_exists($event, 'getId')) {
                 $obOrder = $event;
             } elseif (method_exists($event, 'getParameter')) {
@@ -150,14 +150,14 @@ class RetailCrmEvent
                 'optionsCustomFields'   => $optionsCustomFields
             ));
              
-            //многосайтовость
+            //many sites?
             if(!empty($optionsSitesList) && array_key_exists($arOrder['LID'], $optionsSitesList)) {
                 $site = $optionsSitesList[$arOrder['LID']];   
             } else {
                 $site = null;
             }
             
-            //проверка на новый заказ
+            //new order?
             $orderCrm = RCrmActions::apiMethod($api, 'ordersGet', __METHOD__, $arOrder['ID'], $site);
             if (isset($orderCrm['order'])) {
                 $methodApi = 'ordersEdit';

@@ -65,6 +65,7 @@ class intaro_retailcrm extends CModule
     var $CRM_UA_KEYS = 'ua_keys';
     
     var $CRM_API_VERSION = 'api_version';
+    var $HISTORY_TIME = 'history_time';
     
     var $INSTALL_PATH;
 
@@ -632,7 +633,7 @@ class intaro_retailcrm extends CModule
             $customerH = self::historyLoad($api, 'customersHistory');
             COption::SetOptionString($this->MODULE_ID, $this->CRM_CUSTOMER_HISTORY, $customerH);
        
-            //если есть старое значение, переделываем его на новый лад, иначе вычисляем
+            //new data
             if ($historyDate = COption::GetOptionString($this->OLD_MODULE_ID, 'order_history_date', 0)) {
                 try {
                     $history = $api->ordersHistory(array('startDate' => $historyDate));
@@ -1005,6 +1006,7 @@ class intaro_retailcrm extends CModule
         COption::RemoveOption($this->MODULE_ID, $this->CRM_UA_KEYS);
         
         COption::RemoveOption($this->MODULE_ID, $this->CRM_API_VERSION);
+        COption::RemoveOption($this->MODULE_ID, $this->HISTORY_TIME);
 
         UnRegisterModuleDependences("sale", "OnOrderUpdate", $this->MODULE_ID, "RetailCrmEvent", "onUpdateOrder");
         UnRegisterModuleDependences("sale", "OnBeforeOrderAdd", $this->MODULE_ID, "RetailCrmEvent", "onBeforeOrderAdd");

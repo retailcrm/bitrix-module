@@ -64,20 +64,20 @@ class RetailCrmOrder
         }
         $order['contragent']['contragentType'] = $arParams['optionsContragentType'][$arFields['PERSON_TYPE_ID']];
 
-        //свойства
+        //fields
         foreach ($arFields['PROPS']['properties'] as $prop) {
             if ($search = array_search($prop['CODE'], $arParams['optionsLegalDetails'][$arFields['PERSON_TYPE_ID']])) {
-                $order['contragent'][$search] = $prop['VALUE'][0];//юр данные заказа
+                $order['contragent'][$search] = $prop['VALUE'][0];//legal order data
             } elseif ($search = array_search($prop['CODE'], $arParams['optionsCustomFields'][$arFields['PERSON_TYPE_ID']])) {
-                $order['customFields'][$search] = $prop['VALUE'][0];//кастомные свойства
-            } elseif ($search = array_search($prop['CODE'], $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']])) {//остальное
-                if (in_array($search, array('fio', 'phone', 'email'))) {//фио, телефон, почта
+                $order['customFields'][$search] = $prop['VALUE'][0];//custom properties
+            } elseif ($search = array_search($prop['CODE'], $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']])) {//other
+                if (in_array($search, array('fio', 'phone', 'email'))) {//fio, phone, email
                     if ($search == 'fio') {
-                        $order = array_merge($order, RCrmActions::explodeFIO($prop['VALUE'][0]));//добавляем поля фио
+                        $order = array_merge($order, RCrmActions::explodeFIO($prop['VALUE'][0]));//add fio fields
                     } else {
-                        $order[$search] = $prop['VALUE'][0];//телефон и почта
+                        $order[$search] = $prop['VALUE'][0];//phone, email
                     }
-                } else {//остальное - адрес
+                } else {//address
                     if ($prop['TYPE'] == 'LOCATION' && isset($prop['VALUE'][0]) && $prop['VALUE'][0] != '') {
                         $arLoc = \Bitrix\Sale\Location\LocationTable::getByCode($prop['VALUE'][0])->fetch();
                         if ($arLoc) {
@@ -109,7 +109,7 @@ class RetailCrmOrder
             }
         }
 
-        //доставки
+        //deliverys
         if (array_key_exists($arFields['DELIVERYS'][0]['id'], $arParams['optionsDelivTypes'])) {
             $order['delivery']['code'] = $arParams['optionsDelivTypes'][$arFields['DELIVERYS'][0]['id']];
             if (isset($arFields['DELIVERYS'][0]['service']) && $arFields['DELIVERYS'][0]['service'] != '') {
@@ -117,7 +117,7 @@ class RetailCrmOrder
             }
         }
 
-        //корзина
+        //basket
         foreach ($arFields['BASKET'] as $product) {
             $item = array(
                 'quantity'        => $product['QUANTITY'],
@@ -138,8 +138,7 @@ class RetailCrmOrder
             $order['items'][] = $item;
         }
          
-        //оплаты
-
+        //payments
         $payments = array();
         foreach ($arFields['PAYMENTS'] as $payment) {
             $pm = array(
@@ -160,7 +159,8 @@ class RetailCrmOrder
         if (count($payments) > 0) {
             $order['payments'] = $payments;
         }
-        //отправка
+        
+        //send
         if (function_exists('retailCrmBeforeOrderSend')) {
             $newResOrder = retailCrmBeforeOrderSend($order, $arFields);
             if (is_array($newResOrder) && !empty($newResOrder)) {

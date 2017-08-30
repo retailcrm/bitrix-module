@@ -123,7 +123,7 @@ class RetailCrmInventories
                             'available' => self::switchCount($arStoreProduct['AMOUNT'], $inventoriesType[$stores[$arStoreProduct['STORE_ID']]]),
                         );
                     }    
-                    //инфу в лог                    
+                    //for log                  
                     $splitedItems = array_chunk($invUpload, 200);
                     foreach ($splitedItems as $chunk) {
                         $log->write($chunk, 'inventoriesUpload');

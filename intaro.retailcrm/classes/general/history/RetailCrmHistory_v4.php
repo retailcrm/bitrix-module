@@ -208,14 +208,14 @@ class RetailCrmHistory
             
             $GLOBALS['RETAIL_CRM_HISTORY'] = false;
             
-            //запоминаем номер последнего изменения
+            //last id
             $end = array_pop($customerH);
             COption::SetOptionString(self::$MODULE_ID, self::$CRM_CUSTOMER_HISTORY, $end['id']);
             
             if ($customerHistory['pagination']['totalPageCount'] == 1) {
                 return true;
             }
-            //новый фильтр для истории
+            //new filter
             $historyFilter['sinceId'] = $end['id'];
         }
     }
@@ -288,7 +288,7 @@ class RetailCrmHistory
                         
             $GLOBALS['RETAIL_CRM_HISTORY'] = true;
             
-            //обработка заказа
+            //orders with changes
             foreach ($orders as $order) {
                 if (function_exists('retailCrmBeforeOrderSave')) {
                     $newResOrder = retailCrmBeforeOrderSave($order);
@@ -883,7 +883,7 @@ class RetailCrmHistory
                 $crmService = $orderCrm['delivery']['service']['code'];
             }
 
-            //подбираем код битриксового сервиса 
+            //select bitrix service code
             $arDeliveryServiceAll = \Bitrix\Sale\Delivery\Services\Manager::getActiveList();
             foreach ($arDeliveryServiceAll as $arDeliveryService) {
                 $arDeliveryCode[$arDeliveryService['CODE']] = $arDeliveryService['ID'];
@@ -892,7 +892,7 @@ class RetailCrmHistory
                     $dCode = $arDeliveryService['CODE'] . ':' . $crmService;
                 } 
             }
-            //будем менять доставку на этот id
+            //We will change delivery to this id
             if ($crmService && $arDeliveryCode[$dCode]) {
                 $nowDelivery = $arDeliveryCode[$dCode];
             } elseif (!empty($optionsDelivTypes[$crmCode])) {
@@ -903,9 +903,9 @@ class RetailCrmHistory
                 return false;
             }
             
-            //найти текущую доставку в заказе
+            //Find the current delivery in the order
             $cnt = Bitrix\Sale\Internals\ShipmentTable::getCount(array('ORDER_ID' => $orderCrm['externalId']));
-            if ($cnt > 0) {//обновляем 
+            if ($cnt > 0) {//update 
                 $obDeliverys = \Bitrix\Sale\Internals\ShipmentTable::getList(array('filter' => array('ORDER_ID' => $orderCrm['externalId']),
                                                                     'order' => array('ID')));
                 while ($arDelivery = $obDeliverys->fetch()) {
@@ -914,7 +914,29 @@ class RetailCrmHistory
                         \Bitrix\Sale\Internals\ShipmentTable::update($arDelivery['ID'], array('DELIVERY_ID' => $nowDelivery, 'DELIVERY_NAME' => $arDeliveryID[$nowDelivery]['NAME']));
                     }
                 }
-            } else {//создаем
+                if ($cnt = 1 && $arDelivery['DELIVERY_ID'] == 0) {
+                    $shipment = Bitrix\Sale\Internals\ShipmentTable::add(array(
+                        'ORDER_ID' => $orderCrm['externalId'],
+                        'STATUS_ID' => 'DN',
+                        'PRICE_DELIVERY' => 0,
+                        'BASE_PRICE_DELIVERY' => 0,
+                        'CUSTOM_PRICE_DELIVERY' => 'N',
+                        'ALLOW_DELIVERY' => 'N',
+                        'DEDUCTED' => 'N',
+                        'RESERVED' => 'N',
+                        'DELIVERY_ID' => $nowDelivery,
+                        'DELIVERY_NAME' => $arDeliveryID[$nowDelivery]['NAME'],
+                        'CANCELED' => 'N',
+                        'MARKED' => 'N',
+                        'CURRENCY' => \Bitrix\Currency\CurrencyManager::getBaseCurrency(),
+                        'SYSTEM' => 'N',
+                        'ACCOUNT_NUMBER' => $accountNumber . '/2',
+                        'EXTERNAL_DELIVERY' => 'N',
+                        'UPDATED_1C' => 'N',
+                        'DATE_INSERT'=> new \Bitrix\Main\Type\DateTime()
+                    ));
+                }
+            } else {//create
                 \Bitrix\Sale\OrderTable::update($orderCrm['externalId'], array('DELIVERY_ID' => $nowDelivery));
                 $shipmentSystem = \Bitrix\Sale\Internals\ShipmentTable::add(array(
                     'ORDER_ID' => $orderCrm['externalId'],
@@ -955,7 +977,7 @@ class RetailCrmHistory
                 ));
             }   
         } else {
-            //ищем у заказа на сайте доставки и удаляем/заменяем на без доставки
+            //search for the order on the delivery site and delete / replace with no delivery
             $noOrderId = \Bitrix\Sale\Delivery\Services\EmptyDeliveryService::getEmptyDeliveryServiceId();
             \Bitrix\Sale\OrderTable::update($orderCrm['externalId'], array('DELIVERY_ID' => $noOrderId));
             $obDeliverys = Bitrix\Sale\Internals\ShipmentTable::getList(array('filter' => array('ORDER_ID' => $orderCrm['externalId']),
@@ -1044,13 +1066,13 @@ class RetailCrmHistory
                 $found = false;
                 foreach ($arShipmentItems as $elShipmentItem) {
                     if (!in_array($elShipmentItem['BASKET_ID'], $bItems)) {
-                        //удаляем элемент
+                        //delete the element
                         \Bitrix\Sale\Internals\ShipmentItemTable::delete($elShipmentItem['ID']);
                     }
                     if ($elShipmentItem['BASKET_ID'] == $basketItem['ID']) {
-                        //нашли
+                        //found
                         $found = true;
-                        //проверяем кол-во, если нужно, обновляем
+                        //update quantity
                         if ($elShipmentItem['QUANTITY'] != $basketItem['QUANTITY']) {
                             \Bitrix\Sale\Internals\ShipmentItemTable::update($elShipmentItem['ID'], array('QUANTITY' => $basketItem['QUANTITY']));
                         }
@@ -1058,7 +1080,7 @@ class RetailCrmHistory
                     }
                 }
                 if (!$found) {
-                    //добавляем 
+                    //create 
                     \Bitrix\Sale\Internals\ShipmentItemTable::add(array(
                         'ORDER_DELIVERY_ID' => $key,
                         'BASKET_ID'         => $basketItem['ID'],
@@ -1095,7 +1117,7 @@ class RetailCrmHistory
                         'filter' => array('ORDER_ID' => $order['externalId']),
                         'order' => array('ID')
                     ))->fetch();
-                    if ($payment) {//если уже существует, update
+                    if ($payment) {//update payment
                         \Bitrix\Sale\Internals\PaymentTable::update($payment['ID'], array('PAY_SYSTEM_ID' => $optionsPayment[$order['paymentType']], 'PAY_SYSTEM_NAME' => $arPaymentsName[$optionsPayment[$order['paymentType']]], 'SUM' => $order['summ']));
                     } else {
                         \Bitrix\Sale\Internals\PaymentTable::add(array(
@@ -1112,11 +1134,10 @@ class RetailCrmHistory
                             'UPDATED_1C' => 'N'
                         ));
                     }
-                    //запись в историю
-                } else {//ошибка, нет такой активной платежной системы
+                } else {
                     RCrmActions::eventLog('RetailCrmHistory::paySystemUpdate', 'RCrmActions::PaymentList()', 'Error paySystem not found in order id=' . $order['externalId']);
                 }
-            } else {//ошибка, возможно платежная система не сопоставлена
+            } else {
                 RCrmActions::eventLog('RetailCrmHistory::paySystemUpdate', 'RCrmActions::PaymentList()', 'Error paySystem not found in option in order id=' . $order['externalId']);;
             }
         } else {
@@ -1129,7 +1150,6 @@ class RetailCrmHistory
             if ($payment['ID']) {
                 \Bitrix\Sale\Internals\PaymentTable::delete($payment['ID']);
             }
-            //запись в историю
         }
     }
     

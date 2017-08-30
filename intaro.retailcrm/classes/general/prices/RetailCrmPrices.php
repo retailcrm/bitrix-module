@@ -112,7 +112,7 @@ class RetailCrmPrices
                         }
                     }  
 
-                    //инфу в лог
+                    //for log
                     $splitedItems = array_chunk($pricesUpload, 200);
                     foreach ($splitedItems as $chunk) {
                         $log->write($chunk, 'storePricesUpload');

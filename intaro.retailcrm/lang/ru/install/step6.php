@@ -6,7 +6,7 @@ $MESS ['INTAROCRM_INFO'] = '
     через некоторое время по этим заказам будет подготовлены аналитические отчеты в Панели KPI.
 </p>
 <p>
-    Новые заказы будут отправляться агентом <span style="font-family: Courier New;">ICrmOrderActions::uploadOrdersAgent();</span>
+    Новые заказы будут отправляться агентом <span style="font-family: Courier New;">RCrmActions::uploadOrdersAgent();</span>
     в retailCRM каждые 10 минут (интервал можно изменить в разделе <a href="/bitrix/admin/agent_list.php">Агенты</a>).
 </p>
 <p>
