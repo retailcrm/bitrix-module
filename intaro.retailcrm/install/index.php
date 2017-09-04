@@ -626,6 +626,9 @@ class intaro_retailcrm extends CModule
             if (!CModule::IncludeModule("catalog")) {
                 $arResult['errCode'] = 'ERR_CATALOG';
             }
+            if (!CModule::IncludeModule("sale")) {
+                $arResult['errCode'] = 'ERR_SALE';
+            }
             
             $api_host = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, 0);
             $api_key = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, 0);
@@ -702,6 +705,9 @@ class intaro_retailcrm extends CModule
             }
             if (!CModule::IncludeModule("catalog")) {
                 $arResult['errCode'] = 'ERR_CATALOG';
+            }
+            if (!CModule::IncludeModule("sale")) {
+                $arResult['errCode'] = 'ERR_SALE';
             }
 
             if (isset($arResult['errCode']) && $arResult['errCode']) {

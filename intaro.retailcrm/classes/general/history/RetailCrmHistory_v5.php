@@ -950,7 +950,7 @@ class RetailCrmHistory
                         \Bitrix\Sale\Internals\ShipmentTable::update($arDelivery['ID'], array('DELIVERY_ID' => $nowDelivery, 'DELIVERY_NAME' => $arDeliveryID[$nowDelivery]['NAME']));
                     }
                 }
-                if ($cnt = 1 && $arDelivery['DELIVERY_ID'] == 0) {
+                if ($cnt == 1 && $arDelivery['DELIVERY_ID'] == 0) {
                     $shipment = Bitrix\Sale\Internals\ShipmentTable::add(array(
                         'ORDER_ID' => $orderCrm['externalId'],
                         'STATUS_ID' => 'DN',
