@@ -14,20 +14,38 @@ class RetailCrmUser
        
         $customer = array(
             'externalId'     => $arFields['ID'],
-            'firstName'      => $arFields['NAME'],
-            'lastName'       => $arFields['LAST_NAME'],
-            'patronymic'     => $arFields['SECOND_NAME'],
             'email'          => $arFields['EMAIL'],
-            'address'        => array('city' => $arFields['PERSONAL_CITY'], 'text' => $arFields['PERSONAL_STREET'], 'index' => $arFields['PERSONAL_ZIP']),
             'createdAt'      => new \DateTime($arFields['DATE_REGISTER']),
             'contragentType' => $contragentType
         );
+        
+        if (!empty($arFields['NAME'])) {
+            $customer['firstName'] = $arFields['NAME'];
+        }
+        if (!empty($arFields['LAST_NAME'])) {
+            $customer['lastName'] = $arFields['LAST_NAME'];
+        }
+        if (!empty($arFields['SECOND_NAME'])) {
+            $customer['patronymic'] = $arFields['SECOND_NAME'];
+        }
+        
         if (!empty($arFields['PERSONAL_PHONE'])) {
             $customer['phones'][]['number'] = $arFields['PERSONAL_PHONE'];
         }
         if (!empty($arFields['WORK_PHONE'])) {
             $customer['phones'][]['number'] = $arFields['WORK_PHONE'];
         }
+        
+        if (!empty($arFields['PERSONAL_CITY'])) {
+            $customer['address']['city'] = $arFields['PERSONAL_CITY'];
+        }
+        if (!empty($arFields['PERSONAL_STREET'])) {
+            $customer['address']['text'] = $arFields['PERSONAL_STREET'];
+        }
+        if (!empty($arFields['PERSONAL_ZIP'])) {
+            $customer['address']['index'] = $arFields['PERSONAL_ZIP'];
+        }
+        
         if ($send && isset($_COOKIE['_rc']) && $_COOKIE['_rc'] != '') {
             $customer['browserId'] = $_COOKIE['_rc'];
         }
@@ -66,17 +84,34 @@ class RetailCrmUser
        
         $customer = array(
             'externalId'     => $arFields['ID'],
-            'firstName'      => $arFields['NAME'],
-            'lastName'       => $arFields['LAST_NAME'],
-            'patronymic'     => $arFields['SECOND_NAME'],
             'email'          => $arFields['EMAIL'],
-            'address'        => array('city' => $arFields['PERSONAL_CITY'], 'text' => $arFields['PERSONAL_STREET'], 'index' => $arFields['PERSONAL_ZIP']),
         );
+        
+        if (!empty($arFields['NAME'])) {
+            $customer['firstName'] = $arFields['NAME'];
+        }
+        if (!empty($arFields['LAST_NAME'])) {
+            $customer['lastName'] = $arFields['LAST_NAME'];
+        }
+        if (!empty($arFields['SECOND_NAME'])) {
+            $customer['patronymic'] = $arFields['SECOND_NAME'];
+        }
+        
         if (!empty($arFields['PERSONAL_PHONE'])) {
             $customer['phones'][]['number'] = $arFields['PERSONAL_PHONE'];
         }
         if (!empty($arFields['WORK_PHONE'])) {
             $customer['phones'][]['number'] = $arFields['WORK_PHONE'];
+        }
+        
+        if (!empty($arFields['PERSONAL_CITY'])) {
+            $customer['address']['city'] = $arFields['PERSONAL_CITY'];
+        }
+        if (!empty($arFields['PERSONAL_STREET'])) {
+            $customer['address']['text'] = $arFields['PERSONAL_STREET'];
+        }
+        if (!empty($arFields['PERSONAL_ZIP'])) {
+            $customer['address']['index'] = $arFields['PERSONAL_ZIP'];
         }
         
         $found = false;
