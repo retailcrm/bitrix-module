@@ -42,8 +42,17 @@ class RCrmActions
         $bitrixDeliveryTypesList = array();
         $arDeliveryServiceAll = \Bitrix\Sale\Delivery\Services\Manager::getActiveList();
         $noOrderId = \Bitrix\Sale\Delivery\Services\EmptyDeliveryService::getEmptyDeliveryServiceId();
+        $groups = array();
         foreach ($arDeliveryServiceAll as $arDeliveryService) {
-            if (($arDeliveryService['PARENT_ID'] == '0' || $arDeliveryService['PARENT_ID'] == null) && $arDeliveryService['ID'] != $noOrderId) {
+            if ($arDeliveryService['CLASS_NAME'] == '\Bitrix\Sale\Delivery\Services\Group') {
+                $groups[] = $arDeliveryService['ID'];
+            }
+        }
+        foreach ($arDeliveryServiceAll as $arDeliveryService) {
+            if ((($arDeliveryService['PARENT_ID'] == '0' || $arDeliveryService['PARENT_ID'] == null) || 
+                        in_array($arDeliveryService['PARENT_ID'], $groups)) && 
+                    $arDeliveryService['ID'] != $noOrderId && 
+                    $arDeliveryService['CLASS_NAME'] != '\Bitrix\Sale\Delivery\Services\Group') {
                 $bitrixDeliveryTypesList[] = $arDeliveryService;
             }
         }
