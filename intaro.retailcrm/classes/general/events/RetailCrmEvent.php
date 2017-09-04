@@ -2,6 +2,7 @@
 /**
  * RCrmEvent
  */
+use \Bitrix\Main\Event;
 class RetailCrmEvent
 {    
     protected static $MODULE_ID = 'intaro.retailcrm';
@@ -47,29 +48,7 @@ class RetailCrmEvent
         }
 
         return true; 
-    }
-    
-    /**
-     * onBeforeOrderAdd
-     * 
-     * @param mixed $arFields - User arFields
-     */
-//    function onBeforeOrderAdd($arFields = array()) {
-//        $GLOBALS['RETAILCRM_ORDER_OLD_EVENT'] = false;
-//        return;
-//    }
-    
-    /**
-     * OnOrderSave
-     * 
-     * @param mixed $ID - Order id  
-     * @param mixed $arFields - Order arFields
-     */
-//    function OnOrderSave($ID, $arFields, $arOrder, $isNew)
-//    {
-//        $GLOBALS['RETAILCRM_EVENT_OLD'] = true;
-//        return;
-//    }
+    }    
     
     /**
      * onUpdateOrder
@@ -84,7 +63,8 @@ class RetailCrmEvent
             return;
         }  
         
-        $GLOBALS['RETAILCRM_ORDER_OLD_EVENT'] = true;        
+        $GLOBALS['RETAILCRM_ORDER_OLD_EVENT'] = true;
+
         return;
     }
     
@@ -95,7 +75,8 @@ class RetailCrmEvent
      */
     function orderDelete($event)
     {
-        $GLOBALS['RETAILCRM_ORDER_DELETE'] = true; 
+        $GLOBALS['RETAILCRM_ORDER_DELETE'] = true;
+
         return;
     }
     
@@ -110,26 +91,30 @@ class RetailCrmEvent
         if ($GLOBALS['RETAILCRM_ORDER_OLD_EVENT'] !== false && $GLOBALS['RETAIL_CRM_HISTORY'] !== true && $GLOBALS['RETAILCRM_ORDER_DELETE'] !== true) {
             if (!CModule::IncludeModule('iblock')) {
                 RCrmActions::eventLog('RetailCrmEvent::orderSave', 'iblock', 'module not found');
+
                 return true;
             }
 
             if (!CModule::IncludeModule("sale")) {
                 RCrmActions::eventLog('RetailCrmEvent::orderSave', 'sale', 'module not found');
+
                 return true;
             }
 
             if (!CModule::IncludeModule("catalog")) {
                 RCrmActions::eventLog('RetailCrmEvent::orderSave', 'catalog', 'module not found');
+
                 return true;
             }
 
-           //проверка на существование getParameter("ENTITY")
+           //exists getParameter("ENTITY")
             if (method_exists($event, 'getId')) {
                 $obOrder = $event;
             } elseif (method_exists($event, 'getParameter')) {
                 $obOrder = $event->getParameter("ENTITY");
             } else {
                 RCrmActions::eventLog('RetailCrmEvent::orderSave', 'events', 'event error');
+
                 return true;
             }
 
@@ -165,13 +150,18 @@ class RetailCrmEvent
                 'optionsCustomFields'   => $optionsCustomFields
             ));
              
-            //многосайтовость
-            $site = count($optionsSitesList) > 1 ? $optionsSitesList[$arOrder['LID']] : null;
+            //many sites?
+            if(!empty($optionsSitesList) && array_key_exists($arOrder['LID'], $optionsSitesList)) {
+                $site = $optionsSitesList[$arOrder['LID']];   
+            } else {
+                $site = null;
+            }
             
-            //проверка на новый заказ
+            //new order?
             $orderCrm = RCrmActions::apiMethod($api, 'ordersGet', __METHOD__, $arOrder['ID'], $site);
             if (isset($orderCrm['order'])) {
                 $methodApi = 'ordersEdit';
+                $arParams['crmOrder'] = $orderCrm['order'];
             } else {
                 $methodApi = 'ordersCreate';
             }
@@ -183,6 +173,7 @@ class RetailCrmEvent
                 $resultUser = RetailCrmUser::customerSend($arUser, $api, $optionsContragentType[$arOrder['PERSON_TYPE_ID']], true, $site);
                 if (!$resultUser) {
                     RCrmActions::eventLog('RetailCrmEvent::orderSave', 'RetailCrmUser::customerSend', 'error during creating customer');
+
                     return true;
                 }
             }
@@ -191,12 +182,13 @@ class RetailCrmEvent
             $resultOrder = RetailCrmOrder::orderSend($arOrder, $api, $arParams, true, $site, $methodApi);
             if (!$resultOrder) {
                 RCrmActions::eventLog('RetailCrmEvent::orderSave', 'RetailCrmOrder::orderSend', 'error during creating order');
+
                 return true;
             }
 
             return true;
         }
-        
-        return;
+
+        return true;
     }
 }

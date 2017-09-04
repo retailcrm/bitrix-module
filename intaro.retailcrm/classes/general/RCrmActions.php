@@ -4,6 +4,7 @@ class RCrmActions
 {
     public static $MODULE_ID = 'intaro.retailcrm';
     public static $CRM_ORDER_FAILED_IDS = 'order_failed_ids';
+    public static $CRM_API_VERSION = 'api_version';
 
     const CANCEL_PROPERTY_CODE = 'INTAROCRM_IS_CANCELED';
 
@@ -41,8 +42,17 @@ class RCrmActions
         $bitrixDeliveryTypesList = array();
         $arDeliveryServiceAll = \Bitrix\Sale\Delivery\Services\Manager::getActiveList();
         $noOrderId = \Bitrix\Sale\Delivery\Services\EmptyDeliveryService::getEmptyDeliveryServiceId();
+        $groups = array();
         foreach ($arDeliveryServiceAll as $arDeliveryService) {
-            if (($arDeliveryService['PARENT_ID'] == '0' || $arDeliveryService['PARENT_ID'] == null) && $arDeliveryService['ID'] != $noOrderId) {
+            if ($arDeliveryService['CLASS_NAME'] == '\Bitrix\Sale\Delivery\Services\Group') {
+                $groups[] = $arDeliveryService['ID'];
+            }
+        }
+        foreach ($arDeliveryServiceAll as $arDeliveryService) {
+            if ((($arDeliveryService['PARENT_ID'] == '0' || $arDeliveryService['PARENT_ID'] == null) || 
+                        in_array($arDeliveryService['PARENT_ID'], $groups)) && 
+                    $arDeliveryService['ID'] != $noOrderId && 
+                    $arDeliveryService['CLASS_NAME'] != '\Bitrix\Sale\Delivery\Services\Group') {
                 $bitrixDeliveryTypesList[] = $arDeliveryService;
             }
         }
@@ -63,7 +73,7 @@ class RCrmActions
         
         return $bitrixPaymentTypesList;
     }   
-    
+
     public static function StatusesList()
     {
         $bitrixPaymentStatusesList = array();
@@ -79,8 +89,8 @@ class RCrmActions
         }
         
         return $bitrixPaymentStatusesList;
-    }   
-    
+    }
+
     public static function OrderPropsList()
     {
         $bitrixPropsList = array();
@@ -93,6 +103,57 @@ class RCrmActions
         
         return $bitrixPropsList;
     } 
+    
+    public static function PricesExportList()    
+    {
+        $priceId = COption::GetOptionString(self::$MODULE_ID, 'catalog_base_price', 0);
+        $catalogExportPrices = array();
+        $dbPriceType = CCatalogGroup::GetList(array(), array('!ID' => $priceId), false, false, array('ID', 'NAME', 'NAME_LANG'));
+        while ($arPriceType = $dbPriceType->Fetch())
+        {
+            $catalogExportPrices[$arPriceType['ID']] = $arPriceType;
+        }
+        
+        return $catalogExportPrices;
+    } 
+    
+    public static function StoresExportList()    
+    {
+        $catalogExportStores = array();
+        $dbStores = CCatalogStore::GetList(array(), array("ACTIVE" => "Y"), false, false, array('ID', 'TITLE'));
+        while ($stores = $dbStores->Fetch()) {
+            $catalogExportStores[] = $stores;
+        }
+        
+        return $catalogExportStores;
+    } 
+    
+    public static function IblocksExportList()
+    {
+        $catalogExportIblocks = array();
+        $dbIblocks = CIBlock::GetList(array("IBLOCK_TYPE" => "ASC", "NAME" => "ASC"), array('CHECK_PERMISSIONS' => 'Y','MIN_PERMISSION' => 'W'));
+        while ($iblock = $dbIblocks->Fetch()) {
+            if ($arCatalog = CCatalog::GetByIDExt($iblock["ID"])) {
+                if($arCatalog['CATALOG_TYPE'] == "D" || $arCatalog['CATALOG_TYPE'] == "X" || $arCatalog['CATALOG_TYPE'] == "P") {
+                    $catalogExportIblocks[$iblock['ID']] = array(
+                        'ID' => $iblock['ID'],
+                        'IBLOCK_TYPE_ID' => $iblock['IBLOCK_TYPE_ID'],
+                        'LID' => $iblock['LID'],
+                        'CODE' => $iblock['CODE'],
+                        'NAME' => $iblock['NAME'],
+                    );
+
+                    if ($arCatalog['CATALOG_TYPE'] == "X" || $arCatalog['CATALOG_TYPE'] == "P") {
+                        $iblockOffer = CCatalogSKU::GetInfoByProductIBlock($iblock["ID"]);
+                        $catalogExportIblocks[$iblock['ID']]['SKU'] = $iblockOffer;
+                    }
+                }
+            }
+        }
+        
+        return $catalogExportIblocks;
+    }
+    
     /**
      *
      * w+ event in bitrix log
@@ -124,7 +185,7 @@ class RCrmActions
             RetailCrmOrder::uploadOrders(50, true);
         }
 
-        return 'RCrmActions::uploadOrdersAgent();';
+        return;
     }
 
     /**
@@ -199,10 +260,14 @@ class RCrmActions
 
     public static function explodeFIO($fio)
     {
-        $fio = preg_replace('|[\s]+|s', ' ', trim($fio));
-        $newFio = empty($fio) ? false : explode(" ", $fio, 3);
-        
         $result = array();
+        $fio = preg_replace('|[\s]+|s', ' ', trim($fio));
+        if (empty($fio)) {
+            return $result;
+        } else {
+            $newFio = explode(" ", $fio, 3);
+        }
+        
         switch (count($newFio)) {
             default:
             case 0:
@@ -232,61 +297,114 @@ class RCrmActions
     public static function apiMethod($api, $methodApi, $method, $params, $site = null)
     {
         switch ($methodApi) {
+            case 'ordersPaymentDelete':          
+            case 'ordersHistory':
+            case 'customerHistory':                
+            case 'ordersFixExternalIds':
+            case 'customersFixExternalIds':
+                return self::proxy($api, $methodApi, $method, array($params));
+                
+            case 'orderGet':
+                return self::proxy($api, 'ordersGet', $method, array($params, 'id', $site));
+                
             case 'ordersGet':
             case 'ordersEdit':
             case 'customersGet':
             case 'customersEdit':
-                try {
-                    $result = $api->$methodApi($params, 'externalId', $site);
-                    if (isset($result['errorMsg'])) {
-                        self::eventLog(__CLASS__.'::'.$method, 'RetailCrm\ApiClient::'.$methodApi, $result['errorMsg']);
-                        
-                        $log = new Logger();
-                        $log->write(array($methodApi, $result['errorMsg'], $result['errors'], $params), 'apiErrors');
-                    }
-                } catch (\RetailCrm\Exception\CurlException $e) {
-                    self::eventLog(
-                        __CLASS__.'::'.$method, 'RetailCrm\ApiClient::'.$methodApi.'::CurlException',
-                        $e->getCode() . ': ' . $e->getMessage()
-                    );
-
-                    return false;
-                } catch (InvalidArgumentException $e) {
-                    self::eventLog(
-                        __CLASS__.'::'.$method, 'RetailCrm\ApiClient::'.$methodApi.'::InvalidArgumentException',
-                        $e->getCode() . ': ' . $e->getMessage()
-                    );
-                    
-                    return false;
-                }
-                return $result;
+            case 'ordersPaymentEdit':
+                return self::proxy($api, $methodApi, $method, array($params, 'externalId', $site));
 
             default:
-                try {
-                    $result = $api->$methodApi($params, $site);
-                    if (isset($result['errorMsg'])) {
-                        if ($methodApi != 'customersUpload' && $methodApi != 'ordersUpload') {
-                            self::eventLog(__CLASS__.'::'.$method, 'RetailCrm\ApiClient::'.$methodApi, $result['errorMsg']);
-                        }
-                        $log = new Logger();
-                        $log->write(array($methodApi, $result['errorMsg'], $result['errors'], $params), 'apiErrors');
-                    }
-                } catch (\RetailCrm\Exception\CurlException $e) {
-                    self::eventLog(
-                        __CLASS__.'::'.$method, 'RetailCrm\ApiClient::'.$methodApi.'::CurlException',
-                        $e->getCode() . ': ' . $e->getMessage()
-                    );
-
-                    return false;
-                } catch (InvalidArgumentException $e) {
-                    self::eventLog(
-                        __CLASS__.'::'.$method, 'RetailCrm\ApiClient::'.$methodApi.'::InvalidArgumentException',
-                        $e->getCode() . ': ' . $e->getMessage()
-                    );
-                    
-                    return false;
-                }
-                return $result;
+                return self::proxy($api, $methodApi, $method, array($params, $site));
         }        
+    }
+    
+    private function proxy($api, $methodApi, $method, $params) {
+        $log = new Logger();
+        $version = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_VERSION, 0);
+        try {
+            $result = call_user_func_array(array($api, $methodApi), $params);
+
+            if ($result->getStatusCode() !== 200 && $result->getStatusCode() !== 201) {
+                if ($methodApi == 'ordersGet' || $methodApi == 'customersGet') {
+                    $log->write(array(
+                        'api' => $version,
+                        'methodApi' => $methodApi,
+                        'errorMsg' => !empty($result['errorMsg']) ? $result['errorMsg'] : '',
+                        'errors' => !empty($result['errors']) ? $result['errors'] : '',
+                        'params' => $params
+                    ), 'apiErrors');
+                } elseif ($methodApi == 'customersUpload' || $methodApi == 'ordersUpload') {
+                    $log->write(array(
+                        'api' => $version,
+                        'methodApi' => $methodApi,
+                        'errorMsg' => !empty($result['errorMsg']) ? $result['errorMsg'] : '',
+                        'errors' => !empty($result['errors']) ? $result['errors'] : '',
+                        'params' => $params
+                    ), 'uploadApiErrors');
+                } else {
+                    self::eventLog(__CLASS__ . '::' . $method, 'RetailCrm\ApiClient::' . $methodApi, !empty($result['errorMsg']) ? $result['errorMsg'] : '');
+                    $log->write(array(
+                        'api' => $version,
+                        'methodApi' => $methodApi,
+                        'errorMsg' => !empty($result['errorMsg']) ? $result['errorMsg'] : '',
+                        'errors' => !empty($result['errors']) ? $result['errors'] : '',
+                        'params' => $params
+                    ), 'apiErrors');
+                }
+                
+                if (function_exists('retailCrmApiResult')) {
+                    retailCrmApiResult($methodApi, false, $result->getStatusCode());
+                }
+            
+                if ($result->getStatusCode() == 460) {
+                    return true;
+                }
+
+                return false;
+            }
+        } catch (\RetailCrm\Exception\CurlException $e) {
+            self::eventLog(
+                __CLASS__ . '::' . $method, 'RetailCrm\ApiClient::' . $methodApi . '::CurlException',
+                $e->getCode() . ': ' . $e->getMessage()
+            );
+            $log->write(array(
+                'api' => $version,
+                'methodApi' => $methodApi, 
+                'errorMsg' => $e->getMessage(), 
+                'errors' => $e->getCode(), 
+                'params' => $params
+            ), 'apiErrors');
+            
+            if (function_exists('retailCrmApiResult')) {
+                retailCrmApiResult($methodApi, false, 'CurlException');
+            }
+
+            return false;
+        } catch (InvalidArgumentException $e) {
+            self::eventLog(
+                __CLASS__ . '::' . $method, 'RetailCrm\ApiClient::' . $methodApi . '::InvalidArgumentException',
+                $e->getCode() . ': ' . $e->getMessage()
+            );
+            $log->write(array(
+                'api' => $version,
+                'methodApi' => $methodApi, 
+                'errorMsg' => $e->getMessage(), 
+                'errors' => $e->getCode(), 
+                'params' => $params
+            ), 'apiErrors');
+            
+            if (function_exists('retailCrmApiResult')) {
+                retailCrmApiResult($methodApi, false, 'ArgumentException');
+            }
+
+            return false;
+        }
+        
+        if (function_exists('retailCrmApiResult')) {
+            retailCrmApiResult($methodApi, true, $result->getStatusCode());
+        }
+        
+        return $result;
     }
 }

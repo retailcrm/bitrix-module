@@ -44,9 +44,29 @@ class intaro_retailcrm extends CModule
     var $CRM_ORDER_HISTORY = 'order_history';
     var $CRM_CUSTOMER_HISTORY = 'customer_history';
     var $CRM_CATALOG_BASE_PRICE = 'catalog_base_price';
-    var $CRM_CATALOG_IBLOCKS = 'catalog_base_iblocks';
+    //var $CRM_CATALOG_IBLOCKS = 'catalog_base_iblocks';
     var $CRM_ORDER_NUMBERS = 'order_numbers';
     var $CRM_CANSEL_ORDER = 'cansel_order';
+    
+    var $CRM_INVENTORIES_UPLOAD = 'inventories_upload';
+    var $CRM_STORES = 'stores';
+    var $CRM_SHOPS = 'shops';
+    var $CRM_IBLOCKS_INVENTORIES = 'iblocks_inventories';
+
+    var $CRM_PRICES_UPLOAD = 'prices_upload';
+    var $CRM_PRICES = 'prices';
+    var $CRM_PRICE_SHOPS = 'price_shops';
+    var $CRM_IBLOCKS_PRICES = 'iblock_prices';
+        
+    var $CRM_COLLECTOR = 'collector';
+    var $CRM_COLL_KEY = 'coll_key';
+    
+    var $CRM_UA = 'ua';
+    var $CRM_UA_KEYS = 'ua_keys';
+    
+    var $CRM_API_VERSION = 'api_version';
+    var $HISTORY_TIME = 'history_time';
+    
     var $INSTALL_PATH;
 
     function intaro_retailcrm()
@@ -92,19 +112,27 @@ class intaro_retailcrm extends CModule
             }
         }
 
-        include($this->INSTALL_PATH . '/../classes/general/ApiClient.php');
         include($this->INSTALL_PATH . '/../classes/general/Http/Client.php');
         include($this->INSTALL_PATH . '/../classes/general/Response/ApiResponse.php');
         include($this->INSTALL_PATH . '/../classes/general/RCrmActions.php');
         include($this->INSTALL_PATH . '/../classes/general/user/RetailCrmUser.php');
-        include($this->INSTALL_PATH . '/../classes/general/order/RetailCrmOrder.php');
-        include($this->INSTALL_PATH . '/../classes/general/history/RetailCrmHistory.php');
         include($this->INSTALL_PATH . '/../classes/general/events/RetailCrmEvent.php');
         include($this->INSTALL_PATH . '/../classes/general/icml/RetailCrmICML.php');
         include($this->INSTALL_PATH . '/../classes/general/Exception/InvalidJsonException.php');
         include($this->INSTALL_PATH . '/../classes/general/Exception/CurlException.php');
         include($this->INSTALL_PATH . '/../classes/general/RestNormalizer.php');
         include($this->INSTALL_PATH . '/../classes/general/Logger.php');
+        
+        $version = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_VERSION, 0);
+        if ($version == 'v4') {
+            include($this->INSTALL_PATH . '/../classes/general/ApiClient_v4.php');
+            include($this->INSTALL_PATH . '/../classes/general/order/RetailCrmOrder_v4.php');
+            include($this->INSTALL_PATH . '/../classes/general/history/RetailCrmHistory_v4.php');
+        } elseif ($version == 'v5') {
+            include($this->INSTALL_PATH . '/../classes/general/ApiClient_v5.php');
+            include($this->INSTALL_PATH . '/../classes/general/order/RetailCrmOrder_v5.php');
+            include($this->INSTALL_PATH . '/../classes/general/history/RetailCrmHistory_v5.php');
+        }
 
         $step = intval($_REQUEST['step']);
 
@@ -205,19 +233,12 @@ class intaro_retailcrm extends CModule
                 
                 return;
             }
-
-            $this->RETAIL_CRM_API = new RetailCrm\ApiClient($api_host, $api_key);
-            //api key ok and sites list
-            try {
-                $arResult['sitesList'] = $APPLICATION->ConvertCharsetArray($this->RETAIL_CRM_API->sitesList()->sites, 'utf-8', SITE_CHARSET);
-            } catch (\RetailCrm\Exception\CurlException $e) {
-                RCrmActions::eventLog(
-                    'intaro.retailcrm/install/index.php', 'RetailCrm\ApiClient::sitesList',
-                    $e->getCode() . ': ' . $e->getMessage()
-                );
-
-                $arResult['errCode'] = 'ERR_' . $e->getCode();
-
+            
+            $ping = self::ping($api_host, $api_key);
+            if (isset($ping['sitesList'])) {
+                $arResult['sitesList'] = $ping['sitesList'];
+            } elseif (isset($ping['errCode'])) {
+                $arResult['errCode'] = $ping['errCode'];
                 $APPLICATION->IncludeAdminFile(
                     GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step1.php'
                 );
@@ -255,287 +276,6 @@ class intaro_retailcrm extends CModule
             }
             
             $arResult['arSites'] = RCrmActions::SitesList();
-            /*
-            if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') && isset($_POST['ajax']) && ($_POST['ajax'] == 1)) {
-
-                $api_host = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, 0);
-                $api_key = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, 0);
-                $this->RETAIL_CRM_API = new \RetailCrm\ApiClient($api_host, $api_key);
-
-                //prepare crm lists
-                try {
-                    $arResult['orderTypesList'] = $this->RETAIL_CRM_API->orderTypesList()->orderTypes;
-                } catch (\RetailCrm\Exception\CurlException $e) {
-                    RCrmActions::eventLog(
-                        'intaro.retailcrm/install/index.php', 'RetailCrm\ApiClient::orderTypesList::CurlException',
-                        $e->getCode() . ': ' . $e->getMessage()
-                    );
-
-                    $APPLICATION->RestartBuffer();
-                    header('Content-Type: application/x-javascript; charset=' . LANG_CHARSET);
-                    die(json_encode(array("success" => false)));
-                }
-
-                try {
-                    $arResult['deliveryTypesList'] = $this->RETAIL_CRM_API->deliveryTypesList()->deliveryTypes;
-                    $arResult['deliveryServicesList'] = $this->RETAIL_CRM_API->deliveryServicesList()->deliveryServices;
-                    $arResult['paymentTypesList'] = $this->RETAIL_CRM_API->paymentTypesList()->paymentTypes;
-                    $arResult['paymentStatusesList'] = $this->RETAIL_CRM_API->paymentStatusesList()->paymentStatuses; // --statuses
-                    $arResult['paymentList'] = $this->RETAIL_CRM_API->orderStatusesList()->statuses;
-                    $arResult['paymentGroupList'] = $this->RETAIL_CRM_API->orderStatusGroupsList()->statusGroups; // -- statuses groups
-                } catch (\RetailCrm\Exception\CurlException $e) {
-                    RCrmActions::eventLog(
-                        'intaro.retailcrm/install/index.php', 'RetailCrm\ApiClient::*List::CurlException',
-                        $e->getCode() . ': ' . $e->getMessage()
-                    );
-                }
-                //bitrix orderTypesList -- personTypes
-                $dbOrderTypesList = CSalePersonType::GetList(
-                    array(
-                        "SORT" => "ASC",
-                        "NAME" => "ASC"
-                    ), 
-                    array(
-                        "ACTIVE" => "Y",
-                    ), 
-                    false, false, array()
-                );
-
-
-                //form order types ids arr
-                $orderTypesArr = array();
-                if ($arOrderTypesList = $dbOrderTypesList->Fetch()) {
-                    do {
-                        $arResult['bitrixOrderTypesList'][] = $arOrderTypesList;
-                        $orderTypesArr[$arOrderTypesList['ID']] = htmlspecialchars(trim($_POST['order-type-' . $arOrderTypesList['ID']]));
-                    } while ($arOrderTypesList = $dbOrderTypesList->Fetch());
-                }
-
-                //bitrix deliveryTypesList
-                $dbDeliveryTypesList = CSaleDelivery::GetList(
-                                array(
-                            "SORT" => "ASC",
-                            "NAME" => "ASC"
-                                ), array(
-                            "ACTIVE" => "Y",
-                                ), false, false, array()
-                );
-
-                //form delivery types ids arr
-                $deliveryTypesArr = array();
-                if ($arDeliveryTypesList = $dbDeliveryTypesList->Fetch()) {
-                    do {
-                        $arResult['bitrixDeliveryTypesList'][] = $arDeliveryTypesList;
-                        $deliveryTypesArr[$arDeliveryTypesList['ID']] = htmlspecialchars(trim($_POST['delivery-type-' . $arDeliveryTypesList['ID']]));
-                    } while ($arDeliveryTypesList = $dbDeliveryTypesList->Fetch());
-                }
-
-                //bitrix deliveryServicesList
-                $dbDeliveryServicesList = CSaleDeliveryHandler::GetList(
-                    array(
-                        'SORT' => 'ASC',
-                        'NAME' => 'ASC'
-                    ),
-                    array(
-                        'ACTIVE'  => 'Y',
-                        'SITE_ID' => $arResult['arSites'][0]['LID']
-                    )
-                );
-
-                //form delivery services ids arr
-                if ($arDeliveryServicesList = $dbDeliveryServicesList->Fetch()) {
-                    do {
-                        //auto delivery types
-                        $deliveryTypesArr[$arDeliveryServicesList['SID']] = htmlspecialchars(trim($_POST['delivery-type-' . $arDeliveryServicesList['SID']]));
-                    } while ($arDeliveryServicesList = $dbDeliveryServicesList->Fetch());
-                }
-
-                //bitrix paymentTypesList
-                $dbPaymentTypesList = CSalePaySystem::GetList(
-                                array(
-                            "SORT" => "ASC",
-                            "NAME" => "ASC"
-                                ), array(
-                            "ACTIVE" => "Y"
-                                )
-                );
-
-                //form payment types ids arr
-                $paymentTypesArr = array();
-                if ($arPaymentTypesList = $dbPaymentTypesList->Fetch()) {
-                    do {
-                        $arResult['bitrixPaymentTypesList'][] = $arPaymentTypesList;
-                        $paymentTypesArr[$arPaymentTypesList['ID']] = htmlspecialchars(trim($_POST['payment-type-' . $arPaymentTypesList['ID']]));
-                    } while ($arPaymentTypesList = $dbPaymentTypesList->Fetch());
-                }
-
-                //bitrix paymentStatusesList
-                $dbPaymentStatusesList = CSaleStatus::GetList(
-                                array(
-                            "SORT" => "ASC",
-                            "NAME" => "ASC"
-                                ), array(
-                            "LID" => "ru", //ru 
-                            "ACTIVE" => "Y"
-                                )
-                );
-
-                //form payment statuses ids arr
-                $paymentStatusesArr['YY'] = htmlspecialchars(trim($_POST['payment-status-YY']));
-                if ($arPaymentStatusesList = $dbPaymentStatusesList->Fetch()) {
-                    do {
-                        $arResult['bitrixPaymentStatusesList'][$arPaymentStatusesList['ID']] = $arPaymentStatusesList;
-                        $paymentStatusesArr[$arPaymentStatusesList['ID']] = htmlspecialchars(trim($_POST['payment-status-' . $arPaymentStatusesList['ID']]));
-                    } while ($arPaymentStatusesList = $dbPaymentStatusesList->Fetch());
-                }
-
-                $arResult['bitrixPaymentStatusesList'][] = array(
-                    'ID' => 'YY',
-                    'NAME' => GetMessage('CANCELED')
-                );
-
-                //form payment ids arr
-                $paymentArr = array();
-                $paymentArr['Y'] = htmlspecialchars(trim($_POST['payment-Y']));
-                $paymentArr['N'] = htmlspecialchars(trim($_POST['payment-N']));
-
-                COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_TYPES_ARR, serialize(RCrmActions::clearArr($orderTypesArr)));
-                COption::SetOptionString($this->MODULE_ID, $this->CRM_DELIVERY_TYPES_ARR, serialize(RCrmActions::clearArr($deliveryTypesArr)));
-                COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT_TYPES, serialize(RCrmActions::clearArr($paymentTypesArr)));
-                COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT_STATUSES, serialize(RCrmActions::clearArr($paymentStatusesArr)));
-                COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT, serialize(RCrmActions::clearArr($paymentArr)));
-
-                // generate updated select inputs  
-                $input = array();
-
-                foreach ($arResult['bitrixDeliveryTypesList'] as $bitrixDeliveryType) {
-                    $input['delivery-type-' . $bitrixDeliveryType['ID']] =
-                            '<select name="delivery-type-' . $bitrixDeliveryType['ID'] . '" class="typeselect">';
-                    $input['delivery-type-' . $bitrixDeliveryType['ID']] .= '<option value=""></option>';
-
-                    foreach ($arResult['deliveryTypesList'] as $deliveryType) {
-                        if ($deliveryTypesArr[$bitrixDeliveryType['ID']] == $deliveryType['code']) {
-                            $input['delivery-type-' . $bitrixDeliveryType['ID']] .=
-                                    '<option value="' . $deliveryType['code'] . '" selected>';
-                        } else {
-                            $input['delivery-type-' . $bitrixDeliveryType['ID']] .=
-                                    '<option value="' . $deliveryType['code'] . '">';
-                        }
-
-                        $input['delivery-type-' . $bitrixDeliveryType['ID']] .=
-                                $APPLICATION->ConvertCharset($deliveryType['name'], 'utf-8', SITE_CHARSET);
-                        $input['delivery-type-' . $bitrixDeliveryType['ID']] .= '</option>';
-                    }
-
-                    $input['delivery-type-' . $bitrixDeliveryType['ID']] .= '</select>';
-                }
-
-                foreach ($arResult['bitrixPaymentTypesList'] as $bitrixPaymentType) {
-                    $input['payment-type-' . $bitrixPaymentType['ID']] =
-                            '<select name="payment-type-' . $bitrixPaymentType['ID'] . '" class="typeselect">';
-                    $input['payment-type-' . $bitrixPaymentType['ID']] .= '<option value=""></option>';
-
-                    foreach ($arResult['paymentTypesList'] as $paymentType) {
-                        if ($paymentTypesArr[$bitrixPaymentType['ID']] == $paymentType['code']) {
-                            $input['payment-type-' . $bitrixPaymentType['ID']] .=
-                                    '<option value="' . $paymentType['code'] . '" selected>';
-                        } else {
-                            $input['payment-type-' . $bitrixPaymentType['ID']] .=
-                                    '<option value="' . $paymentType['code'] . '">';
-                        }
-
-                        $input['payment-type-' . $bitrixPaymentType['ID']] .=
-                                $APPLICATION->ConvertCharset($paymentType['name'], 'utf-8', SITE_CHARSET);
-                        $input['payment-type-' . $bitrixPaymentType['ID']] .= '</option>';
-                    }
-
-                    $input['payment-type-' . $bitrixPaymentType['ID']] .= '</select>';
-                }
-
-                foreach ($arResult['bitrixPaymentStatusesList'] as $bitrixPaymentStatus) {
-                    $input['payment-status-' . $bitrixPaymentStatus['ID']] =
-                            '<select name="payment-status-' . $bitrixPaymentStatus['ID'] . '" class="typeselect">';
-                    $input['payment-status-' . $bitrixPaymentStatus['ID']] .= '<option value=""></option>';
-
-                    foreach ($arResult['paymentGroupList'] as $orderStatusGroup) {
-                        if (empty($orderStatusGroup['statuses']))
-                            continue;
-
-                        $input['payment-status-' . $bitrixPaymentStatus['ID']].=
-                                '<optgroup label="' . $orderStatusGroup['name'] . '">';
-
-                        foreach ($orderStatusGroup['statuses'] as $payment) {
-                            if(!isset($arResult['paymentList'][$payment])) continue;
-
-                            if ($paymentStatusesArr[$bitrixPaymentStatus['ID']] == $arResult['paymentList'][$payment]['code']) {
-                                $input['payment-status-' . $bitrixPaymentStatus['ID']] .=
-                                        '<option value="' . $arResult['paymentList'][$payment]['code'] . '" selected>';
-                            } else {
-                                $input['payment-status-' . $bitrixPaymentStatus['ID']] .=
-                                        '<option value="' . $arResult['paymentList'][$payment]['code'] . '">';
-                            }
-
-                            $input['payment-status-' . $bitrixPaymentStatus['ID']] .=
-                                    $APPLICATION->ConvertCharset($arResult['paymentList'][$payment]['name'], 'utf-8', SITE_CHARSET);
-                            $input['payment-status-' . $bitrixPaymentStatus['ID']] .= '</option>';
-                        }
-
-                        $input['payment-status-' . $bitrixPaymentStatus['ID']] .= '</optgroup>';
-                    }
-
-                    $input['payment-status-' . $bitrixPaymentStatus['ID']] .= '</select>';
-                }
-
-                foreach ($arResult['bitrixPaymentList'] as $bitrixPayment) {
-                    $input['payment-' . $bitrixPayment['ID']] =
-                            '<select name="payment-' . $bitrixPayment['ID'] . '" class="typeselect">';
-                    $input['payment-' . $bitrixPayment['ID']] .= '<option value=""></option>';
-
-                    foreach ($arResult['paymentStatusesList'] as $paymentStatus) {
-                        if ($paymentArr[$bitrixPayment['ID']] == $paymentStatus['code']) {
-                            $input['payment-' . $bitrixPayment['ID']] .=
-                                    '<option value="' . $paymentStatus['code'] . '" selected>';
-                        } else {
-                            $input['payment-' . $bitrixPayment['ID']] .=
-                                    '<option value="' . $paymentStatus['code'] . '">';
-                        }
-
-                        $input['payment-' . $bitrixPayment['ID']] .=
-                                $APPLICATION->ConvertCharset($paymentStatus['name'], 'utf-8', SITE_CHARSET);
-                        $input['payment-' . $bitrixPayment['ID']] .= '</option>';
-                    }
-
-                    $input['payment-' . $bitrixPayment['ID']] .= '</select>';
-                }
-
-                foreach ($arResult['bitrixOrderTypesList'] as $bitrixOrderType) {
-                    $input['order-type-' . $bitrixOrderType['ID']] =
-                            '<select name="order-type-' . $bitrixOrderType['ID'] . '" class="typeselect">';
-                    $input['order-type-' . $bitrixOrderType['ID']] .= '<option value=""></option>';
-
-                    foreach ($arResult['orderTypesList'] as $orderType) {
-                        if ($orderTypesArr[$bitrixOrderType['ID']] == $orderType['code']) {
-                            $input['order-type-' . $bitrixOrderType['ID']] .=
-                                    '<option value="' . $orderType['code'] . '" selected>';
-                        } else {
-                            $input['order-type-' . $bitrixOrderType['ID']] .=
-                                    '<option value="' . $orderType['code'] . '">';
-                        }
-
-                        $input['order-type-' . $bitrixOrderType['ID']] .=
-                                $APPLICATION->ConvertCharset($orderType['name'], 'utf-8', SITE_CHARSET);
-                        $input['order-type-' . $bitrixOrderType['ID']] .= '</option>';
-                    }
-
-                    $input['order-type-' . $bitrixOrderType['ID']] .= '</select>';
-                }
-
-
-
-                $APPLICATION->RestartBuffer();
-                header('Content-Type: application/x-javascript; charset=' . LANG_CHARSET);
-                die(json_encode(array("success" => true, "result" => $input)));
-            }*/
             
             if (count($arResult['arSites']) > 1) {
                 
@@ -543,8 +283,8 @@ class intaro_retailcrm extends CModule
                 $api_key = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, 0);
 
                 foreach ($arResult['arSites'] as $site) {
-                    if ($_POST['sites-id-'.$site['LID']] && !empty($_POST['sites-id-'.$site['LID']])) {
-                        $siteCode[$site['LID']] = htmlspecialchars(trim($_POST['sites-id-'.$site['LID']]));
+                    if ($_POST['sites-id-' . $site['LID']] && !empty($_POST['sites-id-' . $site['LID']])) {
+                        $siteCode[$site['LID']] = htmlspecialchars(trim($_POST['sites-id-' . $site['LID']]));
                     }
                 }
                 if (count($arResult['arSites']) != count($siteCode)) {
@@ -552,12 +292,13 @@ class intaro_retailcrm extends CModule
                     $APPLICATION->IncludeAdminFile(
                         GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step11.php'
                     );
+                    
                     return;
                 }
 
                 $this->RETAIL_CRM_API = new \RetailCrm\ApiClient($api_host, $api_key);
                 COption::SetOptionString($this->MODULE_ID, $this->CRM_SITES_LIST, serialize($siteCode));
-            } else {//если 1 сайт
+            } else {
                 $api_host = htmlspecialchars(trim($_POST[$this->CRM_API_HOST_OPTION]));
                 $api_key = htmlspecialchars(trim($_POST[$this->CRM_API_KEY_OPTION]));
 
@@ -571,29 +312,24 @@ class intaro_retailcrm extends CModule
                 if (!$api_host || !$api_key) {
                     $arResult['errCode'] = 'ERR_FIELDS_API_HOST';
                     $APPLICATION->IncludeAdminFile(
-                            GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step1.php'
+                        GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step1.php'
                     );
+                    
                     return;
                 }
                 
-                $this->RETAIL_CRM_API = new \RetailCrm\ApiClient($api_host, $api_key);
-
-                try {
-                    $this->RETAIL_CRM_API->paymentStatusesList()->paymentStatuses;
-                } catch (\RetailCrm\Exception\CurlException $e) {
-                    RCrmActions::eventLog(
-                        'intaro.retailcrm/install/index.php', 'RetailCrm\ApiClient::paymentStatusesList::CurlException',
-                        $e->getCode() . ': ' . $e->getMessage()
-                    );
-
-                    $arResult['errCode'] = 'ERR_' . $e->getCode();
-
+                $ping = self::ping($api_host, $api_key);
+                if (isset($ping['sitesList'])) {
+                    $arResult['sitesList'] = $ping['sitesList'];
+                } elseif (isset($ping['errCode'])) {
+                    $arResult['errCode'] = $ping['errCode'];
                     $APPLICATION->IncludeAdminFile(
                         GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step1.php'
                     );
-
+                    
                     return;
                 }
+                
                 COption::SetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, $api_host);
                 COption::SetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, $api_key);
             }
@@ -896,7 +632,8 @@ class intaro_retailcrm extends CModule
             
             $customerH = self::historyLoad($api, 'customersHistory');
             COption::SetOptionString($this->MODULE_ID, $this->CRM_CUSTOMER_HISTORY, $customerH);
-            //если есть старое значение, переделываем его на новый лад, иначе вычисляем
+       
+            //new data
             if ($historyDate = COption::GetOptionString($this->OLD_MODULE_ID, 'order_history_date', 0)) {
                 try {
                     $history = $api->ordersHistory(array('startDate' => $historyDate));
@@ -922,12 +659,25 @@ class intaro_retailcrm extends CModule
             } else {
                 $orderH = self::historyLoad($api, 'ordersHistory');
             }
-            
+
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_HISTORY, $orderH);
-            
+ 
             if ($orderLastId = COption::GetOptionString($this->OLD_MODULE_ID, $this->CRM_ORDER_LAST_ID, 0)) {
                 COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_LAST_ID, $orderLastId);
+            } else {
+                $dbOrder = \Bitrix\Sale\Internals\OrderTable::GetList(array(
+                        'order'   => array("ID" => "DESC"),
+                        'limit'   => 1,
+                        'select'  => array('ID')
+                ));
+                $arOrder = $dbOrder->fetch();
+                if (!empty($arOrder['ID'])) {
+                    COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_LAST_ID, $arOrder['ID']);
+                } else {
+                    COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_LAST_ID, 0);
+                }
             }
+            
             if ($orderFailedIds = COption::GetOptionString($this->OLD_MODULE_ID, $this->CRM_ORDER_FAILED_IDS, 0)) {
                 COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_FAILED_IDS, $orderFailedIds);
             }
@@ -1060,7 +810,12 @@ class intaro_retailcrm extends CModule
             RegisterModuleDependences("sale", "OnSaleOrderEntityDelete", $this->MODULE_ID, "RetailCrmEvent", "orderDelete");
             
             COption::SetOptionString($this->MODULE_ID, $this->CRM_CATALOG_BASE_PRICE, htmlspecialchars(trim($_POST['price-types'])));
-            COption::SetOptionString($this->MODULE_ID, $this->CRM_CATALOG_IBLOCKS, $iblocks);
+            //COption::SetOptionString($this->MODULE_ID, $this->CRM_CATALOG_IBLOCKS, $iblocks);
+            
+            COption::SetOptionString($this->MODULE_ID, $this->CRM_INVENTORIES_UPLOAD, 'N');
+            COption::SetOptionString($this->MODULE_ID, $this->CRM_PRICES_UPLOAD, 'N');
+            COption::SetOptionString($this->MODULE_ID, $this->CRM_COLLECTOR, 'N');
+            COption::SetOptionString($this->MODULE_ID, $this->CRM_UA, 'N');
 
             $this->CopyFiles();
             if (isset($_POST['LOAD_NOW'])) {                
@@ -1209,6 +964,8 @@ class intaro_retailcrm extends CModule
         global $APPLICATION;
 
         CAgent::RemoveAgent("RCrmActions::orderAgent();", $this->MODULE_ID);
+        CAgent::RemoveAgent("RetailCrmInventories::inventoriesUpload();", $this->MODULE_ID);
+        CAgent::RemoveAgent("RetailCrmPrices::pricesUpload();", $this->MODULE_ID);
 
         COption::RemoveOption($this->MODULE_ID, $this->CRM_API_HOST_OPTION);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_API_KEY_OPTION);
@@ -1228,9 +985,28 @@ class intaro_retailcrm extends CModule
         COption::RemoveOption($this->MODULE_ID, $this->CRM_CUSTOMER_HISTORY);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_HISTORY);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_CATALOG_BASE_PRICE);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_CATALOG_IBLOCKS);
+        //COption::RemoveOption($this->MODULE_ID, $this->CRM_CATALOG_IBLOCKS);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_NUMBERS);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_CANSEL_ORDER);
+        
+        COption::RemoveOption($this->MODULE_ID, $this->CRM_INVENTORIES_UPLOAD);
+        COption::RemoveOption($this->MODULE_ID, $this->CRM_STORES);
+        COption::RemoveOption($this->MODULE_ID, $this->CRM_SHOPS);
+        COption::RemoveOption($this->MODULE_ID, $this->CRM_IBLOCKS_INVENTORIES);
+        
+        COption::RemoveOption($this->MODULE_ID, $this->CRM_PRICES_UPLOAD);
+        COption::RemoveOption($this->MODULE_ID, $this->CRM_PRICES);
+        COption::RemoveOption($this->MODULE_ID, $this->CRM_PRICE_SHOPS);
+        COption::RemoveOption($this->MODULE_ID, $this->CRM_IBLOCKS_PRICES);
+        
+        COption::RemoveOption($this->MODULE_ID, $this->CRM_COLLECTOR);
+        COption::RemoveOption($this->MODULE_ID, $this->CRM_COLL_KEY);
+        
+        COption::RemoveOption($this->MODULE_ID, $this->CRM_UA);
+        COption::RemoveOption($this->MODULE_ID, $this->CRM_UA_KEYS);
+        
+        COption::RemoveOption($this->MODULE_ID, $this->CRM_API_VERSION);
+        COption::RemoveOption($this->MODULE_ID, $this->HISTORY_TIME);
 
         UnRegisterModuleDependences("sale", "OnOrderUpdate", $this->MODULE_ID, "RetailCrmEvent", "onUpdateOrder");
         UnRegisterModuleDependences("sale", "OnBeforeOrderAdd", $this->MODULE_ID, "RetailCrmEvent", "onBeforeOrderAdd");
@@ -1238,6 +1014,8 @@ class intaro_retailcrm extends CModule
         UnRegisterModuleDependences("main", "OnAfterUserUpdate", $this->MODULE_ID, "RetailCrmEvent", "OnAfterUserUpdate");
         UnRegisterModuleDependences("sale", "OnSaleOrderEntitySaved", $this->MODULE_ID, "RetailCrmEvent", "orderSave");
         UnRegisterModuleDependences("sale", "OnSaleOrderEntityDelete", $this->MODULE_ID, "RetailCrmEvent", "orderDelete");
+        UnRegisterModuleDependences("main", "OnBeforeProlog", $this->MODULE_ID, "RetailCrmCollector", "add");
+        UnRegisterModuleDependences("main", "OnBeforeProlog", $this->MODULE_ID, "RetailCrmUa", "add");
         
         if (CModule::IncludeModule("catalog")) {
             if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/' . $this->RETAIL_CRM_EXPORT . '_run.php')) {
@@ -1308,43 +1086,93 @@ class intaro_retailcrm extends CModule
     function historyLoad($api, $method)
     {
         $page = null;
-        $i = 0;
-        while (true) {
-            $i++;
-            try {
-                $history = $api->$method(array(), $page);
-            } catch (\RetailCrm\Exception\CurlException $e) {
-                RCrmActions::eventLog(
-                    'RetailCrmHistory::' . $method, 'RetailCrm\RestApi::' . $method . '::CurlException',
-                    $e->getCode() . ': ' . $e->getMessage()
-                );
-                $end['id'] = 0;
+        $end['id'] = 0;
 
-                return $end['id'];
-            } catch (InvalidArgumentException $e) {
-                RCrmActions::eventLog(
-                    'RetailCrmHistory::' . $method, 'RetailCrm\RestApi::' . $method . '::InvalidArgumentException',
-                    $e->getCode() . ': ' . $e->getMessage()
-                );
-                $end['id'] = 0;
+        try {
+            $history = $api->$method(array(), $page);
+        } catch (\RetailCrm\Exception\CurlException $e) {
+            RCrmActions::eventLog(
+                'RetailCrmHistory::' . $method, 'RetailCrm\RestApi::' . $method . '::CurlException',
+                $e->getCode() . ': ' . $e->getMessage()
+            );
 
-                return $end['id'];
+            return $end['id'];
+        } catch (InvalidArgumentException $e) {
+            RCrmActions::eventLog(
+                'RetailCrmHistory::' . $method, 'RetailCrm\RestApi::' . $method . '::InvalidArgumentException',
+                $e->getCode() . ': ' . $e->getMessage()
+            );
+
+            return $end['id'];
+        }
+        if ($history['pagination']['totalPageCount'] > $history['pagination']['currentPage']) {
+            $page = $history['pagination']['totalPageCount'];
+            while (true) {
+                try {
+                    $history = $api->$method(array(), $page);
+                } catch (\RetailCrm\Exception\CurlException $e) {
+                    RCrmActions::eventLog(
+                        'RetailCrmHistory::' . $method, 'RetailCrm\RestApi::' . $method . '::CurlException',
+                        $e->getCode() . ': ' . $e->getMessage()
+                    );
+
+                    return $end['id'];
+                } catch (InvalidArgumentException $e) {
+                    RCrmActions::eventLog(
+                        'RetailCrmHistory::' . $method, 'RetailCrm\RestApi::' . $method . '::InvalidArgumentException',
+                        $e->getCode() . ': ' . $e->getMessage()
+                    );
+
+                    return $end['id'];
+                }
+                
+                if (isset($history['history'])) {
+                    $end = array_pop($history['history']);
+                    
+                    break;
+                } else {
+                    $page--;
+                }
             }
-
-            if (isset($history['history'])) {
+        } else {
+            if (isset($history['history']) && count($history['history']) > 0) {
                 $end = array_pop($history['history']);
             } else {
                 $end['id'] = 0;
-                break;
-            }   
-
-            if ($history['pagination']['totalPageCount'] == $history['pagination']['currentPage']) {        
-                break;
             }
-
-            $page = $history['pagination']['totalPageCount'];
         }
 
         return $end['id'];
+    }
+    
+    function ping($api_host, $api_key)
+    {
+        global $APPLICATION;
+
+        $versions = array('v5', 'v4');
+        foreach ($versions as $version) {
+            $client = new RetailCrm\Http\Client($api_host . '/api/' . $version, array('apiKey' => $api_key));
+            try {
+                $result = $client->makeRequest('/reference/sites', 'GET');
+            } catch (\RetailCrm\Exception\CurlException $e) {
+                RCrmActions::eventLog(
+                    'intaro.retailcrm/install/index.php', 'RetailCrm\ApiClient::sitesList',
+                    $e->getCode() . ': ' . $e->getMessage()
+                );
+
+                $res['errCode'] = 'ERR_' . $e->getCode();
+            }
+
+            if ($result->getStatusCode() == 200) {
+                COption::SetOptionString($this->MODULE_ID, $this->CRM_API_VERSION, $version); 
+                $res['sitesList'] = $APPLICATION->ConvertCharsetArray($result->sites, 'utf-8', SITE_CHARSET);
+
+                return $res;
+            } else {
+                $res['errCode'] = 'ERR_METHOD_NOT_FOUND';
+            }
+        }
+
+        return $res;
     }
 }

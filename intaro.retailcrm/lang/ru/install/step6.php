@@ -1,12 +1,12 @@
 <?php
 $MESS ['INTAROCRM_INFO'] = '
-<h2>Дальнейшие действия<h2>
+<h2>Дальнейшие действия</h2>
 <p>
     Если вы произвели выгрузку заказов на шаге 3, то эти заказы уже доступны в вашей CRM и
     через некоторое время по этим заказам будет подготовлены аналитические отчеты в Панели KPI.
 </p>
 <p>
-    Новые заказы будут отправляться агентом <span style="font-family: Courier New;">ICrmOrderActions::uploadOrdersAgent();</span>
+    Новые заказы будут отправляться агентом <span style="font-family: Courier New;">RCrmActions::uploadOrdersAgent();</span>
     в retailCRM каждые 10 минут (интервал можно изменить в разделе <a href="/bitrix/admin/agent_list.php">Агенты</a>).
 </p>
 <p>

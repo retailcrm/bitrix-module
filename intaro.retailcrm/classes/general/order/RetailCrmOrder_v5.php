@@ -35,7 +35,7 @@ class RetailCrmOrder
      * @return array - array('order' = $order, 'customer' => $customer)
      */
     public static function orderSend($arFields, $api, $arParams, $send = false, $site = null, $methodApi = 'ordersEdit')
-    {
+    {      
         if (!$api || empty($arParams)) { // add cond to check $arParams
             return false;
         }
@@ -49,40 +49,35 @@ class RetailCrmOrder
             'externalId'      => $arFields['ID'],
             'createdAt'       => new \DateTime($arFields['DATE_INSERT']),
             'customer'        => array('externalId' => $arFields['USER_ID']),
-            'paymentType'     => isset($arParams['optionsPayTypes'][$arFields['PAYMENTS'][0]]) ?
-                                     $arParams['optionsPayTypes'][$arFields['PAYMENTS'][0]] : '',
-            'paymentStatus'   => isset($arParams['optionsPayment'][$arFields['PAYED']]) ?
-                                     $arParams['optionsPayment'][$arFields['PAYED']] : '',
             'orderType'       => isset($arParams['optionsOrderTypes'][$arFields['PERSON_TYPE_ID']]) ?
                                      $arParams['optionsOrderTypes'][$arFields['PERSON_TYPE_ID']] : '',
             'status'          => isset($arParams['optionsPayStatuses'][$arFields['STATUS_ID']]) ?
                                      $arParams['optionsPayStatuses'][$arFields['STATUS_ID']] : '',
-            'statusComment'   => $arFields['REASON_CANCELED'],
             'customerComment' => $arFields['USER_DESCRIPTION'],
             'managerComment'  => $arFields['COMMENTS'],
             'delivery' => array(
                 'cost' => $arFields['PRICE_DELIVERY']
             ),
         );
-        if (isset($_COOKIE['_rc']) && $_COOKIE['_rc'] != '') {
+        if ($send && isset($_COOKIE['_rc']) && $_COOKIE['_rc'] != '') {
             $order['customer']['browserId'] = $_COOKIE['_rc'];
         }
         $order['contragent']['contragentType'] = $arParams['optionsContragentType'][$arFields['PERSON_TYPE_ID']];
 
-        //свойства
+        //fields
         foreach ($arFields['PROPS']['properties'] as $prop) {
             if ($search = array_search($prop['CODE'], $arParams['optionsLegalDetails'][$arFields['PERSON_TYPE_ID']])) {
-                $order['contragent'][$search] = $prop['VALUE'][0];//юр данные заказа
+                $order['contragent'][$search] = $prop['VALUE'][0];//legal order data
             } elseif ($search = array_search($prop['CODE'], $arParams['optionsCustomFields'][$arFields['PERSON_TYPE_ID']])) {
-                $order['customFields'][$search] = $prop['VALUE'][0];//кастомные свойства
-            } elseif ($search = array_search($prop['CODE'], $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']])) {//остальное
-                if (in_array($search, array('fio', 'phone', 'email'))) {//фио, телефон, почта
+                $order['customFields'][$search] = $prop['VALUE'][0];//custom properties
+            } elseif ($search = array_search($prop['CODE'], $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']])) {//other
+                if (in_array($search, array('fio', 'phone', 'email'))) {//fio, phone, email
                     if ($search == 'fio') {
-                        $order = array_merge($order, RCrmActions::explodeFIO($prop['VALUE'][0]));//добавляем поля фио
+                        $order = array_merge($order, RCrmActions::explodeFIO($prop['VALUE'][0]));//add fio fields
                     } else {
-                        $order[$search] = $prop['VALUE'][0];//телефон и почта
+                        $order[$search] = $prop['VALUE'][0];//phone, email
                     }
-                } else {//остальное - адрес
+                } else {//address
                     if ($prop['TYPE'] == 'LOCATION' && isset($prop['VALUE'][0]) && $prop['VALUE'][0] != '') {
                         $arLoc = \Bitrix\Sale\Location\LocationTable::getByCode($prop['VALUE'][0])->fetch();
                         if ($arLoc) {
@@ -105,7 +100,6 @@ class RetailCrmOrder
                                     $order['countryIso'] = $countrys[$countryOrder['NAME']];
                                 }
                             }
-                            
                         }
                         $prop['VALUE'][0] = $location['NAME'];
                     }
@@ -115,7 +109,7 @@ class RetailCrmOrder
             }
         }
 
-        //доставки
+        //deliverys
         if (array_key_exists($arFields['DELIVERYS'][0]['id'], $arParams['optionsDelivTypes'])) {
             $order['delivery']['code'] = $arParams['optionsDelivTypes'][$arFields['DELIVERYS'][0]['id']];
             if (isset($arFields['DELIVERYS'][0]['service']) && $arFields['DELIVERYS'][0]['service'] != '') {
@@ -123,7 +117,7 @@ class RetailCrmOrder
             }
         }
 
-        //корзина
+        //basket
         foreach ($arFields['BASKET'] as $product) {
             $item = array(
                 'quantity'        => $product['QUANTITY'],
@@ -137,28 +131,49 @@ class RetailCrmOrder
             if (is_null($pp['PURCHASING_PRICE']) == false) {
                 $item['purchasePrice'] = $pp['PURCHASING_PRICE'];
             }
-            $item['discount'] = (double) $product['DISCOUNT_PRICE'];
-            $item['discountPercent'] = 0;
+            $item['discountManualAmount'] = (double) $product['DISCOUNT_PRICE'];
+            $item['discountManualPercent'] = 0;
             $item['initialPrice'] = (double) $product['PRICE'] + (double) $product['DISCOUNT_PRICE'];
 
             $order['items'][] = $item;
         }
-
-        //отправка
+         
+        //payments
+        $payments = array();
+        foreach ($arFields['PAYMENTS'] as $payment) {
+            $pm = array(
+                'type' => isset($arParams['optionsPayTypes'][$payment['PAY_SYSTEM_ID']]) ? $arParams['optionsPayTypes'][$payment['PAY_SYSTEM_ID']] : '',
+                'amount' => $payment['SUM']
+            );
+            if (!empty($payment['ID'])) {
+                $pm['externalId'] = $payment['ID'];
+            }
+            if (!empty($payment['DATE_PAID'])) {
+                $pm['paidAt'] = new \DateTime($payment['DATE_PAID']);
+            }
+            if (!empty($arParams['optionsPayment'][$payment['PAID']])) {
+                $pm['status'] = $arParams['optionsPayment'][$payment['PAID']];
+            }
+            $payments[] = $pm;
+        }
+        if (count($payments) > 0) {
+            $order['payments'] = $payments;
+        }
+        
+        //send
         if (function_exists('retailCrmBeforeOrderSend')) {
             $newResOrder = retailCrmBeforeOrderSend($order, $arFields);
             if (is_array($newResOrder) && !empty($newResOrder)) {
                 $order = $newResOrder;
+            } elseif ($newResOrder === false) {
+                RCrmActions::eventLog('RetailCrmOrder::orderSend', 'retailCrmBeforeOrderSend()', 'OrderID = ' . $arFields['ID'] . '. Sending canceled after retailCrmBeforeOrderSend');
+                
+                return false;
             }
         }
 
         $normalizer = new RestNormalizer();
         $order = $normalizer->normalize($order, 'orders');
-
-        if (isset($arParams['optionsSitesList']) && is_array($arParams['optionsSitesList']) &&
-                array_key_exists($arFields['LID'], $arParams['optionsSitesList'])) {
-            $site = $arParams['optionsSitesList'][$arFields['LID']];
-        }
 
         $log = new Logger();
         $log->write($order, 'order');
@@ -166,6 +181,46 @@ class RetailCrmOrder
         if($send) {
             if (!RCrmActions::apiMethod($api, $methodApi, __METHOD__, $order, $site)) {
                 return false;
+            }
+
+            if ($methodApi == 'ordersEdit') {
+                $crmPayments = array();
+                if (!empty($arParams['crmOrder']['payments'])) {
+                    foreach ($arParams['crmOrder']['payments'] as $crmPayment) {
+                        if (isset($crmPayment['externalId'])) {
+                            $crmPayments['externalIds'][$crmPayment['externalId']] = $crmPayment;
+                        } else {
+                            $crmPayments['ids'][$crmPayment['id']] = $crmPayment;
+                        }
+                    }
+                }
+
+                foreach ($order['payments'] as $payment) {
+                    if (isset($crmPayments['externalIds'][$payment['externalId']])) {
+                        //update payment
+                        if(RCrmActions::apiMethod($api, 'ordersPaymentEdit', __METHOD__, $payment, $site)){
+                            unset($crmPayments['externalIds'][$payment['externalId']]);
+                        }
+                    } else {
+                        //create
+                        $payment['order']['externalId'] = $order['externalId'];
+                        RCrmActions::apiMethod($api, 'ordersPaymentCreate', __METHOD__, $payment, $site);
+                    }
+                }
+                
+                //delete in crm
+                if (!empty($crmPayments['ids'])) {
+                    foreach ($crmPayments['ids'] as $payment) {
+                        //delete
+                        RCrmActions::apiMethod($api, 'ordersPaymentDelete', __METHOD__, $payment['id']);
+                    }
+                }
+                if (!empty($crmPayments['externalIds'])) {
+                    foreach ($crmPayments['externalIds'] as $payment) {
+                        //delete
+                        RCrmActions::apiMethod($api, 'ordersPaymentDelete', __METHOD__, $payment['id']);
+                    }
+                }
             }
         }
 
@@ -216,7 +271,7 @@ class RetailCrmOrder
             }
         }
 
-        if (count($orderIds)<=0) {
+        if (count($orderIds) <= 0) {
             return false;
         }
 
@@ -257,8 +312,12 @@ class RetailCrmOrder
             }
             $order = self::orderObjToArr($id);
             $user = Bitrix\Main\UserTable::getById($order['USER_ID'])->fetch();
-            
-            $site = count($optionsSitesList) > 1 ? $optionsSitesList[$order['LID']] : null;
+
+            if(array_key_exists($arOrder['LID'], $optionsSitesList)) {
+                $site = $optionsSitesList[$arOrder['LID']];   
+            } else {
+                $site = null;
+            }
 
             $arCustomers = RetailCrmUser::customerSend($user, $api, $optionsContragentType[$order['PERSON_TYPE_ID']], false, $site);
             $arOrders = self::orderSend($order, $api, $arParams, false, $site); 
@@ -272,10 +331,14 @@ class RetailCrmOrder
             
             $recOrders[] = $orderId;
         }
-
+        
         if (count($resOrders) > 0) {
             foreach ($resCustomers as $key => $customerLoad) {
-                $site = count($optionsSitesList) > 1 ? $optionsSitesList[$key] : null;
+                if(array_key_exists($key, $optionsSitesList)) {
+                    $site = $optionsSitesList[$key];   
+                } else {
+                    $site = null;
+                }
                 if (RCrmActions::apiMethod($api, 'customersUpload', __METHOD__, $customerLoad, $site) === false) {
                     return false;
                 }
@@ -284,7 +347,11 @@ class RetailCrmOrder
                 }
             }
             foreach ($resOrders as $key => $orderLoad) {
-                $site = count($optionsSitesList) > 1 ? $optionsSitesList[$key] : null;
+                if(array_key_exists($key, $optionsSitesList)) {
+                    $site = $optionsSitesList[$key];   
+                } else {
+                    $site = null;
+                }
                 if (RCrmActions::apiMethod($api, 'ordersUpload', __METHOD__, $orderLoad, $site) === false) {
                     return false;
                 }
@@ -301,7 +368,7 @@ class RetailCrmOrder
 
         return true;
     }
-
+    
     public static function orderObjToArr($obOrder)
     {
         $arOrder = array(
@@ -313,8 +380,7 @@ class RetailCrmOrder
             'USER_ID'          => $obOrder->getUserId(),
             'PERSON_TYPE_ID'   => $obOrder->getPersonTypeId(),
             'CURRENCY'         => $obOrder->getCurrency(),
-            'PAYMENTS'         => $obOrder->getPaymentSystemId(),
-            'PAYED'            => $obOrder->isPaid() ? 'Y' : 'N',
+            'PAYMENTS'         => array(),
             'DELIVERYS'        => array(),
             'PRICE_DELIVERY'   => $obOrder->getDeliveryPrice(),
             'PROPS'            => $obOrder->getPropertyCollection()->getArray(),
@@ -337,6 +403,11 @@ class RetailCrmOrder
                 }
                 $arOrder['DELIVERYS'][] = $shipment;
             }
+        }
+        
+        $paymentList = $obOrder->getPaymentCollection();
+        foreach ($paymentList as $paymentData) {
+            $arOrder['PAYMENTS'][] = $paymentData->getFields()->getValues();
         }
 
         $basketItems = $obOrder->getBasket();
