@@ -256,7 +256,7 @@ class intaro_retailcrm extends CModule
             $APPLICATION->IncludeAdminFile(
                 GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step11.php'
             );
-        } else if ($step == 2) {//доставки, оплаты, типы заказов
+        } else if ($step == 2) {
             if (!CModule::IncludeModule("sale")) {
                 $arResult['errCode'] = 'ERR_SALE';
             }
@@ -330,6 +330,7 @@ class intaro_retailcrm extends CModule
                     return;
                 }
                 
+                $this->RETAIL_CRM_API = new \RetailCrm\ApiClient($api_host, $api_key);
                 COption::SetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, $api_host);
                 COption::SetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, $api_key);
             }
@@ -388,7 +389,7 @@ class intaro_retailcrm extends CModule
             $APPLICATION->IncludeAdminFile(
                     GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step2.php'
             );
-        } elseif ($step == 3) {//сопостовление свойств заказа
+        } elseif ($step == 3) {
             if (!CModule::IncludeModule("sale")) {
                 $arResult['errCode'] = 'ERR_SALE';
             }
@@ -416,12 +417,12 @@ class intaro_retailcrm extends CModule
             //bitrix deliveryTypesList
             $arResult['bitrixDeliveryTypesList'] = RCrmActions::DeliveryList();
             
-            if (htmlspecialchars(trim($_POST['delivery-types-export'])) == 'false') {//сами настраиваем доставки
+            if (htmlspecialchars(trim($_POST['delivery-types-export'])) == 'false') {
                 $deliveryTypesArr = array();
                 foreach ($arResult['bitrixDeliveryTypesList'] as $delivery) {
                     $deliveryTypesArr[$delivery['ID']] = htmlspecialchars(trim($_POST['delivery-type-' . $delivery['ID']]));
                 }
-            } elseif (htmlspecialchars(trim($_POST['delivery-types-export'])) == 'true') {//отправка доставок в црм
+            } elseif (htmlspecialchars(trim($_POST['delivery-types-export'])) == 'true') {
                 // send to intaro crm and save delivery types!
                 $arDeliveryServiceAll = \Bitrix\Sale\Delivery\Services\Manager::getActiveList();
                 foreach ($arResult['bitrixDeliveryTypesList'] as $deliveryType) {
@@ -522,7 +523,7 @@ class intaro_retailcrm extends CModule
             $APPLICATION->IncludeAdminFile(
                     GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step3.php'
             );
-        } elseif ($step == 4) {//выгрузка старых заказов
+        } elseif ($step == 4) {
             if (!CModule::IncludeModule("sale")) {
                 $arResult['errCode'] = 'ERR_SALE';
             }
@@ -604,7 +605,7 @@ class intaro_retailcrm extends CModule
             }
 
             //contragents type list
-            $contragentTypeArr = array();//сделать проверки
+            $contragentTypeArr = array();
             foreach ($orderTypesList as $orderType) {
                 $contragentTypeArr[$orderType['ID']] = htmlspecialchars(trim($_POST['contragent-type-' . $orderType['ID']]));
             }
@@ -618,7 +619,7 @@ class intaro_retailcrm extends CModule
                     GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step4.php'
             );
 
-        } elseif ($step == 5) {//экспорт каталога
+        } elseif ($step == 5) {
             if (!CModule::IncludeModule("iblock")) {
                 $arResult['errCode'] = 'ERR_IBLOCK';
             }
@@ -695,7 +696,7 @@ class intaro_retailcrm extends CModule
             $APPLICATION->IncludeAdminFile(
                     GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step5.php'
             );
-        } elseif ($step == 6) {//регистрация модуля
+        } elseif ($step == 6) {
             if (!CModule::IncludeModule("iblock")) {
                 $arResult['errCode'] = 'ERR_IBLOCK';
             }
@@ -809,9 +810,7 @@ class intaro_retailcrm extends CModule
             RegisterModuleDependences("sale", "OnSaleOrderEntitySaved", $this->MODULE_ID, "RetailCrmEvent", "orderSave");
             RegisterModuleDependences("sale", "OnSaleOrderEntityDelete", $this->MODULE_ID, "RetailCrmEvent", "orderDelete");
             
-            COption::SetOptionString($this->MODULE_ID, $this->CRM_CATALOG_BASE_PRICE, htmlspecialchars(trim($_POST['price-types'])));
-            //COption::SetOptionString($this->MODULE_ID, $this->CRM_CATALOG_IBLOCKS, $iblocks);
-            
+            COption::SetOptionString($this->MODULE_ID, $this->CRM_CATALOG_BASE_PRICE, htmlspecialchars(trim($_POST['price-types'])));            
             COption::SetOptionString($this->MODULE_ID, $this->CRM_INVENTORIES_UPLOAD, 'N');
             COption::SetOptionString($this->MODULE_ID, $this->CRM_PRICES_UPLOAD, 'N');
             COption::SetOptionString($this->MODULE_ID, $this->CRM_COLLECTOR, 'N');
@@ -985,7 +984,7 @@ class intaro_retailcrm extends CModule
         COption::RemoveOption($this->MODULE_ID, $this->CRM_CUSTOMER_HISTORY);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_HISTORY);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_CATALOG_BASE_PRICE);
-        //COption::RemoveOption($this->MODULE_ID, $this->CRM_CATALOG_IBLOCKS);
+
         COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_NUMBERS);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_CANSEL_ORDER);
         
