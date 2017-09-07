@@ -810,8 +810,6 @@ class intaro_retailcrm extends CModule
 
             RegisterModule($this->MODULE_ID);
             RegisterModuleDependences("sale", "OnOrderUpdate", $this->MODULE_ID, "RetailCrmEvent", "onUpdateOrder");
-            RegisterModuleDependences("sale", "OnBeforeOrderAdd", $this->MODULE_ID, "RetailCrmEvent", "onBeforeOrderAdd");
-            RegisterModuleDependences("sale", "OnOrderSave", $this->MODULE_ID, "RetailCrmEvent", "OnOrderSave");
             RegisterModuleDependences("main", "OnAfterUserUpdate", $this->MODULE_ID, "RetailCrmEvent", "OnAfterUserUpdate");
             RegisterModuleDependences("sale", "OnSaleOrderEntitySaved", $this->MODULE_ID, "RetailCrmEvent", "orderSave");
             RegisterModuleDependences("sale", "OnSaleOrderEntityDelete", $this->MODULE_ID, "RetailCrmEvent", "orderDelete");
@@ -1014,8 +1012,6 @@ class intaro_retailcrm extends CModule
         COption::RemoveOption($this->MODULE_ID, $this->HISTORY_TIME);
 
         UnRegisterModuleDependences("sale", "OnOrderUpdate", $this->MODULE_ID, "RetailCrmEvent", "onUpdateOrder");
-        UnRegisterModuleDependences("sale", "OnBeforeOrderAdd", $this->MODULE_ID, "RetailCrmEvent", "onBeforeOrderAdd");
-        UnRegisterModuleDependences("sale", "OnOrderSave", $this->MODULE_ID, "RetailCrmEvent", "OnOrderSave");
         UnRegisterModuleDependences("main", "OnAfterUserUpdate", $this->MODULE_ID, "RetailCrmEvent", "OnAfterUserUpdate");
         UnRegisterModuleDependences("sale", "OnSaleOrderEntitySaved", $this->MODULE_ID, "RetailCrmEvent", "orderSave");
         UnRegisterModuleDependences("sale", "OnSaleOrderEntityDelete", $this->MODULE_ID, "RetailCrmEvent", "orderDelete");

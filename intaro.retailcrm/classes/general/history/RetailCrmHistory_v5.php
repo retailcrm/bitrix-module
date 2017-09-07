@@ -28,17 +28,17 @@ class RetailCrmHistory
     public static function customerHistory()
     {
         if (!CModule::IncludeModule("iblock")) {
-            RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'iblock', 'module not found');
+            RCrmActions::eventLog('RetailCrmHistory::customerHistory', 'iblock', 'module not found');
 
             return false;
         }
         if (!CModule::IncludeModule("sale")) {
-            RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'sale', 'module not found');
+            RCrmActions::eventLog('RetailCrmHistory::customerHistory', 'sale', 'module not found');
 
             return false;
         }
         if (!CModule::IncludeModule("catalog")) {
-            RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'catalog', 'module not found');
+            RCrmActions::eventLog('RetailCrmHistory::customerHistory', 'catalog', 'module not found');
 
             return false;
         }
@@ -56,7 +56,7 @@ class RetailCrmHistory
         }
 
         while (true) {
-            $customerHistory = RCrmActions::apiMethod($api, 'ordersHistory', __METHOD__, $historyFilter);
+            $customerHistory = RCrmActions::apiMethod($api, 'customersHistory', __METHOD__, $historyFilter);
 
             $customerH = isset($customerHistory['history']) ? $customerHistory['history'] : array();
 
