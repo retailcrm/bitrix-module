@@ -371,7 +371,7 @@ class RetailCrmHistory
                         $order['customer']['externalId'] = $registeredUserID;
                     }
 
-                    if (isset($optionsSitesList)) {
+                    if ($optionsSitesList) {
                         $site = array_search($order['site'], $optionsSitesList);
                     } else {
                         $site = CSite::GetDefSite();
@@ -426,9 +426,9 @@ class RetailCrmHistory
                                 'filter' => array('ACCOUNT_NUMBER' => $order['number']),
                                 'select' => array('ID'),
                         );
-                        $searchOrder = reset(Bitrix\Sale\Order::loadByFilter($searchFilter));
+                        $searchOrder = \Bitrix\Sale\OrderTable::GetList($searchFilter)->fetch();
                         if (!empty($searchOrder)) {
-                            if ($searchOrder->getId() != $order['externalId']) {
+                            if ($searchOrder['ID'] != $order['externalId']) {
                                 RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'setField("ACCOUNT_NUMBER")', 'Error order load id=' . $order['externalId']) . '. Number ' . $order['number'] . ' already exists';
                             
                                 continue;
@@ -439,25 +439,26 @@ class RetailCrmHistory
                     }
 
                     $personType = $newOrder->getField('PERSON_TYPE_ID');
-                    
-                    $nType = array();
-                    $tList = RCrmActions::OrderTypesList(array(array('LID' => $site)));
-                    foreach($tList as $type){
-                        if (isset($optionsOrderTypes[$type['ID']])) {
-                            $nType[$optionsOrderTypes[$type['ID']]] = $type['ID'];
+                    if (isset($order['orderType']) && $order['orderType']) { 
+                        $nType = array();
+                        $tList = RCrmActions::OrderTypesList(array(array('LID' => $site)));
+                        foreach($tList as $type){
+                            if (isset($optionsOrderTypes[$type['ID']])) {
+                                $nType[$optionsOrderTypes[$type['ID']]] = $type['ID'];
+                            }
                         }
-                    }
-                    $optionsOrderTypes = $nType;
-                    
-                    if ($optionsOrderTypes[$order['orderType']]) {
-                        if ($personType != $optionsOrderTypes[$order['orderType']] && $personType != 0) {
-                            $propsRemove = true;
+                        $newOptionsOrderTypes = $nType;
+
+                        if ($newOptionsOrderTypes[$order['orderType']]) {
+                            if ($personType != $newOptionsOrderTypes[$order['orderType']] && $personType != 0) {
+                                $propsRemove = true;
+                            }
+                            $personType = $newOptionsOrderTypes[$order['orderType']];
+                            $newOrder->setField('PERSON_TYPE_ID', $personType);
+                        } elseif ($personType == 0) {
+                            RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'orderType not found', 'PERSON_TYPE_ID = 0');
                         }
-                        $personType = $optionsOrderTypes[$order['orderType']];
-                        $newOrder->setField('PERSON_TYPE_ID', $personType);
-                    } elseif ($personType == 0) {
-                        RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'orderType not found', 'PERSON_TYPE_ID = 0');
-                    }                  
+                    }               
                     
                     //status
                     if ($optionsPayStatuses[$order['status']]) {
@@ -623,6 +624,8 @@ class RetailCrmHistory
                             }
                             if ($product['delete']) {
                                 $item->delete();
+                                $basket->save();
+                                
                                 continue;
                             }
 
@@ -808,8 +811,10 @@ class RetailCrmHistory
                 $change['order']['items'] = $items;
             }
 
-            if ($change['order']['contragent']['contragentType']) {
-                $change['order']['contragentType'] = self::newValue($change['order']['contragent']['contragentType']);
+            if (isset($change['order']['contragent']) && count($change['order']['contragent']) > 0) {
+                foreach ($change['order']['contragent'] as $name => $value) {
+                    $change['order'][$name] = self::newValue($value);
+                }
                 unset($change['order']['contragent']);
             }
 
@@ -833,7 +838,7 @@ class RetailCrmHistory
                 if (empty($change['newValue']) && $change['field'] == 'order_product') {
                     $orders[$change['order']['id']]['items'][$change['item']['id']]['delete'] = 1;
                 }
-                if (!$orders[$change['order']['id']]['items'][$change['item']['id']]['create'] && $fields['item'][$change['field']]) {
+                if (/*!$orders[$change['order']['id']]['items'][$change['item']['id']]['create'] && */$fields['item'][$change['field']]) {
                     $orders[$change['order']['id']]['items'][$change['item']['id']][$fields['item'][$change['field']]] = $change['newValue'];
                 }
             } else {
@@ -1045,7 +1050,7 @@ class RetailCrmHistory
         }
 
         $obShipments = \Bitrix\Sale\Internals\ShipmentTable::getList(array(
-            'filter' => array('ORDER_ID' => $orderId),
+            'filter' => array('ORDER_ID' => $orderId, 'SYSTEM' => 'N'),
             'select' => array('ID')
         ));
 

@@ -141,20 +141,26 @@ class RetailCrmOrder
         //payments
         $payments = array();
         foreach ($arFields['PAYMENTS'] as $payment) {
-            $pm = array(
-                'type' => isset($arParams['optionsPayTypes'][$payment['PAY_SYSTEM_ID']]) ? $arParams['optionsPayTypes'][$payment['PAY_SYSTEM_ID']] : '',
-                'amount' => $payment['SUM']
-            );
-            if (!empty($payment['ID'])) {
-                $pm['externalId'] = $payment['ID'];
+            if (!empty($payment['PAY_SYSTEM_ID']) && isset($arParams['optionsPayTypes'][$payment['PAY_SYSTEM_ID']])) {
+                $pm = array(
+                    'type' => $arParams['optionsPayTypes'][$payment['PAY_SYSTEM_ID']],
+                    'amount' => $payment['SUM']
+                );
+                if (!empty($payment['ID'])) {
+                    $pm['externalId'] = $payment['ID'];
+                }
+                if (!empty($payment['DATE_PAID'])) {
+                    $pm['paidAt'] = new \DateTime($payment['DATE_PAID']);
+                }
+                if (!empty($arParams['optionsPayment'][$payment['PAID']])) {
+                    $pm['status'] = $arParams['optionsPayment'][$payment['PAID']];
+                }
+                $payments[] = $pm;
+            } else {
+                RCrmActions::eventLog('RetailCrmOrder::orderSend', 'payments', 'OrderID = ' . $arFields['ID'] . '. Payment not found.');
+                
+                continue;
             }
-            if (!empty($payment['DATE_PAID'])) {
-                $pm['paidAt'] = new \DateTime($payment['DATE_PAID']);
-            }
-            if (!empty($arParams['optionsPayment'][$payment['PAID']])) {
-                $pm['status'] = $arParams['optionsPayment'][$payment['PAID']];
-            }
-            $payments[] = $pm;
         }
         if (count($payments) > 0) {
             $order['payments'] = $payments;
@@ -173,7 +179,7 @@ class RetailCrmOrder
         }
 
         $normalizer = new RestNormalizer();
-        $order = $normalizer->normalize($order, 'orders');
+        $order = $normalizer->normalize($order, 'ordersSend');
 
         $log = new Logger();
         $log->write($order, 'order');
@@ -198,7 +204,14 @@ class RetailCrmOrder
                 foreach ($order['payments'] as $payment) {
                     if (isset($crmPayments['externalIds'][$payment['externalId']])) {
                         //update payment
-                        if(RCrmActions::apiMethod($api, 'ordersPaymentEdit', __METHOD__, $payment, $site)){
+                        if ($payment['type'] == $crmPayments['externalIds'][$payment['externalId']]['type']) {
+                            if (RCrmActions::apiMethod($api, 'ordersPaymentEdit', __METHOD__, $payment, $site)) {
+                                unset($crmPayments['externalIds'][$payment['externalId']]);
+                            }
+                        } else {
+                            RCrmActions::apiMethod($api, 'ordersPaymentDelete', __METHOD__, $crmPayments['externalIds'][$payment['externalId']]['id']);
+                            $payment['order']['externalId'] = $order['externalId'];
+                            RCrmActions::apiMethod($api, 'ordersPaymentCreate', __METHOD__, $payment, $site);
                             unset($crmPayments['externalIds'][$payment['externalId']]);
                         }
                     } else {
@@ -395,6 +408,12 @@ class RetailCrmOrder
         foreach ($shipmentList as $shipmentData) {
             if ($shipmentData->getDeliveryId()) {
                 $delivery = \Bitrix\Sale\Delivery\Services\Manager::getById($shipmentData->getDeliveryId());
+                $siteDeliverys = RCrmActions::DeliveryList();
+                foreach ($siteDeliverys as $siteDelivery) {
+                    if ($siteDelivery['ID'] == $delivery['ID'] && $siteDelivery['PARENT_ID'] == 0) {
+                        unset($delivery['PARENT_ID']);
+                    }
+                }
                 if ($delivery['PARENT_ID']) {
                     $servise = explode(':', $delivery['CODE']);
                     $shipment = array('id' => $delivery['PARENT_ID'], 'service' => $servise[1]);

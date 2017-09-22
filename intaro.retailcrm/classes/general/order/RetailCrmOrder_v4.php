@@ -155,7 +155,7 @@ class RetailCrmOrder
         }
 
         $normalizer = new RestNormalizer();
-        $order = $normalizer->normalize($order, 'orders');
+        $order = $normalizer->normalize($order, 'ordersSend');
 
         $log = new Logger();
         $log->write($order, 'order');
@@ -326,6 +326,12 @@ class RetailCrmOrder
         foreach ($shipmentList as $shipmentData) {
             if ($shipmentData->getDeliveryId()) {
                 $delivery = \Bitrix\Sale\Delivery\Services\Manager::getById($shipmentData->getDeliveryId());
+                $siteDeliverys = RCrmActions::DeliveryList();
+                foreach ($siteDeliverys as $siteDelivery) {
+                    if ($siteDelivery['ID'] == $delivery['ID'] && $siteDelivery['PARENT_ID'] == 0) {
+                        unset($delivery['PARENT_ID']);
+                    }
+                }
                 if ($delivery['PARENT_ID']) {
                     $servise = explode(':', $delivery['CODE']);
                     $shipment = array('id' => $delivery['PARENT_ID'], 'service' => $servise[1]);

@@ -65,7 +65,7 @@ class RetailCrmUser
         $customer = $normalizer->normalize($customer, 'customers');
         
         $log = new Logger();
-        $log->write($customer, 'customer');
+        $log->write($customer, 'customerSend');
   
         if ($send) {
             if (!RCrmActions::apiMethod($api, 'customersCreate', __METHOD__, $customer, $site)) {
@@ -136,7 +136,7 @@ class RetailCrmUser
             $customer = $normalizer->normalize($customer, 'customers');
 
             $log = new Logger();
-            $log->write($customer, 'customer');
+            $log->write($customer, 'customerSend');
         
             if (function_exists('retailCrmBeforeCustomerSend')) {
                 $newResCustomer = retailCrmBeforeCustomerSend($customer);

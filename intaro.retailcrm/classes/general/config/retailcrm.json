@@ -135,7 +135,13 @@
         },
         "browserId": {
             "type": "string"
-         }
+        },
+        "discountCardNumber": {
+            "type": "string"
+        },
+        "personalDiscount": {
+            "type": "string"
+        }
     },
     "orders": {
         "number": {
