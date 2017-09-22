@@ -53,12 +53,15 @@ class RCrmActions
                         in_array($arDeliveryService['PARENT_ID'], $groups)) && 
                     $arDeliveryService['ID'] != $noOrderId && 
                     $arDeliveryService['CLASS_NAME'] != '\Bitrix\Sale\Delivery\Services\Group') {
+                if (in_array($arDeliveryService['PARENT_ID'], $groups)) {
+                    $arDeliveryService['PARENT_ID'] = 0;
+                }
                 $bitrixDeliveryTypesList[] = $arDeliveryService;
             }
         }
-        
+
         return $bitrixDeliveryTypesList;
-    }  
+    }
     
     public static function PaymentList()
     {
@@ -78,7 +81,7 @@ class RCrmActions
     {
         $bitrixPaymentStatusesList = array();
         $obStatuses = \Bitrix\Sale\Internals\StatusTable::getList(array(
-            'filter' => array('TYPE' => 'O'),
+            'filter' => array('TYPE' => 'O', '=Bitrix\Sale\Internals\StatusLangTable:STATUS.LID' => LANGUAGE_ID),
             'select' => array('ID', "NAME" => 'Bitrix\Sale\Internals\StatusLangTable:STATUS.NAME')
         ));
         while ($arStatus = $obStatuses->fetch()) {
