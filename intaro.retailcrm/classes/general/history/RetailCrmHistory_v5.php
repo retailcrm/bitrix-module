@@ -503,8 +503,10 @@ class RetailCrmHistory
                     
                     if ($propsRemove) {//delete props
                         foreach ($propertyCollectionArr['properties'] as $orderProp) {
-                            $somePropValue = $propertyCollection->getItemByOrderPropertyId($orderProp['ID']);
-                            self::setProp($somePropValue);
+                            if ($orderProp['PROPS_GROUP_ID'] == 0) {
+                                $somePropValue = $propertyCollection->getItemByOrderPropertyId($orderProp['ID']);
+                                self::setProp($somePropValue);
+                            }
                         }
                         $orderCrm = RCrmActions::apiMethod($api, 'orderGet', __METHOD__, $order['id']);
 
@@ -514,8 +516,10 @@ class RetailCrmHistory
                     
                     $propsKey = array();
                     foreach ($propertyCollectionArr['properties'] as $prop) {
-                        $propsKey[$prop['CODE']]['ID'] = $prop['ID'];
-                        $propsKey[$prop['CODE']]['TYPE'] = $prop['TYPE'];
+                        if ($prop['PROPS_GROUP_ID'] != 0) {
+                            $propsKey[$prop['CODE']]['ID'] = $prop['ID'];
+                            $propsKey[$prop['CODE']]['TYPE'] = $prop['TYPE'];
+                        }
                     }
                     //fio
                     if ($order['firstName'] || $order['lastName'] || $order['patronymic']) {
@@ -585,16 +589,17 @@ class RetailCrmHistory
                             }
                         }
                     }
-                    
+
                     //optionsLegalDetails
                     if ($optionsLegalDetails[$personType]) {
                         foreach ($optionsLegalDetails[$personType] as $key => $orderProp) {
-                            if (array_key_exists($key, $order)) {
+                            if (array_key_exists($key, $order['contragent'])) {
                                 $somePropValue = $propertyCollection->getItemByOrderPropertyId($propsKey[$orderProp]['ID']);
-                                self::setProp($somePropValue, $order[$key]);
+                                self::setProp($somePropValue, $order['contragent'][$key]);
                             }
                         }
                     }
+
                     if ($propsRemove) {
                         $order = $orderDump;
                     }
@@ -641,7 +646,6 @@ class RetailCrmHistory
                             }
                             if ($product['delete']) {
                                 $item->delete();
-                                $basket->save();
                                 
                                 continue;
                             }
@@ -660,8 +664,6 @@ class RetailCrmHistory
                                     $item->setField('DISCOUNT_VALUE', '');
                                 }
                             }
-
-                            $basket->save();  
                         }
                     }
                     
@@ -1187,7 +1189,7 @@ class RetailCrmHistory
 
                 unset($paymentsList[$newPaymentId]);
 
-                //RCrmActions::apiMethod($api, 'ordersPaymentEdit', __METHOD__, array('id' => $paymentCrm['id'], 'externalId' => $newPaymentId));
+                RCrmActions::apiMethod($api, 'ordersPaymentEdit', __METHOD__, array('id' => $paymentCrm['id'], 'externalId' => $newPaymentId));
             }
             
             if ($optionsPayment[$paymentCrm['status']] == 'Y') {

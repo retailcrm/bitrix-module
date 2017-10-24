@@ -191,4 +191,141 @@ class RetailCrmEvent
 
         return true;
     }
+
+    /**
+     * paymentSave
+     * 
+     * @param object $event - Payment object
+     */
+
+    function paymentSave($event)
+    {   
+        if (isset($GLOBALS['RETAIL_CRM_HISTORY']) && $GLOBALS['RETAIL_CRM_HISTORY']) {
+            return;
+        }
+
+        $optionsSitesList = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_SITES_LIST, 0));
+        $optionsPaymentTypes = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_TYPES, 0));
+        $optionsPayStatuses = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT, 0));
+
+        $arPayment = array(
+            'ID'            => $event->getId(),
+            'ORDER_ID'      => $event->getField('ORDER_ID'),
+            'PAID'          => $event->getField('PAID'),
+            'PAY_SYSTEM_ID' => $event->getField('PAY_SYSTEM_ID'),
+            'SUM'           => $event->getField('SUM'),
+            'LID'           => $event->getField('LID'),
+            'DATE_PAID'     => $event->getField('DATE_PAID'),
+            'METHOD'        => $GLOBALS['RETAILCRM_ORDER_NEW_ORDER'],
+        );
+
+        try {
+            $newOrder = Bitrix\Sale\Order::load($arPayment['ORDER_ID']);
+            $arPayment['LID'] = $newOrder->getField('LID');
+        } catch (Bitrix\Main\ArgumentNullException $e) {
+            RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'Bitrix\Sale\Order::load', $e->getMessage() . ': ' . $order['externalId']);
+            return;
+        }
+
+        if(!empty($optionsSitesList) && array_key_exists($arPayment['LID'], $optionsSitesList)) {
+            $site = $optionsSitesList[$arPayment['LID']];
+        } else {
+            $site = null;
+        }
+       
+        $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
+        $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
+        $api = new RetailCrm\ApiClient($api_host, $api_key);
+        $orderCrm = RCrmActions::apiMethod($api, 'ordersGet', __METHOD__, $arPayment['ORDER_ID'], $site);
+
+        if (isset($orderCrm['order'])) {
+            $payments = $orderCrm['order']['payments'];
+        }
+
+        if ($arPayment['METHOD'] === true) {
+            if ($payments) {
+                foreach ($payments as $payment) {
+                    if (!isset($payment['externalId'])) {
+                        if ($payment['type'] == $optionsPaymentTypes[$arPayment['PAY_SYSTEM_ID']] && $payment['amount'] == $arPayment['SUM']) {
+                            $payment['externalId'] = $arPayment['ID'];
+                            RCrmActions::apiMethod($api, 'paymentEditById', __METHOD__, $payment, $site);
+                        }
+                    }
+                }
+            }
+        } else {
+            if ($payments) {
+                foreach ($payments as $payment) {
+                    if (isset($payment['externalId'])) {
+                        $paymentsExternalIds[$payment['externalId']] = $payment;
+                    }
+                }
+
+                if (!empty($arPayment['PAY_SYSTEM_ID']) && isset($optionsPaymentTypes[$arPayment['PAY_SYSTEM_ID']])) {
+                    $paymentToCrm = array(
+                        'type' => $optionsPaymentTypes[$arPayment['PAY_SYSTEM_ID']],
+                        'amount' => $arPayment['SUM']
+                    );
+
+                    if (!empty($arPayment['ID'])) {
+                        $paymentToCrm['externalId'] = $arPayment['ID'];
+                    }
+
+                    if (!empty($arPayment['DATE_PAID'])) {
+                        if (is_object($arPayment['DATE_PAID'])) {
+                            $culture = new Bitrix\Main\Context\Culture(array("FORMAT_DATETIME" => "YYYY-MM-DD HH:MI:SS"));
+                            $paymentToCrm['paidAt'] = $arPayment['DATE_PAID']->toString($culture);
+                        } elseif (is_string($arPayment['DATE_PAID'])) {
+                            $paymentToCrm['paidAt'] = $arPayment['DATE_PAID'];
+                        }
+                    }
+
+                    if (!empty($optionsPayStatuses[$arPayment['PAID']])) {
+                        $paymentToCrm['status'] = $optionsPayStatuses[$arPayment['PAID']];
+                    }
+
+                    if (!empty($arPayment['ORDER_ID'])) {
+                        $paymentToCrm['order']['externalId'] = $arPayment['ORDER_ID'];
+                    }
+                } else {
+                    RCrmActions::eventLog('RetailCrmOrder::orderSend', 'payments', 'OrderID = ' . $arFields['ID'] . '. Payment not found.');
+                }
+
+                if (!array_key_exists($arPayment['ID'], $paymentsExternalIds)) {
+                    RCrmActions::apiMethod($api, 'ordersPaymentCreate', __METHOD__, $paymentToCrm, $site);
+                } elseif (array_key_exists($arPayment['ID'], $paymentsExternalIds) && $paymentsExternalIds[$arPayment['ID']]['type'] == $optionsPaymentTypes[$arPayment['PAY_SYSTEM_ID']]) {
+                    RCrmActions::apiMethod($api, 'paymentEditByExternalId', __METHOD__, $paymentToCrm, $site);
+                } elseif (array_key_exists($arPayment['ID'], $paymentsExternalIds) && $paymentsExternalIds[$arPayment['ID']]['type'] != $optionsPaymentTypes[$arPayment['PAY_SYSTEM_ID']]) {
+                    RCrmActions::apiMethod($api, 'ordersPaymentDelete', __METHOD__, $paymentsExternalIds[$arPayment['ID']]['id']);
+                    RCrmActions::apiMethod($api, 'ordersPaymentCreate', __METHOD__, $paymentToCrm, $site);
+                }
+            }
+        }
+    }
+
+    /**
+     * paymentDelete
+     * 
+     * @param object $event - Payment object
+     */
+
+    function paymentDelete($event)
+    {   
+        if (isset($GLOBALS['RETAIL_CRM_HISTORY']) && $GLOBALS['RETAIL_CRM_HISTORY']) {
+            return;
+        }
+
+        $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
+        $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
+        $api = new RetailCrm\ApiClient($api_host, $api_key);
+        $orderCrm = RCrmActions::apiMethod($api, 'ordersGet', __METHOD__, $event->getField('ORDER_ID'), $site);
+
+        if (isset($orderCrm['order']['payments']) && $orderCrm['order']['payments']) {
+            foreach ($orderCrm['order']['payments'] as $payment) {
+                if (isset($payment['externalId']) && $payment['externalId'] == $event->getId()) {
+                    RCrmActions::apiMethod($api, 'ordersPaymentDelete', __METHOD__, $payment['id']);
+                }
+            }
+        }
+    }
 }
