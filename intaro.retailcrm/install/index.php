@@ -1021,7 +1021,9 @@ class intaro_retailcrm extends CModule
         UnRegisterModuleDependences("sale", "OnSaleOrderEntityDelete", $this->MODULE_ID, "RetailCrmEvent", "orderDelete");
         UnRegisterModuleDependences("main", "OnBeforeProlog", $this->MODULE_ID, "RetailCrmCollector", "add");
         UnRegisterModuleDependences("main", "OnBeforeProlog", $this->MODULE_ID, "RetailCrmUa", "add");
-        
+        UnRegisterModuleDependences("sale", "OnSalePaymentEntitySaved", $this->MODULE_ID, "RetailCrmEvent", "paymentSave");
+        UnRegisterModuleDependences("sale", "OnSalePaymentEntityDeleted", $this->MODULE_ID, "RetailCrmEvent", "paymentDelete");
+
         if (CModule::IncludeModule("catalog")) {
             if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/' . $this->RETAIL_CRM_EXPORT . '_run.php')) {
                 $dbProfile = CCatalogExport::GetList(array(), array("FILE_NAME" => $this->RETAIL_CRM_EXPORT));
