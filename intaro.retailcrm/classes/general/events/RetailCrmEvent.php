@@ -205,7 +205,9 @@ class RetailCrmEvent
 
     function paymentSave($event)
     {   
-        if (isset($GLOBALS['RETAIL_CRM_HISTORY']) && $GLOBALS['RETAIL_CRM_HISTORY']) {
+        $apiVersion = COption::GetOptionString(self::$MODULE_ID, 'api_version', 0);
+        
+        if ((isset($GLOBALS['RETAIL_CRM_HISTORY']) && $GLOBALS['RETAIL_CRM_HISTORY']) || $apiVersion != 'v5') {
             return;
         }
 
@@ -320,7 +322,9 @@ class RetailCrmEvent
 
     function paymentDelete($event)
     {   
-        if (isset($GLOBALS['RETAIL_CRM_HISTORY']) && $GLOBALS['RETAIL_CRM_HISTORY']) {
+        $apiVersion = COption::GetOptionString(self::$MODULE_ID, 'api_version', 0);
+        
+        if ((isset($GLOBALS['RETAIL_CRM_HISTORY']) && $GLOBALS['RETAIL_CRM_HISTORY']) || $apiVersion != 'v5') {
             return;
         }
 
