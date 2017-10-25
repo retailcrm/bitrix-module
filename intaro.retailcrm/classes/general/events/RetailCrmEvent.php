@@ -156,7 +156,11 @@ class RetailCrmEvent
             } else {
                 $site = null;
             }
-            
+
+            if ($site == null) {
+                return;
+            }
+
             //new order?
             $orderCrm = RCrmActions::apiMethod($api, 'ordersGet', __METHOD__, $arOrder['ID'], $site);
             if (isset($orderCrm['order'])) {
@@ -164,6 +168,7 @@ class RetailCrmEvent
                 $arParams['crmOrder'] = $orderCrm['order'];
             } else {
                 $methodApi = 'ordersCreate';
+                $GLOBALS['RETAILCRM_ORDER_NEW_ORDER'] = true;
             }
 
             //user
@@ -223,7 +228,7 @@ class RetailCrmEvent
             $newOrder = Bitrix\Sale\Order::load($arPayment['ORDER_ID']);
             $arPayment['LID'] = $newOrder->getField('LID');
         } catch (Bitrix\Main\ArgumentNullException $e) {
-            RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'Bitrix\Sale\Order::load', $e->getMessage() . ': ' . $order['externalId']);
+            RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'Bitrix\Sale\Order::load', $e->getMessage() . ': ' . $arPayment['ORDER_ID']);
             return;
         }
 
@@ -232,7 +237,11 @@ class RetailCrmEvent
         } else {
             $site = null;
         }
-       
+
+        if ($site == null) {
+            return;
+        }
+
         $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
         $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
         $api = new RetailCrm\ApiClient($api_host, $api_key);
@@ -315,10 +324,35 @@ class RetailCrmEvent
             return;
         }
 
+        $optionsSitesList = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_SITES_LIST, 0));
+
+        $arPayment = array(
+            'ID'            => $event->getId(),
+            'ORDER_ID'      => $event->getField('ORDER_ID')
+        );
+
+        try {
+            $newOrder = Bitrix\Sale\Order::load($arPayment['ORDER_ID']);
+            $arPayment['LID'] = $newOrder->getField('LID');
+        } catch (Bitrix\Main\ArgumentNullException $e) {
+            RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'Bitrix\Sale\Order::load', $e->getMessage() . ': ' . $arPayment['ORDER_ID']);
+            return;
+        }
+
+        if(!empty($optionsSitesList) && array_key_exists($arPayment['LID'], $optionsSitesList)) {
+            $site = $optionsSitesList[$arPayment['LID']];
+        } else {
+            $site = null;
+        }
+
+        if ($site == null) {
+            return;
+        }
+
         $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
         $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
         $api = new RetailCrm\ApiClient($api_host, $api_key);
-        $orderCrm = RCrmActions::apiMethod($api, 'ordersGet', __METHOD__, $event->getField('ORDER_ID'), $site);
+        $orderCrm = RCrmActions::apiMethod($api, 'ordersGet', __METHOD__, $arPayment('ORDER_ID'), $site);
 
         if (isset($orderCrm['order']['payments']) && $orderCrm['order']['payments']) {
             foreach ($orderCrm['order']['payments'] as $payment) {

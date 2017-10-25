@@ -285,6 +285,8 @@ class intaro_retailcrm extends CModule
                 foreach ($arResult['arSites'] as $site) {
                     if ($_POST['sites-id-' . $site['LID']] && !empty($_POST['sites-id-' . $site['LID']])) {
                         $siteCode[$site['LID']] = htmlspecialchars(trim($_POST['sites-id-' . $site['LID']]));
+                    } else {
+                        $siteCode[$site['LID']] = null;
                     }
                 }
                 if (count($arResult['arSites']) != count($siteCode)) {

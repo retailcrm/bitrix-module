@@ -179,10 +179,10 @@ class RetailCrmOrder
         }
 
         $normalizer = new RestNormalizer();
-        $order = $normalizer->normalize($order, 'ordersSend');
+        $order = $normalizer->normalize($order, 'orders');
 
         $log = new Logger();
-        $log->write($order, 'order');
+        $log->write($order, 'orderSend');
 
         if($send) {
             if (!RCrmActions::apiMethod($api, $methodApi, __METHOD__, $order, $site)) {
@@ -283,6 +283,10 @@ class RetailCrmOrder
                 $site = $optionsSitesList[$arOrder['LID']];   
             } else {
                 $site = null;
+            }
+
+            if ($site == null) {
+                continue;
             }
 
             $arCustomers = RetailCrmUser::customerSend($user, $api, $optionsContragentType[$order['PERSON_TYPE_ID']], false, $site);
