@@ -895,7 +895,7 @@ class ApiClient
             );
         }
 
-        if (empty($entity) || !in_array($entity, ['customer', 'order'])) {
+        if (empty($entity) || !in_array($entity, array('customer', 'order'))) {
             throw new \InvalidArgumentException(
                 'Parameter `entity` must contain a data & value must be `order` or `customer`'
             );
@@ -924,7 +924,7 @@ class ApiClient
             );
         }
 
-        if (empty($entity) || !in_array($entity, ['customer', 'order'])) {
+        if (empty($entity) || !in_array($entity, array('customer', 'order'))) {
             throw new \InvalidArgumentException(
                 'Parameter `entity` must contain a data & value must be `order` or `customer`'
             );
@@ -953,7 +953,7 @@ class ApiClient
             );
         }
 
-        if (empty($entity) || !in_array($entity, ['customer', 'order'])) {
+        if (empty($entity) || !in_array($entity, array('customer', 'order'))) {
             throw new \InvalidArgumentException(
                 'Parameter `entity` must contain a data & value must be `order` or `customer`'
             );

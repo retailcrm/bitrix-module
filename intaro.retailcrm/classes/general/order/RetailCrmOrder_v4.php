@@ -155,10 +155,10 @@ class RetailCrmOrder
         }
 
         $normalizer = new RestNormalizer();
-        $order = $normalizer->normalize($order, 'ordersSend');
+        $order = $normalizer->normalize($order, 'orders');
 
         $log = new Logger();
-        $log->write($order, 'order');
+        $log->write($order, 'orderSend');
 
         if($send) {
             if (!RCrmActions::apiMethod($api, $methodApi, __METHOD__, $order, $site)) {

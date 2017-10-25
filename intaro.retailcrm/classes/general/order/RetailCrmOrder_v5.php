@@ -179,61 +179,14 @@ class RetailCrmOrder
         }
 
         $normalizer = new RestNormalizer();
-        $order = $normalizer->normalize($order, 'ordersSend');
+        $order = $normalizer->normalize($order, 'orders');
 
         $log = new Logger();
-        $log->write($order, 'order');
+        $log->write($order, 'orderSend');
 
         if($send) {
             if (!RCrmActions::apiMethod($api, $methodApi, __METHOD__, $order, $site)) {
                 return false;
-            }
-
-            if ($methodApi == 'ordersEdit') {
-                $crmPayments = array();
-                if (!empty($arParams['crmOrder']['payments'])) {
-                    foreach ($arParams['crmOrder']['payments'] as $crmPayment) {
-                        if (isset($crmPayment['externalId'])) {
-                            $crmPayments['externalIds'][$crmPayment['externalId']] = $crmPayment;
-                        } else {
-                            $crmPayments['ids'][$crmPayment['id']] = $crmPayment;
-                        }
-                    }
-                }
-
-                foreach ($order['payments'] as $payment) {
-                    if (isset($crmPayments['externalIds'][$payment['externalId']])) {
-                        //update payment
-                        if ($payment['type'] == $crmPayments['externalIds'][$payment['externalId']]['type']) {
-                            if (RCrmActions::apiMethod($api, 'ordersPaymentEdit', __METHOD__, $payment, $site)) {
-                                unset($crmPayments['externalIds'][$payment['externalId']]);
-                            }
-                        } else {
-                            RCrmActions::apiMethod($api, 'ordersPaymentDelete', __METHOD__, $crmPayments['externalIds'][$payment['externalId']]['id']);
-                            $payment['order']['externalId'] = $order['externalId'];
-                            RCrmActions::apiMethod($api, 'ordersPaymentCreate', __METHOD__, $payment, $site);
-                            unset($crmPayments['externalIds'][$payment['externalId']]);
-                        }
-                    } else {
-                        //create
-                        $payment['order']['externalId'] = $order['externalId'];
-                        RCrmActions::apiMethod($api, 'ordersPaymentCreate', __METHOD__, $payment, $site);
-                    }
-                }
-                
-                //delete in crm
-                if (!empty($crmPayments['ids'])) {
-                    foreach ($crmPayments['ids'] as $payment) {
-                        //delete
-                        RCrmActions::apiMethod($api, 'ordersPaymentDelete', __METHOD__, $payment['id']);
-                    }
-                }
-                if (!empty($crmPayments['externalIds'])) {
-                    foreach ($crmPayments['externalIds'] as $payment) {
-                        //delete
-                        RCrmActions::apiMethod($api, 'ordersPaymentDelete', __METHOD__, $payment['id']);
-                    }
-                }
             }
         }
 
@@ -330,6 +283,10 @@ class RetailCrmOrder
                 $site = $optionsSitesList[$arOrder['LID']];   
             } else {
                 $site = null;
+            }
+
+            if ($site == null) {
+                continue;
             }
 
             $arCustomers = RetailCrmUser::customerSend($user, $api, $optionsContragentType[$order['PERSON_TYPE_ID']], false, $site);
