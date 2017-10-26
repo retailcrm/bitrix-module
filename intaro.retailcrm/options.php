@@ -195,7 +195,13 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     //bitrix site list
     $siteListArr = array(); 
     foreach ($arResult['arSites'] as $arSites) {
-        $siteListArr[$arSites['LID']] = htmlspecialchars(trim($_POST['sites-id-' . $arSites['LID']]));
+        if (count($arResult['arSites']) > 1) {
+            if ($_POST['sites-id-' . $arSites['LID']]) {
+                $siteListArr[$arSites['LID']] = htmlspecialchars(trim($_POST['sites-id-' . $arSites['LID']]));
+            } else {
+                $siteListArr[$arSites['LID']] = null;
+            }
+        }
     }
             
     if ($api_host && $api_key) {
@@ -463,7 +469,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         }
     }
         
-    COption::SetOptionString($mid, $CRM_SITES_LIST, serialize(RCrmActions::clearArr($siteListArr)));
+    COption::SetOptionString($mid, $CRM_SITES_LIST, serialize($siteListArr));
     COption::SetOptionString($mid, $CRM_ORDER_TYPES_ARR, serialize(RCrmActions::clearArr($orderTypesArr)));
     COption::SetOptionString($mid, $CRM_DELIVERY_TYPES_ARR, serialize(RCrmActions::clearArr($deliveryTypesArr)));
     COption::SetOptionString($mid, $CRM_PAYMENT_TYPES, serialize(RCrmActions::clearArr($paymentTypesArr)));
