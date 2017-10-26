@@ -151,14 +151,14 @@ class RetailCrmEvent
             ));
              
             //many sites?
-            if(!empty($optionsSitesList) && array_key_exists($arOrder['LID'], $optionsSitesList)) {
-                $site = $optionsSitesList[$arOrder['LID']];   
-            } else {
+            if ($optionsSitesList) {
+                if (array_key_exists($arOrder['LID'], $optionsSitesList) && $optionsSitesList[$arOrder['LID']] !== null) {
+                    $site = $optionsSitesList[$arOrder['LID']];
+                } else {
+                    return;
+                }
+            } elseif (!$optionsSitesList) {
                 $site = null;
-            }
-
-            if ($site == null) {
-                return;
             }
 
             //new order?
@@ -230,18 +230,18 @@ class RetailCrmEvent
             $newOrder = Bitrix\Sale\Order::load($arPayment['ORDER_ID']);
             $arPayment['LID'] = $newOrder->getField('LID');
         } catch (Bitrix\Main\ArgumentNullException $e) {
-            RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'Bitrix\Sale\Order::load', $e->getMessage() . ': ' . $arPayment['ORDER_ID']);
+            RCrmActions::eventLog('RetailCrmEvent::paymentSave', 'Bitrix\Sale\Order::load', $e->getMessage() . ': ' . $arPayment['ORDER_ID']);
             return;
         }
 
-        if(!empty($optionsSitesList) && array_key_exists($arPayment['LID'], $optionsSitesList)) {
-            $site = $optionsSitesList[$arPayment['LID']];
-        } else {
+        if ($optionsSitesList) {
+            if (array_key_exists($arOrder['LID'], $optionsSitesList) && $optionsSitesList[$arOrder['LID']] !== null) {
+                $site = $optionsSitesList[$arOrder['LID']];
+            } else {
+                return;
+            }
+        } elseif (!$optionsSitesList) {
             $site = null;
-        }
-
-        if ($site == null) {
-            return;
         }
 
         $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
@@ -299,7 +299,7 @@ class RetailCrmEvent
                         $paymentToCrm['order']['externalId'] = $arPayment['ORDER_ID'];
                     }
                 } else {
-                    RCrmActions::eventLog('RetailCrmOrder::orderSend', 'payments', 'OrderID = ' . $arFields['ID'] . '. Payment not found.');
+                    RCrmActions::eventLog('RetailCrmEvent::paymentSave', 'payments', 'OrderID = ' . $arPayment['ID'] . '. Payment not found.');
                 }
 
                 if (!array_key_exists($arPayment['ID'], $paymentsExternalIds)) {
@@ -339,7 +339,7 @@ class RetailCrmEvent
             $newOrder = Bitrix\Sale\Order::load($arPayment['ORDER_ID']);
             $arPayment['LID'] = $newOrder->getField('LID');
         } catch (Bitrix\Main\ArgumentNullException $e) {
-            RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'Bitrix\Sale\Order::load', $e->getMessage() . ': ' . $arPayment['ORDER_ID']);
+            RCrmActions::eventLog('RetailCrmEvent::paymentDelete', 'Bitrix\Sale\Order::load', $e->getMessage() . ': ' . $arPayment['ORDER_ID']);
             return;
         }
 
