@@ -276,12 +276,16 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         UnRegisterModuleDependences("sale", "OnSaleOrderEntitySaved", $mid, "RetailCrmEvent", "orderSave");
         UnRegisterModuleDependences("sale", "OnOrderUpdate", $mid, "RetailCrmEvent", "onUpdateOrder");
         UnRegisterModuleDependences("sale", "OnSaleOrderEntityDelete", $mid, "RetailCrmEvent", "orderDelete");
+        UnRegisterModuleDependences("sale", "OnSalePaymentEntitySaved", $mid, "RetailCrmEvent", "paymentSave");
+        UnRegisterModuleDependences("sale", "OnSalePaymentEntityDeleted", $mid, "RetailCrmEvent", "paymentDelete");
         
     } elseif (($orderDischarge != $previousDischarge) && ($orderDischarge == 1)) {
         // event dependencies
         RegisterModuleDependences("sale", "OnSaleOrderEntitySaved", $mid, "RetailCrmEvent", "orderSave");
         RegisterModuleDependences("sale", "OnOrderUpdate", $mid, "RetailCrmEvent", "onUpdateOrder");
         RegisterModuleDependences("sale", "OnSaleOrderEntityDelete", $mid, "RetailCrmEvent", "orderDelete");
+        RegisterModuleDependences("sale", "OnSalePaymentEntitySaved", $mid, "RetailCrmEvent", "paymentSave");
+        RegisterModuleDependences("sale", "OnSalePaymentEntityDeleted", $mid, "RetailCrmEvent", "paymentDelete");
     }
 
     $orderPropsArr = array();

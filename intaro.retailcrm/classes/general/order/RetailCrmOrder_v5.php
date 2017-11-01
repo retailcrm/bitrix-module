@@ -279,16 +279,6 @@ class RetailCrmOrder
             $order = self::orderObjToArr($id);
             $user = Bitrix\Main\UserTable::getById($order['USER_ID'])->fetch();
 
-            if(array_key_exists($arOrder['LID'], $optionsSitesList)) {
-                $site = $optionsSitesList[$arOrder['LID']];   
-            } else {
-                $site = null;
-            }
-
-            if ($site == null) {
-                continue;
-            }
-
             $arCustomers = RetailCrmUser::customerSend($user, $api, $optionsContragentType[$order['PERSON_TYPE_ID']], false, $site);
             $arOrders = self::orderSend($order, $api, $arParams, false, $site); 
 
@@ -304,10 +294,14 @@ class RetailCrmOrder
         
         if (count($resOrders) > 0) {
             foreach ($resCustomers as $key => $customerLoad) {
-                if(array_key_exists($key, $optionsSitesList)) {
-                    $site = $optionsSitesList[$key];   
-                } else {
-                    $site = null;
+                if ($optionsSitesList) {
+                    if (array_key_exists($key, $optionsSitesList) && $optionsSitesList[$key] != null) {
+                        $site = $optionsSitesList[$key];
+                    } else {
+                        continue;
+                    }
+                } elseif (!$optionsSitesList) {
+                    $site == null;
                 }
                 if (RCrmActions::apiMethod($api, 'customersUpload', __METHOD__, $customerLoad, $site) === false) {
                     return false;
@@ -317,10 +311,14 @@ class RetailCrmOrder
                 }
             }
             foreach ($resOrders as $key => $orderLoad) {
-                if(array_key_exists($key, $optionsSitesList)) {
-                    $site = $optionsSitesList[$key];   
-                } else {
-                    $site = null;
+                if ($optionsSitesList) {
+                    if (array_key_exists($key, $optionsSitesList) && $optionsSitesList[$key] != null) {
+                        $site = $optionsSitesList[$key];
+                    } else {
+                        continue;
+                    }
+                } elseif (!$optionsSitesList) {
+                    $site == null;
                 }
                 if (RCrmActions::apiMethod($api, 'ordersUpload', __METHOD__, $orderLoad, $site) === false) {
                     return false;

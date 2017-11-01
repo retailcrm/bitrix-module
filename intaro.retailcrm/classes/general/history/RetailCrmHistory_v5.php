@@ -1155,7 +1155,7 @@ class RetailCrmHistory
         //data from crm
         $paySumm = 0;
         foreach ($paymentsCrm['payments'] as $paymentCrm) {
-            if (!empty($paymentCrm['externalId'])) {
+            if (isset($paymentCrm['externalId']) && !empty($paymentCrm['externalId'])) {
                 //find the payment
                 $nowPayment = $paymentsList[$paymentCrm['externalId']];
                 //update data
@@ -1189,9 +1189,9 @@ class RetailCrmHistory
 
                 unset($paymentsList[$newPaymentId]);
 
-                RCrmActions::apiMethod($api, 'ordersPaymentEdit', __METHOD__, array('id' => $paymentCrm['id'], 'externalId' => $newPaymentId));
+                RCrmActions::apiMethod($api, 'paymentEditById', __METHOD__, array('id' => $paymentCrm['id'], 'externalId' => $newPaymentId));
             }
-            
+
             if ($optionsPayment[$paymentCrm['status']] == 'Y') {
                 $paySumm += $paymentCrm['amount'];
             }
@@ -1242,16 +1242,16 @@ class RetailCrmHistory
         return $outputArray;
     }
     
-    public static function setProp($obj, $value = '', $prop)
+    public static function setProp($obj, $value = '', $prop = '')
     {
         if (!isset($obj)) {
             return false;
         }
-        if ($prop) {
+        if ($prop && $value) {
             $obj->setField($prop, $value);
-        } elseif ($value) {
+        } elseif ($value && !$prop) {
             $obj->setValue($value);
-        } else {
+        } elseif (!$value && !$prop) {
             $obj->delete();
         }
 

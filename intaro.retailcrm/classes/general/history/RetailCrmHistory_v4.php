@@ -1186,16 +1186,16 @@ class RetailCrmHistory
         return $outputArray;
     }
     
-    public static function setProp($obj, $value = '', $prop)
+    public static function setProp($obj, $value = '', $prop = '')
     {
         if (!isset($obj)) {
             return false;
         }
-        if ($prop) {
+        if ($prop && $value) {
             $obj->setField($prop, $value);
-        } elseif ($value) {
+        } elseif ($value && !$prop) {
             $obj->setValue($value);
-        } else {
+        } elseif (!$value && !$prop) {
             $obj->delete();
         }
 

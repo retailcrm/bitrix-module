@@ -326,7 +326,7 @@ class RCrmActions
                 return self::proxy($api, $methodApi, $method, array($params, $site));
         }
     }
-    
+
     private function proxy($api, $methodApi, $method, $params) {
         $log = new Logger();
         $version = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_VERSION, 0);
@@ -360,11 +360,11 @@ class RCrmActions
                         'params' => $params
                     ), 'apiErrors');
                 }
-                
+
                 if (function_exists('retailCrmApiResult')) {
                     retailCrmApiResult($methodApi, false, $result->getStatusCode());
                 }
-            
+
                 if ($result->getStatusCode() == 460) {
                     return true;
                 }
@@ -408,11 +408,11 @@ class RCrmActions
 
             return false;
         }
-        
+
         if (function_exists('retailCrmApiResult')) {
             retailCrmApiResult($methodApi, true, $result->getStatusCode());
         }
-        
+
         return $result;
     }
 }
