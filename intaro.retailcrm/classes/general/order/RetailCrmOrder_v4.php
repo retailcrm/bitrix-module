@@ -272,7 +272,15 @@ class RetailCrmOrder
 
         if (count($resOrders) > 0) {
             foreach ($resCustomers as $key => $customerLoad) {
-                $site = count($optionsSitesList) > 1 ? $optionsSitesList[$key] : null;
+                if ($optionsSitesList) {
+                    if (array_key_exists($key, $optionsSitesList) && $optionsSitesList[$key] != null) {
+                        $site = $optionsSitesList[$key];
+                    } else {
+                        continue;
+                    }
+                } elseif (!$optionsSitesList) {
+                    $site == null;
+                }
                 if (RCrmActions::apiMethod($api, 'customersUpload', __METHOD__, $customerLoad, $site) === false) {
                     return false;
                 }
@@ -281,7 +289,15 @@ class RetailCrmOrder
                 }
             }
             foreach ($resOrders as $key => $orderLoad) {
-                $site = count($optionsSitesList) > 1 ? $optionsSitesList[$key] : null;
+                if ($optionsSitesList) {
+                    if (array_key_exists($key, $optionsSitesList) && $optionsSitesList[$key] != null) {
+                        $site = $optionsSitesList[$key];
+                    } else {
+                        continue;
+                    }
+                } elseif (!$optionsSitesList) {
+                    $site == null;
+                }
                 if (RCrmActions::apiMethod($api, 'ordersUpload', __METHOD__, $orderLoad, $site) === false) {
                     return false;
                 }
