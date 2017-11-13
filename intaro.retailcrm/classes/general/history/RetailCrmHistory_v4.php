@@ -614,7 +614,7 @@ class RetailCrmHistory
                                         'CURRENCY' => \Bitrix\Currency\CurrencyManager::getBaseCurrency(),
                                         'LID' => $site,
                                         'BASE_PRICE' => $product['initialPrice'],
-                                        'NAME' => $product['name'] ? RCrmActions::fromJSON($product['name']) : $elem['NAME'],
+                                        'NAME' => $product['offer']['name'] ? RCrmActions::fromJSON($product['offer']['name']) : $elem['NAME'],
                                         'DETAIL_PAGE_URL' => $elem['URL']
                                     ));
                                 } else {

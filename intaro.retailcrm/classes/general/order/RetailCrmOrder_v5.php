@@ -173,7 +173,7 @@ class RetailCrmOrder
                 $order = $newResOrder;
             } elseif ($newResOrder === false) {
                 RCrmActions::eventLog('RetailCrmOrder::orderSend', 'retailCrmBeforeOrderSend()', 'OrderID = ' . $arFields['ID'] . '. Sending canceled after retailCrmBeforeOrderSend');
-                
+
                 return false;
             }
         }
