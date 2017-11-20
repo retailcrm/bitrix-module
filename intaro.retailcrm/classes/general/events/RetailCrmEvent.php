@@ -271,45 +271,45 @@ class RetailCrmEvent
                         $paymentsExternalIds[$payment['externalId']] = $payment;
                     }
                 }
+            }
 
-                if (!empty($arPayment['PAY_SYSTEM_ID']) && isset($optionsPaymentTypes[$arPayment['PAY_SYSTEM_ID']])) {
-                    $paymentToCrm = array(
-                        'type' => $optionsPaymentTypes[$arPayment['PAY_SYSTEM_ID']],
-                        'amount' => $arPayment['SUM']
-                    );
+            if (!empty($arPayment['PAY_SYSTEM_ID']) && isset($optionsPaymentTypes[$arPayment['PAY_SYSTEM_ID']])) {
+                $paymentToCrm = array(
+                    'type' => $optionsPaymentTypes[$arPayment['PAY_SYSTEM_ID']],
+                    'amount' => $arPayment['SUM']
+                );
 
-                    if (!empty($arPayment['ID'])) {
-                        $paymentToCrm['externalId'] = $arPayment['ID'];
-                    }
-
-                    if (!empty($arPayment['DATE_PAID'])) {
-                        if (is_object($arPayment['DATE_PAID'])) {
-                            $culture = new Bitrix\Main\Context\Culture(array("FORMAT_DATETIME" => "YYYY-MM-DD HH:MI:SS"));
-                            $paymentToCrm['paidAt'] = $arPayment['DATE_PAID']->toString($culture);
-                        } elseif (is_string($arPayment['DATE_PAID'])) {
-                            $paymentToCrm['paidAt'] = $arPayment['DATE_PAID'];
-                        }
-                    }
-
-                    if (!empty($optionsPayStatuses[$arPayment['PAID']])) {
-                        $paymentToCrm['status'] = $optionsPayStatuses[$arPayment['PAID']];
-                    }
-
-                    if (!empty($arPayment['ORDER_ID'])) {
-                        $paymentToCrm['order']['externalId'] = $arPayment['ORDER_ID'];
-                    }
-                } else {
-                    RCrmActions::eventLog('RetailCrmEvent::paymentSave', 'payments', 'OrderID = ' . $arPayment['ID'] . '. Payment not found.');
+                if (!empty($arPayment['ID'])) {
+                    $paymentToCrm['externalId'] = $arPayment['ID'];
                 }
 
-                if (!array_key_exists($arPayment['ID'], $paymentsExternalIds)) {
-                    RCrmActions::apiMethod($api, 'ordersPaymentCreate', __METHOD__, $paymentToCrm, $site);
-                } elseif (array_key_exists($arPayment['ID'], $paymentsExternalIds) && $paymentsExternalIds[$arPayment['ID']]['type'] == $optionsPaymentTypes[$arPayment['PAY_SYSTEM_ID']]) {
-                    RCrmActions::apiMethod($api, 'paymentEditByExternalId', __METHOD__, $paymentToCrm, $site);
-                } elseif (array_key_exists($arPayment['ID'], $paymentsExternalIds) && $paymentsExternalIds[$arPayment['ID']]['type'] != $optionsPaymentTypes[$arPayment['PAY_SYSTEM_ID']]) {
-                    RCrmActions::apiMethod($api, 'ordersPaymentDelete', __METHOD__, $paymentsExternalIds[$arPayment['ID']]['id']);
-                    RCrmActions::apiMethod($api, 'ordersPaymentCreate', __METHOD__, $paymentToCrm, $site);
+                if (!empty($arPayment['DATE_PAID'])) {
+                    if (is_object($arPayment['DATE_PAID'])) {
+                        $culture = new Bitrix\Main\Context\Culture(array("FORMAT_DATETIME" => "YYYY-MM-DD HH:MI:SS"));
+                        $paymentToCrm['paidAt'] = $arPayment['DATE_PAID']->toString($culture);
+                    } elseif (is_string($arPayment['DATE_PAID'])) {
+                        $paymentToCrm['paidAt'] = $arPayment['DATE_PAID'];
+                    }
                 }
+
+                if (!empty($optionsPayStatuses[$arPayment['PAID']])) {
+                    $paymentToCrm['status'] = $optionsPayStatuses[$arPayment['PAID']];
+                }
+
+                if (!empty($arPayment['ORDER_ID'])) {
+                    $paymentToCrm['order']['externalId'] = $arPayment['ORDER_ID'];
+                }
+            } else {
+                RCrmActions::eventLog('RetailCrmEvent::paymentSave', 'payments', 'OrderID = ' . $arPayment['ID'] . '. Payment not found.');
+            }
+
+            if (!array_key_exists($arPayment['ID'], $paymentsExternalIds)) {
+                RCrmActions::apiMethod($api, 'ordersPaymentCreate', __METHOD__, $paymentToCrm, $site);
+            } elseif (array_key_exists($arPayment['ID'], $paymentsExternalIds) && $paymentsExternalIds[$arPayment['ID']]['type'] == $optionsPaymentTypes[$arPayment['PAY_SYSTEM_ID']]) {
+                RCrmActions::apiMethod($api, 'paymentEditByExternalId', __METHOD__, $paymentToCrm, $site);
+            } elseif (array_key_exists($arPayment['ID'], $paymentsExternalIds) && $paymentsExternalIds[$arPayment['ID']]['type'] != $optionsPaymentTypes[$arPayment['PAY_SYSTEM_ID']]) {
+                RCrmActions::apiMethod($api, 'ordersPaymentDelete', __METHOD__, $paymentsExternalIds[$arPayment['ID']]['id']);
+                RCrmActions::apiMethod($api, 'ordersPaymentCreate', __METHOD__, $paymentToCrm, $site);
             }
         }
     }
@@ -323,7 +323,7 @@ class RetailCrmEvent
     function paymentDelete($event)
     {   
         $apiVersion = COption::GetOptionString(self::$MODULE_ID, 'api_version', 0);
-        
+
         if ((isset($GLOBALS['RETAIL_CRM_HISTORY']) && $GLOBALS['RETAIL_CRM_HISTORY']) || $apiVersion != 'v5') {
             return;
         }
