@@ -624,7 +624,6 @@ class RetailCrmHistory
                             }
                             if ($product['delete']) {
                                 $item->delete();
-                                $basket->save();
                                 
                                 continue;
                             }
@@ -653,8 +652,6 @@ class RetailCrmHistory
                                     $item->setField('DISCOUNT_VALUE', '');
                                 }
                             }
-
-                            $basket->save();  
                         }
                     }
                     

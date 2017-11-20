@@ -1168,7 +1168,6 @@ class RetailCrmHistory
                     if (isset($optionsPayment[$paymentCrm['status']])) {
                         $nowPayment->setField('PAID', $optionsPayment[$paymentCrm['status']]);
                     }
-                    $nowPayment->save();
 
                     unset($paymentsList[$paymentCrm['externalId']]);
                 }
@@ -1183,7 +1182,6 @@ class RetailCrmHistory
                 $newPayment->setField('PRICE_COD', '0.00');
                 $newPayment->setField('EXTERNAL_PAYMENT', 'N');
                 $newPayment->setField('UPDATED_1C', 'N');
-                $newPayment->save();
 
                 $newPaymentId = $newPayment->getId();
 
@@ -1202,7 +1200,6 @@ class RetailCrmHistory
             }
             $payment->delete();
         }
-        $paymentColl->save();
         
         if ($paymentsCrm['totalSumm'] == $paySumm) {
             $order->setFieldNoDemand('PAYED', 'Y');
