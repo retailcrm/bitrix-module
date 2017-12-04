@@ -544,7 +544,11 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     } catch (InvalidArgumentException $e) {
         $badKey = true;
         echo CAdminMessage::ShowMessage(GetMessage('ERR_403'));
+    } catch (\RetailCrm\Exception\InvalidJsonException $e) {
+        $badJson = true;
+        echo CAdminMessage::ShowMessage(GetMessage('ERR_JSON'));
     }
+
     $delivTypes = array();
     foreach ($arResult['deliveryTypesList'] as $delivType) {
         if ($delivType['active'] === true) {
@@ -814,7 +818,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     </tr>
     <?php endforeach; ?>
     <?php endif;?>
-<?php if(!$badKey):?>
+<?php if(!$badKey && !$badJson):?>
 <?php $tabControl->BeginNextTab(); ?>
     <input type="hidden" name="tab" value="catalog">
     <tr class="option-head">

@@ -354,7 +354,15 @@ class intaro_retailcrm extends CModule
                     'intaro.retailcrm/install/index.php', 'RetailCrm\ApiClient::*List::CurlException',
                     $e->getCode() . ': ' . $e->getMessage()
                 );
+            } catch (\InvalidArgumentException $e) {
+                $arResult['errCode'] = 'ERR_METHOD_NOT_FOUND';
+                $APPLICATION->IncludeAdminFile(
+                    GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step1.php'
+                );
+                
+                return;
             }
+
             $delivTypes = array();
             foreach ($arResult['deliveryTypesList'] as $delivType) {
                 if ($delivType['active'] === true) {
