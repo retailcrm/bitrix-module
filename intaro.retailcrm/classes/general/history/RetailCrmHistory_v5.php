@@ -22,6 +22,7 @@ class RetailCrmHistory
     public static $CRM_CATALOG_BASE_PRICE = 'catalog_base_price';
     public static $CRM_ORDER_NUMBERS = 'order_numbers';
     public static $CRM_CANSEL_ORDER = 'cansel_order';
+    public static $CRM_CURRENCY = 'currency';
 
     const CANCEL_PROPERTY_CODE = 'INTAROCRM_IS_CANCELED';
 
@@ -252,9 +253,11 @@ class RetailCrmHistory
         $optionsSitesList = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_SITES_LIST, 0));
         $optionsOrderNumbers = COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_NUMBERS, 0);
         $optionsCanselOrder = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_CANSEL_ORDER, 0));
+        $optionsCurrency = COption::GetOptionString(self::$MODULE_ID, self::$CRM_CURRENCY, 0);
+        $currency = $optionsCurrency ? $optionsCurrency : \Bitrix\Currency\CurrencyManager::getBaseCurrency();
 
         $api = new RetailCrm\ApiClient($api_host, $api_key);
-        
+
         $historyFilter = array();
         $historyStart = COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_HISTORY);
         if ($historyStart && $historyStart > 0) {
@@ -395,42 +398,38 @@ class RetailCrmHistory
                     }
                     
                     $newOrder = Bitrix\Sale\Order::create($site, $order['customer']['externalId']);
-                    $newOrder->save();
+                    $newOrder->setField('CURRENCY', $currency);
                     $externalId = $newOrder->getId();
-
-                    if (isset($externalId)) {
-                        if(RCrmActions::apiMethod($api, 'ordersFixExternalIds', __METHOD__, array(array('id' => $order['id'], 'externalId' => $externalId))) == false){
-                            continue;
-                        }
-                    } else {
-                        RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'Bitrix\Sale\Order::create', 'Error order create');
-                    }
                     $order['externalId'] = $externalId;
                 }
 
-                if (isset($order['externalId']) && $order['externalId']) {
+                if (isset($order['externalId'])) {
                     $itemUpdate = false;
-                    try {
-                        $newOrder = Bitrix\Sale\Order::load($order['externalId']);
-                    } catch (Bitrix\Main\ArgumentNullException $e) {
-                        RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'Bitrix\Sale\Order::load', $e->getMessage() . ': ' . $order['externalId']);
+
+                    if ($order['externalId']) {
+                        try {
+                            $newOrder = Bitrix\Sale\Order::load($order['externalId']);
+                        } catch (Bitrix\Main\ArgumentNullException $e) {
+                            RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'Bitrix\Sale\Order::load', $e->getMessage() . ': ' . $order['externalId']);
+
+                            continue;
+                        }
+                    }
+
+                    if (!$newOrder instanceof \Bitrix\Sale\Order) {
+                        RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'Bitrix\Sale\Order::load', 'Error order load number=' . $order['number']);
                         
                         continue;
                     }
 
-                    if (!$newOrder instanceof \Bitrix\Sale\Order) {
-                        RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'Bitrix\Sale\Order::load', 'Error order load id=' . $order['externalId']);
-                        
-                        continue;
-                    }
-                    
                     if ($optionsSitesList) {
                         $site = array_search($order['site'], $optionsSitesList);
                     } else {
                         $site = CSite::GetDefSite();
                     }
+
                     if (empty($site)) {
-                        RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'Bitrix\Sale\Order::edit', 'Site = ' . $order['site'] . ' not found in setting. Order id=' . $order['externalId']);
+                        RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'Bitrix\Sale\Order::edit', 'Site = ' . $order['site'] . ' not found in setting. Order number=' . $order['number']);
                         
                         continue;
                     }
@@ -448,7 +447,7 @@ class RetailCrmHistory
                                 continue;
                             }
                         }
-                        
+
                         $newOrder->setField('ACCOUNT_NUMBER', $order['number']);
                     }
 
@@ -569,7 +568,7 @@ class RetailCrmHistory
                                         } elseif (count($loc) == 2) {
                                             $parameters['filter']['PHRASE'] = RCrmActions::fromJSON(trim($loc[1]));
                                         } else{
-                                            RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'RetailCrmHistory::setProp', 'Error location. ' . $order['delivery']['address'][$key] . ' not found add in order id=' . $order['externalId']);
+                                            RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'RetailCrmHistory::setProp', 'Error location. ' . $order['delivery']['address'][$key] . ' not found add in order number=' . $order['number']);
                                             continue;
                                         }
                                         $parameters['filter']['NAME.LANGUAGE_ID'] = 'ru';
@@ -578,7 +577,7 @@ class RetailCrmHistory
                                         $somePropValue = $propertyCollection->getItemByOrderPropertyId($propsKey[$orderProp]['ID']);
                                         self::setProp($somePropValue, $location['CODE']);
                                     }  else {
-                                        RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'RetailCrmHistory::setProp', 'Error location. ' . $order['delivery']['address'][$key] . ' is empty in order id=' . $order['externalId']);
+                                        RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'RetailCrmHistory::setProp', 'Error location. ' . $order['delivery']['address'][$key] . ' is empty in order number=' . $order['number']);
 
                                         continue;
                                     }
@@ -614,6 +613,12 @@ class RetailCrmHistory
 
                     //items
                     $basket = $newOrder->getBasket();
+                    
+                    if (!$basket) {
+                        $basket = Bitrix\Sale\Basket::create($site);
+                        $newOrder->setBasket($basket);
+                    }
+
                     if (isset($order['items'])) {
                         $itemUpdate = true;
                         foreach ($order['items'] as $product) {
@@ -626,7 +631,7 @@ class RetailCrmHistory
                                 if ($item instanceof \Bitrix\Sale\BasketItem) {
                                     $elem = self::getInfoElement($product['offer']['externalId']);
                                     $item->setFields(array(
-                                        'CURRENCY' => \Bitrix\Currency\CurrencyManager::getBaseCurrency(),
+                                        'CURRENCY' => $newOrder->getCurrency(),
                                         'LID' => $site,
                                         'BASE_PRICE' => $product['initialPrice'],
                                         'NAME' => $product['offer']['name'] ? RCrmActions::fromJSON($product['offer']['name']) : $elem['NAME'],
@@ -682,7 +687,6 @@ class RetailCrmHistory
 
                     $newOrder->setField('PRICE', $orderSumm);
                     $order['summ'] = $orderSumm;
-                    $newOrder->save();
                     
                     //payment
                     if (array_key_exists('payments', $order)) {
@@ -693,53 +697,47 @@ class RetailCrmHistory
                             $newOrder = self::paymentsUpdate($newOrder, $orderCrm['order'], $api);
                         }
                     }
-                    
+
                     //delivery
-                    if (array_key_exists('code', $order['delivery'])) {
+                    if (array_key_exists('delivery', $order)) {
                         $itemUpdate = true;
                         //delete empty
                         if (!isset($orderCrm)) {
                             $orderCrm = RCrmActions::apiMethod($api, 'orderGet', __METHOD__, $order['id']);
                         }
                         if ($orderCrm) {
-                            self::shipmentUpdate($orderCrm['order'], $optionsDelivTypes, $newOrder->getField('ACCOUNT_NUMBER'));
+                            $newOrder = self::deliveryEdit($newOrder, $optionsDelivTypes, $orderCrm['order']);
                         }
                     }
+
                     if (isset($orderCrm)) {
                         unset($orderCrm); 
                     }
                     
-                    //delivery cost
-                    if (array_key_exists('cost', $order['delivery'])) {
-                        $shipment = Bitrix\Sale\Internals\ShipmentTable::getList(array(
-                            'filter' => array('ORDER_ID' => $order['externalId'], 'SYSTEM' => 'N'),
-                            'order' => array('ID')
-                        ))->fetch();
-                        if ($shipment) {
-                            Bitrix\Sale\Internals\ShipmentTable::update($shipment['ID'], array('BASE_PRICE_DELIVERY' => $order['delivery']['cost'], 'PRICE_DELIVERY' => $order['delivery']['cost'], 'CUSTOM_PRICE_DELIVERY' => 'Y'));
+                    $newOrder->save();
+
+                    if (!$order['externalId']) {
+                        if(RCrmActions::apiMethod($api, 'ordersFixExternalIds', __METHOD__, array(array('id' => $order['id'], 'externalId' => $newOrder->getId()))) == false){
+                            continue;
                         }
-                        
-                        Bitrix\Sale\OrderTable::update($order['externalId'], array('PRICE_DELIVERY' => $order['delivery']['cost']));
-                    }  
-                    
-                    Bitrix\Sale\OrderTable::update($order['externalId'], array('MARKED' => 'N', 'EMP_MARKED_ID' => '', 'REASON_MARKED' => ''));
-                    
-                    if ($itemUpdate) {
-                        self::updateShipmentItem($order['externalId']);
+                    } else {
+                        RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'Bitrix\Sale\Order::create', 'Error order create');
                     }
-                    
+
                     if (function_exists('retailCrmAfterOrderSave')) {
                         retailCrmAfterOrderSave($order);
                     }
                 }
+                
+                unset($newOrder);
             }
-            
+
             $GLOBALS['RETAIL_CRM_HISTORY'] = false;
-            
+
             //end id
             $end = array_pop($orderH);
             COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_HISTORY, $end['id']);
-            
+
             if ($orderHistory['pagination']['totalPageCount'] == 1) {
                 return true;
             }
@@ -798,7 +796,7 @@ class RetailCrmHistory
                 }
             }
         }
-        
+
         return $customers;
     }
     
@@ -909,234 +907,89 @@ class RetailCrmHistory
         
         return $orders;
     }
-    
-    public static function shipmentUpdate($orderCrm, $optionsDelivTypes, $accountNumber = '')
+
+    /**
+     * Update shipment in order
+     *
+     * @param order object
+     * @param options delivery types
+     * @param order from crm
+     * 
+     * @return order object
+     */
+    public static function deliveryEdit(Bitrix\Sale\Order $order, $optionsDelivTypes, $orderCrm)
     {
-        if (strlen($accountNumber) < 1) {
-            RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'shipmentUpdate', 'ACCOUNT_NUMBER not found');
-            
+        if (!$order instanceof Bitrix\Sale\Order) {
             return false;
         }
-        
-        if (isset($orderCrm['delivery']['code'])) {
-            $crmCode = $orderCrm['delivery']['code'];
-            
-            if (isset($orderCrm['delivery']['data']['deliveryType'])) {
-                $crmService = $orderCrm['delivery']['data']['deliveryType'];
-            } elseif (isset($orderCrm['delivery']['service'])) {
-                $crmService = $orderCrm['delivery']['service']['code'];
-            }
 
-            //select bitrix service code
-            $arDeliveryServiceAll = \Bitrix\Sale\Delivery\Services\Manager::getActiveList();
-            foreach ($arDeliveryServiceAll as $arDeliveryService) {
-                $arDeliveryCode[$arDeliveryService['CODE']] = $arDeliveryService['ID'];
-                $arDeliveryID[$arDeliveryService['ID']] = $arDeliveryService;
-                if ($arDeliveryService['ID'] == $optionsDelivTypes[$crmCode]) {
-                    $dCode = $arDeliveryService['CODE'] . ':' . $crmService;
-                } 
-            }
-            //We will change delivery to this id
-            if ($crmService && $arDeliveryCode[$dCode]) {
-                $nowDelivery = $arDeliveryCode[$dCode];
-            } elseif (!empty($optionsDelivTypes[$crmCode])) {
-                $nowDelivery = $optionsDelivTypes[$crmCode];
-            } else {
-                RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'shipmentUpdate', 'Delivery ' . $crmCode . ' not found in options');
-                
-                return false;
-            }
-            
-            //Find the current delivery in the order
-            $cnt = Bitrix\Sale\Internals\ShipmentTable::getCount(array('ORDER_ID' => $orderCrm['externalId']));
-            if ($cnt > 0) {//update 
-                $obDeliverys = \Bitrix\Sale\Internals\ShipmentTable::getList(array('filter' => array('ORDER_ID' => $orderCrm['externalId']),
-                                                                    'order' => array('ID')));
-                while ($arDelivery = $obDeliverys->fetch()) {
-                    if ($arDelivery['DELIVERY_ID'] != $nowDelivery) {
-                        \Bitrix\Sale\OrderTable::update($orderCrm['externalId'], array('DELIVERY_ID' => $nowDelivery));
-                        \Bitrix\Sale\Internals\ShipmentTable::update($arDelivery['ID'], array('DELIVERY_ID' => $nowDelivery, 'DELIVERY_NAME' => $arDeliveryID[$nowDelivery]['NAME']));
-                    }
-                }
-                if ($cnt == 1 && $arDelivery['DELIVERY_ID'] == 0) {
-                    $shipment = Bitrix\Sale\Internals\ShipmentTable::add(array(
-                        'ORDER_ID' => $orderCrm['externalId'],
-                        'STATUS_ID' => 'DN',
-                        'PRICE_DELIVERY' => 0,
-                        'BASE_PRICE_DELIVERY' => 0,
-                        'CUSTOM_PRICE_DELIVERY' => 'N',
-                        'ALLOW_DELIVERY' => 'N',
-                        'DEDUCTED' => 'N',
-                        'RESERVED' => 'N',
-                        'DELIVERY_ID' => $nowDelivery,
-                        'DELIVERY_NAME' => $arDeliveryID[$nowDelivery]['NAME'],
-                        'CANCELED' => 'N',
-                        'MARKED' => 'N',
-                        'CURRENCY' => \Bitrix\Currency\CurrencyManager::getBaseCurrency(),
-                        'SYSTEM' => 'N',
-                        'ACCOUNT_NUMBER' => $accountNumber . '/2',
-                        'EXTERNAL_DELIVERY' => 'N',
-                        'UPDATED_1C' => 'N',
-                        'DATE_INSERT'=> new \Bitrix\Main\Type\DateTime()
-                    ));
-                }
-            } else {//create
-                \Bitrix\Sale\OrderTable::update($orderCrm['externalId'], array('DELIVERY_ID' => $nowDelivery));
-                $shipmentSystem = \Bitrix\Sale\Internals\ShipmentTable::add(array(
-                    'ORDER_ID' => $orderCrm['externalId'],
-                    'STATUS_ID' => 'DN',
-                    'CUSTOM_PRICE_DELIVERY' => 'N',
-                    'ALLOW_DELIVERY' => 'N',
-                    'DEDUCTED' => 'N',
-                    'RESERVED' => 'N',
-                    'DELIVERY_ID' => $nowDelivery,
-                    'DELIVERY_NAME' => $nowDelivery[$nowDelivery]['NAME'],
-                    'CANCELED' => 'N',
-                    'MARKED' => 'N',
-                    'SYSTEM' => 'Y',
-                    'ACCOUNT_NUMBER' => $accountNumber . '/1',
-                    'EXTERNAL_DELIVERY' => 'N',
-                    'UPDATED_1C' => 'N',
-                    'DATE_INSERT'=> new \Bitrix\Main\Type\DateTime()
-                ));
-                $shipment = Bitrix\Sale\Internals\ShipmentTable::add(array(
-                    'ORDER_ID' => $orderCrm['externalId'],
-                    'STATUS_ID' => 'DN',
-                    'PRICE_DELIVERY' => 0,
-                    'BASE_PRICE_DELIVERY' => 0,
-                    'CUSTOM_PRICE_DELIVERY' => 'N',
-                    'ALLOW_DELIVERY' => 'N',
-                    'DEDUCTED' => 'N',
-                    'RESERVED' => 'N',
-                    'DELIVERY_ID' => $nowDelivery,
-                    'DELIVERY_NAME' => $arDeliveryID[$nowDelivery]['NAME'],
-                    'CANCELED' => 'N',
-                    'MARKED' => 'N',
-                    'CURRENCY' => \Bitrix\Currency\CurrencyManager::getBaseCurrency(),
-                    'SYSTEM' => 'N',
-                    'ACCOUNT_NUMBER' => $accountNumber . '/2',
-                    'EXTERNAL_DELIVERY' => 'N',
-                    'UPDATED_1C' => 'N',
-                    'DATE_INSERT'=> new \Bitrix\Main\Type\DateTime()
-                ));
-            }   
+        if ($order->getId()) {
+            $update = true;
         } else {
-            //search for the order on the delivery site and delete / replace with no delivery
-            $noOrderId = \Bitrix\Sale\Delivery\Services\EmptyDeliveryService::getEmptyDeliveryServiceId();
-            \Bitrix\Sale\OrderTable::update($orderCrm['externalId'], array('DELIVERY_ID' => $noOrderId));
-            $obDeliverys = Bitrix\Sale\Internals\ShipmentTable::getList(array('filter' => array('ORDER_ID' => $orderCrm['externalId']),
-                                                               'order' => array('ID')));
-            $create = true;
-            while ($arDelivery = $obDeliverys->fetch()) {
-                \Bitrix\Sale\Internals\ShipmentTable::update($arDelivery['ID'], array('DELIVERY_ID' => $noOrderId, 'DELIVERY_NAME' => GetMessage('NO_DELIVERY')));
-                $create = false;
-            }
-            if ($create) {
-                $shipmentSystem = \Bitrix\Sale\Internals\ShipmentTable::add(array(
-                    'ORDER_ID' => $orderCrm['externalId'],
-                    'STATUS_ID' => 'DN',
-                    'CUSTOM_PRICE_DELIVERY' => 'N',
-                    'ALLOW_DELIVERY' => 'N',
-                    'DEDUCTED' => 'N',
-                    'RESERVED' => 'N',
-                    'DELIVERY_ID' => $noOrderId,
-                    'DELIVERY_NAME' => GetMessage('NO_DELIVERY'),
-                    'CANCELED' => 'N',
-                    'MARKED' => 'N',
-                    'SYSTEM' => 'Y',
-                    'ACCOUNT_NUMBER' => $accountNumber . '/1',
-                    'EXTERNAL_DELIVERY' => 'N',
-                    'UPDATED_1C' => 'N',
-                    'DATE_INSERT'=> new \Bitrix\Main\Type\DateTime()
-                ));
-                $shipment = Bitrix\Sale\Internals\ShipmentTable::add(array(
-                    'ORDER_ID' => $orderCrm['externalId'],
-                    'STATUS_ID' => 'DN',
-                    'PRICE_DELIVERY' => 0,
-                    'BASE_PRICE_DELIVERY' => 0,
-                    'CUSTOM_PRICE_DELIVERY' => 'N',
-                    'ALLOW_DELIVERY' => 'N',
-                    'DEDUCTED' => 'N',
-                    'RESERVED' => 'N',
-                    'DELIVERY_ID' => $noOrderId,
-                    'DELIVERY_NAME' => GetMessage('NO_DELIVERY'),
-                    'CANCELED' => 'N',
-                    'MARKED' => 'N',
-                    'CURRENCY' => \Bitrix\Currency\CurrencyManager::getBaseCurrency(),
-                    'SYSTEM' => 'N',
-                    'ACCOUNT_NUMBER' => $accountNumber . '/2',
-                    'EXTERNAL_DELIVERY' => 'N',
-                    'UPDATED_1C' => 'N',
-                    'DATE_INSERT'=> new \Bitrix\Main\Type\DateTime()
-                ));
-            }
-        }
-        
-        return true;
-    }
-    
-    public static function updateShipmentItem($orderId)
-    {
-        $orderBasket = \Bitrix\Sale\Internals\BasketTable::getList(array(
-            'filter' => array('ORDER_ID' => $orderId),
-            'select' => array('ID', 'QUANTITY')
-        ));
-
-        $basketItems = array();
-        while ($basketItem = $orderBasket->fetch()) {
-            $basketItems[] = $basketItem;
-            $bItems[] = $basketItem['ID'];
+            $update = false;
         }
 
-        $obShipments = \Bitrix\Sale\Internals\ShipmentTable::getList(array(
-            'filter' => array('ORDER_ID' => $orderId, 'SYSTEM' => 'N'),
-            'select' => array('ID')
-        ));
+        $crmCode = isset($orderCrm['delivery']['code']) ? $orderCrm['delivery']['code'] : false;
+        $noDeliveryId = \Bitrix\Sale\Delivery\Services\EmptyDeliveryService::getEmptyDeliveryServiceId();
+        $basket = $order->getBasket();
 
-        $shipmentItems = array();
-        while ($arShipment = $obShipments->fetch()) {
-            $dlvBaslet = \Bitrix\Sale\Internals\ShipmentItemTable::getList(array(
-                'order'  => array('ORDER_DELIVERY_ID'),
-                'filter' => array('ORDER_DELIVERY_ID' => $arShipment['ID'])
-            ));
-            $shipmentItems[$arShipment['ID']] = array();
-            while ($item = $dlvBaslet->fetch()) {
-                $shipmentItems[$arShipment['ID']][] = $item;
-            }
-        }
+        if ($crmCode === false || !isset($optionsDelivTypes[$crmCode])) {
+            $deliveryId = $noDeliveryId;
+        } else {
+            $deliveryId = $optionsDelivTypes[$crmCode];
 
-        foreach ($basketItems as $basketItem) {
-            foreach ($shipmentItems as $key => $arShipmentItems) {
-                $found = false;
-                foreach ($arShipmentItems as $elShipmentItem) {
-                    if (!in_array($elShipmentItem['BASKET_ID'], $bItems)) {
-                        //delete the element
-                        \Bitrix\Sale\Internals\ShipmentItemTable::delete($elShipmentItem['ID']);
+            if (isset($orderCrm['delivery']['service']['code'])) {
+                $deliveryCode = \Bitrix\Sale\Delivery\Services\Manager::getCodeById($deliveryId);
+
+                if ($deliveryCode) {
+                    try {
+                        $deliveryService = \Bitrix\Sale\Delivery\Services\Manager::getObjectByCode($deliveryCode . ':' . $orderCrm['delivery']['service']['code']);
+                    } catch (Bitrix\Main\SystemException $systemException) {
+                        RCrmActions::eventLog('RetailCrmHistory::deliveryEdit', '\Bitrix\Sale\Delivery\Services\Manager::getObjectByCode', $systemException->getMessage());
                     }
-                    if ($elShipmentItem['BASKET_ID'] == $basketItem['ID']) {
-                        //found
-                        $found = true;
-                        //update quantity
-                        if ($elShipmentItem['QUANTITY'] != $basketItem['QUANTITY']) {
-                            \Bitrix\Sale\Internals\ShipmentItemTable::update($elShipmentItem['ID'], array('QUANTITY' => $basketItem['QUANTITY']));
-                        }
 
+                    if (isset($deliveryService)) {
+                        $deliveryId = $deliveryService->getId();
                     }
                 }
-                if (!$found) {
-                    //create 
-                    \Bitrix\Sale\Internals\ShipmentItemTable::add(array(
-                        'ORDER_DELIVERY_ID' => $key,
-                        'BASKET_ID'         => $basketItem['ID'],
-                        'DATE_INSERT'       => new \Bitrix\Main\Type\DateTime(),
-                        'QUANTITY'          => $basketItem['QUANTITY'],
-                        'RESERVED_QUANTITY' => '0.00',
+            }
+        }
+
+        $delivery = \Bitrix\Sale\Delivery\Services\Manager::getObjectById($deliveryId);
+        $shipmentColl = $order->getShipmentCollection();
+
+        if ($delivery) {
+            if (!$update) {
+                    $shipment = $shipmentColl->createItem($delivery);
+                    $shipment->setFields(array(
+                        'PRICE_DELIVERY' => $orderCrm['delivery']['cost'],
+                        'BASE_PRICE_DELIVERY' => $orderCrm['delivery']['cost'],
+                        'CURRENCY' => $order->getCurrency(),
+                        'DELIVERY_NAME' => $delivery->getName()
                     ));
+            } else {
+                foreach ($shipmentColl as $shipment) {
+                    if (!$shipment->isSystem()) {
+                        $shipment->setFields(array(
+                            'PRICE_DELIVERY' => $orderCrm['delivery']['cost'],
+                            'BASE_PRICE_DELIVERY' => $orderCrm['delivery']['cost'],
+                            'CURRENCY' => $order->getCurrency(),
+                            'DELIVERY_ID' => $deliveryId,
+                            'DELIVERY_NAME' => $delivery->getName()
+                        ));
+                    }
                 }
             }
         }
+
+        if (isset($shipment) && $shipment) {
+            $shipmentItemColl = $shipment->getShipmentItemCollection();
+            $shipmentItemColl->resetCollection($basket);
+        }
+
+        return $order;
     }
-    
+
     public static function paymentsUpdate($order, $paymentsCrm, $api)
     {
         $optionsPayTypes = array_flip(unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_TYPES, 0)));
@@ -1177,7 +1030,7 @@ class RetailCrmHistory
                 $newPayment->setField('PAY_SYSTEM_ID', $optionsPayTypes[$paymentCrm['type']]);
                 $newPayment->setField('PAY_SYSTEM_NAME', $arPaySysmems[$optionsPayTypes[$paymentCrm['type']]]);
                 $newPayment->setField('PAID', $optionsPayment[$paymentCrm['status']] ? $optionsPayment[$paymentCrm['status']] : 'N');
-                $newPayment->setField('CURRENCY', \Bitrix\Currency\CurrencyManager::getBaseCurrency());
+                $newPayment->setField('CURRENCY', $order->getCurrency());
                 $newPayment->setField('IS_RETURN', 'N');
                 $newPayment->setField('PRICE_COD', '0.00');
                 $newPayment->setField('EXTERNAL_PAYMENT', 'N');
@@ -1206,11 +1059,10 @@ class RetailCrmHistory
         } else {
             $order->setFieldNoDemand('PAYED', 'N');
         }
-        $order->save();
         
         return $order;
     }
-    
+
     public static function newValue($value)
     {
         if (array_key_exists('code', $value)) {
@@ -1219,7 +1071,7 @@ class RetailCrmHistory
             return $value;
         }
     }
-    
+
     public static function removeEmpty($inputArray)
     {
         $outputArray = array();
@@ -1295,7 +1147,7 @@ class RetailUser extends CUser
 {
     public function GetID()
     {
-        $rsUser = CUser::GetList(($by = 'ID'), ($order = 'DESC'), array('LOGIN' => 'retailcrm%'));
+        $rsUser = CUser::GetList(($by = 'ID'), ($order = 'DESC'), array('LOGIN' => 'retailcrm'));
 
         if ($arUser = $rsUser->Fetch()) {
             return $arUser['ID'];

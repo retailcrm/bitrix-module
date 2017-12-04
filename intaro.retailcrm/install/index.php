@@ -47,7 +47,9 @@ class intaro_retailcrm extends CModule
     //var $CRM_CATALOG_IBLOCKS = 'catalog_base_iblocks';
     var $CRM_ORDER_NUMBERS = 'order_numbers';
     var $CRM_CANSEL_ORDER = 'cansel_order';
-    
+    var $CRM_CURRENCY = 'currency';
+    var $CRM_ADDRESS_OPTIONS = 'address_options';
+
     var $CRM_INVENTORIES_UPLOAD = 'inventories_upload';
     var $CRM_STORES = 'stores';
     var $CRM_SHOPS = 'shops';
@@ -993,6 +995,8 @@ class intaro_retailcrm extends CModule
         COption::RemoveOption($this->MODULE_ID, $this->CRM_CUSTOMER_HISTORY);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_HISTORY);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_CATALOG_BASE_PRICE);
+        COption::RemoveOption($this->MODULE_ID, $this->CRM_CURRENCY);
+        COption::RemoveOption($this->MODULE_ID, $this->CRM_ADDRESS_OPTIONS);
 
         COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_NUMBERS);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_CANSEL_ORDER);

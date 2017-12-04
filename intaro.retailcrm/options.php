@@ -40,6 +40,9 @@ $CRM_UA_KEYS = 'ua_keys';
 
 $CRM_API_VERSION = 'api_version';
 
+$CRM_CURRENCY = 'currency';
+$CRM_ADDRESS_OPTIONS = 'address_options';
+
 if(!CModule::IncludeModule('intaro.retailcrm') || !CModule::IncludeModule('sale') || !CModule::IncludeModule('iblock') || !CModule::IncludeModule('catalog'))
     return;
 
@@ -293,6 +296,10 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         $propsCount = 0;
         $_orderPropsArr = array();
         foreach ($arResult['orderProps'] as $orderProp) {
+            if (isset($_POST['address-detail-' . $orderType['ID']])) {
+                $addressDatailOptions[$orderType['ID']] = $_POST['address-detail-' . $orderType['ID']];
+            }
+
             if ((!(int) htmlspecialchars(trim($_POST['address-detail-' . $orderType['ID']]))) && $propsCount > 4) {
                 break;
             }
@@ -472,7 +479,12 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             echo CAdminMessage::ShowMessage(GetMessage('API_NOT_WORK'));
         }
     }
-        
+
+    if ($_POST['currency']) {
+        COption::SetOptionString($mid, $CRM_CURRENCY, $_POST['currency']);
+    }
+
+    COption::SetOptionString($mid, $CRM_ADDRESS_OPTIONS, serialize($addressDatailOptions));
     COption::SetOptionString($mid, $CRM_SITES_LIST, serialize($siteListArr));
     COption::SetOptionString($mid, $CRM_ORDER_TYPES_ARR, serialize(RCrmActions::clearArr($orderTypesArr)));
     COption::SetOptionString($mid, $CRM_DELIVERY_TYPES_ARR, serialize(RCrmActions::clearArr($deliveryTypesArr)));
@@ -598,6 +610,13 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     $optionUaKeys = unserialize(COption::GetOptionString($mid, $CRM_UA_KEYS));
     
     $version = COption::GetOptionString($mid, $CRM_API_VERSION, 0);
+
+    //currency
+    $baseCurrency = \Bitrix\Currency\CurrencyManager::getBaseCurrency();
+    $currencyOption = COption::GetOptionString($mid, $CRM_CURRENCY, 0) ? COption::GetOptionString($mid, $CRM_CURRENCY, 0) : $baseCurrency;
+    $currencyList = \Bitrix\Currency\CurrencyManager::getCurrencyList();
+
+    $addressOptions = unserialize(COption::GetOptionString($mid, $CRM_ADDRESS_OPTIONS, 0));
 
     $aTabs = array(
         array(
@@ -967,13 +986,13 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     <tr class="heading">
         <td colspan="2" style="background-color: transparent;">
             <b>
-                <label><input class="addr" type="radio" name="address-detail-<?php echo $bitrixOrderType['ID']; ?>" value="0" <?php if(count($optionsOrderProps[$bitrixOrderType['ID']]) < 6) echo "checked"; ?>><?php echo GetMessage('ADDRESS_SHORT'); ?></label>
-                <label><input class="addr" type="radio" name="address-detail-<?php echo $bitrixOrderType['ID']; ?>" value="1" <?php if(count($optionsOrderProps[$bitrixOrderType['ID']]) > 5) echo "checked"; ?>><?php echo GetMessage('ADDRESS_FULL'); ?></label>
+                <label><input class="addr" type="radio" name="address-detail-<?php echo $bitrixOrderType['ID']; ?>" value="0" <?php if($addressOptions[$bitrixOrderType['ID']] == 0) echo "checked"; ?>><?php echo GetMessage('ADDRESS_SHORT'); ?></label>
+                <label><input class="addr" type="radio" name="address-detail-<?php echo $bitrixOrderType['ID']; ?>" value="1" <?php if($addressOptions[$bitrixOrderType['ID']] == 1) echo "checked"; ?>><?php echo GetMessage('ADDRESS_FULL'); ?></label>
             </b>
         </td>
     </tr>
     <?php endif; ?>
-    <tr <?php if ($countProps > 4) echo 'class="address-detail-' . $bitrixOrderType['ID'] . '"'; if(($countProps > 4) && (count($optionsOrderProps[$bitrixOrderType['ID']]) < 6)) echo 'style="display:none;"';?>>
+    <tr <?php if ($countProps > 4) echo 'class="address-detail-' . $bitrixOrderType['ID'] . '"'; if(($countProps > 4) && ($addressOptions[$bitrixOrderType['ID']] == 0)) echo 'style="display:none;"';?>>
         <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $orderProp['ID']; ?>">
             <?php echo $orderProp['NAME']; ?>
         </td>
@@ -1004,7 +1023,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                 </td>
                 <td width="50%" class="">
                     <select name="custom-fields-<?=$customFields['ID'] . '-' . $bitrixOrderType['ID']; ?>" class="typeselect">
-                        <option value=""></option>              
+                        <option value=""></option>
                         <?foreach ($arResult['arProp'][$bitrixOrderType['ID']] as $arProp):?>
                             <option value="<?=$arProp['CODE']?>" <?php if ($optionsCustomFields[$bitrixOrderType['ID']][$customFields['ID']] == $arProp['CODE']) echo 'selected'; ?>>
                             <?=$arProp['NAME']; ?>
@@ -1029,7 +1048,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         </td>
         <td width="50%" class="">
             <select name="legal-detail-<?php echo $legalDetails['ID'] . '-' . $bitrixOrderType['ID']; ?>" class="typeselect">
-                <option value=""></option>              
+                <option value=""></option>
                 <?php foreach ($arResult['arProp'][$bitrixOrderType['ID']] as $arProp): ?>
                 <option value="<?php echo $arProp['CODE']; ?>" <?php if ($optionsLegalDetails[$bitrixOrderType['ID']][$legalDetails['ID']] == $arProp['CODE']) echo 'selected'; ?>>
                     <?php echo $arProp['NAME']; ?>
@@ -1061,18 +1080,32 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             </b>
         </td>
     </tr>  
-    <tr class="heading" >
+    <tr class="heading">
         <td colspan="2" class="option-other-heading"><b><?php echo GetMessage('CRM_API_VERSION'); ?></b></td>
-    </tr>    
+    </tr>
     <tr>
         <td colspan="2" class="option-head option-other-top option-other-bottom">
-            <select name="api_version" class="typeselect">  
+            <select name="api_version" class="typeselect">
                 <?php for($v = 4; $v <= 5; $v++) { 
                     $ver = 'v' . $v; ?>
                 <option value="<?php echo $ver; ?>" <?php if ($ver == $version) echo 'selected'; ?>>
                     API V<?php echo $v; ?>
                 </option>
                 <?php } ?>
+            </select>
+        </td>
+    </tr>
+    <tr class="heading">
+        <td colspan="2" class="option-other-heading"><b><?php echo GetMessage('CURRENCY'); ?></b></td>
+    </tr>  
+    <tr>
+        <td colspan="2" class="option-head option-other-top option-other-bottom">
+            <select name="currency" class="typeselect">  
+                <?php foreach ($currencyList as $currencyCode => $currencyName) : ?>
+                    <option value="<?php echo $currencyCode; ?>" <?php if ($currencyCode == $currencyOption) echo 'selected'; ?>>
+                       <?php echo $currencyName; ?>
+                    </option>
+                <?php endforeach; ?>
             </select>
         </td>
     </tr> 

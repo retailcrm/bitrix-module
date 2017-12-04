@@ -356,7 +356,7 @@ class RetailCrmEvent
         $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
         $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
         $api = new RetailCrm\ApiClient($api_host, $api_key);
-        $orderCrm = RCrmActions::apiMethod($api, 'ordersGet', __METHOD__, $arPayment('ORDER_ID'), $site);
+        $orderCrm = RCrmActions::apiMethod($api, 'ordersGet', __METHOD__, $arPayment['ORDER_ID'], $site);
 
         if (isset($orderCrm['order']['payments']) && $orderCrm['order']['payments']) {
             foreach ($orderCrm['order']['payments'] as $payment) {

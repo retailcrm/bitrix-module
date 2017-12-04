@@ -98,7 +98,8 @@ class RCrmActions
     {
         $bitrixPropsList = array();
         $arPropsAll = \Bitrix\Sale\Internals\OrderPropsTable::getList(array(
-            'select' => array('*')
+            'select' => array('*'),
+            'filter' => array('CODE' => '_%')
         ));
         while ($prop = $arPropsAll->Fetch()) {
             $bitrixPropsList[$prop['PERSON_TYPE_ID']][] = $prop;

@@ -71,6 +71,7 @@ $MESS ['ORDERS_OPTIONS'] = 'Настройки заказов';
 $MESS ['ORDER_NUMBERS'] = 'Транслировать номера заказов созданных в црм в магазин';
 
 $MESS ['CRM_API_VERSION'] = 'Версия API клиента';
+$MESS ['CURRENCY'] = 'Валюта, устанавливаемая в заказе при выгрузке из CRM';
 
 $MESS ['INVENTORIES_UPLOAD'] = 'Включить выгрузку остатков в разрезе складов';
 $MESS ['INVENTORIES'] = 'Склады';
