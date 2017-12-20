@@ -64,6 +64,11 @@ class RetailCrmOrder
         }
         $order['contragent']['contragentType'] = $arParams['optionsContragentType'][$arFields['PERSON_TYPE_ID']];
 
+        if ($methodApi == 'ordersEdit') {
+            $order['discountManualAmount'] = 0;
+            $order['discountManualPercent'] = 0;
+        }
+
         //fields
         foreach ($arFields['PROPS']['properties'] as $prop) {
             if ($search = array_search($prop['CODE'], $arParams['optionsLegalDetails'][$arFields['PERSON_TYPE_ID']])) {
@@ -301,7 +306,7 @@ class RetailCrmOrder
                         continue;
                     }
                 } elseif (!$optionsSitesList) {
-                    $site == null;
+                    $site = null;
                 }
                 if (RCrmActions::apiMethod($api, 'customersUpload', __METHOD__, $customerLoad, $site) === false) {
                     return false;
@@ -318,7 +323,7 @@ class RetailCrmOrder
                         continue;
                     }
                 } elseif (!$optionsSitesList) {
-                    $site == null;
+                    $site = null;
                 }
                 if (RCrmActions::apiMethod($api, 'ordersUpload', __METHOD__, $orderLoad, $site) === false) {
                     return false;
