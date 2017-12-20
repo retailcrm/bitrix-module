@@ -742,8 +742,9 @@ class RetailCrmHistory
                                 if ($paymentExternalId) {
                                     $newHistoryPayments[$orderPayment->getField('XML_ID')]['externalId'] = $paymentExternalId;
                                     RCrmActions::apiMethod($api, 'paymentEditById', __METHOD__, $newHistoryPayments[$orderPayment->getField('XML_ID')]);
-                                    \Bitrix\Sale\Internals\PaymentTable::update($paymentExternalId, array('XML_ID' => ''));
-                                }  
+                                }
+
+                                \Bitrix\Sale\Internals\PaymentTable::update($paymentExternalId, array('XML_ID' => ''));
                             }
                         }
                     }
@@ -1022,7 +1023,7 @@ class RetailCrmHistory
      * 
      * @param object $order
      * 
-     * @return void | boolean
+     * @return void
      */
     public static function shipmentItemReset($order)
     {
