@@ -235,8 +235,8 @@ class RetailCrmEvent
         }
 
         if ($optionsSitesList) {
-            if (array_key_exists($arOrder['LID'], $optionsSitesList) && $optionsSitesList[$arOrder['LID']] !== null) {
-                $site = $optionsSitesList[$arOrder['LID']];
+            if (array_key_exists($arPayment['LID'], $optionsSitesList) && $optionsSitesList[$arPayment['LID']] !== null) {
+                $site = $optionsSitesList[$arPayment['LID']];
             } else {
                 return;
             }
@@ -257,7 +257,7 @@ class RetailCrmEvent
             if ($payments) {
                 foreach ($payments as $payment) {
                     if (!isset($payment['externalId'])) {
-                        if ($payment['type'] == $optionsPaymentTypes[$arPayment['PAY_SYSTEM_ID']] && $payment['amount'] == $arPayment['SUM']) {
+                        if ($payment['type'] == $optionsPaymentTypes[$arPayment['PAY_SYSTEM_ID']]) {
                             $payment['externalId'] = $arPayment['ID'];
                             RCrmActions::apiMethod($api, 'paymentEditById', __METHOD__, $payment, $site);
                         }
@@ -321,10 +321,10 @@ class RetailCrmEvent
      */
 
     function paymentDelete($event)
-    {   
+    {
         $apiVersion = COption::GetOptionString(self::$MODULE_ID, 'api_version', 0);
 
-        if ((isset($GLOBALS['RETAIL_CRM_HISTORY']) && $GLOBALS['RETAIL_CRM_HISTORY']) || $apiVersion != 'v5') {
+        if ((isset($GLOBALS['RETAIL_CRM_HISTORY']) && $GLOBALS['RETAIL_CRM_HISTORY']) || $apiVersion != 'v5' || !$event->getId()) {
             return;
         }
 
@@ -343,14 +343,14 @@ class RetailCrmEvent
             return;
         }
 
-        if(!empty($optionsSitesList) && array_key_exists($arPayment['LID'], $optionsSitesList)) {
-            $site = $optionsSitesList[$arPayment['LID']];
-        } else {
+        if ($optionsSitesList) {
+            if (array_key_exists($arPayment['LID'], $optionsSitesList) && $optionsSitesList[$arPayment['LID']] !== null) {
+                $site = $optionsSitesList[$arPayment['LID']];
+            } else {
+                return;
+            }
+        } elseif (!$optionsSitesList) {
             $site = null;
-        }
-
-        if ($site == null) {
-            return;
         }
 
         $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
