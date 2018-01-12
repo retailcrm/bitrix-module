@@ -402,7 +402,7 @@ class RetailCrmHistory
                     if (!is_object($newOrder) || !$newOrder instanceof \Bitrix\Sale\Order) {
                         RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'Bitrix\Sale\Order::create', 'Error order create');
 
-                        continue;;
+                        continue;
                     }
 
                     $externalId = $newOrder->getId();
@@ -696,7 +696,6 @@ class RetailCrmHistory
 
                     $orderSumm += $deliverySumm;
 
-                    $newOrder->setField('PRICE', $orderSumm);
                     $order['summ'] = $orderSumm;
 
                     //payment
@@ -731,6 +730,7 @@ class RetailCrmHistory
                         unset($orderCrm); 
                     }
 
+                    $newOrder->setField('PRICE', $orderSumm);
                     $newOrder->save();
 
                     if ($newHistoryPayments) {
@@ -1022,7 +1022,7 @@ class RetailCrmHistory
      * 
      * @param object $order
      * 
-     * @return void
+     * @return void | boolean
      */
     public static function shipmentItemReset($order)
     {
@@ -1032,7 +1032,14 @@ class RetailCrmHistory
         foreach ($shipmentCollection as $shipment) {
             if (!$shipment->isSystem()) {
                 $shipmentItemColl = $shipment->getShipmentItemCollection();
-                $shipmentItemColl->resetCollection($basket);
+
+                try {
+                    $shipmentItemColl->resetCollection($basket);    
+                } catch (\Bitrix\Main\NotSupportedException $NotSupportedException) {
+                    RCrmActions::eventLog('RetailCrmHistory::shipmentItemReset', '\Bitrix\Sale\ShipmentItemCollection::resetCollection()', $NotSupportedException->getMessage());
+
+                    return false;
+                }
             }
         }
     }
