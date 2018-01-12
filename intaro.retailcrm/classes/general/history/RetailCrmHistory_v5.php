@@ -1023,7 +1023,7 @@ class RetailCrmHistory
      * 
      * @param object $order
      * 
-     * @return void
+     * @return void | boolean
      */
     public static function shipmentItemReset($order)
     {
