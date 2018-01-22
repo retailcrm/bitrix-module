@@ -672,7 +672,7 @@ class RetailCrmHistory
 
                             if (array_key_exists('discountTotal', $product)) {
                                 $itemCost = $item->getField('BASE_PRICE');
-                                if (isset($itemCost) && $itemCost > 0) {
+                                if (isset($itemCost) && $itemCost >= 0) {
                                     $item->setField('CUSTOM_PRICE', 'Y');
                                     $item->setField('PRICE', $itemCost - $product['discountTotal']);
                                     $item->setField('DISCOUNT_PRICE', $product['discountTotal']);
