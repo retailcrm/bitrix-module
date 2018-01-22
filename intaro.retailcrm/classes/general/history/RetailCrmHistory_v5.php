@@ -743,7 +743,9 @@ class RetailCrmHistory
                                     RCrmActions::apiMethod($api, 'paymentEditById', __METHOD__, $newHistoryPayments[$orderPayment->getField('XML_ID')]);
                                 }
 
-                                \Bitrix\Sale\Internals\PaymentTable::update($paymentExternalId, array('XML_ID' => ''));
+                                if (!is_null($paymentExternalId)) {
+                                    \Bitrix\Sale\Internals\PaymentTable::update($paymentExternalId, array('XML_ID' => ''));
+                                }
                             }
                         }
                     }
