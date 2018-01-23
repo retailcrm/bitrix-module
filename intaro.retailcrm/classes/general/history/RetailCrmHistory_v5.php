@@ -440,23 +440,6 @@ class RetailCrmHistory
                         continue;
                     }
 
-                    if ($optionsOrderNumbers == 'Y' && isset($order['number'])) {
-                        $searchFilter = array(
-                                'filter' => array('ACCOUNT_NUMBER' => $order['number']),
-                                'select' => array('ID'),
-                        );
-                        $searchOrder = \Bitrix\Sale\OrderTable::GetList($searchFilter)->fetch();
-                        if (!empty($searchOrder)) {
-                            if ($searchOrder['ID'] != $order['externalId']) {
-                                RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'setField("ACCOUNT_NUMBER")', 'Error order load id=' . $order['externalId']) . '. Number ' . $order['number'] . ' already exists';
-                            
-                                continue;
-                            }
-                        }
-
-                        $newOrder->setField('ACCOUNT_NUMBER', $order['number']);
-                    }
-
                     $personType = $newOrder->getField('PERSON_TYPE_ID');
                     if (isset($order['orderType']) && $order['orderType']) { 
                         $nType = array();
@@ -733,7 +716,25 @@ class RetailCrmHistory
                     $newOrder->setField('PRICE', $orderSumm);
                     $newOrder->save();
 
-                    if ($newHistoryPayments) {
+                    if ($optionsOrderNumbers == 'Y' && isset($order['number'])) {
+                        $searchFilter = array(
+                                'filter' => array('ACCOUNT_NUMBER' => $order['number']),
+                                'select' => array('ID'),
+                        );
+                        $searchOrder = \Bitrix\Sale\OrderTable::GetList($searchFilter)->fetch();
+                        if (!empty($searchOrder)) {
+                            if ($searchOrder['ID'] != $order['externalId']) {
+                                RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'setField("ACCOUNT_NUMBER")', 'Error order load id=' . $order['externalId']) . '. Number ' . $order['number'] . ' already exists';
+                            
+                                continue;
+                            }
+                        }
+
+                        $newOrder->setField('ACCOUNT_NUMBER', $order['number']);
+                        $newOrder->save();
+                    }
+
+                    if (!empty($newHistoryPayments)) {
                         foreach ($newOrder->getPaymentCollection() as $orderPayment) {
                             if (array_key_exists($orderPayment->getField('XML_ID'), $newHistoryPayments)) {
                                 $paymentExternalId = $orderPayment->getId();
@@ -741,9 +742,8 @@ class RetailCrmHistory
                                 if ($paymentExternalId) {
                                     $newHistoryPayments[$orderPayment->getField('XML_ID')]['externalId'] = $paymentExternalId;
                                     RCrmActions::apiMethod($api, 'paymentEditById', __METHOD__, $newHistoryPayments[$orderPayment->getField('XML_ID')]);
-                                }
-
-                                \Bitrix\Sale\Internals\PaymentTable::update($paymentExternalId, array('XML_ID' => ''));
+                                    \Bitrix\Sale\Internals\PaymentTable::update($paymentExternalId, array('XML_ID' => ''));
+                                }  
                             }
                         }
                     }
@@ -1105,8 +1105,6 @@ class RetailCrmHistory
                 $newPaymentId = $newPayment->getId();
 
                 unset($paymentsList[$newPaymentId]);
-
-                RCrmActions::apiMethod($api, 'paymentEditById', __METHOD__, array('id' => $paymentCrm['id'], 'externalId' => $newPaymentId));
             }
 
             if ($optionsPayment[$paymentCrm['status']] == 'Y') {
