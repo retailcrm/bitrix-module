@@ -672,7 +672,7 @@ class RetailCrmHistory
 
                             if (array_key_exists('discountTotal', $product)) {
                                 $itemCost = $item->getField('BASE_PRICE');
-                                if (isset($itemCost) && $itemCost > 0) {
+                                if (isset($itemCost) && $itemCost >= 0) {
                                     $item->setField('CUSTOM_PRICE', 'Y');
                                     $item->setField('PRICE', $itemCost - $product['discountTotal']);
                                     $item->setField('DISCOUNT_PRICE', $product['discountTotal']);
@@ -743,7 +743,9 @@ class RetailCrmHistory
                                     RCrmActions::apiMethod($api, 'paymentEditById', __METHOD__, $newHistoryPayments[$orderPayment->getField('XML_ID')]);
                                 }
 
-                                \Bitrix\Sale\Internals\PaymentTable::update($paymentExternalId, array('XML_ID' => ''));
+                                if (!is_null($paymentExternalId)) {
+                                    \Bitrix\Sale\Internals\PaymentTable::update($paymentExternalId, array('XML_ID' => ''));
+                                }
                             }
                         }
                     }

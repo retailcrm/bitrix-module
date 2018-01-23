@@ -645,7 +645,7 @@ class RetailCrmHistory
                                     }
                                 }
 
-                                if (isset($itemCost) && $itemCost > 0) {
+                                if (isset($itemCost) && $itemCost >= 0) {
                                     $item->setField('CUSTOM_PRICE', 'Y');
                                     $item->setField('PRICE', $itemCost);
                                     $item->setField('DISCOUNT_NAME', '');
