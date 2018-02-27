@@ -228,6 +228,18 @@
         "managerComment": {
             "type": "string"
         },
+        "weight": {
+            "type": "double"
+        },
+        "length": {
+            "type": "int"
+        },
+        "width": {
+            "type": "int"
+        },
+        "height": {
+            "type": "int"
+        },
         "paymentDetail": {
             "type": "string"
         },

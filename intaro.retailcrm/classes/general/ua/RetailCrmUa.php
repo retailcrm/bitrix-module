@@ -31,8 +31,16 @@ class RetailCrmUa
             </script>";
             if (isset($_GET['ORDER_ID'])) {
                 CModule::IncludeModule("sale");
-                $arOrder = CSaleOrder::GetByID($_GET['ORDER_ID']);
-                $ua .= "<script type=\"text/javascript\">
+                $order = \Bitrix\Sale\Order::loadByAccountNumber($_GET['ORDER_ID']);
+
+                if ($order !== null) {
+                    $arOrder = array(
+                        'ID' => $order->getId(),
+                        'PRICE' => $order->getPrice(),
+                        'DISCOUNT_VALUE' => $order->getField('DISCOUNT_VALUE')
+                    );
+
+                    $ua .= "<script type=\"text/javascript\">
                     ga('require', 'ecommerce', 'ecommerce.js');
                     ga('ecommerce:addTransaction', {
                       'id': $arOrder[ID],
@@ -40,26 +48,27 @@ class RetailCrmUa
                       'revenue': $arOrder[PRICE],
                       'tax': $arOrder[DISCOUNT_VALUE]
                     });
-                ";
-                $arBasketItems = CsaleBasket::GetList(
-                    array('id' => 'asc'),
-                    array('ORDER_ID' => $_GET['ORDER_ID']),
-                    false,
-                    false,
-                    array('PRODUCT_ID', 'NAME', 'PRICE', 'QUANTITY', 'ORDER_ID', 'ID')
-                );  
-                while ($arItem = $arBasketItems->fetch()) {
-                    $ua .= "
-                    ga('ecommerce:addItem', {
-                        'id': $arOrder[ID],
-                        'sku': '$arItem[PRODUCT_ID]',
-                        'name': '$arItem[NAME]',
-                        'price': $arItem[PRICE],
-                        'quantity': $arItem[QUANTITY]
-                    });
                     ";
+                    $arBasketItems = CsaleBasket::GetList(
+                        array('id' => 'asc'),
+                        array('ORDER_ID' => $_GET['ORDER_ID']),
+                        false,
+                        false,
+                        array('PRODUCT_ID', 'NAME', 'PRICE', 'QUANTITY', 'ORDER_ID', 'ID')
+                    );  
+                    while ($arItem = $arBasketItems->fetch()) {
+                        $ua .= "
+                        ga('ecommerce:addItem', {
+                            'id': $arOrder[ID],
+                            'sku': '$arItem[PRODUCT_ID]',
+                            'name': '$arItem[NAME]',
+                            'price': $arItem[PRICE],
+                            'quantity': $arItem[QUANTITY]
+                        });
+                        ";
+                    }
+                    $ua .= "ga('ecommerce:send');";
                 }
-                $ua .= "ga('ecommerce:send');";
             }
             $ua .= "</script>";
 
