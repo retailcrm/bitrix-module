@@ -16,7 +16,9 @@ class RetailCrmUser
             'externalId'     => $arFields['ID'],
             'email'          => $arFields['EMAIL'],
             'createdAt'      => new \DateTime($arFields['DATE_REGISTER']),
-            'contragentType' => $contragentType
+            'contragent'     => array(
+                'contragentType' => $contragentType
+            )
         );
         
         if (!empty($arFields['NAME'])) {

@@ -122,6 +122,11 @@ class RetailCrmOrder
             }
         }
 
+        $weight = 0;
+        $width = 0;
+        $height = 0;
+        $length = 0;
+
         //basket
         foreach ($arFields['BASKET'] as $product) {
             $item = array(
@@ -141,8 +146,19 @@ class RetailCrmOrder
             $item['initialPrice'] = (double) $product['PRICE'] + (double) $product['DISCOUNT_PRICE'];
 
             $order['items'][] = $item;
+
+            $dimensions = RCrmActions::unserializeArrayRecursive($product['DIMENSIONS']);
+            $width += $dimensions['WIDTH'];
+            $height += $dimensions['HEIGHT'];
+            $length += $dimensions['LENGTH'];
+            $weight += $product['WEIGHT'];
         }
-         
+
+        $order['width'] = $width;
+        $order['height'] = $height;
+        $order['length'] = $length;
+        $order['weight'] = $weight;
+
         //payments
         $payments = array();
         foreach ($arFields['PAYMENTS'] as $payment) {
@@ -341,7 +357,7 @@ class RetailCrmOrder
 
         return true;
     }
-    
+
     public static function orderObjToArr($obOrder)
     {
         $arOrder = array(
@@ -363,7 +379,7 @@ class RetailCrmOrder
             'COMMENTS'         => $obOrder->getField('COMMENTS'),
             'REASON_CANCELED'  => $obOrder->getField('REASON_CANCELED'),
         );
-        
+
         $shipmentList = $obOrder->getShipmentCollection();
         foreach ($shipmentList as $shipmentData) {
             if ($shipmentData->getDeliveryId()) {
@@ -383,7 +399,7 @@ class RetailCrmOrder
                 $arOrder['DELIVERYS'][] = $shipment;
             }
         }
-        
+
         $paymentList = $obOrder->getPaymentCollection();
         foreach ($paymentList as $paymentData) {
             $arOrder['PAYMENTS'][] = $paymentData->getFields()->getValues();
@@ -393,7 +409,7 @@ class RetailCrmOrder
         foreach ($basketItems as $item) {
             $arOrder['BASKET'][] = $item->getFields();
         }
-     
+
         return $arOrder;
     }
 }

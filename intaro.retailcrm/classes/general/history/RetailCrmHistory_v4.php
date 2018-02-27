@@ -599,6 +599,13 @@ class RetailCrmHistory
 
                     //items
                     $basket = $newOrder->getBasket();
+                    $fUserId = $basket->getFUserId(true);
+
+                    if ($fUserId === null) {
+                        $fUserId = Bitrix\Sale\Fuser::getIdByUserId($order['customer']['externalId']);
+                        $basket->setFUserId($fUserId);
+                    }
+
                     if (isset($order['items'])) {
                         $itemUpdate = true;
                         foreach ($order['items'] as $product) {

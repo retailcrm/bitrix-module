@@ -262,6 +262,26 @@ class RCrmActions
         return $APPLICATION->ConvertCharset($str, 'utf-8', SITE_CHARSET);
     }
 
+    /**
+     * Unserialize array
+     * 
+     * @param string $string
+     * 
+     * @return array
+     */
+    public static function unserializeArrayRecursive($string)
+    {
+        if (is_string($string)) {
+            $string = unserialize($string);
+        }
+
+        if (!is_array($string)) {
+            $string = self::unserializeRecursive($string);
+        }
+
+        return $string;
+    }
+
     public static function explodeFIO($fio)
     {
         $result = array();
