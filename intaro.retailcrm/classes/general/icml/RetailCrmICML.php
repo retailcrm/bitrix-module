@@ -1,4 +1,8 @@
 <?php
+
+use Bitrix\Highloadblock as HL;
+use Bitrix\Main\Entity;
+
 IncludeModuleLangFile(__FILE__);
 class RetailCrmICML
 {
@@ -227,13 +231,13 @@ class RetailCrmICML
     protected function BuildCategory($arCategory)
     {
         return "
-                <category id=\"" . $this->PrepareValue($arCategory["ID"]) . "\""
-                . ( intval($arCategory["IBLOCK_SECTION_ID"] ) > 0 ?
-                        " parentId=\"" . $this->PrepareValue($arCategory["IBLOCK_SECTION_ID"]) . "\""
-                        :"")
-                . ">"
-                . $this->PrepareValue($arCategory["NAME"])
-                . "</category>\n";
+            <category id=\"" . $this->PrepareValue($arCategory["ID"]) . "\""
+            . ( intval($arCategory["IBLOCK_SECTION_ID"] ) > 0 ?
+                    " parentId=\"" . $this->PrepareValue($arCategory["IBLOCK_SECTION_ID"]) . "\""
+                    :"")
+            . ">"
+            . $this->PrepareValue($arCategory["NAME"])
+            . "</category>\n";
 
     }
 
@@ -247,9 +251,28 @@ class RetailCrmICML
         );
 
         foreach ($this->iblocks as $key => $id) {
+            $highloadblockSkuProps = array();
+            $highloadblockProductProps = array();
+
+            $productProps = CIBlockproperty::GetList(array(), array("IBLOCK_ID" => $id));
+            while ($arrProductProps = $productProps->Fetch()) {
+
+                if ($arrProductProps["USER_TYPE"] == 'directory') {
+                    $highloadblockProductProps[$arrProductProps['CODE']] = $arrProductProps;
+                }
+            }
+
             // Get Info by infoblocks
             $iblock['IBLOCK_DB'] = CIBlock::GetByID($id)->Fetch();
             $iblockOffer = CCatalogSKU::GetInfoByProductIBlock($id);
+
+            $skuProps = CIBlockproperty::GetList(array(), array("IBLOCK_ID" => $iblockOffer['IBLOCK_ID']));
+            while ($arrSkuProps = $skuProps->Fetch()) {
+
+                if ($arrSkuProps["USER_TYPE"] == 'directory') {
+                    $highloadblockSkuProps[$arrSkuProps['CODE']] = $arrSkuProps;
+                }
+            }
 
             $arSelect = Array (
                 "ID",
@@ -388,6 +411,13 @@ class RetailCrmICML
                                     $resPropertiesProduct[$key] *= $this->measurement[$this->propertiesUnitProduct[$id][$key]];
                                     $resPropertiesProduct[$key . "_UNIT"] = $this->measurementLink[$this->propertiesUnitProduct[$id][$key]];
                                 }
+                                if (isset($highloadblockProductProps[$propProduct])) {
+                                    $propVal = $this->getHBprop($highloadblockProductProps[$propProduct], $offer["PROPERTY_" . $propProduct . "_VALUE"]);
+                                    $tableName = $highloadblockProductProps[$propProduct]['USER_TYPE_SETTINGS']['TABLE_NAME'];
+                                    $field = $this->highloadblockSkuProperties[$tableName][$iblockOffer['IBLOCK_ID']][$key];
+                                    
+                                    $resPropertiesProduct[$key] =  $propVal[$field];
+                                }
                             }
                         }
 
@@ -431,6 +461,12 @@ class RetailCrmICML
                                         if (array_key_exists($key, $this->propertiesUnitSKU[$id])) {
                                             $offer['_PROP_' . $key] *= $this->measurement[$this->propertiesUnitSKU[$id][$key]];
                                             $offer['_PROP_' . $key . "_UNIT"] = $this->measurementLink[$this->propertiesUnitSKU[$id][$key]];
+                                        }
+                                        if (isset($highloadblockSkuProps[$propSKU])) {
+                                            $propVal = $this->getHBprop($highloadblockSkuProps[$propSKU], $offer["PROPERTY_" . $propSKU . "_VALUE"]);
+                                            $tableName = $highloadblockSkuProps[$propSKU]['USER_TYPE_SETTINGS']['TABLE_NAME'];
+                                            $field = $this->highloadblockSkuProperties[$tableName][$id][$key];
+                                            $offer['_PROP_' . $key] = $propVal[$field];
                                         }
                                     }
                                 }
@@ -555,5 +591,24 @@ class RetailCrmICML
         $offer.= "</offer>\n";
         
         return $offer;
-    }    
+    }
+
+    private function getHBprop($hbProp, $xml_id)
+    {
+        CModule::IncludeModule('highloadblock');
+        $hlblockArr = \Bitrix\Highloadblock\HighloadBlockTable::getList([
+            'filter' => ['=TABLE_NAME' => $hbProp['USER_TYPE_SETTINGS']['TABLE_NAME']]
+        ])->fetch();
+
+        $hlblock = HL\HighloadBlockTable::getById($hlblockArr["ID"])->fetch();
+        $entity = HL\HighloadBlockTable::compileEntity($hlblock);
+        $entityClass = $entity->getDataClass();
+
+        $result = $entityClass::getList(array(
+            'select' => array('*'),
+            'filter' => array('UF_XML_ID' => $xml_id)
+        ));
+
+        return $result->fetch();
+    }
 }

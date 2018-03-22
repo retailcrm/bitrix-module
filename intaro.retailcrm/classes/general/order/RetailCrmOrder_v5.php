@@ -147,17 +147,21 @@ class RetailCrmOrder
 
             $order['items'][] = $item;
 
-            $dimensions = RCrmActions::unserializeArrayRecursive($product['DIMENSIONS']);
-            $width += $dimensions['WIDTH'];
-            $height += $dimensions['HEIGHT'];
-            $length += $dimensions['LENGTH'];
-            $weight += $product['WEIGHT'];
+            if ($send) {
+                $dimensions = RCrmActions::unserializeArrayRecursive($product['DIMENSIONS']);
+                $width += $dimensions['WIDTH'];
+                $height += $dimensions['HEIGHT'];
+                $length += $dimensions['LENGTH'];
+                $weight += $product['WEIGHT'];
+            }
         }
 
-        $order['width'] = $width;
-        $order['height'] = $height;
-        $order['length'] = $length;
-        $order['weight'] = $weight;
+        if ($send) {
+            $order['width'] = $width;
+            $order['height'] = $height;
+            $order['length'] = $length;
+            $order['weight'] = $weight;
+        }
 
         //payments
         $payments = array();

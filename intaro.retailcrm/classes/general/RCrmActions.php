@@ -276,7 +276,7 @@ class RCrmActions
         }
 
         if (!is_array($string)) {
-            $string = self::unserializeRecursive($string);
+            $string = self::unserializeArrayRecursive($string);
         }
 
         return $string;

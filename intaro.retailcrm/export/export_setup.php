@@ -2,6 +2,24 @@
 if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/export_setup.php")){
     require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/export_setup.php");
 } else {
+    if (isset($_POST['ajax']) && $_POST['ajax'] == '1') {
+        CModule::IncludeModule('highloadblock');
+        $rsData = \Bitrix\Highloadblock\HighloadBlockTable::getList(array('filter' => array('TABLE_NAME' => $_POST['table'])));
+        $hlblockArr = $rsData->Fetch();
+        $hlblock = \Bitrix\Highloadblock\HighloadBlockTable::getById($hlblockArr["ID"])->fetch();
+        $entity = \Bitrix\Highloadblock\HighloadBlockTable::compileEntity($hlblock);
+        $hbFields = $entity->getFields();
+        $hlblockList['table'] = $hlblockArr["TABLE_NAME"];
+
+        foreach ($hbFields as $hbFieldCode => $hbField) {
+            $hlblockList['fields'][] = $hbFieldCode;
+        }
+
+        $APPLICATION->RestartBuffer();
+        header('Content-Type: application/x-javascript; charset=' . LANG_CHARSET);
+        die(json_encode($hlblockList));
+    }
+
     $iblockProperties = array(
         "article" => "article",
         "manufacturer" => "manufacturer",
@@ -30,6 +48,22 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
 
     while ($arPriceType = $dbPriceType->Fetch()) {
         $arResult['PRICE_TYPES'][$arPriceType['ID']] = $arPriceType;
+    }
+
+    //highloadblock
+    CModule::IncludeModule('highloadblock');
+    $hlblockList = array();
+    $hlblockListDb = \Bitrix\Highloadblock\HighloadBlockTable::getList();
+
+    while ($hlblockArr = $hlblockListDb->Fetch()) {
+        $hlblock = \Bitrix\Highloadblock\HighloadBlockTable::getById($hlblockArr["ID"])->fetch();
+        $entity = \Bitrix\Highloadblock\HighloadBlockTable::compileEntity($hlblock);
+        $hbFields = $entity->getFields();
+        $hlblockList[$hlblockArr["TABLE_NAME"]]['LABEL'] = $hlblockArr["NAME"];
+
+        foreach ($hbFields as $hbFieldCode => $hbField) {
+            $hlblockList[$hlblockArr["TABLE_NAME"]]['FIELDS'][] = $hbFieldCode;
+        }
     }
 
     if (($ACTION == 'EXPORT' || $ACTION == 'EXPORT_EDIT' || $ACTION == 'EXPORT_COPY') && $STEP == 1)
@@ -291,7 +325,7 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
                     >
                 </div>
                 <br>
-                <div id="IBLOCK_EXPORT_TABLE<?=$checkBoxCounter?>">
+                <div id="IBLOCK_EXPORT_TABLE<?=$checkBoxCounter?>" class="IBLOCK_EXPORT_TABLE" data-type="<?=$arIBlock["ID"]?>">
                     <table class="adm-list-table" id="export_setup" <?=($arIBlock['PROPERTIES_SKU'] == null ? 'style="width: 66%;"': "" )?> >
                         <thead>
                             <tr class="adm-list-table-header">
@@ -315,7 +349,7 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
 
                                 <tr class="adm-list-table-row">
                                     <td class="adm-list-table-cell">
-                                            <? echo htmlspecialcharsex($property); ?>
+                                        <? echo htmlspecialcharsex($property); ?>
                                     </td>
 
                                     <td class="adm-list-table-cell">
@@ -324,6 +358,7 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
                                                 id="IBLOCK_PROPERTY_PRODUCT_<?=$key?><?=$arIBlock["ID"]?>"
                                                 name="IBLOCK_PROPERTY_PRODUCT_<?=$key?>[<?=$arIBlock["ID"]?>]"
                                                 class="property-export"
+                                                data-type="<?=$key?>"
                                                 onchange="propertyChange(this);">
                                                     <option value=""></option>
                                                     <?if (version_compare(SM_VERSION, '14.0.0', '>=') && array_key_exists($key, $iblockFieldsName)) :?>
@@ -362,10 +397,19 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
                                                     <? foreach ($arIBlock['PROPERTIES_PRODUCT'] as $prop): ?>
                                                         <option value="<?=$prop['CODE'] ?>"
                                                             <?
+                                                            if ($prop['USER_TYPE'] == 'directory') {
+                                                                echo 'class="highloadblock-product"';
+                                                                echo 'id="'. $prop['USER_TYPE_SETTINGS']['TABLE_NAME'] .'"';
+                                                            } else {
+                                                                echo 'class="not-highloadblock"';
+                                                            }
                                                             if ($arIBlock['OLD_PROPERTY_PRODUCT_SELECT'] != null) {
                                                                 if ($prop["CODE"] == $arIBlock['OLD_PROPERTY_PRODUCT_SELECT'][$key]  ) {
                                                                     echo " selected";
                                                                     $productSelected = true;
+                                                                    if ($prop['USER_TYPE'] == 'directory') {
+                                                                        $selected = $prop['USER_TYPE_SETTINGS']['TABLE_NAME'];
+                                                                    }
                                                                 }
                                                             } else {
                                                                 foreach ($iblockPropertiesHint[$key] as $hint) {
@@ -386,7 +430,15 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
                                                     <?}?>
 
                                             </select>
-
+                                            <? if (isset($selected)
+                                                && isset($arOldSetupVars['highloadblock_product' . $selected . '_' . $key][$arIBlock['ID']])
+                                                ) : ?>
+                                                <select name="highloadblock_product<?=$selected;?>_<?=$key;?>[<? echo $arIBlock['ID']?>]" id="highloadblock" style="width: 100px; margin-left: 50px;">
+                                                    <? foreach ($hlblockList[$selected]['FIELDS'] as $field) : ?>
+                                                        <option value="<?=$field;?>"<? if ($arOldSetupVars['highloadblock_product' . $selected . '_' . $key][$arIBlock['ID']] == $field) : echo "selected"; endif; ?>><?=$field;?></option>
+                                                    <? endforeach; ?>
+                                                </select>
+                                            <? endif; ?>
                                             <?if (array_key_exists($key, $iblockFieldsName)) :?>
                                                 <select
                                                     style="width: 100px; margin-left: 50px;"
@@ -425,6 +477,7 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
                                                 id="IBLOCK_PROPERTY_SKU_<?=$key?><?=$arIBlock["ID"]?>"
                                                 name="IBLOCK_PROPERTY_SKU_<?=$key?>[<?=$arIBlock["ID"]?>]"
                                                 class="property-export"
+                                                data-type="<?=$key?>"
                                                 onchange="propertyChange(this);">
 
                                                     <option value=""></option>
@@ -464,10 +517,19 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
                                                     <? foreach ($arIBlock['PROPERTIES_SKU'] as $prop): ?>
                                                         <option value="<?=$prop['CODE'] ?>"
                                                             <?
+                                                            if ($prop['USER_TYPE'] == 'directory') {
+                                                                echo 'class="highloadblock"';
+                                                                echo 'id="'. $prop['USER_TYPE_SETTINGS']['TABLE_NAME'] .'"';
+                                                            } else {
+                                                                echo 'class="not-highloadblock"';
+                                                            }
                                                             if (!$productSelected) {
                                                                 if ($arIBlock['OLD_PROPERTY_SKU_SELECT'] != null) {
                                                                     if ($prop["CODE"] == $arIBlock['OLD_PROPERTY_SKU_SELECT'][$key]  ) {
                                                                         echo " selected";
+                                                                        if ($prop['USER_TYPE'] == 'directory') {
+                                                                            $selected = $prop['USER_TYPE_SETTINGS']['TABLE_NAME'];
+                                                                        }
                                                                     }
                                                                 } else {
                                                                     foreach ($iblockPropertiesHint[$key] as $hint) {
@@ -487,7 +549,15 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
                                                         </optgroup>
                                                     <? endif; ?>
                                             </select>
-
+                                            <? if (isset($selected)
+                                                && isset($arOldSetupVars['highloadblock' . $selected . '_' . $key][$arIBlock['ID']])
+                                                ) : ?>
+                                                <select name="highloadblock<?=$selected;?>_<?=$key;?>[<? echo $arIBlock['ID']?>]" id="highloadblock" style="width: 100px; margin-left: 50px;">
+                                                    <? foreach ($hlblockList[$selected]['FIELDS'] as $field) : ?>
+                                                        <option value="<?=$field;?>"<? if ($arOldSetupVars['highloadblock' . $selected . '_' . $key][$arIBlock['ID']] == $field) : echo "selected"; endif; ?>><?=$field;?></option>
+                                                    <? endforeach; ?>
+                                                </select>
+                                            <? endif; ?>
                                             <?if (array_key_exists($key, $iblockFieldsName)) :?>
                                                 <select
                                                     style="width: 100px; margin-left: 50px;"
@@ -653,12 +723,60 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
                 function propertyChange(obj)
                 {
                     if (BX(obj.id).value !== 'none') {
-                        if (obj.id.indexOf("SKU") !== -1)
+                        if (obj.id.indexOf("SKU") !== -1) {
                             BX(obj.id.replace('SKU','PRODUCT')).value = 'none';
-                        else
+                            var bid = obj.id.replace('SKU','PRODUCT');
+                            $("#" + bid).siblings('#highloadblock').remove();
+                        } else {
                             BX(obj.id.replace('PRODUCT','SKU')).value = 'none';
+                            var bid = obj.id.replace('PRODUCT','SKU');
+                            $("#" + bid).siblings('#highloadblock').remove();
+                        }
                     }
                 };
+                $('.highloadblock').on('click', function() {
+                    getHbFromAjax($(this), 'sku');
+                });
+                $('.highloadblock-product').on('click', function() {
+                    getHbFromAjax($(this), 'product');
+                });
+                $('.not-highloadblock').on('click', function() {
+                    var a = $(this).parent('select').siblings('#highloadblock');
+                    $(a).remove();
+                });
+                function getHbFromAjax(that, type) {
+                    var url = $('td .adm-list-table-cell').parents('form').attr('action');
+                    var get = '<?php echo http_build_query($_GET); ?>';
+                    var td = $(that).parents('td .adm-list-table-cell');
+                    var select = $(that).parent('select').siblings('#highloadblock');
+                    var table_name = $(that).attr('id');
+                    var iblock = $(that).parents('.IBLOCK_EXPORT_TABLE').attr('data-type');
+                    var key = $(that).parent('select').attr('data-type');
+
+                    $.ajax({
+                        url: url + '?' + get,
+                        type: 'POST',
+                        data: {ajax: '1', table: table_name},
+                        dataType: "json",
+                        success: function(res) {
+                            $(select).remove();
+                            $('#waiting').remove();
+                            var new_options = '';
+                            $.each(res.fields, function(key, value) {
+                                new_options += '<option value="' + value + '">' + value + '</option>';
+                            });
+                            if (type === 'sku') {
+                                $(td).append('<select name="highloadblock' + res.table + '_' + key + '[' + iblock + ']" id="highloadblock" style="width: 100px; margin-left: 50px;">' + new_options + '</select>');
+                            }
+                            if (type === 'product') {
+                                $(td).append('<select name="highloadblock_product' + res.table + '_' + key + '[' + iblock + ']" id="highloadblock" style="width: 100px; margin-left: 50px;">' + new_options + '</select>');
+                            }
+                        },
+                        beforeSend: function() {
+                            $(td).append('<span style="margin-left:50px;" id="waiting"><?=GetMessage("WAIT")?></span>');
+                        }
+                    });
+                }
         </script>
 
         <?//Следующие переменные должны быть обязательно установлены?>
@@ -671,6 +789,14 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
             $vals .= ",IBLOCK_PROPERTY_UNIT_SKU_" . $val;
             $vals .= ",IBLOCK_PROPERTY_PRODUCT_" . $val;
             $vals .= ",IBLOCK_PROPERTY_UNIT_PRODUCT_" . $val;
+
+            foreach ($hlblockList as $hlblockTable => $hlblock) {
+                $vals .= ',highloadblock'. $hlblockTable .'_' . $val;
+            }
+
+            foreach ($hlblockList as $hlblockTable => $hlblock) {
+                $vals .= ',highloadblock_product'. $hlblockTable .'_' . $val;
+            }
         }
 
         ?>

@@ -42,3 +42,4 @@ $MESS["UNIT_MEASUREMENT_MG"] = "мг.";
 $MESS["UNIT_MEASUREMENT_G"] = "г.";
 $MESS["UNIT_MEASUREMENT_KG"] = "кг.";
 $MESS['BASE_PRICE'] = 'Базовая цена';
+$MESS['WAIT'] = 'Загрузка...';
