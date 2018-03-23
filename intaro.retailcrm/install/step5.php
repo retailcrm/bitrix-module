@@ -210,7 +210,7 @@ if (!empty($oldValues)) {
                 >
             </div>
             <br>
-            <div id="IBLOCK_EXPORT_TABLE<?=$checkBoxCounter?>">
+            <div id="IBLOCK_EXPORT_TABLE<?=$checkBoxCounter?>" class="IBLOCK_EXPORT_TABLE" data-type="<?=$arIBlock["ID"]?>">
                 <table class="adm-list-table" id="export_setup" <?=($arIBlock['PROPERTIES_SKU'] == null ? 'style="width: 66%;"': "" )?> >
                     <thead>
                         <tr class="adm-list-table-header">
@@ -243,6 +243,7 @@ if (!empty($oldValues)) {
                                             id="IBLOCK_PROPERTY_PRODUCT_<?=$key?><?=$arIBlock["ID"]?>"
                                             name="IBLOCK_PROPERTY_PRODUCT_<?=$key?>[<?=$arIBlock["ID"]?>]"
                                             class="property-export"
+                                            data-type="<?=$key?>"
                                             onchange="propertyChange(this);">
                                                 <option value=""></option>
                                                 <?if (version_compare(SM_VERSION, '14.0.0', '>=') && array_key_exists($key, $iblockFieldsName) && $arIBlock['PROPERTIES_SKU'] == null) :?>
@@ -281,6 +282,12 @@ if (!empty($oldValues)) {
                                                 <? foreach ($arIBlock['PROPERTIES_PRODUCT'] as $prop): ?>
                                                     <option value="<?=$prop['CODE'] ?>"
                                                         <?
+                                                        if ($prop['USER_TYPE'] == 'directory') {
+                                                            echo 'class="highloadblock-product"';
+                                                            echo 'id="'. $prop['USER_TYPE_SETTINGS']['TABLE_NAME'] .'"';
+                                                        } else {
+                                                            echo 'class="not-highloadblock"';
+                                                        }
                                                         if ($arIBlock['OLD_PROPERTY_PRODUCT_SELECT'] != null) {
                                                             if ($prop["CODE"] == $arIBlock['OLD_PROPERTY_PRODUCT_SELECT'][$key]  ) {
                                                                 echo " selected";
@@ -342,6 +349,7 @@ if (!empty($oldValues)) {
                                             id="IBLOCK_PROPERTY_SKU_<?=$key?><?=$arIBlock["ID"]?>"
                                             name="IBLOCK_PROPERTY_SKU_<?=$key?>[<?=$arIBlock["ID"]?>]"
                                             class="property-export"
+                                            data-type="<?=$key?>"
                                             onchange="propertyChange(this);">
 
                                                 <option value=""></option>
@@ -380,6 +388,12 @@ if (!empty($oldValues)) {
                                                 <? foreach ($arIBlock['PROPERTIES_SKU'] as $prop): ?>
                                                     <option value="<?=$prop['CODE'] ?>"
                                                         <?
+                                                        if ($prop['USER_TYPE'] == 'directory') {
+                                                            echo 'class="highloadblock"';
+                                                            echo 'id="'. $prop['USER_TYPE_SETTINGS']['TABLE_NAME'] .'"';
+                                                        } else {
+                                                            echo 'class="not-highloadblock"';
+                                                        }
                                                         if (!$productSelected) {
                                                             if ($arIBlock['OLD_PROPERTY_SKU_SELECT'] != null) {
                                                                 if ($prop["CODE"] == $arIBlock['OLD_PROPERTY_SKU_SELECT'][$key]  ) {
@@ -570,10 +584,15 @@ if (!empty($oldValues)) {
             function propertyChange(obj)
             {
                 if (BX(obj.id).value !== 'none') {
-                    if (obj.id.indexOf("SKU") !== -1)
+                    if (obj.id.indexOf("SKU") !== -1) {
                         BX(obj.id.replace('SKU','PRODUCT')).value = 'none';
-                    else
+                        var bid = obj.id.replace('SKU','PRODUCT');
+                        $("#" + bid).siblings('#highloadblock').remove();
+                    } else {
                         BX(obj.id.replace('PRODUCT','SKU')).value = 'none';
+                        var bid = obj.id.replace('PRODUCT','SKU');
+                        $("#" + bid).siblings('#highloadblock').remove();
+                    }
                 }
             };
             function checkProfile(obj)
@@ -583,6 +602,57 @@ if (!empty($oldValues)) {
                 else
                     $('#profile-field').hide();
             };
+            $('.highloadblock').on('click', function() {
+                getHbFromAjax($(this), 'sku');
+            });
+            $('.highloadblock-product').on('click', function() {
+                getHbFromAjax($(this), 'product');
+            });
+            $('.not-highloadblock').on('click', function() {
+                var a = $(this).parent('select').siblings('#highloadblock');
+                $(a).remove();
+            });
+            function getHbFromAjax(that, type) {
+                var url = $('td .adm-list-table-cell').parents('form').attr('action');
+                var td = $(that).parents('td .adm-list-table-cell');
+                var select = $(that).parent('select').siblings('#highloadblock');
+                var table_name = $(that).attr('id');
+                var iblock = $(that).parents('.IBLOCK_EXPORT_TABLE').attr('data-type');
+                var key = $(that).parent('select').attr('data-type');
+
+                var step       = $('input[name="continue"]').val();
+                var id         = $('input[name="id"]').val();
+                var install    = $('input[name="install"]').val();
+                var sessid     = BX.bitrix_sessid();
+
+                var data = 'install=' + install +'&step=' + step + '&sessid=' + sessid +
+                        '&id=' + id + '&ajax=1&table=' + table_name;
+
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: data,
+                    dataType: "json",
+                    success: function(res) {
+                        $(select).remove();
+                        $('#waiting').remove();
+                        var new_options = '';
+                        $.each(res.fields, function(key, value) {
+                            new_options += '<option value="' + value + '">' + value + '</option>';
+                        });
+                        if (type == 'sku') {
+                            $(td).append('<select name="highloadblock' + res.table + '_' + key + '[' + iblock + ']" id="highloadblock" style="width: 100px; margin-left: 50px;">' + new_options + '</select>');
+                        }
+                        if (type == 'product') {
+                            $(td).append('<select name="highloadblock_product' + res.table + '_' + key + '[' + iblock + ']" id="highloadblock" style="width: 100px; margin-left: 50px;">' + new_options + '</select>');
+                        }
+                        
+                    },
+                    beforeSend: function() {
+                        $(td).append('<span style="margin-left:50px;" id="waiting"><?=GetMessage("WAIT")?></span>');
+                    }
+                });
+            }
     </script>
 
 

@@ -131,7 +131,7 @@
             "type": "string"
         },
         "managerId": {
-             "type": "int"
+            "type": "int"
         },
         "browserId": {
             "type": "string"
@@ -140,6 +140,28 @@
             "type": "string"
         },
         "personalDiscount": {
+            "type": "string"
+        },
+        "sex": {
+            "type": "string"
+        },
+        "emailMarketingUnsubscribedAt" : {
+            "type": "datetime",
+            "format": "Y-m-d"
+        },
+        "source": {
+            "type": "string"
+        },
+        "medium": {
+            "type": "string"
+        },
+        "campaign": {
+            "type": "string"
+        },
+        "keyword": {
+            "type": "string"
+        },
+        "content": {
             "type": "string"
         }
     },
@@ -297,6 +319,14 @@
         "bankAccount": {
             "type": "string"
         },
+        "shipmentDate": {
+            "type": "datetime",
+            "format": "Y-m-d"
+        },
+        "shipped": {
+            "type": "bool",
+            "default": false
+        },
         "orderType": {
             "type": "string"
         },
@@ -438,6 +468,36 @@
             "type": "skip"
         },
         "custom": {
+            "type": "string"
+        },
+        "vatRate": {
+            "type": "string"
+        },
+        "name": {
+            "type": "string"
+        },
+        "value": {
+            "type": "string"
+        },
+        "xmlId": {
+            "type": "string"
+        },
+        "netCost": {
+            "type": "double"
+        },
+        "source": {
+            "type": "string"
+        },
+        "medium": {
+            "type": "string"
+        },
+        "campaign": {
+            "type": "string"
+        },
+        "keyword": {
+            "type": "string"
+        },
+        "content": {
             "type": "string"
         }
     }

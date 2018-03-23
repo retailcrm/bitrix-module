@@ -697,7 +697,7 @@ class RetailCrmHistory
                             $orderCrm = RCrmActions::apiMethod($api, 'orderGet', __METHOD__, $order['id']);
                         }
                         if ($orderCrm) {
-                            self::paymentsUpdate($newOrder, $orderCrm['order'], $api, $newHistoryPayments);
+                            self::paymentsUpdate($newOrder, $orderCrm['order'], $newHistoryPayments);
                         }
                     }
 
@@ -1036,7 +1036,7 @@ class RetailCrmHistory
             if (!$shipment->isSystem()) {
                 $reserved = false;
 
-                if ($shipment->isReserved()) {
+                if ($shipment->needReservation()) {
                     $reserved = true;
                 }
 
@@ -1094,12 +1094,11 @@ class RetailCrmHistory
      * 
      * @param object $order
      * @param array $paymentsCrm
-     * @param object $api
      * @param array $newHistoryPayments
      * 
      * @return void
      */
-    public static function paymentsUpdate($order, $paymentsCrm, $api, &$newHistoryPayments = array())
+    public static function paymentsUpdate($order, $paymentsCrm, &$newHistoryPayments = array())
     {
         $optionsPayTypes = array_flip(unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_TYPES, 0)));
         $optionsPayment = array_flip(unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT, 0)));

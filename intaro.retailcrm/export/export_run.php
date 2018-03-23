@@ -23,6 +23,14 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
         }
     }
 
+    CModule::IncludeModule('highloadblock');
+    $hlblockList = array();
+    $hlblockListDb = \Bitrix\Highloadblock\HighloadBlockTable::getList();
+
+    while ($hlblockArr = $hlblockListDb->Fetch()) {
+        $hlblockList[$hlblockArr["TABLE_NAME"]] = $hlblockArr;
+    }
+
     $iblockProperties = array(
         "article" => "article",
         "manufacturer" => "manufacturer",
@@ -34,6 +42,7 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
         "height" => "height",
     );
     $IBLOCK_PROPERTY_SKU = array();
+    $IBLOCK_PROPERTY_SKU_HIGHLOADBLOCK = array();
     $IBLOCK_PROPERTY_UNIT_SKU = array();
     foreach ($iblockProperties as $prop) {
         $skuUnitProps = ('IBLOCK_PROPERTY_UNIT_SKU' . "_" . $prop);
@@ -51,8 +60,20 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
                 $IBLOCK_PROPERTY_SKU[$iblock][$prop] = $val;
             }
         }
+
+        foreach ($hlblockList as $hlblockTable => $hlblock) {
+            $hbProps = ('highloadblock' . $hlblockTable . '_' . $prop);
+            $hbProps = $$hbProps;
+
+            if (is_array($hbProps)) {
+                foreach ($hbProps as $iblock => $val) {
+                    $IBLOCK_PROPERTY_SKU_HIGHLOADBLOCK[$hlblockTable][$iblock][$prop] = $val;
+                }
+            }
+        }
     }
     $IBLOCK_PROPERTY_PRODUCT = array();
+    $IBLOCK_PROPERTY_PRODUCT_HIGHLOADBLOCK = array();
     $IBLOCK_PROPERTY_UNIT_PRODUCT = array();
     foreach ($iblockProperties as $prop) {
         $productUnitProps = "IBLOCK_PROPERTY_UNIT_PRODUCT" . "_" . $prop;
@@ -70,6 +91,17 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
                 $IBLOCK_PROPERTY_PRODUCT[$iblock][$prop] = $val;
             }
         }
+
+        foreach ($hlblockList as $hlblockTable => $hlblock) {
+            $hbProps = ('highloadblock_product' . $hlblockTable . '_' . $prop);
+            $hbProps = $$hbProps;
+
+            if (is_array($hbProps)) {
+                foreach ($hbProps as $iblock => $val) {
+                    $IBLOCK_PROPERTY_PRODUCT_HIGHLOADBLOCK[$hlblockTable][$iblock][$prop] = $val;
+                }
+            }
+        }
     }
 
     $loader = new RetailCrmICML();
@@ -79,6 +111,8 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
     $loader->propertiesUnitSKU = $IBLOCK_PROPERTY_UNIT_SKU;
     $loader->propertiesProduct = $IBLOCK_PROPERTY_PRODUCT;
     $loader->propertiesUnitProduct = $IBLOCK_PROPERTY_UNIT_PRODUCT;
+    $loader->highloadblockSkuProperties = $IBLOCK_PROPERTY_SKU_HIGHLOADBLOCK;
+    $loader->highloadblockProductProperties = $IBLOCK_PROPERTY_PRODUCT_HIGHLOADBLOCK;
     $loader->filename = $SETUP_FILE_NAME;
     $loader->serverName = $SERVER_NAME;
     $loader->application = $APPLICATION;
