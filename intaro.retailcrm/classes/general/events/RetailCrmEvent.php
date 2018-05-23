@@ -202,11 +202,10 @@ class RetailCrmEvent
      * 
      * @param object $event - Payment object
      */
-
     function paymentSave($event)
-    {   
+    {
         $apiVersion = COption::GetOptionString(self::$MODULE_ID, 'api_version', 0);
-        
+
         if ((isset($GLOBALS['RETAIL_CRM_HISTORY']) && $GLOBALS['RETAIL_CRM_HISTORY']) || $apiVersion != 'v5') {
             return;
         }

@@ -768,19 +768,22 @@ class intaro_retailcrm extends CModule
                 $iblocks = $_POST['IBLOCK_EXPORT'];
             }
 
+            $hlblockModule = false;
             //highloadblock
-            CModule::IncludeModule('highloadblock');
-            $hlblockList = array();
-            $hlblockListDb = \Bitrix\Highloadblock\HighloadBlockTable::getList();
+            if (CModule::IncludeModule('highloadblock')) {
+                $hlblockModule = true;
+                $hlblockList = array();
+                $hlblockListDb = \Bitrix\Highloadblock\HighloadBlockTable::getList();
 
-            while ($hlblockArr = $hlblockListDb->Fetch()) {
-                $hlblock = \Bitrix\Highloadblock\HighloadBlockTable::getById($hlblockArr["ID"])->fetch();
-                $entity = \Bitrix\Highloadblock\HighloadBlockTable::compileEntity($hlblock);
-                $hbFields = $entity->getFields();
-                $hlblockList[$hlblockArr["TABLE_NAME"]]['LABEL'] = $hlblockArr["NAME"];
+                while ($hlblockArr = $hlblockListDb->Fetch()) {
+                    $hlblock = \Bitrix\Highloadblock\HighloadBlockTable::getById($hlblockArr["ID"])->fetch();
+                    $entity = \Bitrix\Highloadblock\HighloadBlockTable::compileEntity($hlblock);
+                    $hbFields = $entity->getFields();
+                    $hlblockList[$hlblockArr["TABLE_NAME"]]['LABEL'] = $hlblockArr["NAME"];
 
-                foreach ($hbFields as $hbFieldCode => $hbField) {
-                    $hlblockList[$hlblockArr["TABLE_NAME"]]['FIELDS'][] = $hbFieldCode;
+                    foreach ($hbFields as $hbFieldCode => $hbField) {
+                        $hlblockList[$hlblockArr["TABLE_NAME"]]['FIELDS'][] = $hbFieldCode;
+                    }
                 }
             }
 
@@ -805,13 +808,16 @@ class intaro_retailcrm extends CModule
                 foreach ($_POST['IBLOCK_PROPERTY_UNIT_SKU'. '_' . $prop] as $iblock => $val) {
                     $propertiesUnitSKU[$iblock][$prop] = $val;
                 }
-                foreach ($hlblockList as $tableName => $hb) {
-                    foreach ($_POST['highloadblock' . $tableName . '_' . $prop] as $iblock => $val) {
-                        $propertiesHbSKU[$tableName][$iblock][$prop] = $val;
+
+                if ($hlblockModule === true) {
+                    foreach ($hlblockList as $tableName => $hb) {
+                        foreach ($_POST['highloadblock' . $tableName . '_' . $prop] as $iblock => $val) {
+                            $propertiesHbSKU[$tableName][$iblock][$prop] = $val;
+                        }
                     }
                 }
             }
-            
+
             $propertiesProduct = array();
             $propertiesUnitProduct = array();
             $propertiesHbProduct = array();
@@ -822,9 +828,12 @@ class intaro_retailcrm extends CModule
                 foreach ($_POST['IBLOCK_PROPERTY_UNIT_PRODUCT'. '_' . $prop] as $iblock => $val) {
                     $propertiesUnitProduct[$iblock][$prop] = $val;
                 }
-                foreach ($hlblockList as $tableName => $hb) {
-                    foreach ($_POST['highloadblock_product' . $tableName . '_' . $prop] as $iblock => $val) {
-                        $propertiesHbProduct[$tableName][$iblock][$prop] = $val;
+
+                if ($hlblockModule === true) {
+                    foreach ($hlblockList as $tableName => $hb) {
+                        foreach ($_POST['highloadblock_product' . $tableName . '_' . $prop] as $iblock => $val) {
+                            $propertiesHbProduct[$tableName][$iblock][$prop] = $val;
+                        }
                     }
                 }
             }
@@ -834,7 +843,7 @@ class intaro_retailcrm extends CModule
             } else {
                 $filename = $_POST['SETUP_FILE_NAME'];
             }
-            
+
             if (!isset($_POST['TYPE_LOADING'])) {
                 $typeLoading = 0;
             } else {
@@ -850,11 +859,11 @@ class intaro_retailcrm extends CModule
             if ($typeLoading != 'none' && $profileName == "") {
                 $arResult['errCode'] = 'ERR_FIELDS_PROFILE';
             }
-            
+
             if ($filename == "") {
                 $arResult['errCode'] = 'ERR_FIELDS_FILE';
             }
-            
+
             if (isset($arResult['errCode']) && $arResult['errCode']) {
                 $arOldValues = array(
                     'IBLOCK_EXPORT' => $iblocks,
@@ -870,7 +879,7 @@ class intaro_retailcrm extends CModule
                 $APPLICATION->IncludeAdminFile(
                     GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step5.php'
                 );
-                
+
                 return;
             }
 
@@ -878,7 +887,7 @@ class intaro_retailcrm extends CModule
             RegisterModuleDependences("sale", "OnOrderUpdate", $this->MODULE_ID, "RetailCrmEvent", "onUpdateOrder");
             RegisterModuleDependences("main", "OnAfterUserUpdate", $this->MODULE_ID, "RetailCrmEvent", "OnAfterUserUpdate");
             RegisterModuleDependences("sale", "OnSaleOrderEntitySaved", $this->MODULE_ID, "RetailCrmEvent", "orderSave");
-            RegisterModuleDependences("sale", "OnSaleOrderEntityDelete", $this->MODULE_ID, "RetailCrmEvent", "orderDelete");
+            RegisterModuleDependences("sale", "OnSaleOrderDeleted", $this->MODULE_ID, "RetailCrmEvent", "orderDelete");
             RegisterModuleDependences("sale", "OnSalePaymentEntitySaved", $this->MODULE_ID, "RetailCrmEvent", "paymentSave");
             RegisterModuleDependences("sale", "OnSalePaymentEntityDeleted", $this->MODULE_ID, "RetailCrmEvent", "paymentDelete");
 
@@ -888,6 +897,19 @@ class intaro_retailcrm extends CModule
             COption::SetOptionString($this->MODULE_ID, $this->CRM_COLLECTOR, 'N');
             COption::SetOptionString($this->MODULE_ID, $this->CRM_UA, 'N');
 
+            //agent
+            $dateAgent = new DateTime();
+            $intAgent = new DateInterval('PT60S'); // PT60S - 60 sec;
+            $dateAgent->add($intAgent);
+
+            CAgent::AddAgent(
+                "RCrmActions::orderAgent();", $this->MODULE_ID, "N", 600, // interval - 10 mins
+                $dateAgent->format('d.m.Y H:i:s'), // date of first check
+                "Y", // agent is active
+                $dateAgent->format('d.m.Y H:i:s'), // date of first start
+                30
+            );
+
             $this->CopyFiles();
             if (isset($_POST['LOAD_NOW'])) {                
                 $loader = new RetailCrmICML();
@@ -896,14 +918,18 @@ class intaro_retailcrm extends CModule
                 $loader->propertiesProduct = $propertiesProduct;
                 $loader->propertiesUnitSKU = $propertiesUnitSKU;
                 $loader->propertiesSKU = $propertiesSKU;
-                $loader->highloadblockSkuProperties = $propertiesHbSKU;
-                $loader->highloadblockProductProperties = $propertiesHbProduct;
+
+                if ($hlblockModule === true) {
+                    $loader->highloadblockSkuProperties = $propertiesHbSKU;
+                    $loader->highloadblockProductProperties = $propertiesHbProduct;
+                }
+
                 $loader->filename = $filename;
                 $loader->serverName = \Bitrix\Main\Context::getCurrent()->getServer()->getHttpHost();
                 $loader->application = $APPLICATION;
                 $loader->Load();     
             } 
-            
+
             if ($typeLoading == 'agent' || $typeLoading == 'cron') {
                 if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/' . $this->RETAIL_CRM_EXPORT . '_run.php')) {
                     $dbProfile = CCatalogExport::GetList(array(), array("FILE_NAME" => $this->RETAIL_CRM_EXPORT));
@@ -915,6 +941,7 @@ class intaro_retailcrm extends CModule
                         }
                     }
                 }
+
                 $ar = $this->GetProfileSetupVars(
                     $iblocks,
                     $propertiesProduct,
@@ -1010,19 +1037,6 @@ class intaro_retailcrm extends CModule
                 }
             }
 
-            //agent
-            $dateAgent = new DateTime();
-            $intAgent = new DateInterval('PT60S'); // PT60S - 60 sec;
-            $dateAgent->add($intAgent);
-
-            CAgent::AddAgent(
-                    "RCrmActions::orderAgent();", $this->MODULE_ID, "N", 600, // interval - 10 mins
-                    $dateAgent->format('d.m.Y H:i:s'), // date of first check
-                    "Y", // agent is active
-                    $dateAgent->format('d.m.Y H:i:s'), // date of first start
-                    30
-            );
-
             $api_host = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, 0);
             $api_key = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, 0);
             $this->RETAIL_CRM_API = new \RetailCrm\ApiClient($api_host, $api_key);
@@ -1036,7 +1050,7 @@ class intaro_retailcrm extends CModule
             }
 
             $APPLICATION->IncludeAdminFile(
-                    GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step6.php'
+                GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step6.php'
             );
         }
     }
@@ -1095,7 +1109,7 @@ class intaro_retailcrm extends CModule
         UnRegisterModuleDependences("sale", "OnOrderUpdate", $this->MODULE_ID, "RetailCrmEvent", "onUpdateOrder");
         UnRegisterModuleDependences("main", "OnAfterUserUpdate", $this->MODULE_ID, "RetailCrmEvent", "OnAfterUserUpdate");
         UnRegisterModuleDependences("sale", "OnSaleOrderEntitySaved", $this->MODULE_ID, "RetailCrmEvent", "orderSave");
-        UnRegisterModuleDependences("sale", "OnSaleOrderEntityDelete", $this->MODULE_ID, "RetailCrmEvent", "orderDelete");
+        UnRegisterModuleDependences("sale", "OnSaleBeforeOrderDelete", $this->MODULE_ID, "RetailCrmEvent", "orderDelete");
         UnRegisterModuleDependences("main", "OnBeforeProlog", $this->MODULE_ID, "RetailCrmCollector", "add");
         UnRegisterModuleDependences("main", "OnBeforeProlog", $this->MODULE_ID, "RetailCrmUa", "add");
         UnRegisterModuleDependences("sale", "OnSalePaymentEntitySaved", $this->MODULE_ID, "RetailCrmEvent", "paymentSave");
@@ -1170,14 +1184,18 @@ class intaro_retailcrm extends CModule
         foreach ($propertiesUnitProduct as $iblock => $arr) 
             foreach ($arr as $id => $val)
                 $strVars .= 'IBLOCK_PROPERTY_UNIT_PRODUCT_' . $id . '[' . $iblock . ']=' . $val . '&';
-        foreach ($propertiesHbSKU as $table => $arr) 
-            foreach ($arr as $iblock => $val)
-                foreach ($val as $id => $value)
-                    $strVars .= 'highloadblock' . $table . '_' . $id . '[' . $iblock . ']=' . $value . '&';
-        foreach ($propertiesHbProduct as $table => $arr) 
-            foreach ($arr as $iblock => $val)
-                foreach ($val as $id => $value)
-                    $strVars .= 'highloadblock_product' . $table . '_' . $id . '[' . $iblock . ']=' . $value . '&';
+        if ($propertiesHbSKU) {
+            foreach ($propertiesHbSKU as $table => $arr)
+                foreach ($arr as $iblock => $val)
+                    foreach ($val as $id => $value)
+                        $strVars .= 'highloadblock' . $table . '_' . $id . '[' . $iblock . ']=' . $value . '&';
+        }
+        if ($propertiesHbProduct) {
+            foreach ($propertiesHbProduct as $table => $arr)
+                foreach ($arr as $iblock => $val)
+                    foreach ($val as $id => $value)
+                        $strVars .= 'highloadblock_product' . $table . '_' . $id . '[' . $iblock . ']=' . $value . '&';
+        }
 
         $strVars .= 'SETUP_FILE_NAME=' . urlencode($filename);
 

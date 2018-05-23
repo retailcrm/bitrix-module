@@ -151,7 +151,6 @@ if (!empty($oldValues)) {
                             $boolExport = (in_array($iblock['ID'], $IBLOCK_EXPORT));
                         else
                             $boolExport = true;
-                        
 
                         $arIBlockList[] = array(
                             'ID' => $iblock['ID'],
@@ -457,8 +456,6 @@ if (!empty($oldValues)) {
                 <br>
             </div>
         </div>
-        
-        
         <? endforeach;?>
     </div>
 
@@ -469,14 +466,13 @@ if (!empty($oldValues)) {
     <font class="text"><?=GetMessage("FILENAME");?><br><br></font>
     <input type="text" name="SETUP_FILE_NAME"
            value="<?=htmlspecialcharsbx(strlen($SETUP_FILE_NAME) > 0 ?
-                                        $SETUP_FILE_NAME :
-                                        (COption::GetOptionString(
-                                            'catalog',
-                                            'export_default_path',
-                                            '/bitrix/catalog_export/'))
-                                        .'retailcrm'/* .mt_rand(0, 999999) */.'.xml'
-                                        ); ?>" size="50">
-
+                $SETUP_FILE_NAME :
+                (COption::GetOptionString(
+                    'catalog',
+                    'export_default_path',
+                    '/bitrix/catalog_export/'))
+                .'retailcrm'/* .mt_rand(0, 999999) */.'.xml'
+                ); ?>" size="50">
     <br>
     <br>
     <br>
@@ -536,9 +532,9 @@ if (!empty($oldValues)) {
                         transition : BX.easing.transitions.linear,
                         step : function(state){
                             for (i = 0; i < cnt; i++)
-                                { 
-                                    BX('IBLOCK_EXPORT_TABLE'+(i+1)).style.opacity = state.opacity/100;
-                                }
+                            {
+                                BX('IBLOCK_EXPORT_TABLE'+(i+1)).style.opacity = state.opacity/100;
+                            }
                         },
                         complete : function() {
                              for (i = 0; i < cnt; i++)
@@ -594,6 +590,19 @@ if (!empty($oldValues)) {
                         $("#" + bid).siblings('#highloadblock').remove();
                     }
                 }
+
+                if ($(obj).find('option')[obj.selectedIndex].className == 'not-highloadblock') {
+                    var a = $(obj).find('option')[obj.selectedIndex].parent('select').siblings('#highloadblock');
+                    $(a).remove();
+                }
+
+                if ($(obj).find('option')[obj.selectedIndex].className == 'highloadblock') {
+                    getHbFromAjax($(obj).find('option')[obj.selectedIndex], 'sku');
+                }
+
+                if ($(obj).find('option')[obj.selectedIndex].className == 'highloadblock-product') {
+                    getHbFromAjax($(obj).find('option')[obj.selectedIndex], 'product');
+                }
             };
             function checkProfile(obj)
             {
@@ -602,16 +611,7 @@ if (!empty($oldValues)) {
                 else
                     $('#profile-field').hide();
             };
-            $('.highloadblock').on('click', function() {
-                getHbFromAjax($(this), 'sku');
-            });
-            $('.highloadblock-product').on('click', function() {
-                getHbFromAjax($(this), 'product');
-            });
-            $('.not-highloadblock').on('click', function() {
-                var a = $(this).parent('select').siblings('#highloadblock');
-                $(a).remove();
-            });
+
             function getHbFromAjax(that, type) {
                 var url = $('td .adm-list-table-cell').parents('form').attr('action');
                 var td = $(that).parents('td .adm-list-table-cell');
