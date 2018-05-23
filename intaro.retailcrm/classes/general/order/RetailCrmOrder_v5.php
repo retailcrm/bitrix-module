@@ -20,6 +20,7 @@ class RetailCrmOrder
     public static $CRM_ORDER_HISTORY_DATE = 'order_history_date';
     public static $CRM_CATALOG_BASE_PRICE = 'catalog_base_price';
     public static $CRM_ORDER_NUMBERS = 'order_numbers';
+    public static $CRM_ORDER_DIMENSIONS = 'order_dimensions';
 
     const CANCEL_PROPERTY_CODE = 'INTAROCRM_IS_CANCELED';
 
@@ -43,6 +44,8 @@ class RetailCrmOrder
             RCrmActions::eventLog('RetailCrmOrder::orderSend', 'empty($arFields)', 'incorrect order');
             return false;
         }
+
+        $dimensions = COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_DIMENSIONS, 'N');
 
         $order = array(
             'number'          => $arFields['NUMBER'],
@@ -147,7 +150,7 @@ class RetailCrmOrder
 
             $order['items'][] = $item;
 
-            if ($send) {
+            if ($send && $dimensions == 'Y') {
                 $dimensions = RCrmActions::unserializeArrayRecursive($product['DIMENSIONS']);
                 $width += $dimensions['WIDTH'];
                 $height += $dimensions['HEIGHT'];
@@ -156,7 +159,7 @@ class RetailCrmOrder
             }
         }
 
-        if ($send) {
+        if ($send && $dimensions == 'Y') {
             $order['width'] = $width;
             $order['height'] = $height;
             $order['length'] = $length;

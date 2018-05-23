@@ -557,16 +557,21 @@ class RetailCrmHistory
                                             $parameters['filter']['PHRASE'] = RCrmActions::fromJSON(trim($loc[0]));
                                         } elseif (count($loc) == 2) {
                                             $parameters['filter']['PHRASE'] = RCrmActions::fromJSON(trim($loc[1]));
-                                        } else{
+                                        } else {
                                             RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'RetailCrmHistory::setProp', 'Error location. ' . $order['delivery']['address'][$key] . ' not found add in order number=' . $order['number']);
                                             continue;
                                         }
-                                        $parameters['filter']['NAME.LANGUAGE_ID'] = 'ru';
-                                        $location = \Bitrix\Sale\Location\Search\Finder::find($parameters, array('USE_INDEX' => false, 'USE_ORM' => false))->fetch();
 
-                                        $somePropValue = $propertyCollection->getItemByOrderPropertyId($propsKey[$orderProp]['ID']);
-                                        self::setProp($somePropValue, $location['CODE']);
-                                    }  else {
+                                        $parameters['filter']['NAME.LANGUAGE_ID'] = 'ru';
+
+                                        try {
+                                            $location = \Bitrix\Sale\Location\Search\Finder::find($parameters, array('USE_INDEX' => false, 'USE_ORM' => false))->fetch();
+                                            $somePropValue = $propertyCollection->getItemByOrderPropertyId($propsKey[$orderProp]['ID']);
+                                            self::setProp($somePropValue, $location['CODE']);
+                                        } catch (\Bitrix\Main\ArgumentException $argumentException) {
+                                            RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'RetailCrmHistory::setProp', 'Location parameter is incorrect in order number=' . $order['number']);
+                                        }
+                                    } else {
                                         RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'RetailCrmHistory::setProp', 'Error location. ' . $order['delivery']['address'][$key] . ' is empty in order number=' . $order['number']);
 
                                         continue;

@@ -14,6 +14,8 @@ class RetailCrmICML
     public $propertiesUnitSKU;
     public $propertiesProduct;
     public $propertiesUnitProduct;
+    public $highloadblockSkuProperties;
+    public $highloadblockProductProperties;
     public $application;
     public $encoding = 'utf-8';
     public $encodingDefault = 'utf-8';
@@ -412,10 +414,10 @@ class RetailCrmICML
                                     $resPropertiesProduct[$key . "_UNIT"] = $this->measurementLink[$this->propertiesUnitProduct[$id][$key]];
                                 }
                                 if (isset($highloadblockProductProps[$propProduct])) {
-                                    $propVal = $this->getHBprop($highloadblockProductProps[$propProduct], $offer["PROPERTY_" . $propProduct . "_VALUE"]);
+                                    $propVal = $this->getHBprop($highloadblockProductProps[$propProduct], $product["PROPERTY_" . $propProduct . "_VALUE"]);
                                     $tableName = $highloadblockProductProps[$propProduct]['USER_TYPE_SETTINGS']['TABLE_NAME'];
-                                    $field = $this->highloadblockSkuProperties[$tableName][$iblockOffer['IBLOCK_ID']][$key];
-                                    
+                                    $field = $this->highloadblockProductProperties[$tableName][$iblockOffer['IBLOCK_ID']][$key];
+
                                     $resPropertiesProduct[$key] =  $propVal[$field];
                                 }
                             }
@@ -595,20 +597,23 @@ class RetailCrmICML
 
     private function getHBprop($hbProp, $xml_id)
     {
-        CModule::IncludeModule('highloadblock');
-        $hlblockArr = \Bitrix\Highloadblock\HighloadBlockTable::getList([
-            'filter' => ['=TABLE_NAME' => $hbProp['USER_TYPE_SETTINGS']['TABLE_NAME']]
-        ])->fetch();
+        if (CModule::IncludeModule('highloadblock')) {
+            $hlblockArr = \Bitrix\Highloadblock\HighloadBlockTable::getList(array(
+                'filter' => array('=TABLE_NAME' => $hbProp['USER_TYPE_SETTINGS']['TABLE_NAME'])
+            ))->fetch();
 
-        $hlblock = HL\HighloadBlockTable::getById($hlblockArr["ID"])->fetch();
-        $entity = HL\HighloadBlockTable::compileEntity($hlblock);
-        $entityClass = $entity->getDataClass();
+            $hlblock = HL\HighloadBlockTable::getById($hlblockArr["ID"])->fetch();
+            $entity = HL\HighloadBlockTable::compileEntity($hlblock);
+            $entityClass = $entity->getDataClass();
 
-        $result = $entityClass::getList(array(
-            'select' => array('*'),
-            'filter' => array('UF_XML_ID' => $xml_id)
-        ));
+            $result = $entityClass::getList(array(
+                'select' => array('*'),
+                'filter' => array('UF_XML_ID' => $xml_id)
+            ));
 
-        return $result->fetch();
+            return $result->fetch();
+        }
+
+        return array();
     }
 }

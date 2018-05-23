@@ -42,6 +42,7 @@ $CRM_API_VERSION = 'api_version';
 
 $CRM_CURRENCY = 'currency';
 $CRM_ADDRESS_OPTIONS = 'address_options';
+$CRM_DIMENSIONS = 'order_dimensions';
 
 if(!CModule::IncludeModule('intaro.retailcrm') || !CModule::IncludeModule('sale') || !CModule::IncludeModule('iblock') || !CModule::IncludeModule('catalog'))
     return;
@@ -278,7 +279,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         // remove depenedencies
         UnRegisterModuleDependences("sale", "OnSaleOrderEntitySaved", $mid, "RetailCrmEvent", "orderSave");
         UnRegisterModuleDependences("sale", "OnOrderUpdate", $mid, "RetailCrmEvent", "onUpdateOrder");
-        UnRegisterModuleDependences("sale", "OnSaleOrderEntityDelete", $mid, "RetailCrmEvent", "orderDelete");
+        UnRegisterModuleDependences("sale", "OnSaleOrderDeleted", $mid, "RetailCrmEvent", "orderDelete");
         UnRegisterModuleDependences("sale", "OnSalePaymentEntitySaved", $mid, "RetailCrmEvent", "paymentSave");
         UnRegisterModuleDependences("sale", "OnSalePaymentEntityDeleted", $mid, "RetailCrmEvent", "paymentDelete");
         
@@ -286,7 +287,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         // event dependencies
         RegisterModuleDependences("sale", "OnSaleOrderEntitySaved", $mid, "RetailCrmEvent", "orderSave");
         RegisterModuleDependences("sale", "OnOrderUpdate", $mid, "RetailCrmEvent", "onUpdateOrder");
-        RegisterModuleDependences("sale", "OnSaleOrderEntityDelete", $mid, "RetailCrmEvent", "orderDelete");
+        RegisterModuleDependences("sale", "OnSaleOrderDeleted", $mid, "RetailCrmEvent", "orderDelete");
         RegisterModuleDependences("sale", "OnSalePaymentEntitySaved", $mid, "RetailCrmEvent", "paymentSave");
         RegisterModuleDependences("sale", "OnSalePaymentEntityDeleted", $mid, "RetailCrmEvent", "paymentDelete");
     }
@@ -335,7 +336,9 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     }
     //order numbers
     $orderNumbers = htmlspecialchars(trim($_POST['order-numbers'])) ? htmlspecialchars(trim($_POST['order-numbers'])) : 'N';
-    
+
+    $orderDimensions = htmlspecialchars(trim($_POST[$CRM_DIMENSIONS])) ? htmlspecialchars(trim($_POST[$CRM_DIMENSIONS])) : 'N';
+
     //stores
     $bitrixStoresArr = array();
     $bitrixShopsArr = array();
@@ -480,7 +483,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         }
     }
 
-    if ($_POST['currency']) {
+    if ($_POST[$CRM_CURRENCY]) {
         COption::SetOptionString($mid, $CRM_CURRENCY, $_POST['currency']);
     }
 
@@ -514,6 +517,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     
     COption::SetOptionString($mid, $CRM_UA, $ua);
     COption::SetOptionString($mid, $CRM_UA_KEYS, serialize(RCrmActions::clearArr($uaKeys)));
+    COption::SetOptionString($mid, $CRM_DIMENSIONS, $orderDimensions);
 
     $uri .= '&ok=Y';
     LocalRedirect($uri);
@@ -620,6 +624,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     $currencyOption = COption::GetOptionString($mid, $CRM_CURRENCY, 0) ? COption::GetOptionString($mid, $CRM_CURRENCY, 0) : $baseCurrency;
     $currencyList = \Bitrix\Currency\CurrencyManager::getCurrencyList();
 
+    $optionsOrderDimensions = COption::GetOptionString($mid, $CRM_DIMENSIONS, 'N');
     $addressOptions = unserialize(COption::GetOptionString($mid, $CRM_ADDRESS_OPTIONS, 0));
 
     $aTabs = array(
@@ -1075,7 +1080,16 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                 <label><input class="addr" type="checkbox" name="order-numbers" value="Y" <?php if($optionsOrderNumbers == 'Y') echo "checked"; ?>> <?php echo GetMessage('ORDER_NUMBERS'); ?></label>
             </b>
         </td>
-    </tr>  
+    </tr>
+    <tr>
+        <td colspan="2" class="option-head option-other-top option-other-bottom">
+            <b>
+                <label>
+                    <input class="addr" type="checkbox" name="order_dimensions" value="Y" <?php if($optionsOrderDimensions == 'Y') echo "checked"; ?>> <?php echo GetMessage('ORDER_DIMENSIONS'); ?>
+                </label>
+            </b>
+        </td>
+    </tr>
     <tr>
         <td colspan="2" class="option-head option-other-top option-other-bottom">
             <b>
@@ -1112,7 +1126,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                 <?php endforeach; ?>
             </select>
         </td>
-    </tr> 
+    </tr>
     <?php if ($optionInventotiesUpload === 'Y' || count($arResult['bitrixStoresExportList']) > 0) :?>
     <tr class="heading inventories-batton">
         <td colspan="2" class="option-other-heading">

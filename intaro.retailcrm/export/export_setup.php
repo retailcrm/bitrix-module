@@ -51,18 +51,20 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
     }
 
     //highloadblock
-    CModule::IncludeModule('highloadblock');
-    $hlblockList = array();
-    $hlblockListDb = \Bitrix\Highloadblock\HighloadBlockTable::getList();
+    if (CModule::IncludeModule('highloadblock')) {
+        $hlblockModule = true;
+        $hlblockList = array();
+        $hlblockListDb = \Bitrix\Highloadblock\HighloadBlockTable::getList();
 
-    while ($hlblockArr = $hlblockListDb->Fetch()) {
-        $hlblock = \Bitrix\Highloadblock\HighloadBlockTable::getById($hlblockArr["ID"])->fetch();
-        $entity = \Bitrix\Highloadblock\HighloadBlockTable::compileEntity($hlblock);
-        $hbFields = $entity->getFields();
-        $hlblockList[$hlblockArr["TABLE_NAME"]]['LABEL'] = $hlblockArr["NAME"];
+        while ($hlblockArr = $hlblockListDb->Fetch()) {
+            $hlblock = \Bitrix\Highloadblock\HighloadBlockTable::getById($hlblockArr["ID"])->fetch();
+            $entity = \Bitrix\Highloadblock\HighloadBlockTable::compileEntity($hlblock);
+            $hbFields = $entity->getFields();
+            $hlblockList[$hlblockArr["TABLE_NAME"]]['LABEL'] = $hlblockArr["NAME"];
 
-        foreach ($hbFields as $hbFieldCode => $hbField) {
-            $hlblockList[$hlblockArr["TABLE_NAME"]]['FIELDS'][] = $hbFieldCode;
+            foreach ($hbFields as $hbFieldCode => $hbField) {
+                $hlblockList[$hlblockArr["TABLE_NAME"]]['FIELDS'][] = $hbFieldCode;
+            }
         }
     }
 
@@ -87,7 +89,6 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
                     $IBLOCK_PROPERTY_UNIT_SKU[$iblock][$prop] = $val;
                 }
             }
-
 
             $IBLOCK_PROPERTY_PRODUCT = array();
             $IBLOCK_PROPERTY_UNIT_PRODUCT = array();
@@ -612,13 +613,13 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
         <font class="text"><?=GetMessage("FILENAME");?><br><br></font>
         <input type="text" name="SETUP_FILE_NAME"
                value="<?=htmlspecialcharsbx(strlen($SETUP_FILE_NAME) > 0 ?
-                                            $SETUP_FILE_NAME :
-                                            (COption::GetOptionString(
-                                                'catalog',
-                                                'export_default_path',
-                                                '/bitrix/catalog_export/'))
-                                            .'retailcrm'.'.xml'
-                                            ); ?>" size="50">
+                    $SETUP_FILE_NAME :
+                    (COption::GetOptionString(
+                        'catalog',
+                        'export_default_path',
+                        '/bitrix/catalog_export/'))
+                    .'retailcrm'.'.xml'
+                    ); ?>" size="50">
         <br>
         <br>
 
@@ -733,17 +734,21 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
                             $("#" + bid).siblings('#highloadblock').remove();
                         }
                     }
+
+                    if ($(obj).find('option')[obj.selectedIndex].className == 'not-highloadblock') {
+                        var a = $(obj).find('option')[obj.selectedIndex].parent('select').siblings('#highloadblock');
+                        $(a).remove();
+                    }
+
+                    if ($(obj).find('option')[obj.selectedIndex].className == 'highloadblock') {
+                        getHbFromAjax($(obj).find('option')[obj.selectedIndex], 'sku');
+                    }
+
+                    if ($(obj).find('option')[obj.selectedIndex].className == 'highloadblock-product') {
+                        getHbFromAjax($(obj).find('option')[obj.selectedIndex], 'product');
+                    }
                 };
-                $('.highloadblock').on('click', function() {
-                    getHbFromAjax($(this), 'sku');
-                });
-                $('.highloadblock-product').on('click', function() {
-                    getHbFromAjax($(this), 'product');
-                });
-                $('.not-highloadblock').on('click', function() {
-                    var a = $(this).parent('select').siblings('#highloadblock');
-                    $(a).remove();
-                });
+
                 function getHbFromAjax(that, type) {
                     var url = $('td .adm-list-table-cell').parents('form').attr('action');
                     var get = '<?php echo http_build_query($_GET); ?>';
@@ -790,12 +795,14 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
             $vals .= ",IBLOCK_PROPERTY_PRODUCT_" . $val;
             $vals .= ",IBLOCK_PROPERTY_UNIT_PRODUCT_" . $val;
 
-            foreach ($hlblockList as $hlblockTable => $hlblock) {
-                $vals .= ',highloadblock'. $hlblockTable .'_' . $val;
-            }
+            if ($hlblockModule === true) {
+                foreach ($hlblockList as $hlblockTable => $hlblock) {
+                    $vals .= ',highloadblock' . $hlblockTable . '_' . $val;
+                }
 
-            foreach ($hlblockList as $hlblockTable => $hlblock) {
-                $vals .= ',highloadblock_product'. $hlblockTable .'_' . $val;
+                foreach ($hlblockList as $hlblockTable => $hlblock) {
+                    $vals .= ',highloadblock_product' . $hlblockTable . '_' . $val;
+                }
             }
         }
 
@@ -806,7 +813,6 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
         <input type="hidden" name="STEP" value="<?echo intval($STEP) + 1 ?>">
         <input type="hidden" name="SETUP_FIELDS_LIST" value="<? echo $vals ?>">
         <input type="submit" value="<?echo ($ACTION=="EXPORT")?GetMessage("CET_EXPORT"):GetMessage("CET_SAVE")?>">
-
 
     </form>
 
