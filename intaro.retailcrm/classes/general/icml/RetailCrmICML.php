@@ -253,6 +253,21 @@ class RetailCrmICML
         );
 
         foreach ($this->iblocks as $key => $id) {
+            $barcodes = array();
+            $dbBarCode = CCatalogStoreBarCode::getList(
+                array(),
+                array("IBLOCK_ID" => $id),
+                false,
+                false,
+                array('PRODUCT_ID', 'BARCODE')
+            );
+
+            while($arBarCode = $dbBarCode->GetNext()) {
+                if (!empty($arBarCode)) {
+                    $barcodes[$arBarCode['PRODUCT_ID']] = $arBarCode['BARCODE'];
+                }
+            }
+
             $highloadblockSkuProps = array();
             $highloadblockProductProps = array();
 
@@ -366,9 +381,9 @@ class RetailCrmICML
                 while ($file = $dbFiles->GetNext()) {
                     // Link picture to product
                     $products[$pictures[$file['ID']]]['PICTURE'] = $this->protocol .
-                                    $this->serverName .
-                                    '/upload/' . $file['SUBDIR'] .
-                                    '/' . $file['FILE_NAME'] ;
+                        $this->serverName .
+                        '/upload/' . $file['SUBDIR'] .
+                        '/' . $file['FILE_NAME'] ;
                 }
                 unset($pictures);
 
@@ -389,6 +404,7 @@ class RetailCrmICML
 
                     while ($offer = $dbResOffers->GetNext()) {
                         // Link offers to products
+                        $offer['PICTURE'] = $this->protocol . $this->serverName . CFile::GetPath($offer["DETAIL_PICTURE"]);
                         $products[$offer['PROPERTY_' . $iblockOffer['SKU_PROPERTY_ID'] . '_VALUE']]['offers'][$offer['ID']] = $offer;
                     }
                     unset($offer, $dbResOffers);
@@ -437,13 +453,13 @@ class RetailCrmICML
                             $categories[$catId] = $allCategories[$catId];
                         }
 
-
                         $existOffer = false;
                         if (!empty($iblockOffer['IBLOCK_ID'])) {
                             foreach ($product['offers'] as $offer) {
+                                $offer['BARCODE'] = isset($barcodes[$offer['ID']]) ? $barcodes[$offer['ID']] : '';
                                 $offer['PRODUCT_ID'] = $product["ID"];
                                 $offer['DETAIL_PAGE_URL'] = $product["DETAIL_PAGE_URL"];
-                                $offer['PICTURE'] = $product["PICTURE"];
+                                $offer['PICTURE'] = $offer["PICTURE"] ? $offer["PICTURE"] : $product["PICTURE"];
                                 $offer['PRODUCT_NAME'] = $product["NAME"];
                                 $offer['PRODUCT_ACTIVE'] = $product["ACTIVE"];
                                 $offer['PRICE'] = $offer['CATALOG_PRICE_' . $basePriceId];
@@ -484,6 +500,7 @@ class RetailCrmICML
                             }
                         }
                         if (!$existOffer) {
+                            $offer['BARCODE'] = isset($barcodes[$product["ID"]]) ? $barcodes[$product["ID"]] : '';
                             $product['PRODUCT_ID'] = $product["ID"];
                             $product['PRODUCT_NAME'] = $product["NAME"];
                             $product['PRODUCT_ACTIVE'] = $product["ACTIVE"];
@@ -499,7 +516,6 @@ class RetailCrmICML
 
                             $stringOffers .= $this->BuildOffer($product, $categories, $iblock, $allCategories);
                         }
-
                 }
                 unset($products);
 
@@ -588,6 +604,9 @@ class RetailCrmICML
                 $offer .= '<unit code="' . $this->PrepareValue($arOffer["MEASURE"]['SYMBOL_INTL']) . '" name="' . $this->PrepareValue($arOffer["MEASURE"]['MEASURE_TITLE']) . '" sym="' . $this->PrepareValue($arOffer["MEASURE"]['SYMBOL_RUS']) . '" />' . "\n";
             }
 
+        }
+        if ($arOffer["BARCODE"]) {
+            $offer.= "<barcode>" . $this->PrepareValue($arOffer["BARCODE"]) . "</barcode>\n";
         }
 
         $offer.= "</offer>\n";

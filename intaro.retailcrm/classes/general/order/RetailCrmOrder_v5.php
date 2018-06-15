@@ -74,9 +74,13 @@ class RetailCrmOrder
 
         //fields
         foreach ($arFields['PROPS']['properties'] as $prop) {
-            if ($search = array_search($prop['CODE'], $arParams['optionsLegalDetails'][$arFields['PERSON_TYPE_ID']])) {
+            if (!empty($arParams['optionsLegalDetails'])
+                && $search = array_search($prop['CODE'], $arParams['optionsLegalDetails'][$arFields['PERSON_TYPE_ID']])
+            ) {
                 $order['contragent'][$search] = $prop['VALUE'][0];//legal order data
-            } elseif ($search = array_search($prop['CODE'], $arParams['optionsCustomFields'][$arFields['PERSON_TYPE_ID']])) {
+            } elseif (!empty($arParams['optionsCustomFields'])
+                && $search = array_search($prop['CODE'], $arParams['optionsCustomFields'][$arFields['PERSON_TYPE_ID']])
+            ) {
                 $order['customFields'][$search] = $prop['VALUE'][0];//custom properties
             } elseif ($search = array_search($prop['CODE'], $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']])) {//other
                 if (in_array($search, array('fio', 'phone', 'email'))) {//fio, phone, email
@@ -389,6 +393,10 @@ class RetailCrmOrder
 
         $shipmentList = $obOrder->getShipmentCollection();
         foreach ($shipmentList as $shipmentData) {
+            if ($shipmentData->isSystem()) {
+                continue;
+            }
+
             if ($shipmentData->getDeliveryId()) {
                 $delivery = \Bitrix\Sale\Delivery\Services\Manager::getById($shipmentData->getDeliveryId());
                 $siteDeliverys = RCrmActions::DeliveryList();

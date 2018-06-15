@@ -293,7 +293,10 @@ class RetailCrmHistory
                     if (is_array($newResOrder) && !empty($newResOrder)) {
                         $order = $newResOrder;
                     } elseif ($newResOrder === false) {
-                        RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'retailCrmBeforeOrderSave()', 'OrderCrmId = ' . $order['id'] . '. Sending canceled after retailCrmBeforeOrderSave');
+                        RCrmActions::eventLog('RetailCrmHistory::orderHistory',
+                            'retailCrmBeforeOrderSave()',
+                            'OrderCrmId = ' . $order['id'] . '. Sending canceled after retailCrmBeforeOrderSave'
+                        );
 
                         continue;
                     }
