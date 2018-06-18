@@ -1,3 +1,6 @@
+[![GitHub release](https://img.shields.io/github/release/retailcrm/bitrix-module.svg?style=flat-square)](https://github.com/retailcrm/bitrix-module/releases)
+[![PHP version](https://img.shields.io/badge/PHP->=5.3-blue.svg?style=flat-square)](https://php.net/)
+
 Bitrix module
 =============
 
