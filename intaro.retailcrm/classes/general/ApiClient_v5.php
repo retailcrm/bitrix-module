@@ -48,8 +48,6 @@ class ApiClient
      * @param string $site   site code
      *
      * @throws \InvalidArgumentException
-     *
-     * @return mixed
      */
     public function __construct($url, $apiKey, $site = null)
     {
@@ -1374,30 +1372,6 @@ class ApiClient
     }
 
     /**
-     * Get store settings
-     *
-     * @param string $code get settings code
-     *
-     * @return ApiResponse
-     * @throws \RetailCrm\Exception\InvalidJsonException
-     * @throws \RetailCrm\Exception\CurlException
-     * @throws \InvalidArgumentException
-     *
-     * @return ApiResponse
-     */
-    public function storeSettingsGet($code)
-    {
-        if (empty($code)) {
-            throw new \InvalidArgumentException('Parameter `code` must be set');
-        }
-
-        return $this->client->makeRequest(
-            "/store/setting/$code",
-            Client::METHOD_GET
-        );
-    }
-
-    /**
      * Upload store inventories
      *
      * @param array  $offers offers data
@@ -1486,30 +1460,31 @@ class ApiClient
     }
 
     /**
-     * Get delivery settings
+     * Get module configuration
      *
      * @param string $code
      *
-     * @throws \InvalidArgumentException
-     * @throws \RetailCrm\Exception\CurlException
      * @throws \RetailCrm\Exception\InvalidJsonException
+     * @throws \RetailCrm\Exception\CurlException
+     * @throws \InvalidArgumentException
      *
      * @return ApiResponse
      */
-    public function deliverySettingsGet($code)
+    public function integrationModulesGet($code)
     {
         if (empty($code)) {
-            throw new \InvalidArgumentException('Parameter `code` must be set');
+            throw new \InvalidArgumentException(
+                'Parameter `code` must be set'
+            );
         }
 
         return $this->client->makeRequest(
-            "/delivery/generic/setting/$code",
+            sprintf('/integration-modules/%s', $code),
             Client::METHOD_GET
         );
     }
-
     /**
-     * Edit delivery configuration
+     * Edit module configuration
      *
      * @param array $configuration
      *
@@ -1519,7 +1494,7 @@ class ApiClient
      *
      * @return ApiResponse
      */
-    public function deliverySettingsEdit(array $configuration)
+    public function integrationModulesEdit(array $configuration)
     {
         if (!count($configuration) || empty($configuration['code'])) {
             throw new \InvalidArgumentException(
@@ -1528,9 +1503,9 @@ class ApiClient
         }
 
         return $this->client->makeRequest(
-            sprintf('/delivery/generic/setting/%s/edit', $configuration['code']),
+            sprintf('/integration-modules/%s/edit', $configuration['code']),
             Client::METHOD_POST,
-            array('configuration' => json_encode($configuration))
+            array('integrationModule' => json_encode($configuration))
         );
     }
 
@@ -2114,134 +2089,6 @@ class ApiClient
             sprintf('/reference/price-types/%s/edit', $data['code']),
             Client::METHOD_POST,
             array('priceType' => json_encode($data))
-        );
-    }
-    
-    /**
-     * Get telephony settings
-     *
-     * @param string $code
-     *
-     * @throws \RetailCrm\Exception\InvalidJsonException
-     * @throws \RetailCrm\Exception\CurlException
-     * @throws \InvalidArgumentException
-     *
-     * @return ApiResponse
-     */
-    public function telephonySettingsGet($code)
-    {
-        if (empty($code)) {
-            throw new \InvalidArgumentException('Parameter `code` must be set');
-        }
-
-        return $this->client->makeRequest(
-            "/telephony/setting/$code",
-            Client::METHOD_GET
-        );
-    }
-
-    /**
-     * Edit telephony settings
-     *
-     * @param string  $code        symbolic code
-     * @param string  $clientId    client id
-     * @param boolean $active      telephony activity
-     * @param mixed   $name        service name
-     * @param mixed   $makeCallUrl service init url
-     * @param mixed   $image       service logo url(svg file)
-     *
-     * @param array   $additionalCodes
-     * @param array   $externalPhones
-     * @param bool    $allowEdit
-     * @param bool    $inputEventSupported
-     * @param bool    $outputEventSupported
-     * @param bool    $hangupEventSupported
-     * @param bool    $changeUserStatusUrl
-     *
-     * @return ApiResponse
-     */
-    public function telephonySettingsEdit(
-        $code,
-        $clientId,
-        $active = false,
-        $name = false,
-        $makeCallUrl = false,
-        $image = false,
-        $additionalCodes = array(),
-        $externalPhones = array(),
-        $allowEdit = false,
-        $inputEventSupported = false,
-        $outputEventSupported = false,
-        $hangupEventSupported = false,
-        $changeUserStatusUrl = false
-    )
-    {
-        if (!isset($code)) {
-            throw new \InvalidArgumentException('Code must be set');
-        }
-
-        $parameters['code'] = $code;
-
-        if (!isset($clientId)) {
-            throw new \InvalidArgumentException('client id must be set');
-        }
-
-        $parameters['clientId'] = $clientId;
-
-        if (!isset($active)) {
-            $parameters['active'] = false;
-        } else {
-            $parameters['active'] = $active;
-        }
-
-        if (!isset($name)) {
-            throw new \InvalidArgumentException('name must be set');
-        }
-
-        if (isset($name)) {
-            $parameters['name'] = $name;
-        }
-
-        if (isset($makeCallUrl)) {
-            $parameters['makeCallUrl'] = $makeCallUrl;
-        }
-
-        if (isset($image)) {
-            $parameters['image'] = $image;
-        }
-
-        if (isset($additionalCodes)) {
-            $parameters['additionalCodes'] = $additionalCodes;
-        }
-
-        if (isset($externalPhones)) {
-            $parameters['externalPhones'] = $externalPhones;
-        }
-
-        if (isset($allowEdit)) {
-            $parameters['allowEdit'] = $allowEdit;
-        }
-
-        if (isset($inputEventSupported)) {
-            $parameters['inputEventSupported'] = $inputEventSupported;
-        }
-
-        if (isset($outputEventSupported)) {
-            $parameters['outputEventSupported'] = $outputEventSupported;
-        }
-
-        if (isset($hangupEventSupported)) {
-            $parameters['hangupEventSupported'] = $hangupEventSupported;
-        }
-
-        if (isset($changeUserStatusUrl)) {
-            $parameters['changeUserStatusUrl'] = $changeUserStatusUrl;
-        }
-
-        return $this->client->makeRequest(
-            "/telephony/setting/$code/edit",
-            Client::METHOD_POST,
-            array('configuration' => json_encode($parameters))
         );
     }
 

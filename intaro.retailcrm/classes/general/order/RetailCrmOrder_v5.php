@@ -148,18 +148,31 @@ class RetailCrmOrder
             if (is_null($pp['PURCHASING_PRICE']) == false) {
                 $item['purchasePrice'] = $pp['PURCHASING_PRICE'];
             }
-            $item['discountManualAmount'] = (double) $product['DISCOUNT_PRICE'];
+
+            $discount = (double) $product['DISCOUNT_PRICE'];
+
+            if ($discount < 0) {
+                $item['discountManualAmount'] = 0;
+                $initialPrice = (double) $product['PRICE'];
+            } else {
+                $item['discountManualAmount'] = (double) $product['DISCOUNT_PRICE'];
+                $initialPrice = (double) $product['PRICE'] + (double) $product['DISCOUNT_PRICE'];
+            }
+
             $item['discountManualPercent'] = 0;
-            $item['initialPrice'] = (double) $product['PRICE'] + (double) $product['DISCOUNT_PRICE'];
+            $item['initialPrice'] = $initialPrice;
 
             $order['items'][] = $item;
 
             if ($send && $dimensions == 'Y') {
                 $dimensions = RCrmActions::unserializeArrayRecursive($product['DIMENSIONS']);
-                $width += $dimensions['WIDTH'];
-                $height += $dimensions['HEIGHT'];
-                $length += $dimensions['LENGTH'];
-                $weight += $product['WEIGHT'];
+
+                if ($dimensions !== false) {
+                    $width += $dimensions['WIDTH'];
+                    $height += $dimensions['HEIGHT'];
+                    $length += $dimensions['LENGTH'];
+                    $weight += $product['WEIGHT'];
+                }
             }
         }
 

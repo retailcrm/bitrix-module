@@ -264,13 +264,17 @@ class RCrmActions
 
     /**
      * Unserialize array
-     * 
+     *
      * @param string $string
-     * 
-     * @return array
+     *
+     * @return mixed
      */
     public static function unserializeArrayRecursive($string)
     {
+        if ($string === false || empty($string)) {
+            return false;
+        }
+
         if (is_string($string)) {
             $string = unserialize($string);
         }
@@ -348,7 +352,7 @@ class RCrmActions
         }
     }
 
-    private function proxy($api, $methodApi, $method, $params) {
+    private static function proxy($api, $methodApi, $method, $params) {
         $log = new Logger();
         $version = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_VERSION, 0);
         try {
@@ -428,12 +432,28 @@ class RCrmActions
             }
 
             return false;
+        } catch (\RetailCrm\Exception\InvalidJsonException $e) {
+            self::eventLog(
+                __CLASS__ . '::' . $method, 'RetailCrm\ApiClient::' . $methodApi . '::InvalidJsonException',
+                $e->getCode() . ': ' . $e->getMessage()
+            );
+            $log->write(array(
+                'api' => $version,
+                'methodApi' => $methodApi,
+                'errorMsg' => $e->getMessage(),
+                'errors' => $e->getCode(),
+                'params' => $params
+            ), 'apiErrors');
+
+            if (function_exists('retailCrmApiResult')) {
+                retailCrmApiResult($methodApi, false, 'ArgumentException');
+            }
         }
 
         if (function_exists('retailCrmApiResult')) {
             retailCrmApiResult($methodApi, true, $result->getStatusCode());
         }
 
-        return $result;
+        return isset($result) ? $result : false;
     }
 }
