@@ -619,7 +619,7 @@ class RetailCrmHistory
 
                     $fUserId = $basket->getFUserId(true);
 
-                    if ($fUserId === null) {
+                    if (!$fUserId) {
                         $fUserId = Bitrix\Sale\Fuser::getIdByUserId($order['customer']['externalId']);
                         $basket->setFUserId($fUserId);
                     }
@@ -671,12 +671,20 @@ class RetailCrmHistory
 
                             if (array_key_exists('discountTotal', $product)) {
                                 $itemCost = $item->getField('BASE_PRICE');
+                                $discount = (double) $item->getField('DISCOUNT_PRICE');
+
                                 if (isset($itemCost) && $itemCost >= 0) {
+                                    if ($discount < 0) {
+                                        $resultDiscount = $product['discountTotal'] + $discount;
+                                    } else {
+                                        $resultDiscount = $product['discountTotal'];
+                                    }
+
                                     $item->setField('CUSTOM_PRICE', 'Y');
-                                    $item->setField('PRICE', $itemCost - $product['discountTotal']);
-                                    $item->setField('DISCOUNT_PRICE', $product['discountTotal']);
                                     $item->setField('DISCOUNT_NAME', '');
                                     $item->setField('DISCOUNT_VALUE', '');
+                                    $item->setField('DISCOUNT_PRICE', $product['discountTotal'] + $resultDiscount);
+                                    $item->setField('PRICE', $itemCost - $resultDiscount);
                                 }
                             }
                         }
@@ -774,7 +782,7 @@ class RetailCrmHistory
                         retailCrmAfterOrderSave($order);
                     }
                 }
-                
+
                 unset($newOrder);
             }
 

@@ -404,7 +404,6 @@ class RetailCrmICML
 
                     while ($offer = $dbResOffers->GetNext()) {
                         // Link offers to products
-                        $offer['PICTURE'] = $this->protocol . $this->serverName . CFile::GetPath($offer["DETAIL_PICTURE"]);
                         $products[$offer['PROPERTY_' . $iblockOffer['SKU_PROPERTY_ID'] . '_VALUE']]['offers'][$offer['ID']] = $offer;
                     }
                     unset($offer, $dbResOffers);
@@ -459,7 +458,13 @@ class RetailCrmICML
                                 $offer['BARCODE'] = isset($barcodes[$offer['ID']]) ? $barcodes[$offer['ID']] : '';
                                 $offer['PRODUCT_ID'] = $product["ID"];
                                 $offer['DETAIL_PAGE_URL'] = $product["DETAIL_PAGE_URL"];
-                                $offer['PICTURE'] = $offer["PICTURE"] ? $offer["PICTURE"] : $product["PICTURE"];
+
+                                if (CFile::GetPath($offer["DETAIL_PICTURE"])) {
+                                    $offer['PICTURE'] = $this->protocol . $this->serverName . CFile::GetPath($offer["DETAIL_PICTURE"]);
+                                } else {
+                                    $offer['PICTURE'] = $product["PICTURE"];
+                                }
+
                                 $offer['PRODUCT_NAME'] = $product["NAME"];
                                 $offer['PRODUCT_ACTIVE'] = $product["ACTIVE"];
                                 $offer['PRICE'] = $offer['CATALOG_PRICE_' . $basePriceId];
