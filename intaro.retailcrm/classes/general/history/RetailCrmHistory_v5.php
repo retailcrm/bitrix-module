@@ -683,7 +683,7 @@ class RetailCrmHistory
                                     $item->setField('CUSTOM_PRICE', 'Y');
                                     $item->setField('DISCOUNT_NAME', '');
                                     $item->setField('DISCOUNT_VALUE', '');
-                                    $item->setField('DISCOUNT_PRICE', $product['discountTotal'] + $resultDiscount);
+                                    $item->setField('DISCOUNT_PRICE', $resultDiscount);
                                     $item->setField('PRICE', $itemCost - $resultDiscount);
                                 }
                             }
@@ -729,7 +729,7 @@ class RetailCrmHistory
                         }
                     }
 
-                    if ($itemUpdate === true) {
+                    if ($itemUpdate === true && $newOrder->getField('CANCELED') != 'Y') {
                         self::shipmentItemReset($newOrder);
                     }
 
