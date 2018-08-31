@@ -1046,29 +1046,40 @@ class intaro_retailcrm extends CModule
             $api_key = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, 0);
             $api_version = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_VERSION, 0);
             $this->RETAIL_CRM_API = new \RetailCrm\ApiClient($api_host, $api_key);
-            $clientId = hash('md5', date('Y-m-d H:i:s'));
             $scheme = isset($_SERVER['HTTPS']) ? 'https://' : 'http://';
             $baseUrl = $scheme . $_SERVER['HTTP_HOST'];
+            $code = 'bitrix';
+            $logo = 'https://s3.eu-central-1.amazonaws.com/retailcrm-billing/images/5af47fe682bf2-1c-bitrix-logo.svg';
+            $accountUrl = $baseUrl . '/bitrix/admin/settings.php?mid=intaro.retailcrm';
 
             try {
-                $configuration = array(
-                    'clientId' => $clientId,
-                    'code' => 'bitrix',
-                    'integrationCode' => 'bitrix',
-                    'active' => true,
-                    'name' => GetMessage('API_MODULE_NAME'),
-                    'logo' => 'https://s3.eu-central-1.amazonaws.com/retailcrm-billing/images/5af47fe682bf2-1c-bitrix-logo.svg',
-                    'baseUrl' => $baseUrl,
-                    'accountUrl' => $baseUrl . '/bitrix/admin/settings.php?mid=intaro.retailcrm'
-                );
-
                 if ($api_version == 'v4') {
+                    $configuration = array(
+                        'name' => GetMessage('API_MODULE_NAME'),
+                        'code' => $code,
+                        'logo' => $logo,
+                        'configurationUrl' => $accountUrl,
+                        'active' => true
+                    );
+
                     $this->RETAIL_CRM_API->marketplaceSettingsEdit($configuration);
                 } else {
-                    $this->RETAIL_CRM_API->integrationModulesEdit($configuration);
-                }
+                    $clientId = hash('md5', date('Y-m-d H:i:s'));
 
-                COption::SetOptionString($this->MODULE_ID, $this->CLIENT_ID, $clientId);
+                    $configuration = array(
+                        'clientId' => $clientId,
+                        'code' => $code,
+                        'integrationCode' => $code,
+                        'active' => true,
+                        'name' => GetMessage('API_MODULE_NAME'),
+                        'logo' => $logo,
+                        'baseUrl' => $baseUrl,
+                        'accountUrl' => $accountUrl
+                    );
+
+                    $this->RETAIL_CRM_API->integrationModulesEdit($configuration);
+                    COption::SetOptionString($this->MODULE_ID, $this->CLIENT_ID, $clientId);
+                }
             } catch (\RetailCrm\Exception\CurlException $e) {
                 RCrmActions::eventLog(
                     'intaro.retailcrm/install/index.php', 'RetailCrm\ApiClient::statisticUpdate::CurlException',
@@ -1186,6 +1197,8 @@ class intaro_retailcrm extends CModule
         }
 
         if ($api_version == 'v4') {
+            unset($configuration['integrationCode']);
+            unset($configuration['clientId']);
             $retail_crm_api->marketplaceSettingsEdit($configuration);
         } else {
             $retail_crm_api->integrationModulesEdit($configuration);
