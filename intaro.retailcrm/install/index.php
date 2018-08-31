@@ -1047,6 +1047,8 @@ class intaro_retailcrm extends CModule
             $api_version = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_VERSION, 0);
             $this->RETAIL_CRM_API = new \RetailCrm\ApiClient($api_host, $api_key);
             $clientId = hash('md5', date('Y-m-d H:i:s'));
+            $scheme = isset($_SERVER['HTTPS']) ? 'https://' : 'http://';
+            $baseUrl = $scheme . $_SERVER['HTTP_HOST'];
 
             try {
                 $configuration = array(
@@ -1055,7 +1057,9 @@ class intaro_retailcrm extends CModule
                     'integrationCode' => 'bitrix',
                     'active' => true,
                     'name' => GetMessage('API_MODULE_NAME'),
-                    'logo' => 'https://s3.eu-central-1.amazonaws.com/retailcrm-billing/images/5af47fe682bf2-1c-bitrix-logo.svg'
+                    'logo' => 'https://s3.eu-central-1.amazonaws.com/retailcrm-billing/images/5af47fe682bf2-1c-bitrix-logo.svg',
+                    'baseUrl' => $baseUrl,
+                    'accountUrl' => $baseUrl . '/bitrix/admin/settings.php?mid=intaro.retailcrm'
                 );
 
                 if ($api_version == 'v4') {
