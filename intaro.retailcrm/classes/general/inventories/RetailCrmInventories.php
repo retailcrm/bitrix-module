@@ -96,45 +96,48 @@ class RetailCrmInventories
                     }
 
                     $elems = array();
-                    foreach ($products as $product) {
-                        if (count($product['offers']) > 0) {
-                            $elems = array_merge($elems, $product['offers']);
-                        } else {
-                            $elems[] = $product['ID'];
+                    $chunkStores = array_chunk($stores, 50);
+                    foreach ($chunkStores as $stores) { 
+                        foreach ($products as $product) {
+                            if (count($product['offers']) > 0) {
+                                $elems = array_merge($elems, $product['offers']);
+                            } else {
+                                $elems[] = $product['ID'];
+                            }
                         }
-                    }
-                    
-                    $invUpload = array();
-                    $dbStoreProduct = CCatalogStoreProduct::GetList(
-                        array(),
-                        array('PRODUCT_ID' => $elems, 'STORE_ID' => array_keys($stores)),
-                        false,
-                        false,
-                        array('PRODUCT_ID', 'STORE_ID', 'AMOUNT')
-                    );
-                    while ($arStoreProduct = $dbStoreProduct->Fetch()) {
-                        if (!isset($invUpload[$arStoreProduct['PRODUCT_ID']])) {
-                            $invUpload[$arStoreProduct['PRODUCT_ID']] = array(
-                                'externalId' => $arStoreProduct['PRODUCT_ID']
-                            );
-                        }
-                        $invUpload[$arStoreProduct['PRODUCT_ID']]['stores'][] = array(
-                            'code' => $stores[$arStoreProduct['STORE_ID']],
-                            'available' => self::switchCount($arStoreProduct['AMOUNT'], $inventoriesType[$stores[$arStoreProduct['STORE_ID']]]),
-                        );
-                    }    
-                    //for log                  
-                    $splitedItems = array_chunk($invUpload, 200);
-                    foreach ($splitedItems as $chunk) {
-                        $log->write($chunk, 'inventoriesUpload');
-                        
-                        foreach ($shops as $shop) {
-                            RCrmActions::apiMethod($api, 'storeInventoriesUpload', __METHOD__, $chunk, $shop);
-                            time_nanosleep(0, 250000000);
-                        }
-                    }
 
-                    $arNavStatParams['iNumPage'] = $dbResProductsIds->NavPageNomer + 1;
+                        $invUpload = array();
+                        $dbStoreProduct = CCatalogStoreProduct::GetList(
+                            array(),
+                            array('PRODUCT_ID' => $elems, 'STORE_ID' => array_keys($stores)),
+                            false,
+                            false,
+                            array('PRODUCT_ID', 'STORE_ID', 'AMOUNT')
+                        );
+                        while ($arStoreProduct = $dbStoreProduct->Fetch()) {
+                            if (!isset($invUpload[$arStoreProduct['PRODUCT_ID']])) {
+                                $invUpload[$arStoreProduct['PRODUCT_ID']] = array(
+                                    'externalId' => $arStoreProduct['PRODUCT_ID']
+                                );
+                            }
+                            $invUpload[$arStoreProduct['PRODUCT_ID']]['stores'][] = array(
+                                'code' => $stores[$arStoreProduct['STORE_ID']],
+                                'available' => self::switchCount($arStoreProduct['AMOUNT'], $inventoriesType[$stores[$arStoreProduct['STORE_ID']]]),
+                            );
+                        }    
+                        //for log                  
+                        $splitedItems = array_chunk($invUpload, 200);
+                        foreach ($splitedItems as $chunk) {
+                            $log->write($chunk, 'inventoriesUpload');
+
+                            foreach ($shops as $shop) {
+                                RCrmActions::apiMethod($api, 'storeInventoriesUpload', __METHOD__, $chunk, $shop);
+                                time_nanosleep(0, 250000000);
+                            }
+                        }
+
+                        $arNavStatParams['iNumPage'] = $dbResProductsIds->NavPageNomer + 1;
+                    }
                 } while($dbResProductsIds->NavPageNomer < $dbResProductsIds->NavPageCount);
             }
         } else {
