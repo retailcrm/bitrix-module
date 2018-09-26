@@ -68,9 +68,9 @@ class RetailCrmUa
                         ";
                     }
                     $ua .= "ga('ecommerce:send');";
+                    $ua .= "</script>";
                 }
             }
-            $ua .= "</script>";
 
             $APPLICATION->AddHeadString($ua);
         }

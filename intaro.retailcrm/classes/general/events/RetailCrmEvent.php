@@ -300,6 +300,7 @@ class RetailCrmEvent
                 }
             } else {
                 RCrmActions::eventLog('RetailCrmEvent::paymentSave', 'payments', 'OrderID = ' . $arPayment['ID'] . '. Payment not found.');
+                return;
             }
 
             if (!array_key_exists($arPayment['ID'], $paymentsExternalIds)) {
