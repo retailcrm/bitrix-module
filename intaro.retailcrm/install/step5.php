@@ -20,14 +20,13 @@ if (!empty($oldValues)) {
 }
 ?>
 
-
 <style type="text/css">
     .iblock-export-table-display-none {
         display: none;
     }
 </style>
 
-<form method="post" action="<?php echo $APPLICATION->GetCurPage(); ?>" >            
+<form method="post" action="<?php echo $APPLICATION->GetCurPage(); ?>" >
     <h3><?=GetMessage("SETTINGS_INFOBLOCK");?></h3>
     <font class="text"><?=GetMessage("EXPORT_CATALOGS");?><br><br></font>
     <?
@@ -35,7 +34,7 @@ if (!empty($oldValues)) {
     {
             $IBLOCK_EXPORT = array();
     }
- 
+
     $iblockPropertiesName = Array(
         "article" => GetMessage("PROPERTY_ARTICLE_HEADER_NAME"),
         "manufacturer" => GetMessage("PROPERTY_MANUFACTURER_HEADER_NAME"),
@@ -45,16 +44,16 @@ if (!empty($oldValues)) {
         "length" => GetMessage("PROPERTY_LENGTH_HEADER_NAME"),
         "width" => GetMessage("PROPERTY_WIDTH_HEADER_NAME"),
         "height" => GetMessage("PROPERTY_HEIGHT_HEADER_NAME"),
+        "picture" => GetMessage("PROPERTY_PICTURE_HEADER_NAME"),
     );
-    
+
     $iblockFieldsName = Array(
-        
         "weight" => Array("code" => "catalog_size" , "name" => GetMessage("SELECT_WEIGHT_PROPERTY_NAME"), 'unit' => 'mass'),
         "length" => Array("code" => "catalog_length" , "name" => GetMessage("SELECT_LENGTH_PROPERTY_NAME"), 'unit' => 'length'),
         "width" => Array("code" => "catalog_width" , "name" => GetMessage("SELECT_WIDTH_PROPERTY_NAME"), 'unit' => 'length'),
         "height" => Array("code" => "catalog_height" , "name" => GetMessage("SELECT_HEIGHT_PROPERTY_NAME"), 'unit' => 'length'),
     );
-    
+
     $iblockPropertiesHint = Array(
         "article" => Array("ARTICLE", "ART", "ARTNUMBER", "ARTICUL", "ARTIKUL"),
         "manufacturer" => Array("MANUFACTURER", "PROISVODITEL", "PROISVOD", "PROISV"),
@@ -64,8 +63,9 @@ if (!empty($oldValues)) {
         "length" => Array("LENGTH", "DLINA"),
         "width" => Array("WIDTH", "SHIRINA"),
         "height" => Array("HEIGHT", "VISOTA"),
+        "picture" => Array("PICTURE", "PICTURE"),
     );
-    
+
     $units = Array(
         'length' => Array(
             'mm' => GetMessage("UNIT_MEASUREMENT_MM"),
@@ -78,13 +78,11 @@ if (!empty($oldValues)) {
             'kg' => GetMessage("UNIT_MEASUREMENT_KG"),
         )
     );
-    
+
     $hintUnit = Array(
         'length' => 'mm',
         'mass' => 'g'
     );
-    
-
 
     $boolAll = false;
     $intCountChecked = 0;
@@ -101,11 +99,11 @@ if (!empty($oldValues)) {
                         if ($arCatalog['CATALOG_TYPE'] == "X" || $arCatalog['CATALOG_TYPE'] == "P")
                         {
                             $iblockOffer = CCatalogSKU::GetInfoByProductIBlock($iblock["ID"]);
-                            
+
                             $db_properties = CIBlock::GetProperties($iblockOffer['IBLOCK_ID'], Array());
                             while($prop = $db_properties->Fetch())
                                 $propertiesSKU[] = $prop;
-                            
+
                             $oldPropertySKU = null;
                             if (isset($IBLOCK_PROPERTY_SKU[$iblock['ID']])) {
                                 foreach ($iblockPropertiesName as $key => $prop) {
@@ -118,28 +116,28 @@ if (!empty($oldValues)) {
                                     $oldPropertyUnitSKU[$key] = $IBLOCK_PROPERTY_UNIT_SKU[$iblock['ID']][$key];
                                 }
                             }
-                        } 
-                        
-                        
+                        }
+
+
                         $propertiesProduct = null;
                         $db_properties = CIBlock::GetProperties($iblock['ID'], Array());
                         while($prop = $db_properties->Fetch())
                             $propertiesProduct[] = $prop;
-                            
+
                         $oldPropertyProduct = null;
                         if (isset($IBLOCK_PROPERTY_PRODUCT[$iblock['ID']])) {
                             foreach ($iblockPropertiesName as $key => $prop) {
                                 $oldPropertyProduct[$key] = $IBLOCK_PROPERTY_PRODUCT[$iblock['ID']][$key];
                             }
                         }
-                        
+
                         $oldPropertyUnitProduct = null;
                         if (isset($IBLOCK_PROPERTY_UNIT_PRODUCT[$iblock['ID']])) {
                             foreach ($iblockPropertiesName as $key => $prop) {
                                 $oldPropertyUnitProduct[$key] = $IBLOCK_PROPERTY_UNIT_PRODUCT[$iblock['ID']][$key];
                             }
                         }
-                        
+
                         $arSiteList = array();
                         $rsSites = CIBlock::GetSite($iblock["ID"]);
                         while ($arSite = $rsSites->Fetch())
@@ -183,12 +181,12 @@ if (!empty($oldValues)) {
     ?>
 
     <font class="text" style="font-weight: bold;"><?=GetMessage("CHECK_ALL_INFOBLOCKS");?></font>
-    <input 
-        style="vertical-align: middle;" 
-        type="checkbox" 
-        name="icml_export_all" 
-        id="icml_export_all" 
-        value="Y" 
+    <input
+        style="vertical-align: middle;"
+        type="checkbox"
+        name="icml_export_all"
+        id="icml_export_all"
+        value="Y"
         onclick="checkAll(this,<? echo $intCountAvailIBlock; ?>);"
         <? echo ($boolAll ? ' checked' : ''); ?>>
     </br>
@@ -213,7 +211,7 @@ if (!empty($oldValues)) {
                 <table class="adm-list-table" id="export_setup" <?=($arIBlock['PROPERTIES_SKU'] == null ? 'style="width: 66%;"': "" )?> >
                     <thead>
                         <tr class="adm-list-table-header">
-                            <td class="adm-list-table-cell">    
+                            <td class="adm-list-table-cell">
                                 <div class="adm-list-table-cell-inner"><?=GetMessage("LOADED_PROPERTY");?></div>
                             </td>
                             <td class="adm-list-table-cell">
@@ -227,9 +225,9 @@ if (!empty($oldValues)) {
                         </tr>
                     </thead>
                     <tbody>
-                        
+
                         <? foreach ($iblockPropertiesName as $key => $property): ?>
-                            
+
                             <? $productSelected = false;?>
 
                             <tr class="adm-list-table-row">
@@ -268,7 +266,7 @@ if (!empty($oldValues)) {
                                                                     }
                                                                     ?>
                                                                     >
-                                                            
+
                                                                     <?=$field['name'];?>
                                                                 </option>
                                                             <? endif; ?>
@@ -310,7 +308,7 @@ if (!empty($oldValues)) {
                                                     </optgroup>
                                                 <?}?>
                                         </select>
-                                    
+
                                         <?if (array_key_exists($key, $iblockFieldsName)) :?>
                                             <select
                                                 style="width: 100px; margin-left: 50px;"
@@ -358,7 +356,7 @@ if (!empty($oldValues)) {
 
                                                             <? if ($keyField == $key) :?>
                                                                 <option value="<?=$field['code'];?>"
-                                                                    <?          
+                                                                    <?
                                                                         if (!$productSelected) {
                                                                             if ($arIBlock['OLD_PROPERTY_SKU_SELECT'] != null) {
                                                                                 if ($field['code'] == $arIBlock['OLD_PROPERTY_SKU_SELECT'][$key]  ) {
@@ -374,7 +372,7 @@ if (!empty($oldValues)) {
                                                                             }
                                                                         }?>
                                                                         >
-                                                                    
+
                                                                         <?=$field['name'];?>
                                                                 </option>
                                                             <? endif; ?>
@@ -416,7 +414,7 @@ if (!empty($oldValues)) {
                                                     </optgroup>
                                                 <? endif; ?>
                                         </select>
-                                        
+
                                         <?if (array_key_exists($key, $iblockFieldsName)) :?>
                                             <select
                                                 style="width: 100px; margin-left: 50px;"
@@ -518,7 +516,7 @@ if (!empty($oldValues)) {
             function checkAll(obj,cnt)
             {
                 for (i = 0; i < cnt; i++)
-                { 
+                {
                     if (obj.checked)
                         BX.removeClass('IBLOCK_EXPORT_TABLE'+(i+1),"iblock-export-table-display-none");
                 }
@@ -538,10 +536,10 @@ if (!empty($oldValues)) {
                         },
                         complete : function() {
                              for (i = 0; i < cnt; i++)
-                                { 
+                                {
                                     if (!obj.checked)
                                         BX.addClass('IBLOCK_EXPORT_TABLE'+(i+1),"iblock-export-table-display-none");
-                                }  
+                                }
                         }
                 });
                 easing.animate();
@@ -567,7 +565,7 @@ if (!empty($oldValues)) {
                         },
                         complete : function() {
                              if (!obj.checked)
-                                BX.addClass(table,"iblock-export-table-display-none");   
+                                BX.addClass(table,"iblock-export-table-display-none");
                         }
                 });
                 easing.animate();
@@ -646,7 +644,7 @@ if (!empty($oldValues)) {
                         if (type == 'product') {
                             $(td).append('<select name="highloadblock_product' + res.table + '_' + key + '[' + iblock + ']" id="highloadblock" style="width: 100px; margin-left: 50px;">' + new_options + '</select>');
                         }
-                        
+
                     },
                     beforeSend: function() {
                         $(td).append('<span style="margin-left:50px;" id="waiting"><?=GetMessage("WAIT")?></span>');

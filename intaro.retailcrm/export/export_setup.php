@@ -29,6 +29,7 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
         "length" => "length",
         "width" => "width",
         "height" => "height",
+        "picture" => "picture"
     );
 
     if(!check_bitrix_sessid()) {
@@ -164,10 +165,10 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
             "length" => GetMessage("PROPERTY_LENGTH_HEADER_NAME"),
             "width" => GetMessage("PROPERTY_WIDTH_HEADER_NAME"),
             "height" => GetMessage("PROPERTY_HEIGHT_HEADER_NAME"),
+            "picture" => GetMessage("PROPERTY_PICTURE_HEADER_NAME")
         );
 
         $iblockFieldsName = Array(
-
             "weight" => Array("code" => "catalog_weight" , "name" => GetMessage("SELECT_WEIGHT_PROPERTY_NAME"), 'unit' => 'mass'),
             "length" => Array("code" => "catalog_length" , "name" => GetMessage("SELECT_LENGTH_PROPERTY_NAME"), 'unit' => 'length'),
             "width" => Array("code" => "catalog_width" , "name" => GetMessage("SELECT_WIDTH_PROPERTY_NAME"), 'unit' => 'length'),
@@ -183,6 +184,7 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
             "length" => Array("LENGTH", "DLINA"),
             "width" => Array("WIDTH", "SHIRINA"),
             "height" => Array("HEIGHT", "VISOTA"),
+            "picture" => Array("PICTURE", "PICTURE")
         );
 
         $units = Array(
@@ -795,7 +797,7 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
             $vals .= ",IBLOCK_PROPERTY_PRODUCT_" . $val;
             $vals .= ",IBLOCK_PROPERTY_UNIT_PRODUCT_" . $val;
 
-            if ($hlblockModule === true) {
+            if ($hlblockModule === true && $val != 'picture') {
                 foreach ($hlblockList as $hlblockTable => $hlblock) {
                     $vals .= ',highloadblock' . $hlblockTable . '_' . $val;
                 }
