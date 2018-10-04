@@ -388,7 +388,7 @@ class RetailCrmOrder
             'ID'               => $obOrder->getId(),
             'NUMBER'           => $obOrder->getField('ACCOUNT_NUMBER'),
             'LID'              => $obOrder->getSiteId(),
-            'DATE_INSERT'      => $obOrder->getDateInsert(),
+            'DATE_INSERT'      => $obOrder->getDateInsert()->toString(new \Bitrix\Main\Context\Culture(array("FORMAT_DATETIME" => "Y-m-d HH:i:s"))),
             'STATUS_ID'        => $obOrder->getField('STATUS_ID'),
             'USER_ID'          => $obOrder->getUserId(),
             'PERSON_TYPE_ID'   => $obOrder->getPersonTypeId(),
