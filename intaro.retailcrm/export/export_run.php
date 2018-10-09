@@ -15,7 +15,7 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
     if (!CModule::IncludeModule("intaro.retailcrm")){
         return;
     }
-    
+
     $rsSites = CSite::GetList($by, $sort, array('ACTIVE' => 'Y'));
     while ($ar = $rsSites->Fetch()) {
         if ($ar['DEF'] == 'Y') {
@@ -113,6 +113,22 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
         }
     }
 
+    $productPictures = array();
+
+    if (is_array($IBLOCK_PROPERTY_PRODUCT_picture)) {
+        foreach ($IBLOCK_PROPERTY_PRODUCT_picture as $key => $value) {
+            $productPictures[$key]['picture'] = $value;
+        }
+    }
+
+    $skuPictures = array();
+
+    if (is_array($IBLOCK_PROPERTY_SKU_picture)) {
+        foreach ($IBLOCK_PROPERTY_SKU_picture as $key => $value) {
+            $skuPictures[$key]['picture'] = $value;
+        }
+    }
+
     $loader = new RetailCrmICML();
     $loader->profileID = $PROFILE_ID;
     $loader->iblocks = $IBLOCK_EXPORT;
@@ -120,6 +136,8 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
     $loader->propertiesUnitSKU = $IBLOCK_PROPERTY_UNIT_SKU;
     $loader->propertiesProduct = $IBLOCK_PROPERTY_PRODUCT;
     $loader->propertiesUnitProduct = $IBLOCK_PROPERTY_UNIT_PRODUCT;
+    $loader->productPictures = $productPictures;
+    $loader->skuPictures = $skuPictures;
 
     if ($hlblockModule === true) {
         $loader->highloadblockSkuProperties = $IBLOCK_PROPERTY_SKU_HIGHLOADBLOCK;
@@ -127,7 +145,7 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
     }
 
     $loader->filename = $SETUP_FILE_NAME;
-    $loader->serverName = $SERVER_NAME;
+    $loader->defaultServerName = $SERVER_NAME;
     $loader->application = $APPLICATION;
     $loader->loadPurchasePrice = $LOAD_PURCHASE_PRICE == 'Y';
     $loader->Load();

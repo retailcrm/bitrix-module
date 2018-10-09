@@ -47,7 +47,7 @@ class RetailCrmOrder
         $order = array(
             'number'          => $arFields['NUMBER'],
             'externalId'      => $arFields['ID'],
-            'createdAt'       => new \DateTime($arFields['DATE_INSERT']),
+            'createdAt'       => $arFields['DATE_INSERT'],
             'customer'        => array('externalId' => $arFields['USER_ID']),
             'paymentType'     => isset($arParams['optionsPayTypes'][$arFields['PAYMENTS'][0]]) ?
                                      $arParams['optionsPayTypes'][$arFields['PAYMENTS'][0]] : '',
@@ -92,7 +92,7 @@ class RetailCrmOrder
                             $server = \Bitrix\Main\Context::getCurrent()->getServer()->getDocumentRoot();
                             $countrys = array();
                             if (file_exists($server . '/bitrix/modules/intaro.retailcrm/classes/general/config/country.xml')) {
-                                $countrysFile = simplexml_load_file($server . '/bitrix/modules/intaro.retailcrm/classes/general/config/country.xml'); 
+                                $countrysFile = simplexml_load_file($server . '/bitrix/modules/intaro.retailcrm/classes/general/config/country.xml');
                                 foreach ($countrysFile->country as $country) {
                                     $countrys[RCrmActions::fromJSON((string) $country->name)] = (string) $country->alpha;
                                 }
@@ -153,7 +153,7 @@ class RetailCrmOrder
                 $order = $newResOrder;
             } elseif ($newResOrder === false) {
                 RCrmActions::eventLog('RetailCrmOrder::orderSend', 'retailCrmBeforeOrderSend()', 'OrderID = ' . $arFields['ID'] . '. Sending canceled after retailCrmBeforeOrderSend');
-                
+
                 return false;
             }
         }
@@ -172,7 +172,7 @@ class RetailCrmOrder
 
         return $order;
     }
-    
+
     /**
      * Mass order uploading, without repeating; always returns true, but writes error log
      * @param $pSize
@@ -224,7 +224,7 @@ class RetailCrmOrder
         $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
         $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
 
-        $optionsSitesList = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_SITES_LIST, 0));        
+        $optionsSitesList = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_SITES_LIST, 0));
         $optionsOrderTypes = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_TYPES_ARR, 0));
         $optionsDelivTypes = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_DELIVERY_TYPES_ARR, 0));
         $optionsPayTypes = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_TYPES, 0));
@@ -258,19 +258,19 @@ class RetailCrmOrder
             }
             $order = self::orderObjToArr($id);
             $user = Bitrix\Main\UserTable::getById($order['USER_ID'])->fetch();
-            
+
             $site = count($optionsSitesList) > 1 ? $optionsSitesList[$order['LID']] : null;
 
             $arCustomers = RetailCrmUser::customerSend($user, $api, $optionsContragentType[$order['PERSON_TYPE_ID']], false, $site);
-            $arOrders = self::orderSend($order, $api, $arParams, false, $site); 
+            $arOrders = self::orderSend($order, $api, $arParams, false, $site);
 
             if (!$arCustomers || !$arOrders) {
                 continue;
             }
-            
+
             $resCustomers[$order['LID']][] = $arCustomers;
-            $resOrders[$order['LID']][] = $arOrders; 
-            
+            $resOrders[$order['LID']][] = $arOrders;
+
             $recOrders[] = $orderId;
         }
 
@@ -321,11 +321,12 @@ class RetailCrmOrder
 
     public static function orderObjToArr($obOrder)
     {
+        $culture = new \Bitrix\Main\Context\Culture(array("FORMAT_DATETIME" => "Y-m-d HH:i:s"));
         $arOrder = array(
             'ID'               => $obOrder->getId(),
             'NUMBER'           => $obOrder->getField('ACCOUNT_NUMBER'),
             'LID'              => $obOrder->getSiteId(),
-            'DATE_INSERT'      => $obOrder->getDateInsert(),
+            'DATE_INSERT'      => $obOrder->getDateInsert()->toString($culture),
             'STATUS_ID'        => $obOrder->getField('STATUS_ID'),
             'USER_ID'          => $obOrder->getUserId(),
             'PERSON_TYPE_ID'   => $obOrder->getPersonTypeId(),
@@ -341,7 +342,7 @@ class RetailCrmOrder
             'COMMENTS'         => $obOrder->getField('COMMENTS'),
             'REASON_CANCELED'  => $obOrder->getField('REASON_CANCELED'),
         );
-        
+
         $shipmentList = $obOrder->getShipmentCollection();
         foreach ($shipmentList as $shipmentData) {
             if ($shipmentData->isSystem()) {
@@ -370,7 +371,7 @@ class RetailCrmOrder
         foreach ($basketItems as $item) {
             $arOrder['BASKET'][] = $item->getFields();
         }
-     
+
         return $arOrder;
     }
 }

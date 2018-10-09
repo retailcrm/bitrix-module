@@ -28,6 +28,7 @@ $MESS["PROPERTY_WEIGHT_HEADER_NAME"] = "Вес (габариты)";
 $MESS["PROPERTY_LENGTH_HEADER_NAME"] = "Длина (габариты)";
 $MESS["PROPERTY_WIDTH_HEADER_NAME"] = "Ширина (габариты)";
 $MESS["PROPERTY_HEIGHT_HEADER_NAME"] = "Высота (габариты)";
+$MESS["PROPERTY_PICTURE_HEADER_NAME"] = "Фото";
 $MESS["PROPERTY_SIZE_HEADER_NAME"] = "Размер";
 $MESS["SELECT_FIELD_NAME"] = "Поле";
 $MESS["SELECT_PROPERTY_NAME"] = "Свойства";

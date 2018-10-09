@@ -1,4 +1,4 @@
-<?php 
+<?php
 IncludeModuleLangFile(__FILE__);
 $mid = 'intaro.retailcrm';
 $uri = $APPLICATION->GetCurPage() . '?mid=' . htmlspecialchars($mid) . '&lang=' . LANGUAGE_ID;
@@ -56,8 +56,8 @@ if($_GET['ok'] && $_GET['ok'] == 'Y') echo CAdminMessage::ShowNote(GetMessage('I
 $arResult = array();
 
 if (file_exists($_SERVER["DOCUMENT_ROOT"] . '/bitrix/modules/intaro.retailcrm/classes/general/config/options.xml')) {
-    $options = simplexml_load_file($_SERVER["DOCUMENT_ROOT"] . '/bitrix/modules/intaro.retailcrm/classes/general/config/options.xml'); 
-    
+    $options = simplexml_load_file($_SERVER["DOCUMENT_ROOT"] . '/bitrix/modules/intaro.retailcrm/classes/general/config/options.xml');
+
     foreach($options->contragents->contragent as $contragent) {
         $type["NAME"] = $APPLICATION->ConvertCharset((string)$contragent, 'utf-8', SITE_CHARSET);
         $type["ID"] = (string)$contragent["id"];
@@ -74,8 +74,8 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"] . '/bitrix/modules/intaro.retailcrm/cl
             $arResult['orderProps'][] = $type;
         } else {
             $groups = explode(",", (string)$field["group"]);
-            foreach ($groups as $group) {   
-                $type["GROUP"][] = trim($group);   
+            foreach ($groups as $group) {
+                $type["GROUP"][] = trim($group);
             }
             $arResult['legalDetails'][] = $type;
         }
@@ -138,7 +138,7 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_RE
     $step = $_POST['step'];
     $orders = $_POST['orders'];
     $countStep = 50; // 50 orders on step
-    
+
     if ($orders) {
         $ordersArr = explode(',', $orders);
         $orders = array();
@@ -152,37 +152,37 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_RE
                 $orders[] = (int)$ordersList[0];
             }
         }
-        
+
         $splitedOrders = array_chunk($orders, $countStep);
         $stepOrders = $splitedOrders[$step];
 
         RetailCrmOrder::uploadOrders($countStep, false, $stepOrders);
-        
+
         $percent = round((($step * $countStep + count($stepOrders)) * 100 / count($orders)), 1);
         $step++;
 
         if (!$splitedOrders[$step]) {
             $step = 'end';
         }
-        
+
         $res = array("step" => $step, "percent" => $percent, 'stepOrders' => $stepOrders);
     } else {
-        $orders = array();    
+        $orders = array();
         for($i = 1; $i <= $countStep; $i++){
             $orders[] = $i + $step * $countStep;
         }
-        
+
         RetailCrmOrder::uploadOrders($countStep, false, $orders);
-        
+
         $step++;
         $countLeft = (int) CSaleOrder::GetList(array("ID" => "ASC"), array('>ID' => $step * $countStep), array());
         $countAll = (int) CSaleOrder::GetList(array("ID" => "ASC"), array(), array());
         $percent = round(100 - ($countLeft * 100 / $countAll), 1);
-        
+
         if ($countLeft == 0) {
             $step = 'end';
         }
-        
+
         $res = array("step" => $step, "percent" => $percent, 'stepOrders' => $orders);
     }
 
@@ -197,7 +197,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     $api_key = htmlspecialchars(trim($_POST['api_key']));
 
     //bitrix site list
-    $siteListArr = array(); 
+    $siteListArr = array();
     foreach ($arResult['arSites'] as $arSites) {
         if (count($arResult['arSites']) > 1) {
             if ($_POST['sites-id-' . $arSites['LID']]) {
@@ -207,7 +207,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             }
         }
     }
-            
+
     if ($api_host && $api_key) {
         $api = new RetailCrm\ApiClient($api_host, $api_key);
         try {
@@ -225,15 +225,15 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         COption::SetOptionString($mid, 'api_host', $api_host);
         COption::SetOptionString($mid, 'api_key', $api_key);
     }
-       
+
     //form order types ids arr
     $orderTypesList = RCrmActions::OrderTypesList($arResult['arSites']);
-    
+
     $orderTypesArr = array();
     foreach ($orderTypesList as $orderType) {
         $orderTypesArr[$orderType['ID']] = htmlspecialchars(trim($_POST['order-type-' . $orderType['ID']]));
     }
-      
+
     //form delivery types ids arr
     $arResult['bitrixDeliveryTypesList'] = RCrmActions::DeliveryList();
 
@@ -244,15 +244,15 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
 
     //form payment types ids arr
     $arResult['bitrixPaymentTypesList'] = RCrmActions::PaymentList();
-            
+
     $paymentTypesArr = array();
     foreach ($arResult['bitrixPaymentTypesList'] as $payment) {
         $paymentTypesArr[$payment['ID']] = htmlspecialchars(trim($_POST['payment-type-' . $payment['ID']]));
-    }  
-           
+    }
+
     //form payment statuses ids arr
     $arResult['bitrixStatusesList'] = RCrmActions::StatusesList();
-            
+
     $paymentStatusesArr = array();
     $canselOrderArr = array();
     //$paymentStatusesArr['YY'] = htmlspecialchars(trim($_POST['payment-status-YY']));
@@ -262,34 +262,28 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             $canselOrderArr[] = $status['ID'];
         }
     }
-    
+
     //form payment ids arr
     $paymentArr = array();
     $paymentArr['Y'] = htmlspecialchars(trim($_POST['payment-Y']));
     $paymentArr['N'] = htmlspecialchars(trim($_POST['payment-N']));
-    
 
     $previousDischarge = COption::GetOptionString($mid, $CRM_ORDER_DISCHARGE, 0);
     //order discharge mode
     // 0 - agent
     // 1 - event
     $orderDischarge = 0;
-    $orderDischarge = (int) htmlspecialchars(trim($_POST['order-discharge']));   
+    $orderDischarge = (int) htmlspecialchars(trim($_POST['order-discharge']));
     if (($orderDischarge != $previousDischarge) && ($orderDischarge == 0)) {
         // remove depenedencies
         UnRegisterModuleDependences("sale", "OnSaleOrderEntitySaved", $mid, "RetailCrmEvent", "orderSave");
         UnRegisterModuleDependences("sale", "OnOrderUpdate", $mid, "RetailCrmEvent", "onUpdateOrder");
         UnRegisterModuleDependences("sale", "OnSaleOrderDeleted", $mid, "RetailCrmEvent", "orderDelete");
-        UnRegisterModuleDependences("sale", "OnSalePaymentEntitySaved", $mid, "RetailCrmEvent", "paymentSave");
-        UnRegisterModuleDependences("sale", "OnSalePaymentEntityDeleted", $mid, "RetailCrmEvent", "paymentDelete");
-        
     } elseif (($orderDischarge != $previousDischarge) && ($orderDischarge == 1)) {
         // event dependencies
         RegisterModuleDependences("sale", "OnSaleOrderEntitySaved", $mid, "RetailCrmEvent", "orderSave");
         RegisterModuleDependences("sale", "OnOrderUpdate", $mid, "RetailCrmEvent", "onUpdateOrder");
         RegisterModuleDependences("sale", "OnSaleOrderDeleted", $mid, "RetailCrmEvent", "orderDelete");
-        RegisterModuleDependences("sale", "OnSalePaymentEntitySaved", $mid, "RetailCrmEvent", "paymentSave");
-        RegisterModuleDependences("sale", "OnSalePaymentEntityDeleted", $mid, "RetailCrmEvent", "paymentDelete");
     }
 
     $orderPropsArr = array();
@@ -309,7 +303,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         }
         $orderPropsArr[$orderType['ID']] = $_orderPropsArr;
     }
-    
+
     //legal details props
     $legalDetailsArr = array();
     foreach ($orderTypesList as $orderType) {
@@ -356,18 +350,18 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             $dateAgent->format('d.m.Y H:i:s'), // date of first start
             30
         );
-        
+
         $arResult['bitrixStoresExportList'] = RCrmActions::StoresExportList();
         foreach($arResult['bitrixStoresExportList'] as $bitrixStores){
             $bitrixStoresArr[$bitrixStores['ID']] = htmlspecialchars(trim($_POST['stores-export-' . $bitrixStores['ID']]));
         }
-        
+
         function maskInv($var){
             return preg_match("/^shops-exoprt/", $var);
         }
         $bitrixShopsArr = str_replace('shops-exoprt-', '', array_filter(array_keys($_POST), 'maskInv'));
-        
-        $arResult['bitrixIblocksExportList'] = RCrmActions::IblocksExportList();       
+
+        $arResult['bitrixIblocksExportList'] = RCrmActions::IblocksExportList();
         foreach($arResult['bitrixIblocksExportList'] as $bitrixIblocks){
             if(htmlspecialchars(trim($_POST['iblocks-stores-' . $bitrixIblocks['ID']])) === 'Y'){
                 $bitrixIblocksInventories[] = $bitrixIblocks['ID'];
@@ -376,15 +370,15 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     } else {
         $inventoriesUpload = 'N';
         CAgent::RemoveAgent("RetailCrmInventories::inventoriesUpload();", $mid);
-    }    
-    
+    }
+
     //prices
     $bitrixPricesArr = array();
     $bitrixIblocksPrices = array();
     $bitrixPriceShopsArr = array();
     if(htmlspecialchars(trim($_POST['prices-upload'])) == 'Y'){
         $pricesUpload = 'Y';
-        
+
         $dateAgent = new DateTime();
         $intAgent = new DateInterval('PT60S'); // PT60S - 60 sec;
         $dateAgent->add($intAgent);
@@ -396,18 +390,18 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             $dateAgent->format('d.m.Y H:i:s'), // date of first start
             30
         );
-        
+
         $arResult['bitrixPricesExportList'] = RCrmActions::PricesExportList();
         foreach($arResult['bitrixPricesExportList'] as $bitrixPrices){
             $bitrixPricesArr[$bitrixPrices['ID']] = htmlspecialchars(trim($_POST['price-type-export-' . $bitrixPrices['ID']]));
         }
-        
+
         function maskPrice($var){
             return preg_match("/^shops-price/", $var);
         }
         $bitrixPriceShopsArr = str_replace('shops-price-', '', array_filter(array_keys($_POST), 'maskPrice'));
-        
-        $arResult['bitrixIblocksExportList'] = RCrmActions::IblocksExportList();       
+
+        $arResult['bitrixIblocksExportList'] = RCrmActions::IblocksExportList();
         foreach($arResult['bitrixIblocksExportList'] as $bitrixIblocks){
             if(htmlspecialchars(trim($_POST['iblocks-prices-' . $bitrixIblocks['ID']])) === 'Y'){
                 $bitrixIblocksPrices[] = $bitrixIblocks['ID'];
@@ -416,8 +410,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     } else {
         $pricesUpload = 'N';
         CAgent::RemoveAgent("RetailCrmPrices::pricesUpload();", $mid);
-    }  
-    
+    }
+
     //demon
     $collectorKeys = array();
     if (htmlspecialchars(trim($_POST['collector'])) == 'Y') {
@@ -430,7 +424,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         $collector = 'N';
         UnRegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmCollector", "add");
     }
-    
+
     //UA
     $uaKeys = array();
     if (htmlspecialchars(trim($_POST['ua-integration'])) == 'Y') {
@@ -443,13 +437,13 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     } else  {
         $ua = 'N';
         UnRegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmUa", "add");
-    }  
-    
+    }
+
     //version
-    
+
     $version = COption::GetOptionString($mid, $CRM_API_VERSION);
-                
-    if (htmlspecialchars(trim($_POST['api_version'])) != $version) { 
+
+    if (htmlspecialchars(trim($_POST['api_version'])) != $version) {
         if (htmlspecialchars(trim($_POST['api_version'])) == 'v4') {
             $version = 'v4';
         } elseif (htmlspecialchars(trim($_POST['api_version'])) == 'v5') {
@@ -462,7 +456,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         //запрос к апи с $version
         $crmUrl = htmlspecialchars(trim($_POST['api_host']));
         $apiKey = htmlspecialchars(trim($_POST['api_key']));
-        
+
         if ('/' !== $crmUrl[strlen($crmUrl) - 1]) {
             $crmUrl .= '/';
         }
@@ -474,9 +468,9 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             '/reference/payment-statuses',
             'GET'
         );
-        
+
         if ($result->getStatusCode() == 200) {
-            COption::SetOptionString($mid, $CRM_API_VERSION, $version); 
+            COption::SetOptionString($mid, $CRM_API_VERSION, $version);
         } else {
             LocalRedirect($uri);
             echo CAdminMessage::ShowMessage(GetMessage('API_NOT_WORK'));
@@ -495,26 +489,26 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     COption::SetOptionString($mid, $CRM_PAYMENT_STATUSES, serialize(RCrmActions::clearArr($paymentStatusesArr)));
     COption::SetOptionString($mid, $CRM_PAYMENT, serialize(RCrmActions::clearArr($paymentArr)));
     COption::SetOptionString($mid, $CRM_ORDER_DISCHARGE, $orderDischarge);
-    COption::SetOptionString($mid, $CRM_ORDER_PROPS, serialize(RCrmActions::clearArr($orderPropsArr)));    
-    COption::SetOptionString($mid, $CRM_CONTRAGENT_TYPE, serialize(RCrmActions::clearArr($contragentTypeArr)));    
+    COption::SetOptionString($mid, $CRM_ORDER_PROPS, serialize(RCrmActions::clearArr($orderPropsArr)));
+    COption::SetOptionString($mid, $CRM_CONTRAGENT_TYPE, serialize(RCrmActions::clearArr($contragentTypeArr)));
     COption::SetOptionString($mid, $CRM_LEGAL_DETAILS, serialize(RCrmActions::clearArr($legalDetailsArr)));
     COption::SetOptionString($mid, $CRM_CUSTOM_FIELDS, serialize(RCrmActions::clearArr($customFieldsArr)));
     COption::SetOptionString($mid, $CRM_ORDER_NUMBERS, $orderNumbers);
     COption::SetOptionString($mid, $CRM_CANSEL_ORDER, serialize(RCrmActions::clearArr($canselOrderArr)));
-    
+
     COption::SetOptionString($mid, $CRM_INVENTORIES_UPLOAD, $inventoriesUpload);
     COption::SetOptionString($mid, $CRM_STORES, serialize(RCrmActions::clearArr($bitrixStoresArr)));
     COption::SetOptionString($mid, $CRM_SHOPS, serialize(RCrmActions::clearArr($bitrixShopsArr)));
     COption::SetOptionString($mid, $CRM_IBLOCKS_INVENTORIES, serialize(RCrmActions::clearArr($bitrixIblocksInventories)));
-    
+
     COption::SetOptionString($mid, $CRM_PRICES_UPLOAD, $pricesUpload);
     COption::SetOptionString($mid, $CRM_PRICES, serialize(RCrmActions::clearArr($bitrixPricesArr)));
     COption::SetOptionString($mid, $CRM_PRICE_SHOPS, serialize(RCrmActions::clearArr($bitrixPriceShopsArr)));
-    COption::SetOptionString($mid, $CRM_IBLOCKS_PRICES, serialize(RCrmActions::clearArr($bitrixIblocksPrices)));  
-    
+    COption::SetOptionString($mid, $CRM_IBLOCKS_PRICES, serialize(RCrmActions::clearArr($bitrixIblocksPrices)));
+
     COption::SetOptionString($mid, $CRM_COLLECTOR, $collector);
     COption::SetOptionString($mid, $CRM_COLL_KEY, serialize(RCrmActions::clearArr($collectorKeys)));
-    
+
     COption::SetOptionString($mid, $CRM_UA, $ua);
     COption::SetOptionString($mid, $CRM_UA_KEYS, serialize(RCrmActions::clearArr($uaKeys)));
     COption::SetOptionString($mid, $CRM_DIMENSIONS, $orderDimensions);
@@ -563,29 +557,29 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
 
     //bitrix orderTypesList -- personTypes
     $arResult['bitrixOrderTypesList'] = RCrmActions::OrderTypesList($arResult['arSites']);
-    
+
     //bitrix deliveryTypesList
     $arResult['bitrixDeliveryTypesList'] = RCrmActions::DeliveryList();
 
     //bitrix paymentTypesList
     $arResult['bitrixPaymentTypesList'] = RCrmActions::PaymentList();
-    
+
     //bitrix statusesList
     $arResult['bitrixPaymentStatusesList'] = RCrmActions::StatusesList();
-    
+
     //bitrix pyament Y/N
     $arResult['bitrixPaymentList'][0]['NAME'] = GetMessage('PAYMENT_Y');
     $arResult['bitrixPaymentList'][0]['ID'] = 'Y';
     $arResult['bitrixPaymentList'][1]['NAME'] = GetMessage('PAYMENT_N');
     $arResult['bitrixPaymentList'][1]['ID'] = 'N';
-    
+
     //bitrix orderPropsList
     $arResult['arProp'] = RCrmActions::OrderPropsList();
-    
+
     $arResult['bitrixIblocksExportList'] = RCrmActions::IblocksExportList();
     $arResult['bitrixStoresExportList'] = RCrmActions::StoresExportList();
     $arResult['bitrixPricesExportList'] = RCrmActions::PricesExportList();
-    
+
     //saved cat params
     $optionsOrderTypes = unserialize(COption::GetOptionString($mid, $CRM_ORDER_TYPES_ARR, 0));
     $optionsDelivTypes = unserialize(COption::GetOptionString($mid, $CRM_DELIVERY_TYPES_ARR, 0));
@@ -594,29 +588,29 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     $optionsPayment = unserialize(COption::GetOptionString($mid, $CRM_PAYMENT, 0));
     $optionsSitesList = unserialize(COption::GetOptionString($mid, $CRM_SITES_LIST, 0));
     $optionsDischarge = COption::GetOptionString($mid, $CRM_ORDER_DISCHARGE, 0);
-    $optionsOrderProps = unserialize(COption::GetOptionString($mid, $CRM_ORDER_PROPS, 0));    
-    $optionsContragentType = unserialize(COption::GetOptionString($mid, $CRM_CONTRAGENT_TYPE, 0));    
+    $optionsOrderProps = unserialize(COption::GetOptionString($mid, $CRM_ORDER_PROPS, 0));
+    $optionsContragentType = unserialize(COption::GetOptionString($mid, $CRM_CONTRAGENT_TYPE, 0));
     $optionsLegalDetails = unserialize(COption::GetOptionString($mid, $CRM_LEGAL_DETAILS, 0));
     $optionsCustomFields = unserialize(COption::GetOptionString($mid, $CRM_CUSTOM_FIELDS, 0));
     $optionsOrderNumbers = COption::GetOptionString($mid, $CRM_ORDER_NUMBERS, 0);
     $canselOrderArr = unserialize(COption::GetOptionString($mid, $CRM_CANSEL_ORDER, 0));
-    
+
     $optionInventotiesUpload = COption::GetOptionString($mid, $CRM_INVENTORIES_UPLOAD, 0);
     $optionStores = unserialize(COption::GetOptionString($mid, $CRM_STORES, 0));
     $optionShops = unserialize(COption::GetOptionString($mid, $CRM_SHOPS, 0));
     $optionIblocksInventories = unserialize(COption::GetOptionString($mid, $CRM_IBLOCKS_INVENTORIES, 0));
-    
+
     $optionPricesUpload = COption::GetOptionString($mid, $CRM_PRICES_UPLOAD, 0);
     $optionPrices = unserialize(COption::GetOptionString($mid, $CRM_PRICES, 0));
     $optionPriceShops = unserialize(COption::GetOptionString($mid, $CRM_PRICE_SHOPS, 0));
     $optionIblocksPrices = unserialize(COption::GetOptionString($mid, $CRM_IBLOCKS_PRICES, 0));
-    
+
     $optionCollector = COption::GetOptionString($mid, $CRM_COLLECTOR, 0);
     $optionCollectorKeys = unserialize(COption::GetOptionString($mid, $CRM_COLL_KEY));
-    
+
     $optionUa = COption::GetOptionString($mid, $CRM_UA, 0);
     $optionUaKeys = unserialize(COption::GetOptionString($mid, $CRM_UA_KEYS));
-    
+
     $version = COption::GetOptionString($mid, $CRM_API_VERSION, 0);
 
     //currency
@@ -658,11 +652,11 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
 ?>
 <?php $APPLICATION->AddHeadString('<script type="text/javascript" src="/bitrix/js/main/jquery/jquery-1.7.min.js"></script>'); ?>
 <script type="text/javascript">
-    $(document).ready(function() { 
+    $(document).ready(function() {
         $('input.addr').change(function(){
             splitName = $(this).attr('name').split('-');
             orderType = splitName[2];
-            
+
             if(parseInt($(this).val()) === 1)
                 $('tr.address-detail-' + orderType).show('slow');
             else if(parseInt($(this).val()) === 0)
@@ -673,7 +667,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             splitName = $(this).attr('name').split('-');
             contragentType = $(this).val();
             orderType = splitName[2];
-            
+
             $('tr.legal-detail-' + orderType).hide();
             $('.legal-detail-title-' + orderType).hide();
 
@@ -684,47 +678,47 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                 }
             });
         });
-        
+
         $('.inventories-batton label').change(function(){
             if($(this).find('input').is(':checked') === true){
                 $('tr.inventories').show('slow');
             } else if($(this).find('input').is(':checked') === false){
                 $('tr.inventories').hide('slow');
             }
-            
+
             return true;
         });
-        
+
         $('.prices-batton label').change(function(){
             if($(this).find('input').is(':checked') === true){
                 $('tr.prices').show('slow');
             } else if($(this).find('input').is(':checked') === false){
                 $('tr.prices').hide('slow');
             }
-            
+
             return true;
         });
-        
+
         $('.r-ua-button label').change(function(){
             if($(this).find('input').is(':checked') === true){
                 $('tr.r-ua').show('slow');
             } else if($(this).find('input').is(':checked') === false){
                 $('tr.r-ua').hide('slow');
             }
-            
+
             return true;
         });
-        
+
         $('.r-coll-button label').change(function(){
             if($(this).find('input').is(':checked') === true){
                 $('tr.r-coll').show('slow');
             } else if($(this).find('input').is(':checked') === false){
                 $('tr.r-coll').hide('slow');
             }
-            
+
             return true;
         });
-    });    
+    });
 
     $('input[name="update-delivery-services"]').live('click', function() {
         BX.showWait();
@@ -777,12 +771,12 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         border-bottom: 15px solid #f5f9f9 !important;
     }
     .option-head{
-        text-align: center; 
+        text-align: center;
         padding: 10px;
         font-size: 14px;
         color: #4b6267;
     }
-    
+
 </style>
 <form method="POST" action="<?php echo $uri; ?>" id="FORMACTION">
 <?php
@@ -808,7 +802,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                 <?php echo GetMessage('ICRM_SITES'); ?>
             </b>
         </td>
-    </tr>   
+    </tr>
     <?php foreach ($arResult['arSites'] as $site): ?>
     <tr>
         <td width="50%" class="adm-detail-content-cell-l"><?php echo $site['NAME'] . ' (' . $site['LID'] . ')'; ?></td>
@@ -981,7 +975,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             <?php echo GetMessage('CONTRAGENTS_TYPES_LIST'); ?>
         </td>
         <td width="50%" class="adm-detail-content-cell-r">
-            <select name="contragent-type-<?php echo $bitrixOrderType['ID']; ?>" class="typeselect">         
+            <select name="contragent-type-<?php echo $bitrixOrderType['ID']; ?>" class="typeselect">
                 <?php foreach ($arResult['contragentType'] as $contragentType): ?>
                 <option value="<?php echo $contragentType["ID"]; ?>" <?php if ($optionsContragentType[$bitrixOrderType['ID']] == $contragentType['ID']) echo 'selected'; ?>>
                     <?php echo $contragentType["NAME"]; ?>
@@ -990,7 +984,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             </select>
         </td>
     </tr>
-    <?php $countProps = 1; foreach($arResult['orderProps'] as $orderProp): ?>    
+    <?php $countProps = 1; foreach($arResult['orderProps'] as $orderProp): ?>
     <?php if($orderProp['ID'] == 'text'): ?>
     <tr class="heading">
         <td colspan="2" style="background-color: transparent;">
@@ -1007,7 +1001,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         </td>
         <td width="50%" class="adm-detail-content-cell-r">
             <select name="order-prop-<?php echo $orderProp['ID'] . '-' . $bitrixOrderType['ID']; ?>" class="typeselect">
-                <option value=""></option>              
+                <option value=""></option>
                 <?php foreach ($arResult['arProp'][$bitrixOrderType['ID']] as $arProp): ?>
                 <option value="<?php echo $arProp['CODE']; ?>" <?php if ($optionsOrderProps[$bitrixOrderType['ID']][$orderProp['ID']] == $arProp['CODE']) echo 'selected'; ?>>
                     <?php echo $arProp['NAME']; ?>
@@ -1065,15 +1059,15 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                 <?php endforeach; ?>
             </select>
         </td>
-    </tr>   
+    </tr>
     <?php endforeach; ?>
     <?php endforeach; ?>
-    
+
 <?php $tabControl->BeginNextTab(); ?>
     <input type="hidden" name="tab" value="catalog">
     <tr class="heading">
         <td colspan="2" class="option-other-bottom"><b><?php echo GetMessage('ORDERS_OPTIONS'); ?></b></td>
-    </tr>    
+    </tr>
     <tr>
         <td colspan="2" class="option-head option-other-top option-other-bottom">
             <b>
@@ -1097,14 +1091,14 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                 <label><input class="addr" type="radio" name="order-discharge" value="0" <?php if($optionsDischarge == 0) echo "checked"; ?>><?php echo GetMessage('DISCHARGE_AGENT'); ?></label>
             </b>
         </td>
-    </tr>  
+    </tr>
     <tr class="heading">
         <td colspan="2" class="option-other-heading"><b><?php echo GetMessage('CRM_API_VERSION'); ?></b></td>
     </tr>
     <tr>
         <td colspan="2" class="option-head option-other-top option-other-bottom">
             <select name="api_version" class="typeselect">
-                <?php for($v = 4; $v <= 5; $v++) { 
+                <?php for($v = 4; $v <= 5; $v++) {
                     $ver = 'v' . $v; ?>
                 <option value="<?php echo $ver; ?>" <?php if ($ver == $version) echo 'selected'; ?>>
                     API V<?php echo $v; ?>
@@ -1115,10 +1109,10 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     </tr>
     <tr class="heading">
         <td colspan="2" class="option-other-heading"><b><?php echo GetMessage('CURRENCY'); ?></b></td>
-    </tr>  
+    </tr>
     <tr>
         <td colspan="2" class="option-head option-other-top option-other-bottom">
-            <select name="currency" class="typeselect">  
+            <select name="currency" class="typeselect">
                 <?php foreach ($currencyList as $currencyCode => $currencyName) : ?>
                     <option value="<?php echo $currencyCode; ?>" <?php if ($currencyCode == $currencyOption) echo 'selected'; ?>>
                        <?php echo $currencyName; ?>
@@ -1134,12 +1128,12 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                 <label><input class="addr" type="checkbox" name="inventories-upload" value="Y" <?php if($optionInventotiesUpload === 'Y') echo "checked"; ?>><?php echo GetMessage('INVENTORIES_UPLOAD'); ?></label>
             </b>
         </td>
-    </tr>  
+    </tr>
     <tr class="inventories" <?php if($optionInventotiesUpload !== 'Y') echo 'style="display: none;"'; ?>>
         <td colspan="2" class="option-head option-other-top option-other-bottom">
             <b><label><?php echo GetMessage('INVENTORIES'); ?></label></b>
         </td>
-    </tr>  
+    </tr>
     <?php foreach ($arResult['bitrixStoresExportList'] as $catalogExportStore): ?>
     <tr class="inventories" <?php if($optionInventotiesUpload !== 'Y') echo 'style="display: none;"'; ?>>
         <td width="50%" class="adm-detail-content-cell-l"><?php echo $catalogExportStore['TITLE'] ?></td>
@@ -1159,28 +1153,28 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                 <label><?php echo GetMessage('SHOPS_INVENTORIES_UPLOAD'); ?></label>
             </b>
         </td>
-    </tr> 
+    </tr>
     <?php foreach ($arResult['sitesList'] as $sitesList): ?>
     <tr class="inventories" align="center" <?php if($optionInventotiesUpload !== 'Y') echo 'style="display: none;"'; ?>>
         <td colspan="2" class="option-other-center">
             <label><input class="addr" type="checkbox" name="shops-exoprt-<?echo $sitesList['code'];?>" value="Y" <?php if(in_array($sitesList['code'], $optionShops)) echo "checked"; ?>> <?php echo $sitesList['name'].' ('.$sitesList['code'].')'; ?></label>
         </td>
-    </tr>  
-    <?php endforeach;?>   
+    </tr>
+    <?php endforeach;?>
     <tr class="inventories" <?php if($optionInventotiesUpload !== 'Y') echo 'style="display: none;"'; ?>>
         <td colspan="2" class="option-head option-other-top option-other-bottom">
             <b>
                 <label><?php echo GetMessage('IBLOCKS_UPLOAD'); ?></label>
             </b>
         </td>
-    </tr>  
+    </tr>
     <?php foreach ($arResult['bitrixIblocksExportList'] as $catalogExportIblock) :?>
     <tr class="inventories" align="center" <?php if($optionInventotiesUpload !== 'Y') echo 'style="display: none;"'; ?>>
         <td colspan="2" class="option-other-center">
             <label><input class="addr" type="checkbox" name="iblocks-stores-<?echo $catalogExportIblock['ID'];?>" value="Y" <?php if(in_array($catalogExportIblock['ID'], $optionIblocksInventories)) echo "checked"; ?>> <?php echo '['. $catalogExportIblock['CODE']. '] ' . $catalogExportIblock['NAME'] . ' (' . $catalogExportIblock['LID'] . ')'; ?></label>
         </td>
-    </tr>      
-    <?php endforeach;?>  
+    </tr>
+    <?php endforeach;?>
     <?php endif;?>
     <?php if ($optionPricesUpload === 'Y' || count($arResult['bitrixPricesExportList']) > 0) :?>
     <tr class="heading prices-batton">
@@ -1189,15 +1183,15 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                 <label><input class="addr" type="checkbox" name="prices-upload" value="Y" <?php if($optionPricesUpload === 'Y') echo "checked"; ?>><?php echo GetMessage('PRICES_UPLOAD'); ?></label>
             </b>
         </td>
-    </tr>  
+    </tr>
     <tr class="prices" <?php if($optionPricesUpload !== 'Y') echo 'style="display: none;"'; ?>>
         <td colspan="2" class="option-head option-other-top option-other-bottom">
             <b>
                 <label><?php echo GetMessage('PRICE_TYPES'); ?></label>
             </b>
         </td>
-    </tr>  
-    <?php foreach ($arResult['bitrixPricesExportList'] as $catalogExportPrice) :?> 
+    </tr>
+    <?php foreach ($arResult['bitrixPricesExportList'] as $catalogExportPrice) :?>
     <tr class="prices" <?php if($optionPricesUpload !== 'Y') echo 'style="display: none;"'; ?>>
         <td width="50%" class="adm-detail-content-cell-l"><?php echo $catalogExportPrice['NAME_LANG'] . ' (' . $catalogExportPrice['NAME'] . ')'; ?></td>
         <td width="50%" class="adm-detail-content-cell-r">
@@ -1216,13 +1210,13 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                 <label><?php echo GetMessage('SHOPS_PRICES_UPLOAD'); ?></label>
             </b>
         </td>
-    </tr> 
+    </tr>
     <?php foreach ($arResult['sitesList'] as $sitesList): ?>
     <tr class="prices" align="center" <?php if($optionPricesUpload !== 'Y') echo 'style="display: none;"'; ?>>
         <td colspan="2" class="option-other-center">
             <label><input class="addr" type="checkbox" name="shops-price-<?echo $sitesList['code'];?>" value="Y" <?php if(in_array($sitesList['code'], $optionPriceShops)) echo "checked"; ?>> <?php echo $sitesList['name'].' ('.$sitesList['code'].')'; ?></label>
         </td>
-    </tr>  
+    </tr>
     <?php endforeach;?>
     <tr class="prices" <?php if($optionPricesUpload !== 'Y') echo 'style="display: none;"'; ?>>
         <td colspan="2" class="option-head option-other-top option-other-bottom">
@@ -1230,28 +1224,28 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                 <label><?php echo GetMessage('IBLOCKS_UPLOAD'); ?></label>
             </b>
         </td>
-    </tr>  
+    </tr>
     <?php foreach ($arResult['bitrixIblocksExportList'] as $catalogExportIblock) :?>
     <tr class="prices" align="center" <?php if($optionPricesUpload !== 'Y') echo 'style="display: none;"'; ?>>
         <td colspan="2" class="option-other-center">
             <label><input class="addr" type="checkbox" name="iblocks-prices-<?echo $catalogExportIblock['ID'];?>" value="Y" <?php if(in_array($catalogExportIblock['ID'], $optionIblocksPrices)) echo "checked"; ?>> <?php echo '['. $catalogExportIblock['CODE']. '] ' . $catalogExportIblock['NAME'] . ' (' . $catalogExportIblock['LID'] . ')'; ?></label>
         </td>
-    </tr>      
-    <?php endforeach;?>  
+    </tr>
+    <?php endforeach;?>
     <?php endif;?>
-    
+
     <tr class="heading r-coll-button">
         <td colspan="2" class="option-other-heading">
             <b>
                 <label><input class="addr" type="checkbox" name="collector" value="Y" <?php if($optionCollector === 'Y') echo "checked"; ?>><?php echo GetMessage('DEMON_COLLECTOR'); ?></label>
             </b>
         </td>
-    </tr>  
+    </tr>
     <tr class="r-coll" <?php if($optionCollector !== 'Y') echo 'style="display: none;"'; ?>>
         <td class="option-head" colspan="2">
             <b><?php echo GetMessage('ICRM_SITES'); ?></b>
         </td>
-    </tr> 
+    </tr>
     <?php foreach ($arResult['arSites'] as $sitesList): ?>
     <tr class="r-coll" <?php if($optionCollector !== 'Y') echo 'style="display: none;"'; ?>>
         <td class="adm-detail-content-cell-l" width="50%"><?php echo GetMessage('DEMON_KEY'); ?> <?php echo $sitesList['NAME']; ?> (<?php echo $sitesList['LID']; ?>)</td>
@@ -1266,13 +1260,13 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                 <label><input class="addr" type="checkbox" name="ua-integration" value="Y" <?php if($optionUa === 'Y') echo "checked"; ?>><?php echo GetMessage('UNIVERSAL_ANALYTICS'); ?></label>
             </b>
         </td>
-    </tr> 
+    </tr>
     <?php foreach ($arResult['arSites'] as $sitesList): ?>
     <tr class="r-ua" <?php if($optionUa !== 'Y') echo 'style="display: none;"'; ?>>
         <td class="option-head" colspan="2">
             <b><?php echo $sitesList['NAME']; ?> (<?php echo $sitesList['LID']; ?>)</b>
         </td>
-    </tr>    
+    </tr>
     <tr class="r-ua" <?php if($optionUa !== 'Y') echo 'style="display: none;"'; ?>>
         <td class="adm-detail-content-cell-l" width="50%"><?php echo GetMessage('ID_UA'); ?></td>
         <td class="adm-detail-content-cell-r" width="50%">
@@ -1291,7 +1285,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     <input type="hidden" name="Update" value="Y" />
     <input type="submit" title="<?php echo GetMessage('ICRM_OPTIONS_SUBMIT_TITLE'); ?>" value="<?php echo GetMessage('ICRM_OPTIONS_SUBMIT_VALUE'); ?>" name="btn-update" class="adm-btn-save" />
 <?php $tabControl->End(); ?>
-</form>    
+</form>
 <?php } ?>
 
 <?php //order upload?>
@@ -1356,21 +1350,21 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         left: -2px;
         top: -2px;
     }
-    
+
     .order-upload-button{
         padding: 1px 13px 2px;
         height:28px;
     }
-    
+
     .order-upload-button div{
-        float:right; 
-        position:relative; 
+        float:right;
+        position:relative;
         visible: none;
     }
 </style>
 
 <script type="text/javascript">
-    $(document).ready(function() { 
+    $(document).ready(function() {
         $('#percent').width($('.instal-progress-bar-outer').width());
 
         $(window).resize(function(){ // strechin progress bar
@@ -1398,7 +1392,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                         BX.closeWait();
                     }
                     else{
-                        orderUpload();   
+                        orderUpload();
                     }
                     $('#indicator').css('width', response.percent + '%');
                     $('#percent').html(response.percent + '%');
@@ -1414,7 +1408,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             });
         }
 
-        $('input[name="start"]').live('click', function() {  
+        $('input[name="start"]').live('click', function() {
             BX.showWait();
             $('#indicator').css('width', 0);
             $('#percent2').html('0%');
