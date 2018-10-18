@@ -1046,46 +1046,8 @@ class intaro_retailcrm extends CModule
             $api_key = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, 0);
             $api_version = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_VERSION, 0);
             $this->RETAIL_CRM_API = new \RetailCrm\ApiClient($api_host, $api_key);
-            $scheme = isset($_SERVER['HTTPS']) ? 'https://' : 'http://';
-            $baseUrl = $scheme . $_SERVER['HTTP_HOST'];
-            $code = 'bitrix';
-            $logo = 'https://s3.eu-central-1.amazonaws.com/retailcrm-billing/images/5af47fe682bf2-1c-bitrix-logo.svg';
-            $accountUrl = $baseUrl . '/bitrix/admin/settings.php?mid=intaro.retailcrm';
 
-            try {
-                if ($api_version == 'v4') {
-                    $configuration = array(
-                        'name' => GetMessage('API_MODULE_NAME'),
-                        'code' => $code,
-                        'logo' => $logo,
-                        'configurationUrl' => $accountUrl,
-                        'active' => true
-                    );
-
-                    $this->RETAIL_CRM_API->marketplaceSettingsEdit($configuration);
-                } else {
-                    $clientId = hash('md5', date('Y-m-d H:i:s'));
-
-                    $configuration = array(
-                        'clientId' => $clientId,
-                        'code' => $code,
-                        'integrationCode' => $code,
-                        'active' => true,
-                        'name' => GetMessage('API_MODULE_NAME'),
-                        'logo' => $logo,
-                        'baseUrl' => $baseUrl,
-                        'accountUrl' => $accountUrl
-                    );
-
-                    $this->RETAIL_CRM_API->integrationModulesEdit($configuration);
-                    COption::SetOptionString($this->MODULE_ID, $this->CLIENT_ID, $clientId);
-                }
-            } catch (\RetailCrm\Exception\CurlException $e) {
-                RCrmActions::eventLog(
-                    'intaro.retailcrm/install/index.php', 'RetailCrm\ApiClient::statisticUpdate::CurlException',
-                    $e->getCode() . ': ' . $e->getMessage()
-                );
-            }
+            RCrmActions::sendConfiguration($this->RETAIL_CRM_API, $api_version);
 
             $APPLICATION->IncludeAdminFile(
                 GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step6.php'
@@ -1100,7 +1062,6 @@ class intaro_retailcrm extends CModule
         $api_host = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, 0);
         $api_key = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, 0);
         $api_version = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_VERSION, 0);
-        $clientId = COption::GetOptionString($this->MODULE_ID, $this->CLIENT_ID, 0);
 
         include($this->INSTALL_PATH . '/../classes/general/Http/Client.php');
         include($this->INSTALL_PATH . '/../classes/general/Response/ApiResponse.php');
@@ -1118,13 +1079,6 @@ class intaro_retailcrm extends CModule
         }
 
         $retail_crm_api = new \RetailCrm\ApiClient($api_host, $api_key);
-
-        $configuration = array(
-            'clientId' => $clientId,
-            'code' => 'bitrix',
-            'integrationCode' => 'bitrix',
-            'active' => false,
-        );
 
         CAgent::RemoveAgent("RCrmActions::orderAgent();", $this->MODULE_ID);
         CAgent::RemoveAgent("RetailCrmInventories::inventoriesUpload();", $this->MODULE_ID);
@@ -1196,13 +1150,7 @@ class intaro_retailcrm extends CModule
             }
         }
 
-        if ($api_version == 'v4') {
-            unset($configuration['integrationCode']);
-            unset($configuration['clientId']);
-            $retail_crm_api->marketplaceSettingsEdit($configuration);
-        } else {
-            $retail_crm_api->integrationModulesEdit($configuration);
-        }
+        RCrmActions::sendConfiguration($retail_crm_api, $api_version, false);
 
         $this->DeleteFiles();
 

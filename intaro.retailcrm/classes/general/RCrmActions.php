@@ -13,15 +13,15 @@ class RCrmActions
         $arSites = array();
         $rsSites = CSite::GetList($by, $sort, array('ACTIVE' => 'Y'));
         while ($ar = $rsSites->Fetch()) {
-            $arSites[] = $ar;   
+            $arSites[] = $ar;
         }
-        
+
         return $arSites;
     }
-    
+
     public static function OrderTypesList($arSites)
     {
-        $orderTypesList = array();            
+        $orderTypesList = array();
         foreach ($arSites as $site) {
             $personTypes = \Bitrix\Sale\PersonType::load($site['LID']);
             $bitrixOrderTypesList = array();
@@ -33,10 +33,10 @@ class RCrmActions
             }
             $orderTypesList = $orderTypesList + $bitrixOrderTypesList;
         }
-        
+
         return $orderTypesList;
     }
-    
+
     public static function DeliveryList()
     {
         $bitrixDeliveryTypesList = array();
@@ -49,9 +49,9 @@ class RCrmActions
             }
         }
         foreach ($arDeliveryServiceAll as $arDeliveryService) {
-            if ((($arDeliveryService['PARENT_ID'] == '0' || $arDeliveryService['PARENT_ID'] == null) || 
-                        in_array($arDeliveryService['PARENT_ID'], $groups)) && 
-                    $arDeliveryService['ID'] != $noOrderId && 
+            if ((($arDeliveryService['PARENT_ID'] == '0' || $arDeliveryService['PARENT_ID'] == null) ||
+                        in_array($arDeliveryService['PARENT_ID'], $groups)) &&
+                    $arDeliveryService['ID'] != $noOrderId &&
                     $arDeliveryService['CLASS_NAME'] != '\Bitrix\Sale\Delivery\Services\Group') {
                 if (in_array($arDeliveryService['PARENT_ID'], $groups)) {
                     $arDeliveryService['PARENT_ID'] = 0;
@@ -62,7 +62,7 @@ class RCrmActions
 
         return $bitrixDeliveryTypesList;
     }
-    
+
     public static function PaymentList()
     {
         $bitrixPaymentTypesList = array();
@@ -73,9 +73,9 @@ class RCrmActions
         while ($payment = $dbPaymentAll->fetch()) {
             $bitrixPaymentTypesList[] = $payment;
         }
-        
+
         return $bitrixPaymentTypesList;
-    }   
+    }
 
     public static function StatusesList()
     {
@@ -90,7 +90,7 @@ class RCrmActions
                 'NAME' => $arStatus['NAME'],
             );
         }
-        
+
         return $bitrixPaymentStatusesList;
     }
 
@@ -104,11 +104,11 @@ class RCrmActions
         while ($prop = $arPropsAll->Fetch()) {
             $bitrixPropsList[$prop['PERSON_TYPE_ID']][] = $prop;
         }
-        
+
         return $bitrixPropsList;
-    } 
-    
-    public static function PricesExportList()    
+    }
+
+    public static function PricesExportList()
     {
         $priceId = COption::GetOptionString(self::$MODULE_ID, 'catalog_base_price', 0);
         $catalogExportPrices = array();
@@ -117,21 +117,21 @@ class RCrmActions
         {
             $catalogExportPrices[$arPriceType['ID']] = $arPriceType;
         }
-        
+
         return $catalogExportPrices;
-    } 
-    
-    public static function StoresExportList()    
+    }
+
+    public static function StoresExportList()
     {
         $catalogExportStores = array();
         $dbStores = CCatalogStore::GetList(array(), array("ACTIVE" => "Y"), false, false, array('ID', 'TITLE'));
         while ($stores = $dbStores->Fetch()) {
             $catalogExportStores[] = $stores;
         }
-        
+
         return $catalogExportStores;
-    } 
-    
+    }
+
     public static function IblocksExportList()
     {
         $catalogExportIblocks = array();
@@ -154,10 +154,10 @@ class RCrmActions
                 }
             }
         }
-        
+
         return $catalogExportIblocks;
     }
-    
+
     /**
      *
      * w+ event in bitrix log
@@ -208,7 +208,7 @@ class RCrmActions
         RetailCrmHistory::customerHistory();
         RetailCrmHistory::orderHistory();
         self::uploadOrdersAgent();
-        
+
         return 'RCrmActions::orderAgent();';
     }
 
@@ -295,7 +295,7 @@ class RCrmActions
         } else {
             $newFio = explode(" ", $fio, 3);
         }
-        
+
         switch (count($newFio)) {
             default:
             case 0:
@@ -322,31 +322,74 @@ class RCrmActions
         return $result;
     }
 
+    public static function sendConfiguration($api, $api_version, $active = true)
+    {
+        $scheme = isset($_SERVER['HTTPS']) ? 'https://' : 'http://';
+        $baseUrl = $scheme . $_SERVER['HTTP_HOST'];
+        $integrationCode = 'bitrix';
+        $logo = 'https://s3.eu-central-1.amazonaws.com/retailcrm-billing/images/5af47fe682bf2-1c-bitrix-logo.svg';
+        $accountUrl = $baseUrl . '/bitrix/admin';
+
+        $clientId = COption::GetOptionString(self::$MODULE_ID, 'client_id', 0);
+
+        if (!$clientId) {
+            $clientId = uniqid();
+            COption::SetOptionString(self::$MODULE_ID, 'client_id', $clientId);
+        }
+
+        $code = $integrationCode . '-' . $clientId;
+
+        if ($api_version == 'v4') {
+            $configuration = array(
+                'name' => GetMessage('API_MODULE_NAME'),
+                'code' => $code,
+                'logo' => $logo,
+                'configurationUrl' => $accountUrl,
+                'active' => $active
+            );
+
+            self::apiMethod($api, 'marketplaceSettingsEdit', __METHOD__, $configuration);
+        } else {
+            $configuration = array(
+                'clientId' => $clientId,
+                'code' => $code,
+                'integrationCode' => $integrationCode,
+                'active' => $active,
+                'name' => GetMessage('API_MODULE_NAME'),
+                'logo' => $logo,
+                'baseUrl' => $baseUrl,
+                'accountUrl' => $accountUrl
+            );
+
+            self::apiMethod($api, 'integrationModulesEdit', __METHOD__, $configuration);
+        }
+    }
+
     public static function apiMethod($api, $methodApi, $method, $params, $site = null)
     {
         switch ($methodApi) {
-            case 'ordersPaymentDelete':          
+            case 'ordersPaymentDelete':
             case 'ordersHistory':
-            case 'customerHistory':                
+            case 'customerHistory':
             case 'ordersFixExternalIds':
             case 'customersFixExternalIds':
                 return self::proxy($api, $methodApi, $method, array($params));
-                
+
             case 'orderGet':
                 return self::proxy($api, 'ordersGet', $method, array($params, 'id', $site));
-                
+
             case 'ordersGet':
             case 'ordersEdit':
             case 'customersGet':
             case 'customersEdit':
                 return self::proxy($api, $methodApi, $method, array($params, 'externalId', $site));
-                
+
             case 'paymentEditById':
                 return self::proxy($api, 'ordersPaymentEdit', $method, array($params, 'id', $site));
-                
+
             case 'paymentEditByExternalId':
                 return self::proxy($api, 'ordersPaymentEdit', $method, array($params, 'externalId', $site));
-                
+
             default:
                 return self::proxy($api, $methodApi, $method, array($params, $site));
         }
@@ -403,12 +446,12 @@ class RCrmActions
             );
             $log->write(array(
                 'api' => $version,
-                'methodApi' => $methodApi, 
-                'errorMsg' => $e->getMessage(), 
-                'errors' => $e->getCode(), 
+                'methodApi' => $methodApi,
+                'errorMsg' => $e->getMessage(),
+                'errors' => $e->getCode(),
                 'params' => $params
             ), 'apiErrors');
-            
+
             if (function_exists('retailCrmApiResult')) {
                 retailCrmApiResult($methodApi, false, 'CurlException');
             }
@@ -421,12 +464,12 @@ class RCrmActions
             );
             $log->write(array(
                 'api' => $version,
-                'methodApi' => $methodApi, 
-                'errorMsg' => $e->getMessage(), 
-                'errors' => $e->getCode(), 
+                'methodApi' => $methodApi,
+                'errorMsg' => $e->getMessage(),
+                'errors' => $e->getCode(),
                 'params' => $params
             ), 'apiErrors');
-            
+
             if (function_exists('retailCrmApiResult')) {
                 retailCrmApiResult($methodApi, false, 'ArgumentException');
             }
