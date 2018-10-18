@@ -96,7 +96,7 @@ class RetailCrmInventories
                     }
 
                     $elems = array();
-                    $chunkStores = array_chunk($stores, 50);
+                    $chunkStores = array_chunk($stores, 50, true);
                     foreach ($chunkStores as $stores) { 
                         foreach ($products as $product) {
                             if (count($product['offers']) > 0) {

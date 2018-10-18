@@ -45,7 +45,7 @@ class RetailCrmOrder
             return false;
         }
 
-        $dimensions = COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_DIMENSIONS, 'N');
+        $dimensionsSetting = COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_DIMENSIONS, 'N');
 
         $order = array(
             'number'          => $arFields['NUMBER'],
@@ -164,7 +164,7 @@ class RetailCrmOrder
 
             $order['items'][] = $item;
 
-            if ($send && $dimensions == 'Y') {
+            if ($send && $dimensionsSetting == 'Y') {
                 $dimensions = RCrmActions::unserializeArrayRecursive($product['DIMENSIONS']);
 
                 if ($dimensions !== false) {
@@ -176,7 +176,7 @@ class RetailCrmOrder
             }
         }
 
-        if ($send && $dimensions == 'Y') {
+        if ($send && $dimensionsSetting == 'Y') {
             $order['width'] = $width;
             $order['height'] = $height;
             $order['length'] = $length;
