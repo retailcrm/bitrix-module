@@ -123,7 +123,7 @@ class ApiClient
             $parameters
         );
     }
-    
+
     /**
      * Change user status
      *
@@ -608,7 +608,7 @@ class ApiClient
             $parameters
         );
     }
-    
+
     /**
      * Combine orders
      *
@@ -723,13 +723,13 @@ class ApiClient
                 'Note id must be set'
             );
         }
-        
+
         return $this->client->makeRequest(
             "/orders/payments/$id/delete",
             Client::METHOD_POST
         );
     }
-    
+
     /**
      * Combine customers
      *
@@ -1063,7 +1063,7 @@ class ApiClient
             Client::METHOD_GET
         );
     }
-    
+
     /**
      * Get tasks list
      *
@@ -1168,7 +1168,7 @@ class ApiClient
             Client::METHOD_GET
         );
     }
-    
+
     /**
      * Get orders assembly list
      *
@@ -1397,7 +1397,7 @@ class ApiClient
             $this->fillSite($site, array('offers' => json_encode($offers)))
         );
     }
-    
+
     /**
      * Upload store prices
      *
@@ -1483,6 +1483,7 @@ class ApiClient
             Client::METHOD_GET
         );
     }
+
     /**
      * Edit module configuration
      *
@@ -1857,7 +1858,7 @@ class ApiClient
             array('productStatus' => json_encode($data))
         );
     }
-    
+
     /**
      * Get products groups
      *
@@ -2196,7 +2197,7 @@ class ApiClient
             $parameters
         );
     }
-    
+
     /**
      * Get segments list
      *

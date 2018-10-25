@@ -74,7 +74,7 @@ class RetailCrmICML
         $defaultSite = CSite::GetList($by = "def", $order = "desc", array('DEF' => 'Y'))->Fetch();
         $this->encodingDefault = $defaultSite["CHARSET"];
 
-        $url = 'https://' . $this->serverName;
+        $url = 'https://' . $this->defaultServerName;
         $curlHandler = curl_init();
         curl_setopt($curlHandler, CURLOPT_URL, $url);
         $responseBody = curl_exec($curlHandler);

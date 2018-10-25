@@ -69,6 +69,8 @@ class intaro_retailcrm extends CModule
     var $CRM_API_VERSION = 'api_version';
     var $HISTORY_TIME = 'history_time';
 
+    var $CLIENT_ID = 'client_id';
+
     var $INSTALL_PATH;
 
     function intaro_retailcrm()
@@ -1042,15 +1044,10 @@ class intaro_retailcrm extends CModule
 
             $api_host = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, 0);
             $api_key = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, 0);
+            $api_version = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_VERSION, 0);
             $this->RETAIL_CRM_API = new \RetailCrm\ApiClient($api_host, $api_key);
-            try {
-                $this->RETAIL_CRM_API->statisticUpdate();
-            } catch (\RetailCrm\Exception\CurlException $e) {
-                RCrmActions::eventLog(
-                    'intaro.retailcrm/install/index.php', 'RetailCrm\ApiClient::statisticUpdate::CurlException',
-                    $e->getCode() . ': ' . $e->getMessage()
-                );
-            }
+
+            RCrmActions::sendConfiguration($this->RETAIL_CRM_API, $api_version);
 
             $APPLICATION->IncludeAdminFile(
                 GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step6.php'
@@ -1061,6 +1058,27 @@ class intaro_retailcrm extends CModule
     function DoUninstall()
     {
         global $APPLICATION;
+
+        $api_host = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, 0);
+        $api_key = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, 0);
+        $api_version = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_VERSION, 0);
+
+        include($this->INSTALL_PATH . '/../classes/general/Http/Client.php');
+        include($this->INSTALL_PATH . '/../classes/general/Response/ApiResponse.php');
+        include($this->INSTALL_PATH . '/../classes/general/Exception/InvalidJsonException.php');
+        include($this->INSTALL_PATH . '/../classes/general/Exception/CurlException.php');
+
+        if ($api_version == 'v4') {
+            include($this->INSTALL_PATH . '/../classes/general/ApiClient_v4.php');
+            include($this->INSTALL_PATH . '/../classes/general/order/RetailCrmOrder_v4.php');
+            include($this->INSTALL_PATH . '/../classes/general/history/RetailCrmHistory_v4.php');
+        } elseif ($api_version == 'v5') {
+            include($this->INSTALL_PATH . '/../classes/general/ApiClient_v5.php');
+            include($this->INSTALL_PATH . '/../classes/general/order/RetailCrmOrder_v5.php');
+            include($this->INSTALL_PATH . '/../classes/general/history/RetailCrmHistory_v5.php');
+        }
+
+        $retail_crm_api = new \RetailCrm\ApiClient($api_host, $api_key);
 
         CAgent::RemoveAgent("RCrmActions::orderAgent();", $this->MODULE_ID);
         CAgent::RemoveAgent("RetailCrmInventories::inventoriesUpload();", $this->MODULE_ID);
@@ -1108,6 +1126,7 @@ class intaro_retailcrm extends CModule
 
         COption::RemoveOption($this->MODULE_ID, $this->CRM_API_VERSION);
         COption::RemoveOption($this->MODULE_ID, $this->HISTORY_TIME);
+        COption::RemoveOption($this->MODULE_ID, $this->CLIENT_ID);
 
         UnRegisterModuleDependences("sale", "OnOrderUpdate", $this->MODULE_ID, "RetailCrmEvent", "onUpdateOrder");
         UnRegisterModuleDependences("main", "OnAfterUserUpdate", $this->MODULE_ID, "RetailCrmEvent", "OnAfterUserUpdate");
@@ -1131,12 +1150,14 @@ class intaro_retailcrm extends CModule
             }
         }
 
+        RCrmActions::sendConfiguration($retail_crm_api, $api_version, false);
+
         $this->DeleteFiles();
 
         UnRegisterModule($this->MODULE_ID);
 
         $APPLICATION->IncludeAdminFile(
-                GetMessage('MODULE_UNINSTALL_TITLE'), $this->INSTALL_PATH . '/unstep1.php'
+            GetMessage('MODULE_UNINSTALL_TITLE'), $this->INSTALL_PATH . '/unstep1.php'
         );
     }
 
