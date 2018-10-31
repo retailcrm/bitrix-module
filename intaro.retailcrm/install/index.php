@@ -891,7 +891,7 @@ class intaro_retailcrm extends CModule
             RegisterModule($this->MODULE_ID);
             RegisterModuleDependences("sale", "OnOrderUpdate", $this->MODULE_ID, "RetailCrmEvent", "onUpdateOrder");
             RegisterModuleDependences("main", "OnAfterUserUpdate", $this->MODULE_ID, "RetailCrmEvent", "OnAfterUserUpdate");
-            RegisterModuleDependences("sale", "OnSaleOrderEntitySaved", $this->MODULE_ID, "RetailCrmEvent", "orderSave");
+            RegisterModuleDependences("sale", \Bitrix\sale\EventActions::EVENT_ON_ORDER_SAVED, $this->MODULE_ID, "RetailCrmEvent", "orderSave");
             RegisterModuleDependences("sale", "OnSaleOrderDeleted", $this->MODULE_ID, "RetailCrmEvent", "orderDelete");
             RegisterModuleDependences("sale", "OnSalePaymentEntitySaved", $this->MODULE_ID, "RetailCrmEvent", "paymentSave");
             RegisterModuleDependences("sale", "OnSalePaymentEntityDeleted", $this->MODULE_ID, "RetailCrmEvent", "paymentDelete");
@@ -1067,6 +1067,8 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../classes/general/Response/ApiResponse.php');
         include($this->INSTALL_PATH . '/../classes/general/Exception/InvalidJsonException.php');
         include($this->INSTALL_PATH . '/../classes/general/Exception/CurlException.php');
+        include($this->INSTALL_PATH . '/../classes/general/RCrmActions.php');
+        include($this->INSTALL_PATH . '/../classes/general/Logger.php');
 
         if ($api_version == 'v4') {
             include($this->INSTALL_PATH . '/../classes/general/ApiClient_v4.php');
@@ -1128,10 +1130,19 @@ class intaro_retailcrm extends CModule
         COption::RemoveOption($this->MODULE_ID, $this->HISTORY_TIME);
         COption::RemoveOption($this->MODULE_ID, $this->CLIENT_ID);
 
+        if (CModule::IncludeModule('sale')) {
+            UnRegisterModuleDependences(
+                        "sale",
+                        \Bitrix\sale\EventActions::EVENT_ON_ORDER_SAVED,
+                        $this->MODULE_ID,
+                        "RetailCrmEvent",
+                        "orderSave"
+                    );
+        }
+
         UnRegisterModuleDependences("sale", "OnOrderUpdate", $this->MODULE_ID, "RetailCrmEvent", "onUpdateOrder");
         UnRegisterModuleDependences("main", "OnAfterUserUpdate", $this->MODULE_ID, "RetailCrmEvent", "OnAfterUserUpdate");
-        UnRegisterModuleDependences("sale", "OnSaleOrderEntitySaved", $this->MODULE_ID, "RetailCrmEvent", "orderSave");
-        UnRegisterModuleDependences("sale", "OnSaleBeforeOrderDelete", $this->MODULE_ID, "RetailCrmEvent", "orderDelete");
+        UnRegisterModuleDependences("sale", "OnSaleOrderDeleted", $this->MODULE_ID, "RetailCrmEvent", "orderDelete");
         UnRegisterModuleDependences("main", "OnBeforeProlog", $this->MODULE_ID, "RetailCrmCollector", "add");
         UnRegisterModuleDependences("main", "OnBeforeProlog", $this->MODULE_ID, "RetailCrmUa", "add");
         UnRegisterModuleDependences("sale", "OnSalePaymentEntitySaved", $this->MODULE_ID, "RetailCrmEvent", "paymentSave");
