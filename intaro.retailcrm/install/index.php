@@ -1067,6 +1067,7 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../classes/general/Response/ApiResponse.php');
         include($this->INSTALL_PATH . '/../classes/general/Exception/InvalidJsonException.php');
         include($this->INSTALL_PATH . '/../classes/general/Exception/CurlException.php');
+        include($this->INSTALL_PATH . '/../classes/general/RCrmActions.php');
 
         if ($api_version == 'v4') {
             include($this->INSTALL_PATH . '/../classes/general/ApiClient_v4.php');
