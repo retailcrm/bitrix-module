@@ -43,6 +43,7 @@ $CRM_API_VERSION = 'api_version';
 $CRM_CURRENCY = 'currency';
 $CRM_ADDRESS_OPTIONS = 'address_options';
 $CRM_DIMENSIONS = 'order_dimensions';
+$PROTOCOL = 'protocol';
 
 if(!CModule::IncludeModule('intaro.retailcrm') || !CModule::IncludeModule('sale') || !CModule::IncludeModule('iblock') || !CModule::IncludeModule('catalog'))
     return;
@@ -512,6 +513,12 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     COption::SetOptionString($mid, $CRM_UA, $ua);
     COption::SetOptionString($mid, $CRM_UA_KEYS, serialize(RCrmActions::clearArr($uaKeys)));
     COption::SetOptionString($mid, $CRM_DIMENSIONS, $orderDimensions);
+
+    if ($request->isHttps() === true) {
+        COption::SetOptionString($mid, $PROTOCOL, 'https://');
+    } else {
+        COption::SetOptionString($mid, $PROTOCOL, 'http://');
+    }
 
     $uri .= '&ok=Y';
     LocalRedirect($uri);

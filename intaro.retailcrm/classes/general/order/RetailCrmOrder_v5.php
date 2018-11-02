@@ -171,7 +171,7 @@ class RetailCrmOrder
                     $width += $dimensions['WIDTH'];
                     $height += $dimensions['HEIGHT'];
                     $length += $dimensions['LENGTH'];
-                    $weight += $product['WEIGHT'];
+                    $weight += $product['WEIGHT'] * $product['QUANTITY'];
                 }
             }
         }

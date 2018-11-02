@@ -70,6 +70,7 @@ class intaro_retailcrm extends CModule
     var $HISTORY_TIME = 'history_time';
 
     var $CLIENT_ID = 'client_id';
+    var $PROTOCOL = 'protocol';
 
     var $INSTALL_PATH;
 
@@ -511,6 +512,14 @@ class intaro_retailcrm extends CModule
             //new page
             //form orderProps
             $arResult['arProp'] = RCrmActions::OrderPropsList();
+
+            $request = \Bitrix\Main\Application::getInstance()->getContext()->getRequest();
+
+            if ($request->isHttps() === true) {
+                COption::SetOptionString($this->MODULE_ID, $this->PROTOCOL, 'https://');
+            } else {
+                COption::SetOptionString($this->MODULE_ID, $this->PROTOCOL, 'http://');
+            }
 
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_TYPES_ARR, serialize(RCrmActions::clearArr($orderTypesArr)));
             COption::SetOptionString($this->MODULE_ID, $this->CRM_DELIVERY_TYPES_ARR, serialize(RCrmActions::clearArr($deliveryTypesArr)));
@@ -1130,6 +1139,7 @@ class intaro_retailcrm extends CModule
         COption::RemoveOption($this->MODULE_ID, $this->CRM_API_VERSION);
         COption::RemoveOption($this->MODULE_ID, $this->HISTORY_TIME);
         COption::RemoveOption($this->MODULE_ID, $this->CLIENT_ID);
+        COption::RemoveOption($this->MODULE_ID, $this->PROTOCOL);
 
         if (CModule::IncludeModule('sale')) {
             UnRegisterModuleDependences(
