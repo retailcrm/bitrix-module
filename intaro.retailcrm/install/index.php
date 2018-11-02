@@ -1132,12 +1132,12 @@ class intaro_retailcrm extends CModule
 
         if (CModule::IncludeModule('sale')) {
             UnRegisterModuleDependences(
-                        "sale",
-                        \Bitrix\sale\EventActions::EVENT_ON_ORDER_SAVED,
-                        $this->MODULE_ID,
-                        "RetailCrmEvent",
-                        "orderSave"
-                    );
+                "sale",
+                \Bitrix\sale\EventActions::EVENT_ON_ORDER_SAVED,
+                $this->MODULE_ID,
+                "RetailCrmEvent",
+                "orderSave"
+            );
         }
 
         UnRegisterModuleDependences("sale", "OnOrderUpdate", $this->MODULE_ID, "RetailCrmEvent", "onUpdateOrder");
