@@ -1070,6 +1070,7 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../classes/general/RCrmActions.php');
         include($this->INSTALL_PATH . '/../classes/general/Logger.php');
 
+
         if ($api_version == 'v4') {
             include($this->INSTALL_PATH . '/../classes/general/ApiClient_v4.php');
             include($this->INSTALL_PATH . '/../classes/general/order/RetailCrmOrder_v4.php');
