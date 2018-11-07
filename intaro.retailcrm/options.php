@@ -43,6 +43,7 @@ $CRM_API_VERSION = 'api_version';
 $CRM_CURRENCY = 'currency';
 $CRM_ADDRESS_OPTIONS = 'address_options';
 $CRM_DIMENSIONS = 'order_dimensions';
+$PROTOCOL = 'protocol';
 
 if(!CModule::IncludeModule('intaro.retailcrm') || !CModule::IncludeModule('sale') || !CModule::IncludeModule('iblock') || !CModule::IncludeModule('catalog'))
     return;
@@ -276,12 +277,12 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     $orderDischarge = (int) htmlspecialchars(trim($_POST['order-discharge']));
     if (($orderDischarge != $previousDischarge) && ($orderDischarge == 0)) {
         // remove depenedencies
-        UnRegisterModuleDependences("sale", "OnSaleOrderEntitySaved", $mid, "RetailCrmEvent", "orderSave");
+        UnRegisterModuleDependences("sale", \Bitrix\sale\EventActions::EVENT_ON_ORDER_SAVED, $mid, "RetailCrmEvent", "orderSave");
         UnRegisterModuleDependences("sale", "OnOrderUpdate", $mid, "RetailCrmEvent", "onUpdateOrder");
         UnRegisterModuleDependences("sale", "OnSaleOrderDeleted", $mid, "RetailCrmEvent", "orderDelete");
     } elseif (($orderDischarge != $previousDischarge) && ($orderDischarge == 1)) {
         // event dependencies
-        RegisterModuleDependences("sale", "OnSaleOrderEntitySaved", $mid, "RetailCrmEvent", "orderSave");
+        RegisterModuleDependences("sale", \Bitrix\sale\EventActions::EVENT_ON_ORDER_SAVED, $mid, "RetailCrmEvent", "orderSave");
         RegisterModuleDependences("sale", "OnOrderUpdate", $mid, "RetailCrmEvent", "onUpdateOrder");
         RegisterModuleDependences("sale", "OnSaleOrderDeleted", $mid, "RetailCrmEvent", "orderDelete");
     }
@@ -512,6 +513,12 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     COption::SetOptionString($mid, $CRM_UA, $ua);
     COption::SetOptionString($mid, $CRM_UA_KEYS, serialize(RCrmActions::clearArr($uaKeys)));
     COption::SetOptionString($mid, $CRM_DIMENSIONS, $orderDimensions);
+
+    if ($request->isHttps() === true) {
+        COption::SetOptionString($mid, $PROTOCOL, 'https://');
+    } else {
+        COption::SetOptionString($mid, $PROTOCOL, 'http://');
+    }
 
     $uri .= '&ok=Y';
     LocalRedirect($uri);

@@ -36,6 +36,7 @@ class RetailCrmICML
 
     protected $MODULE_ID = 'intaro.retailcrm';
     protected $CRM_CATALOG_BASE_PRICE = 'catalog_base_price';
+    protected $PROTOCOL_OPTION = 'protocol';
 
     protected $measurement = array (
         'mm' => 1,          // 1 mm = 1 mm
@@ -74,17 +75,7 @@ class RetailCrmICML
         $defaultSite = CSite::GetList($by = "def", $order = "desc", array('DEF' => 'Y'))->Fetch();
         $this->encodingDefault = $defaultSite["CHARSET"];
 
-        $url = 'https://' . $this->defaultServerName;
-        $curlHandler = curl_init();
-        curl_setopt($curlHandler, CURLOPT_URL, $url);
-        $responseBody = curl_exec($curlHandler);
-        $statusCode = curl_getinfo($curlHandler, CURLINFO_HTTP_CODE);
-        curl_close($curlHandler);
-        if ($statusCode == 200) {
-            $this->protocol = 'https://';
-        } else {
-            $this->protocol = 'http://';
-        }
+        $this->protocol = COption::GetOptionString($this->MODULE_ID, $this->PROTOCOL_OPTION);
 
         $this->PrepareSettings();
 
