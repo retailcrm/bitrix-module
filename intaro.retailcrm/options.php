@@ -514,6 +514,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     COption::SetOptionString($mid, $CRM_UA_KEYS, serialize(RCrmActions::clearArr($uaKeys)));
     COption::SetOptionString($mid, $CRM_DIMENSIONS, $orderDimensions);
 
+    $request = \Bitrix\Main\Application::getInstance()->getContext()->getRequest();
+
     if ($request->isHttps() === true) {
         COption::SetOptionString($mid, $PROTOCOL, 'https://');
     } else {
