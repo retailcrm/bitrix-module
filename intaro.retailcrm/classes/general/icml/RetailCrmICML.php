@@ -111,6 +111,17 @@ class RetailCrmICML
 
     }
 
+    private function setSiteAddress($block_id)
+    {
+        $site = CAllIBlock::GetSite($block_id)->Fetch();
+
+        if ($site['SERVER_NAME']) {
+            $this->serverName = $site['SERVER_NAME'];
+        } else {
+            $this->serverName = $this->defaultServerName;
+        }
+    }
+
     protected function PrepareSettings()
     {
         foreach ($this->propertiesSKU as $iblock => $arr) {
@@ -118,6 +129,7 @@ class RetailCrmICML
                 $this->propertiesSKU[$iblock][$id] = strtoupper($sku);
             }
         }
+
         foreach ($this->propertiesProduct as $iblock => $arr) {
             foreach ($arr as $id => $prod) {
                 $this->propertiesProduct[$iblock][$id] = strtoupper($prod);
@@ -202,22 +214,27 @@ class RetailCrmICML
     {
         $categories = array();
         foreach ($this->iblocks as $id) {
+            $this->setSiteAddress($id);
             $filter = array("IBLOCK_ID" => $id);
 
             $dbRes = CIBlockSection::GetList(array("left_margin" => "asc"), $filter);
             $hasCategories = false;
+
             while ($arRes = $dbRes->Fetch()) {
                 $categories[$arRes['ID']] = $arRes;
+                $categories[$arRes['ID']]['SITE'] = $this->protocol . $this->serverName;
                 $hasCategories = true;
             }
+
             if (!$hasCategories) {
                 $iblock = CIBlock::GetByID($id)->Fetch();
 
-                $arRes = Array();
+                $arRes = array();
                 $arRes['ID'] = $this->mainSection + $id;
                 $arRes['IBLOCK_SECTION_ID'] = 0;
                 $arRes['NAME'] = sprintf(GetMessage('ROOT_CATEGORY_FOR_CATALOG'), $iblock['NAME']);
                 $categories[$arRes['ID']] = $arRes;
+                $categories[$arRes['ID']]['SITE'] = $this->protocol . $this->serverName;
             }
         }
 
@@ -226,15 +243,25 @@ class RetailCrmICML
 
     protected function BuildCategory($arCategory)
     {
-        return "
-            <category id=\"" . $this->PrepareValue($arCategory["ID"]) . "\""
-            . ( intval($arCategory["IBLOCK_SECTION_ID"] ) > 0 ?
-                    " parentId=\"" . $this->PrepareValue($arCategory["IBLOCK_SECTION_ID"]) . "\""
-                    :"")
-            . ">"
-            . $this->PrepareValue($arCategory["NAME"])
-            . "</category>\n";
+        $category =
+            "<category id=\"" . $this->PrepareValue($arCategory["ID"]) . "\""
+            . (intval($arCategory["IBLOCK_SECTION_ID"]) > 0 ?
+                " parentId=\"" . $this->PrepareValue($arCategory["IBLOCK_SECTION_ID"]) . "\""
+                :"")
+            . ">\n\t"
+            . "<name>" . $this->PrepareValue($arCategory["NAME"]) . "</name>\n";
 
+        if (CFile::GetPath($arCategory["DETAIL_PICTURE"])) {
+            $category .= "\t<picture>" . $arCategory['SITE'] . CFile::GetPath($arCategory["DETAIL_PICTURE"]) . "</picture>\n";
+        }
+
+        if (CFile::GetPath($arCategory["PICTURE"])) {
+            $category .= "\t<picture>" . $arCategory['SITE'] . CFile::GetPath($arCategory["PICTURE"]) . "</picture>\n";
+        }
+
+        $category .= "</category>\n";
+
+        return $category;
     }
 
     protected function BuildOffers(&$allCategories)
@@ -246,14 +273,7 @@ class RetailCrmICML
         );
 
         foreach ($this->iblocks as $key => $id) {
-            $site = CAllIBlock::GetSite($id)->Fetch();
-
-            if ($site['SERVER_NAME']) {
-                $this->serverName = $site['SERVER_NAME'];
-            } else {
-                $this->serverName = $this->defaultServerName;
-            }
-
+            $this->setSiteAddress($id);
             $barcodes = array();
 
             $dbBarCode = CCatalogStoreBarCode::getList(
