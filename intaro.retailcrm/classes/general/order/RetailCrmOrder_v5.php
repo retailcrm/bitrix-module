@@ -21,6 +21,7 @@ class RetailCrmOrder
     public static $CRM_CATALOG_BASE_PRICE = 'catalog_base_price';
     public static $CRM_ORDER_NUMBERS = 'order_numbers';
     public static $CRM_ORDER_DIMENSIONS = 'order_dimensions';
+    public static $CRM_CURRENCY = 'currency';
 
     const CANCEL_PROPERTY_CODE = 'INTAROCRM_IS_CANCELED';
 
@@ -46,6 +47,8 @@ class RetailCrmOrder
         }
 
         $dimensionsSetting = COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_DIMENSIONS, 'N');
+        $optionsCurrency = COption::GetOptionString(self::$MODULE_ID, self::$CRM_CURRENCY, 0);
+        $currency = $optionsCurrency ? $optionsCurrency : \Bitrix\Currency\CurrencyManager::getBaseCurrency();
 
         $order = array(
             'number'          => $arFields['NUMBER'],
@@ -146,7 +149,17 @@ class RetailCrmOrder
 
             $pp = CCatalogProduct::GetByID($product['PRODUCT_ID']);
             if (is_null($pp['PURCHASING_PRICE']) == false) {
-                $item['purchasePrice'] = $pp['PURCHASING_PRICE'];
+                if ($pp['PURCHASING_CURRENCY'] && $currency != $pp['PURCHASING_CURRENCY']) {
+                    $purchasePrice = CCurrencyRates::ConvertCurrency(
+                        (double) $pp['PURCHASING_PRICE'],
+                        $pp['PURCHASING_CURRENCY'],
+                        $currency
+                    );
+                } else {
+                    $purchasePrice = $pp['PURCHASING_PRICE'];
+                }
+
+                $item['purchasePrice'] = $purchasePrice;
             }
 
             $discount = (double) $product['DISCOUNT_PRICE'];
