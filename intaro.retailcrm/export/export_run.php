@@ -144,6 +144,10 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
         $loader->highloadblockProductProperties = $IBLOCK_PROPERTY_PRODUCT_HIGHLOADBLOCK;
     }
 
+    if ($MAX_OFFERS_VALUE) {
+        $loader->offerPageSize = $MAX_OFFERS_VALUE;
+    }
+
     $loader->filename = $SETUP_FILE_NAME;
     $loader->defaultServerName = $SERVER_NAME;
     $loader->application = $APPLICATION;

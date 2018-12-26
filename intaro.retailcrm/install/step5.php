@@ -17,6 +17,7 @@ if (!empty($oldValues)) {
     $IBLOCK_PROPERTY_UNIT_PRODUCT = $oldValues['IBLOCK_PROPERTY_UNIT_PRODUCT'];
     $SETUP_FILE_NAME = $oldValues['SETUP_FILE_NAME'];
     $SETUP_PROFILE_NAME = $oldValues['SETUP_PROFILE_NAME'];
+    $MAX_OFFERS_VALUE = $oldValues['MAX_OFFERS_VALUE'];
 }
 ?>
 
@@ -474,6 +475,18 @@ if (!empty($oldValues)) {
     <br>
     <br>
     <br>
+
+    <div id="profile-field" >
+        <font class="text"><?=GetMessage("OFFERS_VALUE") . ':';?>&nbsp<br><br></font>
+        <input
+            type="text"
+            name="MAX_OFFERS_VALUE"
+            value="<?= ($MAX_OFFERS_VALUE ? $MAX_OFFERS_VALUE: '');?>"
+            size="15">
+        <br>
+        <br>
+        <br>
+    </div>
 
     <font class="text"><?=GetMessage("LOAD_PERIOD");?><br><br></font>
     <input type="radio" name="TYPE_LOADING" value="none" onclick="checkProfile(this);"><?=GetMessage("NOT_LOADING");?><Br>

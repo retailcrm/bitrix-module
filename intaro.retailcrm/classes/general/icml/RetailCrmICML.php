@@ -23,11 +23,11 @@ class RetailCrmICML
     public $loadPurchasePrice = false;
     public $productPictures;
     public $skuPictures;
+    public $offerPageSize = 50;
 
     protected $fp;
     protected $mainSection = 1000000;
     protected $pageSize = 500;
-    protected $offerPageSize = 50;
     protected $protocol;
 
     protected $isLogged = false;

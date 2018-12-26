@@ -3,8 +3,9 @@
  * RCrmEvent
  */
 use \Bitrix\Main\Event;
+
 class RetailCrmEvent
-{    
+{
     protected static $MODULE_ID = 'intaro.retailcrm';
     protected static $CRM_API_HOST_OPTION = 'api_host';
     protected static $CRM_API_KEY_OPTION = 'api_key';
@@ -20,28 +21,30 @@ class RetailCrmEvent
     protected static $CRM_CONTRAGENT_TYPE = 'contragent_type';
     protected static $CRM_ORDER_FAILED_IDS = 'order_failed_ids';
     protected static $CRM_SITES_LIST = 'sites_list';
-    
+
     /**
      * OnAfterUserUpdate
      * 
      * @param mixed $arFields - User arFields
+     *
+     * @return mixed
      */
     function OnAfterUserUpdate($arFields)
     {        
         if (isset($GLOBALS['RETAIL_CRM_HISTORY']) && $GLOBALS['RETAIL_CRM_HISTORY']) {
             return;
         }
-        
+
         if (!$arFields['RESULT']) {
             return;
         }
-        
+
         $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
         $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
         $api = new RetailCrm\ApiClient($api_host, $api_key);
-        
+
         $optionsSitesList = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_SITES_LIST, 0));
-        
+
         $resultOrder = RetailCrmUser::customerEdit($arFields, $api, $optionsSitesList);
         if (!$resultOrder) {
             RCrmActions::eventLog('RetailCrmEvent::OnAfterUserUpdate', 'RetailCrmUser::customerEdit', 'error update customer');
@@ -62,12 +65,12 @@ class RetailCrmEvent
             $GLOBALS['RETAILCRM_ORDER_OLD_EVENT'] = false;            
             return;
         }  
-        
+
         $GLOBALS['RETAILCRM_ORDER_OLD_EVENT'] = true;
 
         return;
     }
-    
+
     /**
      * orderDelete
      * 
@@ -79,13 +82,14 @@ class RetailCrmEvent
 
         return;
     }
-    
+
     /**
      * orderSave
-     * 
+     *
      * @param object $event - Order object
+     *
+     * @return bool
      */
-
     function orderSave($event)
     {
         if ($GLOBALS['RETAILCRM_ORDER_OLD_EVENT'] !== false && $GLOBALS['RETAIL_CRM_HISTORY'] !== true && $GLOBALS['RETAILCRM_ORDER_DELETE'] !== true) {
@@ -199,13 +203,19 @@ class RetailCrmEvent
     /**
      * paymentSave
      * 
-     * @param object $event - Payment object
+     * @param \Bitrix\Sale\Payment $event - Payment object
      */
     function paymentSave($event)
     {
         $apiVersion = COption::GetOptionString(self::$MODULE_ID, 'api_version', 0);
 
-        if ((isset($GLOBALS['RETAIL_CRM_HISTORY']) && $GLOBALS['RETAIL_CRM_HISTORY']) || $apiVersion != 'v5') {
+        /** @var \Bitrix\Sale\Order $order */
+        $order = $event->getCollection()->getOrder();
+
+        if ((isset($GLOBALS['RETAIL_CRM_HISTORY']) && $GLOBALS['RETAIL_CRM_HISTORY'])
+            || $apiVersion != 'v5'
+            || $order->isNew()
+        ) {
             return;
         }
 
@@ -219,17 +229,9 @@ class RetailCrmEvent
             'PAID'          => $event->getField('PAID'),
             'PAY_SYSTEM_ID' => $event->getField('PAY_SYSTEM_ID'),
             'SUM'           => $event->getField('SUM'),
-            'LID'           => $event->getField('LID'),
+            'LID'           => $order->getSiteId(),
             'DATE_PAID'     => $event->getField('DATE_PAID'),
         );
-
-        try {
-            $newOrder = Bitrix\Sale\Order::load($arPayment['ORDER_ID']);
-            $arPayment['LID'] = $newOrder->getField('LID');
-        } catch (Bitrix\Main\ArgumentNullException $e) {
-            RCrmActions::eventLog('RetailCrmEvent::paymentSave', 'Bitrix\Sale\Order::load', $e->getMessage() . ': ' . $arPayment['ORDER_ID']);
-            return;
-        }
 
         if ($optionsSitesList) {
             if (array_key_exists($arPayment['LID'], $optionsSitesList) && $optionsSitesList[$arPayment['LID']] !== null) {
@@ -304,12 +306,14 @@ class RetailCrmEvent
      * 
      * @param object $event - Payment object
      */
-
     function paymentDelete($event)
     {
         $apiVersion = COption::GetOptionString(self::$MODULE_ID, 'api_version', 0);
 
-        if ((isset($GLOBALS['RETAIL_CRM_HISTORY']) && $GLOBALS['RETAIL_CRM_HISTORY']) || $apiVersion != 'v5' || !$event->getId()) {
+        if ((isset($GLOBALS['RETAIL_CRM_HISTORY']) && $GLOBALS['RETAIL_CRM_HISTORY'])
+            || $apiVersion != 'v5'
+            || !$event->getId()
+        ) {
             return;
         }
 
@@ -317,16 +321,9 @@ class RetailCrmEvent
 
         $arPayment = array(
             'ID'            => $event->getId(),
-            'ORDER_ID'      => $event->getField('ORDER_ID')
+            'ORDER_ID'      => $event->getField('ORDER_ID'),
+            'LID'           => $event->getCollection()->getOrder()->getSiteId()
         );
-
-        try {
-            $newOrder = Bitrix\Sale\Order::load($arPayment['ORDER_ID']);
-            $arPayment['LID'] = $newOrder->getField('LID');
-        } catch (Bitrix\Main\ArgumentNullException $e) {
-            RCrmActions::eventLog('RetailCrmEvent::paymentDelete', 'Bitrix\Sale\Order::load', $e->getMessage() . ': ' . $arPayment['ORDER_ID']);
-            return;
-        }
 
         if ($optionsSitesList) {
             if (array_key_exists($arPayment['LID'], $optionsSitesList) && $optionsSitesList[$arPayment['LID']] !== null) {

@@ -864,6 +864,12 @@ class intaro_retailcrm extends CModule
                 $typeLoading = $_POST['TYPE_LOADING'];
             }
 
+            if (!isset($_POST['MAX_OFFERS_VALUE'])) {
+                $maxOffers = "";
+            } else {
+                $maxOffers = $_POST['MAX_OFFERS_VALUE'];
+            }
+
             if (!isset($_POST['SETUP_PROFILE_NAME'])) {
                 $profileName = "";
             } else {
@@ -886,7 +892,8 @@ class intaro_retailcrm extends CModule
                     'IBLOCK_PROPERTY_PRODUCT' => $propertiesProduct,
                     'IBLOCK_PROPERTY_UNIT_PRODUCT' => $propertiesUnitProduct,
                     'SETUP_FILE_NAME' => $filename,
-                    'SETUP_PROFILE_NAME' => $profileName
+                    'SETUP_PROFILE_NAME' => $profileName,
+                    'MAX_OFFERS_VALUE' => $maxOffers
                 );
                 global $oldValues;
                 $oldValues = $arOldValues;
@@ -938,6 +945,10 @@ class intaro_retailcrm extends CModule
                     $loader->highloadblockProductProperties = $propertiesHbProduct;
                 }
 
+                if ($maxOffers) {
+                    $loader->offerPageSize = $maxOffers;
+                }
+
                 $loader->filename = $filename;
                 $loader->serverName = \Bitrix\Main\Context::getCurrent()->getServer()->getHttpHost();
                 $loader->application = $APPLICATION;
@@ -964,7 +975,8 @@ class intaro_retailcrm extends CModule
                     $propertiesUnitSKU,
                     $propertiesHbSKU,
                     $propertiesHbProduct,
-                    $filename
+                    $filename,
+                    $maxOffers
                 );
                 $PROFILE_ID = CCatalogExport::Add(array(
                     "LAST_USE"        => false,
@@ -1213,7 +1225,8 @@ class intaro_retailcrm extends CModule
         $propertiesUnitSKU,
         $propertiesHbSKU,
         $propertiesHbProduct,
-        $filename
+        $filename,
+        $maxOffers
     ) {
         $strVars = "";
         foreach ($iblocks as $key => $val)
@@ -1244,6 +1257,7 @@ class intaro_retailcrm extends CModule
         }
 
         $strVars .= 'SETUP_FILE_NAME=' . urlencode($filename);
+        $strVars .= '&MAX_OFFERS_VALUE=' . urlencode($maxOffers);
 
         return $strVars;
     }

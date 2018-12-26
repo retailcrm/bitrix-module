@@ -32,7 +32,7 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
         "picture" => "picture"
     );
 
-    if(!check_bitrix_sessid()) {
+    if (!check_bitrix_sessid()) {
         return;
     }
 
@@ -69,43 +69,41 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
         }
     }
 
-    if (($ACTION == 'EXPORT' || $ACTION == 'EXPORT_EDIT' || $ACTION == 'EXPORT_COPY') && $STEP == 1)
-    {
+    if (($ACTION == 'EXPORT' || $ACTION == 'EXPORT_EDIT' || $ACTION == 'EXPORT_COPY') && $STEP == 1) {
         if (isset($arOldSetupVars['SETUP_FILE_NAME']))
-                $SETUP_FILE_NAME = $arOldSetupVars['SETUP_FILE_NAME'];
+            $SETUP_FILE_NAME = $arOldSetupVars['SETUP_FILE_NAME'];
         if (isset($arOldSetupVars['LOAD_PURCHASE_PRICE']))
-                $LOAD_PURCHASE_PRICE = $arOldSetupVars['LOAD_PURCHASE_PRICE'];
+            $LOAD_PURCHASE_PRICE = $arOldSetupVars['LOAD_PURCHASE_PRICE'];
         if (isset($arOldSetupVars['SETUP_PROFILE_NAME']))
-                $SETUP_PROFILE_NAME = $arOldSetupVars['SETUP_PROFILE_NAME'];
-            if (isset($arOldSetupVars['IBLOCK_EXPORT']))
-                $IBLOCK_EXPORT = $arOldSetupVars['IBLOCK_EXPORT'];
-
-            $IBLOCK_PROPERTY_SKU = array();
-            $IBLOCK_PROPERTY_UNIT_SKU = array();
-            foreach ($iblockProperties as $prop) {
-                foreach ($arOldSetupVars['IBLOCK_PROPERTY_SKU'. '_' . $prop] as $iblock => $val) {
-                    $IBLOCK_PROPERTY_SKU[$iblock][$prop] = $val;
-                }
-                foreach ($arOldSetupVars['IBLOCK_PROPERTY_UNIT_SKU'. '_' . $prop] as $iblock => $val) {
-                    $IBLOCK_PROPERTY_UNIT_SKU[$iblock][$prop] = $val;
-                }
+            $SETUP_PROFILE_NAME = $arOldSetupVars['SETUP_PROFILE_NAME'];
+        if (isset($arOldSetupVars['IBLOCK_EXPORT']))
+            $IBLOCK_EXPORT = $arOldSetupVars['IBLOCK_EXPORT'];
+        if (isset($arOldSetupVars['IBLOCK_EXPORT']))
+            $MAX_OFFERS_VALUE = $arOldSetupVars['MAX_OFFERS_VALUE'];
+        $IBLOCK_PROPERTY_SKU = [];
+        $IBLOCK_PROPERTY_UNIT_SKU = [];
+        foreach ($iblockProperties as $prop) {
+            foreach ($arOldSetupVars['IBLOCK_PROPERTY_SKU' . '_' . $prop] as $iblock => $val) {
+                $IBLOCK_PROPERTY_SKU[$iblock][$prop] = $val;
             }
-
-            $IBLOCK_PROPERTY_PRODUCT = array();
-            $IBLOCK_PROPERTY_UNIT_PRODUCT = array();
-            foreach ($iblockProperties as $prop) {
-                foreach ($arOldSetupVars['IBLOCK_PROPERTY_PRODUCT'. '_' . $prop] as $iblock => $val) {
-                    $IBLOCK_PROPERTY_PRODUCT[$iblock][$prop] = $val;
-                }
-                foreach ($arOldSetupVars['IBLOCK_PROPERTY_UNIT_PRODUCT'. '_' . $prop] as $iblock => $val) {
-                    $IBLOCK_PROPERTY_UNIT_PRODUCT[$iblock][$prop] = $val;
-                }
+            foreach ($arOldSetupVars['IBLOCK_PROPERTY_UNIT_SKU' . '_' . $prop] as $iblock => $val) {
+                $IBLOCK_PROPERTY_UNIT_SKU[$iblock][$prop] = $val;
             }
+        }
+
+        $IBLOCK_PROPERTY_PRODUCT = [];
+        $IBLOCK_PROPERTY_UNIT_PRODUCT = [];
+        foreach ($iblockProperties as $prop) {
+            foreach ($arOldSetupVars['IBLOCK_PROPERTY_PRODUCT' . '_' . $prop] as $iblock => $val) {
+                $IBLOCK_PROPERTY_PRODUCT[$iblock][$prop] = $val;
+            }
+            foreach ($arOldSetupVars['IBLOCK_PROPERTY_UNIT_PRODUCT' . '_' . $prop] as $iblock => $val) {
+                $IBLOCK_PROPERTY_UNIT_PRODUCT[$iblock][$prop] = $val;
+            }
+        }
     }
 
-
-
-    if ($STEP>1)
+    if ($STEP > 1)
     {
 
         if (strlen($SETUP_FILE_NAME)<=0)
@@ -648,6 +646,18 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
         <br>
 
         <?if ($ACTION=="EXPORT_SETUP" || $ACTION == 'EXPORT_EDIT' || $ACTION == 'EXPORT_COPY'):?>
+            <font class="text"><?=GetMessage("OFFERS_VALUE");?><br><br></font>
+            <input
+                type="text"
+                name="MAX_OFFERS_VALUE"
+                value="<?echo htmlspecialchars($MAX_OFFERS_VALUE)?>"
+                size="15">
+            <br>
+            <br>
+            <br>
+        <?endif;?>
+
+        <?if ($ACTION=="EXPORT_SETUP" || $ACTION == 'EXPORT_EDIT' || $ACTION == 'EXPORT_COPY'):?>
             <font class="text"><?=GetMessage("PROFILE_NAME");?><br><br></font>
             <input
                 type="text"
@@ -790,7 +800,7 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
         <?=bitrix_sessid_post();?>
 
         <?
-        $vals = "LOAD_PURCHASE_PRICE,SETUP_FILE_NAME,IBLOCK_EXPORT";
+        $vals = "LOAD_PURCHASE_PRICE,SETUP_FILE_NAME,IBLOCK_EXPORT,MAX_OFFERS_VALUE";
         foreach ($iblockProperties as $val) {
             $vals .= ",IBLOCK_PROPERTY_SKU_" . $val;
             $vals .= ",IBLOCK_PROPERTY_UNIT_SKU_" . $val;
@@ -820,7 +830,7 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
 
     <?
     }
-    elseif ($STEP==2)
+    elseif ($STEP == 2)
     {
         COption::SetOptionString($MODULE_ID, $CRM_CATALOG_BASE_PRICE . '_' . $_REQUEST['PROFILE_ID'], htmlspecialchars(trim($_POST['price-types'])));
         $FINITE = true;
