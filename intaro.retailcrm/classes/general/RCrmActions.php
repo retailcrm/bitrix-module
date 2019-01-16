@@ -110,9 +110,15 @@ class RCrmActions
 
     public static function PricesExportList()
     {
-        $priceId = COption::GetOptionString(self::$MODULE_ID, 'catalog_base_price', 0);
         $catalogExportPrices = array();
-        $dbPriceType = CCatalogGroup::GetList(array(), array('!ID' => $priceId), false, false, array('ID', 'NAME', 'NAME_LANG'));
+        $dbPriceType = CCatalogGroup::GetList(
+            array(),
+            array(),
+            false,
+            false,
+            array('ID', 'NAME', 'NAME_LANG')
+        );
+
         while ($arPriceType = $dbPriceType->Fetch())
         {
             $catalogExportPrices[$arPriceType['ID']] = $arPriceType;

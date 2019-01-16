@@ -130,7 +130,7 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
     }
 
     $loader = new RetailCrmICML();
-    $loader->profileID = $PROFILE_ID;
+    $loader->profileID = $profile_id;
     $loader->iblocks = $IBLOCK_EXPORT;
     $loader->propertiesSKU = $IBLOCK_PROPERTY_SKU;
     $loader->propertiesUnitSKU = $IBLOCK_PROPERTY_UNIT_SKU;

@@ -955,6 +955,8 @@ class intaro_retailcrm extends CModule
                 $loader->Load();
             }
 
+            COption::RemoveOption($this->MODULE_ID, $this->CRM_CATALOG_BASE_PRICE);
+
             if ($typeLoading == 'agent' || $typeLoading == 'cron') {
                 if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/' . $this->RETAIL_CRM_EXPORT . '_run.php')) {
                     $dbProfile = CCatalogExport::GetList(array(), array("FILE_NAME" => $this->RETAIL_CRM_EXPORT));
@@ -994,6 +996,13 @@ class intaro_retailcrm extends CModule
 
                     return;
                 }
+
+                COption::SetOptionString(
+                    $this->MODULE_ID,
+                    $this->CRM_CATALOG_BASE_PRICE . '_' . $PROFILE_ID,
+                    htmlspecialchars(trim($_POST['price-types']))
+                );
+
                 if ($typeLoading == 'agent') {
                     $dateAgent = new DateTime();
                     $intAgent = new DateInterval('PT60S'); // PT60S - 60 sec;
