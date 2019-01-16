@@ -268,9 +268,22 @@ class RetailCrmICML
     {
         $basePriceId = COption::GetOptionString(
             $this->MODULE_ID,
-            $this->CRM_CATALOG_BASE_PRICE . (is_null($this->profileID) === false ? '_' . $this->profileID : ''),
-            1
+            $this->CRM_CATALOG_BASE_PRICE . '_' . $this->profileID,
+            0
         );
+
+        if (!$basePriceId) {
+            $dbPriceType = CCatalogGroup::GetList(
+                array(),
+                array('BASE' => 'Y'),
+                false,
+                false,
+                array('ID')
+            );
+
+            $result = $dbPriceType->GetNext();
+            $basePriceId = $result['ID'];
+        }
 
         foreach ($this->iblocks as $key => $id) {
             $this->setSiteAddress($id);
@@ -284,7 +297,7 @@ class RetailCrmICML
                 array('PRODUCT_ID', 'BARCODE')
             );
 
-            while($arBarCode = $dbBarCode->GetNext()) {
+            while ($arBarCode = $dbBarCode->GetNext()) {
                 if (!empty($arBarCode)) {
                     $barcodes[$arBarCode['PRODUCT_ID']] = $arBarCode['BARCODE'];
                 }
@@ -312,7 +325,7 @@ class RetailCrmICML
                 }
             }
 
-            $arSelect = Array (
+            $arSelect = array(
                 "ID",
                 "LID",
                 "IBLOCK_ID",
@@ -650,6 +663,13 @@ class RetailCrmICML
             $offer.= "<barcode>" . $this->PrepareValue($arOffer["BARCODE"]) . "</barcode>\n";
         }
 
+        if ($arOffer["CATALOG_VAT"]) {
+            $vatRate = $arOffer["CATALOG_VAT"];
+        } else {
+            $vatRate = 'none';
+        }
+
+        $offer.= "<vatRate>" . $this->PrepareValue($vatRate) . "</vatRate>\n";
         $offer.= "</offer>\n";
 
         return $offer;

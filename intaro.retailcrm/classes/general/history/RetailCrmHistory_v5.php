@@ -487,7 +487,13 @@ class RetailCrmHistory
                     foreach ($propertyCollectionArr['properties'] as $orderProp) {
                         if ($orderProp['ID'][0] == 'n') {
                             $orderProp['ID'] = substr($orderProp['ID'], 1);
-                            $orderProp['ID'] = $propertyCollection->getItemById($orderProp['ID'])->getField('ORDER_PROPS_ID');
+                            $property = $propertyCollection->getItemById($orderProp['ID']);
+
+                            if ($property) {
+                                $orderProp['ID'] = $property->getField('ORDER_PROPS_ID');
+                            } else {
+                                continue;
+                            }
                         }
                         $nProps[] = $orderProp;
                     }
