@@ -96,6 +96,10 @@ class RetailCrmHistory
                     continue;
                 }
 
+                if (isset($customer['externalId']) && !is_numeric($customer['externalId'])) {
+                    unset($customer['externalId']);
+                }
+
                 if (!isset($customer['externalId'])) {
                     if (!isset($customer['id'])) {
                         continue;
@@ -323,6 +327,10 @@ class RetailCrmHistory
                     }
 
                     continue;
+                }
+
+                if (isset($order['customer']['externalId']) && !is_numeric($order['customer']['externalId'])) {
+                    unset($order['customer']['externalId']);
                 }
 
                 if (!isset($order['externalId'])) {
