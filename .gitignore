@@ -7,7 +7,6 @@
 .idea/*
 /.idea
 /.idea/*
-.travis.yml
 
 
 /vendor/

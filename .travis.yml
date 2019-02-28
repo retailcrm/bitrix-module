@@ -1,0 +1,20 @@
+language: php
+
+sudo: false
+
+php:
+  - 7.1
+  - 7.2
+
+env:
+  global:
+    - DB_BITRIX_HOST=localhost
+    - DB_BITRIX_LOGIN=root
+    - DB_BITRIX_PASS=root
+    - DB_BITRIX_NAME=bitrix
+
+before_script:
+  - bash tests/bin/before_script.sh
+
+script:
+  - make test
