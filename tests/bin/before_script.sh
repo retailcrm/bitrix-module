@@ -7,9 +7,9 @@ fi
 download() {
 	wget http://download.retailcrm.pro/modules/bitrix/bitrix.tar.gz
 
-	mkdir bitrix
-	tar -xf bitrix.tar.gz -C bitrix
-	rm bitrix.tar.gz
+	mkdir $BITRIX_PATH
+	tar -xf $TRAVIS_BUILD_DIR/bitrix.tar.gz -C $BITRIX_PATH
+	rm $TRAVIS_BUILD_DIR/bitrix.tar.gz
 }
 
 create_db() {
