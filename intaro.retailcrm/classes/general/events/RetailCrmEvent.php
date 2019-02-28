@@ -1,9 +1,7 @@
 <?php
 /**
- * RCrmEvent
+ * Class RetailCrmEvent
  */
-use \Bitrix\Main\Event;
-
 class RetailCrmEvent
 {
     protected static $MODULE_ID = 'intaro.retailcrm';
@@ -23,48 +21,47 @@ class RetailCrmEvent
     protected static $CRM_SITES_LIST = 'sites_list';
 
     /**
-     * OnAfterUserUpdate
-     * 
-     * @param mixed $arFields - User arFields
+     * @param $arFields
      *
-     * @return mixed
+     * @return bool
+     * @throws InvalidArgumentException
      */
     function OnAfterUserUpdate($arFields)
-    {        
+    {
         if (isset($GLOBALS['RETAIL_CRM_HISTORY']) && $GLOBALS['RETAIL_CRM_HISTORY']) {
-            return;
+            return false;
         }
 
         if (!$arFields['RESULT']) {
-            return;
+            return false;
         }
 
         $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
         $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
-        $api = new RetailCrm\ApiClient($api_host, $api_key);
-
         $optionsSitesList = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_SITES_LIST, 0));
 
+        $api = new RetailCrm\ApiClient($api_host, $api_key);
         $resultOrder = RetailCrmUser::customerEdit($arFields, $api, $optionsSitesList);
+
         if (!$resultOrder) {
             RCrmActions::eventLog('RetailCrmEvent::OnAfterUserUpdate', 'RetailCrmUser::customerEdit', 'error update customer');
         }
 
-        return true; 
-    }    
-    
+        return true;
+    }
+
     /**
      * onUpdateOrder
-     * 
-     * @param mixed $ID - Order id  
+     *
+     * @param mixed $ID - Order id
      * @param mixed $arFields - Order arFields
      */
     function onUpdateOrder($ID, $arFields)
     {
         if (isset($GLOBALS['RETAIL_CRM_HISTORY']) && $GLOBALS['RETAIL_CRM_HISTORY']) {
-            $GLOBALS['RETAILCRM_ORDER_OLD_EVENT'] = false;            
+            $GLOBALS['RETAILCRM_ORDER_OLD_EVENT'] = false;
             return;
-        }  
+        }
 
         $GLOBALS['RETAILCRM_ORDER_OLD_EVENT'] = true;
 
@@ -73,7 +70,7 @@ class RetailCrmEvent
 
     /**
      * orderDelete
-     * 
+     *
      * @param object $event - Order object
      */
     function orderDelete($event)
@@ -84,126 +81,130 @@ class RetailCrmEvent
     }
 
     /**
-     * orderSave
-     *
-     * @param object $event - Order object
+     * @param $event
      *
      * @return bool
+     * @throws InvalidArgumentException
      */
     function orderSave($event)
     {
-        if ($GLOBALS['RETAILCRM_ORDER_OLD_EVENT'] !== false && $GLOBALS['RETAIL_CRM_HISTORY'] !== true && $GLOBALS['RETAILCRM_ORDER_DELETE'] !== true) {
-            if (!CModule::IncludeModule('iblock')) {
-                RCrmActions::eventLog('RetailCrmEvent::orderSave', 'iblock', 'module not found');
+        if ($GLOBALS['RETAILCRM_ORDER_OLD_EVENT'] === false
+            && $GLOBALS['RETAIL_CRM_HISTORY'] === true
+            && $GLOBALS['RETAILCRM_ORDER_DELETE'] === true
+        ) {
+            return false;
+        }
 
-                return true;
-            }
+        if (!CModule::IncludeModule('iblock')) {
+            RCrmActions::eventLog('RetailCrmEvent::orderSave', 'iblock', 'module not found');
 
-            if (!CModule::IncludeModule("sale")) {
-                RCrmActions::eventLog('RetailCrmEvent::orderSave', 'sale', 'module not found');
+            return false;
+        }
 
-                return true;
-            }
+        if (!CModule::IncludeModule("sale")) {
+            RCrmActions::eventLog('RetailCrmEvent::orderSave', 'sale', 'module not found');
 
-            if (!CModule::IncludeModule("catalog")) {
-                RCrmActions::eventLog('RetailCrmEvent::orderSave', 'catalog', 'module not found');
+            return false;
+        }
 
-                return true;
-            }
+        if (!CModule::IncludeModule("catalog")) {
+            RCrmActions::eventLog('RetailCrmEvent::orderSave', 'catalog', 'module not found');
 
-           //exists getParameter("ENTITY")
-            if (method_exists($event, 'getId')) {
-                $obOrder = $event;
-            } elseif (method_exists($event, 'getParameter')) {
-                $obOrder = $event->getParameter("ENTITY");
+            return false;
+        }
+
+       //exists getParameter("ENTITY")
+        if (method_exists($event, 'getId')) {
+            $obOrder = $event;
+        } elseif (method_exists($event, 'getParameter')) {
+            $obOrder = $event->getParameter("ENTITY");
+        } else {
+            RCrmActions::eventLog('RetailCrmEvent::orderSave', 'events', 'event error');
+
+            return false;
+        }
+
+        $arOrder = RetailCrmOrder::orderObjToArr($obOrder);
+
+        //api
+        $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
+        $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
+        $api = new RetailCrm\ApiClient($api_host, $api_key);
+
+        //params
+        $optionsOrderTypes = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_TYPES_ARR, 0));
+        $optionsDelivTypes = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_DELIVERY_TYPES_ARR, 0));
+        $optionsPayTypes = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_TYPES, 0));
+        $optionsPayStatuses = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_STATUSES, 0)); // --statuses
+        $optionsPayment = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT, 0));
+        $optionsSitesList = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_SITES_LIST, 0));
+        $optionsOrderProps = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_PROPS, 0));
+        $optionsLegalDetails = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_LEGAL_DETAILS, 0));
+        $optionsContragentType = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_CONTRAGENT_TYPE, 0));
+        $optionsCustomFields = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_CUSTOM_FIELDS, 0));
+
+        $arParams = RCrmActions::clearArr(array(
+            'optionsOrderTypes'     => $optionsOrderTypes,
+            'optionsDelivTypes'     => $optionsDelivTypes,
+            'optionsPayTypes'       => $optionsPayTypes,
+            'optionsPayStatuses'    => $optionsPayStatuses,
+            'optionsPayment'        => $optionsPayment,
+            'optionsOrderProps'     => $optionsOrderProps,
+            'optionsLegalDetails'   => $optionsLegalDetails,
+            'optionsContragentType' => $optionsContragentType,
+            'optionsSitesList'      => $optionsSitesList,
+            'optionsCustomFields'   => $optionsCustomFields
+        ));
+
+        //many sites?
+        if ($optionsSitesList) {
+            if (array_key_exists($arOrder['LID'], $optionsSitesList) && $optionsSitesList[$arOrder['LID']] !== null) {
+                $site = $optionsSitesList[$arOrder['LID']];
             } else {
-                RCrmActions::eventLog('RetailCrmEvent::orderSave', 'events', 'event error');
-
-                return true;
+                return false;
             }
+        } elseif (!$optionsSitesList) {
+            $site = null;
+        }
 
-            $arOrder = RetailCrmOrder::orderObjToArr($obOrder);
+        //new order?
+        $orderCrm = RCrmActions::apiMethod($api, 'ordersGet', __METHOD__, $arOrder['ID'], $site);
+        if (isset($orderCrm['order'])) {
+            $methodApi = 'ordersEdit';
+            $arParams['crmOrder'] = $orderCrm['order'];
+        } else {
+            $methodApi = 'ordersCreate';
+        }
 
-            //api
-            $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
-            $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
-            $api = new RetailCrm\ApiClient($api_host, $api_key);
+        //user
+        $userCrm = RCrmActions::apiMethod($api, 'customersGet', __METHOD__, $arOrder['USER_ID'], $site);
+        if (!isset($userCrm['customer'])) {
+            $arUser = Bitrix\Main\UserTable::getById($arOrder['USER_ID'])->fetch();
+            $resultUser = RetailCrmUser::customerSend($arUser, $api, $optionsContragentType[$arOrder['PERSON_TYPE_ID']], true, $site);
+            if (!$resultUser) {
+                RCrmActions::eventLog('RetailCrmEvent::orderSave', 'RetailCrmUser::customerSend', 'error during creating customer');
 
-            //params
-            $optionsOrderTypes = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_TYPES_ARR, 0));
-            $optionsDelivTypes = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_DELIVERY_TYPES_ARR, 0));
-            $optionsPayTypes = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_TYPES, 0));
-            $optionsPayStatuses = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_STATUSES, 0)); // --statuses
-            $optionsPayment = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT, 0));
-            $optionsSitesList = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_SITES_LIST, 0));
-            $optionsOrderProps = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_PROPS, 0));
-            $optionsLegalDetails = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_LEGAL_DETAILS, 0));
-            $optionsContragentType = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_CONTRAGENT_TYPE, 0));
-            $optionsCustomFields = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_CUSTOM_FIELDS, 0));  
-
-            $arParams = RCrmActions::clearArr(array(
-                'optionsOrderTypes'     => $optionsOrderTypes,
-                'optionsDelivTypes'     => $optionsDelivTypes,
-                'optionsPayTypes'       => $optionsPayTypes,
-                'optionsPayStatuses'    => $optionsPayStatuses,
-                'optionsPayment'        => $optionsPayment,
-                'optionsOrderProps'     => $optionsOrderProps,
-                'optionsLegalDetails'   => $optionsLegalDetails,
-                'optionsContragentType' => $optionsContragentType,
-                'optionsSitesList'      => $optionsSitesList,
-                'optionsCustomFields'   => $optionsCustomFields
-            ));
-             
-            //many sites?
-            if ($optionsSitesList) {
-                if (array_key_exists($arOrder['LID'], $optionsSitesList) && $optionsSitesList[$arOrder['LID']] !== null) {
-                    $site = $optionsSitesList[$arOrder['LID']];
-                } else {
-                    return;
-                }
-            } elseif (!$optionsSitesList) {
-                $site = null;
+                return false;
             }
+        }
 
-            //new order?
-            $orderCrm = RCrmActions::apiMethod($api, 'ordersGet', __METHOD__, $arOrder['ID'], $site);
-            if (isset($orderCrm['order'])) {
-                $methodApi = 'ordersEdit';
-                $arParams['crmOrder'] = $orderCrm['order'];
-            } else {
-                $methodApi = 'ordersCreate';
-            }
+        //order
+        $resultOrder = RetailCrmOrder::orderSend($arOrder, $api, $arParams, true, $site, $methodApi);
+        if (!$resultOrder) {
+            RCrmActions::eventLog('RetailCrmEvent::orderSave', 'RetailCrmOrder::orderSend', 'error during creating order');
 
-            //user
-            $userCrm = RCrmActions::apiMethod($api, 'customersGet', __METHOD__, $arOrder['USER_ID'], $site);
-            if (!isset($userCrm['customer'])) {
-                $arUser = Bitrix\Main\UserTable::getById($arOrder['USER_ID'])->fetch();
-                $resultUser = RetailCrmUser::customerSend($arUser, $api, $optionsContragentType[$arOrder['PERSON_TYPE_ID']], true, $site);
-                if (!$resultUser) {
-                    RCrmActions::eventLog('RetailCrmEvent::orderSave', 'RetailCrmUser::customerSend', 'error during creating customer');
-
-                    return true;
-                }
-            }
-
-            //order
-            $resultOrder = RetailCrmOrder::orderSend($arOrder, $api, $arParams, true, $site, $methodApi);
-            if (!$resultOrder) {
-                RCrmActions::eventLog('RetailCrmEvent::orderSave', 'RetailCrmOrder::orderSend', 'error during creating order');
-
-                return true;
-            }
-
-            return true;
+            return false;
         }
 
         return true;
     }
 
     /**
-     * paymentSave
-     * 
-     * @param \Bitrix\Sale\Payment $event - Payment object
+     * @param \Bitrix\Sale\Payment $event
+     *
+     * @throws InvalidArgumentException
+     *
+     * @return bool
      */
     function paymentSave($event)
     {
@@ -216,7 +217,7 @@ class RetailCrmEvent
             || $apiVersion != 'v5'
             || $order->isNew()
         ) {
-            return;
+            return false;
         }
 
         $optionsSitesList = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_SITES_LIST, 0));
@@ -237,7 +238,7 @@ class RetailCrmEvent
             if (array_key_exists($arPayment['LID'], $optionsSitesList) && $optionsSitesList[$arPayment['LID']] !== null) {
                 $site = $optionsSitesList[$arPayment['LID']];
             } else {
-                return;
+                return false;
             }
         } elseif (!$optionsSitesList) {
             $site = null;
@@ -288,7 +289,7 @@ class RetailCrmEvent
             }
         } else {
             RCrmActions::eventLog('RetailCrmEvent::paymentSave', 'payments', 'OrderID = ' . $arPayment['ID'] . '. Payment not found.');
-            return;
+            return false;
         }
 
         if (!array_key_exists($arPayment['ID'], $paymentsExternalIds)) {
@@ -299,12 +300,14 @@ class RetailCrmEvent
             RCrmActions::apiMethod($api, 'ordersPaymentDelete', __METHOD__, $paymentsExternalIds[$arPayment['ID']]['id']);
             RCrmActions::apiMethod($api, 'ordersPaymentCreate', __METHOD__, $paymentToCrm, $site);
         }
+
+        return true;
     }
 
     /**
-     * paymentDelete
-     * 
-     * @param object $event - Payment object
+     * @param \Bitrix\Sale\Payment $event
+     *
+     * @throws InvalidArgumentException
      */
     function paymentDelete($event)
     {

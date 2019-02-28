@@ -9,3 +9,7 @@
 /.idea/*
 .travis.yml
 
+
+/vendor/
+.env
+.phpunit.result.cache
