@@ -12,6 +12,7 @@ env:
     - DB_BITRIX_LOGIN=root
     - DB_BITRIX_PASS=root
     - DB_BITRIX_NAME=bitrix
+    - BITRIX_PATH=$TRAVIS_BUILD_DIR/bitrix
 
 before_script:
   # Change MySQL root password
