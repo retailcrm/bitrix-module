@@ -9,8 +9,10 @@
  * @see      http://help.retailcrm.ru
  */
 
-$dotenv = Dotenv\Dotenv::create(__DIR__ . '/../../');
-$dotenv->load();
+if (file_exists(__DIR__ . '/../../.env')) {
+    $dotenv = Dotenv\Dotenv::create(__DIR__ . '/../../');
+    $dotenv->load();
+}
 
 if (getenv('TRAVIS_BUILD_DIR')) {
     $_SERVER['DOCUMENT_ROOT'] = getenv('TRAVIS_BUILD_DIR') . '/bitrix';
