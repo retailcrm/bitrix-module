@@ -1,17 +1,25 @@
 <?php
+
+/**
+ * Class RetailCrmCollector
+ */
 class RetailCrmCollector
 {
     public static $MODULE_ID = 'intaro.retailcrm';
     public static $CRM_COLL_KEY = 'coll_key';
     public static $CRM_COLL = 'collector';
-    
+
+    /**
+     * Add Daemon Collector script
+     *
+     * @return bool
+     */
     public static function add()
     {
         $keys = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_COLL_KEY, 0));
         $collector = COption::GetOptionString(self::$MODULE_ID, self::$CRM_COLL, 0);
 
         if ($collector === 'Y' && !empty($keys[SITE_ID]) && ADMIN_SECTION !== true) {
-            global $APPLICATION;
             global $USER;
 
             $params = array();
@@ -24,7 +32,9 @@ class RetailCrmCollector
             _rc('create', '" . $keys[SITE_ID] . "', " . json_encode((object) $params) . ");
             _rc('send', 'pageView');
             </script>";
-            $APPLICATION->AddHeadString($str, true);
+            \Bitrix\Main\Page\Asset::getInstance()->addString($str, true);
+
+            return true;
         } else {
             return false;
         }
