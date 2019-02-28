@@ -12,11 +12,11 @@
 $dotenv = Dotenv\Dotenv::create(__DIR__ . '/../../');
 $dotenv->load();
 
-//if (getenv('TRAVIS_BUILD_DIR')) {
-//    $_SERVER['DOCUMENT_ROOT'] = getenv('TRAVIS_BUILD_DIR') . '/bitrix';
-//} else {
+if (getenv('TRAVIS_BUILD_DIR')) {
+    $_SERVER['DOCUMENT_ROOT'] = getenv('TRAVIS_BUILD_DIR') . '/bitrix';
+} else {
     $_SERVER['DOCUMENT_ROOT'] = getenv('BITRIX_PATH');
-//}
+}
 
 define('NOT_CHECK_PERMISSIONS', true);
 define('NO_AGENT_CHECK', true);
