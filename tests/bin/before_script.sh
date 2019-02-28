@@ -5,7 +5,7 @@ if [ -d $TRAVIS_BUILD_DIR ]; then
 fi
 
 download() {
-    wget http://download.retailcrm.pro/download/modules/bitrix/bitrix.tar.gz
+    wget http://download.retailcrm.pro/modules/bitrix/bitrix.tar.gz
 
     gunzip bitrix.tar.gz
     rm bitrix.tar.gz
