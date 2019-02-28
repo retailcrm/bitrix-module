@@ -14,7 +14,7 @@ download() {
 
 create_db() {
 	mysqladmin create $DB_BITRIX_NAME --user="$DB_BITRIX_LOGIN" --password="$DB_BITRIX_PASS"
-	mysql -user="$DB_BITRIX_LOGIN" -password="$DB_BITRIX_PASS" $DB_BITRIX_NAME < $BITRIX_PATH/dump.sql
+	mysql --user="$DB_BITRIX_LOGIN" --password="$DB_BITRIX_PASS" $DB_BITRIX_NAME < $BITRIX_PATH/dump.sql
 }
 
 download
