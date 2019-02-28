@@ -9,7 +9,6 @@
     verbose="true"
     processIsolation="false"
     stopOnFailure="false"
-    syntaxCheck="true"
     >
     <testsuites>
         <testsuite name="Retailcrm Bitrix module Test Suite">
