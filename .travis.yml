@@ -14,6 +14,10 @@ env:
     - DB_BITRIX_NAME=bitrix
 
 before_script:
+  # Change MySQL root password
+  - echo "USE mysql;\nUPDATE user SET password=PASSWORD('root') WHERE user='root';\nFLUSH PRIVILEGES;\n" | mysql -u root
+
+  - composer install
   - bash tests/bin/before_script.sh
 
 script:
