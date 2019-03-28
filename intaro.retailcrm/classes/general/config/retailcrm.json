@@ -19,6 +19,10 @@
         "number": {
             "type": "string"
         },
+        "birthday": {
+            "type": "datetime",
+            "format": "Y-m-d"
+        },
         "site": {
             "type": "string"
         },
@@ -147,7 +151,7 @@
         },
         "emailMarketingUnsubscribedAt" : {
             "type": "datetime",
-            "format": "Y-m-d"
+            "format": "Y-m-d H:i:s"
         },
         "source": {
             "type": "string"
@@ -377,7 +381,7 @@
             "type": "double",
             "default": 1,
             "min": 0,
-            "decimals": 1
+            "decimals": 3
         },
         "properties": {
             "type": "skip"
