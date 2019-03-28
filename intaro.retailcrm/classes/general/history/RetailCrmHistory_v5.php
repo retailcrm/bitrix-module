@@ -606,7 +606,7 @@ class RetailCrmHistory
                         foreach ($optionsLegalDetails[$personType] as $key => $orderProp) {
                             if (array_key_exists($key, $order)) {
                                 $somePropValue = $propertyCollection->getItemByOrderPropertyId($propsKey[$orderProp]['ID']);
-                                self::setProp($somePropValue, $order['contragent'][$key]);
+                                self::setProp($somePropValue, $order[$key]);
                             }
                         }
                     }
