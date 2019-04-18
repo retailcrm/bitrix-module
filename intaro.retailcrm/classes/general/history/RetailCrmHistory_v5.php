@@ -994,12 +994,12 @@ class RetailCrmHistory
 
             if (isset($orderCrm['delivery']['service']['code'])) {
                 $deliveryCode = \Bitrix\Sale\Delivery\Services\Manager::getCodeById($deliveryId);
-            $serviceCode = $orderCrm['delivery']['service']['code'];
-            $services = \Bitrix\Sale\Delivery\Services\Manager::getService($deliveryId)->getProfilesList();
-            if (!array_key_exists($serviceCode, $services)) {
-                $serviceCode = strtoupper($serviceCode);
-                $serviceCode = str_replace(array('-'), "_", $serviceCode);
-            }
+                $serviceCode = $orderCrm['delivery']['service']['code'];
+                $services = \Bitrix\Sale\Delivery\Services\Manager::getService($deliveryId)->getProfilesList();
+                if (!array_key_exists($serviceCode, $services)) {
+                    $serviceCode = strtoupper($serviceCode);
+                    $serviceCode = str_replace(array('-'), "_", $serviceCode);
+                }
                 if ($deliveryCode) {
                     try {
                         $deliveryService = \Bitrix\Sale\Delivery\Services\Manager::getObjectByCode($deliveryCode . ':' . $serviceCode);
