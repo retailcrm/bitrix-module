@@ -740,7 +740,7 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
                             BX(obj.id.replace('SKU','PRODUCT')).value = 'none';
                             var bid = obj.id.replace('SKU','PRODUCT');
                             $("#" + bid).siblings('#highloadblock').remove();
-                        } else {
+                        } else if(BX(obj.id.replace('PRODUCT','SKU'))) {
                             BX(obj.id.replace('PRODUCT','SKU')).value = 'none';
                             var bid = obj.id.replace('PRODUCT','SKU');
                             $("#" + bid).siblings('#highloadblock').remove();

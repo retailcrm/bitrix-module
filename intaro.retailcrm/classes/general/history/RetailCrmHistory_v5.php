@@ -606,7 +606,7 @@ class RetailCrmHistory
                         foreach ($optionsLegalDetails[$personType] as $key => $orderProp) {
                             if (array_key_exists($key, $order)) {
                                 $somePropValue = $propertyCollection->getItemByOrderPropertyId($propsKey[$orderProp]['ID']);
-                                self::setProp($somePropValue, $order[$key]);
+                                self::setProp($somePropValue, RCrmActions::fromJSON($order[$key]));
                             }
                         }
                     }
@@ -994,10 +994,15 @@ class RetailCrmHistory
 
             if (isset($orderCrm['delivery']['service']['code'])) {
                 $deliveryCode = \Bitrix\Sale\Delivery\Services\Manager::getCodeById($deliveryId);
-
+                $serviceCode = $orderCrm['delivery']['service']['code'];
+                $services = \Bitrix\Sale\Delivery\Services\Manager::getService($deliveryId)->getProfilesList();
+                if (!array_key_exists($serviceCode, $services)) {
+                    $serviceCode = strtoupper($serviceCode);
+                    $serviceCode = str_replace(array('-'), "_", $serviceCode);
+                }
                 if ($deliveryCode) {
                     try {
-                        $deliveryService = \Bitrix\Sale\Delivery\Services\Manager::getObjectByCode($deliveryCode . ':' . $orderCrm['delivery']['service']['code']);
+                        $deliveryService = \Bitrix\Sale\Delivery\Services\Manager::getObjectByCode($deliveryCode . ':' . $serviceCode);
                     } catch (Bitrix\Main\SystemException $systemException) {
                         RCrmActions::eventLog('RetailCrmHistory::deliveryEdit', '\Bitrix\Sale\Delivery\Services\Manager::getObjectByCode', $systemException->getMessage());
                     }
