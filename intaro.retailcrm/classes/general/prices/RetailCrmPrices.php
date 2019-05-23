@@ -112,6 +112,24 @@ class RetailCrmPrices
                         }
                     }  
 
+                    foreach ($shops as $shop) {
+                       foreach ($elems as $value) {
+                            if (!array_key_exists($value . '-' . $shop, $pricesUpload)) {
+                                foreach ($prices as $key => $price) {
+                                    $pricesUpload[$value . '-' . $shop] = array(
+                                        'externalId' => $value,
+                                        'site' => $shop
+                                    );
+
+                                    $pricesUpload[$value . '-'. $shop]['prices'][] = array(
+                                        'code' => $prices[$key],
+                                        'remove' => true
+                                    );
+                                }
+                            }
+                        }
+                    }
+
                     //for log
                     $splitedItems = array_chunk($pricesUpload, 200);
                     foreach ($splitedItems as $chunk) {
