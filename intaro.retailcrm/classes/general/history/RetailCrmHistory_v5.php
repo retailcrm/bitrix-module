@@ -423,7 +423,7 @@ class RetailCrmHistory
                 if (isset($order['externalId'])) {
                     $itemUpdate = false;
 
-                    if ($order['externalId']) {
+                    if ($order['externalId'] && is_numeric($order['externalId'])) {
                         try {
                             $newOrder = Bitrix\Sale\Order::load($order['externalId']);
                         } catch (Bitrix\Main\ArgumentNullException $e) {
