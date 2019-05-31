@@ -700,7 +700,7 @@ class ApiClient
         }
 
         return $this->client->makeRequest(
-            sprintf('/orders/payments/%s/edit', $payment[$by]),
+            sprintf('/orders/payments/%s/edit', urlencode($payment[$by])),
             Client::METHOD_POST,
             $this->fillSite(
                 $site,

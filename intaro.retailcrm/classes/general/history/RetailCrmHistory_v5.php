@@ -762,12 +762,13 @@ class RetailCrmHistory
                     if (!empty($newHistoryPayments)) {
                         foreach ($newOrder->getPaymentCollection() as $orderPayment) {
                             if (array_key_exists($orderPayment->getField('XML_ID'), $newHistoryPayments)) {
-                                $paymentExternalId = $orderPayment->getId();
+                                $paymentId = $orderPayment->getId();
+                                $paymentExternalId = RCrmActions::generatePaymentExternalId($paymentId);
 
                                 if ($paymentExternalId) {
                                     $newHistoryPayments[$orderPayment->getField('XML_ID')]['externalId'] = $paymentExternalId;
                                     RCrmActions::apiMethod($api, 'paymentEditById', __METHOD__, $newHistoryPayments[$orderPayment->getField('XML_ID')]);
-                                    \Bitrix\Sale\Internals\PaymentTable::update($paymentExternalId, array('XML_ID' => ''));
+                                    \Bitrix\Sale\Internals\PaymentTable::update($paymentId, array('XML_ID' => ''));
                                 }
                             }
                         }
@@ -1140,7 +1141,7 @@ class RetailCrmHistory
         foreach ($paymentsCrm['payments'] as $paymentCrm) {
             if (isset($paymentCrm['externalId']) && !empty($paymentCrm['externalId'])) {
                 //find the payment
-                $nowPayment = $paymentsList[$paymentCrm['externalId']];
+                $nowPayment = $paymentsList[RCrmActions::getFromPaymentExternalId($paymentCrm['externalId'])];
                 //update data
                 if ($nowPayment instanceof \Bitrix\Sale\Payment) {
                     $nowPayment->setField('SUM', $paymentCrm['amount']);

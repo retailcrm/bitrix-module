@@ -269,6 +269,67 @@ class RCrmActions
     }
 
     /**
+     * Extracts payment ID or client ID from payment externalId
+     * Payment ID - pass nothing or 'id' as second argument
+     * Client ID - pass 'client_id' as second argument
+     *
+     * @param $externalId
+     * @param string $data
+     * @return bool|string
+     */
+    public static function getFromPaymentExternalId($externalId, $data = 'id')
+    {
+        switch ($data) {
+            case 'id':
+                if (false === strpos($externalId, '_')) {
+                    return $externalId;
+                } else {
+                    return substr($externalId, 0, strpos($externalId, '_'));
+                }
+
+                break;
+
+            case 'client_id':
+                if (false === strpos($externalId, '_')) {
+                    return '';
+                } else {
+                    return substr($externalId, strpos($externalId, '_'), count($externalId));
+                }
+
+                break;
+        }
+
+        return '';
+    }
+
+    /**
+     * Generates payment external ID
+     *
+     * @param $id
+     *
+     * @return string
+     */
+    public static function generatePaymentExternalId($id)
+    {
+        return sprintf(
+            '%s_%s',
+            $id,
+            COption::GetOptionString(self::$MODULE_ID, 'client_id', 0)
+        );
+    }
+
+    /**
+     * Returns true if provided externalId in new format (id_clientId)
+     *
+     * @param $externalId
+     * @return bool
+     */
+    public static function isNewExternalId($externalId)
+    {
+        return !(false === strpos($externalId, '_'));
+    }
+
+    /**
      * Unserialize array
      *
      * @param string $string
