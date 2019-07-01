@@ -65,6 +65,13 @@ class RetailCrmEvent
 
         $GLOBALS['RETAILCRM_ORDER_OLD_EVENT'] = true;
 
+        if (($arFields['CANCELED'] == 'Y')
+            && (sizeof($arFields['BASKET_ITEMS']) == 0 )
+            && (sizeof($arFields['ORDER_PROP']) == 0 )
+        ) {
+            $GLOBALS['ORDER_DELETE_USER_ADMIN'] = true;
+        }
+
         return;
     }
 
@@ -88,6 +95,10 @@ class RetailCrmEvent
      */
     function orderSave($event)
     {
+        if (true == $GLOBALS['ORDER_DELETE_USER_ADMIN']) {
+            return false;
+        }
+
         if ($GLOBALS['RETAILCRM_ORDER_OLD_EVENT'] === false
             && $GLOBALS['RETAIL_CRM_HISTORY'] === true
             && $GLOBALS['RETAILCRM_ORDER_DELETE'] === true
