@@ -1141,7 +1141,8 @@ class RetailCrmHistory
         foreach ($paymentsCrm['payments'] as $paymentCrm) {
             if (isset($paymentCrm['externalId']) && !empty($paymentCrm['externalId'])) {
                 //find the payment
-                $nowPayment = $paymentsList[RCrmActions::getFromPaymentExternalId($paymentCrm['externalId'])];
+                $nowPaymentId = RCrmActions::getFromPaymentExternalId($paymentCrm['externalId']);
+                $nowPayment = $paymentsList[$nowPaymentId];
                 //update data
                 if ($nowPayment instanceof \Bitrix\Sale\Payment) {
                     $nowPayment->setField('SUM', $paymentCrm['amount']);
@@ -1153,7 +1154,7 @@ class RetailCrmHistory
                         $nowPayment->setField('PAID', $optionsPayment[$paymentCrm['status']]);
                     }
 
-                    unset($paymentsList[$paymentCrm['externalId']]);
+                    unset($paymentsList[$nowPaymentId]);
                 }
             } else {
                 $newHistoryPayments[$paymentCrm['id']] = $paymentCrm;
