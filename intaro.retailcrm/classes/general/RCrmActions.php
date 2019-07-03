@@ -330,17 +330,6 @@ class RCrmActions
     }
 
     /**
-     * Returns true if provided externalId in new format (id_clientId)
-     *
-     * @param $externalId
-     * @return bool
-     */
-    public static function isNewExternalId($externalId)
-    {
-        return !(false === strpos($externalId, '_'));
-    }
-
-    /**
      * Unserialize array
      *
      * @param string $string
