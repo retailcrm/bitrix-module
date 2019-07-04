@@ -205,7 +205,7 @@ class RetailCrmOrder
                     'amount' => $payment['SUM']
                 );
                 if (!empty($payment['ID'])) {
-                    $pm['externalId'] = $payment['ID'];
+                    $pm['externalId'] = RCrmActions::generatePaymentExternalId($payment['ID']);
                 }
                 if (!empty($payment['DATE_PAID'])) {
                     $pm['paidAt'] = new \DateTime($payment['DATE_PAID']);

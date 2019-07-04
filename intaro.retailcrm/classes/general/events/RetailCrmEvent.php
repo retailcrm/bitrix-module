@@ -267,7 +267,12 @@ class RetailCrmEvent
         if ($payments) {
             foreach ($payments as $payment) {
                 if (isset($payment['externalId'])) {
-                    $paymentsExternalIds[$payment['externalId']] = $payment;
+                    if (RCrmActions::isNewExternalId($payment['externalId'])) {
+                        $paymentsExternalIds[RCrmActions::getFromPaymentExternalId($payment['externalId'])] =
+                            $payment;
+                    } else {
+                        $paymentsExternalIds[$payment['externalId']] = $payment;
+                    }
                 }
             }
         }
@@ -279,7 +284,7 @@ class RetailCrmEvent
             );
 
             if (!empty($arPayment['ID'])) {
-                $paymentToCrm['externalId'] = $arPayment['ID'];
+                $paymentToCrm['externalId'] = RCrmActions::generatePaymentExternalId($arPayment['ID']);
             }
 
             if (!empty($arPayment['DATE_PAID'])) {
@@ -303,12 +308,28 @@ class RetailCrmEvent
             return false;
         }
 
-        if (!array_key_exists($arPayment['ID'], $paymentsExternalIds)) {
+        $arPaymentExtId = RCrmActions::generatePaymentExternalId($arPayment['ID']);
+
+        if (array_key_exists($arPaymentExtId, $paymentsExternalIds)) {
+            $paymentData = $paymentsExternalIds[$arPaymentExtId];
+        } elseif (array_key_exists($arPayment['ID'], $paymentsExternalIds)) {
+            $paymentData = $paymentsExternalIds[$arPayment['ID']];
+        } else {
+            $paymentData = array();
+        }
+
+        if (empty($paymentData)) {
             RCrmActions::apiMethod($api, 'ordersPaymentCreate', __METHOD__, $paymentToCrm, $site);
-        } elseif (array_key_exists($arPayment['ID'], $paymentsExternalIds) && $paymentsExternalIds[$arPayment['ID']]['type'] == $optionsPaymentTypes[$arPayment['PAY_SYSTEM_ID']]) {
+        } elseif ($paymentData['type'] == $optionsPaymentTypes[$arPayment['PAY_SYSTEM_ID']]) {
+            $paymentToCrm['externalId'] = $paymentData['externalId'];
             RCrmActions::apiMethod($api, 'paymentEditByExternalId', __METHOD__, $paymentToCrm, $site);
-        } elseif (array_key_exists($arPayment['ID'], $paymentsExternalIds) && $paymentsExternalIds[$arPayment['ID']]['type'] != $optionsPaymentTypes[$arPayment['PAY_SYSTEM_ID']]) {
-            RCrmActions::apiMethod($api, 'ordersPaymentDelete', __METHOD__, $paymentsExternalIds[$arPayment['ID']]['id']);
+        } elseif ($paymentData['type'] != $optionsPaymentTypes[$arPayment['PAY_SYSTEM_ID']]) {
+            RCrmActions::apiMethod(
+                $api,
+                'ordersPaymentDelete',
+                __METHOD__,
+                $paymentData['id']
+            );
             RCrmActions::apiMethod($api, 'ordersPaymentCreate', __METHOD__, $paymentToCrm, $site);
         }
 
@@ -356,7 +377,10 @@ class RetailCrmEvent
 
         if (isset($orderCrm['order']['payments']) && $orderCrm['order']['payments']) {
             foreach ($orderCrm['order']['payments'] as $payment) {
-                if (isset($payment['externalId']) && $payment['externalId'] == $event->getId()) {
+                if (isset($payment['externalId'])
+                    && ($payment['externalId'] == $event->getId()
+                        || RCrmActions::getFromPaymentExternalId($payment['externalId']) == $event->getId())
+                ) {
                     RCrmActions::apiMethod($api, 'ordersPaymentDelete', __METHOD__, $payment['id']);
                 }
             }
