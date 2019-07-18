@@ -566,6 +566,9 @@ class RetailCrmHistory
                                 }
                             } elseif (array_key_exists($key, $order['delivery']['address'])) {
                                 if ($propsKey[$orderProp]['TYPE'] == 'LOCATION') {
+                                    if( $order['delivery']['address']['index'] ) {
+                                        $location = CSaleLocation::GetByZIP($order['delivery']['address']['index']);
+                                    }
                                     $order['delivery']['address'][$key] = trim($order['delivery']['address'][$key]);
                                     if(!empty($order['delivery']['address'][$key])){
                                         $parameters = array();
@@ -582,7 +585,9 @@ class RetailCrmHistory
                                         $parameters['filter']['NAME.LANGUAGE_ID'] = 'ru';
 
                                         try {
-                                            $location = \Bitrix\Sale\Location\Search\Finder::find($parameters, array('USE_INDEX' => false, 'USE_ORM' => false))->fetch();
+                                            if ( !isset($location) ) {
+                                                $location = \Bitrix\Sale\Location\Search\Finder::find($parameters, array('USE_INDEX' => false, 'USE_ORM' => false))->fetch();
+                                            }
                                             $somePropValue = $propertyCollection->getItemByOrderPropertyId($propsKey[$orderProp]['ID']);
                                             self::setProp($somePropValue, $location['CODE']);
                                         } catch (\Bitrix\Main\ArgumentException $argumentException) {
