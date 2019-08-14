@@ -100,9 +100,12 @@ class RetailCrmEvent
         }
 
         if ($GLOBALS['RETAILCRM_ORDER_OLD_EVENT'] === false
-            && $GLOBALS['RETAIL_CRM_HISTORY'] === true
             && $GLOBALS['RETAILCRM_ORDER_DELETE'] === true
         ) {
+            return false;
+        }
+
+        if ($GLOBALS['RETAIL_CRM_HISTORY'] === true) {
             return false;
         }
 
