@@ -657,8 +657,16 @@ class RetailCrmICML
             } else {
                 $offer .= '<unit code="' . $this->PrepareValue($arOffer["MEASURE"]['SYMBOL_INTL']) . '" name="' . $this->PrepareValue($arOffer["MEASURE"]['MEASURE_TITLE']) . '" sym="' . $this->PrepareValue($arOffer["MEASURE"]['SYMBOL_RUS']) . '" />' . "\n";
             }
+        } else {
+            $measure = \Bitrix\Catalog\ProductTable::getCurrentRatioWithMeasure($arOffer["ID"]);
 
+            if ($this->measure[$measure[$arOffer["ID"]]["MEASURE"]['SYMBOL_INTL']]) {
+                $offer .= '<unit code="' . $this->measure[$this->PrepareValue($measure[$arOffer["ID"]]["MEASURE"]['SYMBOL_INTL'])] . '" />' . "\n";
+            } else {
+                $offer .= '<unit code="' . $this->PrepareValue($measure[$arOffer["ID"]]["MEASURE"]['SYMBOL_INTL']) . '" name="' . $this->PrepareValue($measure[$arOffer["ID"]]["MEASURE"]['MEASURE_TITLE']) . '" sym="' . $this->PrepareValue($measure[$arOffer["ID"]]["MEASURE"]['SYMBOL_RUS']) . '" />' . "\n";
+            }
         }
+
         if ($arOffer["BARCODE"]) {
             $offer.= "<barcode>" . $this->PrepareValue($arOffer["BARCODE"]) . "</barcode>\n";
         }
