@@ -126,7 +126,7 @@ class RetailCrmHistory
                     }
 
                     if ($registerNewUser === true) {
-                        $userPassword = uniqid();
+                        $userPassword = uniqid("R");
 
                         $arFields = array(
                             "EMAIL"             => $customer['email'],
@@ -137,7 +137,7 @@ class RetailCrmHistory
                         );
                         $registeredUserID = $newUser->Add($arFields);
                         if ($registeredUserID === false) {
-                            RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'CUser::Register', 'Error register user');
+                            RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'CUser::Register', 'Error register user: ' . $newUser->LAST_ERROR);
                             continue;
                         }
 
@@ -361,7 +361,7 @@ class RetailCrmHistory
                         }
 
                         if ($registerNewUser === true) {
-                            $userPassword = uniqid();
+                            $userPassword = uniqid("R");
 
                             $newUser = new CUser;
                             $arFields = array(
@@ -384,7 +384,7 @@ class RetailCrmHistory
                             $registeredUserID = $newUser->Add($arFields);
 
                             if ($registeredUserID === false) {
-                                RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'CUser::Register', 'Error register user');
+                                RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'CUser::Register', 'Error register user ' . $newUser->LAST_ERROR);
 
                                 continue;
                             }
