@@ -769,10 +769,10 @@ class RetailCrmHistory
                             if (array_key_exists($orderPayment->getField('XML_ID'), $newHistoryPayments)) {
                                 $paymentId = $orderPayment->getId();
                                 $paymentExternalId = RCrmActions::generatePaymentExternalId($paymentId);
-								if (is_null($paymentId)) {
-									RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'paymentsUpdate', 'Save payment error, order=' . $order['number']);
-									continue;
-								}
+                                if (is_null($paymentId)) {
+                                    RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'paymentsUpdate', 'Save payment error, order=' . $order['number']);
+                                    continue;
+                                }
                                 if ($paymentExternalId) {
                                     $newHistoryPayments[$orderPayment->getField('XML_ID')]['externalId'] = $paymentExternalId;
                                     RCrmActions::apiMethod($api, 'paymentEditById', __METHOD__, $newHistoryPayments[$orderPayment->getField('XML_ID')]);
@@ -1181,9 +1181,9 @@ class RetailCrmHistory
                 $newPaymentId = $newPayment->getId();
 
                 unset($paymentsList[$newPaymentId]);
-			} else {
-				RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'paymentsUpdate', 'Save payment error, incorrect type: '  . $paymentCrm['type']); 
-			}
+            } else {
+                RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'paymentsUpdate', 'Save payment error, incorrect type: '  . $paymentCrm['type']);
+            }
 
             if ($optionsPayment[$paymentCrm['status']] == 'Y') {
                 $paySumm += $paymentCrm['amount'];
