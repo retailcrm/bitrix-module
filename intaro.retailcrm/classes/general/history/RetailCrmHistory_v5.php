@@ -689,7 +689,12 @@ class RetailCrmHistory
                             }
 
                             if (array_key_exists('discountTotal', $product)) {
-                                $itemCost = $item->getField('BASE_PRICE');
+                                $itemCost = $item->getField('PRICE');
+
+                                if (empty($itemCost)) {
+                                    $itemCost = $item->getField('BASE_PRICE');
+                                }
+
                                 $discount = (double) $item->getField('DISCOUNT_PRICE');
 
                                 if (isset($itemCost) && $itemCost >= 0) {
