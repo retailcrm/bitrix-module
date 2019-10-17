@@ -142,7 +142,7 @@ class RetailCrmHistory
                         }
 
                         if(RCrmActions::apiMethod($api, 'customersFixExternalIds', __METHOD__, array(array('id' => $customer['id'], 'externalId' => $registeredUserID))) == false) {
-                             continue;
+                            continue;
                         }
                     }
 
@@ -384,7 +384,7 @@ class RetailCrmHistory
                             $registeredUserID = $newUser->Add($arFields);
 
                             if ($registeredUserID === false) {
-                                RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'CUser::Register', 'Error register user ' . $newUser->LAST_ERROR);
+                                RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'CUser::Register', 'Error register user' . $newUser->LAST_ERROR);
 
                                 continue;
                             }
@@ -646,11 +646,32 @@ class RetailCrmHistory
                     if (isset($order['items'])) {
                         $itemUpdate = true;
 
+                        $response = RCrmActions::apiMethod($api, 'orderGet', __METHOD__, $order['id']);
+                        if (isset($response['order'])) {
+                            $orderTemp = $response['order'];
+                            $ditems = [];
+                            foreach ($orderTemp['items'] as $item) {
+                                $ditems[$item['offer']['xmlId']]['quantity'] += $item['quantity'];
+                                $ditems[$item['offer']['xmlId']]['discountTotal'] += $item['quantity'] * $item['discountTotal'];
+                                $ditems[$item['offer']['xmlId']]['initialPrice'] = (float)$item['initialPrice'];
+                                $ditems[$item['offer']['xmlId']]['price_sum'] = $ditems[$item['offer']['xmlId']]['initialPrice'] * $ditems[$item['offer']['xmlId']]['quantity'] - $ditems[$item['offer']['xmlId']]['discountTotal'];
+                                $ditems[$item['offer']['xmlId']]['price_item'] = $ditems[$item['offer']['xmlId']]['price_sum'] / $ditems[$item['offer']['xmlId']]['quantity'];
+                            }
+                            unset($orderTemp);
+                        }
+
+                        $log->write($ditems, 'duplicateItemsOrderHistory');
+
                         foreach ($order['items'] as $product) {
+                            if($ditems[$product['offer']['xmlId']]['quantity']){
+                                $product['quantity'] = $ditems[$product['offer']['xmlId']]['quantity'];
+                            }
+
                             $item = self::getExistsItem($basket, 'catalog', $product['offer']['externalId']);
 
                             if (!$item) {
                                 if ($product['delete']) {
+
                                     continue;
                                 }
 
@@ -679,9 +700,11 @@ class RetailCrmHistory
                             }
 
                             if ($product['delete']) {
-                                $item->delete();
+                                if ($ditems[$product['offer']['xmlId']]['quantity'] <= 0) {
+                                    $item->delete();
 
-                                continue;
+                                    continue;
+                                }
                             }
 
                             if ($product['quantity']) {
@@ -709,6 +732,12 @@ class RetailCrmHistory
                                     $item->setField('DISCOUNT_VALUE', '');
                                     $item->setField('DISCOUNT_PRICE', $resultDiscount);
                                     $item->setField('PRICE', $itemCost - $resultDiscount);
+
+                                    //set price dublicate item
+                                    if ($ditems[$product['offer']['xmlId']]['price_item']) {
+                                        $item->setField('PRICE', $ditems[$product['offer']['xmlId']]['price_item']);
+                                        $item->setField('DISCOUNT_PRICE', '');
+                                    }
                                 }
                             }
                         }
@@ -772,12 +801,16 @@ class RetailCrmHistory
                     if (!empty($newHistoryPayments)) {
                         foreach ($newOrder->getPaymentCollection() as $orderPayment) {
                             if (array_key_exists($orderPayment->getField('XML_ID'), $newHistoryPayments)) {
+
                                 $paymentId = $orderPayment->getId();
                                 $paymentExternalId = RCrmActions::generatePaymentExternalId($paymentId);
                                 if (is_null($paymentId)) {
                                     RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'paymentsUpdate', 'Save payment error, order=' . $order['number']);
                                     continue;
                                 }
+
+                                $paymentExternalId = $orderPayment->getId();
+
                                 if ($paymentExternalId) {
                                     $newHistoryPayments[$orderPayment->getField('XML_ID')]['externalId'] = $paymentExternalId;
                                     RCrmActions::apiMethod($api, 'paymentEditById', __METHOD__, $newHistoryPayments[$orderPayment->getField('XML_ID')]);
@@ -813,6 +846,26 @@ class RetailCrmHistory
             //new filter
             $historyFilter['sinceId'] = $end['id'];
         }
+    }
+
+    /**
+     * @param $array
+     * @param $value
+     *
+     * @return array
+     */
+    public static function search_array_by_value($array, $value)
+    {
+        $results = array();
+        if (is_array($array)) {
+            $found = array_search($value,$array);
+            if ($found) {
+                $results[] = $found;
+            }
+            foreach ($array as $subarray)
+                $results = array_merge($results, static::search_array_by_value($subarray, $value));
+        }
+        return $results;
     }
 
     public static function assemblyCustomer($customerHistory)
@@ -1009,6 +1062,7 @@ class RetailCrmHistory
             if (isset($orderCrm['delivery']['service']['code'])) {
                 $deliveryCode = \Bitrix\Sale\Delivery\Services\Manager::getCodeById($deliveryId);
                 $serviceCode = $orderCrm['delivery']['service']['code'];
+
                 $service = \Bitrix\Sale\Delivery\Services\Manager::getService($deliveryId);
                 if (is_object($service)) {
                     $services = $service->getProfilesList();
@@ -1017,6 +1071,7 @@ class RetailCrmHistory
                         $serviceCode = str_replace(array('-'), "_", $serviceCode);
                     }
                 }
+
                 if ($deliveryCode) {
                     try {
                         $deliveryService = \Bitrix\Sale\Delivery\Services\Manager::getObjectByCode($deliveryCode . ':' . $serviceCode);
@@ -1036,13 +1091,13 @@ class RetailCrmHistory
 
         if ($delivery) {
             if (!$update) {
-                    $shipment = $shipmentColl->createItem($delivery);
-                    $shipment->setFields(array(
-                        'BASE_PRICE_DELIVERY' => $orderCrm['delivery']['cost'],
-                        'CURRENCY' => $order->getCurrency(),
-                        'DELIVERY_NAME' => $delivery->getName(),
-                        'CUSTOM_PRICE_DELIVERY' => 'Y'
-                    ));
+                $shipment = $shipmentColl->createItem($delivery);
+                $shipment->setFields(array(
+                    'BASE_PRICE_DELIVERY' => $orderCrm['delivery']['cost'],
+                    'CURRENCY' => $order->getCurrency(),
+                    'DELIVERY_NAME' => $delivery->getName(),
+                    'CUSTOM_PRICE_DELIVERY' => 'Y'
+                ));
             } else {
                 foreach ($shipmentColl as $shipment) {
                     if (!$shipment->isSystem()) {

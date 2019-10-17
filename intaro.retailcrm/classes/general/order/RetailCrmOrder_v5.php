@@ -56,9 +56,9 @@ class RetailCrmOrder
             'createdAt'       => $arFields['DATE_INSERT'],
             'customer'        => array('externalId' => $arFields['USER_ID']),
             'orderType'       => isset($arParams['optionsOrderTypes'][$arFields['PERSON_TYPE_ID']]) ?
-                                     $arParams['optionsOrderTypes'][$arFields['PERSON_TYPE_ID']] : '',
+                $arParams['optionsOrderTypes'][$arFields['PERSON_TYPE_ID']] : '',
             'status'          => isset($arParams['optionsPayStatuses'][$arFields['STATUS_ID']]) ?
-                                     $arParams['optionsPayStatuses'][$arFields['STATUS_ID']] : '',
+                $arParams['optionsPayStatuses'][$arFields['STATUS_ID']] : '',
             'customerComment' => $arFields['USER_DESCRIPTION'],
             'managerComment'  => $arFields['COMMENTS'],
             'delivery' => array(
@@ -140,10 +140,11 @@ class RetailCrmOrder
         //basket
         foreach ($arFields['BASKET'] as $product) {
             $item = array(
+                'externalId'      => $product['PRODUCT_ID'],
                 'quantity'        => $product['QUANTITY'],
                 'offer'           => array('externalId' => $product['PRODUCT_ID'],
-                                           'xmlId' => $product['PRODUCT_XML_ID']
-                                        ),
+                    'xmlId' => $product['PRODUCT_XML_ID']
+                ),
                 'productName'     => $product['NAME']
             );
 
@@ -205,7 +206,7 @@ class RetailCrmOrder
                     'amount' => $payment['SUM']
                 );
                 if (!empty($payment['ID'])) {
-                    $pm['externalId'] = $payment['ID'];
+                    $pm['externalId'] = RCrmActions::generatePaymentExternalId($payment['ID']);
                 }
                 if (!empty($payment['DATE_PAID'])) {
                     $pm['paidAt'] = new \DateTime($payment['DATE_PAID']);
