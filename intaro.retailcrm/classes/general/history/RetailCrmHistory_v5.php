@@ -612,6 +612,9 @@ class RetailCrmHistory
                             if (array_key_exists($key, $order)) {
                                 $somePropValue = $propertyCollection->getItemByOrderPropertyId($propsKey[$orderProp]['ID']);
                                 self::setProp($somePropValue, RCrmActions::fromJSON($order[$key]));
+                            } elseif(array_key_exists($key, $order['contragent'])) {
+                                $somePropValue = $propertyCollection->getItemByOrderPropertyId($propsKey[$orderProp]['ID']);
+                                self::setProp($somePropValue, RCrmActions::fromJSON($order['contragent'][$key]));
                             }
                         }
                     }
