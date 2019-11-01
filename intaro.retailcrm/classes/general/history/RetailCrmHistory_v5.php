@@ -823,6 +823,7 @@ class RetailCrmHistory
                     }
 
                     if (!$order['externalId']) {
+                        $order["externalId"] = $newOrder->getId();
                         if (RCrmActions::apiMethod($api, 'ordersFixExternalIds', __METHOD__, array(array('id' => $order['id'], 'externalId' => $newOrder->getId()))) == false){
                             continue;
                         }
