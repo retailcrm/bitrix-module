@@ -910,6 +910,8 @@ class RetailCrmHistory
                     $customers[$change['customer']['id']]['contragent'][$fields['customerContragent'][$change['field']]] = $change['newValue'];
                 } elseif ($fields['customer'][$change['field']]) {
                     $customers[$change['customer']['id']][$fields['customer'][$change['field']]] = self::newValue($change['newValue']);
+                } elseif (strripos($change['field'], 'custom_') !== false) {
+                    $customers[$change['customer']['id']]['customFields'][str_replace('custom_', '', $change['field'])] = self::newValue($change['newValue']);
                 }
 
                 if (isset($change['created'])) {
