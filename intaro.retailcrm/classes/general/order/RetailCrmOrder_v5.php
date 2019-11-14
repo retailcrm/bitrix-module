@@ -119,7 +119,9 @@ class RetailCrmOrder
                         $prop['VALUE'][0] = $location['NAME'];
                     }
 
-                    $order['delivery']['address'][$search] = $prop['VALUE'][0];
+                    if (!empty($prop['VALUE'][0])) {
+                        $order['delivery']['address'][$search] = $prop['VALUE'][0];
+                    }
                 }
             }
         }
