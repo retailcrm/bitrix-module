@@ -462,6 +462,9 @@
         "text": {
             "type": "string"
         },
+        "address": {
+            "type": "string"
+        },
         "shipmentStore": {
             "type": "string"
         },

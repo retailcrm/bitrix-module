@@ -612,6 +612,9 @@ class RetailCrmHistory
                             if (array_key_exists($key, $order)) {
                                 $somePropValue = $propertyCollection->getItemByOrderPropertyId($propsKey[$orderProp]['ID']);
                                 self::setProp($somePropValue, RCrmActions::fromJSON($order[$key]));
+                            } elseif(array_key_exists($key, $order['contragent'])) {
+                                $somePropValue = $propertyCollection->getItemByOrderPropertyId($propsKey[$orderProp]['ID']);
+                                self::setProp($somePropValue, RCrmActions::fromJSON($order['contragent'][$key]));
                             }
                         }
                     }
@@ -814,13 +817,16 @@ class RetailCrmHistory
                                 if ($paymentExternalId) {
                                     $newHistoryPayments[$orderPayment->getField('XML_ID')]['externalId'] = $paymentExternalId;
                                     RCrmActions::apiMethod($api, 'paymentEditById', __METHOD__, $newHistoryPayments[$orderPayment->getField('XML_ID')]);
-                                    \Bitrix\Sale\Internals\PaymentTable::update($paymentId, array('XML_ID' => ''));
+                                    if ($paymentId) {
+                                        \Bitrix\Sale\Internals\PaymentTable::update($paymentId, array('XML_ID' => ''));
+                                    }
                                 }
                             }
                         }
                     }
 
                     if (!$order['externalId']) {
+                        $order["externalId"] = $newOrder->getId();
                         if (RCrmActions::apiMethod($api, 'ordersFixExternalIds', __METHOD__, array(array('id' => $order['id'], 'externalId' => $newOrder->getId()))) == false){
                             continue;
                         }
@@ -907,6 +913,8 @@ class RetailCrmHistory
                     $customers[$change['customer']['id']]['contragent'][$fields['customerContragent'][$change['field']]] = $change['newValue'];
                 } elseif ($fields['customer'][$change['field']]) {
                     $customers[$change['customer']['id']][$fields['customer'][$change['field']]] = self::newValue($change['newValue']);
+                } elseif (strripos($change['field'], 'custom_') !== false) {
+                    $customers[$change['customer']['id']]['customFields'][str_replace('custom_', '', $change['field'])] = self::newValue($change['newValue']);
                 }
 
                 if (isset($change['created'])) {
