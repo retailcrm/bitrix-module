@@ -15,7 +15,7 @@ class RestNormalizer
 {
     public $clear = true;
     private $validation = array();
-    private $originalValidation = array();    
+    private $originalValidation = array();
     private $server;
 
     /**
@@ -67,7 +67,7 @@ class RestNormalizer
                 RCrmActions::eventLog('RestNormalizer', 'intaro.retailcrm', 'Incorrect file normalize.');
                 return false;
         }
-        
+
         if (is_string($data)) {
             $data = json_decode($data, true);
         }
@@ -332,6 +332,9 @@ class RestNormalizer
 
         if (is_array($data)) {
             foreach ($data as $code => $value) {
+                if (is_array($value)) {
+                    $value = array_diff($value, array('', NULL));
+                }
                 $data[$APPLICATION->ConvertCharset($code, SITE_CHARSET, 'utf-8')] = is_array($value)
                                                                         ? $this->multiConvert($value)
                                                                         : $APPLICATION->ConvertCharset($value, SITE_CHARSET, 'utf-8');
