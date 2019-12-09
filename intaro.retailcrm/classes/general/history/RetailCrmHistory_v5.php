@@ -654,11 +654,11 @@ class RetailCrmHistory
                             $orderTemp = $response['order'];
                             $ditems = [];
                             foreach ($orderTemp['items'] as $item) {
-                                $ditems[$item['offer']['xmlId']]['quantity'] += $item['quantity'];
-                                $ditems[$item['offer']['xmlId']]['discountTotal'] += $item['quantity'] * $item['discountTotal'];
-                                $ditems[$item['offer']['xmlId']]['initialPrice'] = (float)$item['initialPrice'];
-                                $ditems[$item['offer']['xmlId']]['price_sum'] = $ditems[$item['offer']['xmlId']]['initialPrice'] * $ditems[$item['offer']['xmlId']]['quantity'] - $ditems[$item['offer']['xmlId']]['discountTotal'];
-                                $ditems[$item['offer']['xmlId']]['price_item'] = $ditems[$item['offer']['xmlId']]['price_sum'] / $ditems[$item['offer']['xmlId']]['quantity'];
+                                $ditems[$item['offer']['externalId']]['quantity'] += $item['quantity'];
+                                $ditems[$item['offer']['externalId']]['discountTotal'] += $item['quantity'] * $item['discountTotal'];
+                                $ditems[$item['offer']['externalId']]['initialPrice'] = (float)$item['initialPrice'];
+                                $ditems[$item['offer']['externalId']]['price_sum'] = $ditems[$item['offer']['externalId']]['initialPrice'] * $ditems[$item['offer']['externalId']]['quantity'] - $ditems[$item['offer']['externalId']]['discountTotal'];
+                                $ditems[$item['offer']['externalId']]['price_item'] = $ditems[$item['offer']['externalId']]['price_sum'] / $ditems[$item['offer']['externalId']]['quantity'];
                             }
                             unset($orderTemp);
                         }
@@ -666,8 +666,8 @@ class RetailCrmHistory
                         $log->write($ditems, 'duplicateItemsOrderHistory');
 
                         foreach ($order['items'] as $product) {
-                            if($ditems[$product['offer']['xmlId']]['quantity']){
-                                $product['quantity'] = $ditems[$product['offer']['xmlId']]['quantity'];
+                            if($ditems[$product['offer']['externalId']]['quantity']){
+                                $product['quantity'] = $ditems[$product['offer']['externalId']]['quantity'];
                             }
 
                             $item = self::getExistsItem($basket, 'catalog', $product['offer']['externalId']);
@@ -703,7 +703,7 @@ class RetailCrmHistory
                             }
 
                             if ($product['delete']) {
-                                if ($ditems[$product['offer']['xmlId']]['quantity'] <= 0) {
+                                if ($ditems[$product['offer']['externalId']]['quantity'] <= 0) {
                                     $item->delete();
 
                                     continue;
@@ -737,8 +737,8 @@ class RetailCrmHistory
                                     $item->setField('PRICE', $itemCost - $resultDiscount);
 
                                     //set price dublicate item
-                                    if ($ditems[$product['offer']['xmlId']]['price_item']) {
-                                        $item->setField('PRICE', $ditems[$product['offer']['xmlId']]['price_item']);
+                                    if ($ditems[$product['offer']['externalId']]['price_item']) {
+                                        $item->setField('PRICE', $ditems[$product['offer']['externalId']]['price_item']);
                                         $item->setField('DISCOUNT_PRICE', '');
                                     }
                                 }
