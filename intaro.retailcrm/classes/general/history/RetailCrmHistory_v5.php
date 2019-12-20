@@ -974,6 +974,10 @@ class RetailCrmHistory
                 $orders[$change['order']['id']] = $change['order'];
             }
 
+            if ($change['field'] == 'number') {
+                $orders[$change['order']['id']]['number'] = $change['newValue'];
+            }
+
             if ($change['item']) {
                 if ($orders[$change['order']['id']]['items'][$change['item']['id']]) {
                     $orders[$change['order']['id']]['items'][$change['item']['id']] = array_merge($orders[$change['order']['id']]['items'][$change['item']['id']], $change['item']);
