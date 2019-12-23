@@ -139,10 +139,37 @@ class RetailCrmOrder
         $height = 0;
         $length = 0;
 
+        if ('ordersEdit' == $methodApi) {
+            $response = RCrmActions::apiMethod($api, 'ordersGet', __METHOD__, $order['externalId']);
+            if (isset($response['order'])) {
+                foreach ($response['order']['items'] as $item) {
+                    $orderItems[$item['offer']['externalId']] = $item;
+                }
+            }
+        }
+
         //basket
         foreach ($arFields['BASKET'] as $product) {
+            if (isset($orderItems[$product['PRODUCT_ID']])) { //update
+                $externalIds = $orderItems[$product['PRODUCT_ID']]['externalIds'];
+                $key = array_search("bitrix", array_column($externalIds, 'code'));
+                if (!$key) {
+                    $externalIds[] = array(
+                        'code' =>'bitrix',
+                        'value' => $product['PRODUCT_ID'],
+                    );
+                }
+            } else { //create
+                $externalIds = array(
+                    array(
+                        'code' =>'bitrix',
+                        'value' => $product['PRODUCT_ID'],
+                    )
+                );
+            }
+
             $item = array(
-                'externalId'      => $product['PRODUCT_ID'],
+                'externalIds' => $externalIds,
                 'quantity'        => $product['QUANTITY'],
                 'offer'           => array('externalId' => $product['PRODUCT_ID'],
                     'xmlId' => $product['PRODUCT_XML_ID']
