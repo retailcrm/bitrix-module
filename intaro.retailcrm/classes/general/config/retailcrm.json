@@ -453,6 +453,9 @@
         "house": {
             "type": "string"
         },
+        "housing": {
+            "type": "string"
+        },
         "metro": {
             "type": "string"
         },
