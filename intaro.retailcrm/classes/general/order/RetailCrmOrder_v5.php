@@ -212,6 +212,12 @@ class RetailCrmOrder
             $item['discountManualPercent'] = 0;
             $item['initialPrice'] = $initialPrice;
 
+            $dpItem = $product['BASE_PRICE'] - $product['PRICE'];
+            if ( $dpItem > 0) {
+                $item['discountManualAmount'] = $dpItem;
+                $item['initialPrice'] = (double)$product['BASE_PRICE'];
+            }
+
             $order['items'][] = $item;
 
             if ($send && $dimensionsSetting == 'Y') {
