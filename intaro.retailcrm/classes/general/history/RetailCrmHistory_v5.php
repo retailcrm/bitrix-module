@@ -23,6 +23,7 @@ class RetailCrmHistory
     public static $CRM_ORDER_NUMBERS = 'order_numbers';
     public static $CRM_CANSEL_ORDER = 'cansel_order';
     public static $CRM_CURRENCY = 'currency';
+    public static $CRM_DISCOUNT_ROUND = 'discount_round';
 
     const CANCEL_PROPERTY_CODE = 'INTAROCRM_IS_CANCELED';
 
@@ -652,22 +653,34 @@ class RetailCrmHistory
                         $response = RCrmActions::apiMethod($api, 'orderGet', __METHOD__, $order['id']);
                         if (isset($response['order'])) {
                             $orderTemp = $response['order'];
-                            $ditems = [];
+
+                            $duplicateItems = [];
                             foreach ($orderTemp['items'] as $item) {
-                                $ditems[$item['offer']['externalId']]['quantity'] += $item['quantity'];
-                                $ditems[$item['offer']['externalId']]['discountTotal'] += $item['quantity'] * $item['discountTotal'];
-                                $ditems[$item['offer']['externalId']]['initialPrice'] = (float)$item['initialPrice'];
-                                $ditems[$item['offer']['externalId']]['price_sum'] = $ditems[$item['offer']['externalId']]['initialPrice'] * $ditems[$item['offer']['externalId']]['quantity'] - $ditems[$item['offer']['externalId']]['discountTotal'];
-                                $ditems[$item['offer']['externalId']]['price_item'] = $ditems[$item['offer']['externalId']]['price_sum'] / $ditems[$item['offer']['externalId']]['quantity'];
+                                $duplicateItems[$item['id']]['externalId'] += $item['offer']['externalId'];
+                                $duplicateItems[$item['id']]['quantity'] += $item['quantity'];
+                                $duplicateItems[$item['id']]['discountTotal'] += $item['quantity'] * $item['discountTotal'];
+                                $duplicateItems[$item['id']]['initialPrice'] = (float)$item['initialPrice'];
+                                $duplicateItems[$item['id']]['price_sum'] = ($item['quantity'] * $item['initialPrice']) - ($item['quantity'] * $item['discountTotal']);
+
                             }
                             unset($orderTemp);
                         }
 
-                        $log->write($ditems, 'duplicateItemsOrderHistory');
+                        $collectItems = [];
+                        foreach ($duplicateItems as $it) {
+                            $collectItems[$it['externalId']]['quantity'] += $it['quantity'];
+                            $collectItems[$it['externalId']]['price_sum'] += $it['price_sum'];
+                            $collectItems[$it['externalId']]['discountTotal_sum'] += $it['discountTotal'];
+                            $collectItems[$it['externalId']]['initialPrice_sum'] += $it['quantity'] * $it['initialPrice'];
+                        }
+
+                        $log->write($duplicateItems, 'duplicateItemsOrderHistory');
+                        $log->write($collectItems, 'collectItemsOrderHistory');
+                        $optionDiscRound = COption::GetOptionString(self::$MODULE_ID, self::$CRM_DISCOUNT_ROUND, 0);
 
                         foreach ($order['items'] as $product) {
-                            if($ditems[$product['offer']['externalId']]['quantity']){
-                                $product['quantity'] = $ditems[$product['offer']['externalId']]['quantity'];
+                            if ($collectItems[$product['offer']['externalId']]['quantity']) {
+                                $product['quantity'] = $collectItems[$product['offer']['externalId']]['quantity'];
                             }
 
                             $item = self::getExistsItem($basket, 'catalog', $product['offer']['externalId']);
@@ -685,7 +698,7 @@ class RetailCrmHistory
                                     $item->setFields(array(
                                         'CURRENCY' => $newOrder->getCurrency(),
                                         'LID' => $site,
-                                        'BASE_PRICE' => $product['initialPrice'],
+                                        'BASE_PRICE' => $collectItems[$product['offer']['externalId']]['initialPrice_sum'] / $collectItems[$product['offer']['externalId']]['quantity'],
                                         'NAME' => $product['offer']['name'] ? RCrmActions::fromJSON($product['offer']['name']) : $elem['NAME'],
                                         'DETAIL_PAGE_URL' => $elem['URL'],
                                         'PRODUCT_PROVIDER_CLASS' => 'CCatalogProductProvider',
@@ -703,7 +716,7 @@ class RetailCrmHistory
                             }
 
                             if ($product['delete']) {
-                                if ($ditems[$product['offer']['externalId']]['quantity'] <= 0) {
+                                if ($collectItems[$product['offer']['externalId']]['quantity'] <= 0) {
                                     $item->delete();
 
                                     continue;
@@ -712,36 +725,22 @@ class RetailCrmHistory
 
                             if ($product['quantity']) {
                                 $item->setFieldNoDemand('QUANTITY', $product['quantity']);
+                                $item->setField('PRICE', $collectItems[$product['offer']['externalId']]['initialPrice_sum'] / $collectItems[$product['offer']['externalId']]['quantity']);
                             }
 
-                            if (array_key_exists('discountTotal', $product)) {
-                                $itemCost = $item->getField('PRICE');
+                            if (array_key_exists('discountTotal_sum', $collectItems[$product['offer']['externalId']])) {
+                                $item->setField('CUSTOM_PRICE', 'Y');
+                                $item->setField('DISCOUNT_NAME', '');
+                                $item->setField('DISCOUNT_VALUE', '');
+                                $item->setField('DISCOUNT_PRICE', $product['discountTotal_sum']);
 
-                                if (empty($itemCost)) {
-                                    $itemCost = $item->getField('BASE_PRICE');
+                                $price = $collectItems[$product['offer']['externalId']]['price_sum'] / $collectItems[$product['offer']['externalId']]['quantity'];
+
+                                if ('Y' == $optionDiscRound) {
+                                    $price = self::truncate($price, 2);
                                 }
 
-                                $discount = (double) $item->getField('DISCOUNT_PRICE');
-
-                                if (isset($itemCost) && $itemCost >= 0) {
-                                    if ($discount < 0) {
-                                        $resultDiscount = $product['discountTotal'] + $discount;
-                                    } else {
-                                        $resultDiscount = $product['discountTotal'];
-                                    }
-
-                                    $item->setField('CUSTOM_PRICE', 'Y');
-                                    $item->setField('DISCOUNT_NAME', '');
-                                    $item->setField('DISCOUNT_VALUE', '');
-                                    $item->setField('DISCOUNT_PRICE', $resultDiscount);
-                                    $item->setField('PRICE', $itemCost - $resultDiscount);
-
-                                    //set price dublicate item
-                                    if ($ditems[$product['offer']['externalId']]['price_item']) {
-                                        $item->setField('PRICE', $ditems[$product['offer']['externalId']]['price_item']);
-                                        $item->setField('DISCOUNT_PRICE', '');
-                                    }
-                                }
+                                $item->setField('PRICE', $price);
                             }
                         }
                     }
@@ -1377,6 +1376,25 @@ class RetailCrmHistory
 
             return false;
         }
+    }
+
+    /**
+     * Truncate a float number
+     *
+     * @param float $val
+     * @param int f Number of precision
+     *
+     * @return float
+     */
+    public static function truncate($val, $precision = "0")
+    {
+        if(($p = strpos($val, '.')) !== false
+            || ($p = strpos($val, ',')) !== false
+        ) {
+            $val = floatval(substr($val, 0, $p + 1 + $precision));
+        }
+
+        return $val;
     }
 }
 

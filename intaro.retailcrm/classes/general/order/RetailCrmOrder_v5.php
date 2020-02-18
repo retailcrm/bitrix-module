@@ -201,22 +201,22 @@ class RetailCrmOrder
 
             $discount = (double) $product['DISCOUNT_PRICE'];
 
-            if ($discount < 0) {
+            //discount
+            $dpItem = $product['BASE_PRICE'] - $product['PRICE'];
+            if ( $dpItem > 0 && $discount <= 0) {
+                $discount = $dpItem;
+            }
+
+            if ($discount <= 0) {
                 $item['discountManualAmount'] = 0;
                 $initialPrice = (double) $product['PRICE'];
             } else {
-                $item['discountManualAmount'] = (double) $product['DISCOUNT_PRICE'];
-                $initialPrice = (double) $product['PRICE'] + (double) $product['DISCOUNT_PRICE'];
+                $item['discountManualAmount'] = $discount;
+                $initialPrice = (double) $product['PRICE'] + $discount;
             }
 
             $item['discountManualPercent'] = 0;
             $item['initialPrice'] = $initialPrice;
-
-            $dpItem = $product['BASE_PRICE'] - $product['PRICE'];
-            if ( $dpItem > 0) {
-                $item['discountManualAmount'] = $dpItem;
-                $item['initialPrice'] = (double)$product['BASE_PRICE'];
-            }
 
             $order['items'][] = $item;
 
