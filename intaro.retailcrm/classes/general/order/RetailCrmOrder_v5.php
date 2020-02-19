@@ -29,12 +29,17 @@ class RetailCrmOrder
      *
      * Creates order or returns order for mass upload
      *
-     * @param array $arFields
-     * @param $api
-     * @param $arParams
-     * @param $send
+     * @param array  $arFields
+     * @param        $api
+     * @param        $arParams
+     * @param bool   $send
+     * @param null   $site
+     * @param string $methodApi
+     *
      * @return boolean
-     * @return array - array('order' = $order, 'customer' => $customer)
+     * @throws \Bitrix\Main\ArgumentException
+     * @throws \Bitrix\Main\ObjectPropertyException
+     * @throws \Bitrix\Main\SystemException
      */
     public static function orderSend($arFields, $api, $arParams, $send = false, $site = null, $methodApi = 'ordersEdit')
     {
@@ -200,23 +205,15 @@ class RetailCrmOrder
             }
 
             $discount = (double) $product['DISCOUNT_PRICE'];
-
-            //discount
             $dpItem = $product['BASE_PRICE'] - $product['PRICE'];
+
             if ( $dpItem > 0 && $discount <= 0) {
                 $discount = $dpItem;
             }
 
-            if ($discount <= 0) {
-                $item['discountManualAmount'] = 0;
-                $initialPrice = (double) $product['PRICE'];
-            } else {
-                $item['discountManualAmount'] = $discount;
-                $initialPrice = (double) $product['PRICE'] + $discount;
-            }
-
             $item['discountManualPercent'] = 0;
-            $item['initialPrice'] = $initialPrice;
+            $item['discountManualAmount'] = $discount;
+            $item['initialPrice'] = (double) $product['BASE_PRICE'];
 
             $order['items'][] = $item;
 
@@ -304,9 +301,16 @@ class RetailCrmOrder
 
     /**
      * Mass order uploading, without repeating; always returns true, but writes error log
-     * @param $pSize
-     * @param $failed -- flag to export failed orders
+     *
+     * @param int  $pSize
+     * @param bool $failed -- flag to export failed orders
+     * @param bool $orderList
+     *
      * @return boolean
+     * @throws \Bitrix\Main\ArgumentNullException
+     * @throws \Bitrix\Main\ObjectPropertyException
+     * @throws \Bitrix\Main\SystemException
+     * @throws \Bitrix\Main\ArgumentException
      */
     public static function uploadOrders($pSize = 50, $failed = false, $orderList = false)
     {
@@ -446,6 +450,14 @@ class RetailCrmOrder
         return true;
     }
 
+    /**
+     * Converts order object to array
+     *
+     * @param \Bitrix\Sale\Order $obOrder
+     *
+     * @return array
+     * @throws \Bitrix\Main\SystemException
+     */
     public static function orderObjToArr($obOrder)
     {
         $culture = new \Bitrix\Main\Context\Culture(array("FORMAT_DATETIME" => "Y-m-d HH:i:s"));
