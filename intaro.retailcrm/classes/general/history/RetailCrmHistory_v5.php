@@ -434,7 +434,7 @@ class RetailCrmHistory
                         }
                     }
 
-                    if ($newOrder === null) {
+                    if (!isset($newOrder) || $newOrder === null) {
                         RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'Bitrix\Sale\Order::load', 'Error order load number=' . $order['number']);
 
                         continue;
@@ -649,29 +649,59 @@ class RetailCrmHistory
 
                     if (isset($order['items'])) {
                         $itemUpdate = true;
-
                         $response = RCrmActions::apiMethod($api, 'orderGet', __METHOD__, $order['id']);
+
                         if (isset($response['order'])) {
                             $orderTemp = $response['order'];
-
                             $duplicateItems = [];
+
                             foreach ($orderTemp['items'] as $item) {
                                 $duplicateItems[$item['id']]['externalId'] += $item['offer']['externalId'];
                                 $duplicateItems[$item['id']]['quantity'] += $item['quantity'];
-                                $duplicateItems[$item['id']]['discountTotal'] += $item['quantity'] * $item['discountTotal'];
-                                $duplicateItems[$item['id']]['initialPrice'] = (float)$item['initialPrice'];
-                                $duplicateItems[$item['id']]['price_sum'] = ($item['quantity'] * $item['initialPrice']) - ($item['quantity'] * $item['discountTotal']);
-
+                                $duplicateItems[$item['id']]['discountTotal'] +=
+                                    $item['quantity'] * $item['discountTotal'];
+                                $duplicateItems[$item['id']]['initialPrice'] = (float) $item['initialPrice'];
+                                $duplicateItems[$item['id']]['price_sum'] = ($item['quantity'] * $item['initialPrice'])
+                                    - ($item['quantity'] * $item['discountTotal']);
                             }
+
                             unset($orderTemp);
+                        } else {
+                            continue;
                         }
 
                         $collectItems = [];
+
                         foreach ($duplicateItems as $it) {
                             $collectItems[$it['externalId']]['quantity'] += $it['quantity'];
                             $collectItems[$it['externalId']]['price_sum'] += $it['price_sum'];
                             $collectItems[$it['externalId']]['discountTotal_sum'] += $it['discountTotal'];
-                            $collectItems[$it['externalId']]['initialPrice_sum'] += $it['quantity'] * $it['initialPrice'];
+
+                            if (isset($collectItems[$it['externalId']]['initialPrice_max'])) {
+                                if ($collectItems[$it['externalId']]['initialPrice_max'] < $it['initialPrice']) {
+                                    $collectItems[$it['externalId']]['initialPrice_max'] = $it['initialPrice'];
+                                }
+                            } else {
+                                $collectItems[$it['externalId']]['initialPrice_max'] = $it['initialPrice'];
+                            }
+
+                            $collectItems[$it['externalId']]['initialPricesList'][] = $it['initialPrice'];
+                        }
+
+                        foreach ($collectItems as $key => $itemData) {
+                            if (count($itemData['initialPricesList']) > 1) {
+                                $discountDelta = 0;
+
+                                foreach ($itemData['initialPrices'] as $initialPriceItem) {
+                                    $delta = $itemData['initialPrice_max'] - (float) $initialPriceItem;
+
+                                    if ($delta !== 0) {
+                                        $discountDelta += $delta;
+                                    }
+                                }
+
+                                $collectItems[$key]['discountTotal_sum'] += $discountDelta;
+                            }
                         }
 
                         $log->write($duplicateItems, 'duplicateItemsOrderHistory');
@@ -695,10 +725,11 @@ class RetailCrmHistory
 
                                 if ($item instanceof \Bitrix\Sale\BasketItem) {
                                     $elem = self::getInfoElement($product['offer']['externalId']);
+
                                     $item->setFields(array(
                                         'CURRENCY' => $newOrder->getCurrency(),
                                         'LID' => $site,
-                                        'BASE_PRICE' => $collectItems[$product['offer']['externalId']]['initialPrice_sum'] / $collectItems[$product['offer']['externalId']]['quantity'],
+                                        'BASE_PRICE' => $collectItems[$product['offer']['externalId']]['initialPrice_max'],
                                         'NAME' => $product['offer']['name'] ? RCrmActions::fromJSON($product['offer']['name']) : $elem['NAME'],
                                         'DETAIL_PAGE_URL' => $elem['URL'],
                                         'PRODUCT_PROVIDER_CLASS' => 'CCatalogProductProvider',
@@ -725,7 +756,13 @@ class RetailCrmHistory
 
                             if ($product['quantity']) {
                                 $item->setFieldNoDemand('QUANTITY', $product['quantity']);
-                                $item->setField('PRICE', $collectItems[$product['offer']['externalId']]['initialPrice_sum'] / $collectItems[$product['offer']['externalId']]['quantity']);
+                            }
+
+                            if (array_key_exists('initialPrice_max', $collectItems[$product['offer']['externalId']])) {
+                                $item->setField(
+                                    'BASE_PRICE',
+                                    $collectItems[$product['offer']['externalId']]['initialPrice_max']
+                                );
                             }
 
                             if (array_key_exists('discountTotal_sum', $collectItems[$product['offer']['externalId']])) {
@@ -734,7 +771,11 @@ class RetailCrmHistory
                                 $item->setField('DISCOUNT_VALUE', '');
                                 $item->setField('DISCOUNT_PRICE', $product['discountTotal_sum']);
 
-                                $price = $collectItems[$product['offer']['externalId']]['price_sum'] / $collectItems[$product['offer']['externalId']]['quantity'];
+                                // Полную цену позиции с учётом скидок делим на количество - получаем цену каждой единицы
+                                // товара с учётом скидок.
+                                $price = $collectItems[
+                                    $product['offer']['externalId']
+                                    ]['price_sum'] / $collectItems[$product['offer']['externalId']]['quantity'];
 
                                 if ('Y' == $optionDiscRound) {
                                     $price = self::truncate($price, 2);

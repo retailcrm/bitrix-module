@@ -91,7 +91,9 @@ class RetailCrmEvent
      * @param $event
      *
      * @return bool
-     * @throws InvalidArgumentException
+     * @throws \Bitrix\Main\ObjectPropertyException
+     * @throws \Bitrix\Main\SystemException
+     * @throws \Bitrix\Main\ArgumentException
      */
     function orderSave($event)
     {
