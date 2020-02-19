@@ -769,7 +769,6 @@ class RetailCrmHistory
                                 $item->setField('CUSTOM_PRICE', 'Y');
                                 $item->setField('DISCOUNT_NAME', '');
                                 $item->setField('DISCOUNT_VALUE', '');
-                                $item->setField('DISCOUNT_PRICE', $product['discountTotal_sum']);
 
                                 // Полную цену позиции с учётом скидок делим на количество - получаем цену каждой единицы
                                 // товара с учётом скидок.
