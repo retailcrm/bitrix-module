@@ -22,5 +22,6 @@ CModule::AddAutoloadClasses(
         'RetailCrm\Response\ApiResponse'            => 'classes/general/Response/ApiResponse.php',
         'RetailCrm\Exception\InvalidJsonException'  => 'classes/general/Exception/InvalidJsonException.php',
         'RetailCrm\Exception\CurlException'         => 'classes/general/Exception/CurlException.php',
+        'RetailCrmCorporateClient'                  => file_exists($server . '/bitrix/php_interface/retailcrm/RetailCrmCorporateClient.php') ? '../../php_interface/retailcrm/RetailCrmCorporateClient.php' : 'classes/general/user/RetailCrmCorporateClient.php',
     )
 );

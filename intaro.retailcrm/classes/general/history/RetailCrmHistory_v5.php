@@ -331,14 +331,41 @@ class RetailCrmHistory
                     continue;
                 }
 
+                if ($optionsSitesList) {
+                    $site = array_search($order['site'], $optionsSitesList);
+                } else {
+                    $site = CSite::GetDefSite();
+                }
+
+                if (empty($site)) {
+                    RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'Bitrix\Sale\Order::create', 'Site = ' . $order['site'] . ' not found in setting. Order crm id=' . $order['id']);
+
+                    continue;
+                }
+
                 if (isset($order['customer']['externalId']) && !is_numeric($order['customer']['externalId'])) {
                     unset($order['customer']['externalId']);
+                }
 
-                    if ($order['customer']['type'] == 'customer_corporate') {
-                        // TODO Устанавливать идентификатор пользователя равным идентификатору контактного лица для корректной синхронизщации данных пользователя
-                        //$order['customer']['externalId'] = $order['customer']['mainCustomerContact']['customer']['externalId'];
-                        $order['customer']['email'] = $order['email'];
+                if ($order['customer']['type'] == 'customer_corporate') {
+                    $contact = false;
+
+                    if (isset($order['contact']['externalId'])) {
+                        $contact = RCrmActions::apiMethod($api, 'customersGet', __METHOD__, $order['contact']['externalId'], $order['site']);
+                    } elseif (isset($order['contact']['id'])) {
+                        $contact = RCrmActions::apiMethod($api, 'customersGetById', __METHOD__, $order['contact']['id'], $order['site']);
                     }
+
+                    if (!$contact || empty($contact['customer'])) {
+                        $log->write(sprintf(
+                            'cannot sync order - no customer found. order: %s',
+                            print_r($order, true)
+                        ), 'orderHistory');
+
+                        continue;
+                    }
+
+                    $order['customer'] = $contact['customer'];
                 }
 
                 if (!isset($order['externalId'])) {
@@ -403,17 +430,6 @@ class RetailCrmHistory
                         }
 
                         $order['customer']['externalId'] = $registeredUserID;
-                    }
-
-                    if ($optionsSitesList) {
-                        $site = array_search($order['site'], $optionsSitesList);
-                    } else {
-                        $site = CSite::GetDefSite();
-                    }
-                    if (empty($site)) {
-                        RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'Bitrix\Sale\Order::create', 'Site = ' . $order['site'] . ' not found in setting. Order crm id=' . $order['id']);
-
-                        continue;
                     }
 
                     $newOrder = Bitrix\Sale\Order::create($site, $order['customer']['externalId'], $currency);
