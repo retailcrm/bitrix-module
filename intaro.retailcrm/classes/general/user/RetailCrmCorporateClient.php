@@ -2,6 +2,14 @@
 IncludeModuleLangFile(__FILE__);
 class RetailCrmCorporateClient
 {
+    public static $MODULE_ID = 'intaro.retailcrm';
+    public static $CRM_SITES_LIST = 'shops-corporate';
+    public static $CRM_CORP_NAME = 'nickName-corporate';
+    public static $CRM_LEGAL_DETAILS = 'legal_details';
+    public static $CRM_DELIVERY_TYPES_ARR = 'deliv_types_arr';
+    public static $CRM_CORP_ADRES = 'adres-corporate';
+    public static $CRM_ORDER_PROPS = 'order_props';
+
     public static function clientSend($arOrder, $api, $contragentType, $send = false, $fillCorp = false, $site = null)
     {
         if (!$api || empty($contragentType)) {
@@ -12,7 +20,6 @@ class RetailCrmCorporateClient
         $contragent = array();
         $shops = RetailcrmConfigProvider::getSitesListCorporate();
         $optionsLegalDetails = RetailcrmConfigProvider::getLegalDetails();
-
         $arUser = Bitrix\Main\UserTable::getById($arOrder['USER_ID'])->fetch();
 
         if (count($shops) == 0) {
@@ -48,7 +55,7 @@ class RetailCrmCorporateClient
         foreach ($shops as $shop) {
             $customerCorporate = array(
                 'createdAt'      => $arOrder['DATE_INSERT'],
-                "nickName" => $nickName,
+                "nickName" => $nickName
             );
 
             if ($fillCorp) {
@@ -94,6 +101,7 @@ class RetailCrmCorporateClient
 
             if ($send) {
                 $result = RCrmActions::apiMethod($api, 'customersCorporateCreate', __METHOD__, $customerCorporate, $site);
+
                 if (!$result) {
                     return false;
                 }

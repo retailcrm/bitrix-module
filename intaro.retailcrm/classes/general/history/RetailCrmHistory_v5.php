@@ -372,12 +372,27 @@ class RetailCrmHistory
 
                 if (isset($order['customer']['externalId']) && !is_numeric($order['customer']['externalId'])) {
                     unset($order['customer']['externalId']);
+                }
 
-                    if ($order['customer']['type'] == 'customer_corporate') {
-                        // TODO Устанавливать идентификатор пользователя равным идентификатору контактного лица для корректной синхронизации данных пользователя
-                        //$order['customer']['externalId'] = $order['customer']['mainCustomerContact']['customer']['externalId'];
-                        $order['customer']['email'] = $order['email'];
+                if ($order['customer']['type'] == 'customer_corporate') {
+                    $contact = false;
+
+                    if (isset($order['contact']['externalId'])) {
+                        $contact = RCrmActions::apiMethod($api, 'customersGet', __METHOD__, $order['contact']['externalId'], $order['site']);
+                    } elseif (isset($order['contact']['id'])) {
+                        $contact = RCrmActions::apiMethod($api, 'customersGetById', __METHOD__, $order['contact']['id'], $order['site']);
                     }
+
+                    if (!$contact || empty($contact['customer'])) {
+                        Logger::getInstance()->write(sprintf(
+                            'cannot sync order - no customer found. order: %s',
+                            print_r($order, true)
+                        ), 'orderHistory');
+
+                        continue;
+                    }
+
+                    $order['customer'] = $contact['customer'];
                 }
 
                 $corporateContact = array();
