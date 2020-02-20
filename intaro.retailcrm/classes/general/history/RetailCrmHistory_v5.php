@@ -18,7 +18,6 @@ class RetailCrmHistory
     public static $CRM_CONTRAGENT_TYPE = 'contragent_type';
     public static $CRM_ORDER_FAILED_IDS = 'order_failed_ids';
     public static $CRM_ORDER_HISTORY = 'order_history';
-    public static $CRM_CUSTOMER_HISTORY = 'customer_history';
     public static $CRM_CUSTOMER_CORPORATE_HISTORY = 'customer_corp_history';
     public static $CRM_CATALOG_BASE_PRICE = 'catalog_base_price';
     public static $CRM_ORDER_NUMBERS = 'order_numbers';
@@ -34,13 +33,9 @@ class RetailCrmHistory
             return false;
         }
 
-        $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
-        $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
-
-        $api = new RetailCrm\ApiClient($api_host, $api_key);
-
         $historyFilter = array();
-        $historyStart = COption::GetOptionString(self::$MODULE_ID, self::$CRM_CUSTOMER_HISTORY);
+        $historyStart = RetailcrmConfigProvider::getCustomersHistorySinceId();
+        $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
 
         if ($historyStart && $historyStart > 0) {
             $historyFilter['sinceId'] = $historyStart;
@@ -248,7 +243,7 @@ class RetailCrmHistory
 
             //last id
             $end = array_pop($customerH);
-            COption::SetOptionString(self::$MODULE_ID, self::$CRM_CUSTOMER_HISTORY, $end['id']);
+            RetailcrmConfigProvider::setCustomersHistorySinceId($end['id']);
 
             if ($customerHistory['pagination']['totalPageCount'] == 1) {
                 return true;
@@ -377,6 +372,12 @@ class RetailCrmHistory
 
                 if (isset($order['customer']['externalId']) && !is_numeric($order['customer']['externalId'])) {
                     unset($order['customer']['externalId']);
+
+                    if ($order['customer']['type'] == 'customer_corporate') {
+                        // TODO Устанавливать идентификатор пользователя равным идентификатору контактного лица для корректной синхронизации данных пользователя
+                        //$order['customer']['externalId'] = $order['customer']['mainCustomerContact']['customer']['externalId'];
+                        $order['customer']['email'] = $order['email'];
+                    }
                 }
 
                 $corporateContact = array();
@@ -833,7 +834,7 @@ class RetailCrmHistory
                         }
                     }
 
-                    // Corporate clients section
+                    //optionsLegalDetails
                     if ($optionsLegalDetails[$personType]) {
                         foreach ($optionsLegalDetails[$personType] as $key => $orderProp) {
                             if (array_key_exists($key, $order)) {

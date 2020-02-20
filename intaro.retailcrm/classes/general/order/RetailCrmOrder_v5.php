@@ -144,19 +144,10 @@ class RetailCrmOrder
         $height = 0;
         $length = 0;
 
-        if ('ordersEdit' == $methodApi) {
-            $response = RCrmActions::apiMethod($api, 'ordersGet', __METHOD__, $order['externalId']);
-            if (isset($response['order'])) {
-                foreach ($response['order']['items'] as $k => $item) {
-                    $externalId = $k ."_". $item['offer']['externalId'];
-                    $orderItems[$externalId] = $item;
-                }
-            }
-        }
-
         //basket
         foreach ($arFields['BASKET'] as $position => $product) {
             $externalId = $position . "_" . $product['PRODUCT_ID'];
+
             if (isset($orderItems[$externalId])) { //update
                 $externalIds = $orderItems[$externalId]['externalIds'];
                 $itemId = $orderItems[$externalId]['id'];
@@ -184,7 +175,8 @@ class RetailCrmOrder
             $item = array(
                 'externalIds'      => $externalIds,
                 'quantity'        => $product['QUANTITY'],
-                'offer'           => array('externalId' => $product['PRODUCT_ID'],
+                'offer'           => array(
+                    'externalId' => $product['PRODUCT_ID'],
                     'xmlId' => $product['PRODUCT_XML_ID']
                 ),
                 'productName'     => $product['NAME']
@@ -288,6 +280,10 @@ class RetailCrmOrder
                 return false;
             }
         }
+
+        $f = fopen($_SERVER["DOCUMENT_ROOT"]."/goev_order_send123456.txt", "a+");
+        fwrite($f, print_r(array(date('Y-m-d H:i:s'), $order),true));
+        fclose($f);
 
         $normalizer = new RestNormalizer();
         $order = $normalizer->normalize($order, 'orders');

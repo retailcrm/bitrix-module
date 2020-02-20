@@ -70,6 +70,7 @@ class RetailcrmConstants
     const CRM_DIMENSIONS = 'order_dimensions';
     const PROTOCOL = 'protocol';
     const CRM_ORDER_FAILED_IDS = 'order_failed_ids';
+    const CRM_CUSTOMERS_HISTORY_SINCE_ID = 'customer_history';
     const CRM_ORDER_HISTORY_DATE = 'order_history_date';
     const CRM_CATALOG_BASE_PRICE = 'catalog_base_price';
     const CRM_ORDER_DIMENSIONS = 'order_dimensions';
