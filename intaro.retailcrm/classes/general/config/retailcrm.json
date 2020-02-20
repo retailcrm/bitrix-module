@@ -169,6 +169,49 @@
             "type": "string"
         }
     },
+    "customerCorporate": {
+        "externalId": {
+            "type": "string",
+            "required": true
+        },
+        "createdAt": {
+            "type": "datetime",
+            "format": "Y-m-d H:i:s"
+        },
+        "contragentType": {
+            "type": "enum",
+            "default": "legal-entity",
+            "values": ["individual", "legal-entity", "enterpreneur"]
+        },
+        "isMain": {
+            "type": "bool",
+            "default": false
+        },
+        "site": {
+            "type": "string"
+        },
+        "nickName": {
+            "type": "string"
+        },
+        "name": {
+            "type": "string"
+        },
+        "text": {
+            "type": "string"
+        },
+        "legalName": {
+            "type": "string"
+        },
+        "legalAddress": {
+            "type": "string"
+        },
+        "INN": {
+            "type": "string"
+        },
+        "KPP": {
+            "type": "string"
+        }
+    },
     "orders": {
         "number": {
             "type": "string"
@@ -176,6 +219,10 @@
         "externalId": {
             "type": "string",
             "required": true
+        },
+        "id": {
+            "type": "string",
+            "required": false
         },
         "createdAt": {
             "type": "datetime",
@@ -451,9 +498,6 @@
             "type": "int"
         },
         "house": {
-            "type": "string"
-        },
-        "housing": {
             "type": "string"
         },
         "metro": {

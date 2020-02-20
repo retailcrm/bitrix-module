@@ -19,6 +19,7 @@ class RetailCrmHistory
     public static $CRM_ORDER_FAILED_IDS = 'order_failed_ids';
     public static $CRM_ORDER_HISTORY = 'order_history';
     public static $CRM_CUSTOMER_HISTORY = 'customer_history';
+    public static $CRM_CUSTOMER_CORPORATE_HISTORY = 'customer_corp_history';
     public static $CRM_CATALOG_BASE_PRICE = 'catalog_base_price';
     public static $CRM_ORDER_NUMBERS = 'order_numbers';
     public static $CRM_CANSEL_ORDER = 'cansel_order';
@@ -332,6 +333,12 @@ class RetailCrmHistory
 
                 if (isset($order['customer']['externalId']) && !is_numeric($order['customer']['externalId'])) {
                     unset($order['customer']['externalId']);
+
+                    if ($order['customer']['type'] == 'customer_corporate') {
+                        // TODO Устанавливать идентификатор пользователя равным идентификатору контактного лица для корректной синхронизщации данных пользователя
+                        //$order['customer']['externalId'] = $order['customer']['mainCustomerContact']['customer']['externalId'];
+                        $order['customer']['email'] = $order['email'];
+                    }
                 }
 
                 if (!isset($order['externalId'])) {
@@ -607,6 +614,17 @@ class RetailCrmHistory
                         }
                     }
 
+                    //corp-client
+                    $cFilter['isMain'] = true;
+                    $response = $api->customersCorporateCompanies($order['customer']['id'], $cFilter,null, null,'id');
+
+                    if (isset($response['companies'])) {
+                        $companiesList = $response['companies'];
+                        foreach ($companiesList as $compani) {
+                            $companiProps = $compani['contragent'];
+                        }
+                    }
+
                     //optionsLegalDetails
                     if ($optionsLegalDetails[$personType]) {
                         foreach ($optionsLegalDetails[$personType] as $key => $orderProp) {
@@ -616,6 +634,9 @@ class RetailCrmHistory
                             } elseif(array_key_exists($key, $order['contragent'])) {
                                 $somePropValue = $propertyCollection->getItemByOrderPropertyId($propsKey[$orderProp]['ID']);
                                 self::setProp($somePropValue, RCrmActions::fromJSON($order['contragent'][$key]));
+                            } elseif (array_key_exists($key, $companiProps)) {
+                                $somePropValue = $propertyCollection->getItemByOrderPropertyId($propsKey[$orderProp]['ID']);
+                                self::setProp($somePropValue,  RCrmActions::fromJSON($companiProps[$key]));
                             }
                         }
                     }
@@ -866,7 +887,7 @@ class RetailCrmHistory
 
                     if (!$order['externalId']) {
                         $order["externalId"] = $newOrder->getId();
-                        if (RCrmActions::apiMethod($api, 'ordersFixExternalIds', __METHOD__, array(array('id' => $order['id'], 'externalId' => $newOrder->getId()))) == false){
+                        if (RCrmActions::apiMethod($api, 'ordersFixExternalIds', __METHOD__, array(array('id' => $order['id'], 'externalId' => $newOrder->getId()))) == false) {
                             continue;
                         }
                     }
@@ -1011,10 +1032,6 @@ class RetailCrmHistory
                 $orders[$change['order']['id']] = array_merge($orders[$change['order']['id']], $change['order']);
             } else {
                 $orders[$change['order']['id']] = $change['order'];
-            }
-
-            if ($change['field'] == 'number') {
-                $orders[$change['order']['id']]['number'] = $change['newValue'];
             }
 
             if ($change['item']) {

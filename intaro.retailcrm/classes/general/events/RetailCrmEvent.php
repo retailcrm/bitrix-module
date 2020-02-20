@@ -19,6 +19,8 @@ class RetailCrmEvent
     protected static $CRM_CONTRAGENT_TYPE = 'contragent_type';
     protected static $CRM_ORDER_FAILED_IDS = 'order_failed_ids';
     protected static $CRM_SITES_LIST = 'sites_list';
+    protected static $CRM_CC = 'cc';
+    protected static $CRM_CORP_NAME = 'nickName-corporate';
 
     /**
      * @param $arFields
@@ -129,7 +131,7 @@ class RetailCrmEvent
             return false;
         }
 
-       //exists getParameter("ENTITY")
+        //exists getParameter("ENTITY")
         if (method_exists($event, 'getId')) {
             $obOrder = $event;
         } elseif (method_exists($event, 'getParameter')) {
@@ -158,6 +160,9 @@ class RetailCrmEvent
         $optionsLegalDetails = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_LEGAL_DETAILS, 0));
         $optionsContragentType = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_CONTRAGENT_TYPE, 0));
         $optionsCustomFields = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_CUSTOM_FIELDS, 0));
+
+        //corp cliente swich
+        $optionCorpClient = COption::GetOptionString(self::$MODULE_ID, self::$CRM_CC, 0);
 
         $arParams = RCrmActions::clearArr(array(
             'optionsOrderTypes'     => $optionsOrderTypes,
@@ -192,15 +197,74 @@ class RetailCrmEvent
             $methodApi = 'ordersCreate';
         }
 
-        //user
-        $userCrm = RCrmActions::apiMethod($api, 'customersGet', __METHOD__, $arOrder['USER_ID'], $site);
-        if (!isset($userCrm['customer'])) {
-            $arUser = Bitrix\Main\UserTable::getById($arOrder['USER_ID'])->fetch();
-            $resultUser = RetailCrmUser::customerSend($arUser, $api, $optionsContragentType[$arOrder['PERSON_TYPE_ID']], true, $site);
-            if (!$resultUser) {
-                RCrmActions::eventLog('RetailCrmEvent::orderSave', 'RetailCrmUser::customerSend', 'error during creating customer');
+        if ("Y" == $optionCorpClient && $optionsContragentType[$arOrder['PERSON_TYPE_ID']] == 'legal-entity') {
+            //corparate cliente
+            $corpName = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_CORP_NAME, 0));
+            foreach ($arOrder['PROPS']['properties'] as $prop) {
+                if ($prop['CODE'] == $corpName) {
+                    $nickName = $prop['VALUE'][0];
+                }
+            }
 
-                return false;
+            $response = $api->customersCorporateList(array('nickName' => array($nickName)));
+            if ($response->getStatusCode() == 200) {
+                $customersCorporate = $response['customersCorporate'];
+            }
+
+            //TODO нужен фильтр по compani name
+            foreach ($customersCorporate as $corp) {
+                if ($nickName == $corp['nickName']) {
+                    $userCorp['customerCorporate'] = $corp;
+
+                    break;
+                }
+            }
+
+            //user
+            $userCrm = RCrmActions::apiMethod($api, 'customersGet', __METHOD__, $arOrder['USER_ID'], $site);
+            if (!isset($userCrm['customer'])) {
+                $arUser = Bitrix\Main\UserTable::getById($arOrder['USER_ID'])->fetch();
+                $resultUser = RetailCrmUser::customerSend($arUser, $api, "individual", true, $site);
+                if (!$resultUser) {
+                    RCrmActions::eventLog('RetailCrmEvent::orderSave', 'RetailCrmUser::customerSend', 'error during creating customer');
+
+                    return false;
+                }
+            }
+
+            if (!isset($userCorp['customerCorporate'])) {
+
+                $resultUserCorp = RetailCrmCorporateClient::clientSend($arOrder, $api, $optionsContragentType[$arOrder['PERSON_TYPE_ID']], true, $site);
+
+                $log = new Logger();
+                $log->write($resultUserCorp, 'resultUserCorp');
+
+                if (!$resultUserCorp) {
+                    RCrmActions::eventLog('RetailCrmEvent::orderSave', 'RetailCrmCorporateClient::clientSend', 'error during creating client');
+
+                    return false;
+                }
+
+                $arParams['customerCorporate'] = $resultUserCorp;
+
+            } else {
+                $arParams['customerCorporate'] = $userCorp['customerCorporate'];
+
+            }
+
+            $arParams['contactExId'] = $userCrm['customer']['externalId'];
+
+        } else {
+            //user
+            $userCrm = RCrmActions::apiMethod($api, 'customersGet', __METHOD__, $arOrder['USER_ID'], $site);
+            if (!isset($userCrm['customer'])) {
+                $arUser = Bitrix\Main\UserTable::getById($arOrder['USER_ID'])->fetch();
+                $resultUser = RetailCrmUser::customerSend($arUser, $api, $optionsContragentType[$arOrder['PERSON_TYPE_ID']], true, $site);
+                if (!$resultUser) {
+                    RCrmActions::eventLog('RetailCrmEvent::orderSave', 'RetailCrmUser::customerSend', 'error during creating customer');
+
+                    return false;
+                }
             }
         }
 

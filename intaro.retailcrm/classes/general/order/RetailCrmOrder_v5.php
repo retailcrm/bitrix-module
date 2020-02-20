@@ -22,6 +22,7 @@ class RetailCrmOrder
     public static $CRM_ORDER_NUMBERS = 'order_numbers';
     public static $CRM_ORDER_DIMENSIONS = 'order_dimensions';
     public static $CRM_CURRENCY = 'currency';
+    public static $CRM_CC = 'cc';
 
     const CANCEL_PROPERTY_CODE = 'INTAROCRM_IS_CANCELED';
 
@@ -54,12 +55,13 @@ class RetailCrmOrder
         $dimensionsSetting = COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_DIMENSIONS, 'N');
         $optionsCurrency = COption::GetOptionString(self::$MODULE_ID, self::$CRM_CURRENCY, 0);
         $currency = $optionsCurrency ? $optionsCurrency : \Bitrix\Currency\CurrencyManager::getBaseCurrency();
+        $optionCorpClient = COption::GetOptionString(self::$MODULE_ID, self::$CRM_CC, 0);
 
         $order = array(
             'number'          => $arFields['NUMBER'],
             'externalId'      => $arFields['ID'],
             'createdAt'       => $arFields['DATE_INSERT'],
-            'customer'        => array('externalId' => $arFields['USER_ID']),
+            'customer'        => isset($arParams['customerCorporate']) ? array('id' => $arParams['customerCorporate']['id']) : array('externalId' => $arFields['USER_ID']),
             'orderType'       => isset($arParams['optionsOrderTypes'][$arFields['PERSON_TYPE_ID']]) ?
                 $arParams['optionsOrderTypes'][$arFields['PERSON_TYPE_ID']] : '',
             'status'          => isset($arParams['optionsPayStatuses'][$arFields['STATUS_ID']]) ?
@@ -70,9 +72,15 @@ class RetailCrmOrder
                 'cost' => $arFields['PRICE_DELIVERY']
             ),
         );
+
+        if (isset($arParams['contactExId'])) {
+            $order['contact']['externalId'] = $arParams['contactExId'];
+        }
+
         if ($send && isset($_COOKIE['_rc']) && $_COOKIE['_rc'] != '') {
             $order['customer']['browserId'] = $_COOKIE['_rc'];
         }
+
         $order['contragent']['contragentType'] = $arParams['optionsContragentType'][$arFields['PERSON_TYPE_ID']];
 
         if ($methodApi == 'ordersEdit') {
@@ -144,44 +152,10 @@ class RetailCrmOrder
         $height = 0;
         $length = 0;
 
-        if ('ordersEdit' == $methodApi) {
-            $response = RCrmActions::apiMethod($api, 'ordersGet', __METHOD__, $order['externalId']);
-            if (isset($response['order'])) {
-                foreach ($response['order']['items'] as $k => $item) {
-                    $externalId = $k ."_". $item['offer']['externalId'];
-                    $orderItems[$externalId] = $item;
-                }
-            }
-        }
-
         //basket
-        foreach ($arFields['BASKET'] as $position => $product) {
-            $externalId = $position ."_". $product['PRODUCT_ID'];
-            if (isset($orderItems[$externalId])) { //update
-                $externalIds = $orderItems[$externalId]['externalIds'];
-                $key = array_search("bitrix", array_column($externalIds, 'code'));
-                if ($externalIds[$key]['code'] == "bitrix") {
-                    $externalIds[$key] = array(
-                        'code' => 'bitrix',
-                        'value' => $externalId,
-                    );
-                } else {
-                    $externalIds[] = array(
-                        'code' => 'bitrix',
-                        'value' => $externalId,
-                    );
-                }
-            } else { //create
-                $externalIds = array(
-                    array(
-                        'code' => 'bitrix',
-                        'value' => $externalId,
-                    )
-                );
-            }
-
+        foreach ($arFields['BASKET'] as $product) {
             $item = array(
-                'externalIds' => $externalIds,
+                'externalId'      => $product['PRODUCT_ID'],
                 'quantity'        => $product['QUANTITY'],
                 'offer'           => array('externalId' => $product['PRODUCT_ID'],
                     'xmlId' => $product['PRODUCT_XML_ID']
@@ -284,6 +258,10 @@ class RetailCrmOrder
             }
         }
 
+        $f = fopen($_SERVER["DOCUMENT_ROOT"]."/goev_order_send123456.txt", "a+");
+        fwrite($f, print_r(array(date('Y-m-d H:i:s'), $order),true));
+        fclose($f);
+
         $normalizer = new RestNormalizer();
         $order = $normalizer->normalize($order, 'orders');
 
@@ -354,96 +332,113 @@ class RetailCrmOrder
             return false;
         }
 
-        $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
-        $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
+        $optionCorpClient = COption::GetOptionString(self::$MODULE_ID, self::$CRM_CC, 0);
 
-        $optionsSitesList = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_SITES_LIST, 0));
-        $optionsOrderTypes = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_TYPES_ARR, 0));
-        $optionsDelivTypes = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_DELIVERY_TYPES_ARR, 0));
-        $optionsPayTypes = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_TYPES, 0));
-        $optionsPayStatuses = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_STATUSES, 0)); // --statuses
-        $optionsPayment = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT, 0));
-        $optionsOrderProps = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_PROPS, 0));
-        $optionsLegalDetails = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_LEGAL_DETAILS, 0));
-        $optionsContragentType = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_CONTRAGENT_TYPE, 0));
-        $optionsCustomFields = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_CUSTOM_FIELDS, 0));
+        if ("Y" == $optionCorpClient) {
+            $eventProcessor = new RetailCrmEvent();
 
-        $api = new RetailCrm\ApiClient($api_host, $api_key);
+            foreach ($orderIds as $orderId) {
+                $orderObject = \Bitrix\Sale\Order::load($orderId);
 
-        $arParams = array(
-            'optionsOrderTypes'     => $optionsOrderTypes,
-            'optionsDelivTypes'     => $optionsDelivTypes,
-            'optionsPayTypes'       => $optionsPayTypes,
-            'optionsPayStatuses'    => $optionsPayStatuses,
-            'optionsPayment'        => $optionsPayment,
-            'optionsOrderProps'     => $optionsOrderProps,
-            'optionsLegalDetails'   => $optionsLegalDetails,
-            'optionsContragentType' => $optionsContragentType,
-            'optionsSitesList'      => $optionsSitesList,
-            'optionsCustomFields'   => $optionsCustomFields,
-        );
+                if (!$orderObject) {
+                    continue;
+                }
 
-        $recOrders = array();
-        foreach ($orderIds as $orderId) {
-            $id = \Bitrix\Sale\Order::load($orderId);
-            if (!$id) {
-                continue;
+                $eventProcessor->orderSave($orderObject);
+                time_nanosleep(0, 250000000);
             }
-            $order = self::orderObjToArr($id);
-            $user = Bitrix\Main\UserTable::getById($order['USER_ID'])->fetch();
+        } else {
+            $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
+            $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
 
-            $arCustomers = RetailCrmUser::customerSend($user, $api, $optionsContragentType[$order['PERSON_TYPE_ID']], false, $site);
-            $arOrders = self::orderSend($order, $api, $arParams, false, $site);
+            $optionsSitesList = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_SITES_LIST, 0));
+            $optionsOrderTypes = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_TYPES_ARR, 0));
+            $optionsDelivTypes = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_DELIVERY_TYPES_ARR, 0));
+            $optionsPayTypes = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_TYPES, 0));
+            $optionsPayStatuses = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_STATUSES, 0)); // --statuses
+            $optionsPayment = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT, 0));
+            $optionsOrderProps = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_PROPS, 0));
+            $optionsLegalDetails = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_LEGAL_DETAILS, 0));
+            $optionsContragentType = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_CONTRAGENT_TYPE, 0));
+            $optionsCustomFields = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_CUSTOM_FIELDS, 0));
 
-            if (!$arCustomers || !$arOrders) {
-                continue;
+            $api = new RetailCrm\ApiClient($api_host, $api_key);
+
+            $arParams = array(
+                'optionsOrderTypes'     => $optionsOrderTypes,
+                'optionsDelivTypes'     => $optionsDelivTypes,
+                'optionsPayTypes'       => $optionsPayTypes,
+                'optionsPayStatuses'    => $optionsPayStatuses,
+                'optionsPayment'        => $optionsPayment,
+                'optionsOrderProps'     => $optionsOrderProps,
+                'optionsLegalDetails'   => $optionsLegalDetails,
+                'optionsContragentType' => $optionsContragentType,
+                'optionsSitesList'      => $optionsSitesList,
+                'optionsCustomFields'   => $optionsCustomFields,
+            );
+
+            $recOrders = array();
+            foreach ($orderIds as $orderId) {
+                $id = \Bitrix\Sale\Order::load($orderId);
+                if (!$id) {
+                    continue;
+                }
+                $order = self::orderObjToArr($id);
+                $user = Bitrix\Main\UserTable::getById($order['USER_ID'])->fetch();
+
+                $arCustomers = RetailCrmUser::customerSend($user, $api, $optionsContragentType[$order['PERSON_TYPE_ID']], false, $site);
+                $arOrders = self::orderSend($order, $api, $arParams, false, $site);
+
+                if (!$arCustomers || !$arOrders) {
+                    continue;
+                }
+
+                $resCustomers[$order['LID']][] = $arCustomers;
+                $resOrders[$order['LID']][] = $arOrders;
+
+                $recOrders[] = $orderId;
             }
 
-            $resCustomers[$order['LID']][] = $arCustomers;
-            $resOrders[$order['LID']][] = $arOrders;
-
-            $recOrders[] = $orderId;
-        }
-
-        if (count($resOrders) > 0) {
-            foreach ($resCustomers as $key => $customerLoad) {
-                if ($optionsSitesList) {
-                    if (array_key_exists($key, $optionsSitesList) && $optionsSitesList[$key] != null) {
-                        $site = $optionsSitesList[$key];
-                    } else {
-                        continue;
+            if (count($resOrders) > 0) {
+                foreach ($resCustomers as $key => $customerLoad) {
+                    if ($optionsSitesList) {
+                        if (array_key_exists($key, $optionsSitesList) && $optionsSitesList[$key] != null) {
+                            $site = $optionsSitesList[$key];
+                        } else {
+                            continue;
+                        }
+                    } elseif (!$optionsSitesList) {
+                        $site = null;
                     }
-                } elseif (!$optionsSitesList) {
-                    $site = null;
-                }
-                if (RCrmActions::apiMethod($api, 'customersUpload', __METHOD__, $customerLoad, $site) === false) {
-                    return false;
-                }
-                if (count($optionsSitesList) > 1) {
-                    time_nanosleep(0, 250000000);
-                }
-            }
-            foreach ($resOrders as $key => $orderLoad) {
-                if ($optionsSitesList) {
-                    if (array_key_exists($key, $optionsSitesList) && $optionsSitesList[$key] != null) {
-                        $site = $optionsSitesList[$key];
-                    } else {
-                        continue;
+                    if (RCrmActions::apiMethod($api, 'customersUpload', __METHOD__, $customerLoad, $site) === false) {
+                        return false;
                     }
-                } elseif (!$optionsSitesList) {
-                    $site = null;
+                    if (count($optionsSitesList) > 1) {
+                        time_nanosleep(0, 250000000);
+                    }
                 }
-                if (RCrmActions::apiMethod($api, 'ordersUpload', __METHOD__, $orderLoad, $site) === false) {
-                    return false;
+                foreach ($resOrders as $key => $orderLoad) {
+                    if ($optionsSitesList) {
+                        if (array_key_exists($key, $optionsSitesList) && $optionsSitesList[$key] != null) {
+                            $site = $optionsSitesList[$key];
+                        } else {
+                            continue;
+                        }
+                    } elseif (!$optionsSitesList) {
+                        $site = null;
+                    }
+                    if (RCrmActions::apiMethod($api, 'ordersUpload', __METHOD__, $orderLoad, $site) === false) {
+                        return false;
+                    }
+                    if (count($optionsSitesList) > 1) {
+                        time_nanosleep(0, 250000000);
+                    }
                 }
-                if (count($optionsSitesList) > 1) {
-                    time_nanosleep(0, 250000000);
+                if ($failed == true && $failedIds !== false && count($failedIds) > 0) {
+                    COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_FAILED_IDS, serialize(array_diff($failedIds, $recOrders)));
+                } elseif ($lastUpOrderId < max($recOrders) && $orderList === false) {
+                    COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, max($recOrders));
                 }
-            }
-            if ($failed == true && $failedIds !== false && count($failedIds) > 0) {
-                COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_FAILED_IDS, serialize(array_diff($failedIds, $recOrders)));
-            } elseif ($lastUpOrderId < max($recOrders) && $orderList === false) {
-                COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, max($recOrders));
             }
         }
 

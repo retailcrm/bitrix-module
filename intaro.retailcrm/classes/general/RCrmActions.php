@@ -50,9 +50,9 @@ class RCrmActions
         }
         foreach ($arDeliveryServiceAll as $arDeliveryService) {
             if ((($arDeliveryService['PARENT_ID'] == '0' || $arDeliveryService['PARENT_ID'] == null) ||
-                        in_array($arDeliveryService['PARENT_ID'], $groups)) &&
-                    $arDeliveryService['ID'] != $noOrderId &&
-                    $arDeliveryService['CLASS_NAME'] != '\Bitrix\Sale\Delivery\Services\Group') {
+                    in_array($arDeliveryService['PARENT_ID'], $groups)) &&
+                $arDeliveryService['ID'] != $noOrderId &&
+                $arDeliveryService['CLASS_NAME'] != '\Bitrix\Sale\Delivery\Services\Group') {
                 if (in_array($arDeliveryService['PARENT_ID'], $groups)) {
                     $arDeliveryService['PARENT_ID'] = 0;
                 }
@@ -204,7 +204,6 @@ class RCrmActions
      *
      * @return self name
      */
-
     public static function orderAgent()
     {
         if (COption::GetOptionString('main', 'agents_use_crontab', 'N') != 'N') {
@@ -440,8 +439,10 @@ class RCrmActions
             case 'customerHistory':
             case 'ordersFixExternalIds':
             case 'customersFixExternalIds':
+            case 'customersCorporateContacts':
+            case 'customersList':
+            case 'customersCorporateList':
                 return self::proxy($api, $methodApi, $method, array($params));
-
             case 'orderGet':
                 return self::proxy($api, 'ordersGet', $method, array($params, 'id', $site));
 
@@ -449,6 +450,7 @@ class RCrmActions
             case 'ordersEdit':
             case 'customersGet':
             case 'customersEdit':
+            case 'customersСorporateGet':
                 return self::proxy($api, $methodApi, $method, array($params, 'externalId', $site));
 
             case 'paymentEditById':
@@ -469,7 +471,7 @@ class RCrmActions
             $result = call_user_func_array(array($api, $methodApi), $params);
 
             if ($result->getStatusCode() !== 200 && $result->getStatusCode() !== 201) {
-                if ($methodApi == 'ordersGet' || $methodApi == 'customersGet') {
+                if ($methodApi == 'ordersGet' || $methodApi == 'customersGet' || $methodApi == 'customersСorporateGet') {
                     $log->write(array(
                         'api' => $version,
                         'methodApi' => $methodApi,

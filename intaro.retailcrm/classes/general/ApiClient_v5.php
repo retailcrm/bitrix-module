@@ -200,6 +200,662 @@ class ApiClient
         );
     }
 
+    /*
+     * Create customers corporate
+     *
+     * @param array  $customer customer corporate data
+     * @param string $site     (default: null)
+     *
+     * @throws \InvalidArgumentException
+     * @throws \RetailCrm\Exception\CurlException
+     * @throws \RetailCrm\Exception\InvalidJsonException
+     *
+     * @return ApiResponse
+     */
+    public function customersСorporateСreate(array $customer, $site = null)
+    {
+        if (! count($customer)) {
+            throw new \InvalidArgumentException(
+                'Parameter `customer` must contains a data'
+            );
+        }
+
+        return $this->client->makeRequest(
+            '/customers-corporate/create',
+            Client::METHOD_POST,
+            $this->fillSite($site, array('customerCorporate' => json_encode($customer)))
+        );
+    }
+
+    /*
+     * Save customer corporate IDs' (id and externalId) association in the CRM
+     *
+     * @param array $ids ids mapping
+     *
+     * @throws \InvalidArgumentException
+     * @throws \RetailCrm\Exception\CurlException
+     * @throws \RetailCrm\Exception\InvalidJsonException
+     *
+     * @return ApiResponse
+     */
+    public function customersСorporateFixExternalIds(array $ids)
+    {
+        if (! count($ids)) {
+            throw new \InvalidArgumentException(
+                'Method parameter must contains at least one IDs pair'
+            );
+        }
+
+        return $this->client->makeRequest(
+            '/customers-corporate/fix-external-ids',
+            Client::METHOD_POST,
+            array('customerCorporate' => json_encode($ids))
+        );
+    }
+
+    /*
+     * Upload array of the customers corporate
+     *
+     * @param array  $customers array of customers
+     * @param string $site      (default: null)
+     *
+     * @throws \InvalidArgumentException
+     * @throws \RetailCrm\Exception\CurlException
+     * @throws \RetailCrm\Exception\InvalidJsonException
+     *
+     * @return ApiResponse
+     */
+    public function customersСorporateUpload(array $customers, $site = null)
+    {
+        if (! count($customers)) {
+            throw new \InvalidArgumentException(
+                'Parameter `customers` must contains array of the customers'
+            );
+        }
+
+        return $this->client->makeRequest(
+            '/customers-corporate/upload',
+            Client::METHOD_POST,
+            $this->fillSite($site, array('customerCorporate' => json_encode($customers)))
+        );
+    }
+
+    /**
+     * Get customer corporate by id or externalId
+     *
+     * @param string $id   customers-corporate identificator
+     * @param string $by   (default: 'externalId')
+     * @param string $site (default: null)
+     *
+     * @throws \InvalidArgumentException
+     * @throws \RetailCrm\Exception\CurlException
+     * @throws \RetailCrm\Exception\InvalidJsonException
+     *
+     * @return ApiResponse
+     */
+    public function customersСorporateGet($id, $by = 'externalId', $site = null)
+    {
+        $this->checkIdParameter($by);
+
+        return $this->client->makeRequest(
+            "/customers-corporate/$id",
+            Client::METHOD_GET,
+            $this->fillSite($site, array('by' => $by))
+        );
+    }
+
+    /**
+     * Get corporate customer companies by id or externalId
+     *
+     * @param string $id     corporate customer identifier
+     * @param array  $filter (default: array())
+     * @param int    $page   (default: null)
+     * @param int    $limit  (default: null)
+     * @param string $by     (default: 'externalId')
+     * @param string $site   (default: null)
+     *
+     * @throws \InvalidArgumentException
+     * @throws \RetailCrm\Exception\CurlException
+     * @throws \RetailCrm\Exception\InvalidJsonException
+     *
+     * @return \RetailCrm\Response\ApiResponse
+     */
+    public function customersCorporateCompanies(
+        $id,
+        array $filter = [],
+        $page = null,
+        $limit = null,
+        $by = 'externalId',
+        $site = null
+    ) {
+
+        $this->checkIdParameter($by);
+
+        $parameters = ['by' => $by];
+        if (count($filter)) {
+            $parameters['filter'] = $filter;
+        }
+        if (null !== $page) {
+            $parameters['page'] = (int) $page;
+        }
+        if (null !== $limit) {
+            $parameters['limit'] = (int) $limit;
+        }
+        /* @noinspection PhpUndefinedMethodInspection */
+        return $this->client->makeRequest(
+            "/customers-corporate/$id/companies",
+            Client::METHOD_GET,
+            $this->fillSite($site, $parameters)
+        );
+    }
+
+    /**
+     * Edit a customer corporate
+     *
+     * @param array  $customer customer data
+     * @param string $by       (default: 'externalId')
+     * @param string $site     (default: null)
+     *
+     * @throws \InvalidArgumentException
+     * @throws \RetailCrm\Exception\CurlException
+     * @throws \RetailCrm\Exception\InvalidJsonException
+     *
+     * @return ApiResponse
+     */
+    public function customersСorporateEdit(array $customer, $by = 'externalId', $site = null)
+    {
+        if (!count($customer)) {
+            throw new \InvalidArgumentException(
+                'Parameter `customer` must contains a data'
+            );
+        }
+
+        $this->checkIdParameter($by);
+
+        if (!array_key_exists($by, $customer)) {
+            throw new \InvalidArgumentException(
+                sprintf('Customer array must contain the "%s" parameter.', $by)
+            );
+        }
+
+        return $this->client->makeRequest(
+            sprintf('/customers-corporate/%s/edit', $customer[$by]),
+            Client::METHOD_POST,
+            $this->fillSite(
+                $site,
+                array('customerCorporate' => json_encode($customer), 'by' => $by)
+            )
+        );
+    }
+
+    /*
+     * Get customers  corporate history
+     *
+     * @param array $filter
+     * @param null $page
+     * @param null $limit
+     *
+     * @return ApiResponse
+     *
+     */
+    public function customersСorporateHistory(array $filter = array(), $page = null, $limit = null)
+    {
+        $parameters = array();
+
+        if (count($filter)) {
+            $parameters['filter'] = $filter;
+        }
+        if (null !== $page) {
+            $parameters['page'] = (int) $page;
+        }
+        if (null !== $limit) {
+            $parameters['limit'] = (int) $limit;
+        }
+
+        return $this->client->makeRequest(
+            '/customers-corporate/history',
+            Client::METHOD_GET,
+            $parameters
+        );
+    }
+
+    /**
+     * Create corporate customer contact
+     *
+     * @param string $id      corporate customer identifier
+     * @param array  $contact (default: array())
+     * @param string $by      (default: 'externalId')
+     * @param string $site    (default: null)
+     *
+     * @return \RetailCrm\Response\ApiResponse
+     * @throws \RetailCrm\Exception\CurlException
+     * @throws \RetailCrm\Exception\InvalidJsonException
+     *
+     * @throws \InvalidArgumentException
+     */
+    public function customersCorporateContactsCreate($id, array $contact = [], $by = 'externalId', $site = null)
+    {
+        if (! count($contact)) {
+            throw new \InvalidArgumentException(
+                'Parameter `contact` must contains a data'
+            );
+        }
+
+        /* @noinspection PhpUndefinedMethodInspection */
+        return $this->client->makeRequest(
+            "/customers-corporate/$id/contacts/create",
+            Client::METHOD_POST,
+            $this->fillSite($site, ['contact' => json_encode($contact), 'by' => $by])
+        );
+    }
+
+    /**
+     * Get corporate customer contacts by id or externalId
+     *
+     * @param string $id     corporate customer identifier
+     * @param array  $filter (default: array())
+     * @param int    $page   (default: null)
+     * @param int    $limit  (default: null)
+     * @param string $by     (default: 'externalId')
+     * @param string $site   (default: null)
+     *
+     * @throws \InvalidArgumentException
+     * @throws \RetailCrm\Exception\CurlException
+     * @throws \RetailCrm\Exception\InvalidJsonException
+     *
+     * @return \RetailCrm\Response\ApiResponse
+     */
+    public function customersCorporateContacts(
+        $id,
+        array $filter = [],
+        $page = null,
+        $limit = null,
+        $by = 'externalId',
+        $site = null
+    ) {
+        $this->checkIdParameter($by);
+        $parameters = ['by' => $by];
+        if (count($filter)) {
+            $parameters['filter'] = $filter;
+        }
+        if (null !== $page) {
+            $parameters['page'] = (int) $page;
+        }
+        if (null !== $limit) {
+            $parameters['limit'] = (int) $limit;
+        }
+        /* @noinspection PhpUndefinedMethodInspection */
+        return $this->client->makeRequest(
+            "/customers-corporate/$id/contacts",
+            Client::METHOD_GET,
+            $this->fillSite($site, $parameters)
+        );
+    }
+
+    /**
+     * Returns filtered corporate customers list
+     *
+     * @param array $filter (default: array())
+     * @param int   $page   (default: null)
+     * @param int   $limit  (default: null)
+     *
+     * @throws \InvalidArgumentException
+     * @throws \RetailCrm\Exception\CurlException
+     * @throws \RetailCrm\Exception\InvalidJsonException
+     *
+     * @return \RetailCrm\Response\ApiResponse
+     */
+    public function customersCorporateList(array $filter = [], $page = null, $limit = null)
+    {
+        $parameters = [];
+        if (count($filter)) {
+            $parameters['filter'] = $filter;
+        }
+        if (null !== $page) {
+            $parameters['page'] = (int) $page;
+        }
+        if (null !== $limit) {
+            $parameters['limit'] = (int) $limit;
+        }
+        /* @noinspection PhpUndefinedMethodInspection */
+        return $this->client->makeRequest(
+            '/customers-corporate',
+            Client::METHOD_GET,
+            $parameters
+        );
+    }
+
+    /**
+     * Returns filtered corporate customers notes list
+     *
+     * @param array $filter (default: array())
+     * @param int   $page   (default: null)
+     * @param int   $limit  (default: null)
+     *
+     * @throws \InvalidArgumentException
+     * @throws \RetailCrm\Exception\CurlException
+     * @throws \RetailCrm\Exception\InvalidJsonException
+     *
+     * @return \RetailCrm\Response\ApiResponse
+     */
+    public function customersCorporateNotesList(array $filter = [], $page = null, $limit = null)
+    {
+        $parameters = [];
+        if (count($filter)) {
+            $parameters['filter'] = $filter;
+        }
+        if (null !== $page) {
+            $parameters['page'] = (int) $page;
+        }
+        if (null !== $limit) {
+            $parameters['limit'] = (int) $limit;
+        }
+        /* @noinspection PhpUndefinedMethodInspection */
+        return $this->client->makeRequest(
+            '/customers-corporate/notes',
+            Client::METHOD_GET,
+            $parameters
+        );
+    }
+
+    /**
+     * Create corporate customer note
+     *
+     * @param array $note (default: array())
+     * @param string $site     (default: null)
+     *
+     * @throws \InvalidArgumentException
+     * @throws \RetailCrm\Exception\CurlException
+     * @throws \RetailCrm\Exception\InvalidJsonException
+     *
+     * @return \RetailCrm\Response\ApiResponse
+     */
+    public function customersCorporateNotesCreate($note, $site = null)
+    {
+        if (empty($note['customer']['id']) && empty($note['customer']['externalId'])) {
+            throw new \InvalidArgumentException(
+                'Customer identifier must be set'
+            );
+        }
+        /* @noinspection PhpUndefinedMethodInspection */
+        return $this->client->makeRequest(
+            '/customers-corporate/notes/create',
+            Client::METHOD_POST,
+            $this->fillSite($site, ['note' => json_encode($note)])
+        );
+    }
+
+    /**
+     * Delete corporate customer note
+     *
+     * @param integer $id
+     *
+     * @throws \InvalidArgumentException
+     * @throws \RetailCrm\Exception\CurlException
+     * @throws \RetailCrm\Exception\InvalidJsonException
+     *
+     * @return \RetailCrm\Response\ApiResponse
+     */
+    public function customersCorporateNotesDelete($id)
+    {
+        if (empty($id)) {
+            throw new \InvalidArgumentException(
+                'Note id must be set'
+            );
+        }
+        /* @noinspection PhpUndefinedMethodInspection */
+        return $this->client->makeRequest(
+            "/customers-corporate/notes/$id/delete",
+            Client::METHOD_POST
+        );
+    }
+
+    /**
+     * Get corporate customer addresses by id or externalId
+     *
+     * @param string $id     corporate customer identifier
+     * @param array  $filter (default: array())
+     * @param int    $page   (default: null)
+     * @param int    $limit  (default: null)
+     * @param string $by     (default: 'externalId')
+     * @param string $site   (default: null)
+     *
+     * @throws \InvalidArgumentException
+     * @throws \RetailCrm\Exception\CurlException
+     * @throws \RetailCrm\Exception\InvalidJsonException
+     *
+     * @return \RetailCrm\Response\ApiResponse
+     */
+    public function customersCorporateAddresses(
+        $id,
+        array $filter = [],
+        $page = null,
+        $limit = null,
+        $by = 'externalId',
+        $site = null
+    ) {
+        $this->checkIdParameter($by);
+        $parameters = ['by' => $by];
+        if (count($filter)) {
+            $parameters['filter'] = $filter;
+        }
+        if (null !== $page) {
+            $parameters['page'] = (int) $page;
+        }
+        if (null !== $limit) {
+            $parameters['limit'] = (int) $limit;
+        }
+        /* @noinspection PhpUndefinedMethodInspection */
+        return $this->client->makeRequest(
+            "/customers-corporate/$id/addresses",
+            Client::METHOD_GET,
+            $this->fillSite($site, $parameters)
+        );
+    }
+
+    /**
+     * Create corporate customer address
+     *
+     * @param string $id       corporate customer identifier
+     * @param array  $address  (default: array())
+     * @param string $by       (default: 'externalId')
+     * @param string $site     (default: null)
+     *
+     * @throws \InvalidArgumentException
+     * @throws \RetailCrm\Exception\CurlException
+     * @throws \RetailCrm\Exception\InvalidJsonException
+     *
+     * @return \RetailCrm\Response\ApiResponse
+     */
+    public function customersCorporateAddressesCreate($id, array $address = [], $by = 'externalId', $site = null)
+    {
+        /* @noinspection PhpUndefinedMethodInspection */
+        return $this->client->makeRequest(
+            "/customers-corporate/$id/addresses/create",
+            Client::METHOD_POST,
+            $this->fillSite($site, ['address' => json_encode($address), 'by' => $by])
+        );
+    }
+
+    /**
+     * Edit corporate customer address
+     *
+     * @param string $customerId corporate customer identifier
+     * @param string $addressId  corporate customer identifier
+     * @param array  $address    (default: array())
+     * @param string $customerBy (default: 'externalId')
+     * @param string $addressBy  (default: 'externalId')
+     * @param string $site       (default: null)
+     *
+     * @throws \InvalidArgumentException
+     * @throws \RetailCrm\Exception\CurlException
+     * @throws \RetailCrm\Exception\InvalidJsonException
+     *
+     * @return \RetailCrm\Response\ApiResponse
+     */
+    public function customersCorporateAddressesEdit(
+        $customerId,
+        $addressId,
+        array $address = [],
+        $customerBy = 'externalId',
+        $addressBy = 'externalId',
+        $site = null
+    ) {
+        $addressFiltered = array_filter($address);
+        if ((count(array_keys($addressFiltered)) <= 1)
+            && (!isset($addressFiltered['text'])
+                || (isset($addressFiltered['text']) && empty($addressFiltered['text']))
+            )
+        ) {
+            throw new \InvalidArgumentException(
+                'Parameter `address` must contain address text or all other address field'
+            );
+        }
+        /* @noinspection PhpUndefinedMethodInspection */
+        return $this->client->makeRequest(
+            "/customers-corporate/$customerId/addresses/$addressId/edit",
+            Client::METHOD_POST,
+            $this->fillSite($site, [
+                'address' => json_encode($address),
+                'by' => $customerBy,
+                'entityBy' => $addressBy
+            ])
+        );
+    }
+
+    /**
+     * Create corporate customer company
+     *
+     * @param string $id       corporate customer identifier
+     * @param array  $company  (default: array())
+     * @param string $by       (default: 'externalId')
+     * @param string $site     (default: null)
+     *
+     * @throws \InvalidArgumentException
+     * @throws \RetailCrm\Exception\CurlException
+     * @throws \RetailCrm\Exception\InvalidJsonException
+     *
+     * @return \RetailCrm\Response\ApiResponse
+     */
+    public function customersCorporateCompaniesCreate($id, array $company = [], $by = 'externalId', $site = null)
+    {
+        /* @noinspection PhpUndefinedMethodInspection */
+        return $this->client->makeRequest(
+            "/customers-corporate/$id/companies/create",
+            Client::METHOD_POST,
+            $this->fillSite($site, ['company' => json_encode($company), 'by' => $by])
+        );
+    }
+
+    /**
+     * Edit corporate customer company
+     *
+     * @param string $customerId corporate customer identifier
+     * @param string $companyId  corporate customer identifier
+     * @param array  $company    (default: array())
+     * @param string $customerBy (default: 'externalId')
+     * @param string $companyBy  (default: 'externalId')
+     * @param string $site       (default: null)
+     *
+     * @return \RetailCrm\Response\ApiResponse
+     * @throws \InvalidArgumentException
+     * @throws \RetailCrm\Exception\CurlException
+     * @throws \RetailCrm\Exception\InvalidJsonException
+     *
+     */
+    public function customersCorporateCompaniesEdit(
+        $customerId,
+        $companyId,
+        array $company = [],
+        $customerBy = 'externalId',
+        $companyBy = 'externalId',
+        $site = null
+    ) {
+        /* @noinspection PhpUndefinedMethodInspection */
+        return $this->client->makeRequest(
+            "/customers-corporate/$customerId/companies/$companyId/edit",
+            Client::METHOD_POST,
+            $this->fillSite($site, [
+                'company' => json_encode($company),
+                'by' => $customerBy,
+                'entityBy' => $companyBy
+            ])
+        );
+    }
+
+    /**
+     * Edit corporate customer contact
+     *
+     * @param string $customerId corporate customer identifier
+     * @param string $contactId  corporate customer identifier
+     * @param array  $contact    (default: array())
+     * @param string $customerBy (default: 'externalId')
+     * @param string $contactBy  (default: 'externalId')
+     * @param string $site       (default: null)
+     *
+     * @return \RetailCrm\Response\ApiResponse
+     * @throws \InvalidArgumentException
+     * @throws \RetailCrm\Exception\CurlException
+     * @throws \RetailCrm\Exception\InvalidJsonException
+     *
+     */
+    public function customersCorporateContactsEdit(
+        $customerId,
+        $contactId,
+        array $contact = [],
+        $customerBy = 'externalId',
+        $contactBy = 'externalId',
+        $site = null
+    ) {
+        /* @noinspection PhpUndefinedMethodInspection */
+        return $this->client->makeRequest(
+            "/customers-corporate/$customerId/contacts/$contactId/edit",
+            Client::METHOD_POST,
+            $this->fillSite($site, [
+                'contact' => json_encode($contact),
+                'by' => $customerBy,
+                'entityBy' => $contactBy
+            ])
+        );
+    }
+
+    /**
+     * Edit a corporate customer
+     *
+     * @param array  $customerCorporate corporate customer data
+     * @param string $by       (default: 'externalId')
+     * @param string $site     (default: null)
+     *
+     * @throws \InvalidArgumentException
+     * @throws \RetailCrm\Exception\CurlException
+     * @throws \RetailCrm\Exception\InvalidJsonException
+     *
+     * @return \RetailCrm\Response\ApiResponse
+     */
+    public function customersCorporateEdit(array $customerCorporate, $by = 'externalId', $site = null)
+    {
+        if (!count($customerCorporate)) {
+            throw new \InvalidArgumentException(
+                'Parameter `customerCorporate` must contains a data'
+            );
+        }
+        $this->checkIdParameter($by);
+        if (!array_key_exists($by, $customerCorporate)) {
+            throw new \InvalidArgumentException(
+                sprintf('Corporate customer array must contain the "%s" parameter.', $by)
+            );
+        }
+        /* @noinspection PhpUndefinedMethodInspection */
+        return $this->client->makeRequest(
+            sprintf('/customers-corporate/%s/edit', $customerCorporate[$by]),
+            Client::METHOD_POST,
+            $this->fillSite(
+                $site,
+                ['customerCorporate' => json_encode($customerCorporate), 'by' => $by]
+            )
+        );
+    }
+
     /**
      * Create a order
      *
