@@ -287,9 +287,9 @@ class RetailCrmEvent
                     );
 
                     return false;
-                } else {
-                    $userCrm = array('customer' => array('externalId' => $arOrder['USER_ID']));
                 }
+
+                $userCrm = array('customer' => array('externalId' => $arOrder['USER_ID']));
             }
 
             if (!isset($userCorp['customerCorporate'])) {
