@@ -199,21 +199,32 @@ class RetailCrmEvent
 
         if ("Y" == $optionCorpClient && $optionsContragentType[$arOrder['PERSON_TYPE_ID']] == 'legal-entity') {
             //corparate cliente
+            $nickName = '';
             $corpName = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_CORP_NAME, 0));
+
             foreach ($arOrder['PROPS']['properties'] as $prop) {
                 if ($prop['CODE'] == $corpName) {
                     $nickName = $prop['VALUE'][0];
                 }
             }
 
+            $customersCorporate = false;
             $response = $api->customersCorporateList(array('nickName' => array($nickName)));
-            if ($response->getStatusCode() == 200) {
+
+            if ($response && $response->getStatusCode() == 200) {
                 $customersCorporate = $response['customersCorporate'];
+            } else {
+                RCrmActions::eventLog(
+                    'RetailCrmEvent::orderSave',
+                    'ApiClient::customersCorporateList',
+                    'error during fetching corporate customers'
+                );
+
+                return false;
             }
 
-            //TODO нужен фильтр по compani name
             foreach ($customersCorporate as $corp) {
-                if ($nickName == $corp['nickName']) {
+                if (isset($corp['mainCompany']['name']) && $nickName == $corp['mainCompany']['name']) {
                     $userCorp['customerCorporate'] = $corp;
 
                     break;
@@ -222,13 +233,17 @@ class RetailCrmEvent
 
             //user
             $userCrm = RCrmActions::apiMethod($api, 'customersGet', __METHOD__, $arOrder['USER_ID'], $site);
+
             if (!isset($userCrm['customer'])) {
                 $arUser = Bitrix\Main\UserTable::getById($arOrder['USER_ID'])->fetch();
                 $resultUser = RetailCrmUser::customerSend($arUser, $api, "individual", true, $site);
+
                 if (!$resultUser) {
                     RCrmActions::eventLog('RetailCrmEvent::orderSave', 'RetailCrmUser::customerSend', 'error during creating customer');
 
                     return false;
+                } else {
+                    $userCrm = array('customer' => array('externalId' => $arOrder['USER_ID']));
                 }
             }
 
@@ -253,7 +268,6 @@ class RetailCrmEvent
             }
 
             $arParams['contactExId'] = $userCrm['customer']['externalId'];
-
         } else {
             //user
             $userCrm = RCrmActions::apiMethod($api, 'customersGet', __METHOD__, $arOrder['USER_ID'], $site);
