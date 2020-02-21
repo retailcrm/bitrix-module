@@ -38,6 +38,8 @@ $CRM_COLL_KEY = 'coll_key';
 $CRM_UA = 'ua';
 $CRM_UA_KEYS = 'ua_keys';
 
+$CRM_DISCOUNT_ROUND = 'discount_round';
+
 $CRM_CC = 'cc';
 $CRM_CORP_SHOPS = 'shops-corporate';
 $CRM_CORP_NAME = 'nickName-corporate';
@@ -50,7 +52,6 @@ $CRM_ADDRESS_OPTIONS = 'address_options';
 $CRM_DIMENSIONS = 'order_dimensions';
 $PROTOCOL = 'protocol';
 
-$CRM_DISCOUNT_ROUND = 'discount_round';
 $CRM_PURCHASE_PRICE_NULL = 'purchasePrice_null';
 
 if(!CModule::IncludeModule('intaro.retailcrm') || !CModule::IncludeModule('sale') || !CModule::IncludeModule('iblock') || !CModule::IncludeModule('catalog'))
@@ -448,7 +449,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         UnRegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmUa", "add");
     }
 
-
     //discount_round
     if (htmlspecialchars(trim($_POST['discount_round'])) == 'Y') {
         $discount_round = 'Y';
@@ -457,6 +457,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         $discount_round = 'N';
         UnRegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmDc", "add");
     }
+
     //corporate-cliente
     if (htmlspecialchars(trim($_POST['corp-client'])) == 'Y') {
         $cc = 'Y';
@@ -740,14 +741,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                 $('tr.legal-detail-' + orderType).hide();
                 $('.legal-detail-title-' + orderType).hide();
 
-            $('tr.contragent-type select').change(function(){
-                splitName = $(this).attr('name').split('-');
-                contragentType = $(this).val();
-                orderType = splitName[2];
-
-                $('tr.legal-detail-' + orderType).hide();
-                $('.legal-detail-title-' + orderType).hide();
-
                 $('tr.legal-detail-' + orderType).each(function(){
                     if($(this).hasClass(contragentType)){
                         $(this).show();
@@ -786,11 +779,15 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                 return true;
             });
 
-            $('.r-coll-button label').change(function(){
+            $('.r-dc-button label').change(function(){
                 if($(this).find('input').is(':checked') === true){
-                    $('tr.r-coll').show('slow');
+                    $('tr.r-dc').show('slow');
                 } else if($(this).find('input').is(':checked') === false){
-                    $('tr.r-coll').hide('slow');
+                    $('tr.r-dc').hide('slow');
+                }
+
+                return true;
+            });
 
             $('.r-cc-button label').change(function(){
                 if($(this).find('input').is(':checked') === true){
@@ -801,12 +798,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
 
                 return true;
             });
-
-            $('.r-dc-button label').change(function(){
-                if($(this).find('input').is(':checked') === true){
-                    $('tr.r-dc').show('slow');
-                } else if($(this).find('input').is(':checked') === false){
-                    $('tr.r-dc').hide('slow');
 
             $('.r-coll-button label').change(function(){
                 if($(this).find('input').is(':checked') === true){
@@ -956,73 +947,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                 </tr>
             <?php endforeach; ?>
             <tr class="heading">
-                <td colspan="2">
-                    <input type="submit" name="update-delivery-services" value="<?php echo GetMessage('UPDATE_DELIVERY_SERVICES'); ?>" class="adm-btn-save">
-                </td>
-            </tr>
-            <tr class="heading">
-                <td colspan="2"><b><?php echo GetMessage('PAYMENT_TYPES_LIST'); ?></b></td>
-            </tr>
-            <?php foreach($arResult['bitrixPaymentTypesList'] as $bitrixPaymentType): ?>
-                <tr>
-                    <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $bitrixPaymentType['ID']; ?>">
-                        <?php echo $bitrixPaymentType['NAME']; ?>
-                    </td>
-                    <td width="50%" class="adm-detail-content-cell-r">
-                        <select name="payment-type-<?php echo $bitrixPaymentType['ID']; ?>" class="typeselect">
-                            <option value="" selected=""></option>
-                            <?php foreach($arResult['paymentTypesList'] as $paymentType): ?>
-                                <option value="<?php echo $paymentType['code']; ?>" <?php if ($optionsPayTypes[$bitrixPaymentType['ID']] == $paymentType['code']) echo 'selected'; ?>>
-                                    <?php echo $APPLICATION->ConvertCharset($paymentType['name'], 'utf-8', SITE_CHARSET); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </td>
-                </tr>
-            <?php endforeach; ?>
-            <tr class="heading">
-                <td colspan="2"><b><?php echo GetMessage('PAYMENT_STATUS_LIST'); ?></b></td>
-            </tr>
-            <tr>
-                <td width="50%"></td>
-                <td width="50%">
-                    <table width="100%">
-                        <tr>
-                            <td width="50%"></td>
-                            <td width="50%"><?php echo GetMessage('CANCELED'); ?></td>
-                        </tr>
-                    </table>
-                </td>
-            </tr>
-            <?php foreach($arResult['bitrixPaymentStatusesList'] as $bitrixPaymentStatus): ?>
-                <tr>
-                    <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $bitrixPaymentStatus['ID']; ?>">
-                        <?php echo $bitrixPaymentStatus['NAME']; ?>
-                    </td>
-                    <td width="50%" class="adm-detail-content-cell-r">
-                        <table width="100%">
-                            <tr>
-                                <td width="70%">
-                                    <select name="payment-status-<?php echo $bitrixPaymentStatus['ID']; ?>" class="typeselect">
-                                        <option value=""></option>
-                                        <?php foreach($arResult['paymentGroupList'] as $orderStatusGroup): if(!empty($orderStatusGroup['statuses'])) : ?>
-                                            <optgroup label="<?php echo $APPLICATION->ConvertCharset($orderStatusGroup['name'], 'utf-8', SITE_CHARSET); ?>">
-                                                <?php foreach($orderStatusGroup['statuses'] as $payment): ?>
-                                                    <?php if(isset($arResult['paymentList'][$payment])): ?>
-                                                        <option value="<?php echo $arResult['paymentList'][$payment]['code']; ?>" <?php if ($optionsPayStatuses[$bitrixPaymentStatus['ID']] == $arResult['paymentList'][$payment]['code']) echo 'selected'; ?>>
-                                                            <?php echo $APPLICATION->ConvertCharset($arResult['paymentList'][$payment]['name'], 'utf-8', SITE_CHARSET); ?>
-                                                        </option>
-                                                    <?php endif; ?>
-                                                <?php endforeach; ?>
-                                            </optgroup>
-                                        <?php endif; endforeach; ?>
-                                    </select>
-                                </td>
-                                <td width="30%">
-                                    <input name="order-cansel-<?php echo $bitrixPaymentStatus['ID']; ?>" <?php if(in_array($bitrixPaymentStatus['ID'], $canselOrderArr)) echo "checked";?> value="Y" type="checkbox" />
-                                </td>
-                            </tr>
-                        </table>
                 <td colspan="2">
                     <input type="submit" name="update-delivery-services" value="<?php echo GetMessage('UPDATE_DELIVERY_SERVICES'); ?>" class="adm-btn-save">
                 </td>
@@ -1293,62 +1217,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                         <?php foreach ($currencyList as $currencyCode => $currencyName) : ?>
                             <option value="<?php echo $currencyCode; ?>" <?php if ($currencyCode == $currencyOption) echo 'selected'; ?>>
                                 <?php echo $currencyName; ?>
-                <?php endforeach; ?>
-            <?php endforeach; ?>
-
-            <?php $tabControl->BeginNextTab(); ?>
-            <input type="hidden" name="tab" value="catalog">
-            <tr class="heading">
-                <td colspan="2" class="option-other-bottom"><b><?php echo GetMessage('ORDERS_OPTIONS'); ?></b></td>
-            </tr>
-            <tr>
-                <td colspan="2" class="option-head option-other-top option-other-bottom">
-                    <b>
-                        <label><input class="addr" type="checkbox" name="order-numbers" value="Y" <?php if($optionsOrderNumbers == 'Y') echo "checked"; ?>> <?php echo GetMessage('ORDER_NUMBERS'); ?></label>
-                    </b>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="2" class="option-head option-other-top option-other-bottom">
-                    <b>
-                        <label>
-                            <input class="addr" type="checkbox" name="order_dimensions" value="Y" <?php if($optionsOrderDimensions == 'Y') echo "checked"; ?>> <?php echo GetMessage('ORDER_DIMENSIONS'); ?>
-                        </label>
-                    </b>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="2" class="option-head option-other-top option-other-bottom">
-                    <b>
-                        <label><input class="addr" type="radio" name="order-discharge" value="1" <?php if($optionsDischarge == 1) echo "checked"; ?>><?php echo GetMessage('DISCHARGE_EVENTS'); ?></label>
-                        <label><input class="addr" type="radio" name="order-discharge" value="0" <?php if($optionsDischarge == 0) echo "checked"; ?>><?php echo GetMessage('DISCHARGE_AGENT'); ?></label>
-                    </b>
-                </td>
-            </tr>
-            <tr class="heading">
-                <td colspan="2" class="option-other-heading"><b><?php echo GetMessage('CRM_API_VERSION'); ?></b></td>
-            </tr>
-            <tr>
-                <td colspan="2" class="option-head option-other-top option-other-bottom">
-                    <select name="api_version" class="typeselect">
-                        <?php for($v = 4; $v <= 5; $v++) {
-                            $ver = 'v' . $v; ?>
-                            <option value="<?php echo $ver; ?>" <?php if ($ver == $version) echo 'selected'; ?>>
-                                API V<?php echo $v; ?>
-                            </option>
-                        <?php } ?>
-                    </select>
-                </td>
-            </tr>
-            <tr class="heading">
-                <td colspan="2" class="option-other-heading"><b><?php echo GetMessage('CURRENCY'); ?></b></td>
-            </tr>
-            <tr>
-                <td colspan="2" class="option-head option-other-top option-other-bottom">
-                    <select name="currency" class="typeselect">
-                        <?php foreach ($currencyList as $currencyCode => $currencyName) : ?>
-                            <option value="<?php echo $currencyCode; ?>" <?php if ($currencyCode == $currencyOption) echo 'selected'; ?>>
-                                <?php echo $currencyName; ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
@@ -1514,6 +1382,20 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                 </tr>
             <?php endforeach;?>
 
+            <tr class="heading r-dc-button">
+                <td colspan="2" class="option-other-heading">
+                    <b>
+                        <label><input class="addr" type="checkbox" name="discount_round" value="Y" <?php if($optionDiscRound === 'Y') echo "checked"; ?>><?php echo "Округление цены товара при сборе одинаковых товарных позиций" ?></label>
+                    </b>
+                </td>
+            </tr>
+
+            <tr class="r-dc" <?php if($optionDiscRound !== 'Y') echo 'style="display: none;"'; ?>>
+                <td class="option-head" colspan="2">
+                    <b><?php echo "При включенной опции округление будет происходить в меньшую сторону" ?></b>
+                </td>
+            </tr>
+
             <tr class="heading r-cc-button">
                 <td colspan="2" class="option-other-heading">
                     <b>
@@ -1554,6 +1436,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                 </td>
             </tr>
 
+<<<<<<< HEAD
             <?php if ($optionInventotiesUpload === 'Y' || count($arResult['bitrixStoresExportList']) > 0) :?>
                 <tr class="heading inventories-batton">
                     <td colspan="2" class="option-other-heading">
@@ -1746,6 +1629,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                 </tr>
             <?php endforeach;?>
 
+=======
+>>>>>>> fix options
             <tr class="r-cc" <?php if($optionCorpClient !== 'Y') echo 'style="display: none;"'; ?>>
                 <td colspan="2" class="option-head option-other-top option-other-bottom">
                     <b>
