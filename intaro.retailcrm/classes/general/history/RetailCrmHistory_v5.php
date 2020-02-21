@@ -1029,6 +1029,10 @@ class RetailCrmHistory
                 $change['order']['items'] = $items;
             }
 
+            if ($change['field'] == 'number') {
+                $orders[$change['order']['id']]['number'] = $change['newValue'];
+            }
+
             if ($change['order']['payments']) {
                 $payments = array();
                 foreach ($change['order']['payments'] as $payment) {

@@ -258,10 +258,6 @@ class RetailCrmOrder
             }
         }
 
-        $f = fopen($_SERVER["DOCUMENT_ROOT"]."/goev_order_send123456.txt", "a+");
-        fwrite($f, print_r(array(date('Y-m-d H:i:s'), $order),true));
-        fclose($f);
-
         $normalizer = new RestNormalizer();
         $order = $normalizer->normalize($order, 'orders');
 
