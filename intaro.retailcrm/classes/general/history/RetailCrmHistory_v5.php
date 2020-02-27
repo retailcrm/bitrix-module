@@ -374,13 +374,36 @@ class RetailCrmHistory
                     unset($order['customer']['externalId']);
                 }
 
+                // Corporate customer will be stored here because it will be replaced in actual order.
+                // TODO This should be considered as a sign of bad logic! Rewrite ASAP.
+                $storedCorporateCustomer = array();
+
                 if ($order['customer']['type'] == 'customer_corporate') {
                     $contact = false;
 
-                    if (isset($order['contact']['externalId'])) {
-                        $contact = RCrmActions::apiMethod($api, 'customersGet', __METHOD__, $order['contact']['externalId'], $order['site']);
-                    } elseif (isset($order['contact']['id'])) {
-                        $contact = RCrmActions::apiMethod($api, 'customersGetById', __METHOD__, $order['contact']['id'], $order['site']);
+                    // Fetch contact only if we think it's data is not fully present in order
+                    if (!empty($order['contact'])) {
+                        if (isset($order['contact']['email'])) {
+                            $contact = array('customer' => $order['contact']);
+                        } else {
+                            if (isset($order['contact']['externalId'])) {
+                                $contact = RCrmActions::apiMethod(
+                                    $api,
+                                    'customersGet',
+                                    __METHOD__,
+                                    $order['contact']['externalId'],
+                                    $order['site']
+                                );
+                            } elseif (isset($order['contact']['id'])) {
+                                $contact = RCrmActions::apiMethod(
+                                    $api,
+                                    'customersGetById',
+                                    __METHOD__,
+                                    $order['contact']['id'],
+                                    $order['site']
+                                );
+                            }
+                        }
                     }
 
                     if (!$contact || empty($contact['customer'])) {
@@ -392,6 +415,7 @@ class RetailCrmHistory
                         continue;
                     }
 
+                    $storedCorporateCustomer = $order['customer'];
                     $order['customer'] = $contact['customer'];
                 }
 
