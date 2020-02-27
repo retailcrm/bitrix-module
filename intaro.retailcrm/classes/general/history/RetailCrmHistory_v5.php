@@ -347,13 +347,36 @@ class RetailCrmHistory
                     unset($order['customer']['externalId']);
                 }
 
+                // Corporate customer will be stored here because it will be replaced in actual order.
+                // TODO This should be considered as a sign of bad logic! Rewrite ASAP.
+                $storedCorporateCustomer = array();
+
                 if ($order['customer']['type'] == 'customer_corporate') {
                     $contact = false;
 
-                    if (isset($order['contact']['externalId'])) {
-                        $contact = RCrmActions::apiMethod($api, 'customersGet', __METHOD__, $order['contact']['externalId'], $order['site']);
-                    } elseif (isset($order['contact']['id'])) {
-                        $contact = RCrmActions::apiMethod($api, 'customersGetById', __METHOD__, $order['contact']['id'], $order['site']);
+                    // Fetch contact only if we think it's data is not fully present in order
+                    if (!empty($order['contact'])) {
+                        if (isset($order['contact']['email'])) {
+                            $contact = array('customer' => $order['contact']);
+                        } else {
+                            if (isset($order['contact']['externalId'])) {
+                                $contact = RCrmActions::apiMethod(
+                                    $api,
+                                    'customersGet',
+                                    __METHOD__,
+                                    $order['contact']['externalId'],
+                                    $order['site']
+                                );
+                            } elseif (isset($order['contact']['id'])) {
+                                $contact = RCrmActions::apiMethod(
+                                    $api,
+                                    'customersGetById',
+                                    __METHOD__,
+                                    $order['contact']['id'],
+                                    $order['site']
+                                );
+                            }
+                        }
                     }
 
                     if (!$contact || empty($contact['customer'])) {
@@ -365,6 +388,7 @@ class RetailCrmHistory
                         continue;
                     }
 
+                    $storedCorporateCustomer = $order['customer'];
                     $order['customer'] = $contact['customer'];
                 }
 
@@ -374,6 +398,7 @@ class RetailCrmHistory
                             continue;
                         }
 
+                        $login = null;
                         $registerNewUser = true;
 
                         if (!isset($order['customer']['email']) || $order['customer']['email'] == '') {
@@ -398,7 +423,7 @@ class RetailCrmHistory
                         if ($registerNewUser === true) {
                             $userPassword = uniqid("R");
 
-                            $newUser = new CUser;
+                            $newUser = new CUser();
                             $arFields = array(
                                 "NAME"              => RCrmActions::fromJSON($order['customer']['firstName']),
                                 "LAST_NAME"         => RCrmActions::fromJSON($order['customer']['lastName']),
@@ -424,7 +449,15 @@ class RetailCrmHistory
                                 continue;
                             }
 
-                            if(RCrmActions::apiMethod($api, 'customersFixExternalIds', __METHOD__, array(array('id' => $order['customer']['id'], 'externalId' => $registeredUserID))) == false) {
+                            if(RCrmActions::apiMethod(
+                                $api,
+                                'customersFixExternalIds',
+                                __METHOD__,
+                                array(array(
+                                    'id' => $order['customer']['id'],
+                                    'externalId' => $registeredUserID
+                                ))) == false
+                            ) {
                                 continue;
                             }
                         }
@@ -475,7 +508,9 @@ class RetailCrmHistory
                         continue;
                     }
 
+                    $propsRemove = false;
                     $personType = $newOrder->getField('PERSON_TYPE_ID');
+
                     if (isset($order['orderType']) && $order['orderType']) {
                         $nType = array();
                         $tList = RCrmActions::OrderTypesList(array(array('LID' => $site)));
@@ -529,6 +564,8 @@ class RetailCrmHistory
                         }
                         $nProps[] = $orderProp;
                     }
+
+                    $orderDump = array();
                     $propertyCollectionArr['properties'] = $nProps;
 
                     if ($propsRemove) {//delete props
@@ -538,6 +575,7 @@ class RetailCrmHistory
                                 self::setProp($somePropValue);
                             }
                         }
+
                         $orderCrm = RCrmActions::apiMethod($api, 'orderGet', __METHOD__, $order['id']);
 
                         $orderDump = $order;
@@ -545,13 +583,15 @@ class RetailCrmHistory
                     }
 
                     $propsKey = array();
+
                     foreach ($propertyCollectionArr['properties'] as $prop) {
                         if ($prop['PROPS_GROUP_ID'] != 0) {
                             $propsKey[$prop['CODE']]['ID'] = $prop['ID'];
                             $propsKey[$prop['CODE']]['TYPE'] = $prop['TYPE'];
                         }
                     }
-                    //fio
+
+                    // fio
                     if ($order['firstName'] || $order['lastName'] || $order['patronymic']) {
                         $fio = '';
                         foreach ($propertyCollectionArr['properties'] as $prop) {
@@ -630,18 +670,18 @@ class RetailCrmHistory
                         }
                     }
 
-                    //corp-client
+                    // Corporate clients section
                     $cFilter['isMain'] = true;
+                    $companyProps = array();
                     $response = $api->customersCorporateCompanies($order['customer']['id'], $cFilter,null, null,'id');
 
                     if (isset($response['companies'])) {
                         $companiesList = $response['companies'];
-                        foreach ($companiesList as $compani) {
-                            $companiProps = $compani['contragent'];
-                        }
+                        $company = reset($companiesList);
+                        $companyProps = $company['contragent'];
                     }
 
-                    //optionsLegalDetails
+                    // optionsLegalDetails
                     if ($optionsLegalDetails[$personType]) {
                         foreach ($optionsLegalDetails[$personType] as $key => $orderProp) {
                             if (array_key_exists($key, $order)) {
@@ -650,9 +690,9 @@ class RetailCrmHistory
                             } elseif(array_key_exists($key, $order['contragent'])) {
                                 $somePropValue = $propertyCollection->getItemByOrderPropertyId($propsKey[$orderProp]['ID']);
                                 self::setProp($somePropValue, RCrmActions::fromJSON($order['contragent'][$key]));
-                            } elseif (array_key_exists($key, $companiProps)) {
+                            } elseif (array_key_exists($key, $companyProps)) {
                                 $somePropValue = $propertyCollection->getItemByOrderPropertyId($propsKey[$orderProp]['ID']);
-                                self::setProp($somePropValue,  RCrmActions::fromJSON($companiProps[$key]));
+                                self::setProp($somePropValue,  RCrmActions::fromJSON($companyProps[$key]));
                             }
                         }
                     }
@@ -928,6 +968,8 @@ class RetailCrmHistory
             //new filter
             $historyFilter['sinceId'] = $end['id'];
         }
+
+        return false;
     }
 
     /**
