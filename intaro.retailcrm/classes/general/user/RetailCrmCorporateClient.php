@@ -34,7 +34,7 @@ class RetailCrmCorporateClient
             }
 
             if ($prop['CODE'] == $corpAdres) {
-                $adres = $prop['VALUE'][0];
+                $address = $prop['VALUE'][0];
             }
 
             if (!empty($optionsLegalDetails)
@@ -75,7 +75,7 @@ class RetailCrmCorporateClient
                     array(
                         'name' => $nickName,
                         'isMain' => true,
-                        'text' => $adres
+                        'text' => $address
                     )
                 )
             );

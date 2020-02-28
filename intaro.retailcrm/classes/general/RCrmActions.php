@@ -473,7 +473,10 @@ class RCrmActions
             $result = call_user_func_array(array($api, $methodApi), $params);
 
             if ($result->getStatusCode() !== 200 && $result->getStatusCode() !== 201) {
-                if ($methodApi == 'ordersGet' || $methodApi == 'customersGet' || $methodApi == 'customersСorporateGet') {
+                if ($methodApi == 'ordersGet'
+                    || $methodApi == 'customersGet'
+                    || $methodApi == 'customersСorporateGet'
+                ) {
                     $log->write(array(
                         'api' => $version,
                         'methodApi' => $methodApi,
@@ -490,7 +493,11 @@ class RCrmActions
                         'params' => $params
                     ), 'uploadApiErrors');
                 } else {
-                    self::eventLog(__CLASS__ . '::' . $method, 'RetailCrm\ApiClient::' . $methodApi, !empty($result['errorMsg']) ? $result['errorMsg'] : '');
+                    self::eventLog(
+                        __CLASS__ . '::' . $method,
+                        'RetailCrm\ApiClient::' . $methodApi,
+                        !empty($result['errorMsg']) ? $result['errorMsg'] : ''
+                    );
                     $log->write(array(
                         'api' => $version,
                         'methodApi' => $methodApi,
@@ -511,63 +518,88 @@ class RCrmActions
                 return false;
             }
         } catch (\RetailCrm\Exception\CurlException $e) {
-            self::eventLog(
-                __CLASS__ . '::' . $method, 'RetailCrm\ApiClient::' . $methodApi . '::CurlException',
-                $e->getCode() . ': ' . $e->getMessage()
+            static::logException(
+                $log,
+                $method,
+                $methodApi,
+                'CurlException',
+                'CurlException',
+                $e,
+                $version,
+                $params
             );
-            $log->write(array(
-                'api' => $version,
-                'methodApi' => $methodApi,
-                'errorMsg' => $e->getMessage(),
-                'errors' => $e->getCode(),
-                'params' => $params
-            ), 'apiErrors');
-
-            if (function_exists('retailCrmApiResult')) {
-                retailCrmApiResult($methodApi, false, 'CurlException');
-            }
 
             return false;
         } catch (InvalidArgumentException $e) {
-            self::eventLog(
-                __CLASS__ . '::' . $method, 'RetailCrm\ApiClient::' . $methodApi . '::InvalidArgumentException',
-                $e->getCode() . ': ' . $e->getMessage()
+            static::logException(
+                $log,
+                $method,
+                $methodApi,
+                'InvalidArgumentException',
+                'ArgumentException',
+                $e,
+                $version,
+                $params
             );
-            $log->write(array(
-                'api' => $version,
-                'methodApi' => $methodApi,
-                'errorMsg' => $e->getMessage(),
-                'errors' => $e->getCode(),
-                'params' => $params
-            ), 'apiErrors');
-
-            if (function_exists('retailCrmApiResult')) {
-                retailCrmApiResult($methodApi, false, 'ArgumentException');
-            }
 
             return false;
         } catch (\RetailCrm\Exception\InvalidJsonException $e) {
-            self::eventLog(
-                __CLASS__ . '::' . $method, 'RetailCrm\ApiClient::' . $methodApi . '::InvalidJsonException',
-                $e->getCode() . ': ' . $e->getMessage()
+            static::logException(
+                $log,
+                $method,
+                $methodApi,
+                'InvalidJsonException',
+                'ArgumentException',
+                $e,
+                $version,
+                $params
             );
-            $log->write(array(
-                'api' => $version,
-                'methodApi' => $methodApi,
-                'errorMsg' => $e->getMessage(),
-                'errors' => $e->getCode(),
-                'params' => $params
-            ), 'apiErrors');
-
-            if (function_exists('retailCrmApiResult')) {
-                retailCrmApiResult($methodApi, false, 'ArgumentException');
-            }
         }
 
         if (function_exists('retailCrmApiResult')) {
-            retailCrmApiResult($methodApi, true, $result->getStatusCode());
+            retailCrmApiResult($methodApi, true, isset($result) ? $result->getStatusCode() : 0);
         }
 
         return isset($result) ? $result : false;
+    }
+
+    /**
+     * Log exception into log file and event log
+     *
+     * @param \Logger                      $log
+     * @param string                       $method
+     * @param string                       $methodApi
+     * @param string                       $exceptionName
+     * @param string                       $apiResultExceptionName
+     * @param \Exception|\Error|\Throwable $exception
+     * @param string                       $version
+     * @param array                        $params
+     */
+    protected static function logException(
+        $log,
+        $method,
+        $methodApi,
+        $exceptionName,
+        $apiResultExceptionName,
+        $exception,
+        $version,
+        $params
+    ) {
+        self::eventLog(
+            __CLASS__ . '::' . $method, 'RetailCrm\ApiClient::' . $methodApi . '::' . $exceptionName,
+            $exception->getCode() . ': ' . $exception->getMessage()
+        );
+
+        $log->write(array(
+            'api' => $version,
+            'methodApi' => $methodApi,
+            'errorMsg' => $exception->getMessage(),
+            'errors' => $exception->getCode(),
+            'params' => $params
+        ), 'apiErrors');
+
+        if (function_exists('retailCrmApiResult')) {
+            retailCrmApiResult($methodApi, false, $apiResultExceptionName);
+        }
     }
 }

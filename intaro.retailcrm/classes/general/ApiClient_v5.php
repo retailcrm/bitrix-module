@@ -265,7 +265,7 @@ class ApiClient
      *
      * @return ApiResponse
      */
-    public function customersСorporateUpload(array $customers, $site = null)
+    public function customersCorporateUpload(array $customers, $site = null)
     {
         if (! count($customers)) {
             throw new \InvalidArgumentException(
@@ -276,7 +276,7 @@ class ApiClient
         return $this->client->makeRequest(
             '/customers-corporate/upload',
             Client::METHOD_POST,
-            $this->fillSite($site, array('customerCorporate' => json_encode($customers)))
+            $this->fillSite($site, array('customersCorporate' => json_encode($customers)))
         );
     }
 
