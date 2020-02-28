@@ -488,7 +488,6 @@ class RCrmActions
             }
 
             if ($result->getStatusCode() !== 200 && $result->getStatusCode() !== 201) {
-
                 if ($methodApi == 'ordersGet'
                     || $methodApi == 'customersGet'
                     || $methodApi == 'customersСorporateGet'

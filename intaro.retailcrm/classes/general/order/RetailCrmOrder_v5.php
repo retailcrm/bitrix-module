@@ -468,6 +468,7 @@ class RetailCrmOrder
                 $resCustomers[$order['LID']][] = $arCustomer;
             }
 
+            $resCustomers[$order['LID']][] = $arCustomer;
             $resOrders[$order['LID']][] = $arOrders;
             $recOrders[] = $orderId;
         }
