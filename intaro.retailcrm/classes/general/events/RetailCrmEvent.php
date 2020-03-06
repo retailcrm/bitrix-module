@@ -141,6 +141,7 @@ class RetailCrmEvent
             return false;
         }
 
+        $log = new Logger();
         $arOrder = RetailCrmOrder::orderObjToArr($obOrder);
 
         $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
@@ -301,7 +302,7 @@ class RetailCrmEvent
                     false,
                     $site
                 );
-
+            
                 Logger::getInstance()->write($resultUserCorp, 'resultUserCorp');
 
                 if (!$resultUserCorp) {
@@ -312,6 +313,22 @@ class RetailCrmEvent
 
                 $arParams['customerCorporate'] = $resultUserCorp;
                 $arParams['orderCompany'] = isset($resultUserCorp['mainCompany']) ? $resultUserCorp['mainCompany'] : null;
+
+                $customerCorporateAddress = array();
+                $customerCorporateCompany = array();
+                $addressResult = null;
+                $companyResult = null;
+
+                if (!empty($address)) {
+                    //TODO address builder add
+                    $customerCorporateAddress = array(
+                        'name' => $nickName,
+                        'isMain' => true,
+                        'text' => $address
+                    );
+
+                    $addressResult = $api->customersCorporateAddressesCreate($resultUserCorp['id'], $customerCorporateAddress, 'id', $site);
+                }
 
                 $customerCorporateAddress = array();
                 $customerCorporateCompany = array();
