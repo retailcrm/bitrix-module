@@ -3,11 +3,7 @@
 /**
  * PHP version 5.3
  *
-<<<<<<< HEAD
  * RetailcrmConstants
-=======
- * Constants class
->>>>>>> centralized configuration provider
  *
  * @category RetailCrm
  * @package  RetailCrm
@@ -21,11 +17,7 @@ IncludeModuleLangFile(__FILE__);
 /**
  * PHP version 5.3
  *
-<<<<<<< HEAD
  * RetailcrmConstants
-=======
- * Constants class
->>>>>>> centralized configuration provider
  *
  * @category RetailCrm
  * @package  RetailCrm
