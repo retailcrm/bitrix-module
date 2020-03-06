@@ -16,6 +16,7 @@ class RetailCrmUser
             'externalId'     => $arFields['ID'],
             'email'          => $arFields['EMAIL'],
             'createdAt'      => new \DateTime($arFields['DATE_REGISTER']),
+            'subscribed'     => false,
             'contragent'     => array(
                 'contragentType' => $contragentType
             )
