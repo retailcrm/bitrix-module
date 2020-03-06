@@ -438,6 +438,15 @@ class RetailCrmOrder
                     $site
                 );
 
+                $arCustomerCorporate = RetailCrmCorporateClient::clientSend(
+                    $order,
+                    $api,
+                    'legal-entity',
+                    false,
+                    true,
+                    $site
+                );
+
                 $arParams['contactExId'] = $user['ID'];
             } else {
                 $arCustomer = RetailCrmUser::customerSend(
@@ -459,8 +468,9 @@ class RetailCrmOrder
                 continue;
             }
 
-            if (!empty($arCustomerCorporate)) {
-                $resCustomersCorporate[$order['LID']][] = $arCustomerCorporate;
+            if (!empty($arCustomerCorporate) && !empty($arCustomerCorporate['nickName'])
+            ) {
+                $resCustomersCorporate[$arCustomerCorporate['nickName']] = $arCustomerCorporate;
             }
 
             $resCustomers[$order['LID']][] = $arCustomer;
@@ -514,13 +524,8 @@ class RetailCrmOrder
                 return false;
             }
 
-            if (false === $uploadItems($resCustomersCorporate, 'customersCorporateUpload')) {
-                return false;
-            }
-
             if ("Y" == $optionCorpClient) {
                 foreach ($resOrders as $packKey => $pack) {
-
                     foreach ($pack as $key => $orderData) {
                         if (isset($orderData['contragent']['contragentType'])
                             && $orderData['contragent']['contragentType'] == 'legal-entity'
@@ -538,8 +543,16 @@ class RetailCrmOrder
                                 $corpData = reset($corpData);
 
                                 $orderData['customer'] = array('id' => $corpData['id']);
-                                $pack[$key] = $orderData;
+                            } elseif (array_key_exists($orderData['contragent']['legalName'], $resCustomersCorporate)) {
+                                $createResponse = $api
+                                    ->customersCreate($resCustomersCorporate[$orderData['contragent']['legalName']]);
+
+                                if ($createResponse && $createResponse->isSuccessful()) {
+                                    $orderData['customer'] = array('id' => $createResponse['id']);
+                                }
                             }
+
+                            $pack[$key] = $orderData;
 
                             time_nanosleep(0, 250000000);
                         }

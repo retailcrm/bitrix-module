@@ -266,8 +266,7 @@ class RetailCrmEvent
             }
 
             if (!isset($userCorp['customerCorporate'])) {
-
-                $resultUserCorp = RetailCrmCorporateClient::clientSend($arOrder, $api, $optionsContragentType[$arOrder['PERSON_TYPE_ID']], true, $site);
+                $resultUserCorp = RetailCrmCorporateClient::clientSend($arOrder, $api, $optionsContragentType[$arOrder['PERSON_TYPE_ID']], true, false, $site);
 
                 $log = new Logger();
                 $log->write($resultUserCorp, 'resultUserCorp');
@@ -280,20 +279,20 @@ class RetailCrmEvent
 
                 $arParams['customerCorporate'] = $resultUserCorp;
 
-                //TODO address bulder add
-                $customerCorporateAdress = array(
+                //TODO address builder add
+                $customerCorporateAddress = array(
                     'name' => $nickName,
                     'isMain' => true,
                     'text' => $address
                 );
 
-                $adressResult = $api->customersCorporateAddressesCreate($resultUserCorp['id'], $customerCorporateAdress, 'id', $site);
+                $addressResult = $api->customersCorporateAddressesCreate($resultUserCorp['id'], $customerCorporateAddress, 'id', $site);
                 $customerCorporateCompani = array(
                     'name' => $nickName,
                     'isMain' => true,
                     'contragent' => $contragent,
                     'address' => array(
-                        'id' =>$adressResult['id']
+                        'id' =>$addressResult['id']
                     )
                 );
 
