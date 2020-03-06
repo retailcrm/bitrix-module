@@ -15,7 +15,6 @@ class RetailCrmCorporateClient
         if (!$api || empty($contragentType)) {
             return false;
         }
-
         $shops = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_SITES_LIST, 0));
         $corpName = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_CORP_NAME, 0));
         $corpAdres = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_CORP_ADRES, 0));
@@ -32,16 +31,6 @@ class RetailCrmCorporateClient
             if ($prop['CODE'] == $corpName) {
                 $nickName = $prop['VALUE'][0];
             }
-
-            if ($prop['CODE'] == $corpAdres) {
-                $address = $prop['VALUE'][0];
-            }
-
-            if (!empty($optionsLegalDetails)
-                && $search = array_search($prop['CODE'], $optionsLegalDetails[$arOrder['PERSON_TYPE_ID']])
-            ) {
-                $contragent[$search] = $prop['VALUE'][0];//legal order data
-            }
         }
 
         if (empty($nickName)) {
@@ -56,28 +45,6 @@ class RetailCrmCorporateClient
             $customerCorporate = array(
                 'createdAt'      => $arOrder['DATE_INSERT'],
                 "nickName" => $nickName,
-                'customerContacts' => array(
-                    array(
-                        'isMain' => true,
-                        'customer' => array(
-                            'externalId' => $arUser['ID'],
-                            'site' => $shop
-                        )
-                    )
-                ),
-                'companies' => array(
-                    array(
-                        'name' => $nickName,
-                        'isMain' => true,
-                    )
-                ),
-                'addresses' => array(
-                    array(
-                        'name' => $nickName,
-                        'isMain' => true,
-                        'text' => $address
-                    )
-                )
             );
         }
 
@@ -94,7 +61,6 @@ class RetailCrmCorporateClient
 
             if ($send) {
                 $result = RCrmActions::apiMethod($api, 'customersСorporateСreate', __METHOD__, $customerCorporate, $site);
-
                 if (!$result) {
                     return false;
                 }

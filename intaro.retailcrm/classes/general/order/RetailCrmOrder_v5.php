@@ -438,14 +438,6 @@ class RetailCrmOrder
                     $site
                 );
 
-                $arCustomerCorporate = RetailCrmCorporateClient::clientSend(
-                    $order,
-                    $api,
-                    'legal-entity',
-                    false,
-                    $site
-                );
-
                 $arParams['contactExId'] = $user['ID'];
             } else {
                 $arCustomer = RetailCrmUser::customerSend(

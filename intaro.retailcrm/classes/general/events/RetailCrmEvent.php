@@ -21,6 +21,7 @@ class RetailCrmEvent
     protected static $CRM_SITES_LIST = 'sites_list';
     protected static $CRM_CC = 'cc';
     protected static $CRM_CORP_NAME = 'nickName-corporate';
+    protected static $CRM_CORP_ADRES = 'adres-corporate';
 
     /**
      * @param $arFields
@@ -200,12 +201,28 @@ class RetailCrmEvent
         if ("Y" == $optionCorpClient && $optionsContragentType[$arOrder['PERSON_TYPE_ID']] == 'legal-entity') {
             //corparate cliente
             $nickName = '';
+            $corpAdres = '';
             $corpName = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_CORP_NAME, 0));
+            $corpAdres = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_CORP_ADRES, 0));
 
             foreach ($arOrder['PROPS']['properties'] as $prop) {
                 if ($prop['CODE'] == $corpName) {
                     $nickName = $prop['VALUE'][0];
                 }
+
+                if ($prop['CODE'] == $corpAdres) {
+                    $address = $prop['VALUE'][0];
+                }
+
+                if (!empty($optionsLegalDetails)
+                    && $search = array_search($prop['CODE'], $optionsLegalDetails[$arOrder['PERSON_TYPE_ID']])
+                ) {
+                    $contragent[$search] = $prop['VALUE'][0];//legal order data
+                }
+            }
+
+            if (!empty($contragentType)) {
+                $contragent['contragentType'] = $contragentType;
             }
 
             $customersCorporate = false;
@@ -236,6 +253,7 @@ class RetailCrmEvent
 
             if (!isset($userCrm['customer'])) {
                 $arUser = Bitrix\Main\UserTable::getById($arOrder['USER_ID'])->fetch();
+                $arUser['PERSONAL_STREET'] = $address;
                 $resultUser = RetailCrmUser::customerSend($arUser, $api, "individual", true, $site);
 
                 if (!$resultUser) {
@@ -261,6 +279,41 @@ class RetailCrmEvent
                 }
 
                 $arParams['customerCorporate'] = $resultUserCorp;
+
+                //TODO address bulder add
+                $customerCorporateAdress = array(
+                    'name' => $nickName,
+                    'isMain' => true,
+                    'text' => $address
+                );
+
+                $adressResult = $api->customersCorporateAddressesCreate($resultUserCorp['id'], $customerCorporateAdress, 'id', $site);
+                $customerCorporateCompani = array(
+                    'name' => $nickName,
+                    'isMain' => true,
+                    'contragent' => $contragent,
+                    'address' => array(
+                        'id' =>$adressResult['id']
+                    )
+                );
+
+                $companiResult = $api->customersCorporateCompaniesCreate($resultUserCorp['id'], $customerCorporateCompani, 'id', $site);
+
+                $customerCorporateContact = array(
+                    'isMain' => true,
+                    'customer' => array(
+                        'externalId' => $arOrder['USER_ID'],
+                        'site' => $site
+                    ),
+                    'companies' => array(
+                        array(
+                            'company' => array(
+                                'id' => $companiResult['id']
+                            )
+                        )
+                    )
+                );
+                $contactResult = $api->customersCorporateContactsCreate($resultUserCorp['id'], $customerCorporateContact, 'id', $site);
 
             } else {
                 $arParams['customerCorporate'] = $userCorp['customerCorporate'];
