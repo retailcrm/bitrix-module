@@ -325,15 +325,15 @@ class RetailCrmOrder
     public static function uploadOrders($pSize = 50, $failed = false, $orderList = false)
     {
         if (!CModule::IncludeModule("iblock")) {
-            RCrmActions::eventLog('RetailCrmOrder::uploadOrders', 'iblock', 'module not found');
+            RCrmActions::eventLog(__CLASS__ . '::' . __METHOD__, 'iblock', 'module not found');
             return true;
         }
         if (!CModule::IncludeModule("sale")) {
-            RCrmActions::eventLog('RetailCrmOrder::uploadOrders', 'sale', 'module not found');
+            RCrmActions::eventLog(__CLASS__ . '::' . __METHOD__, 'sale', 'module not found');
             return true;
         }
         if (!CModule::IncludeModule("catalog")) {
-            RCrmActions::eventLog('RetailCrmOrder::uploadOrders', 'catalog', 'module not found');
+            RCrmActions::eventLog(__CLASS__ . '::' . __METHOD__, 'catalog', 'module not found');
             return true;
         }
 
@@ -366,20 +366,16 @@ class RetailCrmOrder
             return false;
         }
 
-        $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
-        $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
-
-        $optionCorpClient = COption::GetOptionString(self::$MODULE_ID, self::$CRM_CC, 0);
-        $optionsSitesList = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_SITES_LIST, 0));
-        $optionsOrderTypes = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_TYPES_ARR, 0));
-        $optionsDelivTypes = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_DELIVERY_TYPES_ARR, 0));
-        $optionsPayTypes = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_TYPES, 0));
-        $optionsPayStatuses = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_STATUSES, 0)); // --statuses
-        $optionsPayment = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT, 0));
-        $optionsOrderProps = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_PROPS, 0));
-        $optionsLegalDetails = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_LEGAL_DETAILS, 0));
-        $optionsContragentType = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_CONTRAGENT_TYPE, 0));
-        $optionsCustomFields = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_CUSTOM_FIELDS, 0));
+        $optionsSitesList = RetailcrmConfig::getSitesList();
+        $optionsOrderTypes = RetailcrmConfig::getOrderTypes();
+        $optionsDelivTypes = RetailcrmConfig::getDeliveryTypes();
+        $optionsPayTypes = RetailcrmConfig::getPaymentTypes();
+        $optionsPayStatuses = RetailcrmConfig::getPaymentStatuses(); // --statuses
+        $optionsPayment = RetailcrmConfig::getPayment();
+        $optionsOrderProps = RetailcrmConfig::getOrderProps();
+        $optionsLegalDetails = RetailcrmConfig::getLegalDetails();
+        $optionsContragentType = RetailcrmConfig::getContragentTypes();
+        $optionsCustomFields = RetailcrmConfig::getCustomFields();
 
         $getSite = function ($key) use ($optionsSitesList) {
             if ($optionsSitesList) {
@@ -393,7 +389,7 @@ class RetailCrmOrder
             return null;
         };
 
-        $api = new RetailCrm\ApiClient($api_host, $api_key);
+        $api = new RetailCrm\ApiClient(RetailcrmConfig::getApiUrl(), RetailcrmConfig::getApiKey());
 
         $arParams = array(
             'optionsOrderTypes'     => $optionsOrderTypes,
@@ -428,7 +424,9 @@ class RetailCrmOrder
                 continue;
             }
 
-            if ("Y" == $optionCorpClient && $optionsContragentType[$order['PERSON_TYPE_ID']] == 'legal-entity') {
+            if ("Y" == RetailcrmConfig::getCorporateClient()
+                && $optionsContragentType[$order['PERSON_TYPE_ID']] == 'legal-entity'
+            ) {
                 // TODO check if order is corporate, and if it IS - make corporate order
                 $arCustomer = RetailCrmUser::customerSend(
                     $user,
@@ -524,7 +522,7 @@ class RetailCrmOrder
                 return false;
             }
 
-            if ("Y" == $optionCorpClient) {
+            if ("Y" == RetailcrmConfig::getCorporateClient()) {
                 foreach ($resOrders as $packKey => $pack) {
                     foreach ($pack as $key => $orderData) {
                         if (isset($orderData['contragent']['contragentType'])
