@@ -366,16 +366,16 @@ class RetailCrmOrder
             return false;
         }
 
-        $optionsSitesList = RetailcrmConfig::getSitesList();
-        $optionsOrderTypes = RetailcrmConfig::getOrderTypes();
-        $optionsDelivTypes = RetailcrmConfig::getDeliveryTypes();
-        $optionsPayTypes = RetailcrmConfig::getPaymentTypes();
-        $optionsPayStatuses = RetailcrmConfig::getPaymentStatuses(); // --statuses
-        $optionsPayment = RetailcrmConfig::getPayment();
-        $optionsOrderProps = RetailcrmConfig::getOrderProps();
-        $optionsLegalDetails = RetailcrmConfig::getLegalDetails();
-        $optionsContragentType = RetailcrmConfig::getContragentTypes();
-        $optionsCustomFields = RetailcrmConfig::getCustomFields();
+        $optionsSitesList = RetailcrmConfigProvider::getSitesList();
+        $optionsOrderTypes = RetailcrmConfigProvider::getOrderTypes();
+        $optionsDelivTypes = RetailcrmConfigProvider::getDeliveryTypes();
+        $optionsPayTypes = RetailcrmConfigProvider::getPaymentTypes();
+        $optionsPayStatuses = RetailcrmConfigProvider::getPaymentStatuses(); // --statuses
+        $optionsPayment = RetailcrmConfigProvider::getPayment();
+        $optionsOrderProps = RetailcrmConfigProvider::getOrderProps();
+        $optionsLegalDetails = RetailcrmConfigProvider::getLegalDetails();
+        $optionsContragentType = RetailcrmConfigProvider::getContragentTypes();
+        $optionsCustomFields = RetailcrmConfigProvider::getCustomFields();
 
         $getSite = function ($key) use ($optionsSitesList) {
             if ($optionsSitesList) {
@@ -389,7 +389,7 @@ class RetailCrmOrder
             return null;
         };
 
-        $api = new RetailCrm\ApiClient(RetailcrmConfig::getApiUrl(), RetailcrmConfig::getApiKey());
+        $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
 
         $arParams = array(
             'optionsOrderTypes'     => $optionsOrderTypes,
@@ -424,7 +424,7 @@ class RetailCrmOrder
                 continue;
             }
 
-            if ("Y" == RetailcrmConfig::getCorporateClient()
+            if ("Y" == RetailcrmConfigProvider::getCorporateClient()
                 && $optionsContragentType[$order['PERSON_TYPE_ID']] == 'legal-entity'
             ) {
                 // TODO check if order is corporate, and if it IS - make corporate order
@@ -522,7 +522,7 @@ class RetailCrmOrder
                 return false;
             }
 
-            if ("Y" == RetailcrmConfig::getCorporateClient()) {
+            if ("Y" == RetailcrmConfigProvider::getCorporateClient()) {
                 foreach ($resOrders as $packKey => $pack) {
                     foreach ($pack as $key => $orderData) {
                         if (isset($orderData['contragent']['contragentType'])

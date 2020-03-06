@@ -3,7 +3,7 @@
 /**
  * PHP version 5.3
  *
- * RetailcrmConfig class
+ * RetailcrmConfigProvider class
  *
  * @category RetailCrm
  * @package  RetailCrm
@@ -17,7 +17,7 @@ IncludeModuleLangFile(__FILE__);
 /**
  * PHP version 5.3
  *
- * RetailcrmConfig class
+ * RetailcrmConfigProvider class
  *
  * @category RetailCrm
  * @package  RetailCrm
@@ -25,7 +25,7 @@ IncludeModuleLangFile(__FILE__);
  * @license  https://opensource.org/licenses/MIT MIT License
  * @link     http://www.retailcrm.ru/docs/Developers/ApiVersion4
  */
-class RetailcrmConfig
+class RetailcrmConfigProvider
 {
     /** @var bool|null|string */
     private static $apiUrl;
