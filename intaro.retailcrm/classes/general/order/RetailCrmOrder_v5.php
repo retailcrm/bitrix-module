@@ -436,6 +436,7 @@ class RetailCrmOrder
 
                 $arParams['orderCompany'] = isset($arCustomerCorporate['companies'])
                     ? reset($arCustomerCorporate['companies']) : null;
+
                 $arParams['contactExId'] = $user['ID'];
             } else {
                 $arCustomer = RetailCrmUser::customerSend(
