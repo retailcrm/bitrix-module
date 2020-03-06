@@ -3,7 +3,11 @@
 /**
  * PHP version 5.3
  *
+<<<<<<< HEAD
  * RetailcrmConstants
+=======
+ * Constants class
+>>>>>>> centralized configuration provider
  *
  * @category RetailCrm
  * @package  RetailCrm
@@ -17,7 +21,11 @@ IncludeModuleLangFile(__FILE__);
 /**
  * PHP version 5.3
  *
+<<<<<<< HEAD
  * RetailcrmConstants
+=======
+ * Constants class
+>>>>>>> centralized configuration provider
  *
  * @category RetailCrm
  * @package  RetailCrm
@@ -39,11 +47,11 @@ class RetailcrmConstants
     const CRM_ORDER_LAST_ID = 'order_last_id';
     const CRM_ORDER_SITES = 'sites_ids';
     const CRM_ORDER_DISCHARGE = 'order_discharge';
+    const CRM_SITES_LIST = 'sites_list';
     const CRM_ORDER_PROPS = 'order_props';
     const CRM_LEGAL_DETAILS = 'legal_details';
     const CRM_CUSTOM_FIELDS = 'custom_fields';
     const CRM_CONTRAGENT_TYPE = 'contragent_type';
-    const CRM_SITES_LIST = 'sites_list';
     const CRM_SITES_LIST_CORPORATE = 'shops-corporate';
     const CRM_ORDER_NUMBERS = 'order_numbers';
     const CRM_CANCEL_ORDER = 'cansel_order';

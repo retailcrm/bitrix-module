@@ -141,7 +141,6 @@ class RetailCrmEvent
             return false;
         }
 
-        $log = new Logger();
         $arOrder = RetailCrmOrder::orderObjToArr($obOrder);
 
         $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
