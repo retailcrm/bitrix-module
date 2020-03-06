@@ -338,7 +338,11 @@ class RetailCrmHistory
                 }
 
                 if (empty($site)) {
-                    RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'Bitrix\Sale\Order::create', 'Site = ' . $order['site'] . ' not found in setting. Order crm id=' . $order['id']);
+                    RCrmActions::eventLog(
+                        __CLASS__ . '::' . __METHOD__,
+                        'Bitrix\Sale\Order::create',
+                        'Site = ' . $order['site'] . ' not found in setting. Order crm id=' . $order['id']
+                    );
 
                     continue;
                 }

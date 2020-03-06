@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Class RetailCrmEvent
  */
@@ -56,7 +57,7 @@ class RetailCrmEvent
     /**
      * onUpdateOrder
      *
-     * @param mixed $ID - Order id
+     * @param mixed $ID       - Order id
      * @param mixed $arFields - Order arFields
      */
     function onUpdateOrder($ID, $arFields)
@@ -69,8 +70,8 @@ class RetailCrmEvent
         $GLOBALS['RETAILCRM_ORDER_OLD_EVENT'] = true;
 
         if (($arFields['CANCELED'] == 'Y')
-            && (sizeof($arFields['BASKET_ITEMS']) == 0 )
-            && (sizeof($arFields['ORDER_PROP']) == 0 )
+            && (sizeof($arFields['BASKET_ITEMS']) == 0)
+            && (sizeof($arFields['ORDER_PROP']) == 0)
         ) {
             $GLOBALS['ORDER_DELETE_USER_ADMIN'] = true;
         }
@@ -143,6 +144,7 @@ class RetailCrmEvent
             return false;
         }
 
+        $log = new Logger();
         $arOrder = RetailCrmOrder::orderObjToArr($obOrder);
 
         //api
@@ -166,16 +168,16 @@ class RetailCrmEvent
         $optionCorpClient = COption::GetOptionString(self::$MODULE_ID, self::$CRM_CC, 0);
 
         $arParams = RCrmActions::clearArr(array(
-            'optionsOrderTypes'     => $optionsOrderTypes,
-            'optionsDelivTypes'     => $optionsDelivTypes,
-            'optionsPayTypes'       => $optionsPayTypes,
-            'optionsPayStatuses'    => $optionsPayStatuses,
-            'optionsPayment'        => $optionsPayment,
-            'optionsOrderProps'     => $optionsOrderProps,
-            'optionsLegalDetails'   => $optionsLegalDetails,
+            'optionsOrderTypes' => $optionsOrderTypes,
+            'optionsDelivTypes' => $optionsDelivTypes,
+            'optionsPayTypes' => $optionsPayTypes,
+            'optionsPayStatuses' => $optionsPayStatuses,
+            'optionsPayment' => $optionsPayment,
+            'optionsOrderProps' => $optionsOrderProps,
+            'optionsLegalDetails' => $optionsLegalDetails,
             'optionsContragentType' => $optionsContragentType,
-            'optionsSitesList'      => $optionsSitesList,
-            'optionsCustomFields'   => $optionsCustomFields
+            'optionsSitesList' => $optionsSitesList,
+            'optionsCustomFields' => $optionsCustomFields
         ));
 
         //many sites?
@@ -201,16 +203,19 @@ class RetailCrmEvent
         if ("Y" == $optionCorpClient && $optionsContragentType[$arOrder['PERSON_TYPE_ID']] == 'legal-entity') {
             //corparate cliente
             $nickName = '';
-            $corpAdres = '';
+            $address = '';
+            $corpAddress = '';
+            $contragent = array();
+            $userCorp = array();
             $corpName = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_CORP_NAME, 0));
-            $corpAdres = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_CORP_ADRES, 0));
+            $corpAddress = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_CORP_ADRES, 0));
 
             foreach ($arOrder['PROPS']['properties'] as $prop) {
                 if ($prop['CODE'] == $corpName) {
                     $nickName = $prop['VALUE'][0];
                 }
 
-                if ($prop['CODE'] == $corpAdres) {
+                if ($prop['CODE'] == $corpAddress) {
                     $address = $prop['VALUE'][0];
                 }
 
@@ -253,11 +258,19 @@ class RetailCrmEvent
 
             if (!isset($userCrm['customer'])) {
                 $arUser = Bitrix\Main\UserTable::getById($arOrder['USER_ID'])->fetch();
-                $arUser['PERSONAL_STREET'] = $address;
+
+                if (!empty($address)) {
+                    $arUser['PERSONAL_STREET'] = $address;
+                }
+
                 $resultUser = RetailCrmUser::customerSend($arUser, $api, "individual", true, $site);
 
                 if (!$resultUser) {
-                    RCrmActions::eventLog('RetailCrmEvent::orderSave', 'RetailCrmUser::customerSend', 'error during creating customer');
+                    RCrmActions::eventLog(
+                        __CLASS__ . '::' . __METHOD__,
+                        'RetailCrmUser::customerSend',
+                        'error during creating customer'
+                    );
 
                     return false;
                 } else {
@@ -266,9 +279,15 @@ class RetailCrmEvent
             }
 
             if (!isset($userCorp['customerCorporate'])) {
-                $resultUserCorp = RetailCrmCorporateClient::clientSend($arOrder, $api, $optionsContragentType[$arOrder['PERSON_TYPE_ID']], true, false, $site);
+                $resultUserCorp = RetailCrmCorporateClient::clientSend(
+                    $arOrder,
+                    $api,
+                    $optionsContragentType[$arOrder['PERSON_TYPE_ID']],
+                    true,
+                    false,
+                    $site
+                );
 
-                $log = new Logger();
                 $log->write($resultUserCorp, 'resultUserCorp');
 
                 if (!$resultUserCorp) {
@@ -279,44 +298,107 @@ class RetailCrmEvent
 
                 $arParams['customerCorporate'] = $resultUserCorp;
 
-                //TODO address builder add
-                $customerCorporateAddress = array(
+                $customerCorporateAddress = array();
+                $customerCorporateCompany = array();
+                $addressResult = null;
+                $companyResult = null;
+
+                if (!empty($address)) {
+                    //TODO address builder add
+                    $customerCorporateAddress = array(
+                        'name' => $nickName,
+                        'isMain' => true,
+                        'text' => $address
+                    );
+
+                    $addressResult = $api->customersCorporateAddressesCreate($resultUserCorp['id'], $customerCorporateAddress, 'id', $site);
+                }
+
+                $customerCorporateCompany = array(
                     'name' => $nickName,
                     'isMain' => true,
-                    'text' => $address
+                    'contragent' => $contragent
                 );
 
-                $addressResult = $api->customersCorporateAddressesCreate($resultUserCorp['id'], $customerCorporateAddress, 'id', $site);
-                $customerCorporateCompani = array(
-                    'name' => $nickName,
-                    'isMain' => true,
-                    'contragent' => $contragent,
-                    'address' => array(
-                        'id' =>$addressResult['id']
-                    )
-                );
+                if (!empty($addressResult)) {
+                    $customerCorporateCompany['address'] = array(
+                        'id' => $addressResult['id']
+                    );
+                }
 
-                $companiResult = $api->customersCorporateCompaniesCreate($resultUserCorp['id'], $customerCorporateCompani, 'id', $site);
+                $companyResult = $api->customersCorporateCompaniesCreate($resultUserCorp['id'], $customerCorporateCompany, 'id', $site);
 
                 $customerCorporateContact = array(
                     'isMain' => true,
                     'customer' => array(
                         'externalId' => $arOrder['USER_ID'],
                         'site' => $site
-                    ),
-                    'companies' => array(
-                        array(
-                            'company' => array(
-                                'id' => $companiResult['id']
-                            )
-                        )
                     )
                 );
-                $contactResult = $api->customersCorporateContactsCreate($resultUserCorp['id'], $customerCorporateContact, 'id', $site);
 
+                if (!empty($companyResult)) {
+                    $customerCorporateContact['companies'] = array(
+                        array(
+                            'company' => array(
+                                'id' => $companyResult['id']
+                            )
+                        )
+                    );
+                }
+
+                $contactResult = $api->customersCorporateContactsCreate(
+                    $resultUserCorp['id'],
+                    $customerCorporateContact,
+                    'id',
+                    $site
+                );
             } else {
-                $arParams['customerCorporate'] = $userCorp['customerCorporate'];
+                $found = false;
+                $addresses = $api->customersCorporateAddresses(
+                    $userCorp['customerCorporate']['id'],
+                    array(),
+                    null,
+                    100,
+                    'id',
+                    $site
+                );
 
+                if ($addresses && $addresses->isSuccessful() && $addresses->offsetExists('addresses')) {
+                    foreach ($addresses['addresses'] as $corpAddress) {
+                        if (isset($corpAddress['text']) && $corpAddress['text'] == $address) {
+                            $found = true;
+
+                            break;
+                        }
+                    }
+
+                    if (!$found) {
+                        $customerCorporateAddress = array(
+                            'name' => $nickName,
+                            'text' => $address
+                        );
+
+                        $addressResult = $api->customersCorporateAddressesCreate(
+                            $userCorp['customerCorporate']['id'],
+                            $customerCorporateAddress,
+                            'id',
+                            $site
+                        );
+
+                        if (!$addressResult || ($addressResult && !$addressResult->isSuccessful())) {
+                            $log->write(sprintf(
+                                'error while trying to append address to corporate customer%s%s',
+                                PHP_EOL,
+                                print_r(array(
+                                    'address' => $customerCorporateAddress,
+                                    'customer' => $userCorp['customerCorporate']
+                                ), true)
+                            ), 'apiErrors');
+                        }
+                    }
+                }
+
+                $arParams['customerCorporate'] = $userCorp['customerCorporate'];
             }
 
             $arParams['contactExId'] = $userCrm['customer']['externalId'];
@@ -348,9 +430,9 @@ class RetailCrmEvent
     /**
      * @param \Bitrix\Sale\Payment $event
      *
+     * @return bool
      * @throws InvalidArgumentException
      *
-     * @return bool
      */
     function paymentSave($event)
     {
@@ -371,13 +453,13 @@ class RetailCrmEvent
         $optionsPayStatuses = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT, 0));
 
         $arPayment = array(
-            'ID'            => $event->getId(),
-            'ORDER_ID'      => $event->getField('ORDER_ID'),
-            'PAID'          => $event->getField('PAID'),
+            'ID' => $event->getId(),
+            'ORDER_ID' => $event->getField('ORDER_ID'),
+            'PAID' => $event->getField('PAID'),
             'PAY_SYSTEM_ID' => $event->getField('PAY_SYSTEM_ID'),
-            'SUM'           => $event->getField('SUM'),
-            'LID'           => $order->getSiteId(),
-            'DATE_PAID'     => $event->getField('DATE_PAID'),
+            'SUM' => $event->getField('SUM'),
+            'LID' => $order->getSiteId(),
+            'DATE_PAID' => $event->getField('DATE_PAID'),
         );
 
         if ($optionsSitesList) {
@@ -490,9 +572,9 @@ class RetailCrmEvent
         $optionsSitesList = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_SITES_LIST, 0));
 
         $arPayment = array(
-            'ID'            => $event->getId(),
-            'ORDER_ID'      => $event->getField('ORDER_ID'),
-            'LID'           => $event->getCollection()->getOrder()->getSiteId()
+            'ID' => $event->getId(),
+            'ORDER_ID' => $event->getField('ORDER_ID'),
+            'LID' => $event->getCollection()->getOrder()->getSiteId()
         );
 
         if ($optionsSitesList) {
