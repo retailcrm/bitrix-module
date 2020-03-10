@@ -156,7 +156,7 @@ class RetailcrmConfigProvider
      *
      * @return bool|string|null
      */
-    public static function getCorporateClient()
+    public static function getCorporateClientStatus()
     {
         if (self::isEmptyNotZero(static::$corporateClient)) {
             static::$corporateClient = static::getOption(RetailcrmConstants::CRM_CC);
