@@ -75,6 +75,15 @@ class RetailcrmConfigProvider
     /** @var array $customFields */
     private static $customFields;
 
+    /** @var array $infoblocksInventories */
+    private static $infoblocksInventories;
+
+    /** @var array $stores */
+    private static $stores;
+
+    /** @var array $shops */
+    private static $shops;
+
     /**
      * @return bool|string|null
      */
@@ -104,7 +113,7 @@ class RetailcrmConfigProvider
      *
      * @return bool|string|null
      */
-    public static function getCorporateClient()
+    public static function getCorporateClientStatus()
     {
         if (empty(static::$corporateClient)) {
             static::$corporateClient = static::getOption(RetailcrmConstants::CRM_CC);
@@ -264,6 +273,16 @@ class RetailcrmConfigProvider
     }
 
     /**
+     * setLastOrderId
+     *
+     * @param $id
+     */
+    public static function setLastOrderId($id)
+    {
+        static::setOption(RetailcrmConstants::CRM_ORDER_LAST_ID, $id);
+    }
+
+    /**
      * getFailedOrdersIds
      *
      * @return array
@@ -271,6 +290,16 @@ class RetailcrmConfigProvider
     public static function getFailedOrdersIds()
     {
         return static::getUnserializedOption(RetailcrmConstants::CRM_ORDER_FAILED_IDS);
+    }
+
+    /**
+     * setFailedOrdersIds
+     *
+     * @param $ids
+     */
+    public static function setFailedOrdersIds($ids)
+    {
+        static::setOption(RetailcrmConstants::CRM_ORDER_FAILED_IDS, serialize($ids));
     }
 
     /**
@@ -336,6 +365,60 @@ class RetailcrmConfigProvider
     }
 
     /**
+     * Returns currency from settings. If it's not set - returns Bitrix base currency.
+     *
+     * @return bool|string|null
+     */
+    public static function getCurrencyOrDefault()
+    {
+        return self::getCurrency() ? self::getCurrency() : \Bitrix\Currency\CurrencyManager::getBaseCurrency();
+    }
+
+    /**
+     * getInfoblocksInventories
+     *
+     * @return array
+     */
+    public static function getInfoblocksInventories()
+    {
+        if (empty(static::$infoblocksInventories)) {
+            static::$infoblocksInventories = static::getUnserializedOption(
+                RetailcrmConstants::CRM_IBLOCKS_INVENTORIES
+            );
+        }
+
+        return static::$infoblocksInventories;
+    }
+
+    /**
+     * getStores
+     *
+     * @return array
+     */
+    public static function getStores()
+    {
+        if (empty(static::$stores)) {
+            static::$stores = static::getUnserializedOption(RetailcrmConstants::CRM_STORES);
+        }
+
+        return static::$stores;
+    }
+
+    /**
+     * getShops
+     *
+     * @return array
+     */
+    public static function getShops()
+    {
+        if (empty(static::$shops)) {
+            static::$shops = static::getUnserializedOption(RetailcrmConstants::CRM_SHOPS);
+        }
+
+        return static::$shops;
+    }
+
+    /**
      * Wraps Bitrix COption::GetOptionString(...)
      *
      * @param string $option
@@ -349,6 +432,25 @@ class RetailcrmConfigProvider
             RetailcrmConstants::MODULE_ID,
             $option,
             $def
+        );
+    }
+
+    /**
+     * setOption
+     *
+     * @param        $name
+     * @param string $value
+     * @param bool   $desc
+     * @param string $site
+     */
+    private static function setOption($name, $value = "", $desc = false, $site = "")
+    {
+        COption::SetOptionString(
+            RetailcrmConstants::MODULE_ID,
+            $name,
+            $value,
+            $desc,
+            $site
         );
     }
 

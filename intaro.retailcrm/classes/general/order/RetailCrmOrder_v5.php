@@ -52,10 +52,9 @@ class RetailCrmOrder
             return false;
         }
 
-        $dimensionsSetting = COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_DIMENSIONS, 'N');
-        $optionsCurrency = COption::GetOptionString(self::$MODULE_ID, self::$CRM_CURRENCY, 0);
-        $currency = $optionsCurrency ? $optionsCurrency : \Bitrix\Currency\CurrencyManager::getBaseCurrency();
-        $optionCorpClient = COption::GetOptionString(self::$MODULE_ID, self::$CRM_CC, 0);
+        $dimensionsSetting = RetailcrmConfigProvider::getOrderDimensions();
+        $currency = RetailcrmConfigProvider::getCurrencyOrDefault();
+        $optionCorpClient = RetailcrmConfigProvider::getCorporateClientStatus();
 
         $order = array(
             'number'          => $arFields['NUMBER'],
@@ -324,16 +323,7 @@ class RetailCrmOrder
      */
     public static function uploadOrders($pSize = 50, $failed = false, $orderList = false)
     {
-        if (!CModule::IncludeModule("iblock")) {
-            RCrmActions::eventLog(__CLASS__ . '::' . __METHOD__, 'iblock', 'module not found');
-            return true;
-        }
-        if (!CModule::IncludeModule("sale")) {
-            RCrmActions::eventLog(__CLASS__ . '::' . __METHOD__, 'sale', 'module not found');
-            return true;
-        }
-        if (!CModule::IncludeModule("catalog")) {
-            RCrmActions::eventLog(__CLASS__ . '::' . __METHOD__, 'catalog', 'module not found');
+        if (!RetailcrmDependencyLoader::loadDependencies()) {
             return true;
         }
 
@@ -342,8 +332,8 @@ class RetailCrmOrder
         $resCustomersCorporate = array();
         $orderIds = array();
 
-        $lastUpOrderId = COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, 0);
-        $failedIds = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_FAILED_IDS, 0));
+        $lastUpOrderId = RetailcrmConfigProvider::getLastOrderId();
+        $failedIds = RetailcrmConfigProvider::getFailedOrdersIds();
 
         if ($failed == true && $failedIds !== false && count($failedIds) > 0) {
             $orderIds = $failedIds;
@@ -424,7 +414,7 @@ class RetailCrmOrder
                 continue;
             }
 
-            if ("Y" == RetailcrmConfigProvider::getCorporateClient()
+            if ("Y" == RetailcrmConfigProvider::getCorporateClientStatus()
                 && $optionsContragentType[$order['PERSON_TYPE_ID']] == 'legal-entity'
             ) {
                 // TODO check if order is corporate, and if it IS - make corporate order
@@ -522,7 +512,7 @@ class RetailCrmOrder
                 return false;
             }
 
-            if ("Y" == RetailcrmConfigProvider::getCorporateClient()) {
+            if ("Y" == RetailcrmConfigProvider::getCorporateClientStatus()) {
                 foreach ($resOrders as $packKey => $pack) {
                     foreach ($pack as $key => $orderData) {
                         if (isset($orderData['contragent']['contragentType'])
@@ -565,13 +555,9 @@ class RetailCrmOrder
             }
 
             if ($failed == true && $failedIds !== false && count($failedIds) > 0) {
-                COption::SetOptionString(
-                    self::$MODULE_ID,
-                    self::$CRM_ORDER_FAILED_IDS,
-                    serialize(array_diff($failedIds, $recOrders))
-                );
+                RetailcrmConfigProvider::setFailedOrdersIds(array_diff($failedIds, $recOrders));
             } elseif ($lastUpOrderId < max($recOrders) && $orderList === false) {
-                COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, max($recOrders));
+                RetailcrmConfigProvider::setLastOrderId(max($recOrders));
             }
         }
 

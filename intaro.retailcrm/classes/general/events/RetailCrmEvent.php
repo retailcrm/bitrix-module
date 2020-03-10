@@ -40,11 +40,8 @@ class RetailCrmEvent
             return false;
         }
 
-        $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
-        $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
-        $optionsSitesList = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_SITES_LIST, 0));
-
-        $api = new RetailCrm\ApiClient($api_host, $api_key);
+        $optionsSitesList = RetailcrmConfigProvider::getSitesList();
+        $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
         $resultOrder = RetailCrmUser::customerEdit($arFields, $api, $optionsSitesList);
 
         if (!$resultOrder) {
@@ -147,25 +144,22 @@ class RetailCrmEvent
         $log = new Logger();
         $arOrder = RetailCrmOrder::orderObjToArr($obOrder);
 
-        //api
-        $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
-        $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
-        $api = new RetailCrm\ApiClient($api_host, $api_key);
+        $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
 
         //params
-        $optionsOrderTypes = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_TYPES_ARR, 0));
-        $optionsDelivTypes = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_DELIVERY_TYPES_ARR, 0));
-        $optionsPayTypes = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_TYPES, 0));
-        $optionsPayStatuses = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_STATUSES, 0)); // --statuses
-        $optionsPayment = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT, 0));
-        $optionsSitesList = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_SITES_LIST, 0));
-        $optionsOrderProps = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_PROPS, 0));
-        $optionsLegalDetails = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_LEGAL_DETAILS, 0));
-        $optionsContragentType = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_CONTRAGENT_TYPE, 0));
-        $optionsCustomFields = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_CUSTOM_FIELDS, 0));
+        $optionsOrderTypes = RetailcrmConfigProvider::getOrderTypes();
+        $optionsDelivTypes = RetailcrmConfigProvider::getDeliveryTypes();
+        $optionsPayTypes = RetailcrmConfigProvider::getPaymentTypes();
+        $optionsPayStatuses = RetailcrmConfigProvider::getPaymentStatuses(); // --statuses
+        $optionsPayment = RetailcrmConfigProvider::getPayment();
+        $optionsSitesList = RetailcrmConfigProvider::getSitesList();
+        $optionsOrderProps = RetailcrmConfigProvider::getOrderProps();
+        $optionsLegalDetails = RetailcrmConfigProvider::getLegalDetails();
+        $optionsContragentType = RetailcrmConfigProvider::getContragentTypes();
+        $optionsCustomFields = RetailcrmConfigProvider::getCustomFields();
 
         //corp cliente swich
-        $optionCorpClient = COption::GetOptionString(self::$MODULE_ID, self::$CRM_CC, 0);
+        $optionCorpClient = RetailcrmConfigProvider::getCorporateClientStatus();
 
         $arParams = RCrmActions::clearArr(array(
             'optionsOrderTypes' => $optionsOrderTypes,

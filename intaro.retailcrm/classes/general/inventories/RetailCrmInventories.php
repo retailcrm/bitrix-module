@@ -2,13 +2,6 @@
 IncludeModuleLangFile(__FILE__);
 class RetailCrmInventories
 {
-    public static $MODULE_ID = 'intaro.retailcrm';
-    public static $CRM_API_HOST_OPTION = 'api_host';
-    public static $CRM_API_KEY_OPTION = 'api_key';
-    public static $CRM_INVENTORIES_UPLOAD = 'inventories_upload';
-    public static $CRM_STORES = 'stores';
-    public static $CRM_SHOPS = 'shops';
-    public static $CRM_IBLOCKS_INVENTORIES = 'iblocks_inventories';   
     public static $pageSize = 500;
 
     public static function inventoriesUpload()
@@ -29,13 +22,10 @@ class RetailCrmInventories
             return false;
         }
 
-	$api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
-        $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
-	$api = new RetailCrm\ApiClient($api_host, $api_key);
-	
-	$infoBlocks = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_IBLOCKS_INVENTORIES, 0));
-	$stores = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_STORES, 0));
-	$shops = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_SHOPS, 0));
+	$api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
+	$infoBlocks = RetailcrmConfigProvider::getInfoblocksInventories();
+	$stores = RetailcrmConfigProvider::getStores();
+	$shops = RetailcrmConfigProvider::getShops();
 
         try {
             $inventoriesList = $api->storesList()->stores;
