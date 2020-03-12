@@ -141,7 +141,6 @@ class RetailCrmEvent
             return false;
         }
 
-        $log = new Logger();
         $arOrder = RetailCrmOrder::orderObjToArr($obOrder);
 
         $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
@@ -282,7 +281,7 @@ class RetailCrmEvent
                     $site
                 );
 
-                $log->write($resultUserCorp, 'resultUserCorp');
+                Logger::getInstance()->write($resultUserCorp, 'resultUserCorp');
 
                 if (!$resultUserCorp) {
                     RCrmActions::eventLog('RetailCrmEvent::orderSave', 'RetailCrmCorporateClient::clientSend', 'error during creating client');
@@ -380,7 +379,7 @@ class RetailCrmEvent
                         );
 
                         if (!$addressResult || ($addressResult && !$addressResult->isSuccessful())) {
-                            $log->write(sprintf(
+                            Logger::getInstance()->write(sprintf(
                                 'error while trying to append address to corporate customer%s%s',
                                 PHP_EOL,
                                 print_r(array(

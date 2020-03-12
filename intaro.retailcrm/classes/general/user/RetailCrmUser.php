@@ -67,8 +67,7 @@ class RetailCrmUser
         $normalizer = new RestNormalizer();
         $customer = $normalizer->normalize($customer, 'customers');
 
-        $log = new Logger();
-        $log->write($customer, 'customerSend');
+        Logger::getInstance()->write($customer, 'customerSend');
 
         if ($send) {
             if (!RCrmActions::apiMethod($api, 'customersCreate', __METHOD__, $customer, $site)) {
@@ -149,8 +148,7 @@ class RetailCrmUser
                 }
             }
 
-            $log = new Logger();
-            $log->write($customer, 'customerSend');
+            Logger::getInstance()->write($customer, 'customerSend');
 
             RCrmActions::apiMethod($api, 'customersEdit', __METHOD__, $customer, $site);
         }

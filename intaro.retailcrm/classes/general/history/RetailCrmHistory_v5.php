@@ -63,8 +63,7 @@ class RetailCrmHistory
 
             $customerH = isset($customerHistory['history']) ? $customerHistory['history'] : array();
 
-            $log = new Logger();
-            $log->write($customerH, 'customerHistory');
+            Logger::getInstance()->write($customerH, 'customerHistory');
 
             if (count($customerH) == 0) {
                 if ($customerHistory['history']['totalPageCount'] > $customerHistory['history']['currentPage']) {
@@ -275,8 +274,7 @@ class RetailCrmHistory
 
             $orderH = isset($orderHistory['history']) ? $orderHistory['history'] : array();
 
-            $log = new Logger();
-            $log->write($orderH, 'orderHistory');
+            Logger::getInstance()->write($orderH, 'orderHistory');
 
             if (count($orderH) == 0) {
                 if ($orderHistory['history']['totalPageCount'] > $orderHistory['history']['currentPage']) {
@@ -308,7 +306,7 @@ class RetailCrmHistory
                     }
                 }
 
-                $log->write($order, 'assemblyOrderHistory');
+                Logger::getInstance()->write($order, 'assemblyOrderHistory');
 
                 if (isset($order['deleted'])) {
                     if (isset($order['externalId'])) {
@@ -384,7 +382,7 @@ class RetailCrmHistory
                     }
 
                     if (!$contact || empty($contact['customer'])) {
-                        $log->write(sprintf(
+                        Logger::getInstance()->write(sprintf(
                             'cannot sync order - no customer found. order: %s',
                             print_r($order, true)
                         ), 'orderHistory');
@@ -785,8 +783,8 @@ class RetailCrmHistory
                             }
                         }
 
-                        $log->write($duplicateItems, 'duplicateItemsOrderHistory');
-                        $log->write($collectItems, 'collectItemsOrderHistory');
+                        Logger::getInstance()->write($duplicateItems, 'duplicateItemsOrderHistory');
+                        Logger::getInstance()->write($collectItems, 'collectItemsOrderHistory');
                         $optionDiscRound = COption::GetOptionString(self::$MODULE_ID, self::$CRM_DISCOUNT_ROUND, 0);
 
                         foreach ($order['items'] as $product) {

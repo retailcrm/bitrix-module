@@ -55,8 +55,6 @@ class RetailCrmInventories
         }        
         
         if (count($infoBlocks) > 0) {
-            $log = new Logger();
-            
             foreach ($infoBlocks as $id) {
                 $iblockOffer = CCatalogSKU::GetInfoByProductIBlock($id);
 
@@ -118,7 +116,7 @@ class RetailCrmInventories
                         //for log                  
                         $splitedItems = array_chunk($invUpload, 200);
                         foreach ($splitedItems as $chunk) {
-                            $log->write($chunk, 'inventoriesUpload');
+                            Logger::getInstance()->write($chunk, 'inventoriesUpload');
 
                             foreach ($shops as $shop) {
                                 RCrmActions::apiMethod($api, 'storeInventoriesUpload', __METHOD__, $chunk, $shop);

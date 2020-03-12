@@ -1,10 +1,50 @@
 <?php
+
+/**
+ * Class Logger
+ *
+ * @author  pavel
+ * @license https://opensource.org/licenses/MIT MIT License
+ * @link    http://help.retailcrm.pro/docs/Developers
+ */
 class Logger
 {
+    /** @var self $instance */
+    private static $instance;
+
+    /** @var string $logPath */
     private $logPath;
+
+    /** @var int $files */
     private $files;
-    
-    public function __construct($logPath = '/bitrix/modules/intaro.retailcrm/log', $files = 3)
+
+    /**
+     * Get logger instance or re-initialize it with new parameters
+     *
+     * @param string $logPath
+     * @param int    $files
+     *
+     * @return \Logger
+     */
+    public static function getInstance($logPath = '/bitrix/modules/intaro.retailcrm/log', $files = 3)
+    {
+        if (empty(self::$instance)
+            || self::$instance instanceof Logger
+            && (self::$instance->logPath != $logPath || self::$instance->files != $files)
+        ) {
+            self::$instance = new Logger($logPath, $files);
+        }
+
+        return self::$instance;
+    }
+
+    /**
+     * Logger constructor.
+     *
+     * @param string $logPath
+     * @param int    $files
+     */
+    private function __construct($logPath = '/bitrix/modules/intaro.retailcrm/log', $files = 3)
     {
         $this->logPath = $logPath;
         $this->files = $files;

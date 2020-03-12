@@ -212,7 +212,7 @@ class ApiClient
      *
      * @return ApiResponse
      */
-    public function customersСorporateСreate(array $customer, $site = null)
+    public function customersCorporateCreate(array $customer, $site = null)
     {
         if (! count($customer)) {
             throw new \InvalidArgumentException(

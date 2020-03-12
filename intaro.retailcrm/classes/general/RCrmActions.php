@@ -467,7 +467,6 @@ class RCrmActions
     }
 
     private static function proxy($api, $methodApi, $method, $params) {
-        $log = new Logger();
         $version = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_VERSION, 0);
         try {
             $result = call_user_func_array(array($api, $methodApi), $params);
@@ -477,7 +476,7 @@ class RCrmActions
                     || $methodApi == 'customersGet'
                     || $methodApi == 'customersСorporateGet'
                 ) {
-                    $log->write(array(
+                    Logger::getInstance()->write(array(
                         'api' => $version,
                         'methodApi' => $methodApi,
                         'errorMsg' => !empty($result['errorMsg']) ? $result['errorMsg'] : '',
@@ -485,7 +484,7 @@ class RCrmActions
                         'params' => $params
                     ), 'apiErrors');
                 } elseif ($methodApi == 'customersUpload' || $methodApi == 'ordersUpload') {
-                    $log->write(array(
+                    Logger::getInstance()->write(array(
                         'api' => $version,
                         'methodApi' => $methodApi,
                         'errorMsg' => !empty($result['errorMsg']) ? $result['errorMsg'] : '',
@@ -498,7 +497,7 @@ class RCrmActions
                         'RetailCrm\ApiClient::' . $methodApi,
                         !empty($result['errorMsg']) ? $result['errorMsg'] : ''
                     );
-                    $log->write(array(
+                    Logger::getInstance()->write(array(
                         'api' => $version,
                         'methodApi' => $methodApi,
                         'errorMsg' => !empty($result['errorMsg']) ? $result['errorMsg'] : '',
@@ -519,7 +518,6 @@ class RCrmActions
             }
         } catch (\RetailCrm\Exception\CurlException $e) {
             static::logException(
-                $log,
                 $method,
                 $methodApi,
                 'CurlException',
@@ -532,7 +530,6 @@ class RCrmActions
             return false;
         } catch (InvalidArgumentException $e) {
             static::logException(
-                $log,
                 $method,
                 $methodApi,
                 'InvalidArgumentException',
@@ -545,7 +542,6 @@ class RCrmActions
             return false;
         } catch (\RetailCrm\Exception\InvalidJsonException $e) {
             static::logException(
-                $log,
                 $method,
                 $methodApi,
                 'InvalidJsonException',
@@ -566,7 +562,6 @@ class RCrmActions
     /**
      * Log exception into log file and event log
      *
-     * @param \Logger                      $log
      * @param string                       $method
      * @param string                       $methodApi
      * @param string                       $exceptionName
@@ -576,7 +571,6 @@ class RCrmActions
      * @param array                        $params
      */
     protected static function logException(
-        $log,
         $method,
         $methodApi,
         $exceptionName,
@@ -590,7 +584,7 @@ class RCrmActions
             $exception->getCode() . ': ' . $exception->getMessage()
         );
 
-        $log->write(array(
+        Logger::getInstance()->write(array(
             'api' => $version,
             'methodApi' => $methodApi,
             'errorMsg' => $exception->getMessage(),

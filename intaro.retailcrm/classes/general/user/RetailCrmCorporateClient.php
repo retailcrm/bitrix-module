@@ -99,8 +99,7 @@ class RetailCrmCorporateClient
             $normalizer = new RestNormalizer();
             $customerCorporate = $normalizer->normalize($customerCorporate, 'customerCorporate');
 
-            $log = new Logger();
-            $log->write($customerCorporate, 'clientCorporate');
+            Logger::getInstance()->write($customerCorporate, 'clientCorporate');
 
             if ($send) {
                 $result = RCrmActions::apiMethod($api, 'customersСorporateСreate', __METHOD__, $customerCorporate, $site);

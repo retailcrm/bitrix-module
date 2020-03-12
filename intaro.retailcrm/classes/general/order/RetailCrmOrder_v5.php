@@ -2,30 +2,6 @@
 IncludeModuleLangFile(__FILE__);
 class RetailCrmOrder
 {
-    public static $MODULE_ID = 'intaro.retailcrm';
-    public static $CRM_API_HOST_OPTION = 'api_host';
-    public static $CRM_API_KEY_OPTION = 'api_key';
-    public static $CRM_ORDER_TYPES_ARR = 'order_types_arr';
-    public static $CRM_DELIVERY_TYPES_ARR = 'deliv_types_arr';
-    public static $CRM_PAYMENT_TYPES = 'pay_types_arr';
-    public static $CRM_PAYMENT_STATUSES = 'pay_statuses_arr';
-    public static $CRM_PAYMENT = 'payment_arr'; //order payment Y/N
-    public static $CRM_ORDER_LAST_ID = 'order_last_id';
-    public static $CRM_SITES_LIST = 'sites_list';
-    public static $CRM_ORDER_PROPS = 'order_props';
-    public static $CRM_LEGAL_DETAILS = 'legal_details';
-    public static $CRM_CUSTOM_FIELDS = 'custom_fields';
-    public static $CRM_CONTRAGENT_TYPE = 'contragent_type';
-    public static $CRM_ORDER_FAILED_IDS = 'order_failed_ids';
-    public static $CRM_ORDER_HISTORY_DATE = 'order_history_date';
-    public static $CRM_CATALOG_BASE_PRICE = 'catalog_base_price';
-    public static $CRM_ORDER_NUMBERS = 'order_numbers';
-    public static $CRM_ORDER_DIMENSIONS = 'order_dimensions';
-    public static $CRM_CURRENCY = 'currency';
-    public static $CRM_CC = 'cc';
-
-    const CANCEL_PROPERTY_CODE = 'INTAROCRM_IS_CANCELED';
-
     /**
      *
      * Creates order or returns order for mass upload
@@ -296,10 +272,9 @@ class RetailCrmOrder
         $normalizer = new RestNormalizer();
         $order = $normalizer->normalize($order, 'orders');
 
-        $log = new Logger();
-        $log->write($order, 'orderSend');
+        Logger::getInstance()->write($order, 'orderSend');
 
-        if($send) {
+        if ($send) {
             if (!RCrmActions::apiMethod($api, $methodApi, __METHOD__, $order, $site)) {
                 return false;
             }
@@ -329,6 +304,7 @@ class RetailCrmOrder
 
         $resOrders = array();
         $resCustomers = array();
+        $resCustomersAdded = array();
         $resCustomersCorporate = array();
         $orderIds = array();
 
@@ -456,12 +432,17 @@ class RetailCrmOrder
                 continue;
             }
 
-            if (!empty($arCustomerCorporate) && !empty($arCustomerCorporate['nickName'])
-            ) {
+            if (!empty($arCustomerCorporate) && !empty($arCustomerCorporate['nickName'])) {
                 $resCustomersCorporate[$arCustomerCorporate['nickName']] = $arCustomerCorporate;
             }
 
-            $resCustomers[$order['LID']][] = $arCustomer;
+            $email = isset($arCustomer['email']) ? $arCustomer['email'] : '';
+
+            if (!in_array($email, $resCustomersAdded)) {
+                $resCustomersAdded[] = $email;
+                $resCustomers[$order['LID']][] = $arCustomer;
+            }
+
             $resOrders[$order['LID']][] = $arOrders;
             $recOrders[] = $orderId;
         }
@@ -513,36 +494,53 @@ class RetailCrmOrder
             }
 
             if ("Y" == RetailcrmConfigProvider::getCorporateClientStatus()) {
+                $cachedCorporateIds = array();
+
                 foreach ($resOrders as $packKey => $pack) {
                     foreach ($pack as $key => $orderData) {
                         if (isset($orderData['contragent']['contragentType'])
                             && $orderData['contragent']['contragentType'] == 'legal-entity'
                             && !empty($orderData['contragent']['legalName'])
                         ) {
-                            $corpData = $api->customersCorporateList(array(
-                                'nickName' => array($orderData['contragent']['legalName'])
-                            ));
+                            if (isset($cachedCorporateIds[$orderData['contragent']['legalName']])) {
+                                $orderData['customer'] = array(
+                                    'id' => $cachedCorporateIds[$orderData['contragent']['legalName']]
+                                );
+                            } else {
+                                $corpData = $api->customersCorporateList(array(
+                                    'nickName' => array($orderData['contragent']['legalName'])
+                                ));
 
-                            if ($corpData
-                                && $corpData->isSuccessful()
-                                && $corpData->offsetExists('customersCorporate')
-                            ) {
-                                $corpData = $corpData['customersCorporate'];
-                                $corpData = reset($corpData);
+                                if ($corpData
+                                    && $corpData->isSuccessful()
+                                    && $corpData->offsetExists('customersCorporate')
+                                    && !empty($corpData['customersCorporate'])
+                                ) {
+                                    $corpData = $corpData['customersCorporate'];
+                                    $corpData = reset($corpData);
 
-                                $orderData['customer'] = array('id' => $corpData['id']);
-                            } elseif (array_key_exists($orderData['contragent']['legalName'], $resCustomersCorporate)) {
-                                $createResponse = $api
-                                    ->customersCreate($resCustomersCorporate[$orderData['contragent']['legalName']]);
+                                    $orderData['customer'] = array('id' => $corpData['id']);
+                                    $cachedCorporateIds[$orderData['contragent']['legalName']] = $corpData['id'];
+                                } elseif (array_key_exists(
+                                    $orderData['contragent']['legalName'],
+                                    $resCustomersCorporate
+                                )) {
+                                    $createResponse = $api
+                                        ->customersCorporateCreate(
+                                            $resCustomersCorporate[$orderData['contragent']['legalName']]
+                                        );
 
-                                if ($createResponse && $createResponse->isSuccessful()) {
-                                    $orderData['customer'] = array('id' => $createResponse['id']);
+                                    if ($createResponse && $createResponse->isSuccessful()) {
+                                        $orderData['customer'] = array('id' => $createResponse['id']);
+                                        $cachedCorporateIds[$orderData['contragent']['legalName']]
+                                            = $createResponse['id'];
+                                    }
                                 }
+
+                                time_nanosleep(0, 250000000);
                             }
 
                             $pack[$key] = $orderData;
-
-                            time_nanosleep(0, 250000000);
                         }
                     }
 
