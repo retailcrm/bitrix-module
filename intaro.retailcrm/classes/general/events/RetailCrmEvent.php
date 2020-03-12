@@ -301,7 +301,7 @@ class RetailCrmEvent
                     false,
                     $site
                 );
-            
+
                 Logger::getInstance()->write($resultUserCorp, 'resultUserCorp');
 
                 if (!$resultUserCorp) {
