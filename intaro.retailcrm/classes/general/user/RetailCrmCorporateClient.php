@@ -2,14 +2,6 @@
 IncludeModuleLangFile(__FILE__);
 class RetailCrmCorporateClient
 {
-    public static $MODULE_ID = 'intaro.retailcrm';
-    public static $CRM_SITES_LIST = 'shops-corporate';
-    public static $CRM_CORP_NAME = 'nickName-corporate';
-    public static $CRM_LEGAL_DETAILS = 'legal_details';
-    public static $CRM_DELIVERY_TYPES_ARR = 'deliv_types_arr';
-    public static $CRM_CORP_ADDRESS = 'adres-corporate';
-    public static $CRM_ORDER_PROPS = 'order_props';
-
     public static function clientSend($arOrder, $api, $contragentType, $send = false, $fillCorp = false, $site = null)
     {
         if (!$api || empty($contragentType)) {
