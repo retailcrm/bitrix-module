@@ -2,14 +2,6 @@
 IncludeModuleLangFile(__FILE__);
 class RetailCrmCorporateClient
 {
-    public static $MODULE_ID = 'intaro.retailcrm';
-    public static $CRM_SITES_LIST = 'shops-corporate';
-    public static $CRM_CORP_NAME = 'nickName-corporate';
-    public static $CRM_LEGAL_DETAILS = 'legal_details';
-    public static $CRM_DELIVERY_TYPES_ARR = 'deliv_types_arr';
-    public static $CRM_CORP_ADDRESS = 'adres-corporate';
-    public static $CRM_ORDER_PROPS = 'order_props';
-
     public static function clientSend($arOrder, $api, $contragentType, $send = false, $fillCorp = false, $site = null)
     {
         if (!$api || empty($contragentType)) {
@@ -18,11 +10,10 @@ class RetailCrmCorporateClient
 
         $address = array();
         $contragent = array();
-        $shops = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_SITES_LIST, 0));
-        $corpName = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_CORP_NAME, 0));
-        $corpAdres = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_CORP_ADDRESS, 0));
+        $shops = RetailcrmConfigProvider::getSitesListCorporate();
+        $optionsLegalDetails = RetailcrmConfigProvider::getLegalDetails();
+
         $arUser = Bitrix\Main\UserTable::getById($arOrder['USER_ID'])->fetch();
-        $optionsLegalDetails = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_LEGAL_DETAILS, 0));
 
         if (count($shops) == 0) {
             RCrmActions::eventLog('RetailCrmCorporateClient::clientSend()', '$shops', 'No stores selected for download');
@@ -31,11 +22,11 @@ class RetailCrmCorporateClient
         }
 
         foreach ($arOrder['PROPS']['properties'] as $prop) {
-            if ($prop['CODE'] == $corpName) {
+            if ($prop['CODE'] == RetailcrmConfigProvider::getCorporateClientName()) {
                 $nickName = $prop['VALUE'][0];
             }
 
-            if ($prop['CODE'] == $corpAdres) {
+            if ($prop['CODE'] == RetailcrmConfigProvider::getCorporateClientAddress()) {
                 $address = $prop['VALUE'][0];
             }
 

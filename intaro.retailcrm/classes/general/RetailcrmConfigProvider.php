@@ -43,10 +43,22 @@ class RetailcrmConfigProvider
     private static $orderDimensions;
 
     /** @var bool|null|string */
+    private static $corporateClientName;
+
+    /** @var bool|null|string */
+    private static $corporateClientAddress;
+
+    /** @var bool|null|string */
     private static $corporateClient;
 
     /** @var array $sitesList */
     private static $sitesList;
+
+    /** @var array $sitesListCorporate */
+    private static $sitesListCorporate;
+
+    /** @var bool|null|string $orderNumbers */
+    private static $orderNumbers;
 
     /** @var array $orderTypes */
     private static $orderTypes;
@@ -72,6 +84,9 @@ class RetailcrmConfigProvider
     /** @var array $contragentTypes */
     private static $contragentTypes;
 
+    /** @var array $cancellableOrderPaymentStatuses */
+    private static $cancellableOrderPaymentStatuses;
+
     /** @var array $customFields */
     private static $customFields;
 
@@ -89,7 +104,7 @@ class RetailcrmConfigProvider
      */
     public static function getApiUrl()
     {
-        if (empty(static::$apiUrl)) {
+        if (self::isEmptyNotZero(static::$apiUrl)) {
             static::$apiUrl = static::getOption(RetailcrmConstants::CRM_API_HOST_OPTION);
         }
 
@@ -101,11 +116,39 @@ class RetailcrmConfigProvider
      */
     public static function getApiKey()
     {
-        if (empty(static::$apiKey)) {
+        if (self::isEmptyNotZero(static::$apiKey)) {
             static::$apiKey = static::getOption(RetailcrmConstants::CRM_API_KEY_OPTION);
         }
 
         return static::$apiKey;
+    }
+
+    /**
+     * getCorporateClientName
+     *
+     * @return bool|string|null
+     */
+    public static function getCorporateClientName()
+    {
+        if (self::isEmptyNotZero(static::$corporateClientName)) {
+            static::$corporateClientName = static::getUnserializedOption(RetailcrmConstants::CRM_CORP_NAME);
+        }
+
+        return static::$corporateClientName;
+    }
+
+    /**
+     * getCorporateClientAddress
+     *
+     * @return bool|string|null
+     */
+    public static function getCorporateClientAddress()
+    {
+        if (self::isEmptyNotZero(static::$corporateClientAddress)) {
+            static::$corporateClientAddress = static::getUnserializedOption(RetailcrmConstants::CRM_CORP_ADDRESS);
+        }
+
+        return static::$corporateClientAddress;
     }
 
     /**
@@ -115,7 +158,7 @@ class RetailcrmConfigProvider
      */
     public static function getCorporateClientStatus()
     {
-        if (empty(static::$corporateClient)) {
+        if (self::isEmptyNotZero(static::$corporateClient)) {
             static::$corporateClient = static::getOption(RetailcrmConstants::CRM_CC);
         }
 
@@ -129,11 +172,27 @@ class RetailcrmConfigProvider
      */
     public static function getSitesList()
     {
-        if (empty(static::$sitesList)) {
+        if (self::isEmptyNotZero(static::$sitesList)) {
             static::$sitesList = static::getUnserializedOption(RetailcrmConstants::CRM_SITES_LIST);
         }
 
         return static::$sitesList;
+    }
+
+    /**
+     * getSitesListCorporate
+     *
+     * @return array
+     */
+    public static function getSitesListCorporate()
+    {
+        if (self::isEmptyNotZero(static::$sitesListCorporate)) {
+            static::$sitesListCorporate = static::getUnserializedOption(
+                RetailcrmConstants::CRM_SITES_LIST_CORPORATE
+            );
+        }
+
+        return static::$sitesListCorporate;
     }
 
     /**
@@ -143,7 +202,7 @@ class RetailcrmConfigProvider
      */
     public static function getOrderTypes()
     {
-        if (empty(static::$orderTypes)) {
+        if (self::isEmptyNotZero(static::$orderTypes)) {
             static::$orderTypes = static::getUnserializedOption(RetailcrmConstants::CRM_ORDER_TYPES_ARR);
         }
 
@@ -157,7 +216,7 @@ class RetailcrmConfigProvider
      */
     public static function getDeliveryTypes()
     {
-        if (empty(static::$deliveryTypes)) {
+        if (self::isEmptyNotZero(static::$deliveryTypes)) {
             static::$deliveryTypes = static::getUnserializedOption(RetailcrmConstants::CRM_DELIVERY_TYPES_ARR);
         }
 
@@ -171,7 +230,7 @@ class RetailcrmConfigProvider
      */
     public static function getPaymentTypes()
     {
-        if (empty(static::$paymentTypes)) {
+        if (self::isEmptyNotZero(static::$paymentTypes)) {
             static::$paymentTypes = static::getUnserializedOption(RetailcrmConstants::CRM_PAYMENT_TYPES);
         }
 
@@ -185,7 +244,7 @@ class RetailcrmConfigProvider
      */
     public static function getPaymentStatuses()
     {
-        if (empty(static::$paymentStatuses)) {
+        if (self::isEmptyNotZero(static::$paymentStatuses)) {
             static::$paymentStatuses = static::getUnserializedOption(RetailcrmConstants::CRM_PAYMENT_STATUSES);
         }
 
@@ -199,7 +258,7 @@ class RetailcrmConfigProvider
      */
     public static function getPayment()
     {
-        if (empty(static::$payment)) {
+        if (self::isEmptyNotZero(static::$payment)) {
             static::$payment = static::getUnserializedOption(RetailcrmConstants::CRM_PAYMENT);
         }
 
@@ -213,7 +272,7 @@ class RetailcrmConfigProvider
      */
     public static function getOrderProps()
     {
-        if (empty(static::$orderProps)) {
+        if (self::isEmptyNotZero(static::$orderProps)) {
             static::$orderProps = static::getUnserializedOption(RetailcrmConstants::CRM_ORDER_PROPS);
         }
 
@@ -227,7 +286,7 @@ class RetailcrmConfigProvider
      */
     public static function getLegalDetails()
     {
-        if (empty(static::$legalDetails)) {
+        if (self::isEmptyNotZero(static::$legalDetails)) {
             static::$legalDetails = static::getUnserializedOption(RetailcrmConstants::CRM_LEGAL_DETAILS);
         }
 
@@ -241,7 +300,7 @@ class RetailcrmConfigProvider
      */
     public static function getContragentTypes()
     {
-        if (empty(static::$contragentTypes)) {
+        if (self::isEmptyNotZero(static::$contragentTypes)) {
             static::$contragentTypes = static::getUnserializedOption(RetailcrmConstants::CRM_CONTRAGENT_TYPE);
         }
 
@@ -255,11 +314,27 @@ class RetailcrmConfigProvider
      */
     public static function getCustomFields()
     {
-        if (empty(static::$customFields)) {
+        if (self::isEmptyNotZero(static::$customFields)) {
             static::$customFields = static::getUnserializedOption(RetailcrmConstants::CRM_CUSTOM_FIELDS);
         }
 
         return static::$customFields;
+    }
+
+    /**
+     * getCancellableOrderPaymentStatuses
+     *
+     * @return array
+     */
+    public static function getCancellableOrderPaymentStatuses()
+    {
+        if (self::isEmptyNotZero(static::$cancellableOrderPaymentStatuses)) {
+            static::$cancellableOrderPaymentStatuses = static::getUnserializedOption(
+                RetailcrmConstants::CRM_CANCEL_ORDER
+            );
+        }
+
+        return static::$cancellableOrderPaymentStatuses;
     }
 
     /**
@@ -305,11 +380,15 @@ class RetailcrmConfigProvider
     /**
      * getOrderNumbers
      *
-     * @return array
+     * @return bool|string|null
      */
     public static function getOrderNumbers()
     {
-        return static::getUnserializedOption(RetailcrmConstants::CRM_ORDER_NUMBERS);
+        if (self::isEmptyNotZero(self::$orderNumbers)) {
+            self::$orderNumbers = static::getOption(RetailcrmConstants::CRM_ORDER_NUMBERS);
+        }
+
+        return self::$orderNumbers;
     }
 
     /**
@@ -329,7 +408,7 @@ class RetailcrmConfigProvider
      */
     public static function getCatalogBasePrice()
     {
-        if (empty(static::$catalogBasePrice)) {
+        if (self::isEmptyNotZero(static::$catalogBasePrice)) {
             static::$catalogBasePrice = static::getOption(RetailcrmConstants::CRM_CATALOG_BASE_PRICE);
         }
 
@@ -343,7 +422,7 @@ class RetailcrmConfigProvider
      */
     public static function getOrderDimensions()
     {
-        if (empty(static::$orderDimensions)) {
+        if (self::isEmptyNotZero(static::$orderDimensions)) {
             static::$orderDimensions = static::getOption(RetailcrmConstants::CRM_ORDER_DIMENSIONS, 'N');
         }
 
@@ -357,7 +436,7 @@ class RetailcrmConfigProvider
      */
     public static function getCurrency()
     {
-        if (empty(static::$currency)) {
+        if (self::isEmptyNotZero(static::$currency)) {
             static::$currency = static::getOption(RetailcrmConstants::CRM_CURRENCY);
         }
 
@@ -381,7 +460,7 @@ class RetailcrmConfigProvider
      */
     public static function getInfoblocksInventories()
     {
-        if (empty(static::$infoblocksInventories)) {
+        if (self::isEmptyNotZero(static::$infoblocksInventories)) {
             static::$infoblocksInventories = static::getUnserializedOption(
                 RetailcrmConstants::CRM_IBLOCKS_INVENTORIES
             );
@@ -397,7 +476,7 @@ class RetailcrmConfigProvider
      */
     public static function getStores()
     {
-        if (empty(static::$stores)) {
+        if (self::isEmptyNotZero(static::$stores)) {
             static::$stores = static::getUnserializedOption(RetailcrmConstants::CRM_STORES);
         }
 
@@ -411,7 +490,7 @@ class RetailcrmConfigProvider
      */
     public static function getShops()
     {
-        if (empty(static::$shops)) {
+        if (self::isEmptyNotZero(static::$shops)) {
             static::$shops = static::getUnserializedOption(RetailcrmConstants::CRM_SHOPS);
         }
 
@@ -465,5 +544,17 @@ class RetailcrmConfigProvider
     private static function getUnserializedOption($option, $def = 0)
     {
         return unserialize(static::getOption($option, $def));
+    }
+
+    /**
+     * Returns true if value is empty and not zero (0 - digit)
+     *
+     * @param mixed $value
+     *
+     * @return bool
+     */
+    private static function isEmptyNotZero($value)
+    {
+        return empty($value) && $value !== 0;
     }
 }

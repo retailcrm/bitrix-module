@@ -43,9 +43,10 @@ class RetailcrmConstants
     const CRM_LEGAL_DETAILS = 'legal_details';
     const CRM_CUSTOM_FIELDS = 'custom_fields';
     const CRM_CONTRAGENT_TYPE = 'contragent_type';
-    const CRM_SITES_LIST= 'sites_list';
+    const CRM_SITES_LIST = 'sites_list';
+    const CRM_SITES_LIST_CORPORATE = 'shops-corporate';
     const CRM_ORDER_NUMBERS = 'order_numbers';
-    const CRM_CANSEL_ORDER = 'cansel_order';
+    const CRM_CANCEL_ORDER = 'cansel_order';
     const CRM_INVENTORIES_UPLOAD = 'inventories_upload';
     const CRM_STORES = 'stores';
     const CRM_SHOPS = 'shops';
@@ -62,7 +63,7 @@ class RetailcrmConstants
     const CRM_CC = 'cc';
     const CRM_CORP_SHOPS = 'shops-corporate';
     const CRM_CORP_NAME = 'nickName-corporate';
-    const CRM_CORP_ADRES = 'adres-corporate';
+    const CRM_CORP_ADDRESS = 'adres-corporate';
     const CRM_API_VERSION = 'api_version';
     const CRM_CURRENCY = 'currency';
     const CRM_ADDRESS_OPTIONS = 'address_options';

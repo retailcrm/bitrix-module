@@ -200,8 +200,8 @@ class RetailCrmEvent
             $corpAddress = '';
             $contragent = array();
             $userCorp = array();
-            $corpName = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_CORP_NAME, 0));
-            $corpAddress = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_CORP_ADRES, 0));
+            $corpName = RetailcrmConfigProvider::getCorporateClientName();
+            $corpAddress = RetailcrmConfigProvider::getCorporateClientAddress();
 
             foreach ($arOrder['PROPS']['properties'] as $prop) {
                 if ($prop['CODE'] == $corpName) {
@@ -441,9 +441,9 @@ class RetailCrmEvent
             return false;
         }
 
-        $optionsSitesList = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_SITES_LIST, 0));
-        $optionsPaymentTypes = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_TYPES, 0));
-        $optionsPayStatuses = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT, 0));
+        $optionsSitesList = RetailcrmConfigProvider::getSitesList();
+        $optionsPaymentTypes = RetailcrmConfigProvider::getPaymentTypes();
+        $optionsPayStatuses = RetailcrmConfigProvider::getPayment();
 
         $arPayment = array(
             'ID' => $event->getId(),

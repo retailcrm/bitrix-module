@@ -228,40 +228,27 @@ class RetailCrmHistory
     public static function orderHistory()
     {
         global $USER;
+
         if (is_object($USER) == false) {
-            $USER = new RetailUser;
+            $USER = new RetailUser();
         }
-        if (!CModule::IncludeModule("iblock")) {
-            RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'iblock', 'module not found');
 
-            return false;
-        }
-        if (!CModule::IncludeModule("sale")) {
-            RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'sale', 'module not found');
-
-            return false;
-        }
-        if (!CModule::IncludeModule("catalog")) {
-            RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'catalog', 'module not found');
-
+        if (!RetailcrmDependencyLoader::loadDependencies()) {
             return false;
         }
 
-        $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
-        $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
+        $optionsOrderTypes = RetailcrmConfigProvider::getOrderTypes();
+        $optionsDelivTypes = array_flip(RetailcrmConfigProvider::getDeliveryTypes());
+        $optionsPayStatuses = array_flip(RetailcrmConfigProvider::getPaymentStatuses()); // --statuses
+        $optionsOrderProps = RetailcrmConfigProvider::getOrderProps();
+        $optionsLegalDetails = RetailcrmConfigProvider::getLegalDetails();
+        $optionsSitesList = RetailcrmConfigProvider::getSitesList();
+        $optionsOrderNumbers = RetailcrmConfigProvider::getOrderNumbers();
+        $optionsCanselOrder = RetailcrmConfigProvider::getCancellableOrderPaymentStatuses();
+        $currency = RetailcrmConfigProvider::getCurrencyOrDefault();
+        $contragentTypes = array_flip(RetailcrmConfigProvider::getContragentTypes());
 
-        $optionsOrderTypes = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_TYPES_ARR, 0));
-        $optionsDelivTypes = array_flip(unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_DELIVERY_TYPES_ARR, 0)));
-        $optionsPayStatuses = array_flip(unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_STATUSES, 0))); // --statuses
-        $optionsOrderProps = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_PROPS, 0));
-        $optionsLegalDetails = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_LEGAL_DETAILS, 0));
-        $optionsSitesList = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_SITES_LIST, 0));
-        $optionsOrderNumbers = COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_NUMBERS, 0);
-        $optionsCanselOrder = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_CANSEL_ORDER, 0));
-        $optionsCurrency = COption::GetOptionString(self::$MODULE_ID, self::$CRM_CURRENCY, 0);
-        $currency = $optionsCurrency ? $optionsCurrency : \Bitrix\Currency\CurrencyManager::getBaseCurrency();
-
-        $api = new RetailCrm\ApiClient($api_host, $api_key);
+        $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
 
         $historyFilter = array();
         $historyStart = COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_HISTORY);
@@ -436,9 +423,11 @@ class RetailCrmHistory
                                 "PASSWORD"          => $userPassword,
                                 "CONFIRM_PASSWORD"  => $userPassword
                             );
+
                             if ($order['customer']['phones'][0]) {
                                 $arFields['PERSONAL_PHONE'] = $order['customer']['phones'][0];
                             }
+
                             if ($order['customer']['phones'][1]) {
                                 $arFields['PERSONAL_MOBILE'] = $order['customer']['phones'][1];
                             }
@@ -467,7 +456,38 @@ class RetailCrmHistory
                         $order['customer']['externalId'] = $registeredUserID;
                     }
 
+                    $buyerProfileToAppend = array();
+
+                    if (!empty($storedCorporateCustomer) && !empty($order['company'])) {
+                        $buyerProfile = array(
+                            "NAME" => $order['company']['name'],
+                            "USER_ID" => $order['contact']['externalId'],
+                            "PERSON_TYPE_ID" => $contragentTypes['legal-entity']
+                        );
+
+                        $buyerProfileToAppend = Bitrix\Sale\OrderUserProperties::getList(array(
+                            "filter" => $buyerProfile
+                        ))->fetch();
+
+                        if (empty($buyerProfileToAppend)) {
+                            $buyerProfileInstance = new CSaleOrderUserProps();
+
+                            if ($buyerProfileInstance->Add($buyerProfile)) {
+                                $buyerProfileToAppend = Bitrix\Sale\OrderUserProperties::getList(array(
+                                    "filter" => $buyerProfile
+                                ))->fetch();
+                            }
+                        }
+                    }
+
                     $newOrder = Bitrix\Sale\Order::create($site, $order['customer']['externalId'], $currency);
+
+                    if (isset($buyerProfileToAppend['ID']) && isset($optionsLegalDetails['legalName'])) {
+                        $newOrder->setFields(array(
+                            $optionsLegalDetails['legalName'] => $buyerProfileToAppend['NAME'],
+                            'PERSON_TYPE_ID' => $buyerProfileToAppend['PERSON_TYPE_ID']
+                        ));
+                    }
 
                     if (!is_object($newOrder) || !$newOrder instanceof \Bitrix\Sale\Order) {
                         RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'Bitrix\Sale\Order::create', 'Error order create');
