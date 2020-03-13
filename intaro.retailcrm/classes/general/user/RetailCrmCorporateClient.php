@@ -102,7 +102,7 @@ class RetailCrmCorporateClient
             Logger::getInstance()->write($customerCorporate, 'clientCorporate');
 
             if ($send) {
-                $result = RCrmActions::apiMethod($api, 'customersСorporateСreate', __METHOD__, $customerCorporate, $site);
+                $result = RCrmActions::apiMethod($api, 'customersCorporateCreate', __METHOD__, $customerCorporate, $site);
                 if (!$result) {
                     return false;
                 }

@@ -471,6 +471,20 @@ class RCrmActions
         try {
             $result = call_user_func_array(array($api, $methodApi), $params);
 
+            if (!$result) {
+                $err = new RuntimeException(
+                    $methodApi . ": Got null instead of valid result!"
+                );
+                Logger::getInstance()->write(sprintf(
+                    '%s%s%s',
+                    $err->getMessage(),
+                    PHP_EOL,
+                    $err->getTraceAsString()
+                ), 'apiErrors');
+
+                return false;
+            }
+
             if ($result->getStatusCode() !== 200 && $result->getStatusCode() !== 201) {
                 if ($methodApi == 'ordersGet'
                     || $methodApi == 'customersGet'
