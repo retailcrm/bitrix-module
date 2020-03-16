@@ -19,6 +19,9 @@ env:
 stages:
   - test
 
+install:
+  - echo 'short_open_tag = On' >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
+
 before_script:
   - make create_db
   - make bitrix_install
