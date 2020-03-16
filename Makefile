@@ -27,8 +27,8 @@ ifeq ("$(wildcard $(BITRIX_PATH)/bitrix/php_interface/dbconn.php)","")
 endif
 
 create_db:
+	echo "USE mysql;\nUPDATE user SET password=PASSWORD('root') WHERE user='root';\nFLUSH PRIVILEGES;\n" | mysql -u root
 	@mysqladmin create $(DB_BITRIX_NAME) --user=$(DB_BITRIX_LOGIN) --password=$(DB_BITRIX_PASS)
-	@echo "USE mysql;\nUPDATE user SET authentication_string=PASSWORD('root') WHERE user='root';\nFLUSH PRIVILEGES;\n" | mysql -u root
 
 # docker commands
 install:
