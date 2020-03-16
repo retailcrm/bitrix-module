@@ -85,7 +85,7 @@ class Installer
         foreach ($wizard->GetWizardSteps() as $step) {
             if ($step->GetErrors()) {
                 foreach ($step->GetErrors() as $error) {
-                    $this->println(sprintf('error: %s, id: %s', $error[0], $error[1]));
+                    $this->println(sprintf('error: %s', mb_convert_encoding($error[0], 'UTF-8', 'windows-1251')));
                 }
             }
         }
