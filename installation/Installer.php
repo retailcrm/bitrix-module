@@ -84,6 +84,14 @@ class Installer
         $wizard->SetReturnOutput(true);
         $wizard->Display();
 
+        foreach ($wizard->GetWizardSteps() as $step) {
+            if ($step->GetErrors()) {
+                foreach ($step->GetErrors() as $error) {
+                    $this->println($error);
+                }
+            }
+        }
+
         ob_clean();
     }
 

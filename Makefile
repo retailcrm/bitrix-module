@@ -7,7 +7,7 @@ prepare_module:
 	composer pre-module-install
 
 bitrix_install: download_bitrix
-	echo "===== Installing Bitrix..."
+	@echo "===== Installing Bitrix..."
 	php bin/bitrix-install db_type
 	php bin/bitrix-install requirement
 	php bin/bitrix-install db_create
