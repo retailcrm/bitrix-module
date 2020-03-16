@@ -21,6 +21,8 @@ stages:
 
 install:
   - echo 'short_open_tag = On' >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
+  - echo 'mbstring.func_overload = 2' >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
+  - echo 'mbstring.internal_encoding = "UTF-8"' >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
 
 before_script:
   - make create_db
