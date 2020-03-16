@@ -58,8 +58,6 @@ class Installer
      */
     protected function request()
     {
-        ob_start();
-
         $this->setParams();
 
         $steps = array(
@@ -91,8 +89,6 @@ class Installer
                 }
             }
         }
-
-        ob_clean();
     }
 
     /**
