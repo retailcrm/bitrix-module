@@ -58,6 +58,8 @@ class Installer
      */
     protected function request()
     {
+        ob_start();
+
         $this->setParams();
 
         $steps = array(
@@ -81,6 +83,8 @@ class Installer
         $wizard->AddSteps($steps);
         $wizard->SetReturnOutput(true);
         $wizard->Display();
+
+        ob_clean();
     }
 
     /**
