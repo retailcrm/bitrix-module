@@ -1,0 +1,32 @@
+version: '3'
+services:
+  bitrix:
+    build: ./.docker
+    env_file:
+      - .env
+    environment:
+      - MYSQL_SERVER=${DB_BITRIX_HOST}
+      - MYSQL_DATABASE=${DB_BITRIX_NAME}
+      - MYSQL_USER=${DB_BITRIX_LOGIN}
+      - MYSQL_PASSWORD=${DB_BITRIX_PASS}
+      - BITRIX_PATH=${BITRIX_PATH}
+    depends_on:
+      - mysql
+    ports:
+      - '8080:80'
+    links:
+      - mysql
+    volumes:
+      - ./:/bitrix-module
+      - ./.docker/php.ini:/usr/local/etc/php/conf.d/z-bitrix.ini
+  mysql:
+    env_file:
+      - .env
+    image: mysql:5.6
+    ports:
+      - '3306:3306'
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=${DB_BITRIX_NAME}
+      - MYSQL_USER=${DB_BITRIX_LOGIN}
+      - MYSQL_PASSWORD=${DB_BITRIX_PASS}

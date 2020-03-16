@@ -1,13 +1,12 @@
+os: linux
+dist: trusty
+
 language: php
 
-sudo: false
+if: tag IS blank
 
 services:
   - mysql
-
-php:
-  - 7.1
-  - 7.2
 
 env:
   global:
@@ -17,12 +16,19 @@ env:
     - DB_BITRIX_NAME=bitrix
     - BITRIX_PATH=$TRAVIS_BUILD_DIR/bitrix
 
+stages:
+  - test
+
 before_script:
-  # Change MySQL root password
-  - echo "USE mysql;\nUPDATE user SET authentication_string=PASSWORD('root') WHERE user='root';\nFLUSH PRIVILEGES;\n" | mysql -u root
-
+  - make create_db
+  - make bitrix_install
   - composer install
-  - bash tests/bin/before_script.sh
 
-script:
-  - make test
+script: make test
+
+jobs:
+  include:
+    - php: 7.0
+    - php: 7.1
+    - php: 7.2
+    - php: 7.3

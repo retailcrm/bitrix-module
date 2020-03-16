@@ -1,0 +1,55 @@
+#!/usr/bin/env php
+<?php
+
+set_time_limit(0);
+
+if (ini_get('memory_limit') > 0 && (int)ini_get('memory_limit') < 784) {
+    ini_set('memory_limit', '784M');
+}
+
+$_SERVER['DOCUMENT_ROOT'] = getenv('BITRIX_PATH') ? getenv('BITRIX_PATH') : '/var/www/html';
+
+define("B_PROLOG_INCLUDED", true);
+define("DEBUG_MODE", true);
+
+if (!file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/main/install/wizard/wizard.php')) {
+    throw new \RuntimeException('Bitrix`s install files is not exists');
+}
+
+require_once $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/main/install/wizard/wizard.php';
+require_once __DIR__ . '/../installation/ExtendedCreateModulesStep.php';
+require_once __DIR__ . '/../installation/Installer.php';
+
+$installer = new Installer();
+
+$step = $argv[1];
+
+switch ($step) {
+    case 'db_type':
+        $installer->dbTypeStep();
+        exit(0);
+    case 'requirement':
+        $installer->requirementStep();
+        exit(0);
+    case 'db_create':
+        $installer->createDBStep();
+        exit(0);
+    case 'main_module':
+        $installer->createModulesStep(true);
+        exit(0);
+    case 'module':
+        $installer->createModulesStep();
+        exit(0);
+    case 'admin':
+        $installer->createAdminStep();
+        exit(0);
+    case 'load_module':
+        $installer->createLoadModuleStep();
+        exit(0);
+    case 'load_module_action':
+        $installer->createLoadModuleActionStep();
+        exit(0);
+    case 'finish':
+        $installer->createFinishStep();
+        exit(0);
+}
