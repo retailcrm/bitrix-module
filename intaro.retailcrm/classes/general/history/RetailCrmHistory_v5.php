@@ -718,7 +718,9 @@ class RetailCrmHistory
                     if ($optionsOrderProps[$personType]) {
                         foreach ($optionsOrderProps[$personType] as $key => $orderProp) {
                             if (array_key_exists($key, $order)) {
-                                $somePropValue = $propertyCollection->getItemByOrderPropertyId($propsKey[$orderProp]['ID']);
+                                $somePropValue = $propertyCollection
+                                    ->getItemByOrderPropertyId($propsKey[$orderProp]['ID']);
+
                                 if ($key == 'fio') {
                                     self::setProp($somePropValue, $order[$key]);
                                 } else {
@@ -920,6 +922,7 @@ class RetailCrmHistory
 
                         Logger::getInstance()->write($duplicateItems, 'duplicateItemsOrderHistory');
                         Logger::getInstance()->write($collectItems, 'collectItemsOrderHistory');
+
                         $optionDiscRound = COption::GetOptionString(self::$MODULE_ID, self::$CRM_DISCOUNT_ROUND, 0);
 
                         foreach ($order['items'] as $product) {
@@ -954,7 +957,11 @@ class RetailCrmHistory
                                         'CATALOG_XML_ID' => $elem["IBLOCK_XML_ID"]
                                     ));
                                 } else {
-                                    RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'createItem', 'Error item add');
+                                    RCrmActions::eventLog(
+                                        'RetailCrmHistory::orderHistory',
+                                        'createItem',
+                                        'Error item add'
+                                    );
 
                                     continue;
                                 }
@@ -1000,6 +1007,7 @@ class RetailCrmHistory
                     }
 
                     $orderSumm = 0;
+
                     foreach ($basket as $item) {
                         $orderSumm += $item->getFinalPrice();
                     }
@@ -1029,10 +1037,12 @@ class RetailCrmHistory
                     //delivery
                     if (array_key_exists('delivery', $order)) {
                         $itemUpdate = true;
+
                         //delete empty
                         if (!isset($orderCrm)) {
                             $orderCrm = RCrmActions::apiMethod($api, 'orderGet', __METHOD__, $order['id']);
                         }
+
                         if ($orderCrm) {
                             self::deliveryUpdate($newOrder, $optionsDelivTypes, $orderCrm['order']);
                         }
@@ -1061,7 +1071,12 @@ class RetailCrmHistory
                                 $paymentId = $orderPayment->getId();
                                 $paymentExternalId = RCrmActions::generatePaymentExternalId($paymentId);
                                 if (is_null($paymentId)) {
-                                    RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'paymentsUpdate', 'Save payment error, order=' . $order['number']);
+                                    RCrmActions::eventLog(
+                                        'RetailCrmHistory::orderHistory',
+                                        'paymentsUpdate',
+                                        'Save payment error, order=' . $order['number']
+                                    );
+
                                     continue;
                                 }
 
@@ -1069,7 +1084,13 @@ class RetailCrmHistory
 
                                 if ($paymentExternalId) {
                                     $newHistoryPayments[$orderPayment->getField('XML_ID')]['externalId'] = $paymentExternalId;
-                                    RCrmActions::apiMethod($api, 'paymentEditById', __METHOD__, $newHistoryPayments[$orderPayment->getField('XML_ID')]);
+                                    RCrmActions::apiMethod(
+                                        $api,
+                                        'paymentEditById',
+                                        __METHOD__,
+                                        $newHistoryPayments[$orderPayment->getField('XML_ID')]
+                                    );
+
                                     if ($paymentId) {
                                         \Bitrix\Sale\Internals\PaymentTable::update($paymentId, array('XML_ID' => ''));
                                     }
@@ -1080,7 +1101,13 @@ class RetailCrmHistory
 
                     if (!$order['externalId']) {
                         $order["externalId"] = $newOrder->getId();
-                        if (RCrmActions::apiMethod($api, 'ordersFixExternalIds', __METHOD__, array(array('id' => $order['id'], 'externalId' => $newOrder->getId()))) == false) {
+
+                        if (RCrmActions::apiMethod(
+                            $api,
+                            'ordersFixExternalIds',
+                            __METHOD__,
+                            array(array('id' => $order['id'], 'externalId' => $newOrder->getId()))) == false
+                        ) {
                             continue;
                         }
                     }
