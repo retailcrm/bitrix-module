@@ -374,20 +374,22 @@ class RetailCrmHistory
                     unset($order['customer']['externalId']);
                 }
 
-                // Corporate customer will be stored here because it will be replaced in actual order.
-                // TODO This should be considered as a sign of bad logic! Rewrite ASAP.
-                $storedCorporateCustomer = array();
+                $corporateContact = array();
+                $orderCustomerExtId = isset($order['customer']['externalId']) ? $order['customer']['externalId'] : null;
 
-                if ($order['customer']['type'] == 'customer_corporate') {
-                    $contact = false;
-
+                if (RetailCrmOrder::isOrderCorporate($order)) {
                     // Fetch contact only if we think it's data is not fully present in order
                     if (!empty($order['contact'])) {
                         if (isset($order['contact']['email'])) {
-                            $contact = array('customer' => $order['contact']);
+                            $corporateContact = $order['contact'];
+                            $orderCustomerExtId = isset($corporateContact['externalId'])
+                                ? $corporateContact['externalId']
+                                : null;
                         } else {
+                            $response = false;
+
                             if (isset($order['contact']['externalId'])) {
-                                $contact = RCrmActions::apiMethod(
+                                $response = RCrmActions::apiMethod(
                                     $api,
                                     'customersGet',
                                     __METHOD__,
@@ -395,7 +397,7 @@ class RetailCrmHistory
                                     $order['site']
                                 );
                             } elseif (isset($order['contact']['id'])) {
-                                $contact = RCrmActions::apiMethod(
+                                $response = RCrmActions::apiMethod(
                                     $api,
                                     'customersGetById',
                                     __METHOD__,
@@ -403,20 +405,15 @@ class RetailCrmHistory
                                     $order['site']
                                 );
                             }
+
+                            if ($response && isset($response['customer'])) {
+                                $corporateContact = $response['customer'];
+                                $orderCustomerExtId = isset($corporateContact['externalId'])
+                                    ? $corporateContact['externalId']
+                                    : null;
+                            }
                         }
                     }
-
-                    if (!$contact || empty($contact['customer'])) {
-                        Logger::getInstance()->write(sprintf(
-                            'cannot sync order - no customer found. order: %s',
-                            print_r($order, true)
-                        ), 'orderHistory');
-
-                        continue;
-                    }
-
-                    $storedCorporateCustomer = $order['customer'];
-                    $order['customer'] = $contact['customer'];
                 }
 
                 $corporateContact = array();
@@ -478,29 +475,29 @@ class RetailCrmHistory
                                 $login = $corporateContact['email'];
                                 $order['customer']['email'] = $corporateContact['email'];
                             } else {
-                                $login = uniqid('user_' . time()) . '@crm.com';
+                                $login = uniqid('user_' . time()) . '@example.com';
                                 $order['customer']['email'] = $login;
                             }
-                        }
+                        } else {
+                            $dbUser = CUser::GetList(
+                                ($by = 'ID'),
+                                ($sort = 'ASC'),
+                                array('=EMAIL' => $order['email'])
+                            );
 
-                        $dbUser = CUser::GetList(
-                            ($by = 'ID'),
-                            ($sort = 'ASC'),
-                            array('=EMAIL' => $order['customer']['email'])
-                        );
-
-                        switch ($dbUser->SelectedRowsCount()) {
-                            case 0:
-                                $login = $order['customer']['email'];
-                                break;
-                            case 1:
-                                $arUser = $dbUser->Fetch();
-                                $registeredUserID = $arUser['ID'];
-                                $registerNewUser = false;
-                                break;
-                            default:
-                                $login = uniqid('user_' . time()) . '@crm.com';
-                                break;
+                            switch ($dbUser->SelectedRowsCount()) {
+                                case 0:
+                                    $login = $order['customer']['email'];
+                                    break;
+                                case 1:
+                                    $arUser = $dbUser->Fetch();
+                                    $registeredUserID = $arUser['ID'];
+                                    $registerNewUser = false;
+                                    break;
+                                default:
+                                    $login = uniqid('user_' . time()) . '@example.com';
+                                    break;
+                            }
                         }
 
                         if ($registerNewUser === true) {
