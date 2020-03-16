@@ -7,12 +7,22 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/main/install/wizard/wi
  */
 class Installer
 {
+    private $dbName;
+    private $dbHost;
+    private $dbUser;
+    private $dbPass;
+
     /**
      * Installer constructor.
      */
     public function __construct()
     {
         $this->deleteDefaultInstallation();
+
+        $this->dbHost = getenv('DB_BITRIX_HOST') ? getenv('DB_BITRIX_HOST') : 'localhost';
+        $this->dbName = getenv('DB_BITRIX_NAME') ? getenv('DB_BITRIX_NAME') : 'bitrix';
+        $this->dbUser = getenv('DB_BITRIX_LOGIN') ? getenv('DB_BITRIX_LOGIN') : 'bitrix';
+        $this->dbPass = getenv('DB_BITRIX_PASS') ? getenv('DB_BITRIX_PASS') : 'bitrix';
     }
 
     /**
@@ -102,12 +112,12 @@ class Installer
             '__wiz_dbType' => 'mysql',
             '__wiz_lic_key_variant' => '',
             '__wiz_utf8' => 'Y',
-            '__wiz_host' => 'mysql',
             '__wiz_create_user' => 'N',
-            '__wiz_user' => 'bitrix',
-            '__wiz_password' => 'bitrix',
+            '__wiz_host' => $this->dbHost,
+            '__wiz_user' => $this->dbUser,
+            '__wiz_password' => $this->dbPass,
+            '__wiz_database' => $this->dbName,
             '__wiz_create_database' => 'N',
-            '__wiz_database' => 'bitrix',
             '__wiz_create_database_type' => 'innodb',
             '__wiz_root_user' => '',
             '__wiz_root_password' => '',
@@ -136,7 +146,9 @@ class Installer
         $this->setCurrentStepID('select_database');
         $this->setNextStepID('requirements');
 
+        ob_start();
         $this->request();
+        ob_clean();
 
         $this->println('Selected database type');
 
