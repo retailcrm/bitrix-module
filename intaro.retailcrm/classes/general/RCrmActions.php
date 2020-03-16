@@ -243,9 +243,10 @@ class RCrmActions
 
     /**
      *
-     * @global $APPLICATION
-     * @param $str in SITE_CHARSET
-     * @return  $str in utf-8
+     * @param array|bool|\SplFixedArray|string $str in SITE_CHARSET
+     *
+     * @return array|bool|\SplFixedArray|string $str in utf-8
+     * @global                                 $APPLICATION
      */
     public static function toJSON($str)
     {
@@ -256,9 +257,10 @@ class RCrmActions
 
     /**
      *
-     * @global $APPLICATION
-     * @param $str in utf-8
-     * @return $str in SITE_CHARSET
+     * @param string|array|\SplFixedArray $str in utf-8
+     *
+     * @return array|bool|\SplFixedArray|string $str in SITE_CHARSET
+     * @global                            $APPLICATION
      */
     public static function fromJSON($str)
     {

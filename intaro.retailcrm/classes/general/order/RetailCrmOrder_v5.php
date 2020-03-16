@@ -563,6 +563,21 @@ class RetailCrmOrder
     }
 
     /**
+     * Returns true if provided order array is corporate order data
+     *
+     * @param array|\ArrayAccess $order
+     *
+     * @return bool
+     */
+    public static function isOrderCorporate($order)
+    {
+        return (is_array($order) || $order instanceof ArrayAccess)
+            && isset($order['customer'])
+            && isset($order['customer']['type'])
+            && $order['customer']['type'] == 'customer_corporate';
+    }
+
+    /**
      * Converts order object to array
      *
      * @param \Bitrix\Sale\Order $obOrder

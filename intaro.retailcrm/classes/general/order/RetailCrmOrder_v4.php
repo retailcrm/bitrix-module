@@ -331,6 +331,18 @@ class RetailCrmOrder
         return true;
     }
 
+    /**
+     * Returns true if provided order array is corporate order data. v4 doesn't have corporate orders.
+     *
+     * @param array|\ArrayAccess $order
+     *
+     * @return bool
+     */
+    public static function isOrderCorporate($order)
+    {
+        return false;
+    }
+
     public static function orderObjToArr($obOrder)
     {
         $culture = new \Bitrix\Main\Context\Culture(array("FORMAT_DATETIME" => "Y-m-d HH:i:s"));
