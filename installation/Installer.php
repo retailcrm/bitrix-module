@@ -85,7 +85,7 @@ class Installer
         foreach ($wizard->GetWizardSteps() as $step) {
             if ($step->GetErrors()) {
                 foreach ($step->GetErrors() as $error) {
-                    $this->println($error);
+                    $this->println(sprintf('error: %s, id: %s', $error[0], $error[1]));
                 }
             }
         }
