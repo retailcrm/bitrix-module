@@ -24,6 +24,8 @@ require($_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/main/include/prolog_before.
 global $USER;
 $USER->Authorize(1);
 
-if (!CModule::IncludeModule('intaro.retailcrm')) {
+if (!IsModuleInstalled('intaro.retailcrm')) {
     RegisterModule('intaro.retailcrm');
 }
+
+CModule::IncludeModule('intaro.retailcrm');
