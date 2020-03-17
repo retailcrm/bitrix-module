@@ -29,11 +29,11 @@ bitrix_install: download_bitrix
 
 download_bitrix:
 ifeq ("$(wildcard $(BITRIX_PATH)/bitrix/php_interface/dbconn.php)","")
-	wget -O /tmp/small_business_encode.tar.gz https://www.1c-bitrix.ru/download/small_business_encode.tar.gz
+	wget -O /tmp/$(BITRIX_EDITION).tar.gz https://www.1c-bitrix.ru/download/$(BITRIX_EDITION).tar.gz
 	mkdir -p $(BITRIX_PATH)
 	chmod -R 777 $(BITRIX_PATH)
-	tar -xf /tmp/small_business_encode.tar.gz -C $(BITRIX_PATH)
-	rm /tmp/small_business_encode.tar.gz
+	tar -xf /tmp/$(BITRIX_EDITION).tar.gz -C $(BITRIX_PATH)
+	rm /tmp/$(BITRIX_EDITION).tar.gz
 endif
 
 create_db:
