@@ -1,5 +1,8 @@
 ROOT_DIR=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
+test7.1: prepare_module
+	composer tests7.1
+
 test: prepare_module
 	composer tests
 
