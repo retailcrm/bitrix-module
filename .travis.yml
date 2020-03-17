@@ -27,7 +27,7 @@ install:
 before_script:
   - make create_db
   - make bitrix_install
-#  - composer install
+  - composer install
 
 script: make test
 
