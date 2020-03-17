@@ -89,6 +89,20 @@ class intaro_retailcrm extends CModule
         $this->PARTNER_URI = GetMessage('MODULE_PARTNER_URI');
     }
 
+    function loadDeps()
+    {
+        if (!class_exists('RetailcrmConstants')) {
+            require_once dirname(__FILE__) . '/../classes/general/RetailcrmConstants.php';
+        }
+        if (!class_exists('RetailcrmConfigProvider')) {
+            require_once dirname(__FILE__) . '/../classes/general/RetailcrmConfigProvider.php';
+        }
+
+        if (!class_exists('RetailcrmDependencyLoader')) {
+            require_once dirname(__FILE__) . '/../classes/general/RetailcrmDependencyLoader.php';
+        }
+    }
+
     /**
      * Functions DoInstall and DoUninstall are
      * All other functions are optional
@@ -564,6 +578,7 @@ class intaro_retailcrm extends CModule
                 && $_POST['ajax'] == 1
             ) {
                 $historyTime = Date('');
+                self::loadDeps();
                 RetailCrmOrder::uploadOrders(); // each 50
 
                 $lastUpOrderId = COption::GetOptionString($this->MODULE_ID, $this->CRM_ORDER_LAST_ID, 0);

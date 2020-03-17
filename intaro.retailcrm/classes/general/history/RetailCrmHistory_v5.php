@@ -30,19 +30,7 @@ class RetailCrmHistory
 
     public static function customerHistory()
     {
-        if (!CModule::IncludeModule("iblock")) {
-            RCrmActions::eventLog('RetailCrmHistory::customerHistory', 'iblock', 'module not found');
-
-            return false;
-        }
-        if (!CModule::IncludeModule("sale")) {
-            RCrmActions::eventLog('RetailCrmHistory::customerHistory', 'sale', 'module not found');
-
-            return false;
-        }
-        if (!CModule::IncludeModule("catalog")) {
-            RCrmActions::eventLog('RetailCrmHistory::customerHistory', 'catalog', 'module not found');
-
+        if (!RetailcrmDependencyLoader::loadDependencies()) {
             return false;
         }
 
@@ -79,7 +67,7 @@ class RetailCrmHistory
 
             $GLOBALS['RETAIL_CRM_HISTORY'] = true;
 
-            $newUser = new CUser;
+            $newUser = new CUser();
 
             foreach ($customers as $customer) {
                 if (function_exists('retailCrmBeforeCustomerSave')) {
@@ -107,8 +95,10 @@ class RetailCrmHistory
                     }
 
                     $registerNewUser = true;
+
                     if (!isset($customer['email']) || $customer['email'] == '') {
-                        $login = $customer['email'] = uniqid('user_' . time()) . '@crm.com';
+                        $login = uniqid('user_' . time()) . '@crm.com';
+                        $customer['email'] = $login;
                     } else {
                         $dbUser = CUser::GetList(($by = 'ID'), ($sort = 'ASC'), array('=EMAIL' => $customer['email']));
                         switch ($dbUser->SelectedRowsCount()) {
@@ -137,12 +127,23 @@ class RetailCrmHistory
                             "CONFIRM_PASSWORD"  => $userPassword
                         );
                         $registeredUserID = $newUser->Add($arFields);
+
                         if ($registeredUserID === false) {
-                            RCrmActions::eventLog('RetailCrmHistory::orderHistory', 'CUser::Register', 'Error register user: ' . $newUser->LAST_ERROR);
+                            RCrmActions::eventLog(
+                                'RetailCrmHistory::orderHistory',
+                                'CUser::Register',
+                                'Error register user: ' . $newUser->LAST_ERROR
+                            );
+
                             continue;
                         }
 
-                        if(RCrmActions::apiMethod($api, 'customersFixExternalIds', __METHOD__, array(array('id' => $customer['id'], 'externalId' => $registeredUserID))) == false) {
+                        if(RCrmActions::apiMethod(
+                            $api,
+                            'customersFixExternalIds',
+                            __METHOD__,
+                            array(array('id' => $customer['id'], 'externalId' => $registeredUserID))) == false
+                        ) {
                             continue;
                         }
                     }
@@ -153,13 +154,16 @@ class RetailCrmHistory
                 if (isset($customer['externalId'])) {
                     $arUser = array();
                     if (array_key_exists('firstName', $customer)) {
-                        $arUser["NAME"] = $customer['firstName'] ? RCrmActions::fromJSON($customer['firstName']) : '';
+                        $arUser["NAME"] = $customer['firstName']
+                            ? RCrmActions::fromJSON($customer['firstName']) : '';
                     }
                     if (array_key_exists('lastName', $customer)) {
-                        $arUser["LAST_NAME"] = $customer['lastName'] ? RCrmActions::fromJSON($customer['lastName']) : '';
+                        $arUser["LAST_NAME"] = $customer['lastName']
+                            ? RCrmActions::fromJSON($customer['lastName']) : '';
                     }
                     if (array_key_exists('patronymic', $customer)) {
-                        $arUser["SECOND_NAME"] = $customer['patronymic'] ? RCrmActions::fromJSON($customer['patronymic']) : '';
+                        $arUser["SECOND_NAME"] = $customer['patronymic']
+                            ? RCrmActions::fromJSON($customer['patronymic']) : '';
                     }
 
 //                    if (array_key_exists('email', $customer)) {
@@ -167,7 +171,13 @@ class RetailCrmHistory
 //                    }
 
                     if (isset($customer['phones'])) {
-                        $user = CUser::GetList(($by = "ID"), ($order = "desc"), array('ID' => $customer['externalId']), array('FIELDS' => array('PERSONAL_PHONE', 'PERSONAL_MOBILE')))->fetch();
+                        $user = CUser::GetList(
+                            ($by = "ID"),
+                            ($order = "desc"),
+                            array('ID' => $customer['externalId']),
+                            array('FIELDS' => array('PERSONAL_PHONE', 'PERSONAL_MOBILE'))
+                        )->fetch();
+
                         foreach ($customer['phones'] as $phone) {
                             if (isset($phone['old_number']) && in_array($phone['old_number'], $user)) {
                                 $key = array_search($phone['old_number'], $user);
@@ -179,13 +189,18 @@ class RetailCrmHistory
                                     $user[$key] = '';
                                 }
                             }
+
                             if (isset($phone['number'])) {
-                                if ((!isset($user['PERSONAL_PHONE']) || strlen($user['PERSONAL_PHONE']) == 0)  && $user['PERSONAL_MOBILE'] != $phone['number']) {
+                                if ((!isset($user['PERSONAL_PHONE']) || strlen($user['PERSONAL_PHONE']) == 0)
+                                    && $user['PERSONAL_MOBILE'] != $phone['number']
+                                ) {
                                     $arUser['PERSONAL_PHONE'] = $phone['number'];
                                     $user['PERSONAL_PHONE'] = $phone['number'];
                                     continue;
                                 }
-                                if ((!isset($user['PERSONAL_MOBILE']) || strlen($user['PERSONAL_MOBILE']) == 0) && $user['PERSONAL_PHONE'] != $phone['number']) {
+                                if ((!isset($user['PERSONAL_MOBILE']) || strlen($user['PERSONAL_MOBILE']) == 0)
+                                    && $user['PERSONAL_PHONE'] != $phone['number']
+                                ) {
                                     $arUser['PERSONAL_MOBILE'] = $phone['number'];
                                     $user['PERSONAL_MOBILE'] = $phone['number'];
                                     continue;
@@ -194,15 +209,21 @@ class RetailCrmHistory
                         }
                     }
                     if (array_key_exists('index', $customer['address'])) {
-                        $arUser["PERSONAL_ZIP"] = $customer['address']['index'] ? RCrmActions::fromJSON($customer['address']['index']) : '';
+                        $arUser["PERSONAL_ZIP"] = $customer['address']['index']
+                            ? RCrmActions::fromJSON($customer['address']['index']) : '';
                     }
                     if (array_key_exists('city', $customer['address'])) {
-                        $arUser["PERSONAL_CITY"] = $customer['address']['city'] ? RCrmActions::fromJSON($customer['address']['city']) : '';
+                        $arUser["PERSONAL_CITY"] = $customer['address']['city']
+                            ? RCrmActions::fromJSON($customer['address']['city']) : '';
                     }
 
                     $u = $newUser->Update($customer['externalId'], $arUser);
                     if (!$u) {
-                        RCrmActions::eventLog('RetailCrmHistory::customerHistory', 'Error update user', $newUser->LAST_ERROR);
+                        RCrmActions::eventLog(
+                            'RetailCrmHistory::customerHistory',
+                            'Error update user',
+                            $newUser->LAST_ERROR
+                        );
                     }
 
                     if (function_exists('retailCrmAfterCustomerSave')) {
@@ -252,13 +273,13 @@ class RetailCrmHistory
 
         $historyFilter = array();
         $historyStart = COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_HISTORY);
+
         if ($historyStart && $historyStart > 0) {
             $historyFilter['sinceId'] = $historyStart;
         }
 
         while (true) {
             $orderHistory = RCrmActions::apiMethod($api, 'ordersHistory', __METHOD__, $historyFilter);
-
             $orderH = isset($orderHistory['history']) ? $orderHistory['history'] : array();
 
             Logger::getInstance()->write($orderH, 'orderHistory');
@@ -274,13 +295,13 @@ class RetailCrmHistory
             }
 
             $orders = self::assemblyOrder($orderH);
-
             $GLOBALS['RETAIL_CRM_HISTORY'] = true;
 
             //orders with changes
             foreach ($orders as $order) {
                 if (function_exists('retailCrmBeforeOrderSave')) {
                     $newResOrder = retailCrmBeforeOrderSave($order);
+
                     if (is_array($newResOrder) && !empty($newResOrder)) {
                         $order = $newResOrder;
                     } elseif ($newResOrder === false) {
