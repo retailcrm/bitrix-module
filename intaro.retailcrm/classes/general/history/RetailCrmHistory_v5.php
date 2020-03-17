@@ -784,6 +784,7 @@ class RetailCrmHistory
                                                     array('USE_INDEX' => false, 'USE_ORM' => false)
                                                 )->fetch();
                                             }
+
                                             $somePropValue = $propertyCollection
                                                 ->getItemByOrderPropertyId($propsKey[$orderProp]['ID']);
 
@@ -821,23 +822,6 @@ class RetailCrmHistory
                     }
 
                     // Corporate clients section
-                    $cFilter['isMain'] = true;
-                    $companyProps = array();
-                    $response = $api->customersCorporateCompanies(
-                        $order['customer']['id'],
-                        $cFilter,
-                        null,
-                        null,
-                        'id'
-                    );
-
-                    if (isset($response['companies'])) {
-                        $companiesList = $response['companies'];
-                        $company = reset($companiesList);
-                        $companyProps = $company['contragent'];
-                    }
-
-                    // optionsLegalDetails
                     if ($optionsLegalDetails[$personType]) {
                         foreach ($optionsLegalDetails[$personType] as $key => $orderProp) {
                             if (array_key_exists($key, $order)) {
@@ -849,10 +833,36 @@ class RetailCrmHistory
                                 $somePropValue = $propertyCollection
                                     ->getItemByOrderPropertyId($propsKey[$orderProp]['ID']);
                                 self::setProp($somePropValue, RCrmActions::fromJSON($order['contragent'][$key]));
-                            } elseif (array_key_exists($key, $companyProps)) {
+                            } elseif (isset($order['company']) && (array_key_exists($key, $order['company'])
+                                    || array_key_exists(
+                                        lcfirst(str_replace('legal', '', $key)),
+                                        $order['company'])
+                                )
+                            ) {
                                 $somePropValue = $propertyCollection
                                     ->getItemByOrderPropertyId($propsKey[$orderProp]['ID']);
-                                self::setProp($somePropValue,  RCrmActions::fromJSON($companyProps[$key]));
+
+                                // fallback for order[company][name]
+                                if ($key == 'legalName') {
+                                    $key = 'name';
+                                }
+
+                                self::setProp(
+                                    $somePropValue,
+                                    RCrmActions::fromJSON(
+                                        $key == 'legalAddress'
+                                            ? (isset($order['company']['address']['text'])
+                                                ? $order['company']['address']['text']
+                                                : '')
+                                            : $order['company'][$key]
+                                    )
+                                );
+                            } elseif (isset($order['company']['contragent'])
+                                && array_key_exists($key, $order['company']['contragent'])
+                            ) {
+                                $somePropValue = $propertyCollection
+                                    ->getItemByOrderPropertyId($propsKey[$orderProp]['ID']);
+                                self::setProp($somePropValue,  RCrmActions::fromJSON($order['company']['contragent'][$key]));
                             }
                         }
                     }
