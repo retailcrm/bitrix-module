@@ -17,15 +17,15 @@ endif
 
 bitrix_install: download_bitrix
 	@echo "===== Installing Bitrix..."
-	php bin/bitrix-install db_type
-	php bin/bitrix-install requirement
-	php bin/bitrix-install db_create
-	php bin/bitrix-install main_module
-	php bin/bitrix-install module
-	php bin/bitrix-install admin
-	php bin/bitrix-install load_module
-	php bin/bitrix-install load_module_action
-	php bin/bitrix-install finish
+	@php bin/bitrix-install db_type
+	@php bin/bitrix-install requirement
+	@php bin/bitrix-install db_create
+	@php bin/bitrix-install main_module
+	@php bin/bitrix-install module
+	@php bin/bitrix-install admin
+	@php bin/bitrix-install load_module
+	@php bin/bitrix-install load_module_action
+	@php bin/bitrix-install finish
 
 download_bitrix:
 ifeq ("$(wildcard $(BITRIX_PATH)/bitrix/php_interface/dbconn.php)","")
@@ -41,17 +41,17 @@ create_db:
 	mysqladmin create $(DB_BITRIX_NAME) --user=$(DB_BITRIX_LOGIN) --password=$(DB_BITRIX_PASS)
 
 build_release: build_release_dir
-	bash bin/build $(VERSION) $(ROOT_DIR)/release/
+	@bash bin/build $(VERSION) $(ROOT_DIR)/release/
 
 build_release_dir: build_diff_file
-	php bin/build-release
+	@php bin/build-release
 
 build_diff_file:
-	git diff --name-status $(LAST_TAG) HEAD > $(ROOT_DIR)/release/diff
+	@git diff --name-status $(LAST_TAG) HEAD > $(ROOT_DIR)/release/diff
 
 cleanup:
-	rm $(ROOT_DIR)/release/$(CURRENT_VERSION)
-	rm $(ROOT_DIR)/release/$(CURRENT_VERSION).tar.gz
+	@rm $(ROOT_DIR)/release/$(CURRENT_VERSION)
+	@rm $(ROOT_DIR)/release/$(CURRENT_VERSION).tar.gz
 
 # docker commands
 install:
