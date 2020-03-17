@@ -2,6 +2,10 @@
 # $1 -- folder name to pack;
 
 version=$1
+dir=${2-$PWD}
+
+cd $dir
+
 date=`date +"%Y-%m-%d %H:%M:%S"`
 
 if [ ! -d "$version/install" ]; then
@@ -22,14 +26,6 @@ echo "
 );
 " > "./$version/install/version.php"
 echo "Update version and date in the file \"version.php\""
-
-if [ ! -f "$version/description.ru" ] || [ -s "$version/description.ru" ]; then
-    echo -n "Create Description? (y/n) "
-    read report
-    if [ "$report" = "y" ] || [ "$report" = "Y" ]; then
-        vim "$version/description.ru"
-    fi
-fi
 
 for i in `find ./"$version" -type f -name '*.*'`; do
     encoding=`file -b --mime-encoding "$i"`
