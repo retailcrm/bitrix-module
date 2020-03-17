@@ -1,14 +1,19 @@
 ROOT_DIR=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
 test: prepare_module
-ifeq ($(USE_VENDOR),1)
+ifeq ($(NOT_USE_VENDOR),1)
 	composer tests7
 else
 	composer tests
 endif
 
-prepare_module:
+prepare_module: deps
 	composer pre-module-install
+
+deps:
+ifneq ($(NOT_USE_VENDOR),1)
+	composer install
+endif
 
 bitrix_install: download_bitrix
 	@echo "===== Installing Bitrix..."

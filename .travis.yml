@@ -34,7 +34,7 @@ script: make test
 jobs:
   include:
     - php: 7.0
-      env: USE_VENDOR=1
+      env: NOT_USE_VENDOR=1
     - php: 7.1
     - php: 7.2
     - php: 7.3
