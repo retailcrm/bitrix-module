@@ -1,0 +1,44 @@
+#!/bin/bash
+# $1 -- folder name to pack;
+
+version=$1
+date=`date +"%Y-%m-%d %H:%M:%S"`
+
+if [ ! -d "$version/install" ]; then
+    mkdir -p "./$version/install"
+    echo "Created a folder \"install\""
+fi
+
+if [ ! -f "$version/install/version.php" ]; then
+    touch "./$version/install/version.php"
+    echo "Created a file \"version.php\""
+fi
+
+echo "
+<?
+\$arModuleVersion = array(
+    \"VERSION\" => \"$version\",
+    \"VERSION_DATE\" => \"$date\"
+);
+" > "./$version/install/version.php"
+echo "Update version and date in the file \"version.php\""
+
+if [ ! -f "$version/description.ru" ] || [ -s "$version/description.ru" ]; then
+    echo -n "Create Description? (y/n) "
+    read report
+    if [ "$report" = "y" ] || [ "$report" = "Y" ]; then
+        vim "$version/description.ru"
+    fi
+fi
+
+for i in `find ./"$version" -type f -name '*.*'`; do
+    encoding=`file -b --mime-encoding "$i"`
+    if [ "$encoding" != "iso-8859-1" ] && [ "$encoding" != "binary" ]; then
+        iconv -f $encoding -t "cp1251" $i >> $i.cp1251
+        mv $i.cp1251 $i
+    fi
+done
+echo "Encoding the file has changed"
+
+tar -czf "$version.tar.gz" "$version"
+echo "Update has been successfully packaged"

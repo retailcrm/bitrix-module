@@ -18,6 +18,11 @@ env:
 
 stages:
   - test
+  - deploy
+
+before_install:
+  - export LAST_TAG=`git describe --abbrev=0 --tags`
+  - export CURRENT_VERSION=v`php bin/bitrix-version`
 
 install:
   - echo 'short_open_tag = On' >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
@@ -33,18 +38,45 @@ script: make test
 jobs:
   include:
     - php: 7.0
+      before_install: skip
       env: NOT_USE_VENDOR=1 BITRIX_EDITION=small_business_encode
     - php: 7.1
+      before_install: skip
       env: BITRIX_EDITION=small_business_encode
     - php: 7.2
+      before_install: skip
       env: BITRIX_EDITION=small_business_encode
     - php: 7.3
+      before_install: skip
       env: BITRIX_EDITION=small_business_encode
     - php: 7.0
+      before_install: skip
       env: NOT_USE_VENDOR=1 BITRIX_EDITION=business_encode
     - php: 7.1
+      before_install: skip
       env: BITRIX_EDITION=business_encode
     - php: 7.2
+      before_install: skip
       env: BITRIX_EDITION=business_encode
     - php: 7.3
+      before_install: skip
       env: BITRIX_EDITION=business_encode
+    - stage: deploy
+      before_script: skip
+      script: make build_release_dir
+      before_deploy:
+        - export VERSION=`php bin/bitrix-version`
+        - export ARCHIVE_NAME=$TRAVIS_BUILD_DIR/release/$VERSION
+        - git config --local user.name "retailCRM"
+        - git config --local user.email "support@retailcrm.ru"
+        - export TRAVIS_TAG=v$VERSION
+        - git tag $TRAVIS_TAG
+      deploy:
+        provider: releases
+        token: $GITHUB_OAUTH_TOKEN
+        cleanup: false
+        file: $ARCHIVE_NAME
+        on:
+          condition: "$LAST_TAG != $CURRENT_VERSION"
+        if: branch = master AND type = push
+        after_deploy: make cleanup

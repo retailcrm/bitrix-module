@@ -1,0 +1,31 @@
+#!/usr/bin/env php
+<?php
+
+require_once __DIR__ . '/../helpers/release/ReleaseBuilder.php';
+require_once __DIR__ . '/../helpers/release/ModifiedFile.php';
+require_once __DIR__ . '/../intaro.retailcrm/install/version.php';
+
+define('RELEASE_DIR', __DIR__ . '/../release/');
+define('ORIGINAL', __DIR__ . '/../intaro.retailcrm/');
+
+if (!file_exists(RELEASE_DIR . 'diff')) {
+    print('Diff file does not exists');
+    exit(255);
+}
+
+$handle = fopen(RELEASE_DIR . 'diff', 'r');
+
+if (!$handle) {
+    exit(255);
+}
+
+$modifiedFiles = [];
+
+while (($buffer = fgets($handle)) !== false) {
+    $file = explode("\t", trim($buffer));
+    $modifiedFile = new ModifiedFile($file[1], $file[0]{0});
+    $modifiedFiles[] = $modifiedFile;
+}
+
+$builder = new ReleaseBuilder($modifiedFiles, $arModuleVersion['VERSION']);
+$builder->build();

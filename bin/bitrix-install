@@ -17,8 +17,8 @@ if (!file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/main/install/wizar
 }
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/main/install/wizard/wizard.php';
-require_once __DIR__ . '/../installation/ExtendedCreateModulesStep.php';
-require_once __DIR__ . '/../installation/Installer.php';
+require_once __DIR__ . '/../helpers/installation/ExtendedCreateModulesStep.php';
+require_once __DIR__ . '/../helpers/installation/Installer.php';
 
 $installer = new Installer();
 

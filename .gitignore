@@ -12,3 +12,4 @@
 /vendor/
 .env
 .phpunit.result.cache
+/release/

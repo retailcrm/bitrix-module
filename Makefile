@@ -40,6 +40,19 @@ create_db:
 	echo "USE mysql;\nUPDATE user SET password=PASSWORD('root') WHERE user='root';\nFLUSH PRIVILEGES;\n" | mysql -u root
 	mysqladmin create $(DB_BITRIX_NAME) --user=$(DB_BITRIX_LOGIN) --password=$(DB_BITRIX_PASS)
 
+build_release: build_release_dir
+	bin/build $(ROOT_DIR)/release/$(CURRENT_VERSION)
+
+build_release_dir: build_diff_file
+	php bin/build-release
+
+build_diff_file:
+	git diff --name-status $(LAST_TAG) HEAD > $(ROOT_DIR)/release/diff
+
+cleanup:
+	rm $(ROOT_DIR)/release/$(CURRENT_VERSION)
+	rm $(ROOT_DIR)/release/$(CURRENT_VERSION).tar.gz
+
 # docker commands
 install:
 	docker-compose exec bitrix make bitrix_install

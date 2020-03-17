@@ -1,0 +1,13 @@
+#!/usr/bin/env php
+<?php
+
+set_time_limit(0);
+
+if (ini_get('memory_limit') > 0 && (int)ini_get('memory_limit') < 784) {
+    ini_set('memory_limit', '784M');
+}
+
+require_once __DIR__ . '/../intaro.retailcrm/install/version.php';
+
+echo $arModuleVersion['VERSION'];
+exit(0);
