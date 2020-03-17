@@ -41,7 +41,7 @@ create_db:
 	mysqladmin create $(DB_BITRIX_NAME) --user=$(DB_BITRIX_LOGIN) --password=$(DB_BITRIX_PASS)
 
 build_release: build_release_dir
-	bin/build $(ROOT_DIR)/release/$(CURRENT_VERSION)
+	bin/build $(ROOT_DIR)/release/$(VERSION)
 
 build_release_dir: build_diff_file
 	php bin/build-release

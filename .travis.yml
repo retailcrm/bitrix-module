@@ -62,10 +62,9 @@ jobs:
       before_install: skip
       env: BITRIX_EDITION=business_encode
     - stage: deploy
-      before_script: skip
+      before_script: export VERSION=`php bin/bitrix-version`
       script: make build_release
       before_deploy:
-        - export VERSION=`php bin/bitrix-version`
         - export ARCHIVE_NAME=$TRAVIS_BUILD_DIR/release/$VERSION.tar.gz
         - git config --local user.name "retailCRM"
         - git config --local user.email "support@retailcrm.ru"
@@ -79,4 +78,4 @@ jobs:
         on:
           condition: "$LAST_TAG != $CURRENT_VERSION"
         if: branch = master AND type = push
-        after_deploy: make cleanup
+        after_success: make cleanup
