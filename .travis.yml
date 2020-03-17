@@ -63,10 +63,10 @@ jobs:
       env: BITRIX_EDITION=business_encode
     - stage: deploy
       before_script: skip
-      script: make build_release_dir
+      script: make build_release
       before_deploy:
         - export VERSION=`php bin/bitrix-version`
-        - export ARCHIVE_NAME=$TRAVIS_BUILD_DIR/release/$VERSION
+        - export ARCHIVE_NAME=$TRAVIS_BUILD_DIR/release/$VERSION.tar.gz
         - git config --local user.name "retailCRM"
         - git config --local user.email "support@retailcrm.ru"
         - export TRAVIS_TAG=v$VERSION
