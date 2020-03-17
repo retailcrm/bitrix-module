@@ -1,10 +1,11 @@
 ROOT_DIR=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
-test7: prepare_module
-	composer tests7
-
 test: prepare_module
+ifeq ($(USE_VENDOR),1)
+	composer tests7
+else
 	composer tests
+endif
 
 prepare_module:
 	composer pre-module-install
