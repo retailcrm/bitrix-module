@@ -1,6 +1,8 @@
 #!/usr/bin/env php
 <?php
 
+error_reporting(E_ALL ^ E_DEPRECATED);
+
 require_once __DIR__ . '/../helpers/release/ReleaseBuilder.php';
 require_once __DIR__ . '/../helpers/release/ModifiedFile.php';
 require_once __DIR__ . '/../intaro.retailcrm/install/version.php';
