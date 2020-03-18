@@ -5,9 +5,6 @@ language: php
 
 if: tag IS blank
 
-services:
-  - mysql
-
 env:
   global:
     - DB_BITRIX_HOST=localhost
@@ -77,5 +74,5 @@ jobs:
         file: $ARCHIVE_NAME
         on:
           condition: "$LAST_TAG != $CURRENT_VERSION"
-        if: branch = master AND type = push
-        after_success: make cleanup
+      if: branch = master AND type = push
+      after_success: make cleanup
