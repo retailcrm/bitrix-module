@@ -46,6 +46,10 @@ class ReleaseBuilder
             $modifiedFiles[] = $this->getRealFilename($file->getFilename());
         }
 
+        if (empty($modifiedFiles)) {
+            throw new \LogicException('Not found modified files for release');
+        }
+
         $this->createDirNodes($modifiedFiles);
         $this->copyFiles($modifiedFiles);
     }

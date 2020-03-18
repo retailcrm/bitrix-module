@@ -6,6 +6,7 @@
  * Class name:  intaro_retailcrm
  */
 global $MESS;
+
 IncludeModuleLangFile(__FILE__);
 if (class_exists('intaro_retailcrm'))
     return;

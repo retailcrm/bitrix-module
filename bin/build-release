@@ -29,5 +29,12 @@ while (($buffer = fgets($handle)) !== false) {
     $modifiedFiles[] = $modifiedFile;
 }
 
-$builder = new ReleaseBuilder($modifiedFiles, $arModuleVersion['VERSION']);
-$builder->build();
+try {
+    $builder = new ReleaseBuilder($modifiedFiles, $arModuleVersion['VERSION']);
+    $builder->build();
+} catch(\Exception $exception) {
+    print($exception->getMessage());
+    exit(255);
+}
+
+exit(0);
