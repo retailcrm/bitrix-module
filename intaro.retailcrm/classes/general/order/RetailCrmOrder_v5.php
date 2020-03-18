@@ -54,6 +54,18 @@ class RetailCrmOrder
             $order['contact']['externalId'] = $arParams['contactExId'];
         }
 
+        if (isset($arParams['orderCompany']) && !empty($arParams['orderCompany'])) {
+            $company = $arParams['orderCompany'];
+
+            if (isset($company['id'])) {
+                $order['company']['id'] = $company['id'];
+            }
+
+            if (isset($company['name'])) {
+                $order['contragent']['legalName'] = $company['name'];
+            }
+        }
+
         if ($send && isset($_COOKIE['_rc']) && $_COOKIE['_rc'] != '') {
             $order['customer']['browserId'] = $_COOKIE['_rc'];
         }
@@ -88,15 +100,18 @@ class RetailCrmOrder
                         if ($arLoc) {
                             $server = \Bitrix\Main\Context::getCurrent()->getServer()->getDocumentRoot();
                             $countrys = array();
+
                             if (file_exists($server . '/bitrix/modules/intaro.retailcrm/classes/general/config/country.xml')) {
                                 $countrysFile = simplexml_load_file($server . '/bitrix/modules/intaro.retailcrm/classes/general/config/country.xml');
                                 foreach ($countrysFile->country as $country) {
                                     $countrys[RCrmActions::fromJSON((string) $country->name)] = (string) $country->alpha;
                                 }
                             }
+
                             $location = \Bitrix\Sale\Location\Name\LocationTable::getList(array(
                                 'filter' => array('=LOCATION_ID' => $arLoc['CITY_ID'], 'LANGUAGE_ID' => 'ru')
                             ))->fetch();
+
                             if (count($countrys) > 0) {
                                 $countryOrder = \Bitrix\Sale\Location\Name\LocationTable::getList(array(
                                     'filter' => array('=LOCATION_ID' => $arLoc['COUNTRY_ID'], 'LANGUAGE_ID' => 'ru')
@@ -605,10 +620,11 @@ class RetailCrmOrder
             'BASKET'           => array(),
             'USER_DESCRIPTION' => $obOrder->getField('USER_DESCRIPTION'),
             'COMMENTS'         => $obOrder->getField('COMMENTS'),
-            'REASON_CANCELED'  => $obOrder->getField('REASON_CANCELED'),
+            'REASON_CANCELED'  => $obOrder->getField('REASON_CANCELED')
         );
 
         $shipmentList = $obOrder->getShipmentCollection();
+
         foreach ($shipmentList as $shipmentData) {
             if ($shipmentData->isSystem()) {
                 continue;
@@ -633,11 +649,13 @@ class RetailCrmOrder
         }
 
         $paymentList = $obOrder->getPaymentCollection();
+
         foreach ($paymentList as $paymentData) {
             $arOrder['PAYMENTS'][] = $paymentData->getFields()->getValues();
         }
 
         $basketItems = $obOrder->getBasket();
+
         foreach ($basketItems as $item) {
             $arOrder['BASKET'][] = $item->getFields();
         }

@@ -193,6 +193,8 @@ class RetailCrmEvent
             $methodApi = 'ordersCreate';
         }
 
+        $orderCompany = null;
+
         if ("Y" == $optionCorpClient && $optionsContragentType[$arOrder['PERSON_TYPE_ID']] == 'legal-entity') {
             //corparate cliente
             $nickName = '';
@@ -224,10 +226,37 @@ class RetailCrmEvent
             }
 
             $customersCorporate = false;
-            $response = $api->customersCorporateList(array('nickName' => array($nickName)));
+            $response = $api->customersCorporateList(array('companyName' => $nickName));
 
             if ($response && $response->getStatusCode() == 200) {
                 $customersCorporate = $response['customersCorporate'];
+                $singleCorp = reset($customersCorporate);
+
+                if (!empty($singleCorp)) {
+                    $userCorp['customerCorporate'] = $singleCorp;
+                    $companiesResponse = $api->customersCorporateCompanies(
+                        $singleCorp['id'],
+                        array(),
+                        null,
+                        null,
+                        'id',
+                        $site
+                    );
+
+                    if ($companiesResponse && $companiesResponse->isSuccessful()) {
+                        $orderCompany = array_reduce(
+                            $companiesResponse['companies'],
+                            function ($carry, $item) use ($nickName) {
+                                if (is_array($item) && $item['name'] == $nickName) {
+                                    $carry = $item;
+                                }
+
+                                return $carry;
+                            },
+                            null
+                        );
+                    }
+                }
             } else {
                 RCrmActions::eventLog(
                     'RetailCrmEvent::orderSave',
@@ -236,14 +265,6 @@ class RetailCrmEvent
                 );
 
                 return false;
-            }
-
-            foreach ($customersCorporate as $corp) {
-                if (isset($corp['mainCompany']['name']) && $nickName == $corp['mainCompany']['name']) {
-                    $userCorp['customerCorporate'] = $corp;
-
-                    break;
-                }
             }
 
             //user
@@ -290,6 +311,7 @@ class RetailCrmEvent
                 }
 
                 $arParams['customerCorporate'] = $resultUserCorp;
+                $arParams['orderCompany'] = isset($resultUserCorp['mainCompany']) ? $resultUserCorp['mainCompany'] : null;
 
                 $customerCorporateAddress = array();
                 $customerCorporateCompany = array();
@@ -392,6 +414,10 @@ class RetailCrmEvent
                 }
 
                 $arParams['customerCorporate'] = $userCorp['customerCorporate'];
+
+                if (!empty($orderCompany)) {
+                    $arParams['orderCompany'] = $orderCompany;
+                }
             }
 
             $arParams['contactExId'] = $userCrm['customer']['externalId'];
@@ -411,6 +437,7 @@ class RetailCrmEvent
 
         //order
         $resultOrder = RetailCrmOrder::orderSend($arOrder, $api, $arParams, true, $site, $methodApi);
+
         if (!$resultOrder) {
             RCrmActions::eventLog('RetailCrmEvent::orderSave', 'RetailCrmOrder::orderSend', 'error during creating order');
 
