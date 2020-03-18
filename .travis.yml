@@ -63,6 +63,7 @@ jobs:
         provider: releases
         token: $GITHUB_OAUTH_TOKEN
         file: $ARCHIVE_NAME
+        skip_cleanup: true
         on:
           condition: "$LAST_TAG != $CURRENT_VERSION"
       if: branch = master AND type = push
