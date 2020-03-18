@@ -41,14 +41,14 @@ create_db:
 	mysqladmin create $(DB_BITRIX_NAME) --user=$(DB_BITRIX_LOGIN) --password=$(DB_BITRIX_PASS)
 
 build_release: build_release_dir
-	@bash bin/build $(VERSION) $(ROOT_DIR)/release/
+	bash bin/build $(VERSION) $(ROOT_DIR)/release/
 
 build_release_dir: build_diff_file
-	@php bin/build-release
+	php bin/build-release
 
 build_diff_file:
-	@git diff --name-status $(LAST_TAG) HEAD > $(ROOT_DIR)/release/diff
-	@cat $(ROOT_DIR)/release/diff
+	git diff --name-status $(LAST_TAG) HEAD > $(ROOT_DIR)/release/diff
+	cat $(ROOT_DIR)/release/diff
 
 cleanup:
 	@rm $(ROOT_DIR)/release/$(VERSION)
