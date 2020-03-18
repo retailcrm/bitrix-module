@@ -329,22 +329,6 @@ class RetailCrmEvent
                     $addressResult = $api->customersCorporateAddressesCreate($resultUserCorp['id'], $customerCorporateAddress, 'id', $site);
                 }
 
-                $customerCorporateAddress = array();
-                $customerCorporateCompany = array();
-                $addressResult = null;
-                $companyResult = null;
-
-                if (!empty($address)) {
-                    //TODO address builder add
-                    $customerCorporateAddress = array(
-                        'name' => $nickName,
-                        'isMain' => true,
-                        'text' => $address
-                    );
-
-                    $addressResult = $api->customersCorporateAddressesCreate($resultUserCorp['id'], $customerCorporateAddress, 'id', $site);
-                }
-
                 $customerCorporateCompany = array(
                     'name' => $nickName,
                     'isMain' => true,
