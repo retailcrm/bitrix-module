@@ -67,4 +67,4 @@ jobs:
         on:
           condition: "$LAST_TAG != $CURRENT_VERSION"
       if: branch = master AND type = push
-      after_success: make cleanup
+      after_deploy: make cleanup

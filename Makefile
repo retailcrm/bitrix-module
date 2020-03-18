@@ -50,7 +50,7 @@ build_diff_file:
 	git diff --name-status $(LAST_TAG) HEAD > $(ROOT_DIR)/release/diff
 
 cleanup:
-	@rm $(ROOT_DIR)/release/$(VERSION)
+	@rm -rf $(ROOT_DIR)/release/$(VERSION)
 	@rm $(ROOT_DIR)/release/$(VERSION).tar.gz
 
 # docker commands
