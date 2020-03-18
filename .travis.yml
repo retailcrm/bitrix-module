@@ -14,7 +14,7 @@ env:
     - BITRIX_PATH=$TRAVIS_BUILD_DIR/bitrix
 
 stages:
-#  - test
+  - test
   - deploy
 
 install:
@@ -32,30 +32,23 @@ script: make test
 
 jobs:
   include:
-#    - php: 7.0
-#      before_install: skip
-#      env: NOT_USE_VENDOR=1 BITRIX_EDITION=small_business_encode
-#    - php: 7.1
-#      before_install: skip
-#      env: BITRIX_EDITION=small_business_encode
-#    - php: 7.2
-#      before_install: skip
-#      env: BITRIX_EDITION=small_business_encode
-#    - php: 7.3
-#      before_install: skip
-#      env: BITRIX_EDITION=small_business_encode
-#    - php: 7.0
-#      before_install: skip
-#      env: NOT_USE_VENDOR=1 BITRIX_EDITION=business_encode
-#    - php: 7.1
-#      before_install: skip
-#      env: BITRIX_EDITION=business_encode
-#    - php: 7.2
-#      before_install: skip
-#      env: BITRIX_EDITION=business_encode
-#    - php: 7.3
-#      before_install: skip
-#      env: BITRIX_EDITION=business_encode
+    - php: 7.0
+      env: NOT_USE_VENDOR=1 BITRIX_EDITION=small_business_encode
+      after_success: bash <(curl -s https://codecov.io/bash)
+    - php: 7.1
+      env: BITRIX_EDITION=small_business_encode
+    - php: 7.2
+      env: BITRIX_EDITION=small_business_encode
+    - php: 7.3
+      env: BITRIX_EDITION=small_business_encode
+    - php: 7.0
+      env: NOT_USE_VENDOR=1 BITRIX_EDITION=business_encode
+    - php: 7.1
+      env: BITRIX_EDITION=business_encode
+    - php: 7.2
+      env: BITRIX_EDITION=business_encode
+    - php: 7.3
+      env: BITRIX_EDITION=business_encode
     - stage: deploy
       before_script: export VERSION=`php bin/bitrix-version`
       script: make build_release

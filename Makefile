@@ -48,7 +48,6 @@ build_release_dir: build_diff_file
 
 build_diff_file:
 	git diff --name-status $(LAST_TAG) HEAD > $(ROOT_DIR)/release/diff
-	cat $(ROOT_DIR)/release/diff
 
 cleanup:
 	@rm $(ROOT_DIR)/release/$(VERSION)

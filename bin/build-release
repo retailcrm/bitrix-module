@@ -27,7 +27,6 @@ while (($buffer = fgets($handle)) !== false) {
     $file = explode("\t", trim($buffer));
     $modifiedFile = new ModifiedFile($file[1], $file[0]{0});
     $modifiedFiles[] = $modifiedFile;
-    print(var_export($modifiedFiles, true));
 }
 
 $builder = new ReleaseBuilder($modifiedFiles, $arModuleVersion['VERSION']);
