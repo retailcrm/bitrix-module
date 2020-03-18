@@ -50,6 +50,7 @@ jobs:
     - php: 7.3
       env: BITRIX_EDITION=business_encode
     - stage: deploy
+      php: 7.1
       before_script: export VERSION=`php bin/bitrix-version`
       script: make build_release
       before_deploy:
