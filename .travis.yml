@@ -17,14 +17,12 @@ stages:
 #  - test
   - deploy
 
-before_install:
-  - export LAST_TAG=`git describe --abbrev=0 --tags`
-  - export CURRENT_VERSION=v`php bin/bitrix-version`
-
 install:
   - echo 'short_open_tag = On' >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
   - echo 'mbstring.func_overload = 2' >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
   - echo 'mbstring.internal_encoding = "UTF-8"' >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
+  - export LAST_TAG=`git describe --abbrev=0 --tags`
+  - export CURRENT_VERSION=v`php bin/bitrix-version`
 
 before_script:
   - make create_db
