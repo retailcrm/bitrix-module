@@ -62,7 +62,6 @@ jobs:
       deploy:
         provider: releases
         token: $GITHUB_OAUTH_TOKEN
-        cleanup: false
         file: $ARCHIVE_NAME
         on:
           condition: "$LAST_TAG != $CURRENT_VERSION"
