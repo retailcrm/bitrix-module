@@ -46,6 +46,10 @@ class ReleaseBuilder
             $modifiedFiles[] = $this->getRealFilename($file->getFilename());
         }
 
+        if (!in_array(ModifiedFile::DESCRIPTION, $modifiedFiles) || !in_array(ModifiedFile::VERSION, $modifiedFiles)) {
+            throw new \UnexpectedValueException('Version or description file does not exists');
+        }
+
         if (empty($modifiedFiles)) {
             throw new \LogicException('Not found modified files for release');
         }

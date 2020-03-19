@@ -21,6 +21,12 @@ class ModifiedFile
     const MODULE_ID  = 'intaro.retailcrm';
 
     /** @var string */
+    const DESCRIPTION = 'description.ru';
+
+    /** @var string */
+    const VERSION = 'install/version.php';
+
+    /** @var string */
     protected $filename;
 
     /** @var string */
