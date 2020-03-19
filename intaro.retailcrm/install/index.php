@@ -760,6 +760,12 @@ class intaro_retailcrm extends CModule
                 $arResult['PRICE_TYPES'][$arPriceType['ID']] = $arPriceType;
             }
 
+            if (isset($_POST['back']) && $_POST['back']) {
+                $APPLICATION->IncludeAdminFile(
+                    GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step3.php'
+                );
+            }
+
             $APPLICATION->IncludeAdminFile(
                 GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step5.php'
             );
@@ -784,7 +790,7 @@ class intaro_retailcrm extends CModule
 
             if (isset($_POST['back']) && $_POST['back']) {
                 $APPLICATION->IncludeAdminFile(
-                    GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step3.php'
+                    GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step4.php'
                 );
             }
 

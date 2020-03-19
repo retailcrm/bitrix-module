@@ -3,7 +3,42 @@ IncludeModuleLangFile(__FILE__);
 
 $MODULE_ID = 'intaro.retailcrm';
 $CRM_API_HOST_OPTION = 'api_host';
+$CRM_API_KEY_OPTION = 'api_key';
+$CRM_SITES_LIST= 'sites_list';
 $api_host = COption::GetOptionString($MODULE_ID, $CRM_API_HOST_OPTION, 0);
+$api_key = COption::GetOptionString($MODULE_ID, $CRM_API_KEY_OPTION, 0);
+$CRM_PAYMENT_TYPES = 'pay_types_arr';
+$arResult['arSites'] = RCrmActions::SitesList();
+
+$RETAIL_CRM_API = new \RetailCrm\ApiClient($api_host, $api_key);
+COption::SetOptionString($MODULE_ID, $CRM_API_HOST_OPTION, $api_host);
+COption::SetOptionString($MODULE_ID, $CRM_API_KEY_OPTION, $api_key);
+COption::SetOptionString($MODULE_ID, $CRM_SITES_LIST, serialize(array()));
+
+if (!isset($arResult['paymentTypesList'])) {
+    $arResult['bitrixPaymentTypesList'] = RCrmActions::PaymentList();
+    $arResult['paymentTypesList'] = $RETAIL_CRM_API->paymentTypesList()->paymentTypes;
+}
+
+if (!isset($arResult['bitrixStatusesList'])) {
+    $arResult['bitrixStatusesList'] = RCrmActions::StatusesList();
+    $arResult['paymentList'] = $RETAIL_CRM_API->statusesList()->statuses;
+    $arResult['paymentGroupList'] = $RETAIL_CRM_API->statusGroupsList()->statusGroups;
+}
+
+if (!isset($arResult['orderTypesList'])) {
+    $arResult['bitrixOrderTypesList'] = RCrmActions::OrderTypesList($arResult['arSites']);
+    $arResult['orderTypesList'] = $RETAIL_CRM_API->orderTypesList()->orderTypes;
+}
+
+if (!isset($arResult['paymentStatusesList'])) {
+    $arResult['paymentStatusesList'] = $RETAIL_CRM_API->paymentStatusesList()->paymentStatuses;
+}
+
+if (!isset($arResult['bitrixDeliveryTypesList'])) {
+    $arResult['bitrixDeliveryTypesList'] = RCrmActions::DeliveryList();
+    $arResult['deliveryTypesList'] = $RETAIL_CRM_API->deliveryTypesList()->deliveryTypes;
+}
 
 //bitrix pyament Y/N
 $arResult['bitrixPaymentList'][0]['NAME'] = GetMessage('PAYMENT_Y');

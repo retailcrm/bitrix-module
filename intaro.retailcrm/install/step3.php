@@ -3,6 +3,24 @@ if (!check_bitrix_sessid())
     return;
 IncludeModuleLangFile(__FILE__);
 
+$MODULE_ID = 'intaro.retailcrm';
+$CRM_API_HOST_OPTION = 'api_host';
+$CRM_API_KEY_OPTION = 'api_key';
+$CRM_SITES_LIST= 'sites_list';
+$api_host = COption::GetOptionString($MODULE_ID, $CRM_API_HOST_OPTION, 0);
+$api_key = COption::GetOptionString($MODULE_ID, $CRM_API_KEY_OPTION, 0);
+$arResult['arSites'] = RCrmActions::SitesList();
+
+$RETAIL_CRM_API = new \RetailCrm\ApiClient($api_host, $api_key);
+COption::SetOptionString($MODULE_ID, $CRM_API_HOST_OPTION, $api_host);
+COption::SetOptionString($MODULE_ID, $CRM_API_KEY_OPTION, $api_key);
+COption::SetOptionString($MODULE_ID, $CRM_SITES_LIST, serialize(array()));
+
+if (!isset($arResult['bitrixOrderTypesList'])) {
+    $arResult['bitrixOrderTypesList'] = RCrmActions::OrderTypesList($arResult['arSites']);
+    $arResult['arProp'] = RCrmActions::OrderPropsList();
+}
+
 if(isset($arResult['ORDER_PROPS'])){
     $defaultOrderProps = $arResult['ORDER_PROPS'];
 }
