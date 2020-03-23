@@ -66,5 +66,5 @@ jobs:
         skip_cleanup: true
         on:
           condition: "$LAST_TAG != $CURRENT_VERSION"
-      if: branch = master AND type = push AND fork = false
+      if: branch = master AND type = push
       after_deploy: make cleanup
