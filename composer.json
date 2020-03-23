@@ -1,7 +1,9 @@
 {
     "name": "retailcrm/bitrix-module",
     "scripts": {
-        "pre-module-install": "cp -R intaro.retailcrm $BITRIX_PATH/bitrix/modules"
+        "pre-module-install": "cp -R intaro.retailcrm $BITRIX_PATH/bitrix/modules",
+        "tests": "php vendor/bin/phpunit -c phpunit.xml.dist --whitelist=$BITRIX_PATH/bitrix/modules/intaro.retailcrm",
+        "tests7": "phpunit -c phpunit.xml.dist --whitelist=$BITRIX_PATH/bitrix/modules/intaro.retailcrm"
     },
     "description": "Integration module for Bitrix & RetailCRM",
     "type": "bitrix-module",
@@ -12,7 +14,8 @@
         }
     ],
     "require": {
-        "ext-json": "*"
+        "ext-json": "*",
+        "ext-mbstring": "*"
     },
     "require-dev": {
         "phpunit/phpunit": "^7",
