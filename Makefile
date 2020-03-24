@@ -40,14 +40,14 @@ create_db:
 	echo "USE mysql;\nUPDATE user SET password=PASSWORD('root') WHERE user='root';\nFLUSH PRIVILEGES;\n" | mysql -u root
 	mysqladmin create $(DB_BITRIX_NAME) --user=$(DB_BITRIX_LOGIN) --password=$(DB_BITRIX_PASS)
 
-build_release: build_release_dir
-	bash bin/build $(VERSION) $(ROOT_DIR)/release/
-
-build_release_dir: build_diff_file
-	php bin/build-release
-
-build_diff_file:
+build_release:
+ifneq ($(LAST_TAG),$(CURRENT_VERSION))
 	git diff --name-status $(LAST_TAG) HEAD > $(ROOT_DIR)/release/diff
+	php bin/build-release
+	bash bin/build $(VERSION) $(ROOT_DIR)/release/
+else
+	@exit 0
+endif
 
 cleanup:
 	@rm -rf $(ROOT_DIR)/release/$(VERSION)
