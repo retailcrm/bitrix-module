@@ -5,9 +5,14 @@ $MODULE_ID = 'intaro.retailcrm';
 $CRM_API_HOST_OPTION = 'api_host';
 $CRM_API_KEY_OPTION = 'api_key';
 $CRM_SITES_LIST= 'sites_list';
+$CRM_PAYMENT_TYPES = 'pay_types_arr';
+$CRM_DELIVERY_TYPES_ARR = 'deliv_types_arr';
+$CRM_PAYMENT_TYPES = 'pay_types_arr';
+$CRM_PAYMENT_STATUSES = 'pay_statuses_arr';
+$CRM_PAYMENT = 'payment_arr';
+$CRM_ORDER_TYPES_ARR = 'order_types_arr';
 $api_host = COption::GetOptionString($MODULE_ID, $CRM_API_HOST_OPTION, 0);
 $api_key = COption::GetOptionString($MODULE_ID, $CRM_API_KEY_OPTION, 0);
-$CRM_PAYMENT_TYPES = 'pay_types_arr';
 $arResult['arSites'] = RCrmActions::SitesList();
 
 $RETAIL_CRM_API = new \RetailCrm\ApiClient($api_host, $api_key);
@@ -15,9 +20,18 @@ COption::SetOptionString($MODULE_ID, $CRM_API_HOST_OPTION, $api_host);
 COption::SetOptionString($MODULE_ID, $CRM_API_KEY_OPTION, $api_key);
 COption::SetOptionString($MODULE_ID, $CRM_SITES_LIST, serialize(array()));
 
+if (!isset($arResult['PAYMENT'])) {
+    $arResult['PAYMENT'] = unserialize(COption::GetOptionString($MODULE_ID, $CRM_PAYMENT, 0));
+}
+
+if (!isset($arResult['ORDER_TYPES'])) {
+    $arResult['ORDER_TYPES'] = unserialize(COption::GetOptionString($MODULE_ID, $CRM_ORDER_TYPES_ARR, 0));
+}
+
 if (!isset($arResult['paymentTypesList'])) {
     $arResult['bitrixPaymentTypesList'] = RCrmActions::PaymentList();
     $arResult['paymentTypesList'] = $RETAIL_CRM_API->paymentTypesList()->paymentTypes;
+    $arResult['PAYMENT_TYPES'] = unserialize(COption::GetOptionString($MODULE_ID, $CRM_PAYMENT_TYPES, 0));
 }
 
 if (!isset($arResult['bitrixStatusesList'])) {
@@ -33,11 +47,13 @@ if (!isset($arResult['orderTypesList'])) {
 
 if (!isset($arResult['paymentStatusesList'])) {
     $arResult['paymentStatusesList'] = $RETAIL_CRM_API->paymentStatusesList()->paymentStatuses;
+    $arResult['PAYMENT_STATUSES'] = unserialize(COption::GetOptionString($MODULE_ID, $CRM_PAYMENT_STATUSES, 0));
 }
 
 if (!isset($arResult['bitrixDeliveryTypesList'])) {
     $arResult['bitrixDeliveryTypesList'] = RCrmActions::DeliveryList();
     $arResult['deliveryTypesList'] = $RETAIL_CRM_API->deliveryTypesList()->deliveryTypes;
+    $arResult['DELIVERY_TYPES'] = unserialize(COption::GetOptionString($MODULE_ID, $CRM_DELIVERY_TYPES_ARR, 0));
 }
 
 //bitrix pyament Y/N
