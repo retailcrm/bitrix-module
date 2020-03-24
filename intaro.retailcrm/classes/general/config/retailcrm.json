@@ -80,6 +80,10 @@
             "type": "bool",
             "default": false
         },
+        "subscribed": {
+            "type": "bool",
+            "default": false
+        },
         "commentary": {
             "type": "string"
         },
