@@ -538,6 +538,14 @@ class RetailCrmOrder
 
                                     $orderData['customer'] = array('id' => $corpData['id']);
                                     $cachedCorporateIds[$orderData['contragent']['legalName']] = $corpData['id'];
+
+                                    RetailCrmCorporateClient::addCustomersCorporateAddresses(
+                                        $orderData['customer']['id'],
+                                        $orderData['contragent']['legalName'],
+                                        $orderData['delivery']['address']['text'],
+                                        $api,
+                                        $site = null
+                                    );
                                 } elseif (array_key_exists(
                                     $orderData['contragent']['legalName'],
                                     $resCustomersCorporate

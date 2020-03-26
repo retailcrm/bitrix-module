@@ -217,6 +217,14 @@ class RetailCrmHistory
                             ? RCrmActions::fromJSON($customer['address']['city']) : '';
                     }
 
+                    if (array_key_exists('birthday', $customer)) {
+                        $arUser["PERSONAL_BIRTHDAY"] = date("d.m.Y", strtotime($customer['birthday']));
+                    }
+
+                    if (array_key_exists('email', $customer)) {
+                        $arUser["EMAIL"] = $customer['email'] ? RCrmActions::fromJSON($customer['email']) : '';
+                    }
+
                     $u = $newUser->Update($customer['externalId'], $arUser);
                     if (!$u) {
                         RCrmActions::eventLog(

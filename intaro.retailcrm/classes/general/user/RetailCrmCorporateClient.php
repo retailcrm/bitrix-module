@@ -106,4 +106,52 @@ class RetailCrmCorporateClient
 
         return array();
     }
+
+    public static function addCustomersCorporateAddresses($customeId, $legalName, $adress, $api, $site)
+    {
+        $found = false;
+        $addresses = $api->customersCorporateAddresses(
+            $customeId,
+            array(),
+            null,
+            100,
+            'id',
+            $site
+        );
+
+        if ($addresses && $addresses->isSuccessful() && $addresses->offsetExists('addresses')) {
+            foreach ($addresses['addresses'] as $corpAddress) {
+                if (isset($corpAddress['text']) && $corpAddress['text'] == $adress) {
+                    $found = true;
+
+                    break;
+                }
+            }
+
+            if (!$found) {
+                $customerCorporateAddress = array(
+                    'name' => $legalName,
+                    'text' => $adress
+                );
+
+                $addressResult = $api->customersCorporateAddressesCreate(
+                    $customeId,
+                    $customerCorporateAddress,
+                    'id',
+                    $site
+                );
+
+                if (!$addressResult || ($addressResult && !$addressResult->isSuccessful())) {
+                    Logger::getInstance()->write(sprintf(
+                        'error while trying to append address to corporate customer%s%s',
+                        PHP_EOL,
+                        print_r(array(
+                            'address' => $customerCorporateAddress,
+                            'customer' => $customeId
+                        ), true)
+                    ), 'apiErrors');
+                }
+            }
+        }
+    }
 }

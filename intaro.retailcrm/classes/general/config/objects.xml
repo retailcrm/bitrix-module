@@ -7,6 +7,7 @@
         <field id="patronymic" group="customer">patronymic</field>
         <field id="email" group="customer">email</field>
         <field id="birthday" group="customer">birthday</field>
+        <field id="sex" group="customer">sex</field>
         <field id="phones" group="customer">phones</field>
         <field id="manager" group="customer">manager</field>
         <field id="commentary" group="customer">commentary</field>

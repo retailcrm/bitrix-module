@@ -368,50 +368,14 @@ class RetailCrmEvent
                     $site
                 );
             } else {
-                $found = false;
-                $addresses = $api->customersCorporateAddresses(
+
+                RetailCrmCorporateClient::addCustomersCorporateAddresses(
                     $userCorp['customerCorporate']['id'],
-                    array(),
-                    null,
-                    100,
-                    'id',
-                    $site
+                    $nickName,
+                    $address,
+                    $api,
+                    $site = null
                 );
-
-                if ($addresses && $addresses->isSuccessful() && $addresses->offsetExists('addresses')) {
-                    foreach ($addresses['addresses'] as $corpAddress) {
-                        if (isset($corpAddress['text']) && $corpAddress['text'] == $address) {
-                            $found = true;
-
-                            break;
-                        }
-                    }
-
-                    if (!$found) {
-                        $customerCorporateAddress = array(
-                            'name' => $nickName,
-                            'text' => $address
-                        );
-
-                        $addressResult = $api->customersCorporateAddressesCreate(
-                            $userCorp['customerCorporate']['id'],
-                            $customerCorporateAddress,
-                            'id',
-                            $site
-                        );
-
-                        if (!$addressResult || ($addressResult && !$addressResult->isSuccessful())) {
-                            Logger::getInstance()->write(sprintf(
-                                'error while trying to append address to corporate customer%s%s',
-                                PHP_EOL,
-                                print_r(array(
-                                    'address' => $customerCorporateAddress,
-                                    'customer' => $userCorp['customerCorporate']
-                                ), true)
-                            ), 'apiErrors');
-                        }
-                    }
-                }
 
                 $arParams['customerCorporate'] = $userCorp['customerCorporate'];
 
