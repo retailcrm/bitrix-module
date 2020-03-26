@@ -225,6 +225,10 @@ class RetailCrmHistory
                         $arUser["EMAIL"] = $customer['email'] ? RCrmActions::fromJSON($customer['email']) : '';
                     }
 
+                    if (array_key_exists('sex', $customer)) {
+                        $arUser["PERSONAL_GENDER"] = $customer['sex'] ? RCrmActions::fromJSON($customer['sex']) : '';
+                    }
+
                     $u = $newUser->Update($customer['externalId'], $arUser);
                     if (!$u) {
                         RCrmActions::eventLog(
@@ -1217,6 +1221,18 @@ class RetailCrmHistory
             if ($change['customer']['contragent']['contragentType']) {
                 $change['customer']['contragentType'] = self::newValue($change['customer']['contragent']['contragentType']);
                 unset($change['customer']['contragent']);
+            }
+
+            if ($change['field'] == 'segments') {
+                if ($change['newValue']['code'] == "genshchini") {
+                    $customers[$change['customer']['id']]["sex"] = "F";
+                }
+            }
+
+            if ($change['field'] == 'segments') {
+                if ($change['newValue']['code'] == "mugchini") {
+                    $customers[$change['customer']['id']]["sex"] = "M";
+                }
             }
 
             if ($fields['customer'][$change['field']] == 'phones') {
