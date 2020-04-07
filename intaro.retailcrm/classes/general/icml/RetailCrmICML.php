@@ -623,6 +623,8 @@ class RetailCrmICML
         $offer .= "<price>" . $this->PrepareValue($arOffer['PRICE']) . "</price>\n";
         if ($arOffer['PURCHASE_PRICE'] && $this->loadPurchasePrice) {
             $offer .= "<purchasePrice>" . $this->PrepareValue($arOffer['PURCHASE_PRICE']) . "</purchasePrice>\n";
+        } else {
+            $offer .= "<purchasePrice>0</purchasePrice>\n";
         }
         foreach ($categories as $category) {
             $offer .= "<categoryId>" . $category['ID'] . "</categoryId>\n";
