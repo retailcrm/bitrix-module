@@ -29,6 +29,7 @@ class RetailCrmICML
     protected $mainSection = 1000000;
     protected $pageSize = 500;
     protected $protocol;
+    protected $purchasePriceNull;
 
     protected $isLogged = false;
     protected $logFile = '/bitrix/catalog_export/i_crm_load_log.txt';
@@ -37,6 +38,7 @@ class RetailCrmICML
     protected $MODULE_ID = 'intaro.retailcrm';
     protected $CRM_CATALOG_BASE_PRICE = 'catalog_base_price';
     protected $PROTOCOL_OPTION = 'protocol';
+    protected $CRM_PURCHASE_PRICE_NULL = 'purchasePrice_null';
 
     protected $measurement = array (
         'mm' => 1,          // 1 mm = 1 mm
@@ -76,6 +78,7 @@ class RetailCrmICML
         $this->encodingDefault = $defaultSite["CHARSET"];
 
         $this->protocol = COption::GetOptionString($this->MODULE_ID, $this->PROTOCOL_OPTION);
+        $this->purchasePriceNull = COption::GetOptionString($this->MODULE_ID, $this->CRM_PURCHASE_PRICE_NULL);
 
         $this->PrepareSettings();
 
@@ -623,7 +626,7 @@ class RetailCrmICML
         $offer .= "<price>" . $this->PrepareValue($arOffer['PRICE']) . "</price>\n";
         if ($arOffer['PURCHASE_PRICE'] && $this->loadPurchasePrice) {
             $offer .= "<purchasePrice>" . $this->PrepareValue($arOffer['PURCHASE_PRICE']) . "</purchasePrice>\n";
-        } else {
+        } elseif ("Y" == $this->purchasePriceNull) {
             $offer .= "<purchasePrice>0</purchasePrice>\n";
         }
         foreach ($categories as $category) {
