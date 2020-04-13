@@ -479,12 +479,6 @@ class RetailCrmHistory
                                 $order['customer']['email'] = $login;
                             }
                         } else {
-                            $dbUser = CUser::GetList(
-                                ($by = 'ID'),
-                                ($sort = 'ASC'),
-                                array('=EMAIL' => $order['email'])
-                            );
-
                             switch ($dbUser->SelectedRowsCount()) {
                                 case 0:
                                     $login = $order['customer']['email'];
