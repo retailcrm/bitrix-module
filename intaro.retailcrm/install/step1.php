@@ -8,8 +8,8 @@ $MODULE_ID = 'intaro.retailcrm';
 $CRM_API_HOST_OPTION = 'api_host';
 $CRM_API_KEY_OPTION = 'api_key';
 
-$arResult['API_HOST'] = COption::GetOptionString($MODULE_ID, $CRM_API_HOST_OPTION, 0);
-$arResult['API_KEY'] = COption::GetOptionString($MODULE_ID, $CRM_API_KEY_OPTION, 0);
+$arResult['API_HOST'] = COption::GetOptionString($MODULE_ID, $CRM_API_HOST_OPTION);
+$arResult['API_KEY'] = COption::GetOptionString($MODULE_ID, $CRM_API_KEY_OPTION);
 ?>
 
 <div class="adm-detail-content-item-block">

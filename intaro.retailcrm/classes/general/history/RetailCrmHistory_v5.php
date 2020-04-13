@@ -441,26 +441,26 @@ class RetailCrmHistory
                                 $login = uniqid('user_' . time()) . '@crm.com';
                                 $order['customer']['email'] = $login;
                             }
-                        } else {
-                            $dbUser = CUser::GetList(
-                                ($by = 'ID'),
-                                ($sort = 'ASC'),
-                                array('=EMAIL' => $order['email'])
-                            );
+                        }
 
-                            switch ($dbUser->SelectedRowsCount()) {
-                                case 0:
-                                    $login = $order['customer']['email'];
-                                    break;
-                                case 1:
-                                    $arUser = $dbUser->Fetch();
-                                    $registeredUserID = $arUser['ID'];
-                                    $registerNewUser = false;
-                                    break;
-                                default:
-                                    $login = uniqid('user_' . time()) . '@crm.com';
-                                    break;
-                            }
+                        $dbUser = CUser::GetList(
+                            ($by = 'ID'),
+                            ($sort = 'ASC'),
+                            array('=EMAIL' => $order['customer']['email'])
+                        );
+
+                        switch ($dbUser->SelectedRowsCount()) {
+                            case 0:
+                                $login = $order['customer']['email'];
+                                break;
+                            case 1:
+                                $arUser = $dbUser->Fetch();
+                                $registeredUserID = $arUser['ID'];
+                                $registerNewUser = false;
+                                break;
+                            default:
+                                $login = uniqid('user_' . time()) . '@crm.com';
+                                break;
                         }
 
                         if ($registerNewUser === true) {
