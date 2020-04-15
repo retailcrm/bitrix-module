@@ -46,6 +46,7 @@ $CRM_DIMENSIONS = 'order_dimensions';
 $PROTOCOL = 'protocol';
 
 $CRM_DISCOUNT_ROUND = 'discount_round';
+$CRM_PURCHASE_PRICE_NULL = 'purchasePrice_null';
 
 if(!CModule::IncludeModule('intaro.retailcrm') || !CModule::IncludeModule('sale') || !CModule::IncludeModule('iblock') || !CModule::IncludeModule('catalog'))
     return;
@@ -451,6 +452,15 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         UnRegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmDc", "add");
     }
 
+    //purchasePrice_null
+    if (htmlspecialchars(trim($_POST['purchasePrice_null'])) == 'Y') {
+        $purchasePrice_null = 'Y';
+        RegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmPricePrchase", "add");
+    } else  {
+        $purchasePrice_null = 'N';
+        UnRegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmPricePrchase", "add");
+    }
+
     //version
 
     $version = COption::GetOptionString($mid, $CRM_API_VERSION);
@@ -526,6 +536,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     COption::SetOptionString($mid, $CRM_DIMENSIONS, $orderDimensions);
 
     COption::SetOptionString($mid, $CRM_DISCOUNT_ROUND, $discount_round);
+    COption::SetOptionString($mid, $CRM_PURCHASE_PRICE_NULL, $purchasePrice_null);
 
     $request = \Bitrix\Main\Application::getInstance()->getContext()->getRequest();
 
@@ -634,6 +645,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     $optionUaKeys = unserialize(COption::GetOptionString($mid, $CRM_UA_KEYS));
 
     $optionDiscRound = COption::GetOptionString($mid, $CRM_DISCOUNT_ROUND, 0);
+    $optionPricePrchaseNull = COption::GetOptionString($mid, $CRM_PURCHASE_PRICE_NULL, 0);
 
     $version = COption::GetOptionString($mid, $CRM_API_VERSION, 0);
 
@@ -752,6 +764,17 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
 
                 return true;
             });
+
+            $('.r-purchaseprice-button label').change(function() {
+                if($(this).find('input').is(':checked') === true) {
+                    $('tr.r-purchaseprice').show('slow');
+                } else if($(this).find('input').is(':checked') === false) {
+                    $('tr.r-purchaseprice').hide('slow');
+                }
+
+                return true;
+            });
+
         });
 
         $('input[name="update-delivery-services"]').live('click', function() {
@@ -1300,6 +1323,23 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             <tr class="r-dc" <?php if($optionDiscRound !== 'Y') echo 'style="display: none;"'; ?>>
                 <td class="option-head" colspan="2">
                     <b><?php echo "При включенной опции округление будет происходить в меньшую сторону" ?></b>
+                </td>
+            </tr>
+
+            <tr class="heading r-purchaseprice-button">
+                <td colspan="2" class="option-other-heading">
+                    <b>
+                        <label><input class="addr" type="checkbox" name="purchasePrice_null" value="Y"
+                                <?php if($optionPricePrchaseNull === 'Y')
+                                    echo "checked"; ?>><?php
+                            echo "Сброс закупочной цены в icml" ?></label>
+                    </b>
+                </td>
+            </tr>
+
+            <tr class="r-purchaseprice" <?php if($optionPricePrchaseNull !== 'Y') echo 'style="display: none;"'; ?>>
+                <td class="option-head" colspan="2">
+                    <b><?php echo "При включенной опции в генерации icml будет добавлен сброс закупочной цены на 0 если она не указана" ?></b>
                 </td>
             </tr>
 
