@@ -624,11 +624,15 @@ class RetailCrmICML
         $offer .= "<url>" . $this->protocol . $this->serverName . $this->PrepareValue($arOffer['DETAIL_PAGE_URL']) . "</url>\n";
 
         $offer .= "<price>" . $this->PrepareValue($arOffer['PRICE']) . "</price>\n";
-        if ($arOffer['PURCHASE_PRICE'] && $this->loadPurchasePrice) {
-            $offer .= "<purchasePrice>" . $this->PrepareValue($arOffer['PURCHASE_PRICE']) . "</purchasePrice>\n";
-        } elseif ("Y" == $this->purchasePriceNull) {
-            $offer .= "<purchasePrice>0</purchasePrice>\n";
+
+        if ($this->loadPurchasePrice) {
+            if ($arOffer['PURCHASE_PRICE']) {
+                $offer .= "<purchasePrice>" . $this->PrepareValue($arOffer['PURCHASE_PRICE']) . "</purchasePrice>\n";
+            } elseif ("Y" == $this->purchasePriceNull) {
+                $offer .= "<purchasePrice>0</purchasePrice>\n";
+            }
         }
+
         foreach ($categories as $category) {
             $offer .= "<categoryId>" . $category['ID'] . "</categoryId>\n";
         }
