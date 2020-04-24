@@ -8,7 +8,7 @@
 /.idea
 /.idea/*
 
-
+/intaro.retailcrm/log/*
 /vendor/
 .env
 .phpunit.result.cache

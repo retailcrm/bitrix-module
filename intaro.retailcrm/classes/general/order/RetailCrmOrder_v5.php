@@ -2,29 +2,6 @@
 IncludeModuleLangFile(__FILE__);
 class RetailCrmOrder
 {
-    public static $MODULE_ID = 'intaro.retailcrm';
-    public static $CRM_API_HOST_OPTION = 'api_host';
-    public static $CRM_API_KEY_OPTION = 'api_key';
-    public static $CRM_ORDER_TYPES_ARR = 'order_types_arr';
-    public static $CRM_DELIVERY_TYPES_ARR = 'deliv_types_arr';
-    public static $CRM_PAYMENT_TYPES = 'pay_types_arr';
-    public static $CRM_PAYMENT_STATUSES = 'pay_statuses_arr';
-    public static $CRM_PAYMENT = 'payment_arr'; //order payment Y/N
-    public static $CRM_ORDER_LAST_ID = 'order_last_id';
-    public static $CRM_SITES_LIST = 'sites_list';
-    public static $CRM_ORDER_PROPS = 'order_props';
-    public static $CRM_LEGAL_DETAILS = 'legal_details';
-    public static $CRM_CUSTOM_FIELDS = 'custom_fields';
-    public static $CRM_CONTRAGENT_TYPE = 'contragent_type';
-    public static $CRM_ORDER_FAILED_IDS = 'order_failed_ids';
-    public static $CRM_ORDER_HISTORY_DATE = 'order_history_date';
-    public static $CRM_CATALOG_BASE_PRICE = 'catalog_base_price';
-    public static $CRM_ORDER_NUMBERS = 'order_numbers';
-    public static $CRM_ORDER_DIMENSIONS = 'order_dimensions';
-    public static $CRM_CURRENCY = 'currency';
-
-    const CANCEL_PROPERTY_CODE = 'INTAROCRM_IS_CANCELED';
-
     /**
      *
      * Creates order or returns order for mass upload
@@ -51,15 +28,17 @@ class RetailCrmOrder
             return false;
         }
 
-        $dimensionsSetting = COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_DIMENSIONS, 'N');
-        $optionsCurrency = COption::GetOptionString(self::$MODULE_ID, self::$CRM_CURRENCY, 0);
-        $currency = $optionsCurrency ? $optionsCurrency : \Bitrix\Currency\CurrencyManager::getBaseCurrency();
+        $dimensionsSetting = RetailcrmConfigProvider::getOrderDimensions();
+        $currency = RetailcrmConfigProvider::getCurrencyOrDefault();
+        $optionCorpClient = RetailcrmConfigProvider::getCorporateClientStatus();
 
         $order = array(
             'number'          => $arFields['NUMBER'],
             'externalId'      => $arFields['ID'],
             'createdAt'       => $arFields['DATE_INSERT'],
-            'customer'        => array('externalId' => $arFields['USER_ID']),
+            'customer'        => isset($arParams['customerCorporate'])
+                ? array('id' => $arParams['customerCorporate']['id'])
+                : array('externalId' => $arFields['USER_ID']),
             'orderType'       => isset($arParams['optionsOrderTypes'][$arFields['PERSON_TYPE_ID']]) ?
                 $arParams['optionsOrderTypes'][$arFields['PERSON_TYPE_ID']] : '',
             'status'          => isset($arParams['optionsPayStatuses'][$arFields['STATUS_ID']]) ?
@@ -70,9 +49,27 @@ class RetailCrmOrder
                 'cost' => $arFields['PRICE_DELIVERY']
             ),
         );
+
+        if (isset($arParams['contactExId'])) {
+            $order['contact']['externalId'] = $arParams['contactExId'];
+        }
+
+        if (isset($arParams['orderCompany']) && !empty($arParams['orderCompany'])) {
+            $company = $arParams['orderCompany'];
+
+            if (isset($company['id'])) {
+                $order['company']['id'] = $company['id'];
+            }
+
+            if (isset($company['name'])) {
+                $order['contragent']['legalName'] = $company['name'];
+            }
+        }
+
         if ($send && isset($_COOKIE['_rc']) && $_COOKIE['_rc'] != '') {
             $order['customer']['browserId'] = $_COOKIE['_rc'];
         }
+
         $order['contragent']['contragentType'] = $arParams['optionsContragentType'][$arFields['PERSON_TYPE_ID']];
 
         if ($methodApi == 'ordersEdit') {
@@ -103,15 +100,18 @@ class RetailCrmOrder
                         if ($arLoc) {
                             $server = \Bitrix\Main\Context::getCurrent()->getServer()->getDocumentRoot();
                             $countrys = array();
+
                             if (file_exists($server . '/bitrix/modules/intaro.retailcrm/classes/general/config/country.xml')) {
                                 $countrysFile = simplexml_load_file($server . '/bitrix/modules/intaro.retailcrm/classes/general/config/country.xml');
                                 foreach ($countrysFile->country as $country) {
                                     $countrys[RCrmActions::fromJSON((string) $country->name)] = (string) $country->alpha;
                                 }
                             }
+
                             $location = \Bitrix\Sale\Location\Name\LocationTable::getList(array(
                                 'filter' => array('=LOCATION_ID' => $arLoc['CITY_ID'], 'LANGUAGE_ID' => 'ru')
                             ))->fetch();
+
                             if (count($countrys) > 0) {
                                 $countryOrder = \Bitrix\Sale\Location\Name\LocationTable::getList(array(
                                     'filter' => array('=LOCATION_ID' => $arLoc['COUNTRY_ID'], 'LANGUAGE_ID' => 'ru')
@@ -156,7 +156,7 @@ class RetailCrmOrder
 
         //basket
         foreach ($arFields['BASKET'] as $position => $product) {
-            $externalId = $position ."_". $product['PRODUCT_ID'];
+            $externalId = $position . "_" . $product['PRODUCT_ID'];
             if (isset($orderItems[$externalId])) { //update
                 $externalIds = $orderItems[$externalId]['externalIds'];
                 $key = array_search("bitrix", array_column($externalIds, 'code'));
@@ -181,7 +181,7 @@ class RetailCrmOrder
             }
 
             $item = array(
-                'externalIds' => $externalIds,
+                'externalIds'      => $externalIds,
                 'quantity'        => $product['QUANTITY'],
                 'offer'           => array('externalId' => $product['PRODUCT_ID'],
                     'xmlId' => $product['PRODUCT_XML_ID']
@@ -287,10 +287,9 @@ class RetailCrmOrder
         $normalizer = new RestNormalizer();
         $order = $normalizer->normalize($order, 'orders');
 
-        $log = new Logger();
-        $log->write($order, 'orderSend');
+        Logger::getInstance()->write($order, 'orderSend');
 
-        if($send) {
+        if ($send) {
             if (!RCrmActions::apiMethod($api, $methodApi, __METHOD__, $order, $site)) {
                 return false;
             }
@@ -314,25 +313,18 @@ class RetailCrmOrder
      */
     public static function uploadOrders($pSize = 50, $failed = false, $orderList = false)
     {
-        if (!CModule::IncludeModule("iblock")) {
-            RCrmActions::eventLog('RetailCrmOrder::uploadOrders', 'iblock', 'module not found');
-            return true;
-        }
-        if (!CModule::IncludeModule("sale")) {
-            RCrmActions::eventLog('RetailCrmOrder::uploadOrders', 'sale', 'module not found');
-            return true;
-        }
-        if (!CModule::IncludeModule("catalog")) {
-            RCrmActions::eventLog('RetailCrmOrder::uploadOrders', 'catalog', 'module not found');
+        if (!RetailcrmDependencyLoader::loadDependencies()) {
             return true;
         }
 
         $resOrders = array();
         $resCustomers = array();
+        $resCustomersAdded = array();
+        $resCustomersCorporate = array();
         $orderIds = array();
 
-        $lastUpOrderId = COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, 0);
-        $failedIds = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_FAILED_IDS, 0));
+        $lastUpOrderId = RetailcrmConfigProvider::getLastOrderId();
+        $failedIds = RetailcrmConfigProvider::getFailedOrdersIds();
 
         if ($failed == true && $failedIds !== false && count($failedIds) > 0) {
             $orderIds = $failedIds;
@@ -345,6 +337,7 @@ class RetailCrmOrder
                 'limit'   => $pSize,
                 'select'  => array('ID')
             ));
+
             while ($arOrder = $dbOrder->fetch()) {
                 $orderIds[] = $arOrder['ID'];
             }
@@ -354,21 +347,30 @@ class RetailCrmOrder
             return false;
         }
 
-        $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
-        $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
+        $optionsSitesList = RetailcrmConfigProvider::getSitesList();
+        $optionsOrderTypes = RetailcrmConfigProvider::getOrderTypes();
+        $optionsDelivTypes = RetailcrmConfigProvider::getDeliveryTypes();
+        $optionsPayTypes = RetailcrmConfigProvider::getPaymentTypes();
+        $optionsPayStatuses = RetailcrmConfigProvider::getPaymentStatuses(); // --statuses
+        $optionsPayment = RetailcrmConfigProvider::getPayment();
+        $optionsOrderProps = RetailcrmConfigProvider::getOrderProps();
+        $optionsLegalDetails = RetailcrmConfigProvider::getLegalDetails();
+        $optionsContragentType = RetailcrmConfigProvider::getContragentTypes();
+        $optionsCustomFields = RetailcrmConfigProvider::getCustomFields();
 
-        $optionsSitesList = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_SITES_LIST, 0));
-        $optionsOrderTypes = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_TYPES_ARR, 0));
-        $optionsDelivTypes = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_DELIVERY_TYPES_ARR, 0));
-        $optionsPayTypes = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_TYPES, 0));
-        $optionsPayStatuses = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_STATUSES, 0)); // --statuses
-        $optionsPayment = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT, 0));
-        $optionsOrderProps = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_PROPS, 0));
-        $optionsLegalDetails = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_LEGAL_DETAILS, 0));
-        $optionsContragentType = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_CONTRAGENT_TYPE, 0));
-        $optionsCustomFields = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_CUSTOM_FIELDS, 0));
+        $getSite = function ($key) use ($optionsSitesList) {
+            if ($optionsSitesList) {
+                if (array_key_exists($key, $optionsSitesList) && $optionsSitesList[$key] != null) {
+                    return $optionsSitesList[$key];
+                } else {
+                    return false;
+                }
+            }
 
-        $api = new RetailCrm\ApiClient($api_host, $api_key);
+            return null;
+        };
+
+        $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
 
         $arParams = array(
             'optionsOrderTypes'     => $optionsOrderTypes,
@@ -384,70 +386,220 @@ class RetailCrmOrder
         );
 
         $recOrders = array();
+
         foreach ($orderIds as $orderId) {
+            $site = null;
             $id = \Bitrix\Sale\Order::load($orderId);
+
             if (!$id) {
                 continue;
             }
+
+            $arCustomer = array();
+            $arCustomerCorporate = array();
             $order = self::orderObjToArr($id);
             $user = Bitrix\Main\UserTable::getById($order['USER_ID'])->fetch();
+            $site = $getSite($order['LID']);
 
-            $arCustomers = RetailCrmUser::customerSend($user, $api, $optionsContragentType[$order['PERSON_TYPE_ID']], false, $site);
-            $arOrders = self::orderSend($order, $api, $arParams, false, $site);
-
-            if (!$arCustomers || !$arOrders) {
+            if (true === $site) {
                 continue;
             }
 
-            $resCustomers[$order['LID']][] = $arCustomers;
-            $resOrders[$order['LID']][] = $arOrders;
+            if ("Y" == RetailcrmConfigProvider::getCorporateClientStatus()
+                && $optionsContragentType[$order['PERSON_TYPE_ID']] == 'legal-entity'
+            ) {
+                // TODO check if order is corporate, and if it IS - make corporate order
+                $arCustomer = RetailCrmUser::customerSend(
+                    $user,
+                    $api,
+                    'individual',
+                    false,
+                    $site
+                );
 
+                $arCustomerCorporate = RetailCrmCorporateClient::clientSend(
+                    $order,
+                    $api,
+                    'legal-entity',
+                    false,
+                    true,
+                    $site
+                );
+
+                $arParams['orderCompany'] = isset($arCustomerCorporate['companies'])
+                    ? reset($arCustomerCorporate['companies']) : null;
+                $arParams['contactExId'] = $user['ID'];
+            } else {
+                $arCustomer = RetailCrmUser::customerSend(
+                    $user,
+                    $api,
+                    $optionsContragentType[$order['PERSON_TYPE_ID']],
+                    false,
+                    $site
+                );
+
+                if (isset($arParams['contactExId'])) {
+                    unset($arParams['contactExId']);
+                }
+            }
+
+            $arOrders = self::orderSend($order, $api, $arParams, false, $site);
+
+            if (!$arCustomer || !$arOrders) {
+                continue;
+            }
+
+            if (!empty($arCustomerCorporate) && !empty($arCustomerCorporate['nickName'])) {
+                $resCustomersCorporate[$arCustomerCorporate['nickName']] = $arCustomerCorporate;
+            }
+
+            $email = isset($arCustomer['email']) ? $arCustomer['email'] : '';
+
+            if (!in_array($email, $resCustomersAdded)) {
+                $resCustomersAdded[] = $email;
+                $resCustomers[$order['LID']][] = $arCustomer;
+            }
+
+            $resOrders[$order['LID']][] = $arOrders;
             $recOrders[] = $orderId;
         }
 
         if (count($resOrders) > 0) {
-            foreach ($resCustomers as $key => $customerLoad) {
-                if ($optionsSitesList) {
-                    if (array_key_exists($key, $optionsSitesList) && $optionsSitesList[$key] != null) {
-                        $site = $optionsSitesList[$key];
-                    } else {
+            $uploadItems = function ($pack, $method) use ($getSite, $api, $optionsSitesList) {
+                $uploaded = array();
+
+                foreach ($pack as $key => $itemLoad) {
+                    $site = $getSite($key);
+
+                    if (true === $site) {
                         continue;
                     }
-                } elseif (!$optionsSitesList) {
-                    $site = null;
-                }
-                if (RCrmActions::apiMethod($api, 'customersUpload', __METHOD__, $customerLoad, $site) === false) {
-                    return false;
-                }
-                if (count($optionsSitesList) > 1) {
-                    time_nanosleep(0, 250000000);
-                }
-            }
-            foreach ($resOrders as $key => $orderLoad) {
-                if ($optionsSitesList) {
-                    if (array_key_exists($key, $optionsSitesList) && $optionsSitesList[$key] != null) {
-                        $site = $optionsSitesList[$key];
-                    } else {
-                        continue;
+
+                    /** @var \RetailCrm\Response\ApiResponse|bool $response */
+                    $response = RCrmActions::apiMethod(
+                        $api,
+                        $method,
+                        __METHOD__,
+                        $itemLoad,
+                        $site
+                    );
+
+                    if ($response === false) {
+                        return false;
                     }
-                } elseif (!$optionsSitesList) {
-                    $site = null;
+
+                    if ($response instanceof \RetailCrm\Response\ApiResponse) {
+                        if ($response->offsetExists('uploadedCustomers')) {
+                            $uploaded = array_merge($uploaded, $response['uploadedCustomers']);
+                        }
+
+                        if ($response->offsetExists('uploadedOrders')) {
+                            $uploaded = array_merge($uploaded, $response['uploadedOrders']);
+                        }
+                    }
+
+                    if (count($optionsSitesList) > 1) {
+                        time_nanosleep(0, 250000000);
+                    }
                 }
-                if (RCrmActions::apiMethod($api, 'ordersUpload', __METHOD__, $orderLoad, $site) === false) {
-                    return false;
-                }
-                if (count($optionsSitesList) > 1) {
-                    time_nanosleep(0, 250000000);
+
+                return $uploaded;
+            };
+
+            if (false === $uploadItems($resCustomers, 'customersUpload')) {
+                return false;
+            }
+
+            if ("Y" == RetailcrmConfigProvider::getCorporateClientStatus()) {
+                $cachedCorporateIds = array();
+
+                foreach ($resOrders as $packKey => $pack) {
+                    foreach ($pack as $key => $orderData) {
+                        if (isset($orderData['contragent']['contragentType'])
+                            && $orderData['contragent']['contragentType'] == 'legal-entity'
+                            && !empty($orderData['contragent']['legalName'])
+                        ) {
+                            if (isset($cachedCorporateIds[$orderData['contragent']['legalName']])) {
+                                $orderData['customer'] = array(
+                                    'id' => $cachedCorporateIds[$orderData['contragent']['legalName']]
+                                );
+                            } else {
+                                $corpData = $api->customersCorporateList(array(
+                                    'nickName' => array($orderData['contragent']['legalName'])
+                                ));
+
+                                if ($corpData
+                                    && $corpData->isSuccessful()
+                                    && $corpData->offsetExists('customersCorporate')
+                                    && !empty($corpData['customersCorporate'])
+                                ) {
+                                    $corpData = $corpData['customersCorporate'];
+                                    $corpData = reset($corpData);
+
+                                    $orderData['customer'] = array('id' => $corpData['id']);
+                                    $cachedCorporateIds[$orderData['contragent']['legalName']] = $corpData['id'];
+
+                                    RetailCrmCorporateClient::addCustomersCorporateAddresses(
+                                        $orderData['customer']['id'],
+                                        $orderData['contragent']['legalName'],
+                                        $orderData['delivery']['address']['text'],
+                                        $api,
+                                        $site = null
+                                    );
+                                } elseif (array_key_exists(
+                                    $orderData['contragent']['legalName'],
+                                    $resCustomersCorporate
+                                )) {
+                                    $createResponse = $api
+                                        ->customersCorporateCreate(
+                                            $resCustomersCorporate[$orderData['contragent']['legalName']]
+                                        );
+
+                                    if ($createResponse && $createResponse->isSuccessful()) {
+                                        $orderData['customer'] = array('id' => $createResponse['id']);
+                                        $cachedCorporateIds[$orderData['contragent']['legalName']]
+                                            = $createResponse['id'];
+                                    }
+                                }
+
+                                time_nanosleep(0, 250000000);
+                            }
+
+                            $pack[$key] = $orderData;
+                        }
+                    }
+
+                    $resOrders[$packKey] = $pack;
                 }
             }
+
+            if (false === $uploadItems($resOrders, 'ordersUpload')) {
+                return false;
+            }
+
             if ($failed == true && $failedIds !== false && count($failedIds) > 0) {
-                COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_FAILED_IDS, serialize(array_diff($failedIds, $recOrders)));
+                RetailcrmConfigProvider::setFailedOrdersIds(array_diff($failedIds, $recOrders));
             } elseif ($lastUpOrderId < max($recOrders) && $orderList === false) {
-                COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, max($recOrders));
+                RetailcrmConfigProvider::setLastOrderId(max($recOrders));
             }
         }
 
         return true;
+    }
+
+    /**
+     * Returns true if provided order array is corporate order data
+     *
+     * @param array|\ArrayAccess $order
+     *
+     * @return bool
+     */
+    public static function isOrderCorporate($order)
+    {
+        return (is_array($order) || $order instanceof ArrayAccess)
+            && isset($order['customer'])
+            && isset($order['customer']['type'])
+            && $order['customer']['type'] == 'customer_corporate';
     }
 
     /**
@@ -478,10 +630,11 @@ class RetailCrmOrder
             'BASKET'           => array(),
             'USER_DESCRIPTION' => $obOrder->getField('USER_DESCRIPTION'),
             'COMMENTS'         => $obOrder->getField('COMMENTS'),
-            'REASON_CANCELED'  => $obOrder->getField('REASON_CANCELED'),
+            'REASON_CANCELED'  => $obOrder->getField('REASON_CANCELED')
         );
 
         $shipmentList = $obOrder->getShipmentCollection();
+
         foreach ($shipmentList as $shipmentData) {
             if ($shipmentData->isSystem()) {
                 continue;
@@ -506,11 +659,13 @@ class RetailCrmOrder
         }
 
         $paymentList = $obOrder->getPaymentCollection();
+
         foreach ($paymentList as $paymentData) {
             $arOrder['PAYMENTS'][] = $paymentData->getFields()->getValues();
         }
 
         $basketItems = $obOrder->getBasket();
+
         foreach ($basketItems as $item) {
             $arOrder['BASKET'][] = $item->getFields();
         }

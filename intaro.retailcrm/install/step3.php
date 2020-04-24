@@ -3,6 +3,36 @@ if (!check_bitrix_sessid())
     return;
 IncludeModuleLangFile(__FILE__);
 
+$MODULE_ID = 'intaro.retailcrm';
+$CRM_API_HOST_OPTION = 'api_host';
+$CRM_API_KEY_OPTION = 'api_key';
+$CRM_SITES_LIST= 'sites_list';
+$CRM_ORDER_PROPS = 'order_props';
+$CRM_CONTRAGENT_TYPE = 'contragent_type';
+$CRM_LEGAL_DETAILS = 'legal_details';
+$api_host = COption::GetOptionString($MODULE_ID, $CRM_API_HOST_OPTION, 0);
+$api_key = COption::GetOptionString($MODULE_ID, $CRM_API_KEY_OPTION, 0);
+$arResult['arSites'] = RCrmActions::SitesList();
+
+$RETAIL_CRM_API = new \RetailCrm\ApiClient($api_host, $api_key);
+COption::SetOptionString($MODULE_ID, $CRM_API_HOST_OPTION, $api_host);
+COption::SetOptionString($MODULE_ID, $CRM_API_KEY_OPTION, $api_key);
+COption::SetOptionString($MODULE_ID, $CRM_SITES_LIST, serialize(array()));
+
+if (!isset($arResult['bitrixOrderTypesList'])) {
+    $arResult['bitrixOrderTypesList'] = RCrmActions::OrderTypesList($arResult['arSites']);
+    $arResult['arProp'] = RCrmActions::OrderPropsList();
+    $arResult['ORDER_PROPS'] = unserialize(COption::GetOptionString($MODULE_ID, $CRM_ORDER_PROPS, 0));
+}
+
+if (!isset($arResult['LEGAL_DETAILS'])) {
+    $arResult['LEGAL_DETAILS'] = unserialize(COption::GetOptionString($MODULE_ID, $CRM_LEGAL_DETAILS, 0));
+}
+
+if (!isset($arResult['CONTRAGENT_TYPES'])) {
+    $arResult['CONTRAGENT_TYPES'] = unserialize(COption::GetOptionString($MODULE_ID, $CRM_CONTRAGENT_TYPE, 0));
+}
+
 if(isset($arResult['ORDER_PROPS'])){
     $defaultOrderProps = $arResult['ORDER_PROPS'];
 }
@@ -27,7 +57,28 @@ else{
 ?>
 <script type="text/javascript" src="/bitrix/js/main/jquery/jquery-1.7.min.js"></script>
 <script type="text/javascript">
-    $(document).ready(function() { 
+    $(document).ready(function() {
+        individual = $("[name='contragent-type-1']").val();
+        legalEntity = $("[name='contragent-type-2']").val();
+
+        if (legalEntity != 'individual') {
+            $('tr.legal-detail-2').each(function(){
+                if($(this).hasClass(legalEntity)){
+                    $(this).show();
+                    $('.legal-detail-title-2').show();
+                }
+            });
+        }
+
+        if (individual != 'individual') {
+            $('tr.legal-detail-1').each(function(){
+                if($(this).hasClass(individual)){
+                    $(this).show();
+                    $('.legal-detail-title-1').show();
+                }
+            });
+        }
+
         $('input.addr').change(function(){
             splitName = $(this).attr('name').split('-');
             orderType = splitName[2];
@@ -42,7 +93,6 @@ else{
             splitName = $(this).attr('name').split('-');
             contragentType = $(this).val();
             orderType = splitName[2];
-            
             $('tr.legal-detail-' + orderType).hide();
             $('.legal-detail-title-' + orderType).hide();
 
@@ -158,7 +208,7 @@ else{
                     </b>
                 </td>
             </tr>
-            
+
             <?php foreach($arResult['legalDetails'] as $legalDetails): ?>
             <tr class="legal-detail-<?php echo $bitrixOrderType['ID'];?> <?php foreach($legalDetails['GROUP'] as $gr) echo $gr . ' ';?>" style="display:none">
                 <td width="50%" class="adm-detail-content-cell-l">
