@@ -1436,7 +1436,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                 </td>
             </tr>
 
-<<<<<<< HEAD
             <?php if ($optionInventotiesUpload === 'Y' || count($arResult['bitrixStoresExportList']) > 0) :?>
                 <tr class="heading inventories-batton">
                     <td colspan="2" class="option-other-heading">
@@ -1628,9 +1627,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                     </td>
                 </tr>
             <?php endforeach;?>
-
-=======
->>>>>>> fix options
             <tr class="r-cc" <?php if($optionCorpClient !== 'Y') echo 'style="display: none;"'; ?>>
                 <td colspan="2" class="option-head option-other-top option-other-bottom">
                     <b>
