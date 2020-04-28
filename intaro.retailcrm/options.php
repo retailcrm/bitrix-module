@@ -1436,152 +1436,21 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                 </td>
             </tr>
 
-<<<<<<< HEAD
-            <?php if ($optionInventotiesUpload === 'Y' || count($arResult['bitrixStoresExportList']) > 0) :?>
-                <tr class="heading inventories-batton">
-                    <td colspan="2" class="option-other-heading">
-                        <b>
-                            <label><input class="addr" type="checkbox" name="inventories-upload" value="Y" <?php if($optionInventotiesUpload === 'Y') echo "checked"; ?>><?php echo GetMessage('INVENTORIES_UPLOAD'); ?></label>
-                        </b>
-                    </td>
-                </tr>
-                <tr class="inventories" <?php if($optionInventotiesUpload !== 'Y') echo 'style="display: none;"'; ?>>
-                    <td colspan="2" class="option-head option-other-top option-other-bottom">
-                        <b><label><?php echo GetMessage('INVENTORIES'); ?></label></b>
-                    </td>
-                </tr>
-                <?php foreach ($arResult['bitrixStoresExportList'] as $catalogExportStore): ?>
-                    <tr class="inventories" <?php if($optionInventotiesUpload !== 'Y') echo 'style="display: none;"'; ?>>
-                        <td width="50%" class="adm-detail-content-cell-l"><?php echo $catalogExportStore['TITLE'] ?></td>
-                        <td width="50%" class="adm-detail-content-cell-r">
-                            <select class="typeselect" name="stores-export-<?php echo $catalogExportStore['ID']?>">
-                                <option value=""></option>
-                                <?php foreach ($arResult['inventoriesList'] as $inventoriesList): ?>
-                                    <option value="<?php echo $inventoriesList['code'] ?>" <?php if($optionStores[$catalogExportStore['ID']] == $inventoriesList['code']) echo 'selected="selected"'; ?>><?php echo $inventoriesList['name']?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-                <tr class="inventories" <?php if($optionInventotiesUpload !== 'Y') echo 'style="display: none;"'; ?>>
-                    <td colspan="2" class="option-head option-other-top option-other-bottom">
-                        <b>
-                            <label><?php echo GetMessage('SHOPS_INVENTORIES_UPLOAD'); ?></label>
-                        </b>
-                    </td>
-                </tr>
-                <?php foreach ($arResult['sitesList'] as $sitesList): ?>
-                    <tr class="inventories" align="center" <?php if($optionInventotiesUpload !== 'Y') echo 'style="display: none;"'; ?>>
-                        <td colspan="2" class="option-other-center">
-                            <label><input class="addr" type="checkbox" name="shops-exoprt-<?echo $sitesList['code'];?>" value="Y" <?php if(in_array($sitesList['code'], $optionShops)) echo "checked"; ?>> <?php echo $sitesList['name'].' ('.$sitesList['code'].')'; ?></label>
-                        </td>
-                    </tr>
-                <?php endforeach;?>
-                <tr class="inventories" <?php if($optionInventotiesUpload !== 'Y') echo 'style="display: none;"'; ?>>
-                    <td colspan="2" class="option-head option-other-top option-other-bottom">
-                        <b>
-                            <label><?php echo GetMessage('IBLOCKS_UPLOAD'); ?></label>
-                        </b>
-                    </td>
-                </tr>
-                <?php foreach ($arResult['bitrixIblocksExportList'] as $catalogExportIblock) :?>
-                    <tr class="inventories" align="center" <?php if($optionInventotiesUpload !== 'Y') echo 'style="display: none;"'; ?>>
-                        <td colspan="2" class="option-other-center">
-                            <label><input class="addr" type="checkbox" name="iblocks-stores-<?echo $catalogExportIblock['ID'];?>" value="Y" <?php if(in_array($catalogExportIblock['ID'], $optionIblocksInventories)) echo "checked"; ?>> <?php echo '['. $catalogExportIblock['CODE']. '] ' . $catalogExportIblock['NAME'] . ' (' . $catalogExportIblock['LID'] . ')'; ?></label>
-                        </td>
-                    </tr>
-                <?php endforeach;?>
-            <?php endif;?>
-            <?php if ($optionPricesUpload === 'Y' || count($arResult['bitrixPricesExportList']) > 0) :?>
-                <tr class="heading prices-batton">
-                    <td colspan="2" class="option-other-heading">
-                        <b>
-                            <label><input class="addr" type="checkbox" name="prices-upload" value="Y" <?php if($optionPricesUpload === 'Y') echo "checked"; ?>><?php echo GetMessage('PRICES_UPLOAD'); ?></label>
-                        </b>
-                    </td>
-                </tr>
-                <tr class="prices" <?php if($optionPricesUpload !== 'Y') echo 'style="display: none;"'; ?>>
-                    <td colspan="2" class="option-head option-other-top option-other-bottom">
-                        <b>
-                            <label><?php echo GetMessage('PRICE_TYPES'); ?></label>
-                        </b>
-                    </td>
-                </tr>
-                <?php foreach ($arResult['bitrixPricesExportList'] as $catalogExportPrice) :?>
-                    <tr class="prices" <?php if($optionPricesUpload !== 'Y') echo 'style="display: none;"'; ?>>
-                        <td width="50%" class="adm-detail-content-cell-l"><?php echo $catalogExportPrice['NAME_LANG'] . ' (' . $catalogExportPrice['NAME'] . ')'; ?></td>
-                        <td width="50%" class="adm-detail-content-cell-r">
-                            <select class="typeselect" name="price-type-export-<?php echo $catalogExportPrice['ID'];?>">
-                                <option value=""></option>
-                                <?php foreach ($arResult['priceTypeList'] as $priceTypeList): ?>
-                                    <option value="<?php echo $priceTypeList['code'] ?>" <?php if($optionPrices[$catalogExportPrice['ID']] == $priceTypeList['code']) echo 'selected="selected"'; ?>><?php echo $priceTypeList['name']?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </td>
-                    </tr>
-                <?php endforeach;?>
-                <tr class="prices" <?php if($optionPricesUpload !== 'Y') echo 'style="display: none;"'; ?>>
-                    <td colspan="2" class="option-head option-other-top option-other-bottom">
-                        <b>
-                            <label><?php echo GetMessage('SHOPS_PRICES_UPLOAD'); ?></label>
-                        </b>
-                    </td>
-                </tr>
-                <?php foreach ($arResult['sitesList'] as $sitesList): ?>
-                    <tr class="prices" align="center" <?php if($optionPricesUpload !== 'Y') echo 'style="display: none;"'; ?>>
-                        <td colspan="2" class="option-other-center">
-                            <label><input class="addr" type="checkbox" name="shops-price-<?echo $sitesList['code'];?>" value="Y" <?php if(in_array($sitesList['code'], $optionPriceShops)) echo "checked"; ?>> <?php echo $sitesList['name'].' ('.$sitesList['code'].')'; ?></label>
-                        </td>
-                    </tr>
-                <?php endforeach;?>
-                <tr class="prices" <?php if($optionPricesUpload !== 'Y') echo 'style="display: none;"'; ?>>
-                    <td colspan="2" class="option-head option-other-top option-other-bottom">
-                        <b>
-                            <label><?php echo GetMessage('IBLOCKS_UPLOAD'); ?></label>
-                        </b>
-                    </td>
-                </tr>
-                <?php foreach ($arResult['bitrixIblocksExportList'] as $catalogExportIblock) :?>
-                    <tr class="prices" align="center" <?php if($optionPricesUpload !== 'Y') echo 'style="display: none;"'; ?>>
-                        <td colspan="2" class="option-other-center">
-                            <label><input class="addr" type="checkbox" name="iblocks-prices-<?echo $catalogExportIblock['ID'];?>" value="Y" <?php if(in_array($catalogExportIblock['ID'], $optionIblocksPrices)) echo "checked"; ?>> <?php echo '['. $catalogExportIblock['CODE']. '] ' . $catalogExportIblock['NAME'] . ' (' . $catalogExportIblock['LID'] . ')'; ?></label>
-                        </td>
-                    </tr>
-                <?php endforeach;?>
-            <?php endif;?>
-
-            <tr class="heading r-coll-button">
-                <td colspan="2" class="option-other-heading">
+            <tr class="r-cc" <?php if($optionCorpClient !== 'Y') echo 'style="display: none;"'; ?>>
+                <td colspan="2" class="option-head option-other-top option-other-bottom">
                     <b>
-                        <label><input class="addr" type="checkbox" name="collector" value="Y" <?php if($optionCollector === 'Y') echo "checked"; ?>><?php echo GetMessage('DEMON_COLLECTOR'); ?></label>
-                    </b>
-                </td>
-            </tr>
-            <tr class="r-coll" <?php if($optionCollector !== 'Y') echo 'style="display: none;"'; ?>>
-                <td class="option-head" colspan="2">
-                    <b><?php echo GetMessage('ICRM_SITES'); ?></b>
-                </td>
-            </tr>
-            <?php foreach ($arResult['arSites'] as $sitesList): ?>
-                <tr class="r-coll" <?php if($optionCollector !== 'Y') echo 'style="display: none;"'; ?>>
-                    <td class="adm-detail-content-cell-l" width="50%"><?php echo GetMessage('DEMON_KEY'); ?> <?php echo $sitesList['NAME']; ?> (<?php echo $sitesList['LID']; ?>)</td>
-                    <td class="adm-detail-content-cell-r" width="50%">
-                        <input name="collector-id-<?echo $sitesList['LID'];?>" value="<?php echo $optionCollectorKeys[$sitesList['LID']]; ?>" type="text">
-                    </td>
-                </tr>
-            <?php endforeach;?>
-
-            <tr class="heading r-dc-button">
-                <td colspan="2" class="option-other-heading">
-                    <b>
-                        <label><input class="addr" type="checkbox" name="discount_round" value="Y" <?php if($optionDiscRound === 'Y') echo "checked"; ?>><?php echo "Округление цены товара при сборе одинаковых товарных позиций" ?></label>
+                        <label><?php echo GetMessage('CORP_LABEL');?></label>
                     </b>
                 </td>
             </tr>
 
-            <tr class="r-dc" <?php if($optionDiscRound !== 'Y') echo 'style="display: none;"'; ?>>
-                <td class="option-head" colspan="2">
-                    <b><?php echo "При включенной опции округление будет происходить в меньшую сторону" ?></b>
+            <tr class="r-cc" <?php if($optionCorpClient !== 'Y') echo 'style="display: none;"'; ?>>
+                <td width="50%" class="" name="<?php ?>" align="center">
+                    <?php foreach ($arResult['sitesList'] as $sitesList): ?>
+                <td colspan="2" class="option-other-center">
+                    <label><input class="addr" type="checkbox" name="shops-corporate-<?echo $sitesList['code'];?>" value="Y" <?php if(in_array($sitesList['code'], $optionCorpShops)) echo "checked"; ?>> <?php echo $sitesList['name'].' ('.$sitesList['code'].')'; ?></label>
+                </td>
+                <?php endforeach;?>
                 </td>
             </tr>
 
@@ -1599,53 +1468,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             <tr class="r-purchaseprice" <?php if($optionPricePrchaseNull !== 'Y') echo 'style="display: none;"'; ?>>
                 <td class="option-head" colspan="2">
                     <b><?php echo "При включенной опции в генерации icml будет добавлен сброс закупочной цены на 0 если она не указана" ?></b>
-                </td>
-            </tr>
-
-            <tr class="heading r-ua-button">
-                <td colspan="2" class="option-other-heading">
-                    <b>
-                        <label><input class="addr" type="checkbox" name="ua-integration" value="Y" <?php if($optionUa === 'Y') echo "checked"; ?>><?php echo GetMessage('UNIVERSAL_ANALYTICS'); ?></label>
-                    </b>
-                </td>
-            </tr>
-            <?php foreach ($arResult['arSites'] as $sitesList): ?>
-                <tr class="r-ua" <?php if($optionUa !== 'Y') echo 'style="display: none;"'; ?>>
-                    <td class="option-head" colspan="2">
-                        <b><?php echo $sitesList['NAME']; ?> (<?php echo $sitesList['LID']; ?>)</b>
-                    </td>
-                </tr>
-                <tr class="r-ua" <?php if($optionUa !== 'Y') echo 'style="display: none;"'; ?>>
-                    <td class="adm-detail-content-cell-l" width="50%"><?php echo GetMessage('ID_UA'); ?></td>
-                    <td class="adm-detail-content-cell-r" width="50%">
-                        <input name="ua-id-<?echo $sitesList['LID'];?>" value="<?php echo $optionUaKeys[$sitesList['LID']]['ID']; ?>" type="text">
-                    </td>
-                </tr>
-                <tr class="r-ua" <?php if($optionUa !== 'Y') echo 'style="display: none;"'; ?>>
-                    <td class="adm-detail-content-cell-l" width="50%"><?php echo GetMessage('INDEX_UA'); ?></td>
-                    <td class="adm-detail-content-cell-r" width="50%">
-                        <input name="ua-index-<?echo $sitesList['LID'];?>" value="<?php echo $optionUaKeys[$sitesList['LID']]['INDEX']; ?>" type="text">
-                    </td>
-                </tr>
-            <?php endforeach;?>
-
-=======
->>>>>>> fix options
-            <tr class="r-cc" <?php if($optionCorpClient !== 'Y') echo 'style="display: none;"'; ?>>
-                <td colspan="2" class="option-head option-other-top option-other-bottom">
-                    <b>
-                        <label><?php echo GetMessage('CORP_LABEL');?></label>
-                    </b>
-                </td>
-            </tr>
-
-            <tr class="r-cc" <?php if($optionCorpClient !== 'Y') echo 'style="display: none;"'; ?>>
-                <td width="50%" class="" name="<?php ?>" align="center">
-                    <?php foreach ($arResult['sitesList'] as $sitesList): ?>
-                <td colspan="2" class="option-other-center">
-                    <label><input class="addr" type="checkbox" name="shops-corporate-<?echo $sitesList['code'];?>" value="Y" <?php if(in_array($sitesList['code'], $optionCorpShops)) echo "checked"; ?>> <?php echo $sitesList['name'].' ('.$sitesList['code'].')'; ?></label>
-                </td>
-                <?php endforeach;?>
                 </td>
             </tr>
 

@@ -34,6 +34,7 @@ class RetailCrmICML
     protected $isLogged = false;
     protected $logFile = '/bitrix/catalog_export/i_crm_load_log.txt';
     protected $fpLog;
+    protected $localizedIBlockProps;
 
     protected $MODULE_ID = 'intaro.retailcrm';
     protected $CRM_CATALOG_BASE_PRICE = 'catalog_base_price';
@@ -69,10 +70,11 @@ class RetailCrmICML
     {
         global $USER;
         if (!isset($_SESSION["SESS_AUTH"]["USER_ID"]) || !$_SESSION["SESS_AUTH"]["USER_ID"]) {
-            $USER = new CUser;
+            $USER = new CUser();
         }
 
         $this->isLogged = true;
+        $this->localizedIBlockProps = $this->getLocalizedIBlockProps();
 
         $defaultSite = CSite::GetList($by = "def", $order = "desc", array('DEF' => 'Y'))->Fetch();
         $this->encodingDefault = $defaultSite["CHARSET"];
@@ -647,7 +649,13 @@ class RetailCrmICML
                 if ($key === "manufacturer") {
                     $offer .= "<vendor>" . $this->PrepareValue($arOffer['_PROP_' . $key]) . "</vendor>\n";
                 } else {
-                    $offer .= '<param name="' . $key . '"' . (isset($arOffer['_PROP_' . $key . "_UNIT"]) ? ' unit="' . $arOffer['_PROP_' . $key . "_UNIT"] . '"' : "") . ">" . $this->PrepareValue($arOffer['_PROP_' . $key]) . "</param>\n";
+                    $name = $key;
+
+                    if (isset($this->localizedIBlockProps[$key])) {
+                        $name = $this->localizedIBlockProps[$key];
+                    }
+
+                    $offer .= '<param name="' . $name . '" code="' . $key . '"' . (isset($arOffer['_PROP_' . $key . "_UNIT"]) ? ' unit="' . $arOffer['_PROP_' . $key . "_UNIT"] . '"' : "") . ">" . $this->PrepareValue($arOffer['_PROP_' . $key]) . "</param>\n";
                 }
             }
         }
@@ -656,7 +664,13 @@ class RetailCrmICML
                 if ($key === "manufacturer") {
                     $offer .= "<vendor>" . $this->PrepareValue($arOffer['_PROP_' . $key]) . "</vendor>\n";
                 } else {
-                    $offer .= '<param name="' . $key . '"' . (isset($arOffer['_PROP_' . $key . "_UNIT"]) ? ' unit="' . $arOffer['_PROP_' . $key . "_UNIT"] . '"' : "") . ">" . $this->PrepareValue($arOffer['_PROP_' . $key]) . "</param>\n";
+                    $name = $key;
+
+                    if (isset($this->localizedIBlockProps[$key])) {
+                        $name = $this->localizedIBlockProps[$key];
+                    }
+
+                    $offer .= '<param name="' . $name . '" code="' . $key . '"' . (isset($arOffer['_PROP_' . $key . "_UNIT"]) ? ' unit="' . $arOffer['_PROP_' . $key . "_UNIT"] . '"' : "") . ">" . $this->PrepareValue($arOffer['_PROP_' . $key]) . "</param>\n";
                 }
             }
         }
@@ -712,5 +726,20 @@ class RetailCrmICML
         }
 
         return array();
+    }
+
+    private function getLocalizedIBlockProps()
+    {
+        return array(
+            "article" => GetMessage("PROPERTY_ARTICLE_HEADER_NAME"),
+            "manufacturer" => GetMessage("PROPERTY_MANUFACTURER_HEADER_NAME"),
+            "color" => GetMessage("PROPERTY_COLOR_HEADER_NAME"),
+            "size" => GetMessage("PROPERTY_SIZE_HEADER_NAME"),
+            "weight" => GetMessage("PROPERTY_WEIGHT_HEADER_NAME"),
+            "length" => GetMessage("PROPERTY_LENGTH_HEADER_NAME"),
+            "width" => GetMessage("PROPERTY_WIDTH_HEADER_NAME"),
+            "height" => GetMessage("PROPERTY_HEIGHT_HEADER_NAME"),
+            "picture" => GetMessage("PROPERTY_PICTURE_HEADER_NAME")
+        );
     }
 }
