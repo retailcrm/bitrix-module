@@ -694,7 +694,7 @@ class RetailCrmICML
             $offer.= "<barcode>" . $this->PrepareValue($arOffer["BARCODE"]) . "</barcode>\n";
         }
 
-        if ($arOffer["CATALOG_VAT"]) {
+        if ((float)$arOffer["CATALOG_VAT"]) {
             $vatRate = $arOffer["CATALOG_VAT"];
         } else {
             $vatRate = 'none';
