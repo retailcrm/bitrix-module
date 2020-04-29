@@ -38,6 +38,13 @@ $CRM_COLL_KEY = 'coll_key';
 $CRM_UA = 'ua';
 $CRM_UA_KEYS = 'ua_keys';
 
+$CRM_DISCOUNT_ROUND = 'discount_round';
+
+$CRM_CC = 'cc';
+$CRM_CORP_SHOPS = 'shops-corporate';
+$CRM_CORP_NAME = 'nickName-corporate';
+$CRM_CORP_ADRES = 'adres-corporate';
+
 $CRM_API_VERSION = 'api_version';
 
 $CRM_CURRENCY = 'currency';
@@ -45,7 +52,7 @@ $CRM_ADDRESS_OPTIONS = 'address_options';
 $CRM_DIMENSIONS = 'order_dimensions';
 $PROTOCOL = 'protocol';
 
-$CRM_DISCOUNT_ROUND = 'discount_round';
+$CRM_PURCHASE_PRICE_NULL = 'purchasePrice_null';
 
 if(!CModule::IncludeModule('intaro.retailcrm') || !CModule::IncludeModule('sale') || !CModule::IncludeModule('iblock') || !CModule::IncludeModule('catalog'))
     return;
@@ -347,7 +354,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         $dateAgent->add($intAgent);
 
         CAgent::AddAgent(
-            "RetailCrmInventories::inventoriesUpload();", $mid, "N", 3600, // interval - 1 час
+            "RetailCrmInventories::inventoriesUpload();", $mid, "N", 3600, // interval - 1 ���
             $dateAgent->format('d.m.Y H:i:s'), // date of first check
             "Y", // agent is active
             $dateAgent->format('d.m.Y H:i:s'), // date of first start
@@ -387,7 +394,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         $dateAgent->add($intAgent);
 
         CAgent::AddAgent(
-            "RetailCrmPrices::pricesUpload();", $mid, "N", 86400, // interval - 24 часа
+            "RetailCrmPrices::pricesUpload();", $mid, "N", 86400, // interval - 24 ����
             $dateAgent->format('d.m.Y H:i:s'), // date of first check
             "Y", // agent is active
             $dateAgent->format('d.m.Y H:i:s'), // date of first start
@@ -446,9 +453,34 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     if (htmlspecialchars(trim($_POST['discount_round'])) == 'Y') {
         $discount_round = 'Y';
         RegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmDc", "add");
-    } else  {
+    } else {
         $discount_round = 'N';
         UnRegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmDc", "add");
+    }
+
+    //corporate-cliente
+    if (htmlspecialchars(trim($_POST['corp-client'])) == 'Y') {
+        $cc = 'Y';
+        $bitrixCorpName = htmlspecialchars(trim($_POST['nickName-corporate']));
+        $bitrixCorpAdres = htmlspecialchars(trim($_POST['adres-corporate']));
+        function maskCorp($var) {
+            return preg_match("/^shops-corporate/", $var);
+        }
+        $bitrixCorpShopsArr = str_replace('shops-corporate-', '', array_filter(array_keys($_POST), 'maskCorp'));
+
+        RegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmCc", "add");
+    } else  {
+        $cc = 'N';
+        UnRegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmCc", "add");
+    }
+
+    //purchasePrice_null
+    if (htmlspecialchars(trim($_POST['purchasePrice_null'])) == 'Y') {
+        $purchasePrice_null = 'Y';
+        RegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmPricePrchase", "add");
+    } else  {
+        $purchasePrice_null = 'N';
+        UnRegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmPricePrchase", "add");
     }
 
     //version
@@ -465,7 +497,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             echo CAdminMessage::ShowMessage(GetMessage('API_NOT_FOUND'));
         }
 
-        //запрос к апи с $version
+        //������ � ��� � $version
         $crmUrl = htmlspecialchars(trim($_POST['api_host']));
         $apiKey = htmlspecialchars(trim($_POST['api_key']));
 
@@ -526,6 +558,12 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     COption::SetOptionString($mid, $CRM_DIMENSIONS, $orderDimensions);
 
     COption::SetOptionString($mid, $CRM_DISCOUNT_ROUND, $discount_round);
+    COption::SetOptionString($mid, $CRM_PURCHASE_PRICE_NULL, $purchasePrice_null);
+
+    COption::SetOptionString($mid, $CRM_CC, $cc);
+    COption::SetOptionString($mid, $CRM_CORP_SHOPS, serialize(RCrmActions::clearArr($bitrixCorpShopsArr)));
+    COption::SetOptionString($mid, $CRM_CORP_NAME, serialize(RCrmActions::clearArr($bitrixCorpName)));
+    COption::SetOptionString($mid, $CRM_CORP_ADRES, serialize(RCrmActions::clearArr($bitrixCorpAdres)));
 
     $request = \Bitrix\Main\Application::getInstance()->getContext()->getRequest();
 
@@ -621,6 +659,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     $optionStores = unserialize(COption::GetOptionString($mid, $CRM_STORES, 0));
     $optionShops = unserialize(COption::GetOptionString($mid, $CRM_SHOPS, 0));
     $optionIblocksInventories = unserialize(COption::GetOptionString($mid, $CRM_IBLOCKS_INVENTORIES, 0));
+    $optionShopsCorporate = unserialize(COption::GetOptionString($mid, $CRM_SHOPS, 0));
 
     $optionPricesUpload = COption::GetOptionString($mid, $CRM_PRICES_UPLOAD, 0);
     $optionPrices = unserialize(COption::GetOptionString($mid, $CRM_PRICES, 0));
@@ -634,6 +673,13 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     $optionUaKeys = unserialize(COption::GetOptionString($mid, $CRM_UA_KEYS));
 
     $optionDiscRound = COption::GetOptionString($mid, $CRM_DISCOUNT_ROUND, 0);
+    $optionPricePrchaseNull = COption::GetOptionString($mid, $CRM_PURCHASE_PRICE_NULL, 0);
+
+    //corporate-cliente
+    $optionCorpClient = COption::GetOptionString($mid, $CRM_CC, 0);
+    $optionCorpShops = unserialize(COption::GetOptionString($mid, $CRM_CORP_SHOPS, 0));
+    $optionsCorpComName = unserialize(COption::GetOptionString($mid, $CRM_CORP_NAME, 0));
+    $optionsCorpAdres = unserialize(COption::GetOptionString($mid, $CRM_CORP_ADRES, 0));
 
     $version = COption::GetOptionString($mid, $CRM_API_VERSION, 0);
 
@@ -733,6 +779,26 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                 return true;
             });
 
+            $('.r-dc-button label').change(function(){
+                if($(this).find('input').is(':checked') === true){
+                    $('tr.r-dc').show('slow');
+                } else if($(this).find('input').is(':checked') === false){
+                    $('tr.r-dc').hide('slow');
+                }
+
+                return true;
+            });
+
+            $('.r-cc-button label').change(function(){
+                if($(this).find('input').is(':checked') === true){
+                    $('tr.r-cc').show('slow');
+                } else if($(this).find('input').is(':checked') === false){
+                    $('tr.r-cc').hide('slow');
+                }
+
+                return true;
+            });
+
             $('.r-coll-button label').change(function(){
                 if($(this).find('input').is(':checked') === true){
                     $('tr.r-coll').show('slow');
@@ -743,15 +809,16 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                 return true;
             });
 
-            $('.r-dc-button label').change(function(){
-                if($(this).find('input').is(':checked') === true){
-                    $('tr.r-dc').show('slow');
-                } else if($(this).find('input').is(':checked') === false){
-                    $('tr.r-dc').hide('slow');
+            $('.r-purchaseprice-button label').change(function() {
+                if($(this).find('input').is(':checked') === true) {
+                    $('tr.r-purchaseprice').show('slow');
+                } else if($(this).find('input').is(':checked') === false) {
+                    $('tr.r-purchaseprice').hide('slow');
                 }
 
                 return true;
             });
+
         });
 
         $('input[name="update-delivery-services"]').live('click', function() {
@@ -1288,21 +1355,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                     </td>
                 </tr>
             <?php endforeach;?>
-
-            <tr class="heading r-dc-button">
-                <td colspan="2" class="option-other-heading">
-                    <b>
-                        <label><input class="addr" type="checkbox" name="discount_round" value="Y" <?php if($optionDiscRound === 'Y') echo "checked"; ?>><?php echo "Округление цены товара при сборе одинаковых товарных позиций" ?></label>
-                    </b>
-                </td>
-            </tr>
-
-            <tr class="r-dc" <?php if($optionDiscRound !== 'Y') echo 'style="display: none;"'; ?>>
-                <td class="option-head" colspan="2">
-                    <b><?php echo "При включенной опции округление будет происходить в меньшую сторону" ?></b>
-                </td>
-            </tr>
-
             <tr class="heading r-ua-button">
                 <td colspan="2" class="option-other-heading">
                     <b>
@@ -1329,6 +1381,96 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                     </td>
                 </tr>
             <?php endforeach;?>
+
+            <tr class="heading r-dc-button">
+                <td colspan="2" class="option-other-heading">
+                    <b>
+                        <label><input class="addr" type="checkbox" name="discount_round" value="Y" <?php if($optionDiscRound === 'Y') echo "checked"; ?>><?php echo "Округление цены товара при сборе одинаковых товарных позиций" ?></label>
+                    </b>
+                </td>
+            </tr>
+
+            <tr class="r-dc" <?php if($optionDiscRound !== 'Y') echo 'style="display: none;"'; ?>>
+                <td class="option-head" colspan="2">
+                    <b><?php echo "При включенной опции округление будет происходить в меньшую сторону" ?></b>
+                </td>
+            </tr>
+
+            <tr class="heading r-cc-button">
+                <td colspan="2" class="option-other-heading">
+                    <b>
+                        <label><input class="addr" type="checkbox" name="corp-client" value="Y" <?php if($optionCorpClient === 'Y') echo "checked"; ?>><?php echo GetMessage('CORP_CLIENTE'); ?></label>
+                    </b>
+                </td>
+            </tr>
+
+            <tr class="r-cc" <?php if($optionCorpClient !== 'Y') echo 'style="display: none;"'; ?>>
+                <td width="50%" class="" name="<?php ?>">
+                    <?php echo GetMessage('CORP_NAME');?>
+                </td>
+                <td width="50%" class="">
+                    <select name="nickName-corporate" class="typeselect">
+                        <option value=""></option>
+                        <?php foreach ($arResult['arProp'][$bitrixOrderType['ID']] as $arProp): ?>
+                            <option value="<?php echo $arProp['CODE']; ?>" <?php if ($optionsCorpComName == $arProp['CODE']) echo 'selected'; ?>>
+                                <?php echo $arProp['NAME']; ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </td>
+            </tr>
+
+            <tr class="r-cc" <?php if($optionCorpClient !== 'Y') echo 'style="display: none;"'; ?>>
+                <td width="50%" class="" name="<?php ?>">
+                    <?php echo GetMessage('CORP_ADRESS');?>
+                </td>
+                <td width="50%" class="">
+                    <select name="adres-corporate" class="typeselect">
+                        <option value=""></option>
+                        <?php foreach ($arResult['arProp'][$bitrixOrderType['ID']] as $arProp): ?>
+                            <option value="<?php echo $arProp['CODE']; ?>" <?php if ($optionsCorpAdres == $arProp['CODE']) echo 'selected'; ?>>
+                                <?php echo $arProp['NAME']; ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </td>
+            </tr>
+
+            <tr class="r-cc" <?php if($optionCorpClient !== 'Y') echo 'style="display: none;"'; ?>>
+                <td colspan="2" class="option-head option-other-top option-other-bottom">
+                    <b>
+                        <label><?php echo GetMessage('CORP_LABEL');?></label>
+                    </b>
+                </td>
+            </tr>
+
+            <tr class="r-cc" <?php if($optionCorpClient !== 'Y') echo 'style="display: none;"'; ?>>
+                <td width="50%" class="" name="<?php ?>" align="center">
+                    <?php foreach ($arResult['sitesList'] as $sitesList): ?>
+                <td colspan="2" class="option-other-center">
+                    <label><input class="addr" type="checkbox" name="shops-corporate-<?echo $sitesList['code'];?>" value="Y" <?php if(in_array($sitesList['code'], $optionCorpShops)) echo "checked"; ?>> <?php echo $sitesList['name'].' ('.$sitesList['code'].')'; ?></label>
+                </td>
+                <?php endforeach;?>
+                </td>
+            </tr>
+
+            <tr class="heading r-purchaseprice-button">
+                <td colspan="2" class="option-other-heading">
+                    <b>
+                        <label><input class="addr" type="checkbox" name="purchasePrice_null" value="Y"
+                                <?php if($optionPricePrchaseNull === 'Y')
+                                    echo "checked"; ?>><?php
+                            echo "Сброс закупочной цены в icml" ?></label>
+                    </b>
+                </td>
+            </tr>
+
+            <tr class="r-purchaseprice" <?php if($optionPricePrchaseNull !== 'Y') echo 'style="display: none;"'; ?>>
+                <td class="option-head" colspan="2">
+                    <b><?php echo "При включенной опции в генерации icml будет добавлен сброс закупочной цены на 0 если она не указана" ?></b>
+                </td>
+            </tr>
+
         <?php endif;?>
         <?php $tabControl->Buttons(); ?>
         <input type="hidden" name="Update" value="Y" />

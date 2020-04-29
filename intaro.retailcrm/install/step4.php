@@ -193,6 +193,7 @@ IncludeModuleLangFile(__FILE__);
     <br />
     <div style="padding: 1px 13px 2px; height:28px;">
         <div align="right" style="float:right; width:50%; position:relative;">
+            <input type="submit" name="back" value="<?php echo GetMessage("MOD_PREV_STEP"); ?>" class="adm-btn-save">
             <input type="submit" name="inst" value="<?php echo GetMessage("MOD_NEXT_STEP"); ?>" class="adm-btn-save">
         </div>
         <div align="left" style="float:right; width:50%; position:relative; visible: none;">

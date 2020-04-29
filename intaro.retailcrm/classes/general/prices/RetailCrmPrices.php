@@ -50,8 +50,6 @@ class RetailCrmPrices
         }
         
         if (count($infoBlocks) > 0) {
-            $log = new Logger();
-            
             foreach ($infoBlocks as $id) {
                 $iblockOffer = CCatalogSKU::GetInfoByProductIBlock($id);
 
@@ -133,7 +131,7 @@ class RetailCrmPrices
                     //for log
                     $splitedItems = array_chunk($pricesUpload, 200);
                     foreach ($splitedItems as $chunk) {
-                        $log->write($chunk, 'storePricesUpload');
+                        Logger::getInstance()->write($chunk, 'storePricesUpload');
                         
                         foreach ($shops as $shop) {
                             RCrmActions::apiMethod($api, 'storePricesUpload', __METHOD__, $chunk, $shop);

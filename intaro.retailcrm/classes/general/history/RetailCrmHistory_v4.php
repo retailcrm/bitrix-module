@@ -60,8 +60,7 @@ class RetailCrmHistory
 
             $customerH = isset($customerHistory['history']) ? $customerHistory['history'] : array();
 
-            $log = new Logger();
-            $log->write($customerH, 'customerHistory');
+            Logger::getInstance()->write($customerH, 'customerHistory');
             
             if (count($customerH) == 0) {
                 if ($customerHistory['history']['totalPageCount'] > $customerHistory['history']['currentPage']) {
@@ -275,8 +274,7 @@ class RetailCrmHistory
 
             $orderH = isset($orderHistory['history']) ? $orderHistory['history'] : array();
 
-            $log = new Logger();
-            $log->write($orderH, 'orderHistory');
+            Logger::getInstance()->write($orderH, 'orderHistory');
             
             if (count($orderH) == 0) {
                 if ($orderHistory['history']['totalPageCount'] > $orderHistory['history']['currentPage']) {
@@ -305,7 +303,7 @@ class RetailCrmHistory
                     }
                 }
                 
-                $log->write($order, 'assemblyOrderHistory');
+                Logger::getInstance()->write($order, 'assemblyOrderHistory');
                 
                 if ($order['deleted']) {
                     continue;

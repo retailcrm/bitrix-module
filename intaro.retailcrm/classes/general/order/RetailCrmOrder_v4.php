@@ -40,14 +40,13 @@ class RetailCrmOrder
         if (!$api || empty($arParams)) { // add cond to check $arParams
             return false;
         }
+
         if (empty($arFields)) {
             RCrmActions::eventLog('RetailCrmOrder::orderSend', 'empty($arFields)', 'incorrect order');
             return false;
         }
 
-        $optionsCurrency = COption::GetOptionString(self::$MODULE_ID, self::$CRM_CURRENCY, 0);
-        $currency = $optionsCurrency ? $optionsCurrency : \Bitrix\Currency\CurrencyManager::getBaseCurrency();
-
+        $currency = RetailcrmConfigProvider::getCurrencyOrDefault();
         $order = array(
             'number'          => $arFields['NUMBER'],
             'externalId'      => $arFields['ID'],
@@ -67,9 +66,11 @@ class RetailCrmOrder
                 'cost' => $arFields['PRICE_DELIVERY']
             ),
         );
+
         if ($send && isset($_COOKIE['_rc']) && $_COOKIE['_rc'] != '') {
             $order['customer']['browserId'] = $_COOKIE['_rc'];
         }
+
         $order['contragent']['contragentType'] = $arParams['optionsContragentType'][$arFields['PERSON_TYPE_ID']];
 
         //fields
@@ -175,8 +176,7 @@ class RetailCrmOrder
         $normalizer = new RestNormalizer();
         $order = $normalizer->normalize($order, 'orders');
 
-        $log = new Logger();
-        $log->write($order, 'orderSend');
+        Logger::getInstance()->write($order, 'orderSend');
 
         if($send) {
             if (!RCrmActions::apiMethod($api, $methodApi, __METHOD__, $order, $site)) {
@@ -189,31 +189,29 @@ class RetailCrmOrder
 
     /**
      * Mass order uploading, without repeating; always returns true, but writes error log
-     * @param $pSize
-     * @param $failed -- flag to export failed orders
+     *
+     * @param int  $pSize
+     * @param bool $failed -- flag to export failed orders
+     * @param bool $orderList
+     *
      * @return boolean
+     * @throws \Bitrix\Main\ArgumentNullException
+     * @throws \Bitrix\Main\ObjectPropertyException
+     * @throws \Bitrix\Main\SystemException
+     * @throws \Bitrix\Main\ArgumentException
      */
     public static function uploadOrders($pSize = 50, $failed = false, $orderList = false)
     {
-        if (!CModule::IncludeModule("iblock")) {
-            RCrmActions::eventLog('RetailCrmOrder::uploadOrders', 'iblock', 'module not found');
-            return true;
-        }
-        if (!CModule::IncludeModule("sale")) {
-            RCrmActions::eventLog('RetailCrmOrder::uploadOrders', 'sale', 'module not found');
-            return true;
-        }
-        if (!CModule::IncludeModule("catalog")) {
-            RCrmActions::eventLog('RetailCrmOrder::uploadOrders', 'catalog', 'module not found');
-            return true;
+        if (!RetailcrmDependencyLoader::loadDependencies()) {
+            return false;
         }
 
         $resOrders = array();
         $resCustomers = array();
         $orderIds = array();
 
-        $lastUpOrderId = COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_LAST_ID, 0);
-        $failedIds = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_FAILED_IDS, 0));
+        $lastUpOrderId = RetailcrmConfigProvider::getLastOrderId();
+        $failedIds = RetailcrmConfigProvider::getFailedOrdersIds();
 
         if ($failed == true && $failedIds !== false && count($failedIds) > 0) {
             $orderIds = $failedIds;
@@ -238,18 +236,18 @@ class RetailCrmOrder
         $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
         $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
 
-        $optionsSitesList = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_SITES_LIST, 0));
-        $optionsOrderTypes = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_TYPES_ARR, 0));
-        $optionsDelivTypes = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_DELIVERY_TYPES_ARR, 0));
-        $optionsPayTypes = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_TYPES, 0));
-        $optionsPayStatuses = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_STATUSES, 0)); // --statuses
-        $optionsPayment = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT, 0));
-        $optionsOrderProps = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_PROPS, 0));
-        $optionsLegalDetails = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_LEGAL_DETAILS, 0));
-        $optionsContragentType = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_CONTRAGENT_TYPE, 0));
-        $optionsCustomFields = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_CUSTOM_FIELDS, 0));
+        $optionsSitesList = RetailcrmConfigProvider::getSitesList();
+        $optionsOrderTypes = RetailcrmConfigProvider::getOrderTypes();
+        $optionsDelivTypes = RetailcrmConfigProvider::getDeliveryTypes();
+        $optionsPayTypes = RetailcrmConfigProvider::getPaymentTypes();
+        $optionsPayStatuses = RetailcrmConfigProvider::getPaymentStatuses(); // --statuses
+        $optionsPayment = RetailcrmConfigProvider::getPayment();
+        $optionsOrderProps = RetailcrmConfigProvider::getOrderProps();
+        $optionsLegalDetails = RetailcrmConfigProvider::getLegalDetails();
+        $optionsContragentType = RetailcrmConfigProvider::getContragentTypes();
+        $optionsCustomFields = RetailcrmConfigProvider::getCustomFields();
 
-        $api = new RetailCrm\ApiClient($api_host, $api_key);
+        $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
 
         $arParams = array(
             'optionsOrderTypes'     => $optionsOrderTypes,
@@ -331,6 +329,18 @@ class RetailCrmOrder
         }
 
         return true;
+    }
+
+    /**
+     * Returns true if provided order array is corporate order data. v4 doesn't have corporate orders.
+     *
+     * @param array|\ArrayAccess $order
+     *
+     * @return bool
+     */
+    public static function isOrderCorporate($order)
+    {
+        return false;
     }
 
     public static function orderObjToArr($obOrder)

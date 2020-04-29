@@ -5,6 +5,7 @@ $version = COption::GetOptionString('intaro.retailcrm', 'api_version');
 CModule::AddAutoloadClasses(
     'intaro.retailcrm', // module name
     array (
+        'RetailcrmDependencyLoader'                 => 'classes/general/RetailcrmDependencyLoader.php',
         'RestNormalizer'                            => file_exists($server . '/bitrix/php_interface/retailcrm/RestNormalizer.php') ? '../../php_interface/retailcrm/RestNormalizer.php' : 'classes/general/RestNormalizer.php',
         'Logger'                                    => file_exists($server . '/bitrix/php_interface/retailcrm/Logger.php') ? '../../php_interface/retailcrm/Logger.php' : 'classes/general/Logger.php',
         'RetailCrm\ApiClient'                       => file_exists($server . '/bitrix/php_interface/retailcrm/ApiClient.php') ? '../../php_interface/retailcrm/ApiClient.php' : 'classes/general/ApiClient_' . $version . '.php',
@@ -22,5 +23,8 @@ CModule::AddAutoloadClasses(
         'RetailCrm\Response\ApiResponse'            => 'classes/general/Response/ApiResponse.php',
         'RetailCrm\Exception\InvalidJsonException'  => 'classes/general/Exception/InvalidJsonException.php',
         'RetailCrm\Exception\CurlException'         => 'classes/general/Exception/CurlException.php',
+        'RetailCrmCorporateClient'                  => file_exists($server . '/bitrix/php_interface/retailcrm/RetailCrmCorporateClient.php') ? '../../php_interface/retailcrm/RetailCrmCorporateClient.php' : 'classes/general/user/RetailCrmCorporateClient.php',
+        'RetailcrmConfigProvider'                   => 'classes/general/RetailcrmConfigProvider.php',
+        'RetailcrmConstants'                        => 'classes/general/RetailcrmConstants.php',
     )
 );
