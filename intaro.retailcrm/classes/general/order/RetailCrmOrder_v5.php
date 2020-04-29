@@ -159,6 +159,7 @@ class RetailCrmOrder
             $externalId = $position . "_" . $product['PRODUCT_ID'];
             if (isset($orderItems[$externalId])) { //update
                 $externalIds = $orderItems[$externalId]['externalIds'];
+                $itemId = $orderItems[$externalId]['id'];
                 $key = array_search("bitrix", array_column($externalIds, 'code'));
                 if ($externalIds[$key]['code'] == "bitrix") {
                     $externalIds[$key] = array(
@@ -188,6 +189,10 @@ class RetailCrmOrder
                 ),
                 'productName'     => $product['NAME']
             );
+
+            if (isset($itemId)) {
+                $item['id'] = $itemId;
+            }
 
             $pp = CCatalogProduct::GetByID($product['PRODUCT_ID']);
             if (is_null($pp['PURCHASING_PRICE']) == false) {
