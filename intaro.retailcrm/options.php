@@ -354,7 +354,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         $dateAgent->add($intAgent);
 
         CAgent::AddAgent(
-            "RetailCrmInventories::inventoriesUpload();", $mid, "N", 3600, // interval - 1 ���
+            "RetailCrmInventories::inventoriesUpload();", $mid, "N", 3600, // interval - 1 hour
             $dateAgent->format('d.m.Y H:i:s'), // date of first check
             "Y", // agent is active
             $dateAgent->format('d.m.Y H:i:s'), // date of first start
@@ -394,7 +394,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         $dateAgent->add($intAgent);
 
         CAgent::AddAgent(
-            "RetailCrmPrices::pricesUpload();", $mid, "N", 86400, // interval - 24 ����
+            "RetailCrmPrices::pricesUpload();", $mid, "N", 86400, // interval - 24 hours
             $dateAgent->format('d.m.Y H:i:s'), // date of first check
             "Y", // agent is active
             $dateAgent->format('d.m.Y H:i:s'), // date of first start
@@ -497,7 +497,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             echo CAdminMessage::ShowMessage(GetMessage('API_NOT_FOUND'));
         }
 
-        //������ � ��� � $version
+        //api request with $version
         $crmUrl = htmlspecialchars(trim($_POST['api_host']));
         $apiKey = htmlspecialchars(trim($_POST['api_key']));
 
@@ -1385,14 +1385,16 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             <tr class="heading r-dc-button">
                 <td colspan="2" class="option-other-heading">
                     <b>
-                        <label><input class="addr" type="checkbox" name="discount_round" value="Y" <?php if($optionDiscRound === 'Y') echo "checked"; ?>><?php echo "Округление цены товара при сборе одинаковых товарных позиций" ?></label>
+                        <label><input class="addr" type="checkbox" name="discount_round" value="Y" <?php if($optionDiscRound === 'Y') echo "checked"; ?>>
+                            <?php echo GetMessage('ROUND_HEADER'); ?>
+                        </label>
                     </b>
                 </td>
             </tr>
 
             <tr class="r-dc" <?php if($optionDiscRound !== 'Y') echo 'style="display: none;"'; ?>>
                 <td class="option-head" colspan="2">
-                    <b><?php echo "При включенной опции округление будет происходить в меньшую сторону" ?></b>
+                    <b><?php echo GetMessage('ROUND_LABEL'); ?></b>
                 </td>
             </tr>
 
@@ -1460,14 +1462,14 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                         <label><input class="addr" type="checkbox" name="purchasePrice_null" value="Y"
                                 <?php if($optionPricePrchaseNull === 'Y')
                                     echo "checked"; ?>><?php
-                            echo "Сброс закупочной цены в icml" ?></label>
+                            echo GetMessage('PURCHASE_HEADER'); ?></label>
                     </b>
                 </td>
             </tr>
 
             <tr class="r-purchaseprice" <?php if($optionPricePrchaseNull !== 'Y') echo 'style="display: none;"'; ?>>
                 <td class="option-head" colspan="2">
-                    <b><?php echo "При включенной опции в генерации icml будет добавлен сброс закупочной цены на 0 если она не указана" ?></b>
+                    <b><?php echo GetMessage('PURCHASE_ICML'); ?></b>
                 </td>
             </tr>
 
