@@ -5,7 +5,7 @@ IncludeModuleLangFile(__FILE__);
 /**
  * Class CustomerBuilder
  */
-class CustomerBuilder
+class CustomerBuilder implements RetailcrmBuilderInterface
 {
     /** @var classes/general/Model/Customer */
     public $customer;
@@ -16,6 +16,11 @@ class CustomerBuilder
     /** @var array $dataCrm customerHistory */
     protected $dataCrm;
 
+    public $addressBuilder;
+
+    public $dbUser;
+    public $user;
+
     /**
      * CustomerBuilder constructor.
      */
@@ -23,6 +28,7 @@ class CustomerBuilder
     {
         $this->customer = new Customer();
         $this->customerAddress = new CustomerAddress();
+        $this->addressBuilder = new AdressBuilder();
     }
 
     /**
@@ -72,6 +78,26 @@ class CustomerBuilder
     }
 
     /**
+     * @param $dbUser
+     * @return $this
+     */
+    public function setDbUser($dbUser)
+    {
+        $this->dbUser = $dbUser;
+        return $this;
+    }
+
+    /**
+     * @param $user
+     * @return $this
+     */
+    public function setUser($user)
+    {
+        $this->user = $user;
+        return $this;
+    }
+
+    /**
      * @param $key
      * @param null $default
      * @return mixed|null
@@ -117,7 +143,13 @@ class CustomerBuilder
 
     public function buildAddress()
     {
-       $this->customerAddress->setData($this->dataCrm['address']);
+        if (isset($this->dataCrm['address'])) {
+            $this->addressBuilder->setDataCrm($this->dataCrm['address']);
+            $this->addressBuilder->build();
+            $this->customerAddress = $this->addressBuilder->customerAddress;
+        } else {
+            $this->customerAddress = null;
+        }
     }
 
     public function createCustomer()
@@ -131,13 +163,12 @@ class CustomerBuilder
             $login = uniqid('user_' . time()) . '@crm.com';
             $this->dataCrm['email'] = $login;
         } else {
-            $dbUser = CUser::GetList(($by = 'ID'), ($sort = 'ASC'), array('=EMAIL' => $this->dataCrm['email']));
-            switch ($dbUser->SelectedRowsCount()) {
+            switch ($this->dbUser->SelectedRowsCount()) {
                 case 0:
                     $login = $this->dataCrm['email'];
                     break;
                 case 1:
-                    $arUser = $dbUser->Fetch();
+                    $arUser = $this->dbUser->Fetch();
                     $registeredUserID = $arUser['ID'];
                     $registerNewUser = false;
                     break;
@@ -160,75 +191,66 @@ class CustomerBuilder
 
     public function updateCustomer()
     {
-        if (array_key_exists('firstName', $this->dataCrm)) {
-            $this->customer->setName($this->dataCrm['firstName']
-                ? RCrmActions::fromJSON($this->dataCrm['firstName']) : '');
+        if (!empty($this->dataCrm['firstName'])) {
+            $this->customer->setName(RCrmActions::fromJSON($this->dataCrm['lastName']));
         }
-        if (array_key_exists('lastName', $this->dataCrm)) {
-            $this->customer->setLastName($this->dataCrm['lastName']
-                ? RCrmActions::fromJSON($this->dataCrm['lastName']) : '');
+
+        if (!empty($this->dataCrm['lastName'])) {
+            $this->customer->setLastName(RCrmActions::fromJSON($this->dataCrm['lastName']));
         }
-        if (array_key_exists('patronymic', $this->dataCrm)) {
-            $this->customer->setSecondName($this->dataCrm['patronymic']
-                ? RCrmActions::fromJSON($this->dataCrm['patronymic']) : '');
+
+        if (!empty($this->dataCrm['patronymic'])) {
+            $this->customer->setSecondName(RCrmActions::fromJSON($this->dataCrm['patronymic']));
         }
 
         if (isset($this->dataCrm['phones'])) {
-            $user = CUser::GetList(
-                ($by = "ID"),
-                ($order = "desc"),
-                array('ID' => $this->dataCrm['externalId']),
-                array('FIELDS' => array('PERSONAL_PHONE', 'PERSONAL_MOBILE'))
-            )->fetch();
-
             foreach ($this->dataCrm['phones'] as $phone) {
-                if (isset($phone['old_number']) && in_array($phone['old_number'], $user)) {
-                    $key = array_search($phone['old_number'], $user);
+                if (isset($phone['old_number']) && in_array($phone['old_number'], $this->user)) {
+                    $key = array_search($phone['old_number'], $this->user);
                     if (isset($phone['number'])) {
-                        $user[$key] = $phone['number'];
+                        $this->user[$key] = $phone['number'];
                     } else {
-                        $user[$key] = '';
+                        $this->user[$key] = '';
                     }
                 }
 
                 if (isset($phone['number'])) {
-                    if ((!isset($user['PERSONAL_PHONE']) || strlen($user['PERSONAL_PHONE']) == 0)
-                        && $user['PERSONAL_MOBILE'] != $phone['number']
+                    if ((!isset($this->user['PERSONAL_PHONE']) || strlen($this->user['PERSONAL_PHONE']) == 0)
+                        && $this->user['PERSONAL_MOBILE'] != $phone['number']
                     ) {
                         $this->customer->setPersonalPhone($phone['number']);
-                        $user['PERSONAL_PHONE'] = $phone['number'];
+                        $this->user['PERSONAL_PHONE'] = $phone['number'];
                         continue;
                     }
-                    if ((!isset($user['PERSONAL_MOBILE']) || strlen($user['PERSONAL_MOBILE']) == 0)
-                        && $user['PERSONAL_PHONE'] != $phone['number']
+                    if ((!isset($this->user['PERSONAL_MOBILE']) || strlen($this->user['PERSONAL_MOBILE']) == 0)
+                        && $this->user['PERSONAL_PHONE'] != $phone['number']
                     ) {
                         $this->customer->setPersonalMobile($phone['number']);
-                        $user['PERSONAL_MOBILE'] = $phone['number'];
+                        $this->user['PERSONAL_MOBILE'] = $phone['number'];
                         continue;
                     }
                 }
             }
         }
 
-        if (array_key_exists('index', $this->dataCrm['address'])) {
-            $this->customer->setPersonalZip($this->dataCrm['address']['index']
-                ? RCrmActions::fromJSON($this->dataCrm['address']['index']) : '');
-        }
-        if (array_key_exists('city', $this->dataCrm['address'])) {
-            $this->customer->setPersonalCity($this->dataCrm['address']['city']
-                ? RCrmActions::fromJSON($this->dataCrm['address']['city']) : '');
+        if (!empty($this->dataCrm['index'])) {
+            $this->customer->setPersonalZip(RCrmActions::fromJSON($this->dataCrm['index']));
         }
 
-        if (array_key_exists('birthday', $this->dataCrm)) {
-            $this->customer->setPersonalBirthday(date("d.m.Y", strtotime($this->dataCrm['birthday'])));
+        if (!empty($this->dataCrm['city'])) {
+            $this->customer->setPersonalCity(RCrmActions::fromJSON($this->dataCrm['city']));
         }
 
-        if (array_key_exists('email', $this->dataCrm)) {
-            $this->customer->setEmail($this->dataCrm['email'] ? RCrmActions::fromJSON($this->dataCrm['email']) : '');
+        if (!empty($this->dataCrm['birthday'])) {
+            $this->customer->setPersonalBirthday(RCrmActions::fromJSON($this->dataCrm['birthday']));
         }
 
-        if (array_key_exists('sex', $this->dataCrm)) {
-            $this->customer->setPersonalGender($this->dataCrm['sex'] ? RCrmActions::fromJSON($this->dataCrm['sex']) : '');
+        if (!empty($this->dataCrm['email'])) {
+            $this->customer->setEmail(RCrmActions::fromJSON($this->dataCrm['email']));
+        }
+
+        if (!empty($this->dataCrm['sex'])) {
+            $this->customer->setPersonalGender(RCrmActions::fromJSON($this->dataCrm['sex']));
         }
     }
 

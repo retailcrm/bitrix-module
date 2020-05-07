@@ -34,5 +34,6 @@ CModule::AddAutoloadClasses(
         'CustomerAddress'                           => 'classes/general/Model/CustomerAddress.php',
         'CustomerContragent'                        => 'classes/general/Model/CustomerContragent.php',
         'BuyerProfile'                              => 'classes/general/Model/BuyerProfile.php',
+        'AdressBuilder'                             => 'classes/general/AdressBuilder.php',
     )
 );

@@ -175,39 +175,4 @@ class CustomerAddress
 
         return $this;
     }
-
-    /**
-     * @param $array
-     * @param $key
-     * @param null $default
-     * @return mixed|null
-     */
-    protected function getValue($array, $key, $default = NULL)
-    {
-        return isset($array[$key]) && !empty($array[$key]) ?  $array[$key] : $default;
-    }
-
-    /**
-     * @param $arrayData
-     * @return $this
-     */
-    public function setData($arrayData)
-    {
-        $this->setText($this->getValue($arrayData,'text'))
-            ->setNotes($this->getValue($arrayData,'notes'))
-            ->setBuilding($this->getValue($arrayData,'building'))
-            ->setBlock($this->getValue($arrayData,'block'))
-            ->setCity($this->getValue($arrayData,'city'))
-            ->setFlat($this->getValue($arrayData,'flat'))
-            ->setHouse($this->getValue($arrayData,'house'))
-            ->setFloor($this->getValue($arrayData,'floor'))
-            ->setCountry($this->getValue($arrayData,'countryIso'))
-            ->setIndex($this->getValue($arrayData,'index'))
-            ->setIntercomCode($this->getValue($arrayData,'intercomCode'))
-            ->setMetro($this->getValue($arrayData,'metro'))
-            ->setRegion($this->getValue($arrayData,'region'))
-            ->setStreet($this->getValue($arrayData,'street'));
-
-        return $this;
-    }
 }

@@ -23,6 +23,7 @@ class CustomerCorpBuilder implements RetailcrmBuilderInterface
     public $buyerProfile;
 
     protected $api;
+    public $dbUser;
 
     /**
      * CustomerCorpBuilder constructor.
@@ -43,6 +44,16 @@ class CustomerCorpBuilder implements RetailcrmBuilderInterface
     public function setDataCrm($dataCrm)
     {
         $this->dataCrm = $dataCrm;
+        return $this;
+    }
+
+    /**
+     * @param $dbUser
+     * @return $this
+     */
+    public function setDbUser($dbUser)
+    {
+        $this->dbUser = $dbUser;
         return $this;
     }
 
@@ -124,18 +135,12 @@ class CustomerCorpBuilder implements RetailcrmBuilderInterface
                 }
             }
 
-            $dbUser = CUser::GetList(
-                ($by = 'ID'),
-                ($sort = 'ASC'),
-                array('=EMAIL' => $this->dataCrm['customer']['email'])
-            );
-
-            switch ($dbUser->SelectedRowsCount()) {
+            switch ($this->dbUser->SelectedRowsCount()) {
                 case 0:
                     $login = $this->dataCrm['customer']['email'];
                     break;
                 case 1:
-                    $arUser = $dbUser->Fetch();
+                    $arUser = $this->dbUser->Fetch();
                     $registeredUserID = $arUser['ID'];
                     $registerNewUser = false;
                     break;
@@ -159,11 +164,11 @@ class CustomerCorpBuilder implements RetailcrmBuilderInterface
                     ->setPassword($userPassword)
                     ->setConfirmPassword($userPassword);
 
-                if ($userData['phones'][0]) {
+                if (!empty($userData['phones'][0])) {
                     $this->customer->setPersonalPhone($userData['phones'][0]);
                 }
 
-                if ($userData['phones'][1]) {
+                if (!empty($userData['phones'][1])) {
                     $this->customer->setPersonalMobile($userData['phones'][1]);
                 }
             }
@@ -181,6 +186,12 @@ class CustomerCorpBuilder implements RetailcrmBuilderInterface
 
     public function buildAddress()
     {
-        $this->customerAddress->setData($this->dataCrm['company']['address']);
+        if (isset($this->dataCrm['company']['address'])) {
+            $this->addressBuilder->setDataCrm($this->dataCrm['company']['address']);
+            $this->addressBuilder->build();
+            $this->customerAddress = $this->addressBuilder->customerAddress;
+        } else {
+            $this->customerAddress = null;
+        }
     }
 }
