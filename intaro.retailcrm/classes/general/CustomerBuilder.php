@@ -17,9 +17,10 @@ class CustomerBuilder implements RetailcrmBuilderInterface
     protected $dataCrm;
 
     public $addressBuilder;
-
     public $dbUser;
     public $user;
+    public $registerNewUser;
+    public $registeredUserID;
 
     /**
      * CustomerBuilder constructor.
@@ -98,6 +99,16 @@ class CustomerBuilder implements RetailcrmBuilderInterface
     }
 
     /**
+     * @param $registeredUserID
+     * @return $this
+     */
+    public function setRegisteredUserID($registeredUserID)
+    {
+        $this->registeredUserID = $registeredUserID;
+        return $this;
+    }
+
+    /**
      * @param $key
      * @param null $default
      * @return mixed|null
@@ -132,7 +143,7 @@ class CustomerBuilder implements RetailcrmBuilderInterface
             $this->createCustomer();
         }
 
-        if (isset($this->dataCrm['externalId'])) {
+        if (isset($this->registeredUserID)) {
             $this->updateCustomer();
         }
 
@@ -158,7 +169,7 @@ class CustomerBuilder implements RetailcrmBuilderInterface
             return false;
         }
 
-        $registerNewUser = true;
+        $this->registerNewUser = true;
         if (!isset($this->dataCrm['email']) || $this->dataCrm['email'] == '') {
             $login = uniqid('user_' . time()) . '@crm.com';
             $this->dataCrm['email'] = $login;
@@ -169,8 +180,8 @@ class CustomerBuilder implements RetailcrmBuilderInterface
                     break;
                 case 1:
                     $arUser = $this->dbUser->Fetch();
-                    $registeredUserID = $arUser['ID'];
-                    $registerNewUser = false;
+                    $this->setRegisteredUserID($arUser['ID']);
+                    $this->registerNewUser = false;
                     break;
                 default:
                     $login = uniqid('user_' . time()) . '@crm.com';
@@ -178,7 +189,7 @@ class CustomerBuilder implements RetailcrmBuilderInterface
             }
         }
 
-        if ($registerNewUser === true) {
+        if ( $this->registerNewUser === true) {
             $userPassword = uniqid("R");
 
             $this->customer->setEmail($this->dataCrm['email'])
@@ -192,7 +203,7 @@ class CustomerBuilder implements RetailcrmBuilderInterface
     public function updateCustomer()
     {
         if (!empty($this->dataCrm['firstName'])) {
-            $this->customer->setName(RCrmActions::fromJSON($this->dataCrm['lastName']));
+            $this->customer->setName(RCrmActions::fromJSON($this->dataCrm['firstName']));
         }
 
         if (!empty($this->dataCrm['lastName'])) {
