@@ -1,7 +1,4 @@
 <?php
-
-IncludeModuleLangFile(__FILE__);
-
 /**
  * Class CustomerContragent
  */

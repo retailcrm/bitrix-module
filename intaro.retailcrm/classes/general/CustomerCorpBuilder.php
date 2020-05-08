@@ -1,7 +1,4 @@
 <?php
-
-IncludeModuleLangFile(__FILE__);
-
 /**
  * Class CustomerCorpBuilder
  */
@@ -24,6 +21,9 @@ class CustomerCorpBuilder implements RetailcrmBuilderInterface
 
     protected $api;
     public $dbUser;
+    public $registerNewUser;
+    public $registeredUserID;
+    public $addressBuilder;
 
     /**
      * CustomerCorpBuilder constructor.
@@ -35,6 +35,7 @@ class CustomerCorpBuilder implements RetailcrmBuilderInterface
         $this->customer = new Customer();
         $this->customerAddress = new CustomerAddress();
         $this->buyerProfile = new BuyerProfile();
+        $this->addressBuilder = new AdressBuilder();
     }
 
     /**
@@ -54,6 +55,16 @@ class CustomerCorpBuilder implements RetailcrmBuilderInterface
     public function setDbUser($dbUser)
     {
         $this->dbUser = $dbUser;
+        return $this;
+    }
+
+    /**
+     * @param $registeredUserID
+     * @return $this
+     */
+    public function setRegisteredUserID($registeredUserID)
+    {
+        $this->registeredUserID = $registeredUserID;
         return $this;
     }
 
@@ -123,7 +134,7 @@ class CustomerCorpBuilder implements RetailcrmBuilderInterface
             }
 
             $login = null;
-            $registerNewUser = true;
+            $this->registerNewUser = true;
 
             if (!isset($this->dataCrm['customer']['email']) || empty($this->dataCrm['customer']['email'])) {
                 if (RetailCrmOrder::isOrderCorporate($this->dataCrm) && !empty($this->corporateContact['email'])) {
@@ -134,22 +145,23 @@ class CustomerCorpBuilder implements RetailcrmBuilderInterface
                     $this->dataCrm['customer']['email'] = $login;
                 }
             }
-
-            switch ($this->dbUser->SelectedRowsCount()) {
-                case 0:
-                    $login = $this->dataCrm['customer']['email'];
-                    break;
-                case 1:
-                    $arUser = $this->dbUser->Fetch();
-                    $registeredUserID = $arUser['ID'];
-                    $registerNewUser = false;
-                    break;
-                default:
-                    $login = uniqid('user_' . time()) . '@crm.com';
-                    break;
+            if (isset($this->dbUser)) {
+                switch ($this->dbUser->SelectedRowsCount()) {
+                    case 0:
+                        $login = $this->dataCrm['customer']['email'];
+                        break;
+                    case 1:
+                        $arUser = $this->dbUser->Fetch();
+                        $this->setRegisteredUserID($arUser['ID']);
+                        $this->registerNewUser = false;
+                        break;
+                    default:
+                        $login = uniqid('user_' . time()) . '@crm.com';
+                        break;
+                }
             }
 
-            if ($registerNewUser === true) {
+            if ( $this->registerNewUser === true) {
                 $userPassword = uniqid("R");
                 $userData = RetailCrmOrder::isOrderCorporate($this->dataCrm)
                     ? $this->corporateContact
@@ -179,8 +191,8 @@ class CustomerCorpBuilder implements RetailcrmBuilderInterface
     {
         if (RetailCrmOrder::isOrderCorporate($this->dataCrm) && !empty($this->dataCrm['company'])) {
             $this->buyerProfile->setName($this->dataCrm['company']['name'])
-                ->setPersonTypeId($this->dataCrm['contact']['externalId'])
-                ->setUserId($this->contragentTypes['legal-entity']);
+                ->setUserId($this->dataCrm['contact']['externalId'])
+                ->setPersonTypeId($this->contragentTypes['legal-entity']);
         }
     }
 
