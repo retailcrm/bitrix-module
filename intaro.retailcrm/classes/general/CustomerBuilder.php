@@ -1,7 +1,5 @@
 <?php
 
-IncludeModuleLangFile(__FILE__);
-
 /**
  * Class CustomerBuilder
  */
@@ -174,18 +172,20 @@ class CustomerBuilder implements RetailcrmBuilderInterface
             $login = uniqid('user_' . time()) . '@crm.com';
             $this->dataCrm['email'] = $login;
         } else {
-            switch ($this->dbUser->SelectedRowsCount()) {
-                case 0:
-                    $login = $this->dataCrm['email'];
-                    break;
-                case 1:
-                    $arUser = $this->dbUser->Fetch();
-                    $this->setRegisteredUserID($arUser['ID']);
-                    $this->registerNewUser = false;
-                    break;
-                default:
-                    $login = uniqid('user_' . time()) . '@crm.com';
-                    break;
+            if (isset($this->dbUser)) {
+                switch ($this->dbUser->SelectedRowsCount()) {
+                    case 0:
+                        $login = $this->dataCrm['email'];
+                        break;
+                    case 1:
+                        $arUser = $this->dbUser->Fetch();
+                        $this->setRegisteredUserID($arUser['ID']);
+                        $this->registerNewUser = false;
+                        break;
+                    default:
+                        $login = uniqid('user_' . time()) . '@crm.com';
+                        break;
+                }
             }
         }
 
