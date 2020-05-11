@@ -2,7 +2,7 @@
 /**
  * Class CustomerCorpBuilder
  */
-class CustomerCorpBuilder implements RetailcrmBuilderInterface
+class CustomerCorpBuilder extends BuilderBase implements RetailcrmBuilderInterface
 {
     /** @var classes/general/Model/Customer */
     public $customer;

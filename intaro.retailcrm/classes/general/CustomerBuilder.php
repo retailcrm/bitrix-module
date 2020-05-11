@@ -3,7 +3,7 @@
 /**
  * Class CustomerBuilder
  */
-class CustomerBuilder implements RetailcrmBuilderInterface
+class CustomerBuilder extends BuilderBase implements RetailcrmBuilderInterface
 {
     /** @var classes/general/Model/Customer */
     public $customer;
@@ -141,7 +141,7 @@ class CustomerBuilder implements RetailcrmBuilderInterface
             $this->createCustomer();
         }
 
-        if (isset($this->registeredUserID)) {
+        if (isset($this->registeredUserID) || isset($this->dataCrm['externalId'])) {
             $this->updateCustomer();
         }
 
@@ -263,24 +263,5 @@ class CustomerBuilder implements RetailcrmBuilderInterface
         if (!empty($this->dataCrm['sex'])) {
             $this->customer->setPersonalGender(RCrmActions::fromJSON($this->dataCrm['sex']));
         }
-    }
-
-    /**
-     * @param array $array
-     * @param array $symbols
-     * @return array
-     */
-    function arrayClear(array $array, array $symbols = array('', 0, null))
-    {
-        return array_diff($array, $symbols);
-    }
-
-    /**
-     * @param $data
-     * @return array
-     */
-    function objectToArray($data)
-    {
-        return $this->arrayClear(json_decode(json_encode($data), true));
     }
 }
