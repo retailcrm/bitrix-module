@@ -1,33 +1,48 @@
 <?php
 /**
- * Class CustomerCorpBuilder
+ * Class CorporateCustomerBuilder
  */
-class CustomerCorpBuilder extends BuilderBase implements RetailcrmBuilderInterface
+class CorporateCustomerBuilder extends BuilderBase implements RetailcrmBuilderInterface
 {
-    /** @var classes/general/Model/Customer */
+    /** @var Customer */
     public $customer;
 
-    /** @var classes/general/Model/CustomerAddress */
+    /** @var CustomerAddress */
     public $customerAddress;
 
     /** @var array $dataCrm customerHistory */
     protected $dataCrm;
 
-    public $corporateContact;
-    public $orderCustomerExtId;
+    /** @var array $corporateContact */
+    protected $corporateContact;
 
-    /** @var classes/general/Model/BuyerProfile */
+    /** @var int $orderCustomerExtId */
+    protected $orderCustomerExtId;
+
+    /** @var BuyerProfile */
     public $buyerProfile;
 
+    /**@var object $api */
     protected $api;
-    public $dbUser;
-    public $registerNewUser;
-    public $registeredUserID;
-    public $addressBuilder;
+
+    /** @var CUser */
+    protected $dbUser;
+
+    /** @var bool $registerNewUser */
+    protected $registerNewUser;
+
+    /** @var int $registeredUserID */
+    protected $registeredUserID;
+
+    /**@var AddressBuilder */
+    protected $addressBuilder;
+
+    /**@var array $contragentTypes */
+    protected $contragentTypes;
 
     /**
-     * CustomerCorpBuilder constructor.
-     * @param $api
+     * CorporateCustomerBuilder constructor.
+     * @param object $api
      */
     public function __construct($api)
     {
@@ -35,11 +50,11 @@ class CustomerCorpBuilder extends BuilderBase implements RetailcrmBuilderInterfa
         $this->customer = new Customer();
         $this->customerAddress = new CustomerAddress();
         $this->buyerProfile = new BuyerProfile();
-        $this->addressBuilder = new AdressBuilder();
+        $this->addressBuilder = new AddressBuilder();
     }
 
     /**
-     * @param $dataCrm
+     * @param array $dataCrm
      * @return $this
      */
     public function setDataCrm($dataCrm)
@@ -49,7 +64,7 @@ class CustomerCorpBuilder extends BuilderBase implements RetailcrmBuilderInterfa
     }
 
     /**
-     * @param $dbUser
+     * @param object $dbUser
      * @return $this
      */
     public function setDbUser($dbUser)
@@ -59,13 +74,48 @@ class CustomerCorpBuilder extends BuilderBase implements RetailcrmBuilderInterfa
     }
 
     /**
-     * @param $registeredUserID
+     * @param int $registeredUserID
      * @return $this
      */
     public function setRegisteredUserID($registeredUserID)
     {
         $this->registeredUserID = $registeredUserID;
         return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getRegisterNewUser()
+    {
+        return $this->registerNewUser;
+    }
+
+    /**
+     * @return int
+     */
+    public function getRegisteredUserID()
+    {
+        return $this->registeredUserID;
+    }
+
+    /**
+     * @param int $data
+     * @return $this
+     */
+    public function setOrderCustomerExtId($data)
+    {
+        $this->orderCustomerExtId = $data;
+
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getOrderCustomerExtId()
+    {
+        return $this->orderCustomerExtId;
     }
 
     public function build()
@@ -199,9 +249,8 @@ class CustomerCorpBuilder extends BuilderBase implements RetailcrmBuilderInterfa
     public function buildAddress()
     {
         if (isset($this->dataCrm['company']['address'])) {
-            $this->addressBuilder->setDataCrm($this->dataCrm['company']['address']);
-            $this->addressBuilder->build();
-            $this->customerAddress = $this->addressBuilder->customerAddress;
+            $this->addressBuilder->setDataCrm($this->dataCrm['company']['address'])->build();
+            $this->customerAddress = $this->addressBuilder->getCustomerAddress();
         } else {
             $this->customerAddress = null;
         }

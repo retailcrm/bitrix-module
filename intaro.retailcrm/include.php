@@ -29,12 +29,12 @@ CModule::AddAutoloadClasses(
 
         'RetailcrmBuilderInterface'                 => 'classes/general/RetailcrmBuilderInterface.php',
         'CustomerBuilder'                           => 'classes/general/CustomerBuilder.php',
-        'CustomerCorpBuilder'                       => 'classes/general/CustomerCorpBuilder.php',
+        'CorporateCustomerBuilder'                  => 'classes/general/CorporateCustomerBuilder.php',
         'Customer'                                  => 'classes/general/Model/Customer.php',
         'CustomerAddress'                           => 'classes/general/Model/CustomerAddress.php',
         'CustomerContragent'                        => 'classes/general/Model/CustomerContragent.php',
         'BuyerProfile'                              => 'classes/general/Model/BuyerProfile.php',
-        'AdressBuilder'                             => 'classes/general/AdressBuilder.php',
+        'AddressBuilder'                             => 'classes/general/AddressBuilder.php',
         'BuilderBase'                             => 'classes/general/BuilderBase.php',
     )
 );

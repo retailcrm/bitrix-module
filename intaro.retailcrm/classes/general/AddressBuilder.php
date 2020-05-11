@@ -1,11 +1,13 @@
 <?php
 /**
- * Class AdressBuilder
+ * Class AddressBuilder
  */
-class AdressBuilder implements RetailcrmBuilderInterface
+class AddressBuilder implements RetailcrmBuilderInterface
 {
-    /** @var classes/general/Model/CustomerAddress */
-    public $customerAddress;
+    /**
+     * @var CustomerAddress
+     */
+    private $customerAddress;
 
     /** @var array $dataCrm customerHistory */
     protected $dataCrm;
@@ -25,14 +27,27 @@ class AdressBuilder implements RetailcrmBuilderInterface
     }
 
     /**
-     * @param $array
-     * @param $key
-     * @param null $default
+     * @param array $array array values
+     * @param string $key  index array
+     * @param null $default default value
      * @return mixed|null
      */
     protected function getValue($array, $key, $default = NULL)
     {
         return isset($array[$key]) && !empty($array[$key]) ?  $array[$key] : $default;
+    }
+
+    /**
+     * @param object $data
+     */
+    public function setCustomerAddress($data)
+    {
+        $this->customerAddress = $data;
+    }
+
+    public function getCustomerAddress()
+    {
+        return $this->customerAddress;
     }
 
     public function build()

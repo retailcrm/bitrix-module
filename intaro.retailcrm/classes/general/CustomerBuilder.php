@@ -5,19 +5,28 @@
  */
 class CustomerBuilder extends BuilderBase implements RetailcrmBuilderInterface
 {
-    /** @var classes/general/Model/Customer */
+    /** @var Customer */
     public $customer;
 
-    /** @var classes/general/Model/CustomerAddress */
+    /** @var CustomerAddress */
     public $customerAddress;
 
     /** @var array $dataCrm customerHistory */
     protected $dataCrm;
 
+    /** @var AddressBuilder */
     public $addressBuilder;
+
+    /** @var CUser */
     public $dbUser;
+
+    /** @var CUser */
     public $user;
+
+    /** @var bool $registerNewUser */
     public $registerNewUser;
+
+    /** @var int $registeredUserID */
     public $registeredUserID;
 
     /**
@@ -27,11 +36,11 @@ class CustomerBuilder extends BuilderBase implements RetailcrmBuilderInterface
     {
         $this->customer = new Customer();
         $this->customerAddress = new CustomerAddress();
-        $this->addressBuilder = new AdressBuilder();
+        $this->addressBuilder = new AddressBuilder();
     }
 
     /**
-     * @param $customer
+     * @param object $customer
      * @return $this
      */
     public function setCustomer($customer)
@@ -41,7 +50,7 @@ class CustomerBuilder extends BuilderBase implements RetailcrmBuilderInterface
     }
 
     /**
-     * @return classes|Customer
+     * @return object|Customer
      */
     public function getCustomer()
     {
@@ -49,7 +58,7 @@ class CustomerBuilder extends BuilderBase implements RetailcrmBuilderInterface
     }
 
     /**
-     * @param $customerAddress
+     * @param object $customerAddress
      * @return $this
      */
     public function setCustomerAddress($customerAddress)
@@ -59,7 +68,7 @@ class CustomerBuilder extends BuilderBase implements RetailcrmBuilderInterface
     }
 
     /**
-     * @return classes|CustomerAddress
+     * @return object|CustomerAddress
      */
     public function getCustomerAddress()
     {
@@ -67,7 +76,7 @@ class CustomerBuilder extends BuilderBase implements RetailcrmBuilderInterface
     }
 
     /**
-     * @param $dataCrm
+     * @param array $dataCrm
      * @return $this
      */
     public function setDataCrm($dataCrm)
@@ -77,7 +86,7 @@ class CustomerBuilder extends BuilderBase implements RetailcrmBuilderInterface
     }
 
     /**
-     * @param $dbUser
+     * @param object $dbUser
      * @return $this
      */
     public function setDbUser($dbUser)
@@ -87,7 +96,7 @@ class CustomerBuilder extends BuilderBase implements RetailcrmBuilderInterface
     }
 
     /**
-     * @param $user
+     * @param object $user
      * @return $this
      */
     public function setUser($user)
@@ -97,7 +106,7 @@ class CustomerBuilder extends BuilderBase implements RetailcrmBuilderInterface
     }
 
     /**
-     * @param $registeredUserID
+     * @param int $registeredUserID
      * @return $this
      */
     public function setRegisteredUserID($registeredUserID)
@@ -107,8 +116,8 @@ class CustomerBuilder extends BuilderBase implements RetailcrmBuilderInterface
     }
 
     /**
-     * @param $key
-     * @param null $default
+     * @param string $key
+     * @param mixed $default
      * @return mixed|null
      */
     protected function getValue($key, $default = NULL)
@@ -117,9 +126,9 @@ class CustomerBuilder extends BuilderBase implements RetailcrmBuilderInterface
     }
 
     /**
-     * @param $array
-     * @param $key
-     * @param null $default
+     * @param array $array
+     * @param string $key
+     * @param mixed $default
      * @return mixed|null
      */
     protected function getValueArray($array, $key, $default = NULL)
@@ -130,7 +139,7 @@ class CustomerBuilder extends BuilderBase implements RetailcrmBuilderInterface
     public function build()
     {
         if (isset($this->dataCrm['deleted'])) {
-            return false;
+            return $this;
         }
 
         if (isset($this->dataCrm['externalId']) && !is_numeric($this->dataCrm['externalId'])) {
@@ -153,9 +162,8 @@ class CustomerBuilder extends BuilderBase implements RetailcrmBuilderInterface
     public function buildAddress()
     {
         if (isset($this->dataCrm['address'])) {
-            $this->addressBuilder->setDataCrm($this->dataCrm['address']);
-            $this->addressBuilder->build();
-            $this->customerAddress = $this->addressBuilder->customerAddress;
+            $this->addressBuilder->setDataCrm($this->dataCrm['address'])->build();
+            $this->customerAddress = $this->addressBuilder->getCustomerAddress();
         } else {
             $this->customerAddress = null;
         }
@@ -164,7 +172,7 @@ class CustomerBuilder extends BuilderBase implements RetailcrmBuilderInterface
     public function createCustomer()
     {
         if (!isset($this->dataCrm['id'])) {
-            return false;
+            return $this;
         }
 
         $this->registerNewUser = true;

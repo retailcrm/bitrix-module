@@ -4,18 +4,35 @@
  */
 class CustomerContragent
 {
-    public $contragentType;
-    public $legalName;
-    public $legalAddress;
-    public $certificateNumber;
-    public $certificateDate;
-    public $bank;
-    public $bankAddress;
-    public $corrAccount;
-    public $bankAccount;
+    /**@var string $contragentType */
+    protected $contragentType;
+
+    /**@var string $legalName */
+    protected $legalName;
+
+    /**@var string $legalAddress */
+    protected $legalAddress;
+
+    /**@var string $certificateNumber */
+    protected $certificateNumber;
+
+    /**@var string $certificateDate */
+    protected $certificateDate;
+
+    /**@var string $bank */
+    protected $bank;
+
+    /**@var string $bankAddress */
+    protected $bankAddress;
+
+    /**@var string $corrAccount */
+    protected $corrAccount;
+
+    /**@var string $bankAccount */
+    protected $bankAccount;
 
     /**
-     * @param $contragentType
+     * @param string $contragentType
      * @return $this
      */
     public function setContragentType($contragentType)
@@ -26,7 +43,7 @@ class CustomerContragent
     }
 
     /**
-     * @param $legalName
+     * @param string $legalName
      * @return $this
      */
     public function setLegalName($legalName)
@@ -37,7 +54,7 @@ class CustomerContragent
     }
 
     /**
-     * @param $legalAddress
+     * @param string $legalAddress
      * @return $this
      */
     public function setLegalAddress($legalAddress)
@@ -48,7 +65,7 @@ class CustomerContragent
     }
 
     /**
-     * @param $certificateNumber
+     * @param string $certificateNumber
      * @return $this
      */
     public function setCertificateNumber($certificateNumber)
@@ -59,7 +76,7 @@ class CustomerContragent
     }
 
     /**
-     * @param $certificateDate
+     * @param string $certificateDate
      * @return $this
      */
     public function setCertificateDate($certificateDate)
@@ -70,7 +87,7 @@ class CustomerContragent
     }
 
     /**
-     * @param $bank
+     * @param string $bank
      * @return $this
      */
     public function setBank($bank)
@@ -81,7 +98,7 @@ class CustomerContragent
     }
 
     /**
-     * @param $bankAddress
+     * @param string $bankAddress
      * @return $this
      */
     public function setBankAddress($bankAddress)
@@ -92,7 +109,7 @@ class CustomerContragent
     }
 
     /**
-     * @param $corrAccount
+     * @param string $corrAccount
      * @return $this
      */
     public function setCorrAccount($corrAccount)
@@ -103,7 +120,7 @@ class CustomerContragent
     }
 
     /**
-     * @param $bankAccount
+     * @param string $bankAccount
      * @return $this
      */
     public function setBankAccount($bankAccount)
