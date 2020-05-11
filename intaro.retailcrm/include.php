@@ -28,7 +28,7 @@ CModule::AddAutoloadClasses(
         'RetailcrmConstants'                        => 'classes/general/RetailcrmConstants.php',
         'RetailcrmBuilderInterface'                 => 'classes/general/RetailcrmBuilderInterface.php',
         'CustomerBuilder'                           => 'classes/general/CustomerBuilder.php',
-        'CustomerCorpBuilder'                       => 'classes/general/CustomerCorpBuilder.php',
+        'CorporateCustomerBuilder'                  => 'classes/general/CorporateCustomerBuilder.php',
         'Customer'                                  => 'classes/general/Model/Customer.php',
         'CustomerAddress'                           => 'classes/general/Model/CustomerAddress.php',
         'CustomerContragent'                        => 'classes/general/Model/CustomerContragent.php',

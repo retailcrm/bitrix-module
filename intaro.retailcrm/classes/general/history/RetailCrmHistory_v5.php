@@ -231,7 +231,7 @@ class RetailCrmHistory
                 }
 
                 Logger::getInstance()->write($order, 'assemblyOrderHistory');
-                $customerCorpBuilder = new CustomerCorpBuilder($api);
+                $customerCorpBuilder = new CorporateCustomerBuilder($api);
 
                 if (isset($order['deleted'])) {
                     if (isset($order['externalId'])) {
@@ -284,7 +284,9 @@ class RetailCrmHistory
                     unset($order['customer']['externalId']);
                 }
 
-                $customerCorpBuilder->orderCustomerExtId = isset($order['customer']['externalId']) ? $order['customer']['externalId'] : null;
+                if (isset($order['customer']['externalId'])) {
+                    $customerCorpBuilder->setOrderCustomerExtId($order['customer']['externalId']);
+                }
                 $customerCorpBuilder->setDataCrm($order)->build();
 
                 $corporateContact = array();
@@ -330,7 +332,7 @@ class RetailCrmHistory
                 }
 
                 if (!isset($order['externalId'])) {
-                    if (empty($customerCorpBuilder->orderCustomerExtId)) {
+                    if (empty($customerCorpBuilder->getOrderCustomerExtId())) {
                         $customerCorpBuilder->setDbUser(
                             CUser::GetList(
                                 ($by = 'ID'),
@@ -339,13 +341,13 @@ class RetailCrmHistory
                             )
                         );
 
-                        if ($customerCorpBuilder->registerNewUser  === true) {
+                        if ($customerCorpBuilder->getRegisterNewUser()  === true) {
                             $newUser = new CUser();
                             $customerCorpBuilder->setRegisteredUserID(
                                 $newUser->Add($customerCorpBuilder->objectToArray($customerCorpBuilder->customer))
                             );
 
-                            if ($customerCorpBuilder->registeredUserID === false) {
+                            if ($customerCorpBuilder->getRegisterNewUser() === false) {
                                 RCrmActions::eventLog(
                                     'RetailCrmHistory::orderHistory',
                                     'CUser::Register',
@@ -361,15 +363,14 @@ class RetailCrmHistory
                                 __METHOD__,
                                 array(array(
                                     'id' => $order['customer']['id'],
-                                    'externalId' => $customerCorpBuilder->registeredUserID
+                                    'externalId' => $customerCorpBuilder->getRegisteredUserID()
                                 ))) == false
                             ) {
                                 continue;
                             }
                         }
 
-                        $customerCorpBuilder->orderCustomerExtId =
-                            isset($customerCorpBuilder->registeredUserID) ? $customerCorpBuilder->registeredUserID : null;
+                        $customerCorpBuilder->setOrderCustomerExtId($customerCorpBuilder->getRegisteredUserID());
                     }
 
                     //TO DO builder buyerProfile
@@ -397,7 +398,7 @@ class RetailCrmHistory
                         }
                     }
 
-                    $newOrder = Bitrix\Sale\Order::create($site, $customerCorpBuilder->orderCustomerExtId, $currency);
+                    $newOrder = Bitrix\Sale\Order::create($site, $customerCorpBuilder->getOrderCustomerExtId(), $currency);
 
                     if (isset($buyerProfileToAppend['ID']) && isset($optionsLegalDetails['legalName'])) {
                         $newOrder->setFields(array(

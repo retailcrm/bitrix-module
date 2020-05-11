@@ -4,12 +4,17 @@
  */
 class BuyerProfile
 {
-    public $NAME;
-    public $USER_ID;
-    public $PERSON_TYPE_ID;
+    /**@var string $NAME */
+    protected $NAME;
+
+    /**@var string $USER_ID */
+    protected $USER_ID;
+
+    /**@var string $PERSON_TYPE_ID */
+    protected $PERSON_TYPE_ID;
 
     /**
-     * @param $NAME
+     * @param string $NAME
      * @return $this
      */
     public function setName($NAME)
@@ -20,7 +25,7 @@ class BuyerProfile
     }
 
     /**
-     * @param $USER_ID
+     * @param int $USER_ID
      * @return $this
      */
     public function setUserId($USER_ID)
@@ -31,7 +36,7 @@ class BuyerProfile
     }
 
     /**
-     * @param $PERSON_TYPE_ID
+     * @param int $PERSON_TYPE_ID
      * @return $this
      */
     public function setPersonTypeId($PERSON_TYPE_ID)

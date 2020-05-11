@@ -4,23 +4,50 @@
  */
 class CustomerAddress
 {
-    public $index;
-    public $country;
-    public $region;
-    public $city;
-    public $street;
-    public $building;
-    public $house;
-    public $block;
-    public $flat;
-    public $floor;
-    public $intercom_code;
-    public $metro;
-    public $notes;
-    public $text;
+    /**@var string $index */
+    protected $index;
+
+    /**@var string $country */
+    protected $country;
+
+    /**@var string $region */
+    protected $region;
+
+    /**@var string $city */
+    protected $city;
+
+    /**@var string $street */
+    protected $street;
+
+    /**@var string $building */
+    protected $building;
+
+    /**@var string $house */
+    protected $house;
+
+    /**@var string $block */
+    protected $block;
+
+    /**@var string $flat */
+    protected $flat;
+
+    /**@var string $floor */
+    protected $floor;
+
+    /**@var string $intercomCode */
+    protected $intercomCode;
+
+    /**@var string $metro */
+    protected $metro;
+
+    /**@var string $notes */
+    protected $notes;
+
+    /**@var string $text */
+    protected $text;
 
     /**
-     * @param $index
+     * @param string $index
      * @return $this
      */
     public function setIndex($index)
@@ -31,7 +58,7 @@ class CustomerAddress
     }
 
     /**
-     * @param $country
+     * @param string $country
      * @return $this
      */
     public function setCountry($country)
@@ -42,7 +69,7 @@ class CustomerAddress
     }
 
     /**
-     * @param $region
+     * @param string $region
      * @return $this
      */
     public function setRegion($region)
@@ -53,7 +80,7 @@ class CustomerAddress
     }
 
     /**
-     * @param $city
+     * @param string $city
      * @return $this
      */
     public function setCity($city)
@@ -64,7 +91,7 @@ class CustomerAddress
     }
 
     /**
-     * @param $street
+     * @param string $street
      * @return $this
      */
     public function setStreet($street)
@@ -75,7 +102,7 @@ class CustomerAddress
     }
 
     /**
-     * @param $building
+     * @param string $building
      * @return $this
      */
     public function setBuilding($building)
@@ -86,7 +113,7 @@ class CustomerAddress
     }
 
     /**
-     * @param $house
+     * @param string $house
      * @return $this
      */
     public function setHouse($house)
@@ -97,7 +124,7 @@ class CustomerAddress
     }
 
     /**
-     * @param $block
+     * @param string $block
      * @return $this
      */
     public function setBlock($block)
@@ -108,7 +135,7 @@ class CustomerAddress
     }
 
     /**
-     * @param $flat
+     * @param string $flat
      * @return $this
      */
     public function setFlat($flat)
@@ -119,7 +146,7 @@ class CustomerAddress
     }
 
     /**
-     * @param $floor
+     * @param string $floor
      * @return $this
      */
     public function setFloor($floor)
@@ -130,18 +157,18 @@ class CustomerAddress
     }
 
     /**
-     * @param $intercom_code
+     * @param string $intercomCode
      * @return $this
      */
-    public function setIntercomCode($intercom_code)
+    public function setIntercomCode($intercomCode)
     {
-        $this->intercom_code = $intercom_code;
+        $this->intercomCode = $intercomCode;
 
         return $this;
     }
 
     /**
-     * @param $metro
+     * @param string $metro
      * @return $this
      */
     public function setMetro($metro)
@@ -152,7 +179,7 @@ class CustomerAddress
     }
 
     /**
-     * @param $notes
+     * @param string $notes
      * @return $this
      */
     public function setNotes($notes)
@@ -163,7 +190,7 @@ class CustomerAddress
     }
 
     /**
-     * @param $text
+     * @param string $text
      * @return $this
      */
     public function setText($text)

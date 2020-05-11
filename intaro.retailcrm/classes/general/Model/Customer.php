@@ -4,23 +4,50 @@
  */
 class Customer
 {
-    public $EMAIL;
-    public $LOGIN;
-    public $ACTIVE;
-    public $PASSWORD;
-    public $CONFIRM_PASSWORD;
-    public $NAME;
-    public $LAST_NAME;
-    public $SECOND_NAME;
-    public $PERSONAL_MOBILE;
-    public $PERSONAL_PHONE;
-    public $PERSONAL_ZIP;
-    public $PERSONAL_CITY;
-    public $PERSONAL_BIRTHDAY;
-    public $PERSONAL_GENDER;
+    /**@var string $EMAIL */
+    protected $EMAIL;
+
+    /**@var string $LOGIN */
+    protected $LOGIN;
+
+    /**@var string $ACTIVE */
+    protected $ACTIVE;
+
+    /**@var string $PASSWORD */
+    protected $PASSWORD;
+
+    /**@var string $CONFIRM_PASSWORD */
+    protected $CONFIRM_PASSWORD;
+
+    /**@var string $NAME */
+    protected $NAME;
+
+    /**@var string $LAST_NAME */
+    protected $LAST_NAME;
+
+    /**@var string $SECOND_NAME */
+    protected $SECOND_NAME;
+
+    /**@var string $PERSONAL_MOBILE */
+    protected $PERSONAL_MOBILE;
+
+    /**@var string $PERSONAL_PHONE */
+    protected $PERSONAL_PHONE;
+
+    /**@var string $PERSONAL_ZIP */
+    protected $PERSONAL_ZIP;
+
+    /**@var string $PERSONAL_CITY */
+    protected $PERSONAL_CITY;
+
+    /**@var string $PERSONAL_BIRTHDAY */
+    protected $PERSONAL_BIRTHDAY;
+
+    /**@var string $PERSONAL_GENDER */
+    protected $PERSONAL_GENDER;
 
     /**
-     * @param $EMAIL
+     * @param string $EMAIL
      * @return $this
      */
     public function setEmail($EMAIL)
@@ -31,7 +58,7 @@ class Customer
     }
 
     /**
-     * @param $LOGIN
+     * @param string $LOGIN
      * @return $this
      */
     public function setLogin($LOGIN)
@@ -42,7 +69,7 @@ class Customer
     }
 
     /**
-     * @param $ACTIVE
+     * @param string $ACTIVE
      * @return $this
      */
     public function setActive($ACTIVE)
@@ -53,7 +80,7 @@ class Customer
     }
 
     /**
-     * @param $PASSWORD
+     * @param string $PASSWORD
      * @return $this
      */
     public function setPassword($PASSWORD)
@@ -64,7 +91,7 @@ class Customer
     }
 
     /**
-     * @param $CONFIRM_PASSWORD
+     * @param string $CONFIRM_PASSWORD
      * @return $this
      */
     public function setConfirmPassword($CONFIRM_PASSWORD)
@@ -75,7 +102,7 @@ class Customer
     }
 
     /**
-     * @param $NAME
+     * @param string $NAME
      * @return $this
      */
     public function setName($NAME)
@@ -86,7 +113,7 @@ class Customer
     }
 
     /**
-     * @param $LAST_NAME
+     * @param string $LAST_NAME
      * @return $this
      */
     public function setLastName($LAST_NAME)
@@ -97,7 +124,7 @@ class Customer
     }
 
     /**
-     * @param $SECOND_NAME
+     * @param string $SECOND_NAME
      * @return $this
      */
     public function setSecondName($SECOND_NAME)
@@ -108,7 +135,7 @@ class Customer
     }
 
     /**
-     * @param $PERSONAL_MOBILE
+     * @param string $PERSONAL_MOBILE
      * @return $this
      */
     public function setPersonalMobile($PERSONAL_MOBILE)
@@ -119,7 +146,7 @@ class Customer
     }
 
     /**
-     * @param $PERSONAL_PHONE
+     * @param string $PERSONAL_PHONE
      * @return $this
      */
     public function setPersonalPhone($PERSONAL_PHONE)
@@ -130,7 +157,7 @@ class Customer
     }
 
     /**
-     * @param $PERSONAL_ZIP
+     * @param string $PERSONAL_ZIP
      * @return $this
      */
     public function setPersonalZip($PERSONAL_ZIP)
@@ -141,7 +168,7 @@ class Customer
     }
 
     /**
-     * @param $PERSONAL_CITY
+     * @param string $PERSONAL_CITY
      * @return $this
      */
     public function setPersonalCity($PERSONAL_CITY)
@@ -152,7 +179,7 @@ class Customer
     }
 
     /**
-     * @param $PERSONAL_BIRTHDAY
+     * @param string $PERSONAL_BIRTHDAY
      * @return $this
      */
     public function setPersonalBirthday($PERSONAL_BIRTHDAY)
@@ -163,7 +190,7 @@ class Customer
     }
 
     /**
-     * @param $PERSONAL_GENDER
+     * @param string $PERSONAL_GENDER
      * @return $this
      */
     public function setPersonalGender($PERSONAL_GENDER)

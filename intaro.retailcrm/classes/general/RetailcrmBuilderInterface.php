@@ -17,5 +17,4 @@ interface RetailcrmBuilderInterface
      * Build result
      */
     public function build();
-
 }
