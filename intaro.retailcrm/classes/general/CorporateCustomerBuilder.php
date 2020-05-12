@@ -5,10 +5,10 @@
 class CorporateCustomerBuilder extends BuilderBase implements RetailcrmBuilderInterface
 {
     /** @var Customer */
-    public $customer;
+    protected $customer;
 
     /** @var CustomerAddress */
-    public $customerAddress;
+    protected $customerAddress;
 
     /** @var array $dataCrm customerHistory */
     protected $dataCrm;
@@ -21,9 +21,6 @@ class CorporateCustomerBuilder extends BuilderBase implements RetailcrmBuilderIn
 
     /** @var BuyerProfile */
     public $buyerProfile;
-
-    /**@var object $api */
-    protected $api;
 
     /** @var CUser */
     protected $dbUser;
@@ -42,15 +39,49 @@ class CorporateCustomerBuilder extends BuilderBase implements RetailcrmBuilderIn
 
     /**
      * CorporateCustomerBuilder constructor.
-     * @param object $api
      */
-    public function __construct($api)
+    public function __construct()
     {
-        $this->api = $api;
         $this->customer = new Customer();
         $this->customerAddress = new CustomerAddress();
         $this->buyerProfile = new BuyerProfile();
         $this->addressBuilder = new AddressBuilder();
+    }
+
+    /**
+     * @param object $customer
+     * @return $this
+     */
+    public function setCustomer($customer)
+    {
+        $this->customer = $customer;
+        return $this;
+    }
+
+    /**
+     * @return object|Customer
+     */
+    public function getCustomer()
+    {
+        return $this->customer;
+    }
+
+    /**
+     * @param object $customerAddress
+     * @return $this
+     */
+    public function setCustomerAddress($customerAddress)
+    {
+        $this->customerAddress = $customerAddress;
+        return $this;
+    }
+
+    /**
+     * @return object|CustomerAddress
+     */
+    public function getCustomerAddress()
+    {
+        return  $this->customerAddress;
     }
 
     /**
@@ -118,12 +149,27 @@ class CorporateCustomerBuilder extends BuilderBase implements RetailcrmBuilderIn
         return $this->orderCustomerExtId;
     }
 
+    /**
+     * @param array $data
+     * @return $this
+     */
+    public function setCorporateContact($data)
+    {
+        $this->corporateContact = $data;
+
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getCorporateContact()
+    {
+        return $this->corporateContact;
+    }
+
     public function build()
     {
-        if (RetailCrmOrder::isOrderCorporate($this->dataCrm)) {
-           $this->getCorporateContact();
-        }
-
         if (!isset($this->dataCrm['externalId'])) {
             $this->buildCustomer();
             $this->buildBuyerProfile();
@@ -131,45 +177,6 @@ class CorporateCustomerBuilder extends BuilderBase implements RetailcrmBuilderIn
 
         if (isset($this->dataCrm['company']['address'])) {
             $this->buildAddress();
-        }
-    }
-
-    public function getCorporateContact()
-    {
-        if (!empty($this->dataCrm['contact'])) {
-            if (isset($this->dataCrm['contact']['email'])) {
-                $this->corporateContact = $this->dataCrm['contact'];
-                $this->orderCustomerExtId = isset($this->corporateContact['externalId'])
-                    ? $this->corporateContact['externalId']
-                    : null;
-            } else {
-                $response = false;
-
-                if (isset($this->dataCrm['contact']['externalId'])) {
-                    $response = RCrmActions::apiMethod(
-                        $this->api,
-                        'customersGet',
-                        __METHOD__,
-                        $this->dataCrm['contact']['externalId'],
-                        $this->dataCrm['site']
-                    );
-                } elseif (isset($this->dataCrm['contact']['id'])) {
-                    $response = RCrmActions::apiMethod(
-                        $this->api,
-                        'customersGetById',
-                        __METHOD__,
-                        $this->dataCrm['contact']['id'],
-                        $this->dataCrm['site']
-                    );
-                }
-
-                if ($response && isset($response['customer'])) {
-                    $this->corporateContact = $response['customer'];
-                    $this->orderCustomerExtId = isset($this->corporateContact['externalId'])
-                        ? $this->corporateContact['externalId']
-                        : null;
-                }
-            }
         }
     }
 
