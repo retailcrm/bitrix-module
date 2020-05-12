@@ -6,28 +6,28 @@
 class CustomerBuilder extends BuilderBase implements RetailcrmBuilderInterface
 {
     /** @var Customer */
-    public $customer;
+    protected $customer;
 
     /** @var CustomerAddress */
-    public $customerAddress;
+    protected $customerAddress;
 
     /** @var array $dataCrm customerHistory */
     protected $dataCrm;
 
     /** @var AddressBuilder */
-    public $addressBuilder;
+    protected $addressBuilder;
 
     /** @var CUser */
-    public $dbUser;
+    protected $dbUser;
 
     /** @var CUser */
-    public $user;
+    protected $user;
 
     /** @var bool $registerNewUser */
-    public $registerNewUser;
+    protected $registerNewUser;
 
     /** @var int $registeredUserID */
-    public $registeredUserID;
+    protected $registeredUserID;
 
     /**
      * CustomerBuilder constructor.
@@ -113,6 +113,22 @@ class CustomerBuilder extends BuilderBase implements RetailcrmBuilderInterface
     {
         $this->registeredUserID = $registeredUserID;
         return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getRegisteredUserID()
+    {
+        return $this->registeredUserID;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getRegisterNewUser()
+    {
+        return $this->registerNewUser;
     }
 
     /**

@@ -93,13 +93,15 @@ class RetailCrmHistory
                 }
                 $customerBuilder->build();
 
-                if (!isset($customerBuilder->registeredUserID)) {
-                    if (true === $customerBuilder->registerNewUser) {
-                        $customerBuilder->registeredUserID = $newUser->Add(
-                            $customerBuilder->objectToArray($customerBuilder->customer)
+                if (!$customerBuilder->getRegisteredUserID()) {
+                    if (true === $customerBuilder->getRegisterNewUser()) {
+                        $customerBuilder->setRegisteredUserID(
+                            $newUser->Add(
+                                $customerBuilder->objectToArray($customerBuilder->getCustomer())
+                            )
                         );
 
-                        if ($customerBuilder->registeredUserID === false) {
+                        if ($customerBuilder->getRegisteredUserID() === false) {
                             RCrmActions::eventLog(
                                 'RetailCrmHistory::orderHistory',
                                 'CUser::Register',
@@ -113,12 +115,12 @@ class RetailCrmHistory
                                 $api,
                                 'customersFixExternalIds',
                                 __METHOD__,
-                                array(array('id' => $customer['id'], 'externalId' => $customerBuilder->registeredUserID))) == false
+                                array(array('id' => $customer['id'], 'externalId' => $customerBuilder->getRegisteredUserID()))) == false
                         ) {
                             continue;
                         }
 
-                        $customer['externalId'] = $customerBuilder->registeredUserID;
+                        $customer['externalId'] = $customerBuilder->getRegisteredUserID();
                     }
                 }
 
@@ -137,7 +139,7 @@ class RetailCrmHistory
 
                     $u = $newUser->Update(
                         $customer['externalId'],
-                        $customerBuilder->objectToArray($customerBuilder->customer)
+                        $customerBuilder->objectToArray($customerBuilder->getCustomer())
                     );
                     if (!$u) {
                         RCrmActions::eventLog(
@@ -236,7 +238,7 @@ class RetailCrmHistory
                 }
 
                 Logger::getInstance()->write($order, 'assemblyOrderHistory');
-                $customerCorpBuilder = new CorporateCustomerBuilder($api);
+                $customerCorpBuilder = new CorporateCustomerBuilder();
 
                 if (isset($order['deleted'])) {
                     if (isset($order['externalId'])) {
@@ -292,7 +294,49 @@ class RetailCrmHistory
                 if (isset($order['customer']['externalId'])) {
                     $customerCorpBuilder->setOrderCustomerExtId($order['customer']['externalId']);
                 }
+
                 $customerCorpBuilder->setDataCrm($order)->build();
+
+                if (RetailCrmOrder::isOrderCorporate($order)) {
+                    // Fetch contact only if we think it's data is not fully present in order
+                    if (!empty($order['contact'])) {
+                        if (isset($order['contact']['email'])) {
+                            $corporateContact = $order['contact'];
+                            $customerCorpBuilder->setCorporateContact($corporateContact);
+                            if (isset($corporateContact['externalId'])) {
+                                $customerCorpBuilder->setOrderCustomerExtId($corporateContact['externalId']);
+                            }
+                        } else {
+                            $response = false;
+
+                            if (isset($order['contact']['externalId'])) {
+                                $response = RCrmActions::apiMethod(
+                                    $api,
+                                    'customersGet',
+                                    __METHOD__,
+                                    $order['contact']['externalId'],
+                                    $order['site']
+                                );
+                            } elseif (isset($order['contact']['id'])) {
+                                $response = RCrmActions::apiMethod(
+                                    $api,
+                                    'customersGetById',
+                                    __METHOD__,
+                                    $order['contact']['id'],
+                                    $order['site']
+                                );
+                            }
+
+                            if ($response && isset($response['customer'])) {
+                                $corporateContact = $response['customer'];
+                                $customerCorpBuilder->setCorporateContact($corporateContact);
+                                if (isset($corporateContact['externalId'])) {
+                                    $customerCorpBuilder->setOrderCustomerExtId($corporateContact['externalId']);
+                                }
+                            }
+                        }
+                    }
+                }
 
                 if (!isset($order['externalId'])) {
                     if (empty($customerCorpBuilder->getOrderCustomerExtId())) {
@@ -307,7 +351,7 @@ class RetailCrmHistory
                         if ($customerCorpBuilder->getRegisterNewUser()  === true) {
                             $newUser = new CUser();
                             $customerCorpBuilder->setRegisteredUserID(
-                                $newUser->Add($customerCorpBuilder->objectToArray($customerCorpBuilder->customer))
+                                $newUser->Add($customerCorpBuilder->objectToArray($customerCorpBuilder->getCustomer()))
                             );
 
                             if ($customerCorpBuilder->getRegisterNewUser() === false) {
