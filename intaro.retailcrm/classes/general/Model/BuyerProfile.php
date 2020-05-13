@@ -2,7 +2,7 @@
 /**
  * Class BuyerProfile
  */
-class BuyerProfile
+class BuyerProfile extends BaseModel
 {
     /**@var string $NAME */
     protected $NAME;

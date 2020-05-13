@@ -2,7 +2,7 @@
 /**
  * Class Customer
  */
-class Customer
+class Customer extends BaseModel
 {
     /**@var string $EMAIL */
     protected $EMAIL;

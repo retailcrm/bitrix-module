@@ -19,7 +19,7 @@ class AddressBuilderTest extends \PHPUnit\Framework\TestCase
 
     public function testAddressBuild()
     {
-        $this->addressBuilder = new AdressBuilder();
+        $this->addressBuilder = new AddressBuilder();
         $this->addressBuilder->setDataCrm($this->getDataBuilder())->build();
 
         $this->assertNotEmpty($this->addressBuilder);

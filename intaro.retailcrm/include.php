@@ -34,6 +34,9 @@ CModule::AddAutoloadClasses(
         'CustomerContragent'                        => 'classes/general/Model/CustomerContragent.php',
         'BuyerProfile'                              => 'classes/general/Model/BuyerProfile.php',
         'AdressBuilder'                             => 'classes/general/AdressBuilder.php',
-        'BuilderBase'                               => 'classes/general/BuilderBase.php'
+        'BuilderBase'                               => 'classes/general/BuilderBase.php',
+        'AddressBuilder'                            => 'classes/general/AddressBuilder.php',
+        'AbstractBuilder'                           => 'classes/general/AbstractBuilder.php',
+        'BaseModel'                                 => 'classes/general/Model/BaseModel.php'
     )
 );

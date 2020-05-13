@@ -2,7 +2,7 @@
 /**
  * Class AddressBuilder
  */
-class AddressBuilder implements RetailcrmBuilderInterface
+class AddressBuilder extends AbstractBuilder implements RetailcrmBuilderInterface
 {
     /**
      * @var CustomerAddress
@@ -20,6 +20,10 @@ class AddressBuilder implements RetailcrmBuilderInterface
         $this->customerAddress = new CustomerAddress();
     }
 
+    /**
+     * @param array $dataCrm
+     * @return $this|RetailcrmBuilderInterface
+     */
     public function setDataCrm($dataCrm)
     {
         $this->dataCrm = $dataCrm;
@@ -27,24 +31,18 @@ class AddressBuilder implements RetailcrmBuilderInterface
     }
 
     /**
-     * @param array $array array values
-     * @param string $key  index array
-     * @param null $default default value
-     * @return mixed|null
-     */
-    protected function getValue($array, $key, $default = NULL)
-    {
-        return isset($array[$key]) && !empty($array[$key]) ?  $array[$key] : $default;
-    }
-
-    /**
-     * @param object $data
+     * @param $data
+     * @return $this
      */
     public function setCustomerAddress($data)
     {
         $this->customerAddress = $data;
+        return $this;
     }
 
+    /**
+     * @return CustomerAddress
+     */
     public function getCustomerAddress()
     {
         return $this->customerAddress;
@@ -52,20 +50,20 @@ class AddressBuilder implements RetailcrmBuilderInterface
 
     public function build()
     {
-        $this->customerAddress->setText($this->getValue($this->dataCrm,'text'))
-            ->setNotes($this->getValue($this->dataCrm,'notes'))
-            ->setBuilding($this->getValue($this->dataCrm,'building'))
-            ->setBlock($this->getValue($this->dataCrm,'block'))
-            ->setCity($this->getValue($this->dataCrm,'city'))
-            ->setFlat($this->getValue($this->dataCrm,'flat'))
-            ->setHouse($this->getValue($this->dataCrm,'house'))
-            ->setFloor($this->getValue($this->dataCrm,'floor'))
-            ->setCountry($this->getValue($this->dataCrm,'countryIso'))
-            ->setIndex($this->getValue($this->dataCrm,'index'))
-            ->setIntercomCode($this->getValue($this->dataCrm,'intercomCode'))
-            ->setMetro($this->getValue($this->dataCrm,'metro'))
-            ->setRegion($this->getValue($this->dataCrm,'region'))
-            ->setStreet($this->getValue($this->dataCrm,'street'));
+        $this->customerAddress->setText($this->getValueArray($this->dataCrm,'text'))
+            ->setNotes($this->getValueArray($this->dataCrm,'notes'))
+            ->setBuilding($this->getValueArray($this->dataCrm,'building'))
+            ->setBlock($this->getValueArray($this->dataCrm,'block'))
+            ->setCity($this->getValueArray($this->dataCrm,'city'))
+            ->setFlat($this->getValueArray($this->dataCrm,'flat'))
+            ->setHouse($this->getValueArray($this->dataCrm,'house'))
+            ->setFloor($this->getValueArray($this->dataCrm,'floor'))
+            ->setCountry($this->getValueArray($this->dataCrm,'countryIso'))
+            ->setIndex($this->getValueArray($this->dataCrm,'index'))
+            ->setIntercomCode($this->getValueArray($this->dataCrm,'intercomCode'))
+            ->setMetro($this->getValueArray($this->dataCrm,'metro'))
+            ->setRegion($this->getValueArray($this->dataCrm,'region'))
+            ->setStreet($this->getValueArray($this->dataCrm,'street'));
 
         return $this;
     }

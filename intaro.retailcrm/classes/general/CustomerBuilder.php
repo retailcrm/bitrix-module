@@ -3,7 +3,7 @@
 /**
  * Class CustomerBuilder
  */
-class CustomerBuilder extends BuilderBase implements RetailcrmBuilderInterface
+class CustomerBuilder extends AbstractBuilder implements RetailcrmBuilderInterface
 {
     /** @var Customer */
     protected $customer;
@@ -131,111 +131,18 @@ class CustomerBuilder extends BuilderBase implements RetailcrmBuilderInterface
         return $this->registerNewUser;
     }
 
-    /**
-     * @param string $key
-     * @param mixed $default
-     * @return mixed|null
-     */
-    protected function getValue($key, $default = NULL)
-    {
-        return isset($this->dataCrm[$key]) && !empty($this->dataCrm[$key]) ?  $this->dataCrm[$key] : $default;
-    }
-
-    /**
-     * @param array $array
-     * @param string $key
-     * @param mixed $default
-     * @return mixed|null
-     */
-    protected function getValueArray($array, $key, $default = NULL)
-    {
-        return isset($this->dataCrm[$array][$key]) && !empty($this->dataCrm[$array][$key]) ?  $this->dataCrm[$array][$key] : $default;
-    }
-
     public function build()
     {
-        if (isset($this->dataCrm['deleted'])) {
-            return $this;
-        }
-
-        if (isset($this->dataCrm['externalId']) && !is_numeric($this->dataCrm['externalId'])) {
-            unset($this->dataCrm['externalId']);
-        }
-
-        if (!isset($this->dataCrm['externalId'])) {
-            $this->createCustomer();
-        }
-
-        if (isset($this->registeredUserID) || isset($this->dataCrm['externalId'])) {
-            $this->updateCustomer();
-        }
-
-        if (isset($this->dataCrm['address'])) {
-            $this->buildAddress();
-        }
-    }
-
-    public function buildAddress()
-    {
-        if (isset($this->dataCrm['address'])) {
-            $this->addressBuilder->setDataCrm($this->dataCrm['address'])->build();
-            $this->customerAddress = $this->addressBuilder->getCustomerAddress();
-        } else {
-            $this->customerAddress = null;
-        }
-    }
-
-    public function createCustomer()
-    {
-        if (!isset($this->dataCrm['id'])) {
-            return $this;
-        }
-
-        $this->registerNewUser = true;
-        if (!isset($this->dataCrm['email']) || $this->dataCrm['email'] == '') {
-            $login = uniqid('user_' . time()) . '@crm.com';
-            $this->dataCrm['email'] = $login;
-        } else {
-            if (isset($this->dbUser)) {
-                switch ($this->dbUser->SelectedRowsCount()) {
-                    case 0:
-                        $login = $this->dataCrm['email'];
-                        break;
-                    case 1:
-                        $arUser = $this->dbUser->Fetch();
-                        $this->setRegisteredUserID($arUser['ID']);
-                        $this->registerNewUser = false;
-                        break;
-                    default:
-                        $login = uniqid('user_' . time()) . '@crm.com';
-                        break;
-                }
-            }
-        }
-
-        if ( $this->registerNewUser === true) {
-            $userPassword = uniqid("R");
-
-            $this->customer->setEmail($this->dataCrm['email'])
-                ->setLogin($login)
-                ->setActive("Y")
-                ->setPassword($userPassword)
-                ->setConfirmPassword($userPassword);
-        }
-    }
-
-    public function updateCustomer()
-    {
         if (!empty($this->dataCrm['firstName'])) {
-            $this->customer->setName(RCrmActions::fromJSON($this->dataCrm['firstName']));
+            $this->customer->setName($this->fromJSON($this->dataCrm['firstName']));
         }
 
         if (!empty($this->dataCrm['lastName'])) {
-            $this->customer->setLastName(RCrmActions::fromJSON($this->dataCrm['lastName']));
+            $this->customer->setLastName($this->fromJSON($this->dataCrm['lastName']));
         }
 
         if (!empty($this->dataCrm['patronymic'])) {
-            $this->customer->setSecondName(RCrmActions::fromJSON($this->dataCrm['patronymic']));
+            $this->customer->setSecondName($this->fromJSON($this->dataCrm['patronymic']));
         }
 
         if (isset($this->dataCrm['phones'])) {
@@ -268,24 +175,40 @@ class CustomerBuilder extends BuilderBase implements RetailcrmBuilderInterface
             }
         }
 
-        if (!empty($this->dataCrm['index'])) {
-            $this->customer->setPersonalZip(RCrmActions::fromJSON($this->dataCrm['index']));
+        if (!empty($this->dataCrm['address']['index'])) {
+            $this->customer->setPersonalZip($this->fromJSON($this->dataCrm['address']['index']));
         }
 
-        if (!empty($this->dataCrm['city'])) {
-            $this->customer->setPersonalCity(RCrmActions::fromJSON($this->dataCrm['city']));
+        if (!empty($this->dataCrm['address']['city'])) {
+            $this->customer->setPersonalCity($this->fromJSON($this->dataCrm['address']['city']));
         }
 
         if (!empty($this->dataCrm['birthday'])) {
-            $this->customer->setPersonalBirthday(RCrmActions::fromJSON($this->dataCrm['birthday']));
+            $this->customer->setPersonalBirthday($this->fromJSON(
+                date("d.m.Y", strtotime($this->dataCrm['birthday']))
+            ));
         }
 
         if (!empty($this->dataCrm['email'])) {
-            $this->customer->setEmail(RCrmActions::fromJSON($this->dataCrm['email']));
+            $this->customer->setEmail($this->fromJSON($this->dataCrm['email']));
         }
 
         if (!empty($this->dataCrm['sex'])) {
-            $this->customer->setPersonalGender(RCrmActions::fromJSON($this->dataCrm['sex']));
+            $this->customer->setPersonalGender($this->fromJSON($this->dataCrm['sex']));
+        }
+
+        if (isset($this->dataCrm['address'])) {
+            $this->buildAddress();
+        }
+    }
+
+    public function buildAddress()
+    {
+        if (isset($this->dataCrm['address'])) {
+            $this->addressBuilder->setDataCrm($this->dataCrm['address'])->build();
+            $this->customerAddress = $this->addressBuilder->getCustomerAddress();
+        } else {
+            $this->customerAddress = null;
         }
     }
 }
