@@ -2,7 +2,7 @@
 /**
  * Class CustomerAddress
  */
-class CustomerAddress
+class CustomerAddress extends BaseModel
 {
     /**@var string $index */
     protected $index;

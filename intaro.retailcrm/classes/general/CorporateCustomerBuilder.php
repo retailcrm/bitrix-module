@@ -2,7 +2,7 @@
 /**
  * Class CorporateCustomerBuilder
  */
-class CorporateCustomerBuilder extends BuilderBase implements RetailcrmBuilderInterface
+class CorporateCustomerBuilder extends AbstractBuilder implements RetailcrmBuilderInterface
 {
     /** @var Customer */
     protected $customer;
@@ -42,7 +42,7 @@ class CorporateCustomerBuilder extends BuilderBase implements RetailcrmBuilderIn
      */
     public function __construct()
     {
-        $this->customer = new Customer();
+        $this->customer = new CustomerBuilder();
         $this->customerAddress = new CustomerAddress();
         $this->buyerProfile = new BuyerProfile();
         $this->addressBuilder = new AddressBuilder();
@@ -170,9 +170,11 @@ class CorporateCustomerBuilder extends BuilderBase implements RetailcrmBuilderIn
 
     public function build()
     {
-        if (!isset($this->dataCrm['externalId'])) {
-            $this->buildCustomer();
-            $this->buildBuyerProfile();
+        if (isset($this->dataCrm['contact'])) {
+            $this->customer->setDataCrm($this->dataCrm['contact'])->build();
+            $this->corporateContact = $this->customer->getCustomer();
+        } else {
+            $this->corporateContact = null;
         }
 
         if (isset($this->dataCrm['company']['address'])) {

@@ -2,7 +2,7 @@
 /**
  * Class CustomerContragent
  */
-class CustomerContragent
+class CustomerContragent extends BaseModel
 {
     /**@var string $contragentType */
     protected $contragentType;
