@@ -7,6 +7,9 @@ class CorporateCustomerBuilder extends AbstractBuilder implements RetailcrmBuild
     /** @var Customer */
     protected $customer;
 
+    /**@var CustomerBuilder */
+    protected $customerBuilder;
+
     /** @var CustomerAddress */
     protected $customerAddress;
 
@@ -42,7 +45,8 @@ class CorporateCustomerBuilder extends AbstractBuilder implements RetailcrmBuild
      */
     public function __construct()
     {
-        $this->customer = new CustomerBuilder();
+        $this->customer = new Customer();
+        $this->customerBuilder = new CustomerBuilder();
         $this->customerAddress = new CustomerAddress();
         $this->buyerProfile = new BuyerProfile();
         $this->addressBuilder = new AddressBuilder();
@@ -64,6 +68,24 @@ class CorporateCustomerBuilder extends AbstractBuilder implements RetailcrmBuild
     public function getCustomer()
     {
         return $this->customer;
+    }
+
+    /**
+     * @param object $customerBuilder
+     * @return $this
+     */
+    public function setCustomerBuilder($customerBuilder)
+    {
+        $this->$customerBuilder = $customerBuilder;
+        return $this;
+    }
+
+    /**
+     * @return object|CustomerBuilder
+     */
+    public function getCustomerBuilder()
+    {
+        return $this->customerBuilder;
     }
 
     /**
@@ -171,78 +193,16 @@ class CorporateCustomerBuilder extends AbstractBuilder implements RetailcrmBuild
     public function build()
     {
         if (isset($this->dataCrm['contact'])) {
-            $this->customer->setDataCrm($this->dataCrm['contact'])->build();
-            $this->corporateContact = $this->customer->getCustomer();
+            $this->customerBuilder->setDataCrm($this->dataCrm['contact'])->build();
+            $this->corporateContact = $this->customerBuilder->getCustomer();
+            $this->customer = $this->customerBuilder->getCustomer();
         } else {
             $this->corporateContact = null;
+            $this->customer = null;
         }
 
         if (isset($this->dataCrm['company']['address'])) {
             $this->buildAddress();
-        }
-    }
-
-    public function buildCustomer()
-    {
-        if (empty($this->orderCustomerExtId)) {
-            if (!isset($this->dataCrm['customer']['id'])
-                || (RetailCrmOrder::isOrderCorporate($this->dataCrm)
-                    && (!isset($this->dataCrm['contact']['id']) || !isset($this->dataCrm['customer']['id'])))
-            ) {
-                return false;
-            }
-
-            $login = null;
-            $this->registerNewUser = true;
-
-            if (!isset($this->dataCrm['customer']['email']) || empty($this->dataCrm['customer']['email'])) {
-                if (RetailCrmOrder::isOrderCorporate($this->dataCrm) && !empty($this->corporateContact['email'])) {
-                    $login = $this->corporateContact['email'];
-                    $this->dataCrm['customer']['email'] = $this->corporateContact['email'];
-                } else {
-                    $login = uniqid('user_' . time()) . '@crm.com';
-                    $this->dataCrm['customer']['email'] = $login;
-                }
-            }
-            if (isset($this->dbUser)) {
-                switch ($this->dbUser->SelectedRowsCount()) {
-                    case 0:
-                        $login = $this->dataCrm['customer']['email'];
-                        break;
-                    case 1:
-                        $arUser = $this->dbUser->Fetch();
-                        $this->setRegisteredUserID($arUser['ID']);
-                        $this->registerNewUser = false;
-                        break;
-                    default:
-                        $login = uniqid('user_' . time()) . '@crm.com';
-                        break;
-                }
-            }
-
-            if ( $this->registerNewUser === true) {
-                $userPassword = uniqid("R");
-                $userData = RetailCrmOrder::isOrderCorporate($this->dataCrm)
-                    ? $this->corporateContact
-                    : $this->dataCrm['customer'];
-
-                $this->customer->setName(RCrmActions::fromJSON($userData['firstName']))
-                    ->setLastName(RCrmActions::fromJSON($userData['lastName']))
-                    ->setSecondName(RCrmActions::fromJSON($userData['patronymic']))
-                    ->setEmail($this->dataCrm['customer']['email'])
-                    ->setLogin($login)
-                    ->setActive("Y")
-                    ->setPassword($userPassword)
-                    ->setConfirmPassword($userPassword);
-
-                if (!empty($userData['phones'][0])) {
-                    $this->customer->setPersonalPhone($userData['phones'][0]);
-                }
-
-                if (!empty($userData['phones'][1])) {
-                    $this->customer->setPersonalMobile($userData['phones'][1]);
-                }
-            }
         }
     }
 
