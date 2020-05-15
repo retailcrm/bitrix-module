@@ -339,6 +339,8 @@ class RetailCrmHistory
                             $orderCustomerExtId = isset($corporateContact['externalId'])
                                 ? $corporateContact['externalId']
                                 : null;
+                            $corporateCustomerBuilder->setCorporateContact($corporateContact);
+                            $corporateCustomerBuilder->setOrderCustomerExtId($orderCustomerExtId);
                         } else {
                             $response = false;
 
@@ -365,6 +367,8 @@ class RetailCrmHistory
                                 $orderCustomerExtId = isset($corporateContact['externalId'])
                                     ? $corporateContact['externalId']
                                     : null;
+                                $corporateCustomerBuilder->setCorporateContact($corporateContact);
+                                $corporateCustomerBuilder->setOrderCustomerExtId($orderCustomerExtId);
                             }
                         }
                     }
@@ -386,9 +390,15 @@ class RetailCrmHistory
                             if (RetailCrmOrder::isOrderCorporate($order) && !empty($corporateContact['email'])) {
                                 $login = $corporateContact['email'];
                                 $order['customer']['email'] = $corporateContact['email'];
+                                $corporateCustomerBuilder->getCustomer()
+                                    ->setLogin($login)
+                                    ->setEmail($corporateContact['email']);
                             } else {
                                 $login = uniqid('user_' . time()) . '@crm.com';
                                 $order['customer']['email'] = $login;
+                                $corporateCustomerBuilder->getCustomer()
+                                    ->setLogin($login)
+                                    ->setEmail($login);
                             }
                         }
 
@@ -401,16 +411,21 @@ class RetailCrmHistory
                         switch ($dbUser->SelectedRowsCount()) {
                             case 0:
                                 $login = $order['customer']['email'];
+                                $corporateCustomerBuilder->getCustomer()->setLogin($login);
                                 break;
                             case 1:
                                 $arUser = $dbUser->Fetch();
+                                $corporateCustomerBuilder->getCustomerBuilder()->setDbUser($arUser);
                                 $registeredUserID = $arUser['ID'];
                                 $registerNewUser = false;
                                 break;
                             default:
                                 $login = uniqid('user_' . time()) . '@crm.com';
+                                $corporateCustomerBuilder->getCustomer()->setLogin($login);
                                 break;
                         }
+
+                        $corporateCustomerBuilder->build();
 
                         if ($registerNewUser === true) {
                             $userPassword = uniqid("R");
@@ -418,27 +433,14 @@ class RetailCrmHistory
                                 ? $corporateContact
                                 : $order['customer'];
 
+                            $corporateCustomerBuilder->setCorporateContact($userData);
+                            $corporateCustomerBuilder->getCustomer()->setPassword($userPassword);
+                            $corporateCustomerBuilder->getCustomer()->setConfirmPassword($userPassword);
+
                             $newUser = new CUser();
-                            $arFields = array(
-                                "NAME"              => RCrmActions::fromJSON($userData['firstName']),
-                                "LAST_NAME"         => RCrmActions::fromJSON($userData['lastName']),
-                                "SECOND_NAME"       => RCrmActions::fromJSON($userData['patronymic']),
-                                "EMAIL"             => $order['customer']['email'],
-                                "LOGIN"             => $login,
-                                "ACTIVE"            => "Y",
-                                "PASSWORD"          => $userPassword,
-                                "CONFIRM_PASSWORD"  => $userPassword
+                            $registeredUserID = $newUser->Add(
+                                $corporateCustomerBuilder->getCustomer()->getObjectToArray()
                             );
-
-                            if ($userData['phones'][0]) {
-                                $arFields['PERSONAL_PHONE'] = $userData['phones'][0];
-                            }
-
-                            if ($userData['phones'][1]) {
-                                $arFields['PERSONAL_MOBILE'] = $userData['phones'][1];
-                            }
-
-                            $registeredUserID = $newUser->Add($arFields);
 
                             if ($registeredUserID === false) {
                                 RCrmActions::eventLog(
@@ -464,6 +466,7 @@ class RetailCrmHistory
                         }
 
                         $orderCustomerExtId = isset($registeredUserID) ? $registeredUserID : null;
+                        $corporateCustomerBuilder->setOrderCustomerExtId($orderCustomerExtId);
                     }
 
                     $buyerProfileToAppend = array();

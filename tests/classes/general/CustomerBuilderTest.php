@@ -17,15 +17,24 @@ class CustomerBuilderTest extends \PHPUnit\Framework\TestCase
     public function setUp()
     {
         parent::setUp();
-
     }
 
     public function testCustomerBuild()
     {
         $this->customer = new CustomerBuilder();
         $this->customer->setDataCrm($this->getDataBuilder())->build();
-
         $this->assertNotEmpty($this->customer);
+        $addressResult = $this->customer->getCustomer()->getObjectToArray();
+
+        $this->assertEquals("mm@mm.mmm", $addressResult["EMAIL"]);
+        $this->assertEquals("mmm", $addressResult["NAME"]);
+        $this->assertEquals("mmm", $addressResult["LAST_NAME"]);
+        $this->assertEquals("mmm", $addressResult["SECOND_NAME"]);
+        $this->assertEquals("474747856878", $addressResult["PERSONAL_PHONE"]);
+        $this->assertEquals("346000", $addressResult["PERSONAL_ZIP"]);
+        $this->assertEquals("Ростов-на-Дону", $addressResult["PERSONAL_CITY"]);
+        $this->assertEquals("13.05.2020", $addressResult["PERSONAL_BIRTHDAY"]);
+        $this->assertEquals("female", $addressResult["PERSONAL_GENDER"]);
     }
 
     private function getDataBuilder()

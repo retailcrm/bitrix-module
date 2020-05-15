@@ -50,20 +50,20 @@ class AddressBuilder extends AbstractBuilder implements RetailcrmBuilderInterfac
 
     public function build()
     {
-        $this->customerAddress->setText($this->getValueArray($this->dataCrm,'text'))
-            ->setNotes($this->getValueArray($this->dataCrm,'notes'))
-            ->setBuilding($this->getValueArray($this->dataCrm,'building'))
-            ->setBlock($this->getValueArray($this->dataCrm,'block'))
-            ->setCity($this->getValueArray($this->dataCrm,'city'))
-            ->setFlat($this->getValueArray($this->dataCrm,'flat'))
-            ->setHouse($this->getValueArray($this->dataCrm,'house'))
-            ->setFloor($this->getValueArray($this->dataCrm,'floor'))
-            ->setCountry($this->getValueArray($this->dataCrm,'countryIso'))
-            ->setIndex($this->getValueArray($this->dataCrm,'index'))
-            ->setIntercomCode($this->getValueArray($this->dataCrm,'intercomCode'))
-            ->setMetro($this->getValueArray($this->dataCrm,'metro'))
-            ->setRegion($this->getValueArray($this->dataCrm,'region'))
-            ->setStreet($this->getValueArray($this->dataCrm,'street'));
+        $this->customerAddress->setText($this->getValue('text'))
+            ->setNotes($this->getValue('notes'))
+            ->setBuilding($this->getValue('building'))
+            ->setBlock($this->getValue('block'))
+            ->setCity($this->getValue('city'))
+            ->setFlat($this->getValue('flat'))
+            ->setHouse($this->getValue('house'))
+            ->setFloor($this->getValue('floor'))
+            ->setCountry($this->getValue('countryIso'))
+            ->setIndex($this->getValue('index'))
+            ->setIntercomCode($this->getValue('intercomCode'))
+            ->setMetro($this->getValue('metro'))
+            ->setRegion($this->getValue('region'))
+            ->setStreet($this->getValue('street'));
 
         return $this;
     }
