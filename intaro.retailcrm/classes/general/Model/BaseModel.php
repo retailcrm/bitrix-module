@@ -1,4 +1,3 @@
-
 <?php
 
 /**
@@ -22,5 +21,18 @@ abstract class BaseModel
     public function arrayClear(array $array, array $symbols = array('', 0, null))
     {
         return array_diff($array, $symbols);
+    }
+
+    /**
+     * @param $array
+     * @return $this
+     */
+    public function getArrayToObject($array)
+    {
+        foreach ($array as $key => $value) {
+            $this->$key = $value;
+        }
+
+        return $this;
     }
 }

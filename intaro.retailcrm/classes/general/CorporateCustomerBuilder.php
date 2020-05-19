@@ -25,9 +25,6 @@ class CorporateCustomerBuilder extends AbstractBuilder implements RetailcrmBuild
     /** @var BuyerProfile */
     public $buyerProfile;
 
-    /** @var CUser */
-    protected $dbUser;
-
     /** @var bool $registerNewUser */
     protected $registerNewUser;
 
@@ -113,16 +110,6 @@ class CorporateCustomerBuilder extends AbstractBuilder implements RetailcrmBuild
     public function setDataCrm($dataCrm)
     {
         $this->dataCrm = $dataCrm;
-        return $this;
-    }
-
-    /**
-     * @param object $dbUser
-     * @return $this
-     */
-    public function setDbUser($dbUser)
-    {
-        $this->dbUser = $dbUser;
         return $this;
     }
 

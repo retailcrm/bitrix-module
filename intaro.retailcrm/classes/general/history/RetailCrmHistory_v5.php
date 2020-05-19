@@ -115,7 +115,6 @@ class RetailCrmHistory
                                 break;
                             case 1:
                                 $arUser = $dbUser->Fetch();
-                                $customerBuilder->setDbUser($arUser);
                                 $registeredUserID = $arUser['ID'];
                                 $registerNewUser = false;
                                 break;
@@ -374,6 +373,8 @@ class RetailCrmHistory
                     }
                 }
 
+                $corporateCustomerBuilder->setDataCrm($order)->build();
+
                 if (!isset($order['externalId'])) {
                     if (empty($orderCustomerExtId)) {
                         if (!isset($order['customer']['id'])
@@ -415,7 +416,6 @@ class RetailCrmHistory
                                 break;
                             case 1:
                                 $arUser = $dbUser->Fetch();
-                                $corporateCustomerBuilder->getCustomerBuilder()->setDbUser($arUser);
                                 $registeredUserID = $arUser['ID'];
                                 $registerNewUser = false;
                                 break;
@@ -424,8 +424,6 @@ class RetailCrmHistory
                                 $corporateCustomerBuilder->getCustomer()->setLogin($login);
                                 break;
                         }
-
-                        $corporateCustomerBuilder->build();
 
                         if ($registerNewUser === true) {
                             $userPassword = uniqid("R");
@@ -857,6 +855,8 @@ class RetailCrmHistory
                         $fUserId = Bitrix\Sale\Fuser::getIdByUserId($order['customer']['externalId']);
                         $basket->setFUserId($fUserId);
                     }
+
+                    //TODO change buyer
 
                     if (isset($order['items'])) {
                         $itemUpdate = true;
