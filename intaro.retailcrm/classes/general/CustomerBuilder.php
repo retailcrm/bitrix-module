@@ -18,9 +18,6 @@ class CustomerBuilder extends AbstractBuilder implements RetailcrmBuilderInterfa
     protected $addressBuilder;
 
     /** @var CUser */
-    protected $dbUser;
-
-    /** @var CUser */
     protected $user;
 
     /** @var bool $registerNewUser */
@@ -82,16 +79,6 @@ class CustomerBuilder extends AbstractBuilder implements RetailcrmBuilderInterfa
     public function setDataCrm($dataCrm)
     {
         $this->dataCrm = $dataCrm;
-        return $this;
-    }
-
-    /**
-     * @param object $dbUser
-     * @return $this
-     */
-    public function setDbUser($dbUser)
-    {
-        $this->dbUser = $dbUser;
         return $this;
     }
 
