@@ -96,22 +96,14 @@ class RetailCrmHistory
                     }
 
                     $registerNewUser = true;
-                    $customerBuilder->setDataCrm($customer);
+                    $customerBuilder->setDataCrm($customer)->build();
 
-                    if (!isset($customer['email']) || $customer['email'] == '') {
-                        $login = uniqid('user_' . time()) . '@crm.com';
-                        $customer['email'] = $login;
-
-                        $customerBuilder->getCustomer()
-                            ->setLogin($login)
-                            ->setEmail($customer['email']);
-
-                    } else {
+                     if (!empty($customer['email'])) {
                         $dbUser = CUser::GetList(($by = 'ID'), ($sort = 'ASC'), array('=EMAIL' => $customer['email']));
                         switch ($dbUser->SelectedRowsCount()) {
                             case 0:
                                 $login = $customer['email'];
-                                $customerBuilder->getCustomer()->setLogin($login);
+                                $customerBuilder->setLogin($login);
                                 break;
                             case 1:
                                 $arUser = $dbUser->Fetch();
@@ -120,12 +112,10 @@ class RetailCrmHistory
                                 break;
                             default:
                                 $login = uniqid('user_' . time()) . '@crm.com';
-                                $customerBuilder->getCustomer()->setLogin($login);
+                                $customerBuilder->setLogin($login);
                                 break;
                         }
                     }
-
-                    $customerBuilder->build();
 
                     if ($registerNewUser === true) {
                         $registeredUserID = $newUser->Add(
@@ -389,14 +379,12 @@ class RetailCrmHistory
                             if (RetailCrmOrder::isOrderCorporate($order) && !empty($corporateContact['email'])) {
                                 $login = $corporateContact['email'];
                                 $order['customer']['email'] = $corporateContact['email'];
-                                $corporateCustomerBuilder->getCustomer()
-                                    ->setLogin($login)
+                                $corporateCustomerBuilder->setLogin($login)
                                     ->setEmail($corporateContact['email']);
                             } else {
                                 $login = uniqid('user_' . time()) . '@crm.com';
                                 $order['customer']['email'] = $login;
-                                $corporateCustomerBuilder->getCustomer()
-                                    ->setLogin($login)
+                                $corporateCustomerBuilder->setLogin($login)
                                     ->setEmail($login);
                             }
                         }
@@ -410,7 +398,7 @@ class RetailCrmHistory
                         switch ($dbUser->SelectedRowsCount()) {
                             case 0:
                                 $login = $order['customer']['email'];
-                                $corporateCustomerBuilder->getCustomer()->setLogin($login);
+                                $corporateCustomerBuilder->setLogin($login);
                                 break;
                             case 1:
                                 $arUser = $dbUser->Fetch();
@@ -419,7 +407,7 @@ class RetailCrmHistory
                                 break;
                             default:
                                 $login = uniqid('user_' . time()) . '@crm.com';
-                                $corporateCustomerBuilder->getCustomer()->setLogin($login);
+                                $corporateCustomerBuilder->setLogin($login);
                                 break;
                         }
 
@@ -888,18 +876,9 @@ class RetailCrmHistory
                         } else {
                             $newUser = new CUser();
                             $customerBuilder = new CustomerBuilder();
-                            $customerBuilder->setDataCrm($response['customer']);
-                            $customerBuilder->build();
+                            $customerBuilder->setDataCrm($response['customer'])->build();
 
-                            if (!isset($response['customer']['email']) || $response['customer']['email'] == '') {
-                                $login = uniqid('user_' . time()) . '@crm.com';
-                                $customerTemp['email'] = $login;
-
-                                $customerBuilder->getCustomer()
-                                    ->setLogin($login)
-                                    ->setEmail($customerTemp['email']);
-
-                            } else {
+                            if (!empty($response['customer']['email'])) {
                                 $registerNewUser = true;
                                 $dbUser = CUser::GetList(
                                     ($by = 'ID'),
@@ -909,7 +888,7 @@ class RetailCrmHistory
                                 switch ($dbUser->SelectedRowsCount()) {
                                     case 0:
                                         $login = $response['customer']['email'];
-                                        $customerBuilder->getCustomer()->setLogin($login);
+                                        $customerBuilder->setLogin($login);
                                         break;
                                     case 1:
                                         $arUser = $dbUser->Fetch();
@@ -918,7 +897,7 @@ class RetailCrmHistory
                                         break;
                                     default:
                                         $login = uniqid('user_' . time()) . '@crm.com';
-                                        $customerBuilder->getCustomer()->setLogin($login);
+                                        $customerBuilder->setLogin($login);
                                         break;
                                 }
 
@@ -940,7 +919,10 @@ class RetailCrmHistory
                                             $api,
                                             'customersFixExternalIds',
                                             __METHOD__,
-                                            array(array('id' => $response['customer']['id'], 'externalId' => $registeredUserID))) == false
+                                            array(array(
+                                                    'id' => $response['customer']['id'],
+                                                    'externalId' => $registeredUserID))
+                                        ) == false
                                     ) {
                                         continue;
                                     }

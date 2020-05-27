@@ -234,4 +234,26 @@ class CorporateCustomerBuilder extends AbstractBuilder implements RetailcrmBuild
             $this->customerAddress = null;
         }
     }
+
+    /**
+     * @param string $login
+     * @return $this
+     */
+    public function setLogin($login)
+    {
+        $this->customerBuilder->setLogin($login);
+
+        return $this;
+    }
+
+    /**
+     * @param string $email
+     * @return $this
+     */
+    public function setEmail($email)
+    {
+        $this->customerBuilder->setEmail($email);
+
+        return $this;
+    }
 }

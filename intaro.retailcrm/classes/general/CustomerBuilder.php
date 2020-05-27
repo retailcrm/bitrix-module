@@ -190,6 +190,12 @@ class CustomerBuilder extends AbstractBuilder implements RetailcrmBuilderInterfa
                 ->setConfirmPassword($userPassword);
         }
 
+        if (!isset($this->dataCrm['email']) || $this->dataCrm['email'] == '') {
+            $login = uniqid('user_' . time()) . '@crm.com';
+            $this->customer->setLogin($login)
+                ->setEmail($login);
+        }
+
         if (isset($this->dataCrm['address'])) {
             $this->buildAddress();
         }
@@ -203,5 +209,27 @@ class CustomerBuilder extends AbstractBuilder implements RetailcrmBuilderInterfa
         } else {
             $this->customerAddress = null;
         }
+    }
+
+    /**
+     * @param string $login
+     * @return $this
+     */
+    public function setLogin($login)
+    {
+        $this->customer->setLogin($login);
+
+        return $this;
+    }
+
+    /**
+     * @param string $email
+     * @return $this
+     */
+    public function setEmail($email)
+    {
+        $this->customer->setEmail($email);
+
+        return $this;
     }
 }
