@@ -128,13 +128,9 @@ class RetailCrmHistory
                     $customerBuilder->build();
 
                     if ($registerNewUser === true) {
-                        $userPassword = uniqid("R");
-
-                        $customerBuilder->getCustomer()
-                            ->setPassword($userPassword)
-                            ->setConfirmPassword($userPassword);
-
-                        $registeredUserID = $newUser->Add($customerBuilder->getCustomer()->getObjectToArray());
+                        $registeredUserID = $newUser->Add(
+                            $customerBuilder->getCustomer()->getObjectToArray()
+                        );
 
                         if ($registeredUserID === false) {
                             RCrmActions::eventLog(
@@ -328,9 +324,12 @@ class RetailCrmHistory
 
                 $corporateContact = array();
                 $orderCustomerExtId = isset($order['customer']['externalId']) ? $order['customer']['externalId'] : null;
+                $corporateCustomerBuilder->setOrderCustomerExtId($orderCustomerExtId)
+                    ->setContragentTypes($contragentTypes)
+                    ->setDataCrm($order)
+                    ->build();
 
                 if (RetailCrmOrder::isOrderCorporate($order)) {
-                    $corporateCustomerBuilder->setDataCrm($order)->build();
                     // Fetch contact only if we think it's data is not fully present in order
                     if (!empty($order['contact'])) {
                         if (isset($order['contact']['email'])) {
@@ -338,8 +337,9 @@ class RetailCrmHistory
                             $orderCustomerExtId = isset($corporateContact['externalId'])
                                 ? $corporateContact['externalId']
                                 : null;
-                            $corporateCustomerBuilder->setCorporateContact($corporateContact);
-                            $corporateCustomerBuilder->setOrderCustomerExtId($orderCustomerExtId);
+                            $corporateCustomerBuilder->setCorporateContact($corporateContact)
+                                ->setOrderCustomerExtId($orderCustomerExtId);
+
                         } else {
                             $response = false;
 
@@ -366,14 +366,12 @@ class RetailCrmHistory
                                 $orderCustomerExtId = isset($corporateContact['externalId'])
                                     ? $corporateContact['externalId']
                                     : null;
-                                $corporateCustomerBuilder->setCorporateContact($corporateContact);
-                                $corporateCustomerBuilder->setOrderCustomerExtId($orderCustomerExtId);
+                                $corporateCustomerBuilder->setCorporateContact($corporateContact)
+                                    ->setOrderCustomerExtId($orderCustomerExtId);
                             }
                         }
                     }
                 }
-
-                $corporateCustomerBuilder->setDataCrm($order)->build();
 
                 if (!isset($order['externalId'])) {
                     if (empty($orderCustomerExtId)) {
@@ -426,14 +424,11 @@ class RetailCrmHistory
                         }
 
                         if ($registerNewUser === true) {
-                            $userPassword = uniqid("R");
                             $userData = RetailCrmOrder::isOrderCorporate($order)
                                 ? $corporateContact
                                 : $order['customer'];
 
                             $corporateCustomerBuilder->setCorporateContact($userData);
-                            $corporateCustomerBuilder->getCustomer()->setPassword($userPassword);
-                            $corporateCustomerBuilder->getCustomer()->setConfirmPassword($userPassword);
 
                             $newUser = new CUser();
                             $registeredUserID = $newUser->Add(
@@ -470,12 +465,7 @@ class RetailCrmHistory
                     $buyerProfileToAppend = array();
 
                     if (RetailCrmOrder::isOrderCorporate($order) && !empty($order['company'])) {
-                        $buyerProfile = array(
-                            "NAME" => $order['company']['name'],
-                            "USER_ID" => $order['contact']['externalId'],
-                            "PERSON_TYPE_ID" => $contragentTypes['legal-entity']
-                        );
-
+                        $buyerProfile = $corporateCustomerBuilder->getBuyerProfile()->getObjectToArray();
                         $buyerProfileToAppend = Bitrix\Sale\OrderUserProperties::getList(array(
                             "filter" => $buyerProfile
                         ))->fetch();
@@ -857,6 +847,109 @@ class RetailCrmHistory
                     }
 
                     //TODO change buyer
+                    if (isset($order['customer']['id'])) {
+                        $ExtId = null;
+                        $response = RCrmActions::apiMethod(
+                            $api,
+                            'customersGetById',
+                            __METHOD__,
+                            $order['customer']['id'],
+                            $order['site']
+                        );
+
+                        $corporateResponse = RCrmActions::apiMethod(
+                            $api,
+                            'customersСorporateGetById',
+                            __METHOD__,
+                            $order['customer']['id'],
+                            $order['site']
+                        );
+
+                        if (isset($response['customer']['externalId'])) {
+                            $ExtId = $response['customer']['externalId'];
+                        }
+
+                        if (isset($corporateResponse['customerCorporate']['mainCustomerContact']['customer']['externalId'])) {
+                            $ExtId = $corporateResponse['customerCorporate']['mainCustomerContact']['customer']['externalId'];
+                        }
+
+                        if (isset($corporateResponse['customerCorporate']['mainCustomerContact']['customer']['id'])) {
+                            $response = RCrmActions::apiMethod(
+                                $api,
+                                'customersGetById',
+                                __METHOD__,
+                                $corporateResponse['customerCorporate']['mainCustomerContact']['customer']['id'],
+                                $order['site']
+                            );
+                        }
+
+                        if (isset($ExtId)) {
+                            $newOrder->setFieldNoDemand('USER_ID', $ExtId);
+                        } else {
+                            $newUser = new CUser();
+                            $customerBuilder = new CustomerBuilder();
+                            $customerBuilder->setDataCrm($response['customer']);
+                            $customerBuilder->build();
+
+                            if (!isset($response['customer']['email']) || $response['customer']['email'] == '') {
+                                $login = uniqid('user_' . time()) . '@crm.com';
+                                $customerTemp['email'] = $login;
+
+                                $customerBuilder->getCustomer()
+                                    ->setLogin($login)
+                                    ->setEmail($customerTemp['email']);
+
+                            } else {
+                                $registerNewUser = true;
+                                $dbUser = CUser::GetList(
+                                    ($by = 'ID'),
+                                    ($sort = 'ASC'),
+                                    array('=EMAIL' => $response['customer']['email'])
+                                );
+                                switch ($dbUser->SelectedRowsCount()) {
+                                    case 0:
+                                        $login = $response['customer']['email'];
+                                        $customerBuilder->getCustomer()->setLogin($login);
+                                        break;
+                                    case 1:
+                                        $arUser = $dbUser->Fetch();
+                                        $registeredUserID = $arUser['ID'];
+                                        $registerNewUser = false;
+                                        break;
+                                    default:
+                                        $login = uniqid('user_' . time()) . '@crm.com';
+                                        $customerBuilder->getCustomer()->setLogin($login);
+                                        break;
+                                }
+
+                                if ($registerNewUser === true) {
+                                    $registeredUserID = $newUser->Add(
+                                        $customerBuilder->getCustomer()->getObjectToArray()
+                                    );
+                                    if ($registeredUserID === false) {
+                                        RCrmActions::eventLog(
+                                            'RetailCrmHistory::orderHistory',
+                                            'CUser::Register',
+                                            'Error register user: ' . $newUser->LAST_ERROR
+                                        );
+
+                                        continue;
+                                    }
+
+                                    if(RCrmActions::apiMethod(
+                                            $api,
+                                            'customersFixExternalIds',
+                                            __METHOD__,
+                                            array(array('id' => $response['customer']['id'], 'externalId' => $registeredUserID))) == false
+                                    ) {
+                                        continue;
+                                    }
+                                }
+
+                                $newOrder->setFieldNoDemand('USER_ID', $registeredUserID);
+                            }
+                        }
+                    }
 
                     if (isset($order['items'])) {
                         $itemUpdate = true;
@@ -1250,6 +1343,10 @@ class RetailCrmHistory
 
             if ($change['field'] == 'number') {
                 $orders[$change['order']['id']]['number'] = $change['newValue'];
+            }
+
+            if (isset($change['oldValue']) && $change['field'] == 'customer') {
+                $orders[$change['order']['id']]['customer'] = $change['newValue'];
             }
 
             if ($change['order']['payments']) {

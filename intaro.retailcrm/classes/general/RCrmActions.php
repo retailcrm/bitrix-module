@@ -454,6 +454,8 @@ class RCrmActions
             case 'customersEdit':
             case 'customersСorporateGet':
                 return self::proxy($api, $methodApi, $method, array($params, 'externalId', $site));
+            case 'customersСorporateGetById':
+                return self::proxy($api, 'customersСorporateGet', $method, array($params, 'id', $site));
             case 'customersGetById':
                 return self::proxy($api, 'customersGet', $method, array($params, 'id', $site));
 

@@ -184,6 +184,12 @@ class CustomerBuilder extends AbstractBuilder implements RetailcrmBuilderInterfa
             $this->customer->setPersonalGender($this->fromJSON($this->dataCrm['sex']));
         }
 
+        if (empty($this->dataCrm['externalId'])) {
+            $userPassword = uniqid("R");
+            $this->customer->setPassword($userPassword)
+                ->setConfirmPassword($userPassword);
+        }
+
         if (isset($this->dataCrm['address'])) {
             $this->buildAddress();
         }

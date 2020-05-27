@@ -177,6 +177,25 @@ class CorporateCustomerBuilder extends AbstractBuilder implements RetailcrmBuild
         return $this->corporateContact;
     }
 
+    /**
+     * @return object|BuyerProfile
+     */
+    public function getBuyerProfile()
+    {
+        return $this->buyerProfile;
+    }
+
+    /**
+     * @param array $contragentTypes
+     * @return $this
+     */
+    public function setContragentTypes($contragentTypes)
+    {
+        $this->contragentTypes = $contragentTypes;
+
+        return $this;
+    }
+
     public function build()
     {
         if (isset($this->dataCrm['contact'])) {
@@ -190,6 +209,10 @@ class CorporateCustomerBuilder extends AbstractBuilder implements RetailcrmBuild
 
         if (isset($this->dataCrm['company']['address'])) {
             $this->buildAddress();
+        }
+
+        if (isset($this->dataCrm['company'])) {
+            $this->buildBuyerProfile();
         }
     }
 
