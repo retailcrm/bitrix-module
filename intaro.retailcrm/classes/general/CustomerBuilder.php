@@ -37,7 +37,7 @@ class CustomerBuilder extends AbstractBuilder implements RetailcrmBuilderInterfa
     }
 
     /**
-     * @param object $customer
+     * @param Customer $customer
      * @return $this
      */
     public function setCustomer($customer)
@@ -47,7 +47,7 @@ class CustomerBuilder extends AbstractBuilder implements RetailcrmBuilderInterfa
     }
 
     /**
-     * @return object|Customer
+     * @return Customer
      */
     public function getCustomer()
     {
@@ -55,7 +55,7 @@ class CustomerBuilder extends AbstractBuilder implements RetailcrmBuilderInterfa
     }
 
     /**
-     * @param object $customerAddress
+     * @param CustomerAddress $customerAddress
      * @return $this
      */
     public function setCustomerAddress($customerAddress)
@@ -65,7 +65,7 @@ class CustomerBuilder extends AbstractBuilder implements RetailcrmBuilderInterfa
     }
 
     /**
-     * @return object|CustomerAddress
+     * @return CustomerAddress
      */
     public function getCustomerAddress()
     {
@@ -83,7 +83,7 @@ class CustomerBuilder extends AbstractBuilder implements RetailcrmBuilderInterfa
     }
 
     /**
-     * @param object $user
+     * @param array $user
      * @return $this
      */
     public function setUser($user)
@@ -136,6 +136,7 @@ class CustomerBuilder extends AbstractBuilder implements RetailcrmBuilderInterfa
             foreach ($this->dataCrm['phones'] as $phone) {
                 if (isset($phone['old_number']) && in_array($phone['old_number'], $this->user)) {
                     $key = array_search($phone['old_number'], $this->user);
+
                     if (isset($phone['number'])) {
                         $this->user[$key] = $phone['number'];
                     } else {

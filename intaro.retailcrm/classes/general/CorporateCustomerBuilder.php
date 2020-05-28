@@ -50,7 +50,7 @@ class CorporateCustomerBuilder extends AbstractBuilder implements RetailcrmBuild
     }
 
     /**
-     * @param object $customer
+     * @param Customer $customer
      * @return $this
      */
     public function setCustomer($customer)
@@ -60,7 +60,7 @@ class CorporateCustomerBuilder extends AbstractBuilder implements RetailcrmBuild
     }
 
     /**
-     * @return object|Customer
+     * @return Customer
      */
     public function getCustomer()
     {
@@ -68,7 +68,7 @@ class CorporateCustomerBuilder extends AbstractBuilder implements RetailcrmBuild
     }
 
     /**
-     * @param object $customerBuilder
+     * @param CustomerBuilder $customerBuilder
      * @return $this
      */
     public function setCustomerBuilder($customerBuilder)
@@ -78,7 +78,7 @@ class CorporateCustomerBuilder extends AbstractBuilder implements RetailcrmBuild
     }
 
     /**
-     * @return object|CustomerBuilder
+     * @return CustomerBuilder
      */
     public function getCustomerBuilder()
     {
@@ -86,7 +86,7 @@ class CorporateCustomerBuilder extends AbstractBuilder implements RetailcrmBuild
     }
 
     /**
-     * @param object $customerAddress
+     * @param CustomerAddress $customerAddress
      * @return $this
      */
     public function setCustomerAddress($customerAddress)
@@ -96,7 +96,7 @@ class CorporateCustomerBuilder extends AbstractBuilder implements RetailcrmBuild
     }
 
     /**
-     * @return object|CustomerAddress
+     * @return CustomerAddress
      */
     public function getCustomerAddress()
     {
@@ -178,7 +178,7 @@ class CorporateCustomerBuilder extends AbstractBuilder implements RetailcrmBuild
     }
 
     /**
-     * @return object|BuyerProfile
+     * @return BuyerProfile
      */
     public function getBuyerProfile()
     {

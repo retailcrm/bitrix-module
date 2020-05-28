@@ -831,7 +831,6 @@ class RetailCrmHistory
                         $basket->setFUserId($fUserId);
                     }
 
-                    //TODO change buyer
                     if (isset($order['customer']['id'])) {
                         $ExtId = null;
                         $response = RCrmActions::apiMethod(
@@ -918,7 +917,8 @@ class RetailCrmHistory
                                             __METHOD__,
                                             array(array(
                                                     'id' => $response['customer']['id'],
-                                                    'externalId' => $registeredUserID))
+                                                    'externalId' => $registeredUserID
+                                            ))
                                         ) == false
                                     ) {
                                         continue;
