@@ -655,7 +655,7 @@ class RetailCrmICML
                         $name = $this->localizedIBlockProps[$key];
                     }
 
-                    $offer .= '<param name="' . $name . '" code="' . $key . '"' . (isset($arOffer['_PROP_' . $key . "_UNIT"]) ? ' unit="' . $arOffer['_PROP_' . $key . "_UNIT"] . '"' : "") . ">" . $this->PrepareValue($arOffer['_PROP_' . $key]) . "</param>\n";
+                    $offer .= '<param name="' . $this->PrepareValue($name) . '" code="' . $key . '"' . (isset($arOffer['_PROP_' . $key . "_UNIT"]) ? ' unit="' . $arOffer['_PROP_' . $key . "_UNIT"] . '"' : "") . ">" . $this->PrepareValue($arOffer['_PROP_' . $key]) . "</param>\n";
                 }
             }
         }
@@ -670,7 +670,7 @@ class RetailCrmICML
                         $name = $this->localizedIBlockProps[$key];
                     }
 
-                    $offer .= '<param name="' . $name . '" code="' . $key . '"' . (isset($arOffer['_PROP_' . $key . "_UNIT"]) ? ' unit="' . $arOffer['_PROP_' . $key . "_UNIT"] . '"' : "") . ">" . $this->PrepareValue($arOffer['_PROP_' . $key]) . "</param>\n";
+                    $offer .= '<param name="' . $this->PrepareValue($name) . '" code="' . $key . '"' . (isset($arOffer['_PROP_' . $key . "_UNIT"]) ? ' unit="' . $arOffer['_PROP_' . $key . "_UNIT"] . '"' : "") . ">" . $this->PrepareValue($arOffer['_PROP_' . $key]) . "</param>\n";
                 }
             }
         }
