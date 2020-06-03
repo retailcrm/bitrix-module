@@ -85,13 +85,14 @@ class RetailCrmHistory
                     unset($customer['externalId']);
                 }
 
+                $customerBuilder->setDataCrm($customer)->build();
+
                 if (!isset($customer['externalId'])) {
                     if (!isset($customer['id'])) {
                         continue;
                     }
 
                     $registerNewUser = true;
-                    $customerBuilder->setDataCrm($customer)->build();
 
                      if (!empty($customer['email'])) {
                         $dbUser = CUser::GetList(($by = 'ID'), ($sort = 'ASC'), array('=EMAIL' => $customer['email']));
@@ -152,8 +153,6 @@ class RetailCrmHistory
                             )->fetch()
                         );
                     }
-
-                    $customerBuilder->build();
 
                     $u = $newUser->Update($customer['externalId'], $customerBuilder->getCustomer()->getObjectToArray());
                     if (!$u) {
@@ -758,7 +757,13 @@ class RetailCrmHistory
                         }
                     }
 
-                    //optionsLegalDetails
+                    if (isset($order['company']['id'])) {
+                        if (!empty($order['company']['name'])) {
+                            $order["legalName"] = $order['company']['name'];
+                        }
+                    }
+
+                    // Corporate clients section
                     if ($optionsLegalDetails[$personType]) {
                         foreach ($optionsLegalDetails[$personType] as $key => $orderProp) {
                             if (array_key_exists($key, $order)) {
@@ -831,38 +836,26 @@ class RetailCrmHistory
                         $basket->setFUserId($fUserId);
                     }
 
-                    if (isset($order['customer']['id'])) {
+                    if (isset($order['contact']['id'])) {
                         $ExtId = null;
                         $response = RCrmActions::apiMethod(
                             $api,
                             'customersGetById',
                             __METHOD__,
-                            $order['customer']['id'],
+                            $order['contact']['id'],
                             $order['site']
                         );
 
-                        $corporateResponse = RCrmActions::apiMethod(
-                            $api,
-                            'customersСorporateGetById',
-                            __METHOD__,
-                            $order['customer']['id'],
-                            $order['site']
-                        );
-
-                        if (isset($response['customer']['externalId'])) {
-                            $ExtId = $response['customer']['externalId'];
+                        if (isset($order['contact']['externalId'])) {
+                            $ExtId = $order['contact']['externalId'];
                         }
 
-                        if (isset($corporateResponse['customerCorporate']['mainCustomerContact']['customer']['externalId'])) {
-                            $ExtId = $corporateResponse['customerCorporate']['mainCustomerContact']['customer']['externalId'];
-                        }
-
-                        if (isset($corporateResponse['customerCorporate']['mainCustomerContact']['customer']['id'])) {
+                        if (isset($order['contact']['id'])) {
                             $response = RCrmActions::apiMethod(
                                 $api,
                                 'customersGetById',
                                 __METHOD__,
-                                $corporateResponse['customerCorporate']['mainCustomerContact']['customer']['id'],
+                                $order['contact']['id'],
                                 $order['site']
                             );
                         }
@@ -1326,6 +1319,14 @@ class RetailCrmHistory
 
             if (isset($change['oldValue']) && $change['field'] == 'customer') {
                 $orders[$change['order']['id']]['customer'] = $change['newValue'];
+            }
+
+            if (isset($change['oldValue']) && $change['field'] == 'contact') {
+                $orders[$change['order']['id']]['contact'] = $change['newValue'];
+            }
+
+            if (isset($change['oldValue']) && $change['field'] == 'company') {
+                $orders[$change['order']['id']]['company'] = $change['newValue'];
             }
 
             if ($change['order']['payments']) {
