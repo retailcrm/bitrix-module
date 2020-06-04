@@ -194,7 +194,7 @@ class CustomerBuilder extends AbstractBuilder implements RetailcrmBuilderInterfa
         if ((!isset($this->dataCrm['email']) || $this->dataCrm['email'] == '')
             && (!isset($this->dataCrm['externalId']))
         ) {
-            $login = uniqid('user_' . time()) . '@crm.com';
+            $login = uniqid('user_' . time()) . '@example.com';
             $this->customer->setLogin($login)
                 ->setEmail($login);
         }

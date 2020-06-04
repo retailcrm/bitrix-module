@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Class CorporateCustomerBuilder
  */
@@ -100,7 +101,7 @@ class CorporateCustomerBuilder extends AbstractBuilder implements RetailcrmBuild
      */
     public function getCustomerAddress()
     {
-        return  $this->customerAddress;
+        return $this->customerAddress;
     }
 
     /**
