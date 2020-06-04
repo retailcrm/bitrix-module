@@ -112,7 +112,7 @@ class RetailCrmHistory
                                 $registerNewUser = false;
                                 break;
                             default:
-                                $login = uniqid('user_' . time()) . '@crm.com';
+                                $login = uniqid('user_' . time()) . '@example.com';
                                 $customerBuilder->setLogin($login);
                                 break;
                         }
@@ -381,7 +381,7 @@ class RetailCrmHistory
                                 $corporateCustomerBuilder->setLogin($login)
                                     ->setEmail($corporateContact['email']);
                             } else {
-                                $login = uniqid('user_' . time()) . '@crm.com';
+                                $login = uniqid('user_' . time()) . '@example.com';
                                 $order['customer']['email'] = $login;
                                 $corporateCustomerBuilder->setLogin($login)
                                     ->setEmail($login);
@@ -405,7 +405,7 @@ class RetailCrmHistory
                                 $registerNewUser = false;
                                 break;
                             default:
-                                $login = uniqid('user_' . time()) . '@crm.com';
+                                $login = uniqid('user_' . time()) . '@example.com';
                                 $corporateCustomerBuilder->setLogin($login);
                                 break;
                         }
@@ -853,16 +853,6 @@ class RetailCrmHistory
                             $ExtId = $order['contact']['externalId'];
                         }
 
-                        if (isset($order['contact']['id'])) {
-                            $response = RCrmActions::apiMethod(
-                                $api,
-                                'customersGetById',
-                                __METHOD__,
-                                $order['contact']['id'],
-                                $order['site']
-                            );
-                        }
-
                         if (isset($ExtId)) {
                             $newOrder->setFieldNoDemand('USER_ID', $ExtId);
                         } else {
@@ -877,6 +867,7 @@ class RetailCrmHistory
                                     ($sort = 'ASC'),
                                     array('=EMAIL' => $response['customer']['email'])
                                 );
+
                                 switch ($dbUser->SelectedRowsCount()) {
                                     case 0:
                                         $login = $response['customer']['email'];
@@ -888,7 +879,7 @@ class RetailCrmHistory
                                         $registerNewUser = false;
                                         break;
                                     default:
-                                        $login = uniqid('user_' . time()) . '@crm.com';
+                                        $login = uniqid('user_' . time()) . '@example.com';
                                         $customerBuilder->setLogin($login);
                                         break;
                                 }
