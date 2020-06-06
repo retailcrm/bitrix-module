@@ -671,6 +671,8 @@ class RetailCrmHistory
                         }
                     }
 
+                    $order['fio'] = str_replace("clear", "", $order['fio']);
+
                     //optionsOrderProps
                     if ($optionsOrderProps[$personType]) {
                         foreach ($optionsOrderProps[$personType] as $key => $orderProp) {
@@ -1398,6 +1400,24 @@ class RetailCrmHistory
 
                 if (isset($change['deleted'])) {
                     $orders[$change['order']['id']]['deleted'] = 1;
+                }
+            }
+
+            if ($change['field'] == 'last_name') {
+                if (true == is_null($change['newValue'])) {
+                    $orders[$change['order']['id']]['lastName'] = 'clear';
+                }
+            }
+
+            if ($change['field'] == 'first_Name') {
+                if (true == is_null($change['newValue'])) {
+                    $orders[$change['order']['id']]['firstName'] = 'clear';
+                }
+            }
+
+            if ($change['field'] == 'patronymic') {
+                if (true == is_null($change['newValue'])) {
+                    $orders[$change['order']['id']]['patronymic'] = 'clear';
                 }
             }
         }
