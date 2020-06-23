@@ -37,6 +37,14 @@
         <field id="contragent.certificate_date" group="customerContragent">certificateDate</field>
         <field id="contragent.bank" group="customerContragent">bank</field>
         <field id="contragent.bank_address" group="customerContragent">bankAddress</field>
+        <field id="contragent.i_n_n" group="customerContragent">INN</field>
+        <field id="contragent.o_k_p_o" group="customerContragent">OKPO</field>
+        <field id="contragent.k_p_p" group="customerContragent">KPP</field>
+        <field id="contragent.o_g_r_n" group="customerContragent">OGRN</field>
+        <field id="contragent.o_g_r_n_i_p" group="customerContragent">OGRNIP</field>
+        <field id="contragent.certificate_number" group="customerContragent">certificateNumber</field>
+        <field id="contragent.certificate_date" group="customerContragent">certificateDate</field>
+        <field id="contragent.b_i_k" group="customerContragent">BIK</field>
         <field id="contragent.corr_account" group="customerContragent">corrAccount</field>
         <field id="contragent.bank_account" group="customerContragent">bankAccount</field>
 

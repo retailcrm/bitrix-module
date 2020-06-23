@@ -538,15 +538,19 @@ class RetailCrmHistory
                     $propsRemove = false;
                     $personType = $newOrder->getField('PERSON_TYPE_ID');
 
-                    if (RetailCrmOrder::isOrderCorporate($order)) {
-                        $newOrder->setField('PERSON_TYPE_ID', $contragentTypes['legal-entity']);
+                    if (RetailCrmOrder::isOrderCorporate($order)
+                        || (!empty($order['contragentType']) && $order['contragentType'] = 'legal-entity')
+                    ) {
                         $personType = $contragentTypes['legal-entity'];
+                        $newOrder->setField('PERSON_TYPE_ID', $personType);
+
+                        $propsRemove = true;
                     } else {
                         if (isset($order['orderType']) && $order['orderType']) {
                             $nType = array();
                             $tList = RCrmActions::OrderTypesList(array(array('LID' => $site)));
 
-                            foreach($tList as $type){
+                            foreach ($tList as $type) {
                                 if (isset($optionsOrderTypes[$type['ID']])) {
                                     $nType[$optionsOrderTypes[$type['ID']]] = $type['ID'];
                                 }
