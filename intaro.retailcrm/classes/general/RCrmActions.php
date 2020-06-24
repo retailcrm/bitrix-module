@@ -5,7 +5,6 @@ class RCrmActions
     public static $MODULE_ID = 'intaro.retailcrm';
     public static $CRM_ORDER_FAILED_IDS = 'order_failed_ids';
     public static $CRM_API_VERSION = 'api_version';
-    public static $CALL_PROXY = false;
 
     const CANCEL_PROPERTY_CODE = 'INTAROCRM_IS_CANCELED';
 
@@ -512,6 +511,15 @@ class RCrmActions
                     ), 'uploadApiErrors');
                 } else {
 
+                    if ('ordersEdit' == $methodApi) {
+                        // Resend orders without integration delivery fields
+                        $newParams = RetailCrmService::unsetIntegrationDeliveryFields($params, $result['errors']);
+                        $result = call_user_func_array(array($api, 'ordersEdit'), $newParams);
+                        if ($result->getStatusCode() == 200 || $result->getStatusCode() == 201) {
+                            return true;
+                        }
+                    }
+
                     self::eventLog(
                         __CLASS__ . '::' . $method,
                         'RetailCrm\ApiClient::' . $methodApi,
@@ -524,28 +532,6 @@ class RCrmActions
                         'errors' => !empty($result['errors']) ? $result['errors'] : '',
                         'params' => $params,
                     ), 'apiErrors');
-
-                    if ('ordersEdit' == $methodApi) {
-                        $newParams = $params;
-                        foreach ($result['errors'] as $error) {
-                            if (strpos($error, 'This value is used in integration delivery and can`t be changed through API.') !== false) {
-                                $matches = [];
-                                preg_match_all('/(?<=\[).+?(?=\])/', $error, $matches);
-                                $keys = $matches[0];
-                                if (count($matches[0]) == 2) {
-                                    unset($newParams[0][$keys[0]][$keys[1]]);
-                                } else {
-                                    unset($newParams[0][$keys[0]]);
-                                }
-
-                            }
-                        }
-                        
-                        if (!self::$CALL_PROXY) {
-                            self::$CALL_PROXY = true;
-                            RCrmActions::proxy($api, $methodApi, $method, array($newParams));
-                        }
-                    }
                 }
 
                 if (function_exists('retailCrmApiResult')) {
@@ -597,8 +583,6 @@ class RCrmActions
         if (function_exists('retailCrmApiResult')) {
             retailCrmApiResult($methodApi, true, isset($result) ? $result->getStatusCode() : 0);
         }
-
-        self::$CALL_PROXY = false;
 
         return isset($result) ? $result : false;
     }
