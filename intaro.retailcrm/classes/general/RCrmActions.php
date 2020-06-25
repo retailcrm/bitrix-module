@@ -509,11 +509,11 @@ class RCrmActions
                     ), 'uploadApiErrors');
                 } else {
 
-                    if ('ordersEdit' == $methodApi) {
+                    if ('ordersEdit' == $methodApi && !empty($result['errors'])) {
                         // Resend orders without integration delivery fields
                         $newParams = RetailCrmService::unsetIntegrationDeliveryFields($params, $result['errors']);
-                        $result = call_user_func_array(array($api, 'ordersEdit'), $newParams);
-                        if ($result->getStatusCode() == 200 || $result->getStatusCode() == 201) {
+                        $result = $api->ordersEdit($newParams[0]);
+                        if ($result->getStatusCode() == 200) {
                             return true;
                         }
                     }
