@@ -513,8 +513,8 @@ class RCrmActions
 
                     if ('ordersEdit' == $methodApi && !empty($result['errors'])) {
                         // Resend orders without integration delivery fields
-                        $newParams = RetailCrmService::unsetIntegrationDeliveryFields($params, $result['errors']);
-                        $result = $api->ordersEdit($newParams[0]);
+                        $newOrder = RetailCrmService::unsetIntegrationDeliveryFields($params[0], $result['errors']);
+                        $result = $api->ordersEdit($newOrder, $params[1], $params[2]);
                         if ($result->getStatusCode() == 200) {
                             return true;
                         }

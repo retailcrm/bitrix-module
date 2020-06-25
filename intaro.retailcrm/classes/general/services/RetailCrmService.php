@@ -12,9 +12,9 @@ class RetailCrmService
                 preg_match_all('/(?<=\[).+?(?=\])/', $error, $matches);
                 $keys = $matches[0];
                 if (count($matches[0]) == 2) {
-                    unset($params[0][$keys[0]][$keys[1]]);
+                    unset($params[$keys[0]][$keys[1]]);
                 } else {
-                    unset($params[0][$keys[0]]);
+                    unset($params[$keys[0]]);
                 }
             }
         }
