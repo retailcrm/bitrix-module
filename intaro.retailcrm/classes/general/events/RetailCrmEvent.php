@@ -358,14 +358,12 @@ class RetailCrmEvent
 
                     $customerCorporateContact['companies'] = array(
                         array(
-                            'company' => array(
-                                'id' => $companyResult['id']
-                            )
+                            'company' => $orderCompany
                         )
                     );
                 }
 
-                $contactResult = $api->customersCorporateContactsCreate(
+                $api->customersCorporateContactsCreate(
                     $resultUserCorp['id'],
                     $customerCorporateContact,
                     'id',
