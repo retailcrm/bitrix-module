@@ -19,6 +19,7 @@ class RetailCrmServiceTest extends PHPUnit\Framework\TestCase
             'address' => array (
                 'text' => 'ул. Первомайская 41',
             ),
+            'code' => 'boxberry',
         ),
         'contragent' => array (
             'contragentType' => 'individual',
@@ -47,19 +48,19 @@ class RetailCrmServiceTest extends PHPUnit\Framework\TestCase
         ),
     );
 
-    private $errorsExample = array (
-        'order[firstName]: This value is used in integration delivery and can`t be changed through API.',
-        'order[lastName]: This value is used in integration delivery and can`t be changed through API.',
-        'order[delivery][address]: This value is used in integration delivery and can`t be changed through API.',
-    );
-
     public function testOnUnsetIntegrationDeliveryFields()
     {
-        $newParams = RetailCrmService::unsetIntegrationDeliveryFields($this->paramsExample, $this->errorsExample);
+        $newParams = RetailCrmService::unsetIntegrationDeliveryFields($this->paramsExample);
         $expectedArray = $this->paramsExample;
         unset($expectedArray['firstName']);
         unset($expectedArray['lastName']);
         unset($expectedArray['delivery']['address']);
+        unset($expectedArray['weight']);
+        unset($expectedArray['phone']);
+        unset($expectedArray['deliveryCost']);
+        unset($expectedArray['paymentType']);
+        unset($expectedArray['shipmentStore']);
+        unset($expectedArray['delivery']['data']);
 
         $this->assertEquals($newParams, $expectedArray);
     }
