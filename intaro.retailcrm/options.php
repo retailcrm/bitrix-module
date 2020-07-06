@@ -612,12 +612,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     foreach ($arResult['deliveryTypesList'] as $delivType) {
         if ($delivType['active'] === true) {
             $delivTypes[$delivType['code']] = $delivType;
-            /*if ($delivType['integrationCode']) {
-                $deliveryIntegrationCode[$delivType['code']] = array(
-                    'integrationCode' => $delivType['integrationCode'],
-                    'name' => $delivType['name'],
-                );
-            }*/
             $deliveryIntegrationCode[$delivType['code']] = $delivType['integrationCode'];
         }
     }
