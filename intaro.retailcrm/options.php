@@ -608,12 +608,21 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     }
 
     $delivTypes = array();
+    $deliveryIntegrationCode = array();
     foreach ($arResult['deliveryTypesList'] as $delivType) {
         if ($delivType['active'] === true) {
             $delivTypes[$delivType['code']] = $delivType;
+            /*if ($delivType['integrationCode']) {
+                $deliveryIntegrationCode[$delivType['code']] = array(
+                    'integrationCode' => $delivType['integrationCode'],
+                    'name' => $delivType['name'],
+                );
+            }*/
+            $deliveryIntegrationCode[$delivType['code']] = $delivType['integrationCode'];
         }
     }
     $arResult['deliveryTypesList'] = $delivTypes;
+    COption::SetOptionString($mid, "integrationDelivery", serialize(RCrmActions::clearArr($deliveryIntegrationCode)));
 
     //bitrix orderTypesList -- personTypes
     $arResult['bitrixOrderTypesList'] = RCrmActions::OrderTypesList($arResult['arSites']);
