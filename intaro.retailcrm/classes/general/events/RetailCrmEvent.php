@@ -371,6 +371,11 @@ class RetailCrmEvent
                     'id',
                     $site
                 );
+
+                $arParams['orderCompany'] = array_merge(
+                    $customerCorporateCompany,
+                    array('id' => $companyResult['id'])
+                );
             } else {
                 RetailCrmCorporateClient::addCustomersCorporateAddresses(
                     $userCorp['customerCorporate']['id'],
