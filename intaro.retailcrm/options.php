@@ -474,22 +474,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         UnRegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmCc", "add");
     }
 
-    //corporate-cliente
-    if (htmlspecialchars(trim($_POST['corp-client'])) == 'Y') {
-        $cc = 'Y';
-        $bitrixCorpName = htmlspecialchars(trim($_POST['nickName-corporate']));
-        $bitrixCorpAdres = htmlspecialchars(trim($_POST['adres-corporate']));
-        function maskCorp($var) {
-            return preg_match("/^shops-corporate/", $var);
-        }
-        $bitrixCorpShopsArr = str_replace('shops-corporate-', '', array_filter(array_keys($_POST), 'maskCorp'));
-
-        RegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmCc", "add");
-    } else  {
-        $cc = 'N';
-        UnRegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmCc", "add");
-    }
-
     //purchasePrice_null
     if (htmlspecialchars(trim($_POST['purchasePrice_null'])) == 'Y') {
         $purchasePrice_null = 'Y';
