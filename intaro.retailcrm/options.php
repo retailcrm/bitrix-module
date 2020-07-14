@@ -779,10 +779,10 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                 return true;
             });
 
-            $('.r-dc-button label').change(function(){
-                if($(this).find('input').is(':checked') === true){
+            $('.r-dc-button label').change(function() {
+                if ($(this).find('input').is(':checked') === true) {
                     $('tr.r-dc').show('slow');
-                } else if($(this).find('input').is(':checked') === false){
+                } else if ($(this).find('input').is(':checked') === false) {
                     $('tr.r-dc').hide('slow');
                 }
 
@@ -790,7 +790,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             });
 
             $('.r-cc-button label').change(function(){
-                if($(this).find('input').is(':checked') === true){
+                if($(this).find('input').is(':checked') === true) {
                     $('tr.r-cc').show('slow');
                 } else if($(this).find('input').is(':checked') === false){
                     $('tr.r-cc').hide('slow');
@@ -1385,16 +1385,14 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             <tr class="heading r-dc-button">
                 <td colspan="2" class="option-other-heading">
                     <b>
-                        <label><input class="addr" type="checkbox" name="discount_round" value="Y" <?php if($optionDiscRound === 'Y') echo "checked"; ?>>
-                            <?php echo GetMessage('ROUND_HEADER'); ?>
-                        </label>
+                        <label><input class="addr" type="checkbox" name="discount_round" value="Y" <?php if($optionDiscRound === 'Y') echo "checked"; ?>><?php echo "Округление цены товара при сборе одинаковых товарных позиций" ?></label>
                     </b>
                 </td>
             </tr>
 
             <tr class="r-dc" <?php if($optionDiscRound !== 'Y') echo 'style="display: none;"'; ?>>
                 <td class="option-head" colspan="2">
-                    <b><?php echo GetMessage('ROUND_LABEL'); ?></b>
+                    <b><?php echo "При включенной опции округление будет происходить в меньшую сторону" ?></b>
                 </td>
             </tr>
 
@@ -1437,7 +1435,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                     </select>
                 </td>
             </tr>
-
             <tr class="r-cc" <?php if($optionCorpClient !== 'Y') echo 'style="display: none;"'; ?>>
                 <td colspan="2" class="option-head option-other-top option-other-bottom">
                     <b>
@@ -1455,24 +1452,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                 <?php endforeach;?>
                 </td>
             </tr>
-
-            <tr class="heading r-purchaseprice-button">
-                <td colspan="2" class="option-other-heading">
-                    <b>
-                        <label><input class="addr" type="checkbox" name="purchasePrice_null" value="Y"
-                                <?php if($optionPricePrchaseNull === 'Y')
-                                    echo "checked"; ?>><?php
-                            echo GetMessage('PURCHASE_HEADER'); ?></label>
-                    </b>
-                </td>
-            </tr>
-
-            <tr class="r-purchaseprice" <?php if($optionPricePrchaseNull !== 'Y') echo 'style="display: none;"'; ?>>
-                <td class="option-head" colspan="2">
-                    <b><?php echo GetMessage('PURCHASE_ICML'); ?></b>
-                </td>
-            </tr>
-
         <?php endif;?>
         <?php $tabControl->Buttons(); ?>
         <input type="hidden" name="Update" value="Y" />

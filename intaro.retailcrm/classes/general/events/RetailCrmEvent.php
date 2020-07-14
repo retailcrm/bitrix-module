@@ -287,9 +287,9 @@ class RetailCrmEvent
                     );
 
                     return false;
-                } else {
-                    $userCrm = array('customer' => array('externalId' => $arOrder['USER_ID']));
                 }
+
+                $userCrm = array('customer' => array('externalId' => $arOrder['USER_ID']));
             }
 
             if (!isset($userCorp['customerCorporate'])) {
@@ -352,23 +352,29 @@ class RetailCrmEvent
                 );
 
                 if (!empty($companyResult)) {
+                    $orderCompany = array(
+                        'id' => $companyResult['id']
+                    );
+
                     $customerCorporateContact['companies'] = array(
                         array(
-                            'company' => array(
-                                'id' => $companyResult['id']
-                            )
+                            'company' => $orderCompany
                         )
                     );
                 }
 
-                $contactResult = $api->customersCorporateContactsCreate(
+                $api->customersCorporateContactsCreate(
                     $resultUserCorp['id'],
                     $customerCorporateContact,
                     'id',
                     $site
                 );
-            } else {
 
+                $arParams['orderCompany'] = array_merge(
+                    $customerCorporateCompany,
+                    array('id' => $companyResult['id'])
+                );
+            } else {
                 RetailCrmCorporateClient::addCustomersCorporateAddresses(
                     $userCorp['customerCorporate']['id'],
                     $nickName,

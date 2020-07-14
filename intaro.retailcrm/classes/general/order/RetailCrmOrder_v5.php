@@ -92,6 +92,11 @@ class RetailCrmOrder
                     if ($search == 'fio') {
                         $order = array_merge($order, RCrmActions::explodeFIO($prop['VALUE'][0]));//add fio fields
                     } else {
+                        // ignoring a property with a non-set group if the field value is already set
+                        if (!empty($order[$search]) && $prop['PROPS_GROUP_ID'] == 0) {
+                            continue;
+                        }
+
                         $order[$search] = $prop['VALUE'][0];//phone, email
                     }
                 } else {//address
@@ -157,9 +162,11 @@ class RetailCrmOrder
         //basket
         foreach ($arFields['BASKET'] as $position => $product) {
             $externalId = $position . "_" . $product['PRODUCT_ID'];
+
             if (isset($orderItems[$externalId])) { //update
                 $externalIds = $orderItems[$externalId]['externalIds'];
                 $itemId = $orderItems[$externalId]['id'];
+
                 $key = array_search("bitrix", array_column($externalIds, 'code'));
                 if ($externalIds[$key]['code'] == "bitrix") {
                     $externalIds[$key] = array(
@@ -184,7 +191,8 @@ class RetailCrmOrder
             $item = array(
                 'externalIds'      => $externalIds,
                 'quantity'        => $product['QUANTITY'],
-                'offer'           => array('externalId' => $product['PRODUCT_ID'],
+                'offer'           => array(
+                    'externalId' => $product['PRODUCT_ID'],
                     'xmlId' => $product['PRODUCT_XML_ID']
                 ),
                 'productName'     => $product['NAME']
@@ -433,6 +441,7 @@ class RetailCrmOrder
 
                 $arParams['orderCompany'] = isset($arCustomerCorporate['companies'])
                     ? reset($arCustomerCorporate['companies']) : null;
+
                 $arParams['contactExId'] = $user['ID'];
             } else {
                 $arCustomer = RetailCrmUser::customerSend(
@@ -465,6 +474,7 @@ class RetailCrmOrder
                 $resCustomers[$order['LID']][] = $arCustomer;
             }
 
+            $resCustomers[$order['LID']][] = $arCustomer;
             $resOrders[$order['LID']][] = $arOrders;
             $recOrders[] = $orderId;
         }

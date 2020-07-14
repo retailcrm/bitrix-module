@@ -12,7 +12,6 @@ class RetailCrmCorporateClient
         $contragent = array();
         $shops = RetailcrmConfigProvider::getSitesListCorporate();
         $optionsLegalDetails = RetailcrmConfigProvider::getLegalDetails();
-
         $arUser = Bitrix\Main\UserTable::getById($arOrder['USER_ID'])->fetch();
 
         if (count($shops) == 0) {
@@ -48,7 +47,7 @@ class RetailCrmCorporateClient
         foreach ($shops as $shop) {
             $customerCorporate = array(
                 'createdAt'      => $arOrder['DATE_INSERT'],
-                "nickName" => $nickName,
+                "nickName" => $nickName
             );
 
             if ($fillCorp) {
@@ -94,6 +93,7 @@ class RetailCrmCorporateClient
 
             if ($send) {
                 $result = RCrmActions::apiMethod($api, 'customersCorporateCreate', __METHOD__, $customerCorporate, $site);
+
                 if (!$result) {
                     return false;
                 }

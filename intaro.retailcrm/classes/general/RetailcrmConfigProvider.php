@@ -402,6 +402,26 @@ class RetailcrmConfigProvider
     }
 
     /**
+     * Returns customers history since ID
+     *
+     * @return int
+     */
+    public static function getCustomersHistorySinceId()
+    {
+        return (int) static::getOption(RetailcrmConstants::CRM_CUSTOMERS_HISTORY_SINCE_ID);
+    }
+
+    /**
+     * Sets new customers history since ID
+     *
+     * @param int $sinceId
+     */
+    public static function setCustomersHistorySinceId($sinceId)
+    {
+        static::setOption(RetailcrmConstants::CRM_CUSTOMERS_HISTORY_SINCE_ID, $sinceId);
+    }
+
+    /**
      * getCatalogBasePrice
      *
      * @return bool|string|null

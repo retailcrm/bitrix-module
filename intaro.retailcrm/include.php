@@ -26,5 +26,17 @@ CModule::AddAutoloadClasses(
         'RetailCrmCorporateClient'                  => file_exists($server . '/bitrix/php_interface/retailcrm/RetailCrmCorporateClient.php') ? '../../php_interface/retailcrm/RetailCrmCorporateClient.php' : 'classes/general/user/RetailCrmCorporateClient.php',
         'RetailcrmConfigProvider'                   => 'classes/general/RetailcrmConfigProvider.php',
         'RetailcrmConstants'                        => 'classes/general/RetailcrmConstants.php',
+        'RetailcrmBuilderInterface'                 => 'classes/general/RetailcrmBuilderInterface.php',
+        'CustomerBuilder'                           => 'classes/general/CustomerBuilder.php',
+        'CorporateCustomerBuilder'                  => 'classes/general/CorporateCustomerBuilder.php',
+        'Customer'                                  => 'classes/general/Model/Customer.php',
+        'CustomerAddress'                           => 'classes/general/Model/CustomerAddress.php',
+        'CustomerContragent'                        => 'classes/general/Model/CustomerContragent.php',
+        'BuyerProfile'                              => 'classes/general/Model/BuyerProfile.php',
+        'AdressBuilder'                             => 'classes/general/AdressBuilder.php',
+        'BuilderBase'                               => 'classes/general/BuilderBase.php',
+        'AddressBuilder'                            => 'classes/general/AddressBuilder.php',
+        'AbstractBuilder'                           => 'classes/general/AbstractBuilder.php',
+        'BaseModel'                                 => 'classes/general/Model/BaseModel.php'
     )
 );

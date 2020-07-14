@@ -39,11 +39,11 @@ class RetailcrmConstants
     const CRM_ORDER_LAST_ID = 'order_last_id';
     const CRM_ORDER_SITES = 'sites_ids';
     const CRM_ORDER_DISCHARGE = 'order_discharge';
+    const CRM_SITES_LIST = 'sites_list';
     const CRM_ORDER_PROPS = 'order_props';
     const CRM_LEGAL_DETAILS = 'legal_details';
     const CRM_CUSTOM_FIELDS = 'custom_fields';
     const CRM_CONTRAGENT_TYPE = 'contragent_type';
-    const CRM_SITES_LIST = 'sites_list';
     const CRM_SITES_LIST_CORPORATE = 'shops-corporate';
     const CRM_ORDER_NUMBERS = 'order_numbers';
     const CRM_CANCEL_ORDER = 'cansel_order';
@@ -70,6 +70,7 @@ class RetailcrmConstants
     const CRM_DIMENSIONS = 'order_dimensions';
     const PROTOCOL = 'protocol';
     const CRM_ORDER_FAILED_IDS = 'order_failed_ids';
+    const CRM_CUSTOMERS_HISTORY_SINCE_ID = 'customer_history';
     const CRM_ORDER_HISTORY_DATE = 'order_history_date';
     const CRM_CATALOG_BASE_PRICE = 'catalog_base_price';
     const CRM_ORDER_DIMENSIONS = 'order_dimensions';
