@@ -297,7 +297,9 @@ class RetailCrmOrder
             }
         }
 
-        $order = RetailCrmService::unsetIntegrationDeliveryFields($order);
+        if ('ordersEdit' === $methodApi) {
+            $order = RetailCrmService::unsetIntegrationDeliveryFields($order);
+        }
 
         $normalizer = new RestNormalizer();
         $order = $normalizer->normalize($order, 'orders');

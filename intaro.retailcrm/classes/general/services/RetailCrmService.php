@@ -1,11 +1,9 @@
 <?php
 class RetailCrmService
 {
-    const MID = 'intaro.retailcrm';
-
     public static function unsetIntegrationDeliveryFields($order)
     {
-        $integrationDelivery = unserialize(COption::GetOptionString(self::MID, "integrationDelivery", 0));
+        $integrationDelivery = unserialize(COption::GetOptionString(RetailcrmConstants::MODULE_ID, RetailcrmConstants::CRM_INTEGRATION_DELIVERY, 0));
         $deliveryCode = $order['delivery']['code'];
         if ($deliveryCode) {
             switch ($integrationDelivery[$deliveryCode]) {
