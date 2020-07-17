@@ -28,8 +28,7 @@ class RetailCrmService
 
             unset($order['weight']);
             unset($order['phone']);
-            unset($order['deliveryCost']);
-            unset($order['paymentType']);
+            unset($order['delivery']['cost']);
             unset($order['shipmentStore']);
             unset($order['delivery']['address']);
             unset($order['delivery']['data']);
