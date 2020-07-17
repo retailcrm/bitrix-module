@@ -55,6 +55,7 @@ class RetailCrmServiceTest extends PHPUnit\Framework\TestCase
         unset($expectedArray['firstName']);
         unset($expectedArray['lastName']);
         unset($expectedArray['delivery']['address']);
+        unset($expectedArray['delivery']['cost']);
 
         $this->assertEquals($newParams, $expectedArray);
     }
