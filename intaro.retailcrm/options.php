@@ -607,15 +607,16 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         echo CAdminMessage::ShowMessage(GetMessage('ERR_JSON'));
     }
 
-    $delivTypes = array();
+    $deliveryTypes = array();
     $deliveryIntegrationCode = array();
-    foreach ($arResult['deliveryTypesList'] as $delivType) {
-        if ($delivType['active'] === true) {
-            $delivTypes[$delivType['code']] = $delivType;
-            $deliveryIntegrationCode[$delivType['code']] = $delivType['integrationCode'];
+    foreach ($arResult['deliveryTypesList'] as $deliveryType) {
+        if ($deliveryType['active'] === true) {
+            $deliveryTypes[$deliveryType['code']] = $deliveryType;
+            $deliveryIntegrationCode[$deliveryType['code']] = $deliveryType['integrationCode'];
         }
     }
-    $arResult['deliveryTypesList'] = $delivTypes;
+
+    $arResult['deliveryTypesList'] = $deliveryTypes;
     COption::SetOptionString($mid, RetailcrmConstants::CRM_INTEGRATION_DELIVERY, serialize(RCrmActions::clearArr($deliveryIntegrationCode)));
 
     //bitrix orderTypesList -- personTypes
