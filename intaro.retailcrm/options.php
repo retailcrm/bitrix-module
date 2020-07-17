@@ -616,7 +616,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         }
     }
     $arResult['deliveryTypesList'] = $delivTypes;
-    COption::SetOptionString($mid, "integrationDelivery", serialize(RCrmActions::clearArr($deliveryIntegrationCode)));
+    COption::SetOptionString($mid, RetailcrmConstants::CRM_INTEGRATION_DELIVERY, serialize(RCrmActions::clearArr($deliveryIntegrationCode)));
 
     //bitrix orderTypesList -- personTypes
     $arResult['bitrixOrderTypesList'] = RCrmActions::OrderTypesList($arResult['arSites']);
