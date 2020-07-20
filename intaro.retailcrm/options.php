@@ -21,6 +21,7 @@ $CRM_CONTRAGENT_TYPE = 'contragent_type';
 $CRM_SITES_LIST= 'sites_list';
 $CRM_ORDER_NUMBERS = 'order_numbers';
 $CRM_CANSEL_ORDER = 'cansel_order';
+$CRM_SHIPMENT_DEDUCTED = 'shipment_deducted';
 
 $CRM_INVENTORIES_UPLOAD = 'inventories_upload';
 $CRM_STORES = 'stores';
@@ -458,6 +459,13 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         UnRegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmDc", "add");
     }
 
+    //shipment
+    if (htmlspecialchars(trim($_POST['shipment_deducted'])) == 'Y') {
+        $shipment_deducted = 'Y';
+    } else {
+        $shipment_deducted = 'N';
+    }
+
     //corporate-cliente
     if (htmlspecialchars(trim($_POST['corp-client'])) == 'Y') {
         $cc = 'Y';
@@ -559,6 +567,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
 
     COption::SetOptionString($mid, $CRM_DISCOUNT_ROUND, $discount_round);
     COption::SetOptionString($mid, $CRM_PURCHASE_PRICE_NULL, $purchasePrice_null);
+    COption::SetOptionString($mid, $CRM_SHIPMENT_DEDUCTED, $shipment_deducted);
 
     COption::SetOptionString($mid, $CRM_CC, $cc);
     COption::SetOptionString($mid, $CRM_CORP_SHOPS, serialize(RCrmActions::clearArr($bitrixCorpShopsArr)));
@@ -678,6 +687,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
 
     $optionDiscRound = COption::GetOptionString($mid, $CRM_DISCOUNT_ROUND, 0);
     $optionPricePrchaseNull = COption::GetOptionString($mid, $CRM_PURCHASE_PRICE_NULL, 0);
+    $optionShipmentDeducted = COption::GetOptionString($mid, $CRM_SHIPMENT_DEDUCTED, 0);
 
     //corporate-cliente
     $optionCorpClient = COption::GetOptionString($mid, $CRM_CC, 0);
@@ -1454,6 +1464,14 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                     <label><input class="addr" type="checkbox" name="shops-corporate-<?echo $sitesList['code'];?>" value="Y" <?php if(in_array($sitesList['code'], $optionCorpShops)) echo "checked"; ?>> <?php echo $sitesList['name'].' ('.$sitesList['code'].')'; ?></label>
                 </td>
                 <?php endforeach;?>
+                </td>
+            </tr>
+
+            <tr class="heading">
+                <td colspan="2" class="option-other-heading">
+                    <b>
+                        <label><input class="addr" type="checkbox" name="shipment_deducted" value="Y" <?php if($optionShipmentDeducted === 'Y') echo "checked"; ?>><?php echo "Разрешать отгрузку при получении статуса Отгружено из crm" ?></label>
+                    </b>
                 </td>
             </tr>
         <?php endif;?>
