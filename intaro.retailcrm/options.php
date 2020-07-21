@@ -686,7 +686,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
 
     $optionDiscRound = COption::GetOptionString($mid, $CRM_DISCOUNT_ROUND, 0);
     $optionPricePrchaseNull = COption::GetOptionString($mid, $CRM_PURCHASE_PRICE_NULL, 0);
-    $optionShipmentDeducted = COption::GetOptionString($mid, RetailcrmConstants::CRM_SHIPMENT_DEDUCTED, 0);
+    $optionShipmentDeducted = RetailcrmConfigProvider::getShipmentDeducted();
 
     //corporate-cliente
     $optionCorpClient = COption::GetOptionString($mid, $CRM_CC, 0);
@@ -1469,7 +1469,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             <tr class="heading">
                 <td colspan="2" class="option-other-heading">
                     <b>
-                        <label><input class="addr" type="checkbox" name="shipment_deducted" value="Y" <?php if($optionShipmentDeducted === 'Y') echo "checked"; ?>><?php echo "Разрешать отгрузку при получении статуса Отгружено из crm" ?></label>
+                        <label><input class="addr" type="checkbox" name="shipment_deducted" value="Y" <?php if($optionShipmentDeducted === 'Y') echo "checked"; ?>><?php echo "Изменять статус отгрузки при получении соответствующего флага из crm" ?></label>
                     </b>
                 </td>
             </tr>
