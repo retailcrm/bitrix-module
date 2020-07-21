@@ -21,7 +21,6 @@ $CRM_CONTRAGENT_TYPE = 'contragent_type';
 $CRM_SITES_LIST= 'sites_list';
 $CRM_ORDER_NUMBERS = 'order_numbers';
 $CRM_CANSEL_ORDER = 'cansel_order';
-$CRM_SHIPMENT_DEDUCTED = 'shipment_deducted';
 
 $CRM_INVENTORIES_UPLOAD = 'inventories_upload';
 $CRM_STORES = 'stores';
@@ -567,7 +566,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
 
     COption::SetOptionString($mid, $CRM_DISCOUNT_ROUND, $discount_round);
     COption::SetOptionString($mid, $CRM_PURCHASE_PRICE_NULL, $purchasePrice_null);
-    COption::SetOptionString($mid, $CRM_SHIPMENT_DEDUCTED, $shipment_deducted);
+    COption::SetOptionString($mid, RetailcrmConstants::CRM_SHIPMENT_DEDUCTED, $shipment_deducted);
 
     COption::SetOptionString($mid, $CRM_CC, $cc);
     COption::SetOptionString($mid, $CRM_CORP_SHOPS, serialize(RCrmActions::clearArr($bitrixCorpShopsArr)));
@@ -687,7 +686,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
 
     $optionDiscRound = COption::GetOptionString($mid, $CRM_DISCOUNT_ROUND, 0);
     $optionPricePrchaseNull = COption::GetOptionString($mid, $CRM_PURCHASE_PRICE_NULL, 0);
-    $optionShipmentDeducted = COption::GetOptionString($mid, $CRM_SHIPMENT_DEDUCTED, 0);
+    $optionShipmentDeducted = COption::GetOptionString($mid, RetailcrmConstants::CRM_SHIPMENT_DEDUCTED, 0);
 
     //corporate-cliente
     $optionCorpClient = COption::GetOptionString($mid, $CRM_CC, 0);

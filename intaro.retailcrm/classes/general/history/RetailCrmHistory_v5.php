@@ -24,7 +24,6 @@ class RetailCrmHistory
     public static $CRM_CANSEL_ORDER = 'cansel_order';
     public static $CRM_CURRENCY = 'currency';
     public static $CRM_DISCOUNT_ROUND = 'discount_round';
-    public static $CRM_SHIPMENT_DEDUCTED = 'shipment_deducted';
 
     const CANCEL_PROPERTY_CODE = 'INTAROCRM_IS_CANCELED';
 
@@ -206,6 +205,7 @@ class RetailCrmHistory
         $optionsCanselOrder = RetailcrmConfigProvider::getCancellableOrderPaymentStatuses();
         $currency = RetailcrmConfigProvider::getCurrencyOrDefault();
         $contragentTypes = array_flip(RetailcrmConfigProvider::getContragentTypes());
+        $shipmentDeducted = RetailcrmConfigProvider::getShipmentDeducted();
 
         $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
 
@@ -1092,8 +1092,6 @@ class RetailCrmHistory
                         }
                     }
 
-                    //$newOrder->setField('DEDUCTED', 'Y');
-
                     //delivery
                     if (array_key_exists('delivery', $order)) {
                         $itemUpdate = true;
@@ -1116,14 +1114,13 @@ class RetailCrmHistory
                         unset($orderCrm);
                     }
 
-                    if (isset($order['fullPaidAt'])) {
+                    if (isset($order['fullPaidAt']) && is_string($order['fullPaidAt'])) {
                         $newOrder->setField('PAID', 'Y');
                     }
 
-                    $shipmentDeducted = COption::GetOptionString(self::$MODULE_ID, self::$CRM_SHIPMENT_DEDUCTED, 0);
                     if ($shipmentDeducted === 'Y') {
                         $collection = $newOrder->getShipmentCollection()->getNotSystemItems();
-                        if (!$order['shipped']) {
+                        if ($order['shipped']) {
                             if ($collection->count() === 0) {
                                 $collection = $newOrder->getShipmentCollection();
                                 $shipment = $collection->createItem();
