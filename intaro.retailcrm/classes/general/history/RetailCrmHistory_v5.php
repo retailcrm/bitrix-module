@@ -94,7 +94,7 @@ class RetailCrmHistory
 
                     $registerNewUser = true;
 
-                     if (!empty($customer['email'])) {
+                    if (!empty($customer['email'])) {
                         $dbUser = CUser::GetList(($by = 'ID'), ($sort = 'ASC'), array('=EMAIL' => $customer['email']));
                         switch ($dbUser->SelectedRowsCount()) {
                             case 0:
@@ -1120,6 +1120,7 @@ class RetailCrmHistory
 
                     if ($shipmentDeducted === 'Y') {
                         $collection = $newOrder->getShipmentCollection()->getNotSystemItems();
+
                         if ($order['shipped']) {
                             if ($collection->count() === 0) {
                                 $collection = $newOrder->getShipmentCollection();
