@@ -1121,19 +1121,21 @@ class RetailCrmHistory
                     if ($shipmentDeducted === 'Y') {
                         $collection = $newOrder->getShipmentCollection()->getNotSystemItems();
 
-                        if ($order['shipped']) {
-                            if ($collection->count() === 0) {
-                                $collection = $newOrder->getShipmentCollection();
-                                $shipment = $collection->createItem();
-                                $shipment->setField('DEDUCTED', 'Y');
+                        if (isset($order['shipped'])) {
+                            if ($order['shipped']) {
+                                if ($collection->count() === 0) {
+                                    $collection = $newOrder->getShipmentCollection();
+                                    $shipment = $collection->createItem();
+                                    $shipment->setField('DEDUCTED', 'Y');
+                                } else {
+                                    foreach ($collection as $shipment) {
+                                        $shipment->setField('DEDUCTED', 'Y');
+                                    }
+                                }
                             } else {
                                 foreach ($collection as $shipment) {
-                                    $shipment->setField('DEDUCTED', 'Y');
+                                    $shipment->setField('DEDUCTED', 'N');
                                 }
-                            }
-                        } else {
-                            foreach ($collection as $shipment) {
-                                $shipment->setField('DEDUCTED', 'N');
                             }
                         }
                     }
