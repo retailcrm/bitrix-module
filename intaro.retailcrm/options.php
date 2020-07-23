@@ -60,7 +60,7 @@ if(!CModule::IncludeModule('intaro.retailcrm') || !CModule::IncludeModule('sale'
 $_GET['errc'] = htmlspecialchars(trim($_GET['errc']));
 $_GET['ok'] = htmlspecialchars(trim($_GET['ok']));
 
-if (COption::GetOptionString("main", "new_user_phone_required") === 'Y') {
+if (RetailcrmConfigProvider::isPhoneRequired()) {
     echo ShowMessage(array("TYPE"=>"ERROR", "MESSAGE"=>GetMessage('PHONE_REQUIRED')));
 }
 

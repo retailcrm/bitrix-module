@@ -81,9 +81,9 @@ class RetailCrmHistory
                     continue;
                 }
 
-                if (COption::GetOptionString("main", "new_user_phone_required") === 'Y') {
+                if (RetailcrmConfigProvider::isPhoneRequired()) {
                     if (empty($customer['phones'])) {
-                        Logger::getInstance()->write('$customer["phones"] is empty. Customer is not created', 'createCustomerError');
+                        Logger::getInstance()->write('$customer["phones"] is empty. Customer ' . $customer['id'] . ' cannot be created', 'createCustomerError');
                         continue;
                     }
                 }
@@ -375,9 +375,9 @@ class RetailCrmHistory
                             continue;
                         }
 
-                        if (COption::GetOptionString("main", "new_user_phone_required") === 'Y') {
+                        if (RetailcrmConfigProvider::isPhoneRequired()) {
                             if (empty($order['customer']['phones'])) {
-                                Logger::getInstance()->write('$customer["phones"] is empty. Order is not created', 'createCustomerError');
+                                Logger::getInstance()->write('$customer["phones"] is empty. Order ' . $order['id'] . ' cannot be created', 'createCustomerError');
                                 continue;
                             }
                         }
