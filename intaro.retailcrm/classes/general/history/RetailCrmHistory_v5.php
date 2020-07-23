@@ -81,6 +81,13 @@ class RetailCrmHistory
                     continue;
                 }
 
+                if (COption::GetOptionString("main", "new_user_phone_required") === 'Y') {
+                    if (empty($customer['phones'])) {
+                        Logger::getInstance()->write('$customer["phones"] is empty. Customer is not created', 'createCustomerError');
+                        continue;
+                    }
+                }
+
                 if (isset($customer['externalId']) && !is_numeric($customer['externalId'])) {
                     unset($customer['externalId']);
                 }
@@ -366,6 +373,13 @@ class RetailCrmHistory
                                 && (!isset($order['contact']['id']) || !isset($order['customer']['id'])))
                         ) {
                             continue;
+                        }
+
+                        if (COption::GetOptionString("main", "new_user_phone_required") === 'Y') {
+                            if (empty($order['customer']['phones'])) {
+                                Logger::getInstance()->write('$customer["phones"] is empty. Order is not created', 'createCustomerError');
+                                continue;
+                            }
                         }
 
                         $login = null;
