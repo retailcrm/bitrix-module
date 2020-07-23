@@ -212,7 +212,6 @@ class RetailCrmICML
 
     protected function CloseFile($fp)
     {
-        @fflush($fp);
         @fclose($fp);
     }
 
@@ -285,8 +284,8 @@ class RetailCrmICML
             $highloadblockSkuProps = $this->getAvailableHighloadOfferSkuProps($iblockOffer['IBLOCK_ID']);
             $highloadblockProductProps = $this->getAvailableHighloadProductProps($id);
 
-            $arSelect = $this->buildProductQuery();
-            $arSelectOffer = $this->buildOfferQuery($iblockOffer['SKU_PROPERTY_ID']);
+            $arSelect = $this->buildProductQuery($id);
+            $arSelectOffer = $this->buildOfferQuery($id, $iblockOffer['SKU_PROPERTY_ID']);
 
             // Set filter
             $order = array("id");
@@ -309,10 +308,11 @@ class RetailCrmICML
                     $elems[] = $obIds['ID'];
                 }
 
-                foreach ($elems as $elemId) {
+                //foreach ($elems as $elemId) {
                     $arFilter = array(
                         "IBLOCK_ID" => $id,
-                        "ID" => array($elemId)
+                        "ID" => $elems
+                        //"ID" => array($elemId)
                     );
 
                     $this->ProcessProductOffers(
@@ -328,7 +328,7 @@ class RetailCrmICML
                         $order,
                         $arFilter
                     );
-                }
+                //}
 
                 if ($this->isLogged) {
                     $this->WriteLog(
@@ -407,8 +407,8 @@ class RetailCrmICML
         }
 
         foreach ($products as $product) {
-            $product['PICTURE'] = $this->GetProductPicture($product);
-            $resPropertiesProduct = $this->getProductProperties($iblockId, $product);
+            $product['PICTURE'] = $this->getProductPicture($iblockId, $product);
+            $resPropertiesProduct = $this->getProductProperties($iblockId, $highloadblockProductProps, $product);
             $categories = $this->getProductCategories($allCategories, $iblockId, $product['ID']);
 
             $existOffer = false;
@@ -495,7 +495,7 @@ class RetailCrmICML
         unset($products);
     }
 
-    protected function GetProductPicture(array $product)
+    protected function getProductPicture($iblockId, array $product)
     {
         $picture = '';
 
@@ -505,10 +505,10 @@ class RetailCrmICML
             $picture= $this->protocol . $this->serverName . CFile::GetPath($product["PREVIEW_PICTURE"]);
         } elseif (
             $this->productPictures
-            && isset($this->productPictures[$id])
-            && CFile::GetPath($product["PROPERTY_" . $this->productPictures[$id]['picture'] . "_VALUE"])
+            && isset($this->productPictures[$iblockId])
+            && CFile::GetPath($product["PROPERTY_" . $this->productPictures[$iblockId]['picture'] . "_VALUE"])
         ) {
-            $file = CFile::GetPath($product["PROPERTY_" . $this->productPictures[$id]['picture'] . "_VALUE"]);
+            $file = CFile::GetPath($product["PROPERTY_" . $this->productPictures[$iblockId]['picture'] . "_VALUE"]);
             $picture = $this->protocol . $this->serverName . $file;
         }
 
@@ -695,11 +695,12 @@ class RetailCrmICML
      * Returns necessary product properties
      *
      * @param int   $iblockId
+     * @param array $highloadblockProductProps
      * @param array $product
      *
      * @return array
      */
-    private function getProductProperties($iblockId, $product)
+    private function getProductProperties($iblockId, $highloadblockProductProps, $product)
     {
         // Get properties of product
         $resPropertiesProduct = array();
@@ -761,7 +762,7 @@ class RetailCrmICML
         return $categories;
     }
 
-    private function buildProductQuery()
+    private function buildProductQuery($iblockId)
     {
         $arSelect = array(
             "ID",
@@ -777,22 +778,22 @@ class RetailCrmICML
         );
 
         // Set selected properties
-        foreach ($this->propertiesProduct[$id] as $key => $propProduct) {
-            if ($this->propertiesProduct[$id][$key] != "") {
+        foreach ($this->propertiesProduct[$iblockId] as $key => $propProduct) {
+            if ($this->propertiesProduct[$iblockId][$key] != "") {
                 $arSelect[] = "PROPERTY_" . $propProduct;
                 $arSelect[] = "PROPERTY_" . $propProduct . ".NAME";
             }
         }
 
-        if ($this->productPictures && isset($this->productPictures[$id])) {
-            $arSelect[] = "PROPERTY_" . $this->productPictures[$id]['picture'];
-            $arSelect[] = "PROPERTY_" . $this->productPictures[$id]['picture'] . ".NAME";
+        if ($this->productPictures && isset($this->productPictures[$iblockId])) {
+            $arSelect[] = "PROPERTY_" . $this->productPictures[$iblockId]['picture'];
+            $arSelect[] = "PROPERTY_" . $this->productPictures[$iblockId]['picture'] . ".NAME";
         }
 
         return $arSelect;
     }
 
-    private function buildOfferQuery($skuPropertyId)
+    private function buildOfferQuery($iblockId, $skuPropertyId)
     {
         $arSelectOffer = array(
             'ID',
@@ -805,16 +806,16 @@ class RetailCrmICML
         );
 
         // Set selected properties
-        foreach ($this->propertiesSKU[$id] as $key => $propSKU) {
-            if ($this->propertiesSKU[$id][$key] != "") {
+        foreach ($this->propertiesSKU[$iblockId] as $key => $propSKU) {
+            if ($this->propertiesSKU[$iblockId][$key] != "") {
                 $arSelectOffer[] =  "PROPERTY_" . $propSKU;
                 $arSelectOffer[] =  "PROPERTY_" . $propSKU . ".NAME";
             }
         }
 
-        if ($this->skuPictures && isset($this->skuPictures[$id])) {
-            $arSelectOffer[] = "PROPERTY_" . $this->skuPictures[$id]['picture'];
-            $arSelectOffer[] = "PROPERTY_" . $this->skuPictures[$id]['picture'] . ".NAME";
+        if ($this->skuPictures && isset($this->skuPictures[$iblockId])) {
+            $arSelectOffer[] = "PROPERTY_" . $this->skuPictures[$iblockId]['picture'];
+            $arSelectOffer[] = "PROPERTY_" . $this->skuPictures[$iblockId]['picture'] . ".NAME";
         }
 
         return $arSelectOffer;
