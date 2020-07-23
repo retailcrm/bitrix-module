@@ -101,7 +101,7 @@ class RetailCrmHistory
 
                     $registerNewUser = true;
 
-                     if (!empty($customer['email'])) {
+                    if (!empty($customer['email'])) {
                         $dbUser = CUser::GetList(($by = 'ID'), ($sort = 'ASC'), array('=EMAIL' => $customer['email']));
                         switch ($dbUser->SelectedRowsCount()) {
                             case 0:
@@ -212,6 +212,7 @@ class RetailCrmHistory
         $optionsCanselOrder = RetailcrmConfigProvider::getCancellableOrderPaymentStatuses();
         $currency = RetailcrmConfigProvider::getCurrencyOrDefault();
         $contragentTypes = array_flip(RetailcrmConfigProvider::getContragentTypes());
+        $shipmentDeducted = RetailcrmConfigProvider::getShipmentDeducted();
 
         $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
 
@@ -1125,6 +1126,32 @@ class RetailCrmHistory
 
                     if (isset($orderCrm)) {
                         unset($orderCrm);
+                    }
+
+                    if (isset($order['fullPaidAt']) && is_string($order['fullPaidAt'])) {
+                        $newOrder->setField('PAID', 'Y');
+                    }
+
+                    if ($shipmentDeducted === 'Y') {
+                        $collection = $newOrder->getShipmentCollection()->getNotSystemItems();
+
+                        if (isset($order['shipped'])) {
+                            if ($order['shipped']) {
+                                if ($collection->count() === 0) {
+                                    $collection = $newOrder->getShipmentCollection();
+                                    $shipment = $collection->createItem();
+                                    $shipment->setField('DEDUCTED', 'Y');
+                                } else {
+                                    foreach ($collection as $shipment) {
+                                        $shipment->setField('DEDUCTED', 'Y');
+                                    }
+                                }
+                            } else {
+                                foreach ($collection as $shipment) {
+                                    $shipment->setField('DEDUCTED', 'N');
+                                }
+                            }
+                        }
                     }
 
                     $newOrder->setField('PRICE', $orderSumm);
