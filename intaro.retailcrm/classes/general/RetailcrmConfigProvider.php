@@ -519,7 +519,7 @@ class RetailcrmConfigProvider
 
         return static::$shops;
     }
-
+  
     /**
      * getShipmentDeducted
      *
@@ -532,6 +532,16 @@ class RetailcrmConfigProvider
         }
 
         return static::$shipmentDeducted;
+     }
+  
+    /**
+     * isPhoneRequired
+     *
+     * @return bool|string|null
+     */
+    public static function isPhoneRequired()
+    {
+        return COption::GetOptionString("main", "new_user_phone_required") === 'Y';
     }
 
     /**
