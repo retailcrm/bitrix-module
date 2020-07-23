@@ -60,6 +60,10 @@ if(!CModule::IncludeModule('intaro.retailcrm') || !CModule::IncludeModule('sale'
 $_GET['errc'] = htmlspecialchars(trim($_GET['errc']));
 $_GET['ok'] = htmlspecialchars(trim($_GET['ok']));
 
+if (RetailcrmConfigProvider::isPhoneRequired()) {
+    echo ShowMessage(array("TYPE"=>"ERROR", "MESSAGE"=>GetMessage('PHONE_REQUIRED')));
+}
+
 if($_GET['errc']) echo CAdminMessage::ShowMessage(GetMessage($_GET['errc']));
 if($_GET['ok'] && $_GET['ok'] == 'Y') echo CAdminMessage::ShowNote(GetMessage('ICRM_OPTIONS_OK'));
 

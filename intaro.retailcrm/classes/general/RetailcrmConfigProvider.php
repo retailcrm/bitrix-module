@@ -518,6 +518,16 @@ class RetailcrmConfigProvider
     }
 
     /**
+     * isPhoneRequired
+     *
+     * @return bool|string|null
+     */
+    public static function isPhoneRequired()
+    {
+        return COption::GetOptionString("main", "new_user_phone_required") === 'Y';
+    }
+
+    /**
      * Wraps Bitrix COption::GetOptionString(...)
      *
      * @param string $option
