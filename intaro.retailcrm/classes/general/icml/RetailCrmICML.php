@@ -332,7 +332,7 @@ class RetailCrmICML
 
                 if ($this->isLogged) {
                     $this->WriteLog(
-                        ($this->pageSize * $arNavStatParams['iNumPage'])
+                        count($elems)
                         . " product(s) has been loaded from " . $id . " IB (memory usage: " . memory_get_usage() . ")"
                     );
                 }
