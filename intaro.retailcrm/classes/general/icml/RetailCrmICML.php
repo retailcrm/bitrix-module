@@ -321,6 +321,7 @@ class RetailCrmICML
                         $basePriceId,
                         $id,
                         $iblockData,
+                        $iblockOffer,
                         $barcodes,
                         $highloadblockProductProps,
                         $highloadblockSkuProps,
@@ -350,6 +351,7 @@ class RetailCrmICML
      * @param string $basePriceId               Base price ID
      * @param string $iblockId                  iblock id
      * @param array  $iblock                    iblock data
+     * @param array  $iblockOffer               offer iblock
      * @param array  $barcodes                  Catalog barcodes
      * @param array  $highloadblockProductProps Product props
      * @param array  $highloadblockSkuProps     SKU props
@@ -363,6 +365,7 @@ class RetailCrmICML
         $basePriceId,
         $iblockId,
         $iblock,
+        $iblockOffer,
         $barcodes,
         $highloadblockProductProps,
         $highloadblockSkuProps,
