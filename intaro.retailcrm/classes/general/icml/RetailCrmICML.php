@@ -308,11 +308,10 @@ class RetailCrmICML
                     $elems[] = $obIds['ID'];
                 }
 
-                //foreach ($elems as $elemId) {
+                foreach ($elems as $elemId) {
                     $arFilter = array(
                         "IBLOCK_ID" => $id,
-                        "ID" => $elems
-                        //"ID" => array($elemId)
+                        "ID" => array($elemId)
                     );
 
                     $this->ProcessProductOffers(
@@ -328,7 +327,7 @@ class RetailCrmICML
                         $order,
                         $arFilter
                     );
-                //}
+                }
 
                 if ($this->isLogged) {
                     $this->WriteLog(
