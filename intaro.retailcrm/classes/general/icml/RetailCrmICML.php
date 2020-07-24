@@ -271,119 +271,28 @@ class RetailCrmICML
 
     protected function BuildOffers(&$allCategories)
     {
-        $basePriceId = COption::GetOptionString(
-            $this->MODULE_ID,
-            $this->CRM_CATALOG_BASE_PRICE . '_' . $this->profileID,
-            0
-        );
-
-        if (!$basePriceId) {
-            $dbPriceType = CCatalogGroup::GetList(
-                array(),
-                array('BASE' => 'Y'),
-                false,
-                false,
-                array('ID')
-            );
-
-            $result = $dbPriceType->GetNext();
-            $basePriceId = $result['ID'];
-        }
+        $basePriceId = $this->getBasePriceId();
 
         foreach ($this->iblocks as $key => $id) {
             $this->setSiteAddress($id);
-            $barcodes = array();
-
-            $dbBarCode = CCatalogStoreBarCode::getList(
-                array(),
-                array("IBLOCK_ID" => $id),
-                false,
-                false,
-                array('PRODUCT_ID', 'BARCODE')
-            );
-
-            while ($arBarCode = $dbBarCode->GetNext()) {
-                if (!empty($arBarCode)) {
-                    $barcodes[$arBarCode['PRODUCT_ID']] = $arBarCode['BARCODE'];
-                }
-            }
-
-            $highloadblockSkuProps = array();
-            $highloadblockProductProps = array();
-            $productProps = CIBlockproperty::GetList(array(), array("IBLOCK_ID" => $id));
-
-            while ($arrProductProps = $productProps->Fetch()) {
-
-                if ($arrProductProps["USER_TYPE"] == 'directory') {
-                    $highloadblockProductProps[$arrProductProps['CODE']] = $arrProductProps;
-                }
-            }
+            $barcodes = $this->getProductBarcodesByIblock($id);
 
             // Get Info by infoblocks
-            $iblock['IBLOCK_DB'] = CIBlock::GetByID($id)->Fetch();
+            $iblockData = CIBlock::GetByID($id)->Fetch();
             $iblockOffer = CCatalogSKU::GetInfoByProductIBlock($id);
-            $skuProps = CIBlockproperty::GetList(array(), array("IBLOCK_ID" => $iblockOffer['IBLOCK_ID']));
 
-            while ($arrSkuProps = $skuProps->Fetch()) {
-                if ($arrSkuProps["USER_TYPE"] == 'directory') {
-                    $highloadblockSkuProps[$arrSkuProps['CODE']] = $arrSkuProps;
-                }
-            }
+            $highloadblockSkuProps = $this->getAvailableHighloadOfferSkuProps($iblockOffer['IBLOCK_ID']);
+            $highloadblockProductProps = $this->getAvailableHighloadProductProps($id);
 
-            $arSelect = array(
-                "ID",
-                "LID",
-                "IBLOCK_ID",
-                "IBLOCK_SECTION_ID",
-                "ACTIVE",
-                "NAME",
-                "DETAIL_PICTURE",
-                "PREVIEW_PICTURE",
-                "DETAIL_PAGE_URL",
-                "CATALOG_GROUP_" . $basePriceId
-            );
-            // Set selected properties
-            foreach ($this->propertiesProduct[$id] as $key => $propProduct) {
-                if ($this->propertiesProduct[$id][$key] != "") {
-                    $arSelect[] = "PROPERTY_" . $propProduct;
-                    $arSelect[] = "PROPERTY_" . $propProduct . ".NAME";
-                }
-            }
-
-            if ($this->productPictures && isset($this->productPictures[$id])) {
-                $arSelect[] = "PROPERTY_" . $this->productPictures[$id]['picture'];
-                $arSelect[] = "PROPERTY_" . $this->productPictures[$id]['picture'] . ".NAME";
-            }
-
-            $arSelectOffer = array(
-                'ID',
-                "NAME",
-                "DETAIL_PAGE_URL",
-                "DETAIL_PICTURE",
-                "PREVIEW_PICTURE",
-                'PROPERTY_' . $iblockOffer['SKU_PROPERTY_ID'],
-                "CATALOG_GROUP_" . $basePriceId
-            );
-
-            // Set selected properties
-            foreach ($this->propertiesSKU[$id] as $key => $propSKU) {
-                if ($this->propertiesSKU[$id][$key] != "") {
-                    $arSelectOffer[] =  "PROPERTY_" . $propSKU;
-                    $arSelectOffer[] =  "PROPERTY_" . $propSKU . ".NAME";
-                }
-            }
-
-            if ($this->skuPictures && isset($this->skuPictures[$id])) {
-                $arSelectOffer[] = "PROPERTY_" . $this->skuPictures[$id]['picture'];
-                $arSelectOffer[] = "PROPERTY_" . $this->skuPictures[$id]['picture'] . ".NAME";
-            }
+            $arSelect = $this->buildProductQuery($id);
+            $arSelectOffer = $this->buildOfferQuery($id, $iblockOffer['SKU_PROPERTY_ID']);
 
             // Set filter
+            $order = array("id");
             $filter = array(
                 "IBLOCK_ID" => $id,
                 "ACTIVE" => 'Y',
             );
-            $order = array("id");
             $arNavStatParams = array(
                 "iNumPage" => 1,
                 "nPageSize" => $this->pageSize,
@@ -394,198 +303,226 @@ class RetailCrmICML
                 // Get products on this page
                 $elems = array();
                 $dbResProductsIds = CIBlockElement::GetList($order, $filter, false, $arNavStatParams, array('ID'));
+
                 while ($obIds = $dbResProductsIds->Fetch()) {
                     $elems[] = $obIds['ID'];
                 }
-                $arfilter = array(
-                    "IBLOCK_ID" => $id,
-                    "ID" => $elems
-                );
 
-                $dbResProducts = CIBlockElement::GetList($order, $arfilter, false, false, $arSelect);
-
-                $products = array();
-
-                while ($product = $dbResProducts->GetNext()) {
-                    // Compile products to array
-                    $products[$product['ID']] = $product;
-                    $products[$product['ID']]['offers'] = array();
-
-                }
-
-                unset($product);
-
-                if (!empty($iblockOffer['IBLOCK_ID'])) {
-                    $arFilterOffer = array(
-                        'IBLOCK_ID' => $iblockOffer['IBLOCK_ID'],
-                        'PROPERTY_' . $iblockOffer['SKU_PROPERTY_ID'] => array_keys($products),
+                foreach ($elems as $elemId) {
+                    $arFilter = array(
+                        "IBLOCK_ID" => $id,
+                        "ID" => array($elemId)
                     );
 
-                    // Get all offers for products on this page
-                    $dbResOffers = CIBlockElement::GetList(
-                        array(),
-                        $arFilterOffer,
-                        false,
-                        array('nTopCount' => $this->pageSize * $this->offerPageSize),
-                        $arSelectOffer
+                    $this->ProcessProductOffers(
+                        $arSelect,
+                        $arSelectOffer,
+                        $allCategories,
+                        $basePriceId,
+                        $id,
+                        $iblockData,
+                        $iblockOffer,
+                        $barcodes,
+                        $highloadblockProductProps,
+                        $highloadblockSkuProps,
+                        $order,
+                        $arFilter
                     );
-
-                    while ($offer = $dbResOffers->GetNext()) {
-                        // Link offers to products
-                        $products[$offer['PROPERTY_' . $iblockOffer['SKU_PROPERTY_ID'] . '_VALUE']]['offers'][$offer['ID']] = $offer;
-                    }
-                    unset($offer, $dbResOffers);
                 }
-
-                $stringOffers = "";
-                foreach ($products as $product) {
-                    if (CFile::GetPath($product["DETAIL_PICTURE"])) {
-                        $product['PICTURE'] = $this->protocol . $this->serverName . CFile::GetPath($product["DETAIL_PICTURE"]);
-                    } elseif (CFile::GetPath($product["PREVIEW_PICTURE"])){
-                        $product['PICTURE'] = $this->protocol . $this->serverName . CFile::GetPath($product["PREVIEW_PICTURE"]);
-                    } elseif (
-                        $this->productPictures
-                        && isset($this->productPictures[$id])
-                        && CFile::GetPath($product["PROPERTY_" . $this->productPictures[$id]['picture'] . "_VALUE"])
-                    ) {
-                        $picture = CFile::GetPath($product["PROPERTY_" . $this->productPictures[$id]['picture'] . "_VALUE"]);
-                        $product['PICTURE'] = $this->protocol . $this->serverName . $picture;
-                    }
-
-                    // Get properties of product
-                    $resPropertiesProduct = Array();
-                    foreach ($this->propertiesProduct[$id] as $key => $propProduct) {
-                        $resPropertiesProduct[$key] = "";
-
-                        if ($propProduct != "") {
-                            if (isset($product["PROPERTY_" . $propProduct . "_NAME"])) {
-                                $resPropertiesProduct[$key] =  $product["PROPERTY_" . $propProduct . "_NAME"];
-                            } elseif (isset($product["PROPERTY_" . $propProduct . "_VALUE"])) {
-                                $resPropertiesProduct[$key] =  $product["PROPERTY_" . $propProduct . "_VALUE"];
-                            } elseif (isset($product[$propProduct])) {
-                                $resPropertiesProduct[$key] =  $product[$propProduct];
-                            }
-
-                            if (array_key_exists($key, $this->propertiesUnitProduct[$id])) {
-                                $resPropertiesProduct[$key] *= $this->measurement[$this->propertiesUnitProduct[$id][$key]];
-                                $resPropertiesProduct[$key . "_UNIT"] = $this->measurementLink[$this->propertiesUnitProduct[$id][$key]];
-                            }
-
-                            if (isset($highloadblockProductProps[$propProduct])) {
-                                $propVal = $this->getHBprop($highloadblockProductProps[$propProduct], $product["PROPERTY_" . $propProduct . "_VALUE"]);
-                                $tableName = $highloadblockProductProps[$propProduct]['USER_TYPE_SETTINGS']['TABLE_NAME'];
-                                $field = $this->highloadblockProductProperties[$tableName][$id][$key];
-
-                                $resPropertiesProduct[$key] =  $propVal[$field];
-                            }
-                        }
-                    }
-
-                    // Get categories of product
-                    $categories = array();
-                    $dbResCategories = CIBlockElement::GetElementGroups($product['ID'], true);
-                    while ($arResCategory = $dbResCategories->Fetch()) {
-                        $categories[$arResCategory["ID"]] = array(
-                            'ID' => $arResCategory["ID"],
-                            'NAME' => $arResCategory["NAME"],
-                        );
-                    }
-                    if (count($categories) == 0) {
-                        $catId = $this->mainSection + $id;
-                        $categories[$catId] = $allCategories[$catId];
-                    }
-
-                    $existOffer = false;
-                    if (!empty($iblockOffer['IBLOCK_ID'])) {
-                        foreach ($product['offers'] as $offer) {
-                            $offer['BARCODE'] = isset($barcodes[$offer['ID']]) ? $barcodes[$offer['ID']] : '';
-                            $offer['PRODUCT_ID'] = $product["ID"];
-                            $offer['DETAIL_PAGE_URL'] = $product["DETAIL_PAGE_URL"];
-
-                            if (CFile::GetPath($offer["DETAIL_PICTURE"])) {
-                                $offer['PICTURE'] = $this->protocol . $this->serverName . CFile::GetPath($offer["DETAIL_PICTURE"]);
-                            } elseif (CFile::GetPath($offer["PREVIEW_PICTURE"])){
-                                $offer['PICTURE'] = $this->protocol . $this->serverName . CFile::GetPath($offer["PREVIEW_PICTURE"]);
-                            } elseif (
-                                $this->skuPictures
-                                && isset($this->skuPictures[$id])
-                                && CFile::GetPath($offer["PROPERTY_" . $this->skuPictures[$id]['picture'] . "_VALUE"])
-                            ) {
-                                $picture = CFile::GetPath($offer["PROPERTY_" . $this->skuPictures[$id]['picture'] . "_VALUE"]);
-                                $offer['PICTURE'] = $this->protocol . $this->serverName . $picture;
-                            } else {
-                                $offer['PICTURE'] = $product['PICTURE'];
-                            }
-
-                            $offer['PRODUCT_NAME'] = $product["NAME"];
-                            $offer['PRODUCT_ACTIVE'] = $product["ACTIVE"];
-                            $offer['PRICE'] = $offer['CATALOG_PRICE_' . $basePriceId];
-                            $offer['PURCHASE_PRICE'] = $offer['CATALOG_PURCHASING_PRICE'];
-                            $offer['QUANTITY'] = $offer["CATALOG_QUANTITY"];
-
-                            // Get properties of product
-                            foreach ($this->propertiesSKU[$id] as $key => $propSKU) {
-                                if ($propSKU != "") {
-                                    if (isset ($offer["PROPERTY_" . $propSKU . "_NAME"])) {
-                                        $offer['_PROP_' . $key] =  $offer["PROPERTY_" . $propSKU . "_NAME"];
-                                    } elseif (isset($offer["PROPERTY_" . $propSKU . "_VALUE"])) {
-                                        $offer['_PROP_' . $key] =  $offer["PROPERTY_" . $propSKU . "_VALUE"];
-                                    } elseif (isset($offer[$propSKU])) {
-                                        $offer['_PROP_' . $key] = $offer[$propSKU];
-                                    }
-                                    if (array_key_exists($key, $this->propertiesUnitSKU[$id])) {
-                                        $offer['_PROP_' . $key] *= $this->measurement[$this->propertiesUnitSKU[$id][$key]];
-                                        $offer['_PROP_' . $key . "_UNIT"] = $this->measurementLink[$this->propertiesUnitSKU[$id][$key]];
-                                    }
-                                    if (isset($highloadblockSkuProps[$propSKU])) {
-                                        $propVal = $this->getHBprop($highloadblockSkuProps[$propSKU], $offer["PROPERTY_" . $propSKU . "_VALUE"]);
-                                        $tableName = $highloadblockSkuProps[$propSKU]['USER_TYPE_SETTINGS']['TABLE_NAME'];
-                                        $field = $this->highloadblockSkuProperties[$tableName][$id][$key];
-                                        $offer['_PROP_' . $key] = $propVal[$field];
-                                    }
-                                }
-                            }
-
-                            foreach ($resPropertiesProduct as $key => $propProduct) {
-                                if ($this->propertiesProduct[$id][$key] != "" && !isset($offer[$key])) {
-                                    $offer['_PROP_' . $key] =  $propProduct;
-                                }
-                            }
-
-                            $stringOffers .= $this->BuildOffer($offer, $categories, $iblock, $allCategories);
-                            $existOffer = true;
-                        }
-                    }
-                    if (!$existOffer) {
-                        $offer['BARCODE'] = isset($barcodes[$product["ID"]]) ? $barcodes[$product["ID"]] : '';
-                        $product['PRODUCT_ID'] = $product["ID"];
-                        $product['PRODUCT_NAME'] = $product["NAME"];
-                        $product['PRODUCT_ACTIVE'] = $product["ACTIVE"];
-                        $product['PRICE'] = $product['CATALOG_PRICE_' . $basePriceId];
-                        $product['PURCHASE_PRICE'] = $product['CATALOG_PURCHASING_PRICE'];
-                        $product['QUANTITY'] = $product["CATALOG_QUANTITY"];
-
-                        foreach ($resPropertiesProduct as $key => $propProduct) {
-                            if ($this->propertiesProduct[$id][$key] != "" || $this->propertiesProduct[$id][str_replace("_UNIT", "", $key)] != "") {
-                                $product['_PROP_' . $key] =  $propProduct;
-                            }
-                        }
-
-                        $stringOffers .= $this->BuildOffer($product, $categories, $iblock, $allCategories);
-                    }
-                }
-                unset($products);
 
                 if ($this->isLogged) {
-                    $this->WriteLog(($this->pageSize * $arNavStatParams['iNumPage']) . " product(s) has been loaded from " . $id . " IB (memory usage: " . memory_get_usage() . ")");
-                }
-                if ($stringOffers != "") {
-                    $this->WriteOffers($stringOffers);
-                    $stringOffers = "";
+                    $this->WriteLog(
+                        count($elems)
+                        . " product(s) has been loaded from " . $id . " IB (memory usage: " . memory_get_usage() . ")"
+                    );
                 }
 
                 $arNavStatParams['iNumPage'] = $dbResProductsIds->NavPageNomer + 1;
             } while ($dbResProductsIds->NavPageNomer < $dbResProductsIds->NavPageCount);
+        }
+    }
+
+    /**
+     * Process offers for a single product
+     *
+     * @param array  $arSelect                  Properties to select for order
+     * @param array  $arSelectOffer             Properties to select for offer
+     * @param array  $allCategories             Categories to pick data from
+     * @param string $basePriceId               Base price ID
+     * @param string $iblockId                  iblock id
+     * @param array  $iblock                    iblock data
+     * @param array  $iblockOffer               offer iblock
+     * @param array  $barcodes                  Catalog barcodes
+     * @param array  $highloadblockProductProps Product props
+     * @param array  $highloadblockSkuProps     SKU props
+     * @param array  $order                     Order data
+     * @param array  $arFilter                  filter
+     */
+    protected function ProcessProductOffers(
+        $arSelect,
+        $arSelectOffer,
+        $allCategories,
+        $basePriceId,
+        $iblockId,
+        $iblock,
+        $iblockOffer,
+        $barcodes,
+        $highloadblockProductProps,
+        $highloadblockSkuProps,
+        $order,
+        $arFilter
+    ) {
+        $dbResProducts = CIBlockElement::GetList($order, $arFilter, false, false, $arSelect);
+
+        $products = array();
+
+        while ($product = $dbResProducts->GetNext()) {
+            // Compile products to array
+            $products[$product['ID']] = $product;
+            $products[$product['ID']]['offers'] = array();
+
+        }
+
+        unset($product);
+
+        if (!empty($iblockOffer['IBLOCK_ID'])) {
+            $arFilterOffer = array(
+                'IBLOCK_ID' => $iblockOffer['IBLOCK_ID'],
+                'PROPERTY_' . $iblockOffer['SKU_PROPERTY_ID'] => array_keys($products),
+            );
+
+            // Get all offers for products on this page
+            $dbResOffers = CIBlockElement::GetList(
+                array(),
+                $arFilterOffer,
+                false,
+                array('nTopCount' => $this->pageSize * $this->offerPageSize),
+                $arSelectOffer
+            );
+
+            while ($offer = $dbResOffers->GetNext()) {
+                // Link offers to products
+                $products[$offer['PROPERTY_' . $iblockOffer['SKU_PROPERTY_ID'] . '_VALUE']]['offers'][$offer['ID']] = $offer;
+            }
+
+            unset($offer, $dbResOffers);
+        }
+
+        foreach ($products as $product) {
+            $product['PICTURE'] = $this->getProductPicture($iblockId, $product);
+            $resPropertiesProduct = $this->getProductProperties($iblockId, $highloadblockProductProps, $product);
+            $categories = $this->getProductCategories($allCategories, $iblockId, $product['ID']);
+
+            $existOffer = false;
+            if (!empty($iblockOffer['IBLOCK_ID'])) {
+                foreach ($product['offers'] as $offer) {
+                    $offer['BARCODE'] = isset($barcodes[$offer['ID']]) ? $barcodes[$offer['ID']] : '';
+                    $offer['PRODUCT_ID'] = $product["ID"];
+                    $offer['DETAIL_PAGE_URL'] = $product["DETAIL_PAGE_URL"];
+
+                    if (CFile::GetPath($offer["DETAIL_PICTURE"])) {
+                        $offer['PICTURE'] = $this->protocol . $this->serverName . CFile::GetPath($offer["DETAIL_PICTURE"]);
+                    } elseif (CFile::GetPath($offer["PREVIEW_PICTURE"])){
+                        $offer['PICTURE'] = $this->protocol . $this->serverName . CFile::GetPath($offer["PREVIEW_PICTURE"]);
+                    } elseif (
+                        $this->skuPictures
+                        && isset($this->skuPictures[$iblockId])
+                        && CFile::GetPath($offer["PROPERTY_" . $this->skuPictures[$iblockId]['picture'] . "_VALUE"])
+                    ) {
+                        $picture = CFile::GetPath($offer["PROPERTY_" . $this->skuPictures[$iblockId]['picture'] . "_VALUE"]);
+                        $offer['PICTURE'] = $this->protocol . $this->serverName . $picture;
+                    } else {
+                        $offer['PICTURE'] = $product['PICTURE'];
+                    }
+
+                    $offer['PRODUCT_NAME'] = $product["NAME"];
+                    $offer['PRODUCT_ACTIVE'] = $product["ACTIVE"];
+                    $offer['PRICE'] = $offer['CATALOG_PRICE_' . $basePriceId];
+                    $offer['PURCHASE_PRICE'] = $offer['CATALOG_PURCHASING_PRICE'];
+                    $offer['QUANTITY'] = $offer["CATALOG_QUANTITY"];
+
+                    // Get properties of product
+                    foreach ($this->propertiesSKU[$iblockId] as $key => $propSKU) {
+                        if ($propSKU != "") {
+                            if (isset ($offer["PROPERTY_" . $propSKU . "_NAME"])) {
+                                $offer['_PROP_' . $key] =  $offer["PROPERTY_" . $propSKU . "_NAME"];
+                            } elseif (isset($offer["PROPERTY_" . $propSKU . "_VALUE"])) {
+                                $offer['_PROP_' . $key] =  $offer["PROPERTY_" . $propSKU . "_VALUE"];
+                            } elseif (isset($offer[$propSKU])) {
+                                $offer['_PROP_' . $key] = $offer[$propSKU];
+                            }
+                            if (array_key_exists($key, $this->propertiesUnitSKU[$iblockId])) {
+                                $offer['_PROP_' . $key] *= $this->measurement[$this->propertiesUnitSKU[$iblockId][$key]];
+                                $offer['_PROP_' . $key . "_UNIT"] = $this->measurementLink[$this->propertiesUnitSKU[$iblockId][$key]];
+                            }
+                            if (isset($highloadblockSkuProps[$propSKU])) {
+                                $propVal = $this->getHBprop($highloadblockSkuProps[$propSKU], $offer["PROPERTY_" . $propSKU . "_VALUE"]);
+                                $tableName = $highloadblockSkuProps[$propSKU]['USER_TYPE_SETTINGS']['TABLE_NAME'];
+                                $field = $this->highloadblockSkuProperties[$tableName][$iblockId][$key];
+                                $offer['_PROP_' . $key] = $propVal[$field];
+                            }
+                        }
+                    }
+
+                    foreach ($resPropertiesProduct as $key => $propProduct) {
+                        if ($this->propertiesProduct[$iblockId][$key] != "" && !isset($offer[$key])) {
+                            $offer['_PROP_' . $key] =  $propProduct;
+                        }
+                    }
+
+                    $this->PutOffer($offer, $categories, $iblock, $allCategories);
+                    $existOffer = true;
+                }
+            }
+
+            if (!$existOffer) {
+                $offer['BARCODE'] = isset($barcodes[$product["ID"]]) ? $barcodes[$product["ID"]] : '';
+                $product['PRODUCT_ID'] = $product["ID"];
+                $product['PRODUCT_NAME'] = $product["NAME"];
+                $product['PRODUCT_ACTIVE'] = $product["ACTIVE"];
+                $product['PRICE'] = $product['CATALOG_PRICE_' . $basePriceId];
+                $product['PURCHASE_PRICE'] = $product['CATALOG_PURCHASING_PRICE'];
+                $product['QUANTITY'] = $product["CATALOG_QUANTITY"];
+
+                foreach ($resPropertiesProduct as $key => $propProduct) {
+                    if ($this->propertiesProduct[$iblockId][$key] != "" || $this->propertiesProduct[$iblockId][str_replace("_UNIT", "", $key)] != "") {
+                        $product['_PROP_' . $key] =  $propProduct;
+                    }
+                }
+
+                $this->PutOffer($product, $categories, $iblock, $allCategories);
+            }
+        }
+
+        unset($products);
+    }
+
+    protected function getProductPicture($iblockId, array $product)
+    {
+        $picture = '';
+
+        if (CFile::GetPath($product["DETAIL_PICTURE"])) {
+            $picture = $this->protocol . $this->serverName . CFile::GetPath($product["DETAIL_PICTURE"]);
+        } elseif (CFile::GetPath($product["PREVIEW_PICTURE"])){
+            $picture= $this->protocol . $this->serverName . CFile::GetPath($product["PREVIEW_PICTURE"]);
+        } elseif (
+            $this->productPictures
+            && isset($this->productPictures[$iblockId])
+            && CFile::GetPath($product["PROPERTY_" . $this->productPictures[$iblockId]['picture'] . "_VALUE"])
+        ) {
+            $file = CFile::GetPath($product["PROPERTY_" . $this->productPictures[$iblockId]['picture'] . "_VALUE"]);
+            $picture = $this->protocol . $this->serverName . $file;
+        }
+
+        return $picture;
+    }
+
+    protected function PutOffer($arOffer, $categories, $iblock, &$allCategories)
+    {
+        $offerData = $this->BuildOffer($arOffer, $categories, $iblock, $allCategories);
+
+        if ($offerData !== "") {
+            $this->WriteOffers($offerData);
         }
     }
 
@@ -645,7 +582,7 @@ class RetailCrmICML
         $offer .= "<xmlId>" . $this->PrepareValue($arOffer["EXTERNAL_ID"]) . "</xmlId>\n";
         $offer .= "<productName>" . $this->PrepareValue($arOffer["PRODUCT_NAME"]) . "</productName>\n";
 
-        foreach ($this->propertiesProduct[$iblock['IBLOCK_DB']['ID']] as $key => $propProduct) {
+        foreach ($this->propertiesProduct[$iblock['ID']] as $key => $propProduct) {
             if ($propProduct != "" && $arOffer['_PROP_' . $key] != null) {
                 if ($key === "manufacturer") {
                     $offer .= "<vendor>" . $this->PrepareValue($arOffer['_PROP_' . $key]) . "</vendor>\n";
@@ -660,7 +597,7 @@ class RetailCrmICML
                 }
             }
         }
-        foreach ($this->propertiesSKU[$iblock['IBLOCK_DB']['ID']] as $key => $propProduct) {
+        foreach ($this->propertiesSKU[$iblock['ID']] as $key => $propProduct) {
             if ($propProduct != "" && $arOffer['_PROP_' . $key] != null) {
                 if ($key === "manufacturer") {
                     $offer .= "<vendor>" . $this->PrepareValue($arOffer['_PROP_' . $key]) . "</vendor>\n";
@@ -727,6 +664,220 @@ class RetailCrmICML
         }
 
         return array();
+    }
+
+    /**
+     * Returns products IDs with barcodes by infoblock id
+     *
+     * @param int $iblockId
+     *
+     * @return array
+     */
+    private function getProductBarcodesByIblock($iblockId)
+    {
+        $barcodes = array();
+        $dbBarCode = CCatalogStoreBarCode::getList(
+            array(),
+            array("IBLOCK_ID" => $iblockId),
+            false,
+            false,
+            array('PRODUCT_ID', 'BARCODE')
+        );
+
+        while ($arBarCode = $dbBarCode->GetNext()) {
+            if (!empty($arBarCode)) {
+                $barcodes[$arBarCode['PRODUCT_ID']] = $arBarCode['BARCODE'];
+            }
+        }
+
+        return $barcodes;
+    }
+
+    /**
+     * Returns necessary product properties
+     *
+     * @param int   $iblockId
+     * @param array $highloadblockProductProps
+     * @param array $product
+     *
+     * @return array
+     */
+    private function getProductProperties($iblockId, $highloadblockProductProps, $product)
+    {
+        // Get properties of product
+        $resPropertiesProduct = array();
+
+        foreach ($this->propertiesProduct[$iblockId] as $key => $propProduct) {
+            $resPropertiesProduct[$key] = "";
+
+            if ($propProduct != "") {
+                if (isset($product["PROPERTY_" . $propProduct . "_NAME"])) {
+                    $resPropertiesProduct[$key] =  $product["PROPERTY_" . $propProduct . "_NAME"];
+                } elseif (isset($product["PROPERTY_" . $propProduct . "_VALUE"])) {
+                    $resPropertiesProduct[$key] =  $product["PROPERTY_" . $propProduct . "_VALUE"];
+                } elseif (isset($product[$propProduct])) {
+                    $resPropertiesProduct[$key] =  $product[$propProduct];
+                }
+
+                if (array_key_exists($key, $this->propertiesUnitProduct[$iblockId])) {
+                    $resPropertiesProduct[$key] *= $this->measurement[$this->propertiesUnitProduct[$iblockId][$key]];
+                    $resPropertiesProduct[$key . "_UNIT"] = $this->measurementLink[$this->propertiesUnitProduct[$iblockId][$key]];
+                }
+
+                if (isset($highloadblockProductProps[$propProduct])) {
+                    $propVal = $this->getHBprop($highloadblockProductProps[$propProduct], $product["PROPERTY_" . $propProduct . "_VALUE"]);
+                    $tableName = $highloadblockProductProps[$propProduct]['USER_TYPE_SETTINGS']['TABLE_NAME'];
+                    $field = $this->highloadblockProductProperties[$tableName][$iblockId][$key];
+
+                    $resPropertiesProduct[$key] =  $propVal[$field];
+                }
+            }
+        }
+
+        return $resPropertiesProduct;
+    }
+
+    /**
+     * @param array  $allCategories
+     * @param int    $iblockId
+     * @param string $productId
+     *
+     * @return array
+     */
+    private function getProductCategories(&$allCategories, $iblockId, $productId)
+    {
+        $categories = array();
+        $dbResCategories = CIBlockElement::GetElementGroups($productId, true);
+
+        while ($arResCategory = $dbResCategories->Fetch()) {
+            $categories[$arResCategory["ID"]] = array(
+                'ID' => $arResCategory["ID"],
+                'NAME' => $arResCategory["NAME"],
+            );
+        }
+
+        if (count($categories) == 0) {
+            $catId = $this->mainSection + $iblockId;
+            $categories[$catId] = $allCategories[$catId];
+        }
+
+        return $categories;
+    }
+
+    private function buildProductQuery($iblockId)
+    {
+        $arSelect = array(
+            "ID",
+            "LID",
+            "IBLOCK_ID",
+            "IBLOCK_SECTION_ID",
+            "ACTIVE",
+            "NAME",
+            "DETAIL_PICTURE",
+            "PREVIEW_PICTURE",
+            "DETAIL_PAGE_URL",
+            "CATALOG_GROUP_" . $this->getBasePriceId()
+        );
+
+        // Set selected properties
+        foreach ($this->propertiesProduct[$iblockId] as $key => $propProduct) {
+            if ($this->propertiesProduct[$iblockId][$key] != "") {
+                $arSelect[] = "PROPERTY_" . $propProduct;
+                $arSelect[] = "PROPERTY_" . $propProduct . ".NAME";
+            }
+        }
+
+        if ($this->productPictures && isset($this->productPictures[$iblockId])) {
+            $arSelect[] = "PROPERTY_" . $this->productPictures[$iblockId]['picture'];
+            $arSelect[] = "PROPERTY_" . $this->productPictures[$iblockId]['picture'] . ".NAME";
+        }
+
+        return $arSelect;
+    }
+
+    private function buildOfferQuery($iblockId, $skuPropertyId)
+    {
+        $arSelectOffer = array(
+            'ID',
+            "NAME",
+            "DETAIL_PAGE_URL",
+            "DETAIL_PICTURE",
+            "PREVIEW_PICTURE",
+            'PROPERTY_' . $skuPropertyId,
+            "CATALOG_GROUP_" . $this->getBasePriceId()
+        );
+
+        // Set selected properties
+        foreach ($this->propertiesSKU[$iblockId] as $key => $propSKU) {
+            if ($this->propertiesSKU[$iblockId][$key] != "") {
+                $arSelectOffer[] =  "PROPERTY_" . $propSKU;
+                $arSelectOffer[] =  "PROPERTY_" . $propSKU . ".NAME";
+            }
+        }
+
+        if ($this->skuPictures && isset($this->skuPictures[$iblockId])) {
+            $arSelectOffer[] = "PROPERTY_" . $this->skuPictures[$iblockId]['picture'];
+            $arSelectOffer[] = "PROPERTY_" . $this->skuPictures[$iblockId]['picture'] . ".NAME";
+        }
+
+        return $arSelectOffer;
+    }
+
+    private function getAvailableHighloadProductProps($iblockId)
+    {
+        $highloadblockProductProps = array();
+        $productProps = CIBlockproperty::GetList(array(), array("IBLOCK_ID" => $iblockId));
+
+        while ($arrProductProps = $productProps->Fetch()) {
+            if ($arrProductProps["USER_TYPE"] == 'directory') {
+                $highloadblockProductProps[$arrProductProps['CODE']] = $arrProductProps;
+            }
+        }
+
+        return $highloadblockProductProps;
+    }
+
+    private function getAvailableHighloadOfferSkuProps($iblockId)
+    {
+        $highloadblockSkuProps = array();
+        $skuProps = CIBlockproperty::GetList(array(), array("IBLOCK_ID" => $iblockId));
+
+        while ($arrSkuProps = $skuProps->Fetch()) {
+            if ($arrSkuProps["USER_TYPE"] == 'directory') {
+                $highloadblockSkuProps[$arrSkuProps['CODE']] = $arrSkuProps;
+            }
+        }
+
+        return $highloadblockSkuProps;
+    }
+
+    /**
+     * Returns base price id
+     *
+     * @return string
+     */
+    private function getBasePriceId()
+    {
+        $basePriceId = COption::GetOptionString(
+            $this->MODULE_ID,
+            $this->CRM_CATALOG_BASE_PRICE . '_' . $this->profileID,
+            0
+        );
+
+        if (!$basePriceId) {
+            $dbPriceType = CCatalogGroup::GetList(
+                array(),
+                array('BASE' => 'Y'),
+                false,
+                false,
+                array('ID')
+            );
+
+            $result = $dbPriceType->GetNext();
+            $basePriceId = $result['ID'];
+        }
+
+        return $basePriceId;
     }
 
     private function getLocalizedIBlockProps()
