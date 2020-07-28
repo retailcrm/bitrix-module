@@ -46,6 +46,10 @@ class StrategyFactory
             return new Serialize\SimpleTypeStrategy();
         }
 
+        if (static::isDateTime($dataType)) {
+            return (new Serialize\DateTimeStrategy())->setInnerType(\DateTime::RFC3339);
+        }
+
         // TODO: DateTime<format> strategy and array<valueType>, array<keyType, valueType> strategies
 
         return new Serialize\EntityStrategy();
@@ -58,14 +62,30 @@ class StrategyFactory
      */
     public static function deserializeStrategyByType(string $dataType): DeserializeStrategyInterface
     {
-        print_r($dataType);
-
         if (in_array($dataType, static::$simpleTypes)) {
             return new Deserialize\SimpleTypeStrategy();
         }
 
+        if (static::isDateTime($dataType)) {
+            return (new Deserialize\DateTimeStrategy())->setInnerType(\DateTime::RFC3339);
+        }
+
         // TODO: DateTime<format> strategy and array<valueType>, array<keyType, valueType> strategies
-        
+
         return new Deserialize\EntityStrategy();
+    }
+
+    /**
+     * Returns true if provided type is DateTime
+     *
+     * @param string $dataType
+     *
+     * @return bool
+     */
+    private static function isDateTime(string $dataType): bool
+    {
+        return strlen($dataType) > 1
+            && (\DateTime::class === $dataType
+                || ('\\' === $dataType[0] && \DateTime::class === substr($dataType, 1)));
     }
 }

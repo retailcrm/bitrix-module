@@ -12,9 +12,6 @@
  */
 namespace Intaro\RetailCrm\Model;
 
-use Intaro\RetailCrm\Component\Json\Mapping\Accessor;
-use Intaro\RetailCrm\Component\Json\Mapping\Name;
-
 /**
  * Class Customer
  * TODO: Create necessary models for retailCRM entities
