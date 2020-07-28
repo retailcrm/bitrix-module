@@ -12,6 +12,7 @@
  */
 namespace Intaro\RetailCrm\Model;
 
+use Intaro\RetailCrm\Component\Json\Mapping\Accessor;
 use Intaro\RetailCrm\Component\Json\Mapping\Name;
 
 /**
@@ -38,6 +39,14 @@ class Customer
     private $isContact = false;
 
     /**
+     * @return int
+     */
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
+    /**
      * @param int $id
      *
      * @return Customer
@@ -49,6 +58,14 @@ class Customer
     }
 
     /**
+     * @return string
+     */
+    public function getExternalId(): string
+    {
+        return $this->externalId;
+    }
+
+    /**
      * @param string $externalId
      *
      * @return Customer
@@ -57,6 +74,14 @@ class Customer
     {
         $this->externalId = $externalId;
         return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isContact(): bool
+    {
+        return $this->isContact;
     }
 
     /**

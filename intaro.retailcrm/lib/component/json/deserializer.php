@@ -12,9 +12,7 @@
  */
 namespace Intaro\RetailCrm\Component\Json;
 
-use Intaro\RetailCrm\Component\Json\Mapping\JsonProperty;
-use Intaro\RetailCrm\Component\Json\Mapping\Name;
-use Intaro\RetailCrm\Component\Json\Mapping\Type;
+use Intaro\RetailCrm\Component\Json\Strategy\StrategyFactory;
 use RetailCrm\Exception\InvalidJsonException;
 
 /**
@@ -24,68 +22,31 @@ use RetailCrm\Exception\InvalidJsonException;
  */
 class Deserializer
 {
-    use AnnotationReaderTrait;
-
     /**
+     * @param string $type
      * @param string $json
-     * @param string $className
      *
      * @return mixed
-     * @throws \ReflectionException
      */
-    public static function deserialize(string $json, string $className)
+    public static function deserialize(string $type, $json)
     {
-        return static::deserializeArray(json_decode($json, true), $className);
+        $result = json_decode($json, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new InvalidJsonException(json_last_error_msg(), json_last_error());
+        }
+
+        return static::deserializeArray($type, $result);
     }
 
     /**
-     * @param array  $data
-     * @param string $className
+     * @param string $type
+     * @param array  $value
      *
      * @return mixed
-     * @throws \ReflectionException
      */
-    public static function deserializeArray(array $data, string $className)
+    public static function deserializeArray(string $type, array $value)
     {
-        $reflection = new \ReflectionClass($className);
-        $instance = new $className();
-
-        foreach ($reflection->getProperties() as $property) {
-            static::deserializeProperty($instance, $property, $data);
-        }
-
-        return $instance;
-    }
-
-    /**
-     * @param object              $object
-     * @param \ReflectionProperty $property
-     * @param array               $data
-     *
-     * @throws \ReflectionException
-     */
-    protected static function deserializeProperty($object, \ReflectionProperty $property, array $data)
-    {
-        $property->setAccessible(true);
-
-        $name = $property->getName();
-        $fqcn = '';
-
-        $nameData = static::annotationReader()->getPropertyAnnotation($property, Name::class);
-        $fqcnData = static::annotationReader()->getPropertyAnnotation($property, Type::class);
-
-        if ($nameData instanceof Name) {
-            $name = !empty($nameData->name) ? $nameData->name : $name;
-        }
-
-        if ($fqcnData instanceof Type) {
-            $fqcn = $fqcnData->type;
-        }
-
-        if (empty($fqcn)) {
-            $property->setValue($object, $data[$name]);
-        } else {
-            $property->setValue($object, static::deserializeArray($data[$name], $fqcn));
-        }
+        return StrategyFactory::deserializeStrategyByType($type)->deserialize($type, $value);
     }
 }
