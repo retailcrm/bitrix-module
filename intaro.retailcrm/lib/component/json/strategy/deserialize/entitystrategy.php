@@ -41,6 +41,16 @@ class EntityStrategy implements DeserializeStrategyInterface
         $reflection = new \ReflectionClass($type);
         $instance = new $type();
 
+        if (!$reflection->isUserDefined()) {
+            if (is_iterable($value)) {
+                foreach ($value as $field => $content) {
+                    $instance->$field = $content;
+                }
+            }
+
+            return $instance;
+        }
+
         foreach ($reflection->getProperties() as $property) {
             static::deserializeProperty($instance, $property, $value);
         }

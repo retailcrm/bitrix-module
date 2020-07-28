@@ -36,9 +36,13 @@ class EntityStrategy implements SerializeStrategyInterface
     public function serialize($value)
     {
         $result = [];
-        $ref = new \ReflectionClass(get_class($value));
+        $reflection = new \ReflectionClass(get_class($value));
 
-        foreach ($ref->getProperties() as $property) {
+        if (!$reflection->isUserDefined()) {
+            return (array) $value;
+        }
+
+        foreach ($reflection->getProperties() as $property) {
             static::serializeProperty($value, $property, $result);
         }
 
