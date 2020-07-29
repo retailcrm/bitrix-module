@@ -63,12 +63,32 @@ class Customer extends AbstractApiModel
     /**
      * Контактное лицо корпоративного клиента является основным
      *
-     * @var string $isMain
+     * @var bool $isMain
      *
      * @Mapping\Type("boolean")
      * @Mapping\SerializedName("isMain")
      */
     public $isMain;
+
+    /**
+     * Индикатор подписки на рассылку
+     *
+     * @var bool $subscribed
+     *
+     * @Mapping\Type("boolean")
+     * @Mapping\SerializedName("subscribed")
+     */
+    public $subscribed;
+
+    /**
+     * Кука Daemon Collector
+     *
+     * @var bool $browserId
+     *
+     * @Mapping\Type("string")
+     * @Mapping\SerializedName("browserId")
+     */
+    public $browserId;
 
     /**
      * Является ли клиент контактным лицом корпоративного клиента

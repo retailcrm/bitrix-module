@@ -11,7 +11,9 @@
  */
 namespace Intaro\RetailCrm\Model\Bitrix;
 
+use Bitrix\Main\ORM\Objectify\EntityObject;
 use Bitrix\Main\Type\DateTime;
+use Bitrix\Sale\FuserTable;
 
 /**
  * Class Fuser
@@ -33,4 +35,13 @@ use Bitrix\Main\Type\DateTime;
  */
 class Fuser extends AbstractModelProxy
 {
+    /**
+     * @return \Bitrix\Main\ORM\Objectify\EntityObject|null
+     * @throws \Bitrix\Main\ArgumentException
+     * @throws \Bitrix\Main\SystemException
+     */
+    protected static function newObject(): ?EntityObject
+    {
+        return FuserTable::createObject();
+    }
 }

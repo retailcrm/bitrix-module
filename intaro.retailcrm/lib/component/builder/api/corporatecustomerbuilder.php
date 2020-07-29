@@ -32,6 +32,15 @@ class CorporateCustomerBuilder implements BuilderInterface
     /**
      * @inheritDoc
      */
+    public function reset(): BuilderInterface
+    {
+        // TODO: Implement reset() method.
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getResult()
     {
         // TODO: Implement getResult() method.

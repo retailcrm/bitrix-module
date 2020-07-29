@@ -31,7 +31,7 @@ class Deserializer
      *
      * @return mixed
      */
-    public static function deserialize(string $type, $json)
+    public static function deserialize(string $json, string $type)
     {
         $result = json_decode($json, true);
 
@@ -39,7 +39,7 @@ class Deserializer
             throw new InvalidJsonException(json_last_error_msg(), json_last_error());
         }
 
-        return static::deserializeArray($type, $result);
+        return static::deserializeArray($result, $type);
     }
 
     /**
@@ -48,7 +48,7 @@ class Deserializer
      *
      * @return mixed
      */
-    public static function deserializeArray(string $type, array $value)
+    public static function deserializeArray(array $value, string $type)
     {
         $result = StrategyFactory::deserializeStrategyByType($type)->deserialize($type, $value);
 

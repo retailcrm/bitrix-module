@@ -306,6 +306,25 @@ class ConfigProvider
     }
 
     /**
+     * Returns contragent type for provided person type (PERSON_TYPE_ID in the Bitrix order).
+     * Returns null if nothing was found.
+     *
+     * @param string $personTypeId
+     *
+     * @return string|null
+     */
+    public static function getContragentTypeForPersonType(string $personTypeId): ?string
+    {
+        $personTypes = static::getContragentTypes();
+
+        if (!empty($personTypes[$personTypeId])) {
+            return $personTypes[$personTypeId];
+        }
+
+        return null;
+    }
+
+    /**
      * getCustomFields
      *
      * @return array

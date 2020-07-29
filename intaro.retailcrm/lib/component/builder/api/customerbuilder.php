@@ -11,6 +11,15 @@
  */
 namespace Intaro\RetailCrm\Component\Builder\Api;
 
+use Intaro\RetailCrm\Component\Builder\Exception\BuilderException;
+use Intaro\RetailCrm\Component\CollectorCookieExtractor;
+use Intaro\RetailCrm\Component\ConfigProvider;
+use Intaro\RetailCrm\Component\Converter\DateTimeConverter;
+use Intaro\RetailCrm\Model\Api\Address;
+use Intaro\RetailCrm\Model\Api\Contragent;
+use Intaro\RetailCrm\Model\Api\Customer;
+use Intaro\RetailCrm\Model\Api\Phone;
+use Intaro\RetailCrm\Model\Bitrix\User;
 use Intaro\RetailCrm\Component\Builder\BuilderInterface;
 
 /**
@@ -20,13 +29,130 @@ use Intaro\RetailCrm\Component\Builder\BuilderInterface;
  */
 class CustomerBuilder implements BuilderInterface
 {
+    /** @var \Intaro\RetailCrm\Model\Bitrix\User $user */
+    private $user;
+
+    /** @var \Intaro\RetailCrm\Model\Api\Customer $customer */
+    private $customer;
+
+    /** @var string $personTypeId */
+    private $personTypeId;
+
     /**
      * @inheritDoc
      */
     public function build(): BuilderInterface
     {
-        // TODO: Implement build() method.
+        $contragentType = ConfigProvider::getContragentTypeForPersonType($this->personTypeId);
+
+        if (null === $contragentType) {
+            throw new BuilderException(sprintf(
+                'Cannot find corresponding contragent type for PERSON_TYPE_ID `%s`',
+                $this->personTypeId
+            ));
+        }
+
+        $this->buildBase($contragentType);
+        $this->buildNames();
+        $this->buildPhones();
+        $this->buildAddress();
+        $this->buildDaemonCollectorId();
+
         return $this;
+    }
+
+    /**
+     * Create base customer with initial data.
+     *
+     * @param string $contragentType
+     */
+    protected function buildBase(string $contragentType): void
+    {
+        $this->customer = new Customer();
+        $this->customer->contragent = new Contragent();
+        $this->customer->contragent->contragentType = $contragentType;
+
+        $this->customer->externalId = $this->user->getId();
+        $this->customer->email = $this->user->getEmail();
+        $this->customer->createdAt = DateTimeConverter::bitrixToPhp($this->user->getDateRegister());
+        $this->customer->subscribed = false;
+    }
+
+    /**
+     * Build names.
+     */
+    protected function buildNames(): void
+    {
+        $this->customer->firstName = $this->user->getName();
+        $this->customer->lastName = $this->user->getLastName();
+        $this->customer->patronymic = $this->user->getSecondName();
+    }
+
+    /**
+     * Build phones.
+     */
+    protected function buildPhones(): void
+    {
+        $this->customer->phones = [];
+
+        if (!empty($this->user->getPersonalPhone())) {
+            $this->addPhone($this->user->getPersonalPhone());
+        }
+
+        if (!empty($this->user->getWorkPhone())) {
+            $this->addPhone($this->user->getWorkPhone());
+        }
+    }
+
+    /**
+     * Build address.
+     */
+    protected function buildAddress(): void
+    {
+        $address = new Address();
+
+        if (!empty($this->user->getPersonalCity())) {
+            $address->city = $this->user->getPersonalCity();
+        }
+
+        if (!empty($this->user->getPersonalStreet())) {
+            $address->text = $this->user->getPersonalStreet();
+        }
+
+        if (!empty($this->user->getPersonalZip())) {
+            $address->index = $this->user->getPersonalZip();
+        }
+
+        $this->customer->address = $address;
+    }
+
+    /**
+     * Integrated Daemon Collector cookie (if it's present).
+     */
+    protected function buildDaemonCollectorId(): void
+    {
+        if (CollectorCookieExtractor::extractCookie()) {
+            $this->customer->browserId = CollectorCookieExtractor::extractCookie();
+        }
+    }
+
+    /**
+     * @param string $number
+     */
+    protected function addPhone(string $number): void
+    {
+        $phone = new Phone();
+        $phone->number = $number;
+        $this->customer->phones[] = $phone;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function reset(): BuilderInterface
+    {
+        $this->user = null;
+        $this->customer = null;
     }
 
     /**
@@ -34,6 +160,28 @@ class CustomerBuilder implements BuilderInterface
      */
     public function getResult()
     {
-        // TODO: Implement getResult() method.
+        return $this->customer;
+    }
+
+    /**
+     * @param \Intaro\RetailCrm\Model\Bitrix\User $user
+     *
+     * @return CustomerBuilder
+     */
+    public function setUser(User $user): CustomerBuilder
+    {
+        $this->user = $user;
+        return $this;
+    }
+
+    /**
+     * @param string $personTypeId
+     *
+     * @return CustomerBuilder
+     */
+    public function setPersonTypeId(string $personTypeId): CustomerBuilder
+    {
+        $this->personTypeId = $personTypeId;
+        return $this;
     }
 }

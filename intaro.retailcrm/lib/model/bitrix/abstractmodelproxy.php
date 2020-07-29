@@ -72,7 +72,7 @@ use Bitrix\Main\ORM\Data\Result;
  * @method string sysMethodToFieldCase($methodName)
  * @method string sysFieldToMethodCase($fieldName)
  */
-class AbstractModelProxy implements \ArrayAccess
+abstract class AbstractModelProxy implements \ArrayAccess
 {
     /** @var \Bitrix\Main\ORM\Objectify\EntityObject */
     protected $entity;
@@ -80,11 +80,11 @@ class AbstractModelProxy implements \ArrayAccess
     /**
      * AbstractModelProxy constructor.
      *
-     * @param \Bitrix\Main\ORM\Objectify\EntityObject $entity
+     * @param \Bitrix\Main\ORM\Objectify\EntityObject|null $entity
      */
-    public function __construct(EntityObject $entity)
+    public function __construct($entity = null)
     {
-        $this->entity = $entity;
+        $this->entity = $entity instanceof EntityObject ? $entity : static::createNewEntityObject();
     }
 
     /**
@@ -219,4 +219,20 @@ class AbstractModelProxy implements \ArrayAccess
 
         throw new \RuntimeException('Cannot find method "' . $name . '"');
     }
+
+    /**
+     * @return \Bitrix\Main\ORM\Objectify\EntityObject
+     */
+    protected static function createNewEntityObject(): EntityObject
+    {
+        $object = static::newObject();
+
+        if ($object instanceof EntityObject) {
+            return $object;
+        }
+
+        throw new \RuntimeException('Cannot create correspondent EntityObject');
+    }
+
+    abstract protected static function newObject(): ?EntityObject;
 }
