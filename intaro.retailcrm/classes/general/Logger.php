@@ -3,7 +3,7 @@
 /**
  * Class Logger
  *
- * @author  pavel
+ * @author  retailCRM
  * @license https://opensource.org/licenses/MIT MIT License
  * @link    http://help.retailcrm.pro/docs/Developers
  */

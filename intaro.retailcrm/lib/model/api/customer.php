@@ -161,7 +161,7 @@ class Customer extends AbstractApiModel
     public $contragent;
 
     /**
-     * Список пользователских полей
+     * Список пользовательских полей
      *
      * @var array $customFields
      *

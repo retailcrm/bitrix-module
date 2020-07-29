@@ -13,7 +13,7 @@ namespace Intaro\RetailCrm\Component\Json\Strategy\Deserialize;
 
 use Intaro\RetailCrm\Component\Doctrine\Common\Annotations\AnnotationReader;
 use Intaro\RetailCrm\Component\Json\Mapping\Accessor;
-use Intaro\RetailCrm\Component\Json\Mapping\Name;
+use Intaro\RetailCrm\Component\Json\Mapping\SerializedName;
 use Intaro\RetailCrm\Component\Json\Mapping\Type;
 use Intaro\RetailCrm\Component\Json\Strategy\AnnotationReaderTrait;
 use Intaro\RetailCrm\Component\Json\Strategy\StrategyFactory;
@@ -71,10 +71,10 @@ class EntityStrategy implements DeserializeStrategyInterface
         $type = '';
         $name = $property->getName();
         $accessorData = static::annotationReader()->getPropertyAnnotation($property, Accessor::class);
-        $nameData = static::annotationReader()->getPropertyAnnotation($property, Name::class);
+        $nameData = static::annotationReader()->getPropertyAnnotation($property, SerializedName::class);
         $typeData = static::annotationReader()->getPropertyAnnotation($property, Type::class);
 
-        if ($nameData instanceof Name) {
+        if ($nameData instanceof SerializedName) {
             $name = !empty($nameData->name) ? $nameData->name : $name;
         }
 
