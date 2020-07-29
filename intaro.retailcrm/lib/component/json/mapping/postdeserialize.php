@@ -1,5 +1,4 @@
 <?php
-
 /**
  * PHP version 7.1
  *
@@ -14,25 +13,14 @@ namespace Intaro\RetailCrm\Component\Json\Mapping;
 
 use Intaro\RetailCrm\Component\Doctrine\Common\Annotations\Annotation;
 use Intaro\RetailCrm\Component\Doctrine\Common\Annotations\Annotation\Target;
-use Intaro\RetailCrm\Component\Doctrine\Common\Annotations\Annotation\Attribute;
-use Intaro\RetailCrm\Component\Doctrine\Common\Annotations\Annotation\Attributes;
 
 /**
- * Class Name
+ * Class PostDeserialize
  *
  * @package Intaro\RetailCrm\Component\Json\Mapping
  * @Annotation
- * @Attributes(
- *     @Attribute("name", required=true, type="string")
- * )
- * @Target({"PROPERTY","ANNOTATION"})
+ * @Target({"METHOD"})
  */
-final class Name
+final class PostDeserialize
 {
-    /**
-     * Property name in result JSON
-     *
-     * @var string
-     */
-    public $name;
 }

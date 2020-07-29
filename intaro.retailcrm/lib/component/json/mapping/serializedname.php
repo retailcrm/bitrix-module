@@ -17,21 +17,21 @@ use Intaro\RetailCrm\Component\Doctrine\Common\Annotations\Annotation\Attribute;
 use Intaro\RetailCrm\Component\Doctrine\Common\Annotations\Annotation\Attributes;
 
 /**
- * Class Type
+ * Class SerializedName
  *
  * @package Intaro\RetailCrm\Component\Json\Mapping
  * @Annotation
  * @Attributes(
- *     @Attribute("type", required=false, type="string")
+ *     @Attribute("name", required=true, type="string")
  * )
  * @Target({"PROPERTY","ANNOTATION"})
  */
-final class Type
+final class SerializedName
 {
     /**
-     * Property type
+     * Property name in result JSON
      *
      * @var string
      */
-    public $type;
+    public $name;
 }

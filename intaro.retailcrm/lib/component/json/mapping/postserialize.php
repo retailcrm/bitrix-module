@@ -13,25 +13,14 @@ namespace Intaro\RetailCrm\Component\Json\Mapping;
 
 use Intaro\RetailCrm\Component\Doctrine\Common\Annotations\Annotation;
 use Intaro\RetailCrm\Component\Doctrine\Common\Annotations\Annotation\Target;
-use Intaro\RetailCrm\Component\Doctrine\Common\Annotations\Annotation\Attribute;
-use Intaro\RetailCrm\Component\Doctrine\Common\Annotations\Annotation\Attributes;
 
 /**
- * Class Type
+ * Class PostDeserialize
  *
  * @package Intaro\RetailCrm\Component\Json\Mapping
  * @Annotation
- * @Attributes(
- *     @Attribute("type", required=false, type="string")
- * )
- * @Target({"PROPERTY","ANNOTATION"})
+ * @Target({"METHOD"})
  */
-final class Type
+final class PostSerialize
 {
-    /**
-     * Property type
-     *
-     * @var string
-     */
-    public $type;
 }

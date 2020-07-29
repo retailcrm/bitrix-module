@@ -1,5 +1,4 @@
 <?php
-
 /**
  * PHP version 7.1
  *
@@ -147,7 +146,13 @@ class StrategyFactory
         }
 
         if ($matches[0][1] === 'DateTime') {
-            return $matches[0][2];
+            $format = $matches[0][2];
+
+            if (strlen($format) > 2 && $format[0] === "'" && substr($format, -1) === "'") {
+                return substr($format, 1, -1);
+            }
+
+            return $format;
         }
 
         return '';

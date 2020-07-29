@@ -1,5 +1,4 @@
 <?php
-
 /**
  * PHP version 7.1
  *
@@ -12,6 +11,8 @@
  */
 namespace Intaro\RetailCrm\Component\Json;
 
+use Intaro\RetailCrm\Component\Json\Mapping\PostDeserialize;
+use Intaro\RetailCrm\Component\Json\Strategy\AnnotationReaderTrait;
 use Intaro\RetailCrm\Component\Json\Strategy\StrategyFactory;
 use RetailCrm\Exception\InvalidJsonException;
 
@@ -22,6 +23,8 @@ use RetailCrm\Exception\InvalidJsonException;
  */
 class Deserializer
 {
+    use AnnotationReaderTrait;
+
     /**
      * @param string $type
      * @param string $json
@@ -47,6 +50,39 @@ class Deserializer
      */
     public static function deserializeArray(string $type, array $value)
     {
-        return StrategyFactory::deserializeStrategyByType($type)->deserialize($type, $value);
+        $result = StrategyFactory::deserializeStrategyByType($type)->deserialize($type, $value);
+
+        static::processPostDeserialize($result);
+
+        return $result;
+    }
+
+    /**
+     * Process post deserialize callback
+     *
+     * @param object $object
+     */
+    private static function processPostDeserialize($object): void
+    {
+        $class = get_class($object);
+
+        if ($object) {
+            try {
+                $reflection = new \ReflectionClass($class);
+            } catch (\ReflectionException $e) {
+                return;
+            }
+
+            foreach ($reflection->getMethods() as $method) {
+                $postDeserialize = static::annotationReader()
+                    ->getMethodAnnotation($method, PostDeserialize::class);
+
+                if ($postDeserialize instanceof PostDeserialize) {
+                    $method->invoke($object);
+
+                    break;
+                }
+            }
+        }
     }
 }

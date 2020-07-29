@@ -1,5 +1,4 @@
 <?php
-
 /**
  * PHP version 7.1
  *
@@ -35,6 +34,10 @@ class EntityStrategy implements SerializeStrategyInterface
      */
     public function serialize($value)
     {
+        if (empty($value)) {
+            return null;
+        }
+
         $result = [];
         $reflection = new \ReflectionClass(get_class($value));
 

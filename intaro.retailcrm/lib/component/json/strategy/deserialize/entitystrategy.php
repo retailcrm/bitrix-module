@@ -1,5 +1,4 @@
 <?php
-
 /**
  * PHP version 7.1
  *
@@ -38,6 +37,10 @@ class EntityStrategy implements DeserializeStrategyInterface
      */
     public function deserialize(string $type, $value)
     {
+        if (empty($value)) {
+            return null;
+        }
+
         $reflection = new \ReflectionClass($type);
         $instance = new $type();
 
