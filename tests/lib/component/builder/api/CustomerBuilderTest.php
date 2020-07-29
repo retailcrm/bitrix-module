@@ -2,10 +2,14 @@
 
 namespace Tests\Intaro\RetailCrm\Component\Builder\Api;
 
+use Bitrix\Main\Event;
+use Bitrix\Main\EventManager;
 use Bitrix\Main\Type\DateTime;
 use Intaro\RetailCrm\Component\Builder\Api\CustomerBuilder;
 use Intaro\RetailCrm\Component\ConfigProvider;
+use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\Converter\DateTimeConverter;
+use Intaro\RetailCrm\Component\Events;
 use Intaro\RetailCrm\Model\Api\Address;
 use Intaro\RetailCrm\Model\Api\Customer;
 use Intaro\RetailCrm\Model\Bitrix\User;
@@ -53,11 +57,41 @@ class CustomerBuilderTest extends TestCase
         $this->assertCount(2, $result->phones);
         $this->assertEquals($entity->getPersonalPhone(), $result->phones[0]->number);
         $this->assertEquals($entity->getWorkPhone(), $result->phones[1]->number);
-        $this->assertThat($result->address, new IsType(Address::class));
+        $this->assertTrue($result->address instanceof Address);
         $this->assertEquals($entity->getPersonalCity(), $result->address->city);
         $this->assertEquals($entity->getPersonalStreet(), $result->address->text);
         $this->assertEquals($entity->getPersonalZip(), $result->address->index);
         $this->assertEquals($_COOKIE['_rc'], $result->browserId);
+    }
+
+    /**
+     * @throws \Intaro\RetailCrm\Component\Builder\Exception\BuilderException
+     * @var User $entity
+     * @dataProvider userData
+     */
+    public function testCustomizedBuild($entity): void
+    {
+        $this->assertTrue($entity instanceof User);
+
+        $_COOKIE['_rc'] = 'rcCookie';
+
+        EventManager::getInstance()->addEventHandler(
+            Constants::MODULE_ID,
+            Events::CUSTOMER_BUILDER_GET_RESULT,
+            static function (Event $event) {
+                $event->getParameter('customer')->externalId = 'replaced';
+            }
+        );
+
+        $builder = new CustomerBuilder();
+        $result = $builder
+            ->setPersonTypeId('individual')
+            ->setUser($entity)
+            ->build()
+            ->getResult();
+
+        $this->assertTrue($result instanceof Customer);
+        $this->assertEquals('replaced', $result->externalId);
     }
 
     /**

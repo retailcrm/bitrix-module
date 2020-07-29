@@ -15,6 +15,7 @@ use Intaro\RetailCrm\Component\Builder\Exception\BuilderException;
 use Intaro\RetailCrm\Component\CollectorCookieExtractor;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Converter\DateTimeConverter;
+use Intaro\RetailCrm\Component\Events;
 use Intaro\RetailCrm\Model\Api\Address;
 use Intaro\RetailCrm\Model\Api\Contragent;
 use Intaro\RetailCrm\Model\Api\Customer;
@@ -160,6 +161,8 @@ class CustomerBuilder implements BuilderInterface
      */
     public function getResult()
     {
+        Events::push(Events::CUSTOMER_BUILDER_GET_RESULT, ['customer' => $this->customer]);
+
         return $this->customer;
     }
 
