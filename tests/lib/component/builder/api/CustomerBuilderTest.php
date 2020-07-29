@@ -42,7 +42,7 @@ class CustomerBuilderTest extends TestCase
     }
 
     /**
-     * @return \Intaro\RetailCrm\Model\Bitrix\User[]
+     * @return \Intaro\RetailCrm\Model\Bitrix\User[][]
      */
     public function userData()
     {
@@ -59,6 +59,6 @@ class CustomerBuilderTest extends TestCase
         $entity->setPersonalStreet('street');
         $entity->setPersonalZip('344000');
 
-        return [$entity];
+        return [[$entity]];
     }
 }
