@@ -153,7 +153,7 @@ class Customer extends AbstractApiModel
     /**
      * Телефоны
      *
-     * @var array $phones
+     * @var \Intaro\RetailCrm\Model\Api\Phone[] $phones
      *
      * @Mapping\Type("array<Intaro\RetailCrm\Model\Api\Phone>")
      * @Mapping\SerializedName("phones")
