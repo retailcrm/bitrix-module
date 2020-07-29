@@ -168,7 +168,7 @@ class ConfigProvider
      *
      * @return array
      */
-    public static function getSitesList(): array
+    public static function getSitesList()
     {
         if (self::isEmptyNotZero(static::$sitesList)) {
             static::$sitesList = static::getUnserializedOption(Constants::CRM_SITES_LIST);
@@ -182,7 +182,7 @@ class ConfigProvider
      *
      * @return array
      */
-    public static function getSitesListCorporate(): array
+    public static function getSitesListCorporate()
     {
         if (self::isEmptyNotZero(static::$sitesListCorporate)) {
             static::$sitesListCorporate = static::getUnserializedOption(
@@ -198,7 +198,7 @@ class ConfigProvider
      *
      * @return array
      */
-    public static function getOrderTypes(): array
+    public static function getOrderTypes()
     {
         if (self::isEmptyNotZero(static::$orderTypes)) {
             static::$orderTypes = static::getUnserializedOption(Constants::CRM_ORDER_TYPES_ARR);
@@ -212,7 +212,7 @@ class ConfigProvider
      *
      * @return array
      */
-    public static function getDeliveryTypes(): array
+    public static function getDeliveryTypes()
     {
         if (self::isEmptyNotZero(static::$deliveryTypes)) {
             static::$deliveryTypes = static::getUnserializedOption(Constants::CRM_DELIVERY_TYPES_ARR);
@@ -226,7 +226,7 @@ class ConfigProvider
      *
      * @return array
      */
-    public static function getPaymentTypes(): array
+    public static function getPaymentTypes()
     {
         if (self::isEmptyNotZero(static::$paymentTypes)) {
             static::$paymentTypes = static::getUnserializedOption(Constants::CRM_PAYMENT_TYPES);
@@ -240,7 +240,7 @@ class ConfigProvider
      *
      * @return array
      */
-    public static function getPaymentStatuses(): array
+    public static function getPaymentStatuses()
     {
         if (self::isEmptyNotZero(static::$paymentStatuses)) {
             static::$paymentStatuses = static::getUnserializedOption(Constants::CRM_PAYMENT_STATUSES);
@@ -254,7 +254,7 @@ class ConfigProvider
      *
      * @return array
      */
-    public static function getPayment(): array
+    public static function getPayment()
     {
         if (self::isEmptyNotZero(static::$payment)) {
             static::$payment = static::getUnserializedOption(Constants::CRM_PAYMENT);
@@ -268,7 +268,7 @@ class ConfigProvider
      *
      * @return array
      */
-    public static function getOrderProps(): array
+    public static function getOrderProps()
     {
         if (self::isEmptyNotZero(static::$orderProps)) {
             static::$orderProps = static::getUnserializedOption(Constants::CRM_ORDER_PROPS);
@@ -282,7 +282,7 @@ class ConfigProvider
      *
      * @return array
      */
-    public static function getLegalDetails(): array
+    public static function getLegalDetails()
     {
         if (self::isEmptyNotZero(static::$legalDetails)) {
             static::$legalDetails = static::getUnserializedOption(Constants::CRM_LEGAL_DETAILS);
@@ -296,7 +296,7 @@ class ConfigProvider
      *
      * @return array
      */
-    public static function getContragentTypes(): array
+    public static function getContragentTypes()
     {
         if (self::isEmptyNotZero(static::$contragentTypes)) {
             static::$contragentTypes = static::getUnserializedOption(Constants::CRM_CONTRAGENT_TYPE);
@@ -310,7 +310,7 @@ class ConfigProvider
      *
      * @return array
      */
-    public static function getCustomFields(): array
+    public static function getCustomFields()
     {
         if (self::isEmptyNotZero(static::$customFields)) {
             static::$customFields = static::getUnserializedOption(Constants::CRM_CUSTOM_FIELDS);
@@ -324,7 +324,7 @@ class ConfigProvider
      *
      * @return array
      */
-    public static function getCancellableOrderPaymentStatuses(): array
+    public static function getCancellableOrderPaymentStatuses()
     {
         if (self::isEmptyNotZero(static::$cancellableOrderPaymentStatuses)) {
             static::$cancellableOrderPaymentStatuses = static::getUnserializedOption(
@@ -360,7 +360,7 @@ class ConfigProvider
      *
      * @return array
      */
-    public static function getFailedOrdersIds(): array
+    public static function getFailedOrdersIds()
     {
         return static::getUnserializedOption(Constants::CRM_ORDER_FAILED_IDS);
     }
@@ -476,7 +476,7 @@ class ConfigProvider
      *
      * @return array
      */
-    public static function getInfoblocksInventories(): array
+    public static function getInfoblocksInventories()
     {
         if (self::isEmptyNotZero(static::$infoblocksInventories)) {
             static::$infoblocksInventories = static::getUnserializedOption(
@@ -492,7 +492,7 @@ class ConfigProvider
      *
      * @return array
      */
-    public static function getStores(): array
+    public static function getStores()
     {
         if (self::isEmptyNotZero(static::$stores)) {
             static::$stores = static::getUnserializedOption(Constants::CRM_STORES);
@@ -506,7 +506,7 @@ class ConfigProvider
      *
      * @return array
      */
-    public static function getShops(): array
+    public static function getShops()
     {
         if (self::isEmptyNotZero(static::$shops)) {
             static::$shops = static::getUnserializedOption(Constants::CRM_SHOPS);

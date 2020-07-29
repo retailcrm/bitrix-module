@@ -13,6 +13,7 @@ namespace Intaro\RetailCrm\Repository;
 
 use Bitrix\Main\ORM\Objectify\EntityObject;
 use Bitrix\Main\UserTable;
+use Intaro\RetailCrm\Model\Bitrix\User;
 
 /**
  * Class UserRepository
@@ -24,16 +25,27 @@ class UserRepository extends AbstractRepository
     /**
      * @param int $id
      *
-     * @return \Bitrix\Main\ORM\Objectify\EntityObject|null
+     * @return User|null
      * @throws \Bitrix\Main\ArgumentException
      * @throws \Bitrix\Main\ObjectPropertyException
      * @throws \Bitrix\Main\SystemException
      */
-    public function getById(int $id): ?EntityObject
+    public static function getById(int $id): ?User
     {
-        $result = (UserTable::query())
-            ->setSelect($this->getEntityFields(UserTable::getEntity()))
-            ->addFilter('=ID', $id)->exec();
-        return $result->fetchObject();
+        return static::getWrapped(UserTable::getByPrimary($id)->fetchObject());
+    }
+
+    /**
+     * @param \Bitrix\Main\ORM\Objectify\EntityObject|null $entityObject
+     *
+     * @return \Intaro\RetailCrm\Model\Bitrix\User|null
+     */
+    private static function getWrapped(?EntityObject $entityObject): ?User
+    {
+        if (null === $entityObject) {
+            return null;
+        }
+
+        return new User($entityObject);
     }
 }

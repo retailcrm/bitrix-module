@@ -27,7 +27,7 @@ class AbstractRepository
      *
      * @return array
      */
-    protected function getEntityFields(Entity $entity): array
+    protected static function getEntityFields(Entity $entity): array
     {
         return array_keys($entity->getFields());
     }
