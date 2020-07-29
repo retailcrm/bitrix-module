@@ -23,6 +23,9 @@ use Intaro\RetailCrm\Component\Json\Strategy\Serialize\SerializeStrategyInterfac
  */
 class StrategyFactory
 {
+    /** @var string */
+    private const TYPED_MATCHER = '/^\\\\?([a-zA-Z0-9_]+)\s*\<(.+)\>$/m';
+
     /** @var string[] $simpleTypes */
     private static $simpleTypes = [
         'bool',
@@ -50,7 +53,17 @@ class StrategyFactory
             return (new Serialize\DateTimeStrategy())->setInnerType(\DateTime::RFC3339);
         }
 
-        // TODO: DateTime<format> strategy and array<valueType>, array<keyType, valueType> strategies
+        $arrSubType = static::getArrayInnerTypes($dataType);
+
+        if (!empty($arrSubType)) {
+            return (new Serialize\TypedArrayStrategy())->setInnerType($arrSubType);
+        }
+
+        $dateTimeFormat = static::getDateTimeFormat($dataType);
+
+        if (!empty($dateTimeFormat)) {
+            return (new Serialize\DateTimeStrategy())->setInnerType($dateTimeFormat);
+        }
 
         return new Serialize\EntityStrategy();
     }
@@ -70,9 +83,74 @@ class StrategyFactory
             return (new Deserialize\DateTimeStrategy())->setInnerType(\DateTime::RFC3339);
         }
 
-        // TODO: DateTime<format> strategy and array<valueType>, array<keyType, valueType> strategies
+        $arrSubType = static::getArrayInnerTypes($dataType);
+
+        if (!empty($arrSubType)) {
+            return (new Deserialize\TypedArrayStrategy())->setInnerType($arrSubType);
+        }
+
+        $dateTimeFormat = static::getDateTimeFormat($dataType);
+
+        if (!empty($dateTimeFormat)) {
+            return (new Deserialize\DateTimeStrategy())->setInnerType($dateTimeFormat);
+        }
 
         return new Deserialize\EntityStrategy();
+    }
+
+    /**
+     * Returns array inner type for arrays like array<int, \DateTime<Y-m-d\TH:i:sP>>
+     * For this example, "int, \DateTime<Y-m-d\TH:i:sP>" will be returned.
+     *
+     * Also works for arrays like int[].
+     *
+     * @param string $dataType
+     *
+     * @return string
+     */
+    private static function getArrayInnerTypes(string $dataType): string
+    {
+        $matches = [];
+
+        preg_match_all(static::TYPED_MATCHER, $dataType, $matches, PREG_SET_ORDER, 0);
+
+        if (empty($matches)) {
+            if (strlen($dataType) > 2 && substr($dataType, -2) === '[]') {
+                return substr($dataType, 0, -2);
+            }
+
+            return '';
+        }
+
+        if ($matches[0][1] === 'array') {
+            return $matches[0][2];
+        }
+
+        return '';
+    }
+
+    /**
+     * Returns DateTime format. Example: \DateTime<Y-m-d\TH:i:sP>>
+     *
+     * @param string $dataType
+     *
+     * @return string
+     */
+    private static function getDateTimeFormat(string $dataType): string
+    {
+        $matches = [];
+
+        preg_match_all(static::TYPED_MATCHER, $dataType, $matches, PREG_SET_ORDER, 0);
+
+        if (empty($matches)) {
+            return '';
+        }
+
+        if ($matches[0][1] === 'DateTime') {
+            return $matches[0][2];
+        }
+
+        return '';
     }
 
     /**
