@@ -226,19 +226,7 @@ class RCrmActions
      */
     public static function clearArr($arr)
     {
-        if (is_array($arr) === false) {
-            return $arr;
-        }
-
-        $result = array();
-        foreach ($arr as $index => $node ) {
-            $result[ $index ] = is_array($node) === true ? self::clearArr($node) : trim($node);
-            if ($result[ $index ] == '' || $result[ $index ] === null || count($result[ $index ]) < 1) {
-                unset($result[ $index ]);
-            }
-        }
-
-        return $result;
+        return \Intaro\RetailCrm\Component\Utils::clearArray($arr);
     }
 
     /**
@@ -246,13 +234,10 @@ class RCrmActions
      * @param array|bool|\SplFixedArray|string $str in SITE_CHARSET
      *
      * @return array|bool|\SplFixedArray|string $str in utf-8
-     * @global                                 $APPLICATION
      */
     public static function toJSON($str)
     {
-        global $APPLICATION;
-
-        return $APPLICATION->ConvertCharset($str, SITE_CHARSET, 'utf-8');
+        return \Intaro\RetailCrm\Component\Utils::toUTF8($str);
     }
 
     /**
@@ -260,13 +245,10 @@ class RCrmActions
      * @param string|array|\SplFixedArray $str in utf-8
      *
      * @return array|bool|\SplFixedArray|string $str in SITE_CHARSET
-     * @global                            $APPLICATION
      */
     public static function fromJSON($str)
     {
-        global $APPLICATION;
-
-        return $APPLICATION->ConvertCharset($str, 'utf-8', SITE_CHARSET);
+        return \Intaro\RetailCrm\Component\Utils::fromUTF8($str);
     }
 
     /**

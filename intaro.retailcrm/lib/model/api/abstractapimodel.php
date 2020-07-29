@@ -13,6 +13,7 @@ namespace Intaro\RetailCrm\Model\Api;
 
 use Intaro\RetailCrm\Component\Json\Mapping\PostDeserialize;
 use Intaro\RetailCrm\Component\Json\Mapping\PostSerialize;
+use Intaro\RetailCrm\Component\Utils;
 
 /**
  * Class AbstractApiModel
@@ -52,6 +53,6 @@ class AbstractApiModel implements ApiModelInterface
      */
     public function postSerialize(array $fields): array
     {
-        return \RCrmActions::clearArr($fields);
+        return Utils::clearArray($fields);
     }
 }
