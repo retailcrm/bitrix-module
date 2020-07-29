@@ -20,7 +20,7 @@ use Bitrix\Main\ORM\Objectify\Values;
 use Bitrix\Main\ORM\Data\Result;
 
 /**
- * Class AbstractModelFacade. Wraps Bitrix objects in order to create phpdoc with necessary annotations.
+ * Class AbstractModelProxy. Wraps Bitrix objects in order to create phpdoc with necessary annotations.
  *
  * @package Intaro\RetailCrm\Model\Bitrix
  *
@@ -72,13 +72,13 @@ use Bitrix\Main\ORM\Data\Result;
  * @method string sysMethodToFieldCase($methodName)
  * @method string sysFieldToMethodCase($fieldName)
  */
-class AbstractModelFacade implements \ArrayAccess
+class AbstractModelProxy implements \ArrayAccess
 {
     /** @var \Bitrix\Main\ORM\Objectify\EntityObject */
     protected $entity;
 
     /**
-     * AbstractModelFacade constructor.
+     * AbstractModelProxy constructor.
      *
      * @param \Bitrix\Main\ORM\Objectify\EntityObject $entity
      */

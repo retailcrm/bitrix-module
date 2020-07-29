@@ -141,6 +141,6 @@ use Bitrix\Main\Type\DateTime;
  * @method mixed getIndexSelector()
  * @method void setIndexSelector($indexSelector)
  */
-class User extends AbstractModelFacade
+class User extends AbstractModelProxy
 {
 }

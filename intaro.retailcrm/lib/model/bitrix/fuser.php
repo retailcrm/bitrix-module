@@ -31,6 +31,6 @@ use Bitrix\Main\Type\DateTime;
  * @method mixed getUser()
  * @method void setUser($user)
  */
-class Fuser extends AbstractModelFacade
+class Fuser extends AbstractModelProxy
 {
 }
