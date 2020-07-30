@@ -97,6 +97,9 @@ class ConfigProvider
     /** @var array $shops */
     protected static $shops;
 
+    /** @var array $integrationDeliveriesMapping */
+    protected static $integrationDeliveriesMapping;
+
     /**
      * @return bool|string|null
      */
@@ -161,6 +164,16 @@ class ConfigProvider
         }
 
         return static::$corporateClient;
+    }
+
+    /**
+     * Returns true if corporate clients are enabled
+     *
+     * @return bool
+     */
+    public static function isCorporateClientEnabled(): bool
+    {
+        return self::getCorporateClientStatus() === 'Y';
     }
 
     /**
@@ -556,6 +569,21 @@ class ConfigProvider
     public static function isPhoneRequired()
     {
         return static::getExternalOption("main", "new_user_phone_required") === 'Y';
+    }
+
+    /**
+     * Returns integration delivery mapping
+     *
+     * @return array
+     */
+    public static function getIntegrationDeliveriesMapping(): array
+    {
+        if (empty(self::$integrationDeliveriesMapping)) {
+            self::$integrationDeliveriesMapping =
+                (array) static::getUnserializedOption(Constants::CRM_INTEGRATION_DELIVERY);
+        }
+
+        return self::$integrationDeliveriesMapping;
     }
 
     /**

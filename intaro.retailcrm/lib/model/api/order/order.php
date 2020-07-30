@@ -3,20 +3,20 @@
  * PHP version 7.1
  *
  * @category Integration
- * @package  Intaro\RetailCrm\Model\Api
+ * @package  Intaro\RetailCrm\Model\Api\Order
  * @author   retailCRM <integration@retailcrm.ru>
  * @license  MIT
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
  */
-namespace Intaro\RetailCrm\Model\Api;
+namespace Intaro\RetailCrm\Model\Api\Order;
 
 use Intaro\RetailCrm\Component\Json\Mapping;
 
 /**
  * Class Order
  *
- * @package Intaro\RetailCrm\Model\Api
+ * @package Intaro\RetailCrm\Model\Api\Order
  */
 class Order extends AbstractApiModel
 {
@@ -29,6 +29,16 @@ class Order extends AbstractApiModel
      * @Mapping\SerializedName("id")
      */
     public $id;
+
+    /**
+     * Номер заказа
+     *
+     * @var string
+     *
+     * @Mapping\Type("string")
+     * @Mapping\SerializedName("number")
+     */
+    public $number;
 
     /**
      * Внешний ID корпоративного клиента
@@ -69,4 +79,45 @@ class Order extends AbstractApiModel
      * @Mapping\SerializedName("status")
      */
     public $status;
+
+    /**
+     * @var \Intaro\RetailCrm\Model\Api\Order\SerializedOrderDelivery
+     *
+     *
+     * @Mapping\Type("Intaro\RetailCrm\Model\Api\Order\SerializedOrderDelivery")
+     * @Mapping\SerializedName("delivery")
+     */
+    public $delivery;
+
+    /**
+     * @var double
+     *
+     * @Mapping\Type("double")
+     * @Mapping\SerializedName("weight")
+     */
+    public $weight;
+
+    /**
+     * @var int
+     *
+     * @Mapping\Type("int")
+     * @Mapping\SerializedName("length")
+     */
+    public $length;
+
+    /**
+     * @var int
+     *
+     * @Mapping\Type("int")
+     * @Mapping\SerializedName("width")
+     */
+    public $width;
+
+    /**
+     * @var int
+     *
+     * @Mapping\Type("int")
+     * @Mapping\SerializedName("height")
+     */
+    public $height;
 }

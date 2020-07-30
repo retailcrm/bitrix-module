@@ -13,27 +13,27 @@ namespace Intaro\RetailCrm\Model\Api;
 
 use Intaro\RetailCrm\Component\Json\Mapping;
 
+
 /**
- * Class Phone
+ * Class CodeValueModel
  *
  * @package Intaro\RetailCrm\Model\Api
  */
-class Phone extends AbstractApiModel
+class CodeValueModel extends AbstractApiModel
 {
     /**
-     * Номер телефона
-     *
-     * @var string $number
+     * @var string
      *
      * @Mapping\Type("string")
-     * @Mapping\SerializedName("number")
+     * @Mapping\SerializedName("code")
      */
-    public $number;
+    public $code;
 
     /**
-     * Старый номер телефона. Используется только в истории, игнорируется при сериализации.
+     * @var string
      *
-     * @var string $oldNumber
+     * @Mapping\Type("string")
+     * @Mapping\SerializedName("value")
      */
-    public $oldNumber;
+    public $value;
 }

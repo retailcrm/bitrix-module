@@ -161,6 +161,26 @@ class Customer extends AbstractApiModel
     public $phones;
 
     /**
+     * Дата рождения
+     *
+     * @var \DateTime
+     *
+     * @Mapping\Type("DateTime<'Y-m-d'>")
+     * @Mapping\SerializedName("birthday")
+     */
+    public $birthday;
+
+    /**
+     * Пол
+     *
+     * @var string
+     *
+     * @Mapping\Type("string")
+     * @Mapping\SerializedName("sex")
+     */
+    public $sex;
+
+    /**
      * ID менеджера, к которому привязан клиент
      *
      * @var integer $managerId

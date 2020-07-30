@@ -190,4 +190,20 @@ class Address extends AbstractApiModel
      * @Mapping\SerializedName("text")
      */
     public $text;
+
+    /**
+     * @var string
+     *
+     * @Mapping\Type("string")
+     * @Mapping\SerializedName("country")
+     */
+    public $country;
+
+    /**
+     * @var string
+     *
+     * @Mapping\Type("string")
+     * @Mapping\SerializedName("intercomCode")
+     */
+    public $intercomCode;
 }

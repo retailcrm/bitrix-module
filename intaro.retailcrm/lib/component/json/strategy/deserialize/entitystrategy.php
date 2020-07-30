@@ -11,7 +11,6 @@
  */
 namespace Intaro\RetailCrm\Component\Json\Strategy\Deserialize;
 
-use Intaro\RetailCrm\Component\Doctrine\Common\Annotations\AnnotationReader;
 use Intaro\RetailCrm\Component\Json\Mapping\Accessor;
 use Intaro\RetailCrm\Component\Json\Mapping\SerializedName;
 use Intaro\RetailCrm\Component\Json\Mapping\Type;
@@ -68,23 +67,22 @@ class EntityStrategy implements DeserializeStrategyInterface
      */
     protected static function deserializeProperty($object, \ReflectionProperty $property, array $data): void
     {
-        $type = '';
-        $name = $property->getName();
-        $accessorData = static::annotationReader()->getPropertyAnnotation($property, Accessor::class);
         $nameData = static::annotationReader()->getPropertyAnnotation($property, SerializedName::class);
-        $typeData = static::annotationReader()->getPropertyAnnotation($property, Type::class);
 
-        if ($nameData instanceof SerializedName) {
-            $name = !empty($nameData->name) ? $nameData->name : $name;
+        if (!($nameData instanceof SerializedName)) {
+            return;
         }
+
+        $accessorData = static::annotationReader()->getPropertyAnnotation($property, Accessor::class);
+        $typeData = static::annotationReader()->getPropertyAnnotation($property, Type::class);
 
         if ($typeData instanceof Type) {
             $type = $typeData->type;
         } else {
-            $type = gettype($data[$name]);
+            $type = gettype($data[$nameData->name]);
         }
 
-        $value = StrategyFactory::deserializeStrategyByType($type)->deserialize($type, $data[$name]);
+        $value = StrategyFactory::deserializeStrategyByType($type)->deserialize($type, $data[$nameData->name]);
 
         if ($accessorData instanceof Accessor && !empty($accessorData->setter)) {
             $object->{$accessorData->setter}($value);

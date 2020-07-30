@@ -39,6 +39,9 @@ class CustomerBuilder implements BuilderInterface
     /** @var string $personTypeId */
     private $personTypeId;
 
+    /** @var bool */
+    private $attachDaemonCollectorId = false;
+
     /**
      * @inheritDoc
      */
@@ -57,8 +60,66 @@ class CustomerBuilder implements BuilderInterface
         $this->buildNames();
         $this->buildPhones();
         $this->buildAddress();
-        $this->buildDaemonCollectorId();
 
+        if ($this->attachDaemonCollectorId) {
+            $this->buildDaemonCollectorId();
+        }
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function reset(): BuilderInterface
+    {
+        $this->user = null;
+        $this->customer = null;
+        $this->personTypeId = null;
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getResult()
+    {
+        Events::push(Events::API_CUSTOMER_BUILDER_GET_RESULT, ['customer' => $this->customer]);
+
+        return $this->customer;
+    }
+
+    /**
+     * @param \Intaro\RetailCrm\Model\Bitrix\User $user
+     *
+     * @return CustomerBuilder
+     */
+    public function setUser(User $user): CustomerBuilder
+    {
+        $this->user = $user;
+        return $this;
+    }
+
+    /**
+     * @param string $personTypeId
+     *
+     * @return CustomerBuilder
+     */
+    public function setPersonTypeId(string $personTypeId): CustomerBuilder
+    {
+        $this->personTypeId = $personTypeId;
+        return $this;
+    }
+
+    /**
+     * @param bool $attachDaemonCollectorId
+     *
+     * @return CustomerBuilder
+     */
+    public function setAttachDaemonCollectorId(bool $attachDaemonCollectorId): CustomerBuilder
+    {
+        $this->attachDaemonCollectorId = $attachDaemonCollectorId;
         return $this;
     }
 
@@ -145,46 +206,5 @@ class CustomerBuilder implements BuilderInterface
         $phone = new Phone();
         $phone->number = $number;
         $this->customer->phones[] = $phone;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function reset(): BuilderInterface
-    {
-        $this->user = null;
-        $this->customer = null;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getResult()
-    {
-        Events::push(Events::CUSTOMER_BUILDER_GET_RESULT, ['customer' => $this->customer]);
-
-        return $this->customer;
-    }
-
-    /**
-     * @param \Intaro\RetailCrm\Model\Bitrix\User $user
-     *
-     * @return CustomerBuilder
-     */
-    public function setUser(User $user): CustomerBuilder
-    {
-        $this->user = $user;
-        return $this;
-    }
-
-    /**
-     * @param string $personTypeId
-     *
-     * @return CustomerBuilder
-     */
-    public function setPersonTypeId(string $personTypeId): CustomerBuilder
-    {
-        $this->personTypeId = $personTypeId;
-        return $this;
     }
 }

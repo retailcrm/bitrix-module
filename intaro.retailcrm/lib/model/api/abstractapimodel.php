@@ -20,7 +20,7 @@ use Intaro\RetailCrm\Component\Utils;
  *
  * @package Intaro\RetailCrm\Model\Api
  */
-class AbstractApiModel implements ApiModelInterface
+class AbstractApiModel implements ApiModelInterface, \Traversable
 {
     /**
      * @PostDeserialize()

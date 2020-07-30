@@ -20,7 +20,20 @@ use Bitrix\Main\Event;
  */
 class Events
 {
-    public const CUSTOMER_BUILDER_GET_RESULT = 'OnRetailcrmApiCustomerBuilderGetResult';
+    /**
+     * Fired before returning result from retailCRM customer builder (customer for retailCRM API)
+     */
+    public const API_CUSTOMER_BUILDER_GET_RESULT = 'OnRetailcrmApiCustomerBuilderGetResult';
+
+    /**
+     * Fired before returning result from retailCRM corporate customer builder (customer for retailCRM API)
+     */
+    public const API_CORPORATE_CUSTOMER_BUILDER_GET_RESULT = 'OnRetailcrmApiCorporateCustomerBuilderGetResult';
+
+    /**
+     * Fired before returning result from retailCRM customer builder (builds user data for Bitrix)
+     */
+    public const BITRIX_CUSTOMER_BUILDER_GET_RESULT = 'OnRetailcrmBitrixCustomerBuilderGetResult';
 
     /**
      * Push event

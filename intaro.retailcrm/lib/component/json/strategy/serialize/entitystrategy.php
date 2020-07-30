@@ -59,8 +59,13 @@ class EntityStrategy implements SerializeStrategyInterface
      */
     protected static function serializeProperty($object, \ReflectionProperty $property, array &$result): void
     {
+        $nameData = static::annotationReader()->getPropertyAnnotation($property, SerializedName::class);
+
+        if (!($nameData instanceof SerializedName)) {
+            return;
+        }
+
         $accessorData = static::annotationReader()->getPropertyAnnotation($property, Accessor::class);
-        $name = $property->getName();
 
         if ($accessorData instanceof Accessor && !empty($accessorData->getter)) {
             $value = $object->{$accessorData->getter}();
@@ -69,17 +74,12 @@ class EntityStrategy implements SerializeStrategyInterface
             $value = $property->getValue($object);
         }
 
-        $nameData = static::annotationReader()->getPropertyAnnotation($property, SerializedName::class);
         $typeData = static::annotationReader()->getPropertyAnnotation($property, Type::class);
 
-        if ($nameData instanceof SerializedName) {
-            $name = !empty($nameData->name) ? $nameData->name : $name;
-        }
-
         if ($typeData instanceof Type) {
-            $result[$name] = StrategyFactory::serializeStrategyByType($typeData->type)->serialize($value);
+            $result[$nameData->name] = StrategyFactory::serializeStrategyByType($typeData->type)->serialize($value);
         } else {
-            $result[$name] = StrategyFactory::serializeStrategyByType(gettype($value))->serialize($value);
+            $result[$nameData->name] = StrategyFactory::serializeStrategyByType(gettype($value))->serialize($value);
         }
     }
 }

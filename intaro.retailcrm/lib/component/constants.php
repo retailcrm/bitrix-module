@@ -68,4 +68,5 @@ class Constants
     public const CANCEL_PROPERTY_CODE = 'INTAROCRM_IS_CANCELED';
     public const CRM_INTEGRATION_DELIVERY = 'integration_delivery';
     public const CRM_SHIPMENT_DEDUCTED = 'shipment_deducted';
+    public const CORPORATE_CONTRAGENT_TYPE = 'legal-entity';
 }

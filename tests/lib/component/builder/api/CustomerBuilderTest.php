@@ -15,15 +15,13 @@ use Intaro\RetailCrm\Model\Api\Customer;
 use Intaro\RetailCrm\Model\Bitrix\User;
 use PHPUnit\Framework\Constraint\IsType;
 use PHPUnit\Framework\TestCase;
+use Tests\Intaro\RetailCrm\Helpers;
 
 class CustomerBuilderTest extends TestCase
 {
     protected function setUp(): void
     {
-        $class = new \ReflectionClass(ConfigProvider::class);
-        $property = $class->getProperty('contragentTypes');
-        $property->setAccessible(true);
-        $property->setValue([
+        Helpers::setConfigProperty('contragentTypes', [
             'individual' => 'individual'
         ]);
     }
@@ -77,7 +75,7 @@ class CustomerBuilderTest extends TestCase
 
         EventManager::getInstance()->addEventHandler(
             Constants::MODULE_ID,
-            Events::CUSTOMER_BUILDER_GET_RESULT,
+            Events::API_CUSTOMER_BUILDER_GET_RESULT,
             static function (Event $event) {
                 $event->getParameter('customer')->externalId = 'replaced';
             }

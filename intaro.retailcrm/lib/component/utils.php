@@ -12,6 +12,7 @@
 namespace Intaro\RetailCrm\Component;
 
 use Bitrix\Main\Text\Encoding;
+use Intaro\RetailCrm\Model\Api\Order\Order;
 
 /**
  * Class Utils
@@ -73,6 +74,34 @@ class Utils
         }
 
         return static::convertCharset($string, 'utf-8', SITE_CHARSET);
+    }
+
+    /**
+     * Returns true if provided PERSON_TYPE_ID is corporate customer
+     *
+     * @param string $personTypeId
+     *
+     * @return bool
+     */
+    public static function isPersonCorporate(string $personTypeId): bool
+    {
+        return ConfigProvider::getContragentTypeForPersonType($personTypeId) === Constants::CORPORATE_CONTRAGENT_TYPE;
+    }
+
+    /**
+     * @return string
+     */
+    public static function createPlaceholderEmail(): string
+    {
+        return uniqid('user_' . time(), false) . '@example.com';
+    }
+
+    /**
+     * @return string
+     */
+    public static function createPlaceholderPassword(): string
+    {
+        return uniqid("R", false);
     }
 
     /**
