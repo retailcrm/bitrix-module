@@ -14,25 +14,25 @@ namespace Intaro\RetailCrm\Model\Api;
 use Intaro\RetailCrm\Component\Json\Mapping;
 
 /**
- * Class CodeValueModel
+ * Class IdentifiersPair
  *
  * @package Intaro\RetailCrm\Model\Api
  */
-class CodeValueModel extends AbstractApiModel
+class IdentifiersPair extends AbstractApiModel
 {
     /**
-     * @var string
+     * @var int
      *
-     * @Mapping\Type("string")
-     * @Mapping\SerializedName("code")
+     * @Mapping\Type("int")
+     * @Mapping\SerializedName("id")
      */
-    public $code;
+    public $id;
 
     /**
      * @var string
      *
      * @Mapping\Type("string")
-     * @Mapping\SerializedName("value")
+     * @Mapping\SerializedName("externalId")
      */
-    public $value;
+    public $externalId;
 }

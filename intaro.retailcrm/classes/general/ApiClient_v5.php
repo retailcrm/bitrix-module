@@ -253,7 +253,7 @@ class ApiClient
         );
     }
 
-    /*
+    /**
      * Upload array of the customers corporate
      *
      * @param array  $customers array of customers
@@ -293,7 +293,7 @@ class ApiClient
      *
      * @return ApiResponse
      */
-    public function customersСorporateGet($id, $by = 'externalId', $site = null)
+    public function customersCorporateGet($id, $by = 'externalId', $site = null)
     {
         $this->checkIdParameter($by);
 

@@ -3,36 +3,28 @@
  * PHP version 7.1
  *
  * @category Integration
- * @package  Intaro\RetailCrm\Model\Api
+ * @package  Intaro\RetailCrm\Model\Api\Response
  * @author   retailCRM <integration@retailcrm.ru>
  * @license  MIT
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
  */
-namespace Intaro\RetailCrm\Model\Api;
+namespace Intaro\RetailCrm\Model\Api\Response;
 
 use Intaro\RetailCrm\Component\Json\Mapping;
 
 /**
- * Class CodeValueModel
+ * Class CustomerChangeResponse
  *
  * @package Intaro\RetailCrm\Model\Api
  */
-class CodeValueModel extends AbstractApiModel
+class CustomerChangeResponse extends CreateResponse
 {
     /**
      * @var string
      *
      * @Mapping\Type("string")
-     * @Mapping\SerializedName("code")
+     * @Mapping\SerializedName("state")
      */
-    public $code;
-
-    /**
-     * @var string
-     *
-     * @Mapping\Type("string")
-     * @Mapping\SerializedName("value")
-     */
-    public $value;
+    public $state;
 }
