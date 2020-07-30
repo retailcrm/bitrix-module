@@ -212,7 +212,13 @@ class CorporateCustomerBuilder implements BuilderInterface
     public function setOrder(Order $order): CorporateCustomerBuilder
     {
         $this->order = $order;
-        $this->user = UserRepository::getById($order->getUserId());
+        $userId = $order->getUserId();
+
+        if (null === $userId || !is_int($userId)) {
+            throw new BuilderException('Either user in order is not set or user id is not valid.');
+        }
+
+        $this->user = UserRepository::getById($userId);
         return $this;
     }
 
