@@ -33,3 +33,5 @@ if (!IsModuleInstalled('intaro.retailcrm')) {
 }
 
 CModule::IncludeModule('intaro.retailcrm');
+
+require_once __DIR__ . '/tests/helpers/Helpers.php';
