@@ -6,8 +6,7 @@ use Bitrix\Main\Event;
 use Bitrix\Main\EventManager;
 use Bitrix\Main\Type\DateTime;
 use Intaro\RetailCrm\Component\Builder\Api\CustomerBuilder;
-use Intaro\RetailCrm\Component\CollectorCookieExtractor;
-use Intaro\RetailCrm\Component\ConfigProvider;
+use Intaro\RetailCrm\Service\CollectorCookieExtractor;
 use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\Converter\DateTimeConverter;
 use Intaro\RetailCrm\Component\Events;
@@ -15,40 +14,16 @@ use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Model\Api\Address;
 use Intaro\RetailCrm\Model\Api\Customer;
 use Intaro\RetailCrm\Model\Bitrix\User;
-use PHPUnit\Framework\Constraint\IsType;
 use PHPUnit\Framework\TestCase;
 use Tests\Intaro\RetailCrm\Helpers;
 
 class CustomerBuilderTest extends TestCase
 {
-    private const COOKIE_DATA = 'rcCookie';
-
-    /** @var \Intaro\RetailCrm\Component\CollectorCookieExtractor */
-    private $originalCookieCollector;
-
     public function setUp()
     {
-        $this->originalCookieCollector = ServiceLocator::get(CollectorCookieExtractor::class);
-
-        $cookieExtractorMock = $this->getMockBuilder(CollectorCookieExtractor::class)
-            ->setMethods(['extractCookie'])
-            ->getMock();
-
-        $cookieExtractorMock
-            ->method('extractCookie')
-            ->withAnyParameters()
-            ->willReturn(static::COOKIE_DATA);
-
-        ServiceLocator::set(CollectorCookieExtractor::class, $cookieExtractorMock);
-
         Helpers::setConfigProperty('contragentTypes', [
             'individual' => 'individual'
         ]);
-    }
-
-    protected function tearDown()
-    {
-        ServiceLocator::set(CollectorCookieExtractor::class, $this->originalCookieCollector);
     }
 
     /**
@@ -60,6 +35,20 @@ class CustomerBuilderTest extends TestCase
     {
         $this->assertTrue($entity instanceof User);
 
+        $cookieData = 'rcCookie';
+        $originalCookieCollector = ServiceLocator::get(CollectorCookieExtractor::class);
+
+        $cookieExtractorMock = $this->getMockBuilder(CollectorCookieExtractor::class)
+            ->setMethods(['extractCookie'])
+            ->getMock();
+
+        $cookieExtractorMock
+            ->method('extractCookie')
+            ->withAnyParameters()
+            ->willReturn($cookieData);
+
+        ServiceLocator::set(CollectorCookieExtractor::class, $cookieExtractorMock);
+
         $builder = new CustomerBuilder();
         $result = $builder
             ->setAttachDaemonCollectorId(true)
@@ -67,6 +56,8 @@ class CustomerBuilderTest extends TestCase
             ->setUser($entity)
             ->build()
             ->getResult();
+
+        ServiceLocator::set(CollectorCookieExtractor::class, $originalCookieCollector);
 
         $this->assertTrue($result instanceof Customer);
         $this->assertEquals($entity->getId(), $result->externalId);
@@ -83,7 +74,7 @@ class CustomerBuilderTest extends TestCase
         $this->assertEquals($entity->getPersonalCity(), $result->address->city);
         $this->assertEquals($entity->getPersonalStreet(), $result->address->text);
         $this->assertEquals($entity->getPersonalZip(), $result->address->index);
-        $this->assertEquals(static::COOKIE_DATA, $result->browserId);
+        $this->assertEquals($cookieData, $result->browserId);
 
     }
 
