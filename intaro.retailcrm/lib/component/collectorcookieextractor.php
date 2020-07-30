@@ -25,6 +25,8 @@ class CollectorCookieExtractor
      */
     public static function extractCookie(): ?string
     {
+        global $_COOKIE;
+
         return (isset($_COOKIE['_rc']) && $_COOKIE['_rc'] != '') ? $_COOKIE['_rc'] : null;
     }
 }

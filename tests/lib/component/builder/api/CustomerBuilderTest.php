@@ -35,8 +35,6 @@ class CustomerBuilderTest extends TestCase
     {
         $this->assertTrue($entity instanceof User);
 
-        $_COOKIE['_rc'] = 'rcCookie';
-
         $builder = new CustomerBuilder();
         $result = $builder
             ->setPersonTypeId('individual')
@@ -59,7 +57,6 @@ class CustomerBuilderTest extends TestCase
         $this->assertEquals($entity->getPersonalCity(), $result->address->city);
         $this->assertEquals($entity->getPersonalStreet(), $result->address->text);
         $this->assertEquals($entity->getPersonalZip(), $result->address->index);
-        $this->assertEquals($_COOKIE['_rc'], $result->browserId);
     }
 
     /**
@@ -70,8 +67,6 @@ class CustomerBuilderTest extends TestCase
     public function testCustomizedBuild($entity): void
     {
         $this->assertTrue($entity instanceof User);
-
-        $_COOKIE['_rc'] = 'rcCookie';
 
         EventManager::getInstance()->addEventHandler(
             Constants::MODULE_ID,

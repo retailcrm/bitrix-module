@@ -208,6 +208,7 @@ class CorporateCustomerBuilder implements BuilderInterface
      * @throws \Bitrix\Main\ArgumentException
      * @throws \Bitrix\Main\ObjectPropertyException
      * @throws \Bitrix\Main\SystemException
+     * @throws \Intaro\RetailCrm\Component\Builder\Exception\BuilderException
      */
     public function setOrder(Order $order): CorporateCustomerBuilder
     {
