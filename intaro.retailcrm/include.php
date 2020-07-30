@@ -1,7 +1,7 @@
 <?php
 
 use Intaro\RetailCrm\Component\ServiceLocator;
-use Intaro\RetailCrm\Component\CollectorCookieExtractor;
+use Intaro\RetailCrm\Service\CollectorCookieExtractor;
 use Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\AnnotationReader;
 use Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\AnnotationRegistry;
 
@@ -24,6 +24,7 @@ $builder->setDisableNamespaces(true)
 AnnotationRegistry::registerLoader('class_exists');
 
 ServiceLocator::registerServices([
+    \Intaro\RetailCrm\Service\Utils::class,
     Logger::class,
     AnnotationReader::class,
     CollectorCookieExtractor::class

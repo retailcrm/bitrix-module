@@ -15,7 +15,7 @@ use Bitrix\Main\Type\DateTime;
 use Bitrix\Sale\Order;
 use Intaro\RetailCrm\Component\Builder\BuilderInterface;
 use Intaro\RetailCrm\Component\Builder\Exception\BuilderException;
-use Intaro\RetailCrm\Component\CollectorCookieExtractor;
+use Intaro\RetailCrm\Service\CollectorCookieExtractor;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Converter\DateTimeConverter;
 use Intaro\RetailCrm\Component\Events;

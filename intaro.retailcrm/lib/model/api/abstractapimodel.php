@@ -13,7 +13,8 @@ namespace Intaro\RetailCrm\Model\Api;
 
 use Intaro\RetailCrm\Component\Json\Mapping\PostDeserialize;
 use Intaro\RetailCrm\Component\Json\Mapping\PostSerialize;
-use Intaro\RetailCrm\Component\Utils;
+use Intaro\RetailCrm\Component\ServiceLocator;
+use Intaro\RetailCrm\Service\Utils;
 
 /**
  * Class AbstractApiModel
@@ -22,6 +23,17 @@ use Intaro\RetailCrm\Component\Utils;
  */
 class AbstractApiModel implements ApiModelInterface
 {
+    /** @var Utils */
+    private $utils;
+
+    /**
+     * AbstractApiModel constructor.
+     */
+    public function __construct()
+    {
+        $this->utils = ServiceLocator::get(Utils::class);
+    }
+
     /**
      * @PostDeserialize()
      */
@@ -53,6 +65,6 @@ class AbstractApiModel implements ApiModelInterface
      */
     public function postSerialize(array $fields): array
     {
-        return Utils::clearArray($fields);
+        return $this->utils->clearArray($fields);
     }
 }

@@ -26,7 +26,7 @@ class CustomerBuilderTest extends TestCase
     /** @var \Intaro\RetailCrm\Component\CollectorCookieExtractor */
     private $originalCookieCollector;
 
-    protected function setUp(): void
+    public function setUp()
     {
         $this->originalCookieCollector = ServiceLocator::get(CollectorCookieExtractor::class);
 
@@ -46,7 +46,7 @@ class CustomerBuilderTest extends TestCase
         ]);
     }
 
-    protected function tearDown(): void
+    protected function tearDown()
     {
         ServiceLocator::set(CollectorCookieExtractor::class, $this->originalCookieCollector);
     }
@@ -113,7 +113,6 @@ class CustomerBuilderTest extends TestCase
 
         $this->assertTrue($result instanceof Customer);
         $this->assertEquals('replaced', $result->externalId);
-        $this->assertEquals(static::COOKIE_DATA, $result->browserId);
     }
 
     /**

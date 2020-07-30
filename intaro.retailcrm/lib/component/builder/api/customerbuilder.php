@@ -12,7 +12,7 @@
 namespace Intaro\RetailCrm\Component\Builder\Api;
 
 use Intaro\RetailCrm\Component\Builder\Exception\BuilderException;
-use Intaro\RetailCrm\Component\CollectorCookieExtractor;
+use Intaro\RetailCrm\Service\CollectorCookieExtractor;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Converter\DateTimeConverter;
 use Intaro\RetailCrm\Component\Events;

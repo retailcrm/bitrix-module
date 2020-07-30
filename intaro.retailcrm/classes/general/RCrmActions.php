@@ -226,7 +226,9 @@ class RCrmActions
      */
     public static function clearArr($arr)
     {
-        return \Intaro\RetailCrm\Component\Utils::clearArray($arr);
+        /** @var \Intaro\RetailCrm\Component\Utils $utils */
+        $utils = \Intaro\RetailCrm\Component\ServiceLocator::get(\Intaro\RetailCrm\Component\Utils::class);
+        return $utils->clearArray($arr);
     }
 
     /**
@@ -237,7 +239,9 @@ class RCrmActions
      */
     public static function toJSON($str)
     {
-        return \Intaro\RetailCrm\Component\Utils::toUTF8($str);
+        /** @var \Intaro\RetailCrm\Component\Utils $utils */
+        $utils = \Intaro\RetailCrm\Component\ServiceLocator::get(\Intaro\RetailCrm\Component\Utils::class);
+        return $utils->toUTF8($str);
     }
 
     /**
@@ -248,7 +252,9 @@ class RCrmActions
      */
     public static function fromJSON($str)
     {
-        return \Intaro\RetailCrm\Component\Utils::fromUTF8($str);
+        /** @var \Intaro\RetailCrm\Component\Utils $utils */
+        $utils = \Intaro\RetailCrm\Component\ServiceLocator::get(\Intaro\RetailCrm\Component\Utils::class);
+        return $utils->fromUTF8($str);
     }
 
     /**

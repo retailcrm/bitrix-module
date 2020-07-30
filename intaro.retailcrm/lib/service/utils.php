@@ -9,10 +9,9 @@
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
  */
-namespace Intaro\RetailCrm\Component;
+namespace Intaro\RetailCrm\Service;
 
 use Bitrix\Main\Text\Encoding;
-use Intaro\RetailCrm\Model\Api\Order\Order;
 
 /**
  * Class Utils
@@ -27,7 +26,7 @@ class Utils
      * @param array $arr
      * @return array
      */
-    public static function clearArray($arr): array
+    public function clearArray($arr): array
     {
         if (is_array($arr) === false) {
             return $arr;
@@ -36,7 +35,7 @@ class Utils
         $result = array();
 
         foreach ($arr as $index => $node) {
-            $result[$index] = is_array($node) === true ? self::clearArray($node) : trim($node);
+            $result[$index] = is_array($node) === true ? $this->clearArray($node) : trim($node);
 
             if ($result[$index] == '' || $result[$index] === null || count($result[$index]) < 1) {
                 unset($result[$index]);
@@ -52,13 +51,13 @@ class Utils
      *
      * @return array|bool|\SplFixedArray|string $str in utf-8
      */
-    public static function toUTF8($string)
+    public function toUTF8($string)
     {
         if (!defined('SITE_CHARSET')) {
             throw new \RuntimeException('SITE_CHARSET must be defined.');
         }
 
-        return static::convertCharset($string, SITE_CHARSET, 'utf-8');
+        return $this->convertCharset($string, SITE_CHARSET, 'utf-8');
     }
 
     /**
@@ -67,13 +66,13 @@ class Utils
      *
      * @return array|bool|\SplFixedArray|string $str in SITE_CHARSET
      */
-    public static function fromUTF8($string)
+    public function fromUTF8($string)
     {
         if (!defined('SITE_CHARSET')) {
             throw new \RuntimeException('SITE_CHARSET must be defined.');
         }
 
-        return static::convertCharset($string, 'utf-8', SITE_CHARSET);
+        return $this->convertCharset($string, 'utf-8', SITE_CHARSET);
     }
 
     /**
@@ -83,7 +82,7 @@ class Utils
      *
      * @return bool
      */
-    public static function isPersonCorporate(string $personTypeId): bool
+    public function isPersonCorporate(string $personTypeId): bool
     {
         return ConfigProvider::getContragentTypeForPersonType($personTypeId) === Constants::CORPORATE_CONTRAGENT_TYPE;
     }
@@ -91,7 +90,7 @@ class Utils
     /**
      * @return string
      */
-    public static function createPlaceholderEmail(): string
+    public function createPlaceholderEmail(): string
     {
         return uniqid('user_' . time(), false) . '@example.com';
     }
@@ -99,7 +98,7 @@ class Utils
     /**
      * @return string
      */
-    public static function createPlaceholderPassword(): string
+    public function createPlaceholderPassword(): string
     {
         return uniqid("R", false);
     }
@@ -111,7 +110,7 @@ class Utils
      *
      * @return array|bool|\SplFixedArray|string
      */
-    protected static function convertCharset(string $string, string $inCharset, string $outCharset)
+    protected function convertCharset(string $string, string $inCharset, string $outCharset)
     {
         $error = '';
         $result = Encoding::convertEncoding($string,  $inCharset, $outCharset, $error);

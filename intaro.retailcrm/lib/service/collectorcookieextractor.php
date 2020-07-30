@@ -3,18 +3,18 @@
  * PHP version 7.1
  *
  * @category Integration
- * @package  Intaro\RetailCrm\Component
+ * @package  Intaro\RetailCrm\Service
  * @author   retailCRM <integration@retailcrm.ru>
  * @license  MIT
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
  */
-namespace Intaro\RetailCrm\Component;
+namespace Intaro\RetailCrm\Service;
 
 /**
  * Class CollectorCookieExtractor
  *
- * @package Intaro\RetailCrm\Component
+ * @package Intaro\RetailCrm\Service
  */
 class CollectorCookieExtractor
 {

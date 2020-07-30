@@ -13,7 +13,8 @@ namespace Intaro\RetailCrm\Component\Builder;
 
 use Intaro\RetailCrm\Component\Converter\DateTimeConverter;
 use Intaro\RetailCrm\Component\Events;
-use Intaro\RetailCrm\Component\Utils;
+use Intaro\RetailCrm\Component\ServiceLocator;
+use Intaro\RetailCrm\Service\Utils;
 use Intaro\RetailCrm\Model\Api\Customer;
 use Intaro\RetailCrm\Model\Bitrix\User;
 
@@ -29,6 +30,17 @@ class CustomerBuilder implements BuilderInterface
 
     /** @var \Intaro\RetailCrm\Model\Api\Customer */
     protected $customer;
+    
+    /** @var Utils */
+    protected $utils;
+
+    /**
+     * CustomerBuilder constructor.
+     */
+    public function __construct()
+    {
+        $this->utils = ServiceLocator::get($this->utils->class);
+    }
 
     /**
      * @param \Intaro\RetailCrm\Model\Bitrix\User $user
@@ -124,15 +136,15 @@ class CustomerBuilder implements BuilderInterface
     protected function buildNames(): void
     {
         if (!empty($this->customer->firstName)) {
-            $this->user->setName(Utils::fromUTF8($this->customer->firstName));
+            $this->user->setName($this->utils->fromUTF8($this->customer->firstName));
         }
 
         if (!empty($this->customer->lastName)) {
-            $this->user->setLastName(Utils::fromUTF8($this->customer->lastName));
+            $this->user->setLastName($this->utils->fromUTF8($this->customer->lastName));
         }
 
         if (!empty($this->customer->patronymic)) {
-            $this->user->setSecondName(Utils::fromUTF8($this->customer->patronymic));
+            $this->user->setSecondName($this->utils->fromUTF8($this->customer->patronymic));
         }
     }
 
@@ -178,11 +190,11 @@ class CustomerBuilder implements BuilderInterface
     {
         if (!empty($this->customer->address)) {
             if (!empty($this->customer->address->index)) {
-                $this->user->setPersonalZip(Utils::fromUTF8($this->customer->address->index));
+                $this->user->setPersonalZip($this->utils->fromUTF8($this->customer->address->index));
             }
 
             if (!empty($this->customer->address->city)) {
-                $this->user->setPersonalCity(Utils::fromUTF8($this->customer->address->city));
+                $this->user->setPersonalCity($this->utils->fromUTF8($this->customer->address->city));
             }
         }
     }
@@ -197,11 +209,11 @@ class CustomerBuilder implements BuilderInterface
         }
 
         if (!empty($this->customer->email)) {
-            $this->user->setEmail(Utils::fromUTF8($this->customer->email));
+            $this->user->setEmail($this->utils->fromUTF8($this->customer->email));
         }
 
         if (!empty($this->customer->sex)) {
-            $this->user->setPersonalGender(Utils::fromUTF8($this->customer->sex));
+            $this->user->setPersonalGender($this->utils->fromUTF8($this->customer->sex));
         }
     }
 
@@ -211,11 +223,11 @@ class CustomerBuilder implements BuilderInterface
     protected function fillFieldsForHistoryClient(): void
     {
         if (empty($this->customer->externalId)) {
-            $this->user->setPassword(Utils::createPlaceholderPassword());
+            $this->user->setPassword($this->utils->createPlaceholderPassword());
         }
 
         if (empty($this->customer->email) && empty($this->customer->externalId)) {
-            $login = Utils::createPlaceholderEmail();
+            $login = $this->utils->createPlaceholderEmail();
             $this->user->setLogin($login);
             $this->user->setEmail($login);
         }
