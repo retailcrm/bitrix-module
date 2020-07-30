@@ -1,5 +1,10 @@
 <?php
 
+use Intaro\RetailCrm\Component\ServiceLocator;
+use Intaro\RetailCrm\Component\CollectorCookieExtractor;
+use Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\AnnotationReader;
+use Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\AnnotationRegistry;
+
 require_once __DIR__ . '/RetailcrmClasspathBuilder.php';
 
 $retailcrmModuleId = 'intaro.retailcrm';
@@ -16,4 +21,10 @@ $builder->setDisableNamespaces(true)
 
 \Bitrix\Main\Loader::switchAutoLoad(true);
 \Bitrix\Main\Loader::registerAutoLoadClasses('intaro.retailcrm', $builder->getResult());
-\Intaro\RetailCrm\Component\Doctrine\Common\Annotations\AnnotationRegistry::registerLoader('class_exists');
+AnnotationRegistry::registerLoader('class_exists');
+
+ServiceLocator::registerServices([
+    Logger::class,
+    AnnotationReader::class,
+    CollectorCookieExtractor::class
+]);

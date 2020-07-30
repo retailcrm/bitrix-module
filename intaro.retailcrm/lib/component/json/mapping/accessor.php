@@ -11,10 +11,10 @@
  */
 namespace Intaro\RetailCrm\Component\Json\Mapping;
 
-use Intaro\RetailCrm\Component\Doctrine\Common\Annotations\Annotation;
-use Intaro\RetailCrm\Component\Doctrine\Common\Annotations\Annotation\Target;
-use Intaro\RetailCrm\Component\Doctrine\Common\Annotations\Annotation\Attribute;
-use Intaro\RetailCrm\Component\Doctrine\Common\Annotations\Annotation\Attributes;
+use Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\Annotation;
+use Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\Annotation\Target;
+use Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\Annotation\Attribute;
+use Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\Annotation\Attributes;
 
 /**
  * Class Accessor

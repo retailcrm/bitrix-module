@@ -11,7 +11,7 @@
  */
 namespace Intaro\RetailCrm\Component\Json\Strategy\Serialize;
 
-use Intaro\RetailCrm\Component\Doctrine\Common\Annotations\AnnotationReader;
+use Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\AnnotationReader;
 use Intaro\RetailCrm\Component\Json\Mapping\Accessor;
 use Intaro\RetailCrm\Component\Json\Mapping\SerializedName;
 use Intaro\RetailCrm\Component\Json\Mapping\Type;

@@ -17,10 +17,10 @@
  * <http://www.doctrine-project.org>.
  */
 
-namespace Intaro\RetailCrm\Component\Doctrine\Common\Annotations;
+namespace Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations;
 
-use Intaro\RetailCrm\Component\Doctrine\Common\Annotations\Annotation\IgnoreAnnotation;
-use Intaro\RetailCrm\Component\Doctrine\Common\Annotations\Annotation\Target;
+use Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\Annotation\IgnoreAnnotation;
+use Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\Annotation\Target;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionProperty;
@@ -42,7 +42,7 @@ class AnnotationReader implements Reader
      * @var array
      */
     private static $globalImports = [
-        'ignoreannotation' => 'Intaro\RetailCrm\Component\Doctrine\Common\Annotations\Annotation\IgnoreAnnotation',
+        'ignoreannotation' => 'Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\Annotation\IgnoreAnnotation',
     ];
 
     /**
@@ -143,21 +143,21 @@ class AnnotationReader implements Reader
     /**
      * Annotations parser.
      *
-     * @var \Intaro\RetailCrm\Component\Doctrine\Common\Annotations\DocParser
+     * @var \Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\DocParser
      */
     private $parser;
 
     /**
      * Annotations parser used to collect parsing metadata.
      *
-     * @var \Intaro\RetailCrm\Component\Doctrine\Common\Annotations\DocParser
+     * @var \Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\DocParser
      */
     private $preParser;
 
     /**
      * PHP parser used to collect imports.
      *
-     * @var \Intaro\RetailCrm\Component\Doctrine\Common\Annotations\PhpParser
+     * @var \Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\PhpParser
      */
     private $phpParser;
 

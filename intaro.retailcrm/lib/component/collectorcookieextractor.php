@@ -23,7 +23,7 @@ class CollectorCookieExtractor
      *
      * @return string|null
      */
-    public static function extractCookie(): ?string
+    public function extractCookie(): ?string
     {
         global $_COOKIE;
 

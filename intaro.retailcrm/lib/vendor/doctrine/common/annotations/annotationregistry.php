@@ -17,7 +17,7 @@
  * <http://www.doctrine-project.org>.
  */
 
-namespace Intaro\RetailCrm\Component\Doctrine\Common\Annotations;
+namespace Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations;
 
 final class AnnotationRegistry
 {

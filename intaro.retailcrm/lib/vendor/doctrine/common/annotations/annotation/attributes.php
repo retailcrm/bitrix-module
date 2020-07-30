@@ -18,7 +18,7 @@
  * <http://www.doctrine-project.org>.
  */
 
-namespace Intaro\RetailCrm\Component\Doctrine\Common\Annotations\Annotation;
+namespace Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\Annotation;
 
 /**
  * Annotation that can be used to signal to the parser

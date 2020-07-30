@@ -17,13 +17,13 @@
  * <http://www.doctrine-project.org>.
  */
 
-namespace Intaro\RetailCrm\Component\Doctrine\Common\Annotations;
+namespace Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations;
 
-use Intaro\RetailCrm\Component\Doctrine\Common\Annotations\Annotation\Attribute;
+use Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\Annotation\Attribute;
 use ReflectionClass;
-use Intaro\RetailCrm\Component\Doctrine\Common\Annotations\Annotation\Enum;
-use Intaro\RetailCrm\Component\Doctrine\Common\Annotations\Annotation\Target;
-use Intaro\RetailCrm\Component\Doctrine\Common\Annotations\Annotation\Attributes;
+use Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\Annotation\Enum;
+use Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\Annotation\Target;
+use Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\Annotation\Attributes;
 
 /**
  * A parser for docblock annotations.
@@ -54,7 +54,7 @@ final class DocParser
     /**
      * The lexer.
      *
-     * @var \Intaro\RetailCrm\Component\Doctrine\Common\Annotations\DocLexer
+     * @var \Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\DocLexer
      */
     private $lexer;
 
@@ -68,7 +68,7 @@ final class DocParser
     /**
      * Doc parser used to collect annotation target.
      *
-     * @var \Intaro\RetailCrm\Component\Doctrine\Common\Annotations\DocParser
+     * @var \Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\DocParser
      */
     private static $metadataParser;
 
@@ -138,7 +138,7 @@ final class DocParser
      * @var array
      */
     private static $annotationMetadata = [
-        'Intaro\RetailCrm\Component\Doctrine\Common\Annotations\Annotation\Target' => [
+        'Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\Annotation\Target' => [
             'is_annotation'    => true,
             'has_constructor'  => true,
             'properties'       => [],
@@ -154,7 +154,7 @@ final class DocParser
                 ]
             ],
         ],
-        'Intaro\RetailCrm\Component\Doctrine\Common\Annotations\Annotation\Attribute' => [
+        'Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\Annotation\Attribute' => [
             'is_annotation'    => true,
             'has_constructor'  => false,
             'targets_literal'  => 'ANNOTATION_ANNOTATION',
@@ -183,7 +183,7 @@ final class DocParser
                 ]
             ],
         ],
-        'Intaro\RetailCrm\Component\Doctrine\Common\Annotations\Annotation\Attributes' => [
+        'Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\Annotation\Attributes' => [
             'is_annotation'    => true,
             'has_constructor'  => false,
             'targets_literal'  => 'ANNOTATION_CLASS',
@@ -196,12 +196,12 @@ final class DocParser
                 'value' => [
                     'type'      =>'array',
                     'required'  =>true,
-                    'array_type'=>'Intaro\RetailCrm\Component\Doctrine\Common\Annotations\Annotation\Attribute',
-                    'value'     =>'array<Intaro\RetailCrm\Component\Doctrine\Common\Annotations\Annotation\Attribute>'
+                    'array_type'=>'Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\Annotation\Attribute',
+                    'value'     =>'array<Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\Annotation\Attribute>'
                 ]
             ],
         ],
-        'Intaro\RetailCrm\Component\Doctrine\Common\Annotations\Annotation\Enum' => [
+        'Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\Annotation\Enum' => [
             'is_annotation'    => true,
             'has_constructor'  => true,
             'targets_literal'  => 'ANNOTATION_PROPERTY',
@@ -484,10 +484,10 @@ final class DocParser
             self::$metadataParser->setIgnoreNotImportedAnnotations(true);
             self::$metadataParser->setIgnoredAnnotationNames($this->ignoredAnnotationNames);
             self::$metadataParser->setImports([
-                'enum'          => 'Intaro\RetailCrm\Component\Doctrine\Common\Annotations\Annotation\Enum',
-                'target'        => 'Intaro\RetailCrm\Component\Doctrine\Common\Annotations\Annotation\Target',
-                'attribute'     => 'Intaro\RetailCrm\Component\Doctrine\Common\Annotations\Annotation\Attribute',
-                'attributes'    => 'Intaro\RetailCrm\Component\Doctrine\Common\Annotations\Annotation\Attributes'
+                'enum'          => 'Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\Annotation\Enum',
+                'target'        => 'Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\Annotation\Target',
+                'attribute'     => 'Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\Annotation\Attribute',
+                'attributes'    => 'Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\Annotation\Attributes'
             ]);
 
             // Make sure that annotations from metadata are loaded

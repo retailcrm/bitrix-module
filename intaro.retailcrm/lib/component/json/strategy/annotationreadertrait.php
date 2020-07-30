@@ -11,7 +11,8 @@
  */
 namespace Intaro\RetailCrm\Component\Json\Strategy;
 
-use Intaro\RetailCrm\Component\Doctrine\Common\Annotations\AnnotationReader;
+use Intaro\RetailCrm\Component\ServiceLocator;
+use Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\AnnotationReader;
 
 /**
  * Trait AnnotationReaderTrait
@@ -20,18 +21,11 @@ use Intaro\RetailCrm\Component\Doctrine\Common\Annotations\AnnotationReader;
  */
 trait AnnotationReaderTrait
 {
-    /** @var \Intaro\RetailCrm\Component\Doctrine\Common\Annotations\AnnotationReader */
-    private static $_annotationReader;
-
     /**
-     * @return \Intaro\RetailCrm\Component\Doctrine\Common\Annotations\AnnotationReader
+     * @return \Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\AnnotationReader
      */
-    private static function annotationReader(): AnnotationReader
+    private static function annotationReader()
     {
-        if (empty(static::$_annotationReader)) {
-            static::$_annotationReader = new AnnotationReader();
-        }
-
-        return static::$_annotationReader;
+        return ServiceLocator::get(AnnotationReader::class);
     }
 }

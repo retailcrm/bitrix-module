@@ -17,9 +17,9 @@
  * <http://www.doctrine-project.org>.
  */
 
-namespace Intaro\RetailCrm\Component\Doctrine\Common\Annotations;
+namespace Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations;
 
-use Intaro\RetailCrm\Component\Doctrine\Common\Lexer\AbstractLexer;
+use Intaro\RetailCrm\Vendor\Doctrine\Common\Lexer\AbstractLexer;
 
 /**
  * Simple lexer for docblock annotations.

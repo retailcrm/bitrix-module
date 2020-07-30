@@ -1,5 +1,4 @@
 <?php
-
 /*
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -18,30 +17,38 @@
  * <http://www.doctrine-project.org>.
  */
 
-namespace Intaro\RetailCrm\Component\Doctrine\Common\Annotations\Annotation;
+namespace Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\Annotation;
 
 /**
- * Annotation that can be used to signal to the parser
- * to check the attribute type during the parsing process.
- *
- * @author Fabio B. Silva <fabio.bat.silva@gmail.com>
+ * Annotation that can be used to signal to the parser to ignore specific
+ * annotations during the parsing process.
  *
  * @Annotation
+ * @author Johannes M. Schmitt <schmittjoh@gmail.com>
  */
-final class Attribute
+final class IgnoreAnnotation
 {
     /**
-     * @var string
+     * @var array
      */
-    public $name;
+    public $names;
 
     /**
-     * @var string
+     * Constructor.
+     *
+     * @param array $values
+     *
+     * @throws \RuntimeException
      */
-    public $type;
+    public function __construct(array $values)
+    {
+        if (is_string($values['value'])) {
+            $values['value'] = [$values['value']];
+        }
+        if (!is_array($values['value'])) {
+            throw new \RuntimeException(sprintf('@IgnoreAnnotation expects either a string name, or an array of strings, but got %s.', json_encode($values['value'])));
+        }
 
-    /**
-     * @var boolean
-     */
-    public $required = false;
+        $this->names = $values['value'];
+    }
 }

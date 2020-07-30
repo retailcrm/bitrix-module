@@ -44,7 +44,7 @@ class Logger
      * @param string $logPath
      * @param int    $files
      */
-    private function __construct($logPath = '/bitrix/modules/intaro.retailcrm/log', $files = 3)
+    public function __construct($logPath = '/bitrix/modules/intaro.retailcrm/log', $files = 3)
     {
         $this->logPath = $logPath;
         $this->files = $files;
