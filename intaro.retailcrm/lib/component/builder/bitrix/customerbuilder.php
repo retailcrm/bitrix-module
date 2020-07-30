@@ -153,7 +153,7 @@ class CustomerBuilder implements BuilderInterface
                     }
                 }
 
-                if (isset($phone['number'])) {
+                if (isset($phone->number)) {
                     if (strlen($this->user->getPersonalPhone()) == 0
                         && $this->user->getPersonalPhone() != $phone->number
                     ) {
@@ -163,7 +163,7 @@ class CustomerBuilder implements BuilderInterface
                     if (strlen($this->user->getPersonalMobile()) == 0
                         && $this->user->getPersonalMobile() != $phone->number
                     ) {
-                        $this->user->setPersonalMobile($phone['number']);
+                        $this->user->setPersonalMobile($phone->number);
                         continue;
                     }
                 }
