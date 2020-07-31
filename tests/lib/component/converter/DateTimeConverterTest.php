@@ -11,10 +11,10 @@ class DateTimeConverterTest extends TestCase
     /**
      * Better rely on preconfigured format & data
      */
-    const ISO8601 = 'Y-m-d\TH:i:sO';
+    const FORMAT = 'Y-m-d\TH:i:s';
 
     /** @var string */
-    const ISO8601_DATE = '1970-01-01T12:30:45+0300';
+    const FORMAT_DATE = '1970-01-01T12:30:45';
 
     public function testPhpToBitrix(): void
     {
