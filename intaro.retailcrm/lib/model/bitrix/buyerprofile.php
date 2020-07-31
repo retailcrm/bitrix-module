@@ -48,7 +48,7 @@ class BuyerProfile extends AbstractSerializableModel
     /**
      * @return string
      */
-    public function getName(): string
+    public function getName(): ?string
     {
         return $this->name;
     }
@@ -58,7 +58,7 @@ class BuyerProfile extends AbstractSerializableModel
      *
      * @return BuyerProfile
      */
-    public function setName(string $name): BuyerProfile
+    public function setName(string $name): ?BuyerProfile
     {
         $this->name = $name;
         return $this;
@@ -67,7 +67,7 @@ class BuyerProfile extends AbstractSerializableModel
     /**
      * @return string
      */
-    public function getUserId(): string
+    public function getUserId(): ?string
     {
         return $this->userId;
     }
@@ -77,7 +77,7 @@ class BuyerProfile extends AbstractSerializableModel
      *
      * @return BuyerProfile
      */
-    public function setUserId(string $userId): BuyerProfile
+    public function setUserId(string $userId): ?BuyerProfile
     {
         $this->userId = $userId;
         return $this;
@@ -86,7 +86,7 @@ class BuyerProfile extends AbstractSerializableModel
     /**
      * @return string
      */
-    public function getPersonTypeId(): string
+    public function getPersonTypeId(): ?string
     {
         return $this->personTypeId;
     }
@@ -96,7 +96,7 @@ class BuyerProfile extends AbstractSerializableModel
      *
      * @return BuyerProfile
      */
-    public function setPersonTypeId(string $personTypeId): BuyerProfile
+    public function setPersonTypeId(string $personTypeId): ?BuyerProfile
     {
         $this->personTypeId = $personTypeId;
         return $this;
