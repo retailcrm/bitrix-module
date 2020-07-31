@@ -63,14 +63,12 @@ abstract class AbstractSerializableModel
                 $result = call_user_func($this->getBaseClass() . '::add', $data);
             }
         } else {
-            $instance = $this->constructBaseClass();
+            $instance = new $this->getBaseClass();
 
-            if (!empty($instance)) {
-                if (method_exists($instance, 'Add')) {
-                    $result = $instance->Add($data);
-                } elseif (method_exists($instance, 'add')) {
-                    $result = $instance->add($data);
-                }
+            if (method_exists($instance, 'Add')) {
+                $result = $instance->Add($data);
+            } elseif (method_exists($instance, 'add')) {
+                $result = $instance->add($data);
             }
         }
 
@@ -100,14 +98,12 @@ abstract class AbstractSerializableModel
                 $result = call_user_func($this->getBaseClass() . '::delete', $primary);
             }
         } else {
-            $instance = $this->constructBaseClass();
+            $instance = new $this->getBaseClass();
 
-            if (!empty($instance)) {
-                if (method_exists($instance, 'Delete')) {
-                    $result = $instance->Delete($primary);
-                } elseif (method_exists($instance, 'delete')) {
-                    $result = $instance->delete($primary);
-                }
+            if (method_exists($instance, 'Delete')) {
+                $result = $instance->Delete($primary);
+            } elseif (method_exists($instance, 'delete')) {
+                $result = $instance->delete($primary);
             }
         }
 
@@ -132,22 +128,6 @@ abstract class AbstractSerializableModel
         }
 
         return $newResult;
-    }
-
-    /**
-     * Tries to construct base class
-     *
-     * @return mixed|null
-     */
-    private function constructBaseClass()
-    {
-        $instance = null;
-
-        try {
-            $instance = new $this->getBaseClass();
-        } catch (\Throwable $exception) {}
-
-        return $instance;
     }
 
     /**
