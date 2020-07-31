@@ -109,4 +109,20 @@ class BuyerProfile extends AbstractSerializableModel
     {
         return \CSaleOrderUserProps::class;
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function isSaveStatic(): bool
+    {
+        return false;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function isDeleteStatic(): bool
+    {
+        return false;
+    }
 }

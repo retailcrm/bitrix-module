@@ -1678,4 +1678,20 @@ class User extends AbstractSerializableModel
     {
         return \CUser::class;
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function isSaveStatic(): bool
+    {
+        return false;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function isDeleteStatic(): bool
+    {
+        return true;
+    }
 }

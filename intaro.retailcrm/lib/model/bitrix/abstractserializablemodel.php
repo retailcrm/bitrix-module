@@ -33,6 +33,20 @@ abstract class AbstractSerializableModel
     abstract public function getBaseClass(): string;
 
     /**
+     * Returns true if Add method should be called from class itself, not it's instance.
+     *
+     * @return bool
+     */
+    abstract public function isSaveStatic(): bool;
+
+    /**
+     * Returns true if Delete method should be called from class itself, not it's instance.
+     *
+     * @return bool
+     */
+    abstract public function isDeleteStatic(): bool;
+
+    /**
      * Tries to save object via base class
      *
      * @return \Bitrix\Main\ORM\Data\Result
@@ -42,24 +56,22 @@ abstract class AbstractSerializableModel
         $result = null;
         $data = $this->serialize();
 
-        $instance = $this->constructBaseClass();
-
-        if (!empty($instance)) {
-            if (method_exists($instance, 'Add')) {
-                $result = $instance->Add($data);
-            } elseif (method_exists($instance, 'add')) {
-                $result = $instance->add($data);
+        if ($this->isSaveStatic()) {
+            if (method_exists($this->getBaseClass(), 'Add')) {
+                $result = call_user_func($this->getBaseClass() . '::Add', $data);
+            } elseif (method_exists($this->getBaseClass(), 'add')) {
+                $result = call_user_func($this->getBaseClass() . '::add', $data);
             }
-        }
+        } else {
+            $instance = $this->constructBaseClass();
 
-        if (null !== $result) {
-            return $this->constructResult($result);
-        }
-
-        if (method_exists($this->getBaseClass(), 'Add')) {
-            $result = call_user_func([$this->getBaseClass(), 'Add'], $data);
-        } elseif (method_exists($this->getBaseClass(), 'add')) {
-            $result = call_user_func([$this->getBaseClass(), 'add'], $data);
+            if (!empty($instance)) {
+                if (method_exists($instance, 'Add')) {
+                    $result = $instance->Add($data);
+                } elseif (method_exists($instance, 'add')) {
+                    $result = $instance->add($data);
+                }
+            }
         }
 
         if (null === $result) {
@@ -80,25 +92,26 @@ abstract class AbstractSerializableModel
     {
         $result = null;
         $primary = $this->getPrimaryKeyData();
-        $instance = $this->constructBaseClass();
 
-        if (!empty($instance)) {
-            if (method_exists($instance, 'Delete')) {
-                $result = $instance->Delete($primary);
-            } elseif (method_exists($instance, 'delete')) {
-                $result = $instance->delete($primary);
+        if ($this->isDeleteStatic()) {
+            if (method_exists($this->getBaseClass(), 'Delete')) {
+                $result = call_user_func($this->getBaseClass() . '::Delete', $primary);
+            } elseif (method_exists($this->getBaseClass(), 'delete')) {
+                $result = call_user_func($this->getBaseClass() . '::delete', $primary);
+            }
+        } else {
+            $instance = $this->constructBaseClass();
+
+            if (!empty($instance)) {
+                if (method_exists($instance, 'Delete')) {
+                    $result = $instance->Delete($primary);
+                } elseif (method_exists($instance, 'delete')) {
+                    $result = $instance->delete($primary);
+                }
             }
         }
 
-        if (null !== $result) {
-            return $this->constructResult($result);
-        }
-
-        if (method_exists($this->getBaseClass(), 'Delete')) {
-            $result = call_user_func([$this->getBaseClass(), 'Delete'], $primary);
-        } elseif (method_exists($this->getBaseClass(), 'delete')) {
-            $result = call_user_func([$this->getBaseClass(), 'delete'], $primary);
-        } else {
+        if (null === $result) {
             throw new \RuntimeException('Neither Delete($id) nor delete($id) is exist in the base class');
         }
 
