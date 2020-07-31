@@ -305,7 +305,7 @@ class User extends AbstractSerializableModel
 
     /**
      * @var DateTime
-     *
+     * // TODO: Replace $personalBirthday with \DateTime
      * @Mapping\Type("DateTime")
      * @Mapping\SerializedName("PERSONAL_BIRTHDAY")
      * @Mapping\NoTransform()

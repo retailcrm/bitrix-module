@@ -148,7 +148,7 @@ class CustomerBuilder implements BuilderInterface
 
         $this->customer->externalId = $this->user->getId();
         $this->customer->email = $this->user->getEmail();
-        $this->customer->createdAt = DateTimeConverter::bitrixToPhp($this->user->getDateRegister());
+        $this->customer->createdAt = $this->user->getDateRegister();
         $this->customer->subscribed = false;
     }
 
