@@ -25,9 +25,9 @@ class CustomersCorporateListRequest extends AbstractApiModel
     use PaginatedTrait;
 
     /**
-     * @var \Intaro\RetailCrm\Model\Api\Request\Filter\CorporateCustomerFilter
+     * @var \Intaro\RetailCrm\Model\Api\Request\Filter\CustomersCorporateFilter
      *
-     * @Mapping\Type("IIntaro\RetailCrm\Model\Api\Request\Filter\CorporateCustomerFilter")
+     * @Mapping\Type("Intaro\RetailCrm\Model\Api\Request\Filter\CustomersCorporateFilter")
      * @Mapping\SerializedName("filter")
      */
     public $filter;

@@ -13,22 +13,29 @@ namespace Intaro\RetailCrm\Model\Api\Request\Customers;
 
 use Intaro\RetailCrm\Component\Json\Mapping;
 use Intaro\RetailCrm\Model\Api\AbstractApiModel;
+use Intaro\RetailCrm\Model\Api\Request\ByTrait;
 use Intaro\RetailCrm\Model\Api\Request\SiteScopedTrait;
 
 /**
- * Class CustomersNotesCreateRequest
+ * Class CustomersCorporateAddressesCreateRequest
  *
  * @package Intaro\RetailCrm\Model\Api\Request\Customers
  */
-class CustomersNotesCreateRequest extends AbstractApiModel
+class CustomersCorporateAddressesCreateRequest extends AbstractApiModel
 {
+    use ByTrait;
     use SiteScopedTrait;
 
     /**
-     * @var \Intaro\RetailCrm\Model\Api\CustomerNote
-     *
-     * @Mapping\Type("Intaro\RetailCrm\Model\Api\CustomerNote")
-     * @Mapping\SerializedName("note")
+     * @var string
      */
-    public $note;
+    public $externalId;
+
+    /**
+     * @var \Intaro\RetailCrm\Model\Api\Address
+     *
+     * @Mapping\Type("Intaro\RetailCrm\Model\Api\Address")
+     * @Mapping\SerializedName("address")
+     */
+    public $address;
 }

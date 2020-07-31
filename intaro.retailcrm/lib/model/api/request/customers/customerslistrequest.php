@@ -27,7 +27,7 @@ class CustomersListRequest extends AbstractApiModel
     /**
      * @var \Intaro\RetailCrm\Model\Api\Request\Filter\CustomerFilter
      *
-     * @Mapping\Type("IIntaro\RetailCrm\Model\Api\Request\Filter\CustomerFilter")
+     * @Mapping\Type("Intaro\RetailCrm\Model\Api\Request\Filter\CustomerFilter")
      * @Mapping\SerializedName("filter")
      */
     public $filter;

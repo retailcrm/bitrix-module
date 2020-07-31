@@ -15,11 +15,11 @@ use Intaro\RetailCrm\Component\Json\Mapping;
 use Intaro\RetailCrm\Model\Api\AbstractApiModel;
 
 /**
- * Class CorporateCustomerFilter
+ * Class CustomersCorporateFilter
  *
  * @package Intaro\RetailCrm\Model\Api\Request\Filter
  */
-class CorporateCustomerFilter extends AbstractApiModel
+class CustomersCorporateFilter extends AbstractApiModel
 {
     /**
      * @var string[]

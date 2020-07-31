@@ -27,12 +27,9 @@ class CustomersCorporateContactsCreateRequest extends AbstractApiModel
     use SiteScopedTrait;
 
     /**
-     * @var int
-     *
-     * @Mapping\Type("int")
-     * @Mapping\SerializedName("id")
+     * @var string
      */
-    public $id;
+    public $idOrExternalId;
 
     /**
      * @var \Intaro\RetailCrm\Model\Api\CustomerContact
