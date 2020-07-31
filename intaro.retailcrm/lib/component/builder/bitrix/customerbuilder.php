@@ -40,7 +40,7 @@ class CustomerBuilder implements BuilderInterface
      */
     public function __construct()
     {
-        $this->utils = ServiceLocator::get($this->utils->class);
+        $this->utils = ServiceLocator::get(Utils::class);
     }
 
     /**
