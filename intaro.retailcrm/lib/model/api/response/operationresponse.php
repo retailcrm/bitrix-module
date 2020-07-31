@@ -15,7 +15,7 @@ use Intaro\RetailCrm\Component\Json\Mapping;
 use Intaro\RetailCrm\Model\Api\AbstractApiModel;
 
 /**
- * Class CreateResponse
+ * Class OperationResponse
  *
  * @package Intaro\RetailCrm\Model\Api
  */
@@ -36,4 +36,12 @@ class OperationResponse extends AbstractApiModel
      * @Mapping\SerializedName("errors")
      */
     public $errors;
+
+    /**
+     * @var \Intaro\RetailCrm\Model\Api\Response\PaginationResponse
+     *
+     * @Mapping\Type("Intaro\RetailCrm\Model\Api\Response\PaginationResponse")
+     * @Mapping\SerializedName("pagination")
+     */
+    public $pagination;
 }

@@ -192,7 +192,7 @@ class History extends AbstractApiModel
     public $customerContact;
 
     /**
-     * Информация о клиенте, который получился после объединения с текущим клиентом
+     * Информация о компании
      *
      * @var \Intaro\RetailCrm\Model\Api\Company $company
      *

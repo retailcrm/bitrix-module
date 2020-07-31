@@ -18,13 +18,13 @@ use Intaro\RetailCrm\Component\Json\Mapping;
  *
  * @package Intaro\RetailCrm\Model\Api
  */
-class CustomerResponse extends OperationResponse
+class CompaniesResponse extends OperationResponse
 {
     /**
-     * @var \Intaro\RetailCrm\Model\Api\Customer
+     * @var \Intaro\RetailCrm\Model\Api\Company[]
      *
-     * @Mapping\Type("Intaro\RetailCrm\Model\Api\Customer")
-     * @Mapping\SerializedName("customer")
+     * @Mapping\Type("Intaro\RetailCrm\Model\Api\Company[]")
+     * @Mapping\SerializedName("companies")
      */
-    public $customer;
+    public $companies;
 }

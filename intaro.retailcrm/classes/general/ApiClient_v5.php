@@ -238,7 +238,7 @@ class ApiClient
      *
      * @return ApiResponse
      */
-    public function customersСorporateFixExternalIds(array $ids)
+    public function customersCorporateFixExternalIds(array $ids)
     {
         if (! count($ids)) {
             throw new \InvalidArgumentException(
@@ -249,7 +249,7 @@ class ApiClient
         return $this->client->makeRequest(
             '/customers-corporate/fix-external-ids',
             Client::METHOD_POST,
-            array('customerCorporate' => json_encode($ids))
+            array('customersCorporate' => json_encode($ids))
         );
     }
 
@@ -398,7 +398,7 @@ class ApiClient
      * @return ApiResponse
      *
      */
-    public function customersСorporateHistory(array $filter = array(), $page = null, $limit = null)
+    public function customersCorporateHistory(array $filter = array(), $page = null, $limit = null)
     {
         $parameters = array();
 

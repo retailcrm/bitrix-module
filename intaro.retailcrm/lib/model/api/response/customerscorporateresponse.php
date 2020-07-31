@@ -14,17 +14,17 @@ namespace Intaro\RetailCrm\Model\Api\Response;
 use Intaro\RetailCrm\Component\Json\Mapping;
 
 /**
- * Class CustomerResponse
+ * Class CustomersCorporateResponse
  *
  * @package Intaro\RetailCrm\Model\Api
  */
-class CustomerResponse extends OperationResponse
+class CustomersCorporateResponse extends OperationResponse
 {
     /**
-     * @var \Intaro\RetailCrm\Model\Api\Customer
+     * @var \Intaro\RetailCrm\Model\Api\Customer[]
      *
-     * @Mapping\Type("Intaro\RetailCrm\Model\Api\Customer")
-     * @Mapping\SerializedName("customer")
+     * @Mapping\Type("Intaro\RetailCrm\Model\Api\Customer[]")
+     * @Mapping\SerializedName("customersCorporate")
      */
-    public $customer;
+    public $customersCorporate;
 }

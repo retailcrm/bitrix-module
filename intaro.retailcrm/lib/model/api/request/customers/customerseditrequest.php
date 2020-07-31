@@ -3,23 +3,29 @@
  * PHP version 7.1
  *
  * @category Integration
- * @package  Intaro\RetailCrm\Model\Api\Response
+ * @package  Intaro\RetailCrm\Model\Api\Request\Customers
  * @author   retailCRM <integration@retailcrm.ru>
  * @license  MIT
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
  */
-namespace Intaro\RetailCrm\Model\Api\Response;
+namespace Intaro\RetailCrm\Model\Api\Request\Customers;
 
 use Intaro\RetailCrm\Component\Json\Mapping;
+use Intaro\RetailCrm\Model\Api\AbstractApiModel;
+use Intaro\RetailCrm\Model\Api\Request\ByTrait;
+use Intaro\RetailCrm\Model\Api\Request\SiteScopedTrait;
 
 /**
- * Class CustomerResponse
+ * Class CustomersEditRequest
  *
- * @package Intaro\RetailCrm\Model\Api
+ * @package Intaro\RetailCrm\Model\Api\Request\Customers
  */
-class CustomerResponse extends OperationResponse
+class CustomersEditRequest extends AbstractApiModel
 {
+    use ByTrait;
+    use SiteScopedTrait;
+
     /**
      * @var \Intaro\RetailCrm\Model\Api\Customer
      *

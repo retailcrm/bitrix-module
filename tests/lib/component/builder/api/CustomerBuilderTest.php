@@ -33,7 +33,7 @@ class CustomerBuilderTest extends TestCase
      */
     public function testBuild($entity): void
     {
-        $this->assertTrue($entity instanceof User);
+        self::assertTrue($entity instanceof User);
 
         $cookieData = 'rcCookie';
         $originalCookieCollector = ServiceLocator::get(CollectorCookieExtractor::class);
@@ -59,22 +59,22 @@ class CustomerBuilderTest extends TestCase
 
         ServiceLocator::set(CollectorCookieExtractor::class, $originalCookieCollector);
 
-        $this->assertTrue($result instanceof Customer);
-        $this->assertEquals($entity->getId(), $result->externalId);
-        $this->assertEquals($entity->getEmail(), $result->email);
-        $this->assertEquals(DateTimeConverter::bitrixToPhp($entity->getDateRegister()), $result->createdAt);
-        $this->assertFalse($result->subscribed);
-        $this->assertEquals($entity->getName(), $result->firstName);
-        $this->assertEquals($entity->getLastName(), $result->lastName);
-        $this->assertEquals($entity->getSecondName(), $result->patronymic);
-        $this->assertCount(2, $result->phones);
-        $this->assertEquals($entity->getPersonalPhone(), $result->phones[0]->number);
-        $this->assertEquals($entity->getWorkPhone(), $result->phones[1]->number);
-        $this->assertTrue($result->address instanceof Address);
-        $this->assertEquals($entity->getPersonalCity(), $result->address->city);
-        $this->assertEquals($entity->getPersonalStreet(), $result->address->text);
-        $this->assertEquals($entity->getPersonalZip(), $result->address->index);
-        $this->assertEquals($cookieData, $result->browserId);
+        self::assertTrue($result instanceof Customer);
+        self::assertEquals($entity->getId(), $result->externalId);
+        self::assertEquals($entity->getEmail(), $result->email);
+        self::assertEquals(DateTimeConverter::bitrixToPhp($entity->getDateRegister()), $result->createdAt);
+        self::assertFalse($result->subscribed);
+        self::assertEquals($entity->getName(), $result->firstName);
+        self::assertEquals($entity->getLastName(), $result->lastName);
+        self::assertEquals($entity->getSecondName(), $result->patronymic);
+        self::assertCount(2, $result->phones);
+        self::assertEquals($entity->getPersonalPhone(), $result->phones[0]->number);
+        self::assertEquals($entity->getWorkPhone(), $result->phones[1]->number);
+        self::assertTrue($result->address instanceof Address);
+        self::assertEquals($entity->getPersonalCity(), $result->address->city);
+        self::assertEquals($entity->getPersonalStreet(), $result->address->text);
+        self::assertEquals($entity->getPersonalZip(), $result->address->index);
+        self::assertEquals($cookieData, $result->browserId);
 
     }
 
@@ -85,7 +85,7 @@ class CustomerBuilderTest extends TestCase
      */
     public function testCustomizedBuild($entity): void
     {
-        $this->assertTrue($entity instanceof User);
+        self::assertTrue($entity instanceof User);
 
         EventManager::getInstance()->addEventHandler(
             Constants::MODULE_ID,
@@ -102,8 +102,8 @@ class CustomerBuilderTest extends TestCase
             ->build()
             ->getResult();
 
-        $this->assertTrue($result instanceof Customer);
-        $this->assertEquals('replaced', $result->externalId);
+        self::assertTrue($result instanceof Customer);
+        self::assertEquals('replaced', $result->externalId);
     }
 
     /**
