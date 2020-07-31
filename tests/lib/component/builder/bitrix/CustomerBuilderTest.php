@@ -18,25 +18,20 @@ class CustomerBuilderTest extends TestCase
     /**@var array $dataCrm */
     protected $dataCrm;
 
-    public function setUp()
-    {
-        parent::setUp();
-    }
-
     public function testCustomerBuild()
     {
         $this->customer = new CustomerBuilder();
         $user = $this->customer->setCustomer($this->getDataBuilder())->build()->getResult();
 
-        $this->assertEquals("mm@mm.mmm", $user->getEmail());
-        $this->assertEquals("mmm", $user->getName());
-        $this->assertEquals("mmm", $user->getLastName());
-        $this->assertEquals("mmm", $user->getSecondName());
-        $this->assertEquals("474747856878", $user->getPersonalPhone());
-        $this->assertEquals("346000", $user->getPersonalZip());
-        $this->assertEquals("Ростов-на-Дону", $user->getPersonalCity());
-        $this->assertEquals("13.05.2020", $user->getPersonalBirthday()->format('d.m.Y'));
-        $this->assertEquals("female", $user->getPersonalGender());
+        self::assertEquals("mm@mm.mmm", $user->getEmail());
+        self::assertEquals("mmm", $user->getName());
+        self::assertEquals("mmm", $user->getLastName());
+        self::assertEquals("mmm", $user->getSecondName());
+        self::assertEquals("474747856878", $user->getPersonalPhone());
+        self::assertEquals("346000", $user->getPersonalZip());
+        self::assertEquals("Ростов-на-Дону", $user->getPersonalCity());
+        self::assertEquals("13.05.2020", $user->getPersonalBirthday()->format('d.m.Y'));
+        self::assertEquals("female", $user->getPersonalGender());
     }
 
     /**

@@ -11,6 +11,7 @@
  */
 namespace Intaro\RetailCrm\Component\Builder\Bitrix;
 
+use Intaro\RetailCrm\Component\Builder\BuilderInterface;
 use Intaro\RetailCrm\Component\Converter\DateTimeConverter;
 use Intaro\RetailCrm\Component\Events;
 use Intaro\RetailCrm\Component\ServiceLocator;
