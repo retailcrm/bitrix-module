@@ -12,7 +12,7 @@
 namespace Intaro\RetailCrm\Component\Json\Strategy;
 
 /**
- * Class StrategyFactory
+ * Class TypedArrayTrait
  *
  * @package Intaro\RetailCrm\Component\Json\Strategy
  */

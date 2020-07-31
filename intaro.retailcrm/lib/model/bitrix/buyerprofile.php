@@ -11,6 +11,7 @@
  */
 namespace Intaro\RetailCrm\Model\Bitrix;
 
+use Bitrix\Main\ORM\Data\Result;
 use Intaro\RetailCrm\Component\Json\Mapping;
 
 /**
@@ -18,7 +19,7 @@ use Intaro\RetailCrm\Component\Json\Mapping;
  *
  * @package Intaro\RetailCrm\Model\Bitrix
  */
-class BuyerProfile
+class BuyerProfile extends AbstractSerializableModel
 {
     /**
      * @var string
@@ -99,5 +100,13 @@ class BuyerProfile
     {
         $this->personTypeId = $personTypeId;
         return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getBaseClass(): string
+    {
+        return \CSaleOrderUserProps::class;
     }
 }

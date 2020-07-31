@@ -26,7 +26,13 @@ class DateTimeStrategy implements DeserializeStrategyInterface
     public function deserialize(string $type, $value)
     {
         if (!empty($value)) {
-            return \DateTime::createFromFormat($this->innerType, $value);
+            $result = \DateTime::createFromFormat($this->innerType, $value);
+
+            if (!$result) {
+                return null;
+            }
+
+            return $result;
         }
 
         return null;

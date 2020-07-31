@@ -15,6 +15,7 @@ use Intaro\RetailCrm\Component\Json\Mapping\Accessor;
 use Intaro\RetailCrm\Component\Json\Mapping\SerializedName;
 use Intaro\RetailCrm\Component\Json\Mapping\Type;
 use Intaro\RetailCrm\Component\Json\Strategy\AnnotationReaderTrait;
+use Intaro\RetailCrm\Component\Json\Strategy\IsNoTransformTrait;
 use Intaro\RetailCrm\Component\Json\Strategy\StrategyFactory;
 
 /**
@@ -25,7 +26,7 @@ use Intaro\RetailCrm\Component\Json\Strategy\StrategyFactory;
 class EntityStrategy implements DeserializeStrategyInterface
 {
     use InnerTypeTrait;
-    use AnnotationReaderTrait;
+    use IsNoTransformTrait;
 
     /**
      * @param string $type
@@ -82,7 +83,11 @@ class EntityStrategy implements DeserializeStrategyInterface
             $type = gettype($data[$nameData->name]);
         }
 
-        $value = StrategyFactory::deserializeStrategyByType($type)->deserialize($type, $data[$nameData->name]);
+        if (static::isNoTransform($property)) {
+            $value = $data[$nameData->name];
+        } else {
+            $value = StrategyFactory::deserializeStrategyByType($type)->deserialize($type, $data[$nameData->name]);
+        }
 
         if ($accessorData instanceof Accessor && !empty($accessorData->setter)) {
             $object->{$accessorData->setter}($value);

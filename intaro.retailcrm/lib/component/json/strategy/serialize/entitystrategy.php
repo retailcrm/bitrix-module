@@ -11,11 +11,10 @@
  */
 namespace Intaro\RetailCrm\Component\Json\Strategy\Serialize;
 
-use Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\AnnotationReader;
+use Intaro\RetailCrm\Component\Json\Strategy\IsNoTransformTrait;
 use Intaro\RetailCrm\Component\Json\Mapping\Accessor;
 use Intaro\RetailCrm\Component\Json\Mapping\SerializedName;
 use Intaro\RetailCrm\Component\Json\Mapping\Type;
-use Intaro\RetailCrm\Component\Json\Strategy\AnnotationReaderTrait;
 use Intaro\RetailCrm\Component\Json\Strategy\StrategyFactory;
 
 /**
@@ -26,7 +25,7 @@ use Intaro\RetailCrm\Component\Json\Strategy\StrategyFactory;
 class EntityStrategy implements SerializeStrategyInterface
 {
     use InnerTypeTrait;
-    use AnnotationReaderTrait;
+    use IsNoTransformTrait;
 
     /**
      * @inheritDoc
@@ -74,12 +73,16 @@ class EntityStrategy implements SerializeStrategyInterface
             $value = $property->getValue($object);
         }
 
-        $typeData = static::annotationReader()->getPropertyAnnotation($property, Type::class);
-
-        if ($typeData instanceof Type) {
-            $result[$nameData->name] = StrategyFactory::serializeStrategyByType($typeData->type)->serialize($value);
+        if (static::isNoTransform($property)) {
+            $result[$nameData->name] = $value;
         } else {
-            $result[$nameData->name] = StrategyFactory::serializeStrategyByType(gettype($value))->serialize($value);
+            $typeData = static::annotationReader()->getPropertyAnnotation($property, Type::class);
+
+            if ($typeData instanceof Type) {
+                $result[$nameData->name] = StrategyFactory::serializeStrategyByType($typeData->type)->serialize($value);
+            } else {
+                $result[$nameData->name] = StrategyFactory::serializeStrategyByType(gettype($value))->serialize($value);
+            }
         }
     }
 }
