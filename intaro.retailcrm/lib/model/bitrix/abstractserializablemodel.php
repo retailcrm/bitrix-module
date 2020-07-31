@@ -42,17 +42,23 @@ abstract class AbstractSerializableModel
         $result = null;
         $data = $this->serialize();
 
+        $instance = $this->constructBaseClass();
+
+        if (!empty($instance)) {
+            if (method_exists($instance, 'Add')) {
+                $result = $instance->Add($data);
+            } elseif (method_exists($instance, 'add')) {
+                $result = $instance->add($data);
+            }
+        }
+
+        if (null !== $result) {
+            return $this->constructResult($result);
+        }
+
         if (method_exists($this->getBaseClass(), 'Add')) {
             $result = call_user_func([$this->getBaseClass(), 'Add'], $data);
         } elseif (method_exists($this->getBaseClass(), 'add')) {
-            $result = call_user_func([$this->getBaseClass(), 'add'], $data);
-        }
-
-        $instance = new $this->getBaseClass();
-
-        if (method_exists($instance, 'Add')) {
-            $result = call_user_func([$this->getBaseClass(), 'Add'], $data);
-        } elseif (method_exists($instance, 'add')) {
             $result = call_user_func([$this->getBaseClass(), 'add'], $data);
         }
 
@@ -72,10 +78,26 @@ abstract class AbstractSerializableModel
      */
     public function delete(): Result
     {
+        $result = null;
+        $primary = $this->getPrimaryKeyData();
+        $instance = $this->constructBaseClass();
+
+        if (!empty($instance)) {
+            if (method_exists($instance, 'Delete')) {
+                $result = $instance->Delete($primary);
+            } elseif (method_exists($instance, 'delete')) {
+                $result = $instance->delete($primary);
+            }
+        }
+
+        if (null !== $result) {
+            return $this->constructResult($result);
+        }
+
         if (method_exists($this->getBaseClass(), 'Delete')) {
-            $result = call_user_func([$this->getBaseClass(), 'Delete'], $this->getPrimaryKeyData());
+            $result = call_user_func([$this->getBaseClass(), 'Delete'], $primary);
         } elseif (method_exists($this->getBaseClass(), 'delete')) {
-            $result = call_user_func([$this->getBaseClass(), 'delete'], $this->getPrimaryKeyData());
+            $result = call_user_func([$this->getBaseClass(), 'delete'], $primary);
         } else {
             throw new \RuntimeException('Neither Delete($id) nor delete($id) is exist in the base class');
         }
@@ -97,6 +119,22 @@ abstract class AbstractSerializableModel
         }
 
         return $newResult;
+    }
+
+    /**
+     * Tries to construct base class
+     *
+     * @return mixed|null
+     */
+    private function constructBaseClass()
+    {
+        $instance = null;
+
+        try {
+            $instance = new $this->getBaseClass();
+        } catch (\Throwable $exception) {}
+
+        return $instance;
     }
 
     /**
