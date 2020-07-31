@@ -4,11 +4,9 @@ namespace Tests\Intaro\RetailCrm\Component\Builder\Api;
 
 use Bitrix\Main\Event;
 use Bitrix\Main\EventManager;
-use Bitrix\Main\Type\DateTime;
 use Intaro\RetailCrm\Component\Builder\Api\CustomerBuilder;
 use Intaro\RetailCrm\Service\CollectorCookieExtractor;
 use Intaro\RetailCrm\Component\Constants;
-use Intaro\RetailCrm\Component\Converter\DateTimeConverter;
 use Intaro\RetailCrm\Component\Events;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Model\Api\Address;
@@ -62,7 +60,7 @@ class CustomerBuilderTest extends TestCase
         self::assertTrue($result instanceof Customer);
         self::assertEquals($entity->getId(), $result->externalId);
         self::assertEquals($entity->getEmail(), $result->email);
-        self::assertEquals(DateTimeConverter::bitrixToPhp($entity->getDateRegister()), $result->createdAt);
+        self::assertEquals($entity->getDateRegister(), $result->createdAt);
         self::assertFalse($result->subscribed);
         self::assertEquals($entity->getName(), $result->firstName);
         self::assertEquals($entity->getLastName(), $result->lastName);
@@ -114,7 +112,7 @@ class CustomerBuilderTest extends TestCase
         $entity = new User();
         $entity->setId(21);
         $entity->setEmail('vovka@narod.ru');
-        $entity->setDateRegister(DateTime::createFromPhp(new \DateTime()));
+        $entity->setDateRegister(new \DateTime());
         $entity->setName('First');
         $entity->setLastName('Last');
         $entity->setSecondName('Second');

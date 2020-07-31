@@ -55,15 +55,16 @@ abstract class AbstractSerializableModel
     {
         $result = null;
         $data = $this->serialize();
+        $baseClass = $this->getBaseClass();
 
         if ($this->isSaveStatic()) {
-            if (method_exists($this->getBaseClass(), 'Add')) {
-                $result = call_user_func($this->getBaseClass() . '::Add', $data);
-            } elseif (method_exists($this->getBaseClass(), 'add')) {
-                $result = call_user_func($this->getBaseClass() . '::add', $data);
+            if (method_exists($baseClass, 'Add')) {
+                $result = call_user_func($baseClass . '::Add', $data);
+            } elseif (method_exists($baseClass, 'add')) {
+                $result = call_user_func($baseClass . '::add', $data);
             }
         } else {
-            $instance = new $this->getBaseClass();
+            $instance = new $baseClass();
 
             if (method_exists($instance, 'Add')) {
                 $result = $instance->Add($data);
@@ -89,16 +90,17 @@ abstract class AbstractSerializableModel
     public function delete(): Result
     {
         $result = null;
+        $baseClass = $this->getBaseClass();
         $primary = $this->getPrimaryKeyData();
 
         if ($this->isDeleteStatic()) {
-            if (method_exists($this->getBaseClass(), 'Delete')) {
-                $result = call_user_func($this->getBaseClass() . '::Delete', $primary);
-            } elseif (method_exists($this->getBaseClass(), 'delete')) {
-                $result = call_user_func($this->getBaseClass() . '::delete', $primary);
+            if (method_exists($baseClass, 'Delete')) {
+                $result = call_user_func($baseClass . '::Delete', $primary);
+            } elseif (method_exists($baseClass, 'delete')) {
+                $result = call_user_func($baseClass . '::delete', $primary);
             }
         } else {
-            $instance = new $this->getBaseClass();
+            $instance = new $baseClass();
 
             if (method_exists($instance, 'Delete')) {
                 $result = $instance->Delete($primary);
