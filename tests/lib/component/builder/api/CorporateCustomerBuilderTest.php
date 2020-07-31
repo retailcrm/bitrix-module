@@ -2,9 +2,14 @@
 
 namespace Tests\Intaro\RetailCrm\Component\Builder\Api;
 
+use Bitrix\Main\Type\DateTime;
 use Bitrix\Sale\Order;
 use Intaro\RetailCrm\Component\Builder\Api\CorporateCustomerBuilder;
 use Intaro\RetailCrm\Component\Builder\Exception\BuilderException;
+use Intaro\RetailCrm\Component\ConfigProvider;
+use Intaro\RetailCrm\Component\ServiceLocator;
+use Intaro\RetailCrm\Model\Bitrix\User;
+use Intaro\RetailCrm\Service\CollectorCookieExtractor;
 use PHPUnit\Framework\TestCase;
 use Tests\Intaro\RetailCrm\Helpers;
 
@@ -39,5 +44,44 @@ class CorporateCustomerBuilderTest extends TestCase
         (new CorporateCustomerBuilder())
             ->setOrder($order)
             ->build();
+    }
+
+    public function testBuild()
+    {
+        $cookieData = 'rcCookie';
+        $originalCookieCollector = ServiceLocator::get(CollectorCookieExtractor::class);
+
+        $cookieExtractorMock = $this->getMockBuilder(CollectorCookieExtractor::class)
+            ->setMethods(['extractCookie'])
+            ->getMock();
+
+        $cookieExtractorMock
+            ->method('extractCookie')
+            ->withAnyParameters()
+            ->willReturn($cookieData);
+
+        ServiceLocator::set(CollectorCookieExtractor::class, $cookieExtractorMock);
+
+        $user = new User();
+        $user->setWorkCompany('WorkCompany');
+        self::assertTrue($user->save()->isSuccess());
+
+        $order = Order::create('s1', $user->getId());
+        $order->setField('DATE_INSERT', new DateTime());
+        $order->setPersonTypeId(array_flip(ConfigProvider::getContragentTypes())['legal-entity']);
+        self::assertTrue($user->save()->isSuccess());
+
+        $customer = (new CorporateCustomerBuilder())
+            ->setMainCompany(true)
+            ->setMainContact(true)
+            ->setAttachDaemonCollectorId(true)
+            ->setBuildChildEntities(true)
+            ->setOrder($order)
+            ->build()
+            ->getResult();
+
+        ServiceLocator::set(CollectorCookieExtractor::class, $originalCookieCollector);
+
+        self::assertNotEmpty($customer);
     }
 }
