@@ -18,7 +18,7 @@ class DateTimeConverterTest extends TestCase
 
     public function testPhpToBitrix(): void
     {
-        $dateTime = \DateTime::createFromFormat(self::ISO8601, self::ISO8601_DATE);
+        $dateTime = \DateTime::createFromFormat(self::FORMAT, self::FORMAT_DATE);
         $bitrixDateTime = DateTimeConverter::phpToBitrix($dateTime);
 
         self::assertEquals(
@@ -29,7 +29,7 @@ class DateTimeConverterTest extends TestCase
 
     public function testBitrixToPhp(): void
     {
-        $dateTime = \DateTime::createFromFormat(self::ISO8601, self::ISO8601_DATE);
+        $dateTime = \DateTime::createFromFormat(self::FORMAT, self::FORMAT_DATE);
         $bitrixDateTime = DateTime::createFromPhp($dateTime);
         $dateTime = DateTimeConverter::bitrixToPhp($bitrixDateTime);
 
