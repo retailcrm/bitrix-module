@@ -3,13 +3,13 @@
  * PHP version 7.1
  *
  * @category Integration
- * @package  Intaro\RetailCrm\Component\Builder
+ * @package  Intaro\RetailCrm\Component\Builder\Bitrix
  * @author   retailCRM <integration@retailcrm.ru>
  * @license  MIT
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
  */
-namespace Intaro\RetailCrm\Component\Builder;
+namespace Intaro\RetailCrm\Component\Builder\Bitrix;
 
 use Intaro\RetailCrm\Component\Converter\DateTimeConverter;
 use Intaro\RetailCrm\Component\Events;
@@ -21,7 +21,7 @@ use Intaro\RetailCrm\Model\Bitrix\User;
 /**
  * Class CustomerBuilder
  *
- * @package Intaro\RetailCrm\Component\Builder
+ * @package Intaro\RetailCrm\Component\Builder\Bitrix
  */
 class CustomerBuilder implements BuilderInterface
 {
