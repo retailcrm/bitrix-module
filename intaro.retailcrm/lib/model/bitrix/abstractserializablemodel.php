@@ -54,6 +54,7 @@ abstract class AbstractSerializableModel
     public function add(): Result
     {
         $result = null;
+        $instance = null;
         $data = $this->serialize();
         $baseClass = $this->getBaseClass();
 
@@ -79,7 +80,7 @@ abstract class AbstractSerializableModel
             );
         }
 
-        return $this->constructResult($result);
+        return $this->constructResult($instance, $result);
     }
 
     /**
@@ -161,6 +162,7 @@ abstract class AbstractSerializableModel
     }
 
     /**
+     * @param mixed $baseClassInstance
      * @param mixed $result
      *
      * @return \Bitrix\Main\ORM\Data\Result
