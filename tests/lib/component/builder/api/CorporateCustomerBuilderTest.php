@@ -65,6 +65,7 @@ class CorporateCustomerBuilderTest extends TestCase
         $user = new User();
         $user->setWorkCompany('WorkCompany');
         self::assertTrue($user->save()->isSuccess());
+        self::assertNotNull($user->getId(), "User wasn't added to DB");
 
         $order = Order::create('s1', $user->getId());
         $order->setField('DATE_INSERT', new DateTime());
