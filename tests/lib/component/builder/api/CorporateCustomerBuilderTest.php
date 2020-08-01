@@ -62,21 +62,25 @@ class CorporateCustomerBuilderTest extends TestCase
 
         ServiceLocator::set(CollectorCookieExtractor::class, $cookieExtractorMock);
 
-        $userLogin = uniqid('testuser_');
+        $userLogin = uniqid('testuser_', false);
         $user = new User();
         $user->setLogin($userLogin);
         $user->setName($userLogin);
         $user->setEmail($userLogin . '@example.com');
         $user->setWorkCompany('WorkCompany');
-        self::assertTrue($user->save()->isSuccess());
-        self::assertNotNull($user->getId(), "User wasn't added to DB");
+        $saveResult = $user->save();
+        self::assertTrue($saveResult->isSuccess(), implode(', ', $saveResult->getErrorMessages()));
+        self::assertNotNull($user->getId(), implode(', ', $saveResult->getErrorMessages()));
 
         $order = Order::create('s1', $user->getId());
         $order->setField('DATE_INSERT', new DateTime());
         $order->setPersonTypeId(array_flip(ConfigProvider::getContragentTypes())['legal-entity']);
-        self::assertTrue($user->save()->isSuccess());
+        $saveResult = $order->save();
+        self::assertTrue($saveResult->isSuccess(), implode(', ', $saveResult->getErrorMessages()));
+        self::assertNotNull($order->getId(), implode(', ', $saveResult->getErrorMessages()));
 
         $customer = (new CorporateCustomerBuilder())
+            ->reset()
             ->setMainCompany(true)
             ->setMainContact(true)
             ->setAttachDaemonCollectorId(true)

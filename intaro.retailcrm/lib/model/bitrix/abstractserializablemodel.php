@@ -96,6 +96,7 @@ abstract class AbstractSerializableModel
         }
 
         $result = null;
+        $instance = null;
         $data = $this->serialize();
         $baseClass = $this->getBaseClass();
 
@@ -121,7 +122,7 @@ abstract class AbstractSerializableModel
             );
         }
 
-        return $this->constructResult($result);
+        return $this->constructResult($instance, $result);
     }
 
     /**
@@ -132,6 +133,7 @@ abstract class AbstractSerializableModel
     public function delete(): Result
     {
         $result = null;
+        $instance = null;
         $baseClass = $this->getBaseClass();
         $primary = $this->getPrimaryKeyData();
 
@@ -155,7 +157,7 @@ abstract class AbstractSerializableModel
             throw new \RuntimeException('Neither Delete($id) nor delete($id) is exist in the base class');
         }
 
-        return $this->constructResult($result);
+        return $this->constructResult($instance, $result);
     }
 
     /**
@@ -163,7 +165,7 @@ abstract class AbstractSerializableModel
      *
      * @return \Bitrix\Main\ORM\Data\Result
      */
-    private function constructResult($result): Result
+    private function constructResult($baseClassInstance, $result): Result
     {
         $newResult = new Result();
 
@@ -171,8 +173,19 @@ abstract class AbstractSerializableModel
             $newResult->addError(new Error('No rows were affected.'));
         }
 
-        if (is_int($result) && $result > 0) {
-            $this->setPrimaryKeyData($result);
+        if (is_int($result)) {
+            if ($result > 0) {
+                $this->setPrimaryKeyData($result);
+            } else {
+                $newResult->addError(new Error('Entity is not saved - no primary key returned.'));
+            }
+        }
+
+        if (is_object($baseClassInstance)
+            && property_exists($baseClassInstance, 'LAST_ERROR')
+            && !empty($baseClassInstance->LAST_ERROR)
+        ) {
+            $newResult->addError(new Error($baseClassInstance->LAST_ERROR));
         }
 
         return $newResult;

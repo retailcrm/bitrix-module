@@ -21,7 +21,11 @@ class CustomerBuilderTest extends TestCase
     public function testCustomerBuild()
     {
         $this->customer = new CustomerBuilder();
-        $user = $this->customer->setCustomer($this->getDataBuilder())->build()->getResult();
+        $user = $this->customer
+            ->reset()
+            ->setCustomer($this->getDataBuilder())
+            ->build()
+            ->getResult();
 
         self::assertEquals("mm@mm.mmm", $user->getEmail());
         self::assertEquals("mmm", $user->getName());

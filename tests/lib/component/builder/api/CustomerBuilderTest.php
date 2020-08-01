@@ -49,6 +49,7 @@ class CustomerBuilderTest extends TestCase
 
         $builder = new CustomerBuilder();
         $result = $builder
+            ->reset()
             ->setAttachDaemonCollectorId(true)
             ->setPersonTypeId('individual')
             ->setUser($entity)
