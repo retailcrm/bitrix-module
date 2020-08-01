@@ -66,6 +66,7 @@ class CorporateCustomerBuilderTest extends TestCase
         $user = new User();
         $user->setLogin($userLogin);
         $user->setName($userLogin);
+        $user->setPassword($userLogin);
         $user->setEmail($userLogin . '@example.com');
         $user->setWorkCompany('WorkCompany');
         $saveResult = $user->save();
