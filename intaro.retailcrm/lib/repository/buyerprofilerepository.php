@@ -57,25 +57,6 @@ class BuyerProfileRepository extends AbstractRepository
     }
 
     /**
-     * @param \Intaro\RetailCrm\Model\Bitrix\BuyerProfile $buyerProfile
-     *
-     * @return \Intaro\RetailCrm\Model\Bitrix\BuyerProfile|null
-     */
-    public static function add(BuyerProfile $buyerProfile): ?BuyerProfile
-    {
-        $profileData = Serializer::serializeArray($buyerProfile);
-        $buyerProfileInstance = new \CSaleOrderUserProps();
-
-        if ($buyerProfileInstance->Add($profileData)) {
-            $profileData = OrderUserProperties::getList([
-                "filter" => $buyerProfile
-            ])->fetch();
-        }
-
-        return static::deserialize($profileData);
-    }
-
-    /**
      * Returns array with buyer profile if one was found. Returns empty array otherwise.
      *
      * @param array $profileData
