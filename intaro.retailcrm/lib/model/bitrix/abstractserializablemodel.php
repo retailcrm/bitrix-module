@@ -47,11 +47,11 @@ abstract class AbstractSerializableModel
     abstract public function isDeleteStatic(): bool;
 
     /**
-     * Tries to save object via base class
+     * Tries to add object via base class
      *
      * @return \Bitrix\Main\ORM\Data\Result
      */
-    public function save(): Result
+    public function add(): Result
     {
         $result = null;
         $data = $this->serialize();
@@ -70,6 +70,48 @@ abstract class AbstractSerializableModel
                 $result = $instance->Add($data);
             } elseif (method_exists($instance, 'add')) {
                 $result = $instance->add($data);
+            }
+        }
+
+        if (null === $result) {
+            throw new \RuntimeException(
+                "Neither Add(\$data) nor add(\$data) is exist in the base class or it's instance"
+            );
+        }
+
+        return $this->constructResult($result);
+    }
+
+    /**
+     * Tries to save object via base class
+     *
+     * @return \Bitrix\Main\ORM\Data\Result
+     */
+    public function save(): Result
+    {
+        $primary = $this->getPrimaryKeyData();
+
+        if (empty($primary)) {
+            return $this->add();
+        }
+
+        $result = null;
+        $data = $this->serialize();
+        $baseClass = $this->getBaseClass();
+
+        if ($this->isSaveStatic()) {
+            if (method_exists($baseClass, 'Update')) {
+                $result = call_user_func($baseClass . '::Update', $primary, $data);
+            } elseif (method_exists($baseClass, 'update')) {
+                $result = call_user_func($baseClass . '::update', $primary, $data);
+            }
+        } else {
+            $instance = new $baseClass();
+
+            if (method_exists($instance, 'Update')) {
+                $result = $instance->Update($primary, $data);
+            } elseif (method_exists($instance, 'update')) {
+                $result = $instance->update($primary, $data);
             }
         }
 
@@ -129,6 +171,10 @@ abstract class AbstractSerializableModel
             $newResult->addError(new Error('No rows were affected.'));
         }
 
+        if (is_int($result) && $result > 0) {
+            $this->setPrimaryKeyData($result);
+        }
+
         return $newResult;
     }
 
@@ -145,6 +191,24 @@ abstract class AbstractSerializableModel
             return $this->getPrimary();
         } else {
             throw new \RuntimeException('AbstractSerializableModel child should implement getId or getPrimary');
+        }
+    }
+
+    /**
+     * Tries to set primary key data
+     *
+     * @param mixed $primaryData
+     *
+     * @return mixed
+     */
+    private function setPrimaryKeyData($primaryData)
+    {
+        if (method_exists($this, 'setId')) {
+            return $this->setId($primaryData);
+        } elseif (method_exists($this, 'setPrimary')) {
+            return $this->setPrimary($primaryData);
+        } else {
+            throw new \RuntimeException('AbstractSerializableModel child should implement setId or setPrimary');
         }
     }
 

@@ -11,7 +11,6 @@
  */
 namespace Intaro\RetailCrm\Model\Bitrix;
 
-use Bitrix\Main\ORM\Data\Result;
 use Intaro\RetailCrm\Component\Json\Mapping;
 
 /**
@@ -21,6 +20,14 @@ use Intaro\RetailCrm\Component\Json\Mapping;
  */
 class BuyerProfile extends AbstractSerializableModel
 {
+    /**
+     * @var int
+     *
+     * @Mapping\Type("int")
+     * @Mapping\SerializedName("ID")
+     */
+    protected $id;
+
     /**
      * @var string
      *
@@ -46,6 +53,25 @@ class BuyerProfile extends AbstractSerializableModel
     protected $personTypeId;
 
     /**
+     * @return int|null
+     */
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    /**
+     * @param int $id
+     *
+     * @return BuyerProfile
+     */
+    public function setId(int $id): BuyerProfile
+    {
+        $this->id = $id;
+        return $this;
+    }
+
+    /**
      * @return string
      */
     public function getName(): ?string
@@ -58,7 +84,7 @@ class BuyerProfile extends AbstractSerializableModel
      *
      * @return BuyerProfile
      */
-    public function setName(string $name): ?BuyerProfile
+    public function setName(string $name): BuyerProfile
     {
         $this->name = $name;
         return $this;
@@ -77,7 +103,7 @@ class BuyerProfile extends AbstractSerializableModel
      *
      * @return BuyerProfile
      */
-    public function setUserId(string $userId): ?BuyerProfile
+    public function setUserId(string $userId): BuyerProfile
     {
         $this->userId = $userId;
         return $this;
@@ -96,7 +122,7 @@ class BuyerProfile extends AbstractSerializableModel
      *
      * @return BuyerProfile
      */
-    public function setPersonTypeId(string $personTypeId): ?BuyerProfile
+    public function setPersonTypeId(string $personTypeId): BuyerProfile
     {
         $this->personTypeId = $personTypeId;
         return $this;
