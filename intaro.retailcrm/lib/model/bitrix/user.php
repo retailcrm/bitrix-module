@@ -13,6 +13,7 @@ namespace Intaro\RetailCrm\Model\Bitrix;
 
 use Bitrix\Main\Type\DateTime;
 use Intaro\RetailCrm\Component\Json\Mapping;
+use Intaro\RetailCrm\Repository\UserRepository;
 
 /**
  * Class User
@@ -1698,20 +1699,8 @@ class User extends AbstractSerializableModel
     /**
      * @inheritDoc
      */
-    public static function getDataArrayByPrimary($primary): array
+    public static function getEntityByPrimary($primary)
     {
-        $result = \CUser::GetByID($primary);
-
-        if ($result) {
-            $data = $result->Fetch();
-
-            if (!$data) {
-                return [];
-            }
-
-            return $data;
-        }
-
-        return [];
+        return UserRepository::getById((int) $primary);
     }
 }

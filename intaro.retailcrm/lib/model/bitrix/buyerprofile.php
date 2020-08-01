@@ -12,6 +12,7 @@
 namespace Intaro\RetailCrm\Model\Bitrix;
 
 use Intaro\RetailCrm\Component\Json\Mapping;
+use Intaro\RetailCrm\Repository\BuyerProfileRepository;
 
 /**
  * Class BuyerProfile
@@ -155,24 +156,8 @@ class BuyerProfile extends AbstractSerializableModel
     /**
      * @inheritDoc
      */
-    public static function getDataArrayByPrimary($primary): array
+    public static function getEntityByPrimary($primary)
     {
-        $result = \CSaleOrderUserProps::GetList([], ['ID' => $primary]);
-
-        if ($result) {
-            $data = $result->Fetch();
-
-            if (!$data) {
-                return [];
-            }
-
-            if (isset($data['ID']) && $data['ID'] != $primary) {
-                return [];
-            }
-
-            return $data;
-        }
-
-        return [];
+        return BuyerProfileRepository::getById((int) $primary);
     }
 }

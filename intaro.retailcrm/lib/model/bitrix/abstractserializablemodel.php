@@ -48,16 +48,18 @@ abstract class AbstractSerializableModel
     abstract public function isDeleteStatic(): bool;
 
     /**
-     * Should return data by provided primary key
+     * Should return filled entity by provided primary key
      *
      * @param mixed $primary
      *
-     * @return array
+     * @return mixed
      */
-    abstract public static function getDataArrayByPrimary($primary): array;
+    abstract public static function getEntityByPrimary($primary);
 
     /**
      * AbstractSerializableModel constructor.
+     * Will fill model with data if primary key is passed.
+     * Better use repository getById method. It is faster, and passing primary by constructor uses it's under the hood.
      *
      * @param mixed $primary
      *
@@ -66,21 +68,17 @@ abstract class AbstractSerializableModel
     public function __construct($primary = null)
     {
         if ($primary !== null) {
-            $data = static::getDataArrayByPrimary($primary);
+            $thisClassName = get_class($this);
+            $instance = static::getEntityByPrimary($primary);
 
-            if (!empty($data)) {
-                $thisClassName = get_class($this);
-                $instance = Deserializer::deserializeArray($data, $thisClassName);
+            if ($instance instanceof $thisClassName) {
+                $instanceReflection = new \ReflectionClass($instance);
 
-                if ($instance instanceof $thisClassName) {
-                    $instanceReflection = new \ReflectionClass($instance);
-
-                    foreach ($instanceReflection->getProperties() as $property) {
-                        $thisProperty = new \ReflectionProperty($thisClassName, $property->getName());
-                        $property->setAccessible(true);
-                        $thisProperty->setAccessible(true);
-                        $thisProperty->setValue($this, $property->getValue($instance));
-                    }
+                foreach ($instanceReflection->getProperties() as $property) {
+                    $thisProperty = new \ReflectionProperty($thisClassName, $property->getName());
+                    $property->setAccessible(true);
+                    $thisProperty->setAccessible(true);
+                    $thisProperty->setValue($this, $property->getValue($instance));
                 }
             }
         }

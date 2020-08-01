@@ -28,8 +28,7 @@ class UserRepository extends AbstractRepository
      */
     public static function getById(int $id): ?User
     {
-        $dbResult = \CUser::GetByID($id);
-        $fields = $dbResult->Fetch();
+        $fields = \CUser::GetByID($id)->Fetch();
 
         if (!$fields) {
             return null;

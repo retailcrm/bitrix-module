@@ -24,6 +24,24 @@ use Intaro\RetailCrm\Model\Bitrix\BuyerProfile;
 class BuyerProfileRepository extends AbstractRepository
 {
     /**
+     * Returns BuyerProfile by id
+     *
+     * @param int $id
+     *
+     * @return \Intaro\RetailCrm\Model\Bitrix\BuyerProfile|null
+     */
+    public static function getById(int $id): ?BuyerProfile
+    {
+        $result = OrderUserProperties::getList(['filter' => ['ID' => $id]])->fetch();
+
+        if (!$result) {
+            return null;
+        }
+
+        return static::deserialize($result);
+    }
+
+    /**
      * Returns true if provided BuyerProfile exists
      *
      * @param \Intaro\RetailCrm\Model\Bitrix\BuyerProfile $buyerProfile
@@ -49,9 +67,9 @@ class BuyerProfileRepository extends AbstractRepository
         $buyerProfileInstance = new \CSaleOrderUserProps();
 
         if ($buyerProfileInstance->Add($profileData)) {
-            $profileData = OrderUserProperties::getList(array(
+            $profileData = OrderUserProperties::getList([
                 "filter" => $buyerProfile
-            ))->fetch();
+            ])->fetch();
         }
 
         return static::deserialize($profileData);
