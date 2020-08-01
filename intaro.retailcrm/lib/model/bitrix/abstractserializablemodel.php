@@ -11,21 +11,37 @@
  */
 namespace Intaro\RetailCrm\Model\Bitrix;
 
-use Bitrix\Main\Type\DateTime;
-use Intaro\RetailCrm\Component\Json\Deserializer;
 use Intaro\RetailCrm\Component\Json\Mapping;
 use Intaro\RetailCrm\Component\Json\Serializer;
 use Bitrix\Main\ORM\Data\Result;
 use Bitrix\Main\Error;
+use Intaro\RetailCrm\Component\Json\Strategy\AnnotationReaderTrait;
 
 /**
  * Class AbstractSerializableModel
- * Contains some hacks in order to make serializable models more compatible with ORM interfaces.
+ * Clones some functionality of ORM models in order to provide close to ORM interface for those models
+ * which doesn't have proper ORM support yet.
  *
  * @package Intaro\RetailCrm\Model\Bitrix
  */
 abstract class AbstractSerializableModel
 {
+    use AnnotationReaderTrait;
+
+    /**
+     * Holds data about original fields
+     *
+     * @var array
+     */
+    private $originalFields = [];
+
+    /**
+     * True if $originalFields is initialized, false otherwise
+     *
+     * @var bool
+     */
+    private $originalPropertiesWritten = false;
+
     /**
      * Returns model base class
      *
@@ -76,11 +92,14 @@ abstract class AbstractSerializableModel
 
                 foreach ($instanceReflection->getProperties() as $property) {
                     $thisProperty = new \ReflectionProperty($thisClassName, $property->getName());
+
                     $property->setAccessible(true);
                     $thisProperty->setAccessible(true);
                     $thisProperty->setValue($this, $property->getValue($instance));
                 }
             }
+
+            $this->postDeserialize();
         }
     }
 
@@ -197,6 +216,71 @@ abstract class AbstractSerializableModel
         }
 
         return $this->constructResult($instance, $result);
+    }
+
+    /**
+     * This will record all original properties
+     *
+     * @Mapping\PostDeserialize()
+     */
+    public function postDeserialize(): void
+    {
+        if (!$this->originalPropertiesWritten) {
+            $thisReflection = new \ReflectionClass($this);
+
+            foreach ($thisReflection->getProperties() as $property) {
+                $name = static::annotationReader()->getPropertyAnnotation(
+                    $property,
+                    Mapping\SerializedName::class
+                );
+
+                if (!($name instanceof Mapping\SerializedName)) {
+                    continue;
+                }
+
+                $property->setAccessible(true);
+                $this->originalFields[$property->getName()] = crc32(serialize($property->getValue($this)));
+            }
+
+            $this->originalPropertiesWritten = true;
+        }
+    }
+
+    /**
+     * This will remove null fields from serialized array if they wasn't set that intentionally, to erase field data.
+     * In other words, empty and unchanged fields will be removed, but fields which are empty now, but has been changed,
+     * will stay in the result array.
+     *
+     * @Mapping\PostSerialize()
+     *
+     * @param array $fields
+     *
+     * @return array
+     * @throws \ReflectionException
+     */
+    public function postSerialize(array $fields): array
+    {
+        $reflection = new \ReflectionClass($this);
+
+        foreach ($reflection->getProperties() as $property) {
+            $name = static::annotationReader()->getPropertyAnnotation(
+                $property,
+                Mapping\SerializedName::class
+            );
+
+            if (!($name instanceof Mapping\SerializedName)) {
+                continue;
+            }
+
+            $property->setAccessible(true);
+            $value = $property->getValue($this);
+
+            if (empty($value) && $this->originalFields[$property->getName()] === crc32(serialize($value))) {
+                unset($fields[$name->name]);
+            }
+        }
+
+        return $fields;
     }
 
     /**

@@ -71,9 +71,9 @@ class User extends AbstractSerializableModel
     private $dateRegister;
 
     /**
-     * @var DateTime
+     * @var string
      *
-     * @Mapping\Type("DateTime")
+     * @Mapping\Type("string")
      * @Mapping\SerializedName("DATE_REG_SHORT")
      * @Mapping\NoTransform()
      */
@@ -88,9 +88,9 @@ class User extends AbstractSerializableModel
     private $lastLogin;
 
     /**
-     * @var DateTime
+     * @var string
      *
-     * @Mapping\Type("DateTime")
+     * @Mapping\Type("string")
      * @Mapping\SerializedName("LAST_LOGIN_SHORT")
      * @Mapping\NoTransform()
      */
@@ -526,7 +526,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setId(int $id): ?User
+    public function setId($id): ?User
     {
         $this->id = $id;
         return $this;
@@ -545,7 +545,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setLogin(string $login): ?User
+    public function setLogin($login): ?User
     {
         $this->login = $login;
         return $this;
@@ -564,7 +564,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setPassword(string $password): ?User
+    public function setPassword($password): ?User
     {
         $this->password = $password;
         return $this;
@@ -583,7 +583,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setEmail(string $email): ?User
+    public function setEmail($email): ?User
     {
         $this->email = $email;
         return $this;
@@ -602,7 +602,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setActive(bool $active): ?User
+    public function setActive($active): ?User
     {
         $this->active = $active;
         return $this;
@@ -621,26 +621,26 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setDateRegister(\DateTime $dateRegister): ?User
+    public function setDateRegister($dateRegister): ?User
     {
         $this->dateRegister = $dateRegister;
         return $this;
     }
 
     /**
-     * @return \Bitrix\Main\Type\DateTime
+     * @return string|null
      */
-    public function getDateRegShort()
+    public function getDateRegShort(): ?string
     {
         return $this->dateRegShort;
     }
 
     /**
-     * @param \Bitrix\Main\Type\DateTime $dateRegShort
+     * @param string $dateRegShort
      *
      * @return User
      */
-    public function setDateRegShort(\Bitrix\Main\Type\DateTime $dateRegShort): ?User
+    public function setDateRegShort($dateRegShort): User
     {
         $this->dateRegShort = $dateRegShort;
         return $this;
@@ -659,26 +659,26 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setLastLogin(\DateTime $lastLogin): ?User
+    public function setLastLogin($lastLogin): ?User
     {
         $this->lastLogin = $lastLogin;
         return $this;
     }
 
     /**
-     * @return \Bitrix\Main\Type\DateTime
+     * @return string
      */
-    public function getLastLoginShort()
+    public function getLastLoginShort(): ?string
     {
         return $this->lastLoginShort;
     }
 
     /**
-     * @param \Bitrix\Main\Type\DateTime $lastLoginShort
+     * @param string $lastLoginShort
      *
      * @return User
      */
-    public function setLastLoginShort(\Bitrix\Main\Type\DateTime $lastLoginShort): ?User
+    public function setLastLoginShort($lastLoginShort): User
     {
         $this->lastLoginShort = $lastLoginShort;
         return $this;
@@ -697,7 +697,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setLastActivityDate(\DateTime $lastActivityDate): ?User
+    public function setLastActivityDate($lastActivityDate): ?User
     {
         $this->lastActivityDate = $lastActivityDate;
         return $this;
@@ -716,7 +716,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setTimestampX(\DateTime $timestampX): ?User
+    public function setTimestampX($timestampX): ?User
     {
         $this->timestampX = $timestampX;
         return $this;
@@ -735,7 +735,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setName(string $name): ?User
+    public function setName($name): ?User
     {
         $this->name = $name;
         return $this;
@@ -754,7 +754,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setSecondName(string $secondName): ?User
+    public function setSecondName($secondName): ?User
     {
         $this->secondName = $secondName;
         return $this;
@@ -773,7 +773,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setLastName(string $lastName): ?User
+    public function setLastName($lastName): ?User
     {
         $this->lastName = $lastName;
         return $this;
@@ -792,7 +792,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setTitle(string $title): ?User
+    public function setTitle($title): ?User
     {
         $this->title = $title;
         return $this;
@@ -811,7 +811,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setExternalAuthId(string $externalAuthId): ?User
+    public function setExternalAuthId($externalAuthId): ?User
     {
         $this->externalAuthId = $externalAuthId;
         return $this;
@@ -830,7 +830,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setXmlId(string $xmlId): ?User
+    public function setXmlId($xmlId): ?User
     {
         $this->xmlId = $xmlId;
         return $this;
@@ -849,7 +849,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setBxUserId(string $bxUserId): ?User
+    public function setBxUserId($bxUserId): ?User
     {
         $this->bxUserId = $bxUserId;
         return $this;
@@ -868,7 +868,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setConfirmCode(string $confirmCode): ?User
+    public function setConfirmCode($confirmCode): ?User
     {
         $this->confirmCode = $confirmCode;
         return $this;
@@ -887,7 +887,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setLid(string $lid): ?User
+    public function setLid($lid): ?User
     {
         $this->lid = $lid;
         return $this;
@@ -906,7 +906,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setLanguageId(string $languageId): ?User
+    public function setLanguageId($languageId): ?User
     {
         $this->languageId = $languageId;
         return $this;
@@ -925,7 +925,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setTimeZoneOffset(int $timeZoneOffset): ?User
+    public function setTimeZoneOffset($timeZoneOffset): ?User
     {
         $this->timeZoneOffset = $timeZoneOffset;
         return $this;
@@ -944,7 +944,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setPersonalProfession(string $personalProfession): ?User
+    public function setPersonalProfession($personalProfession): ?User
     {
         $this->personalProfession = $personalProfession;
         return $this;
@@ -963,7 +963,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setPersonalPhone(string $personalPhone): ?User
+    public function setPersonalPhone($personalPhone): ?User
     {
         $this->personalPhone = $personalPhone;
         return $this;
@@ -982,7 +982,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setPersonalMobile(string $personalMobile): ?User
+    public function setPersonalMobile($personalMobile): ?User
     {
         $this->personalMobile = $personalMobile;
         return $this;
@@ -1001,7 +1001,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setPersonalWww(string $personalWww): ?User
+    public function setPersonalWww($personalWww): ?User
     {
         $this->personalWww = $personalWww;
         return $this;
@@ -1020,7 +1020,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setPersonalIcq(string $personalIcq): ?User
+    public function setPersonalIcq($personalIcq): ?User
     {
         $this->personalIcq = $personalIcq;
         return $this;
@@ -1039,7 +1039,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setPersonalFax(string $personalFax): ?User
+    public function setPersonalFax($personalFax): ?User
     {
         $this->personalFax = $personalFax;
         return $this;
@@ -1058,7 +1058,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setPersonalPager(string $personalPager): ?User
+    public function setPersonalPager($personalPager): ?User
     {
         $this->personalPager = $personalPager;
         return $this;
@@ -1077,7 +1077,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setPersonalStreet(string $personalStreet): ?User
+    public function setPersonalStreet($personalStreet): ?User
     {
         $this->personalStreet = $personalStreet;
         return $this;
@@ -1096,7 +1096,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setPersonalMailbox(string $personalMailbox): ?User
+    public function setPersonalMailbox($personalMailbox): ?User
     {
         $this->personalMailbox = $personalMailbox;
         return $this;
@@ -1115,7 +1115,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setPersonalCity(string $personalCity): ?User
+    public function setPersonalCity($personalCity): ?User
     {
         $this->personalCity = $personalCity;
         return $this;
@@ -1134,7 +1134,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setPersonalState(string $personalState): ?User
+    public function setPersonalState($personalState): ?User
     {
         $this->personalState = $personalState;
         return $this;
@@ -1153,7 +1153,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setPersonalZip(string $personalZip): ?User
+    public function setPersonalZip($personalZip): ?User
     {
         $this->personalZip = $personalZip;
         return $this;
@@ -1172,7 +1172,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setPersonalCountry(string $personalCountry): ?User
+    public function setPersonalCountry($personalCountry): ?User
     {
         $this->personalCountry = $personalCountry;
         return $this;
@@ -1191,7 +1191,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setPersonalBirthday(\Bitrix\Main\Type\DateTime $personalBirthday): ?User
+    public function setPersonalBirthday($personalBirthday): ?User
     {
         $this->personalBirthday = $personalBirthday;
         return $this;
@@ -1210,7 +1210,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setPersonalGender(string $personalGender): ?User
+    public function setPersonalGender($personalGender): ?User
     {
         $this->personalGender = $personalGender;
         return $this;
@@ -1229,7 +1229,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setPersonalPhoto(int $personalPhoto): ?User
+    public function setPersonalPhoto($personalPhoto): ?User
     {
         $this->personalPhoto = $personalPhoto;
         return $this;
@@ -1248,7 +1248,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setPersonalNotes(string $personalNotes): ?User
+    public function setPersonalNotes($personalNotes): ?User
     {
         $this->personalNotes = $personalNotes;
         return $this;
@@ -1267,7 +1267,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setWorkCompany(string $workCompany): ?User
+    public function setWorkCompany($workCompany): ?User
     {
         $this->workCompany = $workCompany;
         return $this;
@@ -1286,7 +1286,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setWorkDepartment(string $workDepartment): ?User
+    public function setWorkDepartment($workDepartment): ?User
     {
         $this->workDepartment = $workDepartment;
         return $this;
@@ -1305,7 +1305,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setWorkPhone(string $workPhone): ?User
+    public function setWorkPhone($workPhone): ?User
     {
         $this->workPhone = $workPhone;
         return $this;
@@ -1324,7 +1324,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setWorkPosition(string $workPosition): ?User
+    public function setWorkPosition($workPosition): ?User
     {
         $this->workPosition = $workPosition;
         return $this;
@@ -1343,7 +1343,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setWorkWww(string $workWww): ?User
+    public function setWorkWww($workWww): ?User
     {
         $this->workWww = $workWww;
         return $this;
@@ -1362,7 +1362,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setWorkFax(string $workFax): ?User
+    public function setWorkFax($workFax): ?User
     {
         $this->workFax = $workFax;
         return $this;
@@ -1381,7 +1381,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setWorkPager(string $workPager): ?User
+    public function setWorkPager($workPager): ?User
     {
         $this->workPager = $workPager;
         return $this;
@@ -1400,7 +1400,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setWorkStreet(string $workStreet): ?User
+    public function setWorkStreet($workStreet): ?User
     {
         $this->workStreet = $workStreet;
         return $this;
@@ -1419,7 +1419,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setWorkMailbox(string $workMailbox): ?User
+    public function setWorkMailbox($workMailbox): ?User
     {
         $this->workMailbox = $workMailbox;
         return $this;
@@ -1438,7 +1438,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setWorkCity(string $workCity): ?User
+    public function setWorkCity($workCity): ?User
     {
         $this->workCity = $workCity;
         return $this;
@@ -1457,7 +1457,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setWorkState(string $workState): ?User
+    public function setWorkState($workState): ?User
     {
         $this->workState = $workState;
         return $this;
@@ -1476,7 +1476,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setWorkZip(string $workZip): ?User
+    public function setWorkZip($workZip): ?User
     {
         $this->workZip = $workZip;
         return $this;
@@ -1495,7 +1495,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setWorkCountry(string $workCountry): ?User
+    public function setWorkCountry($workCountry): ?User
     {
         $this->workCountry = $workCountry;
         return $this;
@@ -1514,7 +1514,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setWorkProfile(string $workProfile): ?User
+    public function setWorkProfile($workProfile): ?User
     {
         $this->workProfile = $workProfile;
         return $this;
@@ -1533,7 +1533,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setWorkLogo(int $workLogo): ?User
+    public function setWorkLogo($workLogo): ?User
     {
         $this->workLogo = $workLogo;
         return $this;
@@ -1552,7 +1552,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setWorkNotes(string $workNotes): ?User
+    public function setWorkNotes($workNotes): ?User
     {
         $this->workNotes = $workNotes;
         return $this;
@@ -1571,7 +1571,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setAdminNotes(string $adminNotes): ?User
+    public function setAdminNotes($adminNotes): ?User
     {
         $this->adminNotes = $adminNotes;
         return $this;
@@ -1590,7 +1590,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setShortName(string $shortName): ?User
+    public function setShortName($shortName): ?User
     {
         $this->shortName = $shortName;
         return $this;
@@ -1609,7 +1609,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setIsOnline(bool $isOnline): ?User
+    public function setIsOnline($isOnline): ?User
     {
         $this->isOnline = $isOnline;
         return $this;
@@ -1628,7 +1628,7 @@ class User extends AbstractSerializableModel
      *
      * @return User
      */
-    public function setIsRealUser(bool $isRealUser): ?User
+    public function setIsRealUser($isRealUser): ?User
     {
         $this->isRealUser = $isRealUser;
         return $this;
