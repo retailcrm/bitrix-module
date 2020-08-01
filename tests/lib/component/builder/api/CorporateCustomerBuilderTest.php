@@ -62,7 +62,11 @@ class CorporateCustomerBuilderTest extends TestCase
 
         ServiceLocator::set(CollectorCookieExtractor::class, $cookieExtractorMock);
 
+        $userLogin = uniqid('testuser_');
         $user = new User();
+        $user->setLogin($userLogin);
+        $user->setName($userLogin);
+        $user->setEmail($userLogin . '@example.com');
         $user->setWorkCompany('WorkCompany');
         self::assertTrue($user->save()->isSuccess());
         self::assertNotNull($user->getId(), "User wasn't added to DB");
