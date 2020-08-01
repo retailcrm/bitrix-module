@@ -26,7 +26,7 @@ class Utils
      * @param array $arr
      * @return array
      */
-    public function clearArray($arr): array
+    public function clearArray($arr)
     {
         if (is_array($arr) === false) {
             return $arr;
