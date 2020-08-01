@@ -151,4 +151,28 @@ class BuyerProfile extends AbstractSerializableModel
     {
         return false;
     }
+
+    /**
+     * @inheritDoc
+     */
+    public static function getDataArrayByPrimary($primary): array
+    {
+        $result = \CSaleOrderUserProps::GetList([], ['ID' => $primary]);
+
+        if ($result) {
+            $data = $result->Fetch();
+
+            if (!$data) {
+                return [];
+            }
+
+            if (isset($data['ID']) && $data['ID'] != $primary) {
+                return [];
+            }
+
+            return $data;
+        }
+
+        return [];
+    }
 }

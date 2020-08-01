@@ -12,6 +12,7 @@
 namespace Intaro\RetailCrm\Model\Bitrix;
 
 use Bitrix\Main\Type\DateTime;
+use Intaro\RetailCrm\Component\Json\Deserializer;
 use Intaro\RetailCrm\Component\Json\Mapping;
 use Intaro\RetailCrm\Component\Json\Serializer;
 use Bitrix\Main\ORM\Data\Result;
@@ -45,6 +46,45 @@ abstract class AbstractSerializableModel
      * @return bool
      */
     abstract public function isDeleteStatic(): bool;
+
+    /**
+     * Should return data by provided primary key
+     *
+     * @param mixed $primary
+     *
+     * @return array
+     */
+    abstract public static function getDataArrayByPrimary($primary): array;
+
+    /**
+     * AbstractSerializableModel constructor.
+     *
+     * @param mixed $primary
+     *
+     * @throws \ReflectionException
+     */
+    public function __construct($primary = null)
+    {
+        if ($primary !== null) {
+            $data = static::getDataArrayByPrimary($primary);
+
+            if (!empty($data)) {
+                $thisClassName = get_class($this);
+                $instance = Deserializer::deserializeArray($data, $thisClassName);
+
+                if ($instance instanceof $thisClassName) {
+                    $instanceReflection = new \ReflectionClass($instance);
+
+                    foreach ($instanceReflection->getProperties() as $property) {
+                        $thisProperty = new \ReflectionProperty($thisClassName, $property->getName());
+                        $property->setAccessible(true);
+                        $thisProperty->setAccessible(true);
+                        $thisProperty->setValue($this, $property->getValue($instance));
+                    }
+                }
+            }
+        }
+    }
 
     /**
      * Tries to add object via base class

@@ -1694,4 +1694,24 @@ class User extends AbstractSerializableModel
     {
         return true;
     }
+
+    /**
+     * @inheritDoc
+     */
+    public static function getDataArrayByPrimary($primary): array
+    {
+        $result = \CUser::GetByID($primary);
+
+        if ($result) {
+            $data = $result->Fetch();
+
+            if (!$data) {
+                return [];
+            }
+
+            return $data;
+        }
+
+        return [];
+    }
 }
