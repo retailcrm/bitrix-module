@@ -25,7 +25,6 @@ use Intaro\RetailCrm\Model\Api\Request\Customers\CustomersCorporateContactsReque
 use Intaro\RetailCrm\Model\Api\Request\Customers\CustomersCorporateCreateRequest;
 use Intaro\RetailCrm\Model\Api\Request\Customers\CustomersCorporateFixExternalIdsRequest;
 use Intaro\RetailCrm\Model\Api\Request\Customers\CustomersCorporateListRequest;
-use Intaro\RetailCrm\Model\Api\Request\Customers\CustomersCorporateNotesRequest;
 use Intaro\RetailCrm\Model\Api\Request\Customers\CustomersCorporateUploadRequest;
 use Intaro\RetailCrm\Model\Api\Request\Customers\CustomersCreateRequest;
 use Intaro\RetailCrm\Model\Api\Request\Customers\CustomersEditRequest;
