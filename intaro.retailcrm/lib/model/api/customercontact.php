@@ -31,6 +31,16 @@ class CustomerContact extends AbstractApiModel
     public $id;
 
     /**
+     * Внешний ID контакта
+     *
+     * @var string $externalId
+     *
+     * @Mapping\Type("string")
+     * @Mapping\SerializedName("externalId")
+     */
+    public $externalId;
+
+    /**
      * Главный контакт
      *
      * @var boolean $isMain
