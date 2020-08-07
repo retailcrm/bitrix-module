@@ -40,7 +40,7 @@ class UserRepository extends AbstractRepository
 
         return Deserializer::deserializeArray($fields, User::class);
     }
-    
+
     /**
      * @param array $where
      * @param array $select
