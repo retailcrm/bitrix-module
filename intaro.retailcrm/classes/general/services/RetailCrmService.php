@@ -12,8 +12,7 @@ class RetailCrmService
      */
     public static function unsetIntegrationDeliveryFields(array $order): array
     {
-       $integrationDelivery = RetailcrmConfigProvider::getCrmIntegrationDelivery();
-
+        $integrationDelivery = RetailcrmConfigProvider::getCrmIntegrationDelivery();
         if (isset($order['delivery']['code'])) {
             $deliveryCode = $order['delivery']['code'];
 
