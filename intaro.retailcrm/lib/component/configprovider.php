@@ -756,7 +756,7 @@ class ConfigProvider
      */
     protected static function getUnserializedOption($option, $def = 0)
     {
-        return unserialize(static::getOption($option, $def));
+        return unserialize(static::getOption($option, $def), null);
     }
 
     /**
@@ -806,7 +806,7 @@ class ConfigProvider
      *
      * @param string $value
      */
-    public static function setOnlineConsultantScript($value)
+    public function setOnlineConsultantScript($value)
     {
         static::setOption(Constants::CRM_ONLINE_CONSULTANT_SCRIPT, $value);
     }
