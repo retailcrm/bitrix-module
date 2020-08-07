@@ -12,7 +12,7 @@
 namespace Intaro\RetailCrm\Component;
 
 /**
- * Class public constants
+ * Class Constants
  *
  * @package Intaro\RetailCrm\Component
  */
