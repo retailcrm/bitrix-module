@@ -16,6 +16,9 @@ use Bitrix\Main\ArgumentNullException;
 use Bitrix\Main\ArgumentOutOfRangeException;
 use Bitrix\Main\Config\Option;
 use Intaro\RetailCrm\Service\Utils;
+use Bitrix\Main\ArgumentNullException;
+use Bitrix\Main\ArgumentOutOfRangeException;
+use Bitrix\Main\Config\Option;
 
 /**
  * Class ConfigProvider
@@ -383,6 +386,7 @@ class ConfigProvider
     }
 
     /**
+<<<<<<< HEAD
      * getSendPaymentAmount
      *
      * @return bool|string|null
@@ -430,6 +434,11 @@ class ConfigProvider
      * @param $id
      *
      * @throws \Bitrix\Main\ArgumentOutOfRangeException
+=======
+     * setLastOrderId
+     *
+     * @param $id
+>>>>>>> ddb37d1 (New module structure (refactoring))
      */
     public static function setLastOrderId($id): void
     {
@@ -695,7 +704,7 @@ class ConfigProvider
      */
     protected static function getUnserializedOption($option, $def = 0)
     {
-        return unserialize(static::getOption($option, $def));
+        return unserialize(static::getOption($option, $def), null);
     }
 
     /**
