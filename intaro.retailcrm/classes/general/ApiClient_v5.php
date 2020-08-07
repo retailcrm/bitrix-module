@@ -243,11 +243,11 @@ class ApiClient
         return $this->client->makeRequest(
             '/customers-corporate/fix-external-ids',
             Client::METHOD_POST,
-            array('customerCorporate' => json_encode($ids))
+            array('customersCorporate' => json_encode($ids))
         );
     }
 
-    /*
+    /**
      * Upload array of the customers corporate
      *
      * @param array  $customers array of customers
