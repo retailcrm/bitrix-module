@@ -3,7 +3,7 @@
 /**
  * Class Logger
  *
- * @author  pavel
+ * @author  retailCRM
  * @license https://opensource.org/licenses/MIT MIT License
  * @link    http://help.retailcrm.pro/docs/Developers
  */
@@ -44,7 +44,7 @@ class Logger
      * @param string $logPath
      * @param int    $files
      */
-    private function __construct($logPath = '/bitrix/modules/intaro.retailcrm/log', $files = 3)
+    public function __construct($logPath = '/bitrix/modules/intaro.retailcrm/log', $files = 3)
     {
         $this->logPath = $logPath;
         $this->files = $files;

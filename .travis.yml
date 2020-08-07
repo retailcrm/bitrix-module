@@ -32,17 +32,12 @@ script: make test
 
 jobs:
   include:
-    - php: 7.0
-      env: NOT_USE_VENDOR=1 BITRIX_EDITION=small_business_encode
-      after_success: bash <(curl -s https://codecov.io/bash)
     - php: 7.1
       env: BITRIX_EDITION=small_business_encode
     - php: 7.2
       env: BITRIX_EDITION=small_business_encode
     - php: 7.3
       env: BITRIX_EDITION=small_business_encode
-    - php: 7.0
-      env: NOT_USE_VENDOR=1 BITRIX_EDITION=business_encode
     - php: 7.1
       env: BITRIX_EDITION=business_encode
     - php: 7.2
