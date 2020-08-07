@@ -430,11 +430,6 @@ class ConfigProvider
      * @param $id
      *
      * @throws \Bitrix\Main\ArgumentOutOfRangeException
-=======
-     * setLastOrderId
-     *
-     * @param $id
->>>>>>> ddb37d1 (New module structure (refactoring))
      */
     public static function setLastOrderId($id): void
     {
