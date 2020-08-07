@@ -15,6 +15,7 @@
     "require": {
         "ext-json": "*",
         "ext-mbstring": "*",
+        "ext-mbstring": "*",
         "ext-xmlwriter": "*"
     },
     "require-dev": {
