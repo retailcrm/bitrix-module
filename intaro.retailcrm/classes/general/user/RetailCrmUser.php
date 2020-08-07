@@ -82,7 +82,7 @@ class RetailCrmUser
         return $customer;
     }
 
-    public static function customerEdit($arFields, $api, $optionsSitesList = array()){
+    public static function customerEdit($arFields, $api, $optionsSitesList = array()) {
         if (empty($arFields)) {
             RCrmActions::eventLog('RetailCrmUser::customerEdit', 'empty($arFields)', 'incorrect customer');
             return false;
