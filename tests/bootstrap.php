@@ -9,8 +9,8 @@
  * @see      http://help.retailcrm.ru
  */
 
-if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
-    require_once __DIR__ . '/../vendor/autoload.php';
+if (file_exists(__DIR__ . '/../vendor/RetailcrmClasspathBuilder.php')) {
+    require_once __DIR__ . '/../vendor/RetailcrmClasspathBuilder.php';
 }
 
 if (file_exists(__DIR__ . '/../.env')) {
@@ -33,3 +33,5 @@ if (!IsModuleInstalled('intaro.retailcrm')) {
 }
 
 CModule::IncludeModule('intaro.retailcrm');
+
+require_once __DIR__ . '/helpers/Helpers.php';

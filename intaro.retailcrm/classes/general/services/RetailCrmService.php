@@ -3,7 +3,7 @@ class RetailCrmService
 {
     public static function unsetIntegrationDeliveryFields($order)
     {
-        $integrationDelivery = unserialize(COption::GetOptionString(RetailcrmConstants::MODULE_ID, RetailcrmConstants::CRM_INTEGRATION_DELIVERY, 0));
+        $integrationDelivery = RetailcrmConfigProvider::getIntegrationDeliveriesMapping();
         $deliveryCode = $order['delivery']['code'];
         if ($deliveryCode) {
             switch ($integrationDelivery[$deliveryCode]) {
