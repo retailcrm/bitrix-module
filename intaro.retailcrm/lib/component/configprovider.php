@@ -103,7 +103,7 @@ class ConfigProvider
     
     /** @var bool|null|string $loyaltyProgramStatus */
     protected static $loyaltyProgramStatus;
-    
+
     /**
      * @return bool|string|null
      */
@@ -504,7 +504,7 @@ class ConfigProvider
      */
     public static function getCurrencyOrDefault()
     {
-        return self::getCurrency() ?: CurrencyManager::getBaseCurrency();
+        return self::getCurrency() ?: \Bitrix\Currency\CurrencyManager::getBaseCurrency();
     }
 
     /**
