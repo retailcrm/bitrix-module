@@ -27,9 +27,12 @@ class CustomersGetRequest extends AbstractApiModel
     use SiteScopedTrait;
 
     /**
-     * @var string
+     * @var int
      *
-     * @Mapping\Type("string")
+     * @Mapping\Type("int")
+     * @var int
+     *
+     * @Mapping\Type("int")
      * @Mapping\SerializedName("id")
      */
     public $id;

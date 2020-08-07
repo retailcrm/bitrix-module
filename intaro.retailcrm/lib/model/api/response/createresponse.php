@@ -12,6 +12,7 @@
 namespace Intaro\RetailCrm\Model\Api\Response;
 
 use Intaro\RetailCrm\Component\Json\Mapping;
+use Intaro\RetailCrm\Model\Api\AbstractApiModel;
 
 /**
  * Class CreateResponse
