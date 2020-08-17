@@ -1,4 +1,5 @@
 <?php
+
 $MESS ['RETAIL_MODULE_NAME'] = 'retailCRM';
 $MESS ['MODULE_DESCRIPTION'] = 'Модуль интеграции с retailCRM - специализированной CRM для e-commerce';
 $MESS ['MODULE_PARTNER_NAME'] = 'Интаро Софт';

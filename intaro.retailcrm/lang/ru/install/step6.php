@@ -1,4 +1,5 @@
 <?php
+
 $MESS ['INTAROCRM_INFO'] = '
 <h2>Дальнейшие действия</h2>
 <p>
