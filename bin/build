@@ -36,6 +36,7 @@ for i in `find ./"$version" -type f -name '*.*'`; do
             echo $result
             exit 255
         fi
+        mv $i.cp1251 $i
     fi
 done
 echo "Encoding the file has changed"

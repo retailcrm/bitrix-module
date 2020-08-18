@@ -1,4 +1,5 @@
 <?php
+
 $MESS ['STEP_NAME'] = 'Шаг 1';
 $MESS ['MOD_NEXT_STEP'] = 'Следующий шаг';
 $MESS ['ICRM_API_HOST'] = 'Адрес retailCRM:';

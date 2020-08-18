@@ -1,4 +1,5 @@
 <?php
+
 $MESS ['STEP_NAME'] = 'Шаг 3';
 $MESS ['STOP'] = 'Приостановить выгрузку';
 $MESS ['MOD_NEXT_STEP'] = 'Следующий шаг';

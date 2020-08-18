@@ -1,4 +1,5 @@
 <?php
+
 $MESS["YANDEX_DETAIL_TITLE"] = "Настройка дополнительных параметров";
 $MESS["YANDEX_ERR_NO_ACCESS_EXPORT"] = "Нет доступа к управлению экспортом";
 $MESS["YANDEX_ERR_NO_IBLOCK_CHOSEN"] = "Не выбран инфоблок";
