@@ -7,6 +7,14 @@
  */
 global $MESS;
 
+use Bitrix\Main\ArgumentException;
+use Bitrix\Main\ObjectPropertyException;
+use Bitrix\Main\SystemException;
+use Bitrix\Sale\Internals\OrderPropsGroupTable;
+use Bitrix\Sale\Internals\OrderPropsTable;
+use Bitrix\Sale\Internals\PaySystemActionTable;
+use Bitrix\Sale\Internals\PersonTypeTable;
+use Intaro\RetailCrm\Component\Constants;
 use Bitrix\Highloadblock\HighloadBlockTable;
 use Bitrix\Main\Application;
 use Bitrix\Main\ArgumentException;
@@ -46,6 +54,9 @@ if (class_exists('intaro_retailcrm')) {
 
 class intaro_retailcrm extends CModule
 {
+    public const        LP_ORDER_GROUP_NAME = 'Программа лояльности';
+    public const        BONUS_COUNT         = 'Количество бонусов';
+    public const V5 = 'v5';
     public const BONUS_PAY_SYSTEM_CODE        = 'retailcrmbonus';
 
     /**
@@ -257,6 +268,12 @@ class intaro_retailcrm extends CModule
                 }
                 unset($type);
             }
+        }
+
+        try {
+            $this->addLPOrderProps();
+        } catch (ObjectPropertyException | ArgumentException | SystemException $e) {
+            return false;
         }
 
         include($this->INSTALL_PATH . '/../lib/model/bitrix/abstractmodelproxy.php');
