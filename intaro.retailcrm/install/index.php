@@ -236,7 +236,7 @@ class intaro_retailcrm extends CModule
         $this->addBonusPaySystem();
         $this->addLPUserFields();
         $this->addLPEvents();
-        
+
         try {
             $this->addLPOrderProps();
         } catch (ObjectPropertyException | ArgumentException | SystemException $e) {
@@ -1534,15 +1534,16 @@ class intaro_retailcrm extends CModule
             ];
             $obUserField = new CUserTypeEntity;
             $dbRes = CUserTypeEntity::GetList([], ["FIELD_NAME" => $filedName])->fetch();
-            
+
             if (!$dbRes['ID']) {
                 $obUserField->Add($arProps);
             }
         }
     }
-    
+
     /**
      * @param $personId
+     *
      * @return \Bitrix\Main\ORM\Data\AddResult|mixed
      * @throws \Bitrix\Main\ArgumentException
      * @throws \Bitrix\Main\ObjectPropertyException
@@ -1563,21 +1564,22 @@ class intaro_retailcrm extends CModule
         if (is_array($LPGroup)) {
             return $LPGroup['ID'];
         }
-    
+
         if ($LPGroup === false) {
             $groupFields = [
                 'PERSON_TYPE_ID' => $personId,
-                'NAME'           => self::LP_ORDER_GROUP_NAME,
+                'NAME' => self::LP_ORDER_GROUP_NAME,
             ];
-            $result = OrderPropsGroupTable::add($groupFields);
-            
+            $result      = OrderPropsGroupTable::add($groupFields);
+
             return $result->getId();
         }
     }
-    
+
     /**
      * @param $personID
      * @param $groupID
+     *
      * @throws \Bitrix\Main\ArgumentException
      * @throws \Bitrix\Main\ObjectPropertyException
      * @throws \Bitrix\Main\SystemException
@@ -1595,21 +1597,21 @@ class intaro_retailcrm extends CModule
         if ($bonusProp === null) {
             CSaleOrderProps::Add(
                 [
-                    "REQUIRED"        => "N",
-                    "NAME"            => self::BONUS_COUNT,
-                    "TYPE"            => "TEXT",
-                    "CODE"            => "BONUS_RETAILCRM",
-                    "USER_PROPS"      => "Y",
-                    "IS_LOCATION"     => "N",
+                    "REQUIRED" => "N",
+                    "NAME" => self::BONUS_COUNT,
+                    "TYPE" => "TEXT",
+                    "CODE" => "BONUS_RETAILCRM",
+                    "USER_PROPS" => "Y",
+                    "IS_LOCATION" => "N",
                     "IS_LOCATION4TAX" => "N",
-                    "IS_EMAIL"        => "N",
+                    "IS_EMAIL" => "N",
                     "IS_PROFILE_NAME" => "N",
-                    "IS_PAYER"        => "N",
-                    'IS_FILTERED'     => 'Y',
-                    'PERSON_TYPE_ID'  => $personID,
-                    'PROPS_GROUP_ID'  => $groupID,
-                    "DEFAULT_VALUE"   => 0,
-                    "DESCRIPTION"     => self::BONUS_COUNT,
+                    "IS_PAYER" => "N",
+                    'IS_FILTERED' => 'Y',
+                    'PERSON_TYPE_ID' => $personID,
+                    'PROPS_GROUP_ID' => $groupID,
+                    "DEFAULT_VALUE" => 0,
+                    "DESCRIPTION" => self::BONUS_COUNT,
                 ]
             );
         }
@@ -1713,5 +1715,4 @@ class intaro_retailcrm extends CModule
             );
         }
     }
-    
 }
