@@ -7,6 +7,14 @@
  */
 global $MESS;
 
+use Bitrix\Main\ArgumentException;
+use Bitrix\Main\ObjectPropertyException;
+use Bitrix\Main\SystemException;
+use Bitrix\Sale\Internals\OrderPropsGroupTable;
+use Bitrix\Sale\Internals\OrderPropsTable;
+use Bitrix\Sale\Internals\PaySystemActionTable;
+use Bitrix\Sale\Internals\PersonTypeTable;
+use Intaro\RetailCrm\Component\Constants;
 use Bitrix\Highloadblock\HighloadBlockTable;
 use Bitrix\Main\Application;
 use Bitrix\Main\Context;
@@ -23,6 +31,8 @@ if (class_exists('intaro_retailcrm')) {
 
 class intaro_retailcrm extends CModule
 {
+    public const        LP_ORDER_GROUP_NAME = 'Программа лояльности';
+    public const        BONUS_COUNT         = 'Количество бонусов';
     public const V5 = 'v5';
     public $MODULE_ID           = 'intaro.retailcrm';
     public $OLD_MODULE_ID       = 'intaro.intarocrm';
@@ -187,7 +197,15 @@ class intaro_retailcrm extends CModule
                 unset($type);
             }
         }
-        
+    
+        $this->addBonusPaySystem();
+        $this->addLPUserFields();
+        try {
+            $this->addLPOrderProps();
+        } catch (ObjectPropertyException | ArgumentException | SystemException $e) {
+            return false;
+        }
+    
         if ($step == 11) {
             $arResult['arSites'] = RCrmActions::SitesList();
             if (count($arResult['arSites']) < 2) {
@@ -1403,5 +1421,149 @@ class intaro_retailcrm extends CModule
             }
         
         return $res;
+    }
+    
+    /**
+     * Add USER fields for LP
+     */
+    public function addLPUserFields()
+    {
+        $fieldNames = [
+            "UF_REG_IN_PL_INTARO",
+            "UF_AGREE_PL_INTARO",
+            "UF_PD_PROC_PL_INTARO",
+            "UF_EXT_REG_PL_INTARO",
+        ];
+        $this->addCustomUserFields($fieldNames);
+    }
+    
+    /**
+     * add LP Order Props
+     * @throws \Bitrix\Main\ArgumentException
+     * @throws \Bitrix\Main\ObjectPropertyException
+     * @throws \Bitrix\Main\SystemException
+     */
+    public function addLPOrderProps(): void
+    {
+        $persons = PersonTypeTable::query()
+            ->setSelect(['ID'])
+            ->fetchCollection();
+        
+        foreach ($persons as $person) {
+    
+            $groupID = $this->getGroupID();
+            
+            if (isset($groupID)) {
+                $this->addBonusField($person->ID, $groupID);
+            }
+        }
+    }
+    
+    /**
+     * @param        $fieldNames
+     * @param string $filedType
+     */
+    public function addCustomUserFields($fieldNames, $filedType = 'boolean'): void
+    {
+        foreach ($fieldNames as $filedName) {
+            $arProps = [
+                "ENTITY_ID" => 'USER',
+                "FIELD_NAME" => $filedName,
+                "USER_TYPE_ID" => $filedType,
+                "MULTIPLE" => "N",
+                "MANDATORY" => "N"
+            ];
+            $obUserField = new CUserTypeEntity;
+            $dbRes = CUserTypeEntity::GetList([], ["FIELD_NAME" => $filedName])->fetch();
+            if (!$dbRes['ID']) {
+                $obUserField->Add($arProps);
+            }
+        }
+    }
+    
+    /**
+     * @return int|false
+     * @throws \Bitrix\Main\ArgumentException
+     * @throws \Bitrix\Main\ObjectPropertyException
+     * @throws \Bitrix\Main\SystemException
+     */
+    private function getGroupID()
+    {
+        $LPGroup = OrderPropsGroupTable::query()
+            ->setSelect(['ID'])
+            ->where(
+                [
+                    ['PERSON_TYPE_ID', '=', $person->ID],
+                    ['NAME', '=', self::LP_ORDER_GROUP_NAME],
+                ]
+            )
+            ->fetch();
+    
+        if (is_array($LPGroup)) {
+            return $LPGroup['ID'];
+        }
+    
+        if ($LPGroup === false) {
+            $groupFields = [
+                'PERSON_TYPE_ID' => $person->ID,
+                'NAME'           => self::LP_ORDER_GROUP_NAME,
+            ];
+            return OrderPropsGroupTable::add($groupFields);
+        }
+    }
+    
+    /**
+     * @param $personID
+     * @param $groupID
+     * @throws \Bitrix\Main\ArgumentException
+     * @throws \Bitrix\Main\ObjectPropertyException
+     * @throws \Bitrix\Main\SystemException
+     */
+    private function addBonusField($personID, $groupID): void
+    {
+        $bonusProp = OrderPropsTable::query()
+            ->setSelect(['ID'])
+            ->where([
+                ['PERSON_TYPE_ID', '=', $personID],
+                ['PROPS_GROUP_ID', '=', $groupID],
+            ])
+            ->fetch();
+        if ($bonusProp === false) {
+            $fields = [
+                "REQUIRED"        => "N",
+                "NAME"            => self::BONUS_COUNT,
+                "TYPE"            => "TEXT",
+                "CODE"            => "BONUS_COUNT_LP",
+                "USER_PROPS"      => "Y",
+                "IS_LOCATION"     => "N",
+                "IS_LOCATION4TAX" => "N",
+                "IS_EMAIL"        => "N",
+                "IS_PROFILE_NAME" => "N",
+                "IS_PAYER"        => "N",
+                'IS_FILTERED'     => 'Y',
+                'PERSON_TYPE_ID'  => $personID,
+                'PROPS_GROUP_ID'  => $groupID,
+                "DEFAULT_VALUE"   => 0,
+                "DESCRIPTION"     => self::BONUS_COUNT,
+            ];
+            CSaleOrderProps::Add($fields);
+        }
+    }
+    
+    private function addBonusPaySystem()
+    {
+    
+        $path_from = $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/netpay.sale/install/www';
+        $path_to = $_SERVER['DOCUMENT_ROOT'];
+    
+        DeleteDirFilesEx('/netpay');
+        DeleteDirFilesEx('/bitrix/php_interface/include/sale_payment/netpay.sale');
+        
+        $arrPaySystemAction = PaySystemActionTable::query()->setSelect(['ID'])->where(
+            [
+                ['PAY_SYSTEM_ID', '=', $arrOrderPayment['PAY_SYSTEM_ID']],
+                ['ACTIVE', '=', 'Y'],
+            ]
+        )->fetch();
     }
 }
