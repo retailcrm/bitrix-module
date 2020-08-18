@@ -12,6 +12,8 @@
  * @link     http://www.retailcrm.ru/docs/Developers/ApiVersion4
  */
 
+use Intaro\RetailCrm\Component\ConfigProvider;
+
 IncludeModuleLangFile(__FILE__);
 
 require_once __DIR__ . '/../../lib/component/configprovider.php';
@@ -27,6 +29,6 @@ require_once __DIR__ . '/../../lib/component/configprovider.php';
  * @license  https://opensource.org/licenses/MIT MIT License
  * @link     http://www.retailcrm.ru/docs/Developers/ApiVersion4
  */
-class RetailcrmConfigProvider extends \Intaro\RetailCrm\Component\ConfigProvider
+class RetailcrmConfigProvider extends ConfigProvider
 {
 }
