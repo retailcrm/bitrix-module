@@ -39,7 +39,7 @@ class intaro_retailcrm extends CModule
     public const BONUS_PAY_SYSTEM_NAME        = 'Оплата бонусами';
     public const BONUS_PAY_SYSTEM_CODE        = 'retailcrmbonus';
     public const BONUS_PAY_SYSTEM_DESCRIPTION = 'Оплата бонусами программы лояльности retailCRM';
-    
+
     /**
      * @var string[][]
      */
@@ -162,10 +162,10 @@ class intaro_retailcrm extends CModule
         $infoSale = CModule::CreateModuleObject('sale')->MODULE_VERSION;
         if (version_compare($infoSale, '16', '<=')) {
             $APPLICATION->ThrowException(GetMessage("SALE_VERSION_ERR"));
-            
+
             return false;
         }
-
+        
         if (!Loader::includeModule('sale')) {
             return false;
         }
@@ -231,7 +231,7 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../lib/repository/persontyperepository.php');
         include($this->INSTALL_PATH . '/../lib/repository/tomodulerepository.php');
         include($this->INSTALL_PATH . '/../lib/model/bitrix/orm/tomodule.php');
-      
+
         $this->CopyFiles();
         $this->addBonusPaySystem();
         $this->addLPUserFields();
@@ -1511,7 +1511,7 @@ class intaro_retailcrm extends CModule
         foreach ($persons as $person) {
             $personId = $person->getID();
             $groupID = $this->getGroupID($personId);
-            
+
             if (isset($groupID)) {
                 $this->addBonusField($personId, $groupID);
             }
@@ -1566,13 +1566,10 @@ class intaro_retailcrm extends CModule
         }
 
         if ($LPGroup === false) {
-            $groupFields = [
+            return OrderPropsGroupTable::add([
                 'PERSON_TYPE_ID' => $personId,
                 'NAME' => self::LP_ORDER_GROUP_NAME,
-            ];
-            $result      = OrderPropsGroupTable::add($groupFields);
-
-            return $result->getId();
+            ])->getId();
         }
     }
 
@@ -1662,7 +1659,7 @@ class intaro_retailcrm extends CModule
             PaySystemActionTable::update($result->getId(), $updateData);
         }
     }
-    
+
     /**
      * create loyalty program events handlers
      */
@@ -1670,8 +1667,8 @@ class intaro_retailcrm extends CModule
     {
         $eventManager = EventManager::getInstance();
 
-        foreach (self::SUBSCRIBE_LP_EVENTS as $event){
-    
+        foreach (self::SUBSCRIBE_LP_EVENTS as $event) {
+
             try {
                 $events = ToModuleRepository::getCollectionByWhere(
                     ['ID'],
@@ -1682,7 +1679,7 @@ class intaro_retailcrm extends CModule
                         ['to_class', '=', EventsHandlers::class],
                     ]
                 );
-                
+
                 if ($events !== null && count($events) === 0) {
                     $eventManager->registerEventHandler(
                         $event['FROM_MODULE'],
@@ -1697,21 +1694,21 @@ class intaro_retailcrm extends CModule
             }
         }
     }
-    
+
     /**
      * delete loyalty program events handlers
      */
     private function deleteLPEvents(): void
     {
         $eventManager = EventManager::getInstance();
-        
-        foreach (self::SUBSCRIBE_LP_EVENTS as $event){
+
+        foreach (self::SUBSCRIBE_LP_EVENTS as $event) {
             $eventManager->unRegisterEventHandler(
                 $event['FROM_MODULE'],
                 $event['EVENT_NAME'],
                 $this->MODULE_ID,
                 EventsHandlers::class,
-                $event['EVENT_NAME'].'Handler'
+                $event['EVENT_NAME'] . 'Handler'
             );
         }
     }
