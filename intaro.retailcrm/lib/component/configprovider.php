@@ -383,7 +383,6 @@ class ConfigProvider
     }
 
     /**
-<<<<<<< HEAD
      * getSendPaymentAmount
      *
      * @return bool|string|null
