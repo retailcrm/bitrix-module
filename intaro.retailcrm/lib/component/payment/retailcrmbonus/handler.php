@@ -32,4 +32,5 @@ class RetailCrmBonusHandler extends PaySystem\BaseServiceHandler
     {
         return [];
     }
+    
 }
