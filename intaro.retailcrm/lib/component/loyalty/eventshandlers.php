@@ -27,7 +27,7 @@ class EventsHandlers
     {
         AddMessage2Log('OnBeforeSalePaymentSetFieldHandler work! ' . $event->getDebugInfo());
     }
-    
+
     /**
      * @return mixed
      */
@@ -35,7 +35,7 @@ class EventsHandlers
     {
         AddMessage2Log('OnBeforeEndBufferContentHandler work! ');
     }
-    
+
     /**
      * @param \Bitrix\Main\Event $event
      */
@@ -43,7 +43,7 @@ class EventsHandlers
     {
         AddMessage2Log('OnSaleOrderBeforeSavedHandler work! ' . $event->getDebugInfo());
     }
-    
+
     /**
      * @param \Bitrix\Main\Event $event
      */
@@ -51,7 +51,7 @@ class EventsHandlers
     {
         AddMessage2Log('OnSaleOrderPaidHandler work! '. $event->getDebugInfo());
     }
-    
+
     /**
      * @param \Bitrix\Main\Event $event
      */
@@ -59,7 +59,7 @@ class EventsHandlers
     {
         AddMessage2Log('OnSaleStatusOrderChangeHandler work! '. $event->getDebugInfo());
     }
-    
+
     /**
      * @param \Bitrix\Main\Event $event
      */
@@ -67,7 +67,7 @@ class EventsHandlers
     {
         AddMessage2Log('OnSaleOrderSavedHandler work! '. $event->getDebugInfo());
     }
-    
+
     /**
      * @param \Bitrix\Main\Event $event
      */
@@ -75,7 +75,7 @@ class EventsHandlers
     {
         AddMessage2Log('OnSaleOrderCanceledHandler work! '. $event->getDebugInfo());
     }
-    
+
     /**
      * @param \Bitrix\Main\Event $event
      */
@@ -83,7 +83,7 @@ class EventsHandlers
     {
         AddMessage2Log('OnSaleOrderDeletedHandler work! '. $event->getDebugInfo());
     }
-    
+
     /**
      * @param $arResult
      * @param $arUserResult
