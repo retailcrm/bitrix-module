@@ -1,6 +1,6 @@
 <?php
 
-namespace Sale\Handlers\PaySystem;
+namespace Intaro\RetailCrm\Component\Payment\RetailCrmBonus;
 
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\Request;
