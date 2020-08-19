@@ -23,6 +23,7 @@ class EventsHandlers
     /**
      * @param \Bitrix\Main\Event $event
      */
+
     public function OnBeforeSalePaymentSetFieldHandler(Event $event): void
     {
         AddMessage2Log('OnBeforeSalePaymentSetFieldHandler work! ' . $event->getDebugInfo());

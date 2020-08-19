@@ -1,2 +1,2 @@
 <?php
-$MESS["SALE_HPS_BONUS"] = "retailCRM bonus account";
+$MESS["SALE_HPS_BONUS"] = "RetailCRM Bonus Account";
