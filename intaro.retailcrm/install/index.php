@@ -1712,4 +1712,5 @@ class intaro_retailcrm extends CModule
             );
         }
     }
+
 }
