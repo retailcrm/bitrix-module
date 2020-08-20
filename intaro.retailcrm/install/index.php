@@ -26,6 +26,7 @@ use Bitrix\Sale\Internals\OrderTable;
 use \RetailCrm\ApiClient;
 use RetailCrm\Exception\CurlException;
 use Intaro\RetailCrm\Component\Loyalty\EventsHandlers;
+use Intaro\RetailCrm\Model\Bitrix\ORM\ToModuleTable;
 
 IncludeModuleLangFile(__FILE__);
 if (class_exists('intaro_retailcrm')) {
@@ -43,15 +44,15 @@ class intaro_retailcrm extends CModule
      * @var string[][]
      */
     private const SUBSCRIBE_LP_EVENTS = [
-        ['EVENT_NAME' => 'OnBeforeSalePaymentSetField', 'MODULE' => 'sale'],
-        ['EVENT_NAME' => 'OnBeforeEndBufferContent', 'MODULE' => 'main'],
-        ['EVENT_NAME' => 'OnSaleOrderBeforeSaved', 'MODULE' => 'sale'],
-        ['EVENT_NAME' => 'OnSaleOrderPaid', 'MODULE' => 'sale'],
-        ['EVENT_NAME' => 'OnSaleStatusOrderChange', 'MODULE' => 'sale'],
-        ['EVENT_NAME' => 'OnSaleOrderSaved', 'MODULE' => 'sale'],
-        ['EVENT_NAME' => 'OnSaleOrderCanceled', 'MODULE' => 'sale'],
-        ['EVENT_NAME' => 'OnSaleOrderDeleted', 'MODULE' => 'sale'],
-        ['EVENT_NAME' => 'OnSaleComponentOrderOneStepProcess', 'MODULE' => 'sale'],
+        ['EVENT_NAME' => 'OnBeforeSalePaymentSetField', 'FROM_MODULE' => 'sale'],
+        ['EVENT_NAME' => 'OnBeforeEndBufferContent', 'FROM_MODULE' => 'main'],
+        ['EVENT_NAME' => 'OnSaleOrderBeforeSaved', 'FROM_MODULE' => 'sale'],
+        ['EVENT_NAME' => 'OnSaleOrderPaid', 'FROM_MODULE' => 'sale'],
+        ['EVENT_NAME' => 'OnSaleStatusOrderChange', 'FROM_MODULE' => 'sale'],
+        ['EVENT_NAME' => 'OnSaleOrderSaved', 'FROM_MODULE' => 'sale'],
+        ['EVENT_NAME' => 'OnSaleOrderCanceled', 'FROM_MODULE' => 'sale'],
+        ['EVENT_NAME' => 'OnSaleOrderDeleted', 'FROM_MODULE' => 'sale'],
+        ['EVENT_NAME' => 'OnSaleComponentOrderOneStepProcess', 'FROM_MODULE' => 'sale'],
     ];
     public const V5 = 'v5';
     public $MODULE_ID           = 'intaro.retailcrm';
@@ -1472,7 +1473,7 @@ class intaro_retailcrm extends CModule
     /**
      * Add USER fields for LP
      */
-    public function addLPUserFields()
+    public function addLPUserFields(): void
     {
         $fieldNames = [
             "UF_REG_IN_PL_INTARO",
@@ -1598,6 +1599,9 @@ class intaro_retailcrm extends CModule
         }
     }
     
+    /**
+     * add bonus pay system
+     */
     private function addBonusPaySystem(): void
     {
         $arrPaySystemAction = PaySystemActionTable::query()->setSelect(['ID'])->where(
@@ -1639,29 +1643,46 @@ class intaro_retailcrm extends CModule
         }
     }
     
+    /**
+     * create loyalty program events handlers
+     */
     private function addLPEvents(): void
     {
         $eventManager = EventManager::getInstance();
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/orm/tomodule.php');
     
         foreach (self::SUBSCRIBE_LP_EVENTS as $event){
-            
-            $eventManager->registerEventHandler(
-                $event['MODULE'],
-                $event['EVENT_NAME'],
-                $this->MODULE_ID,
-                EventsHandlers::class,
-                $event['EVENT_NAME'].'Handler'
-            );
+    
+           $events =  ToModuleTable::query()->setSelect(['ID'])->where(
+                [
+                    ['from_module_id', '=', $event['FROM_MODULE']],
+                    ['to_module_id', '=', $this->MODULE_ID],
+                    ['to_method', '=', $event['EVENT_NAME'] . 'Handler'],
+                    ['to_class', '=', EventsHandlers::class],
+                ]
+            )->fetchCollection();
+    
+            if (count($events) === 0) {
+                $eventManager->registerEventHandler(
+                    $event['FROM_MODULE'],
+                    $event['EVENT_NAME'],
+                    $this->MODULE_ID,
+                    EventsHandlers::class,
+                    $event['EVENT_NAME'] . 'Handler'
+                );
+            }
         }
     }
     
-    private function deleteLPEvents()
+    /**
+     * delete loyalty program events handlers
+     */
+    private function deleteLPEvents(): void
     {
         $eventManager = EventManager::getInstance();
-
         foreach (self::SUBSCRIBE_LP_EVENTS as $event){
             $eventManager->unRegisterEventHandler(
-                $event['MODULE'],
+                $event['FROM_MODULE'],
                 $event['EVENT_NAME'],
                 $this->MODULE_ID,
                 EventsHandlers::class,
