@@ -48,6 +48,7 @@ use Intaro\RetailCrm\Repository\ToModuleRepository;
 use Bitrix\Highloadblock as HL;
 
 Loader::IncludeModule('highloadblock');
+use Intaro\RetailCrm\Model\Bitrix\ORM\ToModuleTable;
 
 IncludeModuleLangFile(__FILE__);
 if (class_exists('intaro_retailcrm')) {
@@ -65,15 +66,15 @@ class intaro_retailcrm extends CModule
      * @var string[][]
      */
     private const SUBSCRIBE_LP_EVENTS = [
-        ['EVENT_NAME' => 'OnBeforeSalePaymentSetField', 'MODULE' => 'sale'],
-        ['EVENT_NAME' => 'OnBeforeEndBufferContent', 'MODULE' => 'main'],
-        ['EVENT_NAME' => 'OnSaleOrderBeforeSaved', 'MODULE' => 'sale'],
-        ['EVENT_NAME' => 'OnSaleOrderPaid', 'MODULE' => 'sale'],
-        ['EVENT_NAME' => 'OnSaleStatusOrderChange', 'MODULE' => 'sale'],
-        ['EVENT_NAME' => 'OnSaleOrderSaved', 'MODULE' => 'sale'],
-        ['EVENT_NAME' => 'OnSaleOrderCanceled', 'MODULE' => 'sale'],
-        ['EVENT_NAME' => 'OnSaleOrderDeleted', 'MODULE' => 'sale'],
-        ['EVENT_NAME' => 'OnSaleComponentOrderOneStepProcess', 'MODULE' => 'sale'],
+        ['EVENT_NAME' => 'OnBeforeSalePaymentSetField', 'FROM_MODULE' => 'sale'],
+        ['EVENT_NAME' => 'OnBeforeEndBufferContent', 'FROM_MODULE' => 'main'],
+        ['EVENT_NAME' => 'OnSaleOrderBeforeSaved', 'FROM_MODULE' => 'sale'],
+        ['EVENT_NAME' => 'OnSaleOrderPaid', 'FROM_MODULE' => 'sale'],
+        ['EVENT_NAME' => 'OnSaleStatusOrderChange', 'FROM_MODULE' => 'sale'],
+        ['EVENT_NAME' => 'OnSaleOrderSaved', 'FROM_MODULE' => 'sale'],
+        ['EVENT_NAME' => 'OnSaleOrderCanceled', 'FROM_MODULE' => 'sale'],
+        ['EVENT_NAME' => 'OnSaleOrderDeleted', 'FROM_MODULE' => 'sale'],
+        ['EVENT_NAME' => 'OnSaleComponentOrderOneStepProcess', 'FROM_MODULE' => 'sale'],
     ];
     public const V5 = 'v5';
     public const BONUS_PAY_SYSTEM_CODE        = 'retailcrmbonus';
@@ -1778,7 +1779,6 @@ class intaro_retailcrm extends CModule
     private function deleteLPEvents(): void
     {
         $eventManager = EventManager::getInstance();
-
         foreach (self::SUBSCRIBE_LP_EVENTS as $event){
             $eventManager->unRegisterEventHandler(
                 $event['FROM_MODULE'],

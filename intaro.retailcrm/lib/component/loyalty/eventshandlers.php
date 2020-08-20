@@ -24,25 +24,23 @@ class EventsHandlers
     /**
      * @param \Bitrix\Main\Event $event
      */
-    public function OnBeforeSalePaymentSetFieldHandler(Event $event)
+    public function OnBeforeSalePaymentSetFieldHandler(Event $event): void
     {
         AddMessage2Log('OnBeforeSalePaymentSetFieldHandler work! ' . $event->getDebugInfo());
     }
     
     /**
-     * @param &$content
      * @return mixed
      */
-    public function OnBeforeEndBufferContentHandler($content)
+    public function OnBeforeEndBufferContentHandler()
     {
         AddMessage2Log('OnBeforeEndBufferContentHandler work! ');
-        return $content;
     }
     
     /**
      * @param \Bitrix\Main\Event $event
      */
-    public function OnSaleOrderBeforeSavedHandler(Event $event)
+    public function OnSaleOrderBeforeSavedHandler(Event $event): void
     {
         AddMessage2Log('OnSaleOrderBeforeSavedHandler work! ' . $event->getDebugInfo());
     }
@@ -50,7 +48,7 @@ class EventsHandlers
     /**
      * @param \Bitrix\Main\Event $event
      */
-    public function OnSaleOrderPaidHandler(Event $event)
+    public function OnSaleOrderPaidHandler(Event $event): void
     {
         AddMessage2Log('OnSaleOrderPaidHandler work! '. $event->getDebugInfo());
     }
@@ -58,7 +56,7 @@ class EventsHandlers
     /**
      * @param \Bitrix\Main\Event $event
      */
-    public function OnSaleStatusOrderChangeHandler(Event $event)
+    public function OnSaleStatusOrderChangeHandler(Event $event): void
     {
         AddMessage2Log('OnSaleStatusOrderChangeHandler work! '. $event->getDebugInfo());
     }
@@ -66,7 +64,7 @@ class EventsHandlers
     /**
      * @param \Bitrix\Main\Event $event
      */
-    public function OnSaleOrderSavedHandler(Event $event)
+    public function OnSaleOrderSavedHandler(Event $event): void
     {
         AddMessage2Log('OnSaleOrderSavedHandler work! '. $event->getDebugInfo());
     }
@@ -74,7 +72,7 @@ class EventsHandlers
     /**
      * @param \Bitrix\Main\Event $event
      */
-    public function OnSaleOrderCanceledHandler(Event $event)
+    public function OnSaleOrderCanceledHandler(Event $event): void
     {
         AddMessage2Log('OnSaleOrderCanceledHandler work! '. $event->getDebugInfo());
     }
@@ -82,7 +80,7 @@ class EventsHandlers
     /**
      * @param \Bitrix\Main\Event $event
      */
-    public function OnSaleOrderDeletedHandler(Event $event)
+    public function OnSaleOrderDeletedHandler(Event $event): void
     {
         AddMessage2Log('OnSaleOrderDeletedHandler work! '. $event->getDebugInfo());
     }
