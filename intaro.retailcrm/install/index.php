@@ -48,9 +48,6 @@ use Intaro\RetailCrm\Repository\ToModuleRepository;
 use Bitrix\Highloadblock as HL;
 
 Loader::IncludeModule('highloadblock');
-use Intaro\RetailCrm\Repository\OrderPropsRepository;
-use Intaro\RetailCrm\Repository\PersonTypeRepository;
-use Intaro\RetailCrm\Repository\ToModuleRepository;
 
 IncludeModuleLangFile(__FILE__);
 if (class_exists('intaro_retailcrm')) {
@@ -1619,7 +1616,8 @@ class intaro_retailcrm extends CModule
         $this->addCustomUserFields(
             [
                 [
-                    'name'  => "UF_REG_IN_PL_INTARO",
+
+            'name'  => "UF_REG_IN_PL_INTARO",
                     'title' => GetMessage('UF_REG_IN_PL_INTARO_TITLE'),
                 ],
                 [
