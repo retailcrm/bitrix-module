@@ -37,7 +37,7 @@ class OrderPropsRepository extends AbstractRepository
             ->where($where)
             ->fetchObject());
     }
-    
+
     /**
      * @param int $id
      *
@@ -50,7 +50,7 @@ class OrderPropsRepository extends AbstractRepository
     {
         return static::getWrapped(OrderPropsTable::getByPrimary($id)->fetchObject());
     }
-    
+
     /**
      * @param \Bitrix\Main\ORM\Objectify\EntityObject|null $entityObject
      *
@@ -61,7 +61,7 @@ class OrderPropsRepository extends AbstractRepository
         if (null === $entityObject) {
             return null;
         }
-        
+
         return new OrderProps($entityObject);
     }
 }
