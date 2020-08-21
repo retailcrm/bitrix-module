@@ -225,11 +225,14 @@ class intaro_retailcrm extends CModule
             }
         }
         
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/abstractmodelproxy.php');
         include($this->INSTALL_PATH . '/../lib/model/bitrix/orderprops.php');
         include($this->INSTALL_PATH . '/../lib/model/bitrix/tomodule.php');
+        include($this->INSTALL_PATH . '/../lib/repository/abstractrepository.php');
         include($this->INSTALL_PATH . '/../lib/repository/orderpropsrepository.php');
         include($this->INSTALL_PATH . '/../lib/repository/persontyperepository.php');
         include($this->INSTALL_PATH . '/../lib/repository/tomodulerepository.php');
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/orm/tomodule.php');
       
         $this->CopyFiles();
         $this->addBonusPaySystem();
@@ -1496,11 +1499,9 @@ class intaro_retailcrm extends CModule
     public function addLPOrderProps(): void
     {
         $persons = PersonTypeRepository::getCollectionByWhere(['ID']);
-        
         foreach ($persons as $person) {
             $personId = $person->getID();
             $groupID = $this->getGroupID($personId);
-
             if (isset($groupID)) {
                 $this->addBonusField($personId, $groupID);
             }
@@ -1565,6 +1566,9 @@ class intaro_retailcrm extends CModule
     /**
      * @param $personID
      * @param $groupID
+     * @throws \Bitrix\Main\ArgumentException
+     * @throws \Bitrix\Main\ObjectPropertyException
+     * @throws \Bitrix\Main\SystemException
      */
     private function addBonusField($personID, $groupID): void
     {
@@ -1574,8 +1578,8 @@ class intaro_retailcrm extends CModule
         ];
        
         $bonusProp = OrderPropsRepository::getFirstByWhere(['ID'], $where);
-        
-        if ($bonusProp === false) {
+
+        if ($bonusProp === null) {
             $fields = [
                 "REQUIRED"        => "N",
                 "NAME"            => self::BONUS_COUNT,
@@ -1648,8 +1652,6 @@ class intaro_retailcrm extends CModule
     private function addLPEvents(): void
     {
         $eventManager = EventManager::getInstance();
-        include($this->INSTALL_PATH . '/../lib/model/bitrix/orm/tomodule.php');
-        include($this->INSTALL_PATH . '/../lib/repository/tomodulerepository.php');
 
         foreach (self::SUBSCRIBE_LP_EVENTS as $event){
             $select = ['ID'];

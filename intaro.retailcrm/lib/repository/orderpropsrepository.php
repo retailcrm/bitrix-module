@@ -11,13 +11,10 @@
  */
 namespace Intaro\RetailCrm\Repository;
 
-use Bitrix\Sale\FuserTable;
 use Bitrix\Sale\Internals\OrderPropsTable;
-use Intaro\RetailCrm\Model\Bitrix\Fuser;
 use Bitrix\Main\ORM\Objectify\EntityObject;
 use Intaro\RetailCrm\Model\Bitrix\OrderProps;
-use Intaro\RetailCrm\Model\Bitrix\ORM\ToModuleTable;
-use Intaro\RetailCrm\Model\Bitrix\ToModule;
+
 
 /**
  * Class RepositoryRepository
@@ -26,10 +23,17 @@ use Intaro\RetailCrm\Model\Bitrix\ToModule;
  */
 class OrderPropsRepository extends AbstractRepository
 {
-    
-    public static function getFirstByWhere(array $select, array $where): ?ToModule
+    /**
+     * @param array $select
+     * @param array $where
+     * @return \Intaro\RetailCrm\Model\Bitrix\OrderProps|null
+     * @throws \Bitrix\Main\ArgumentException
+     * @throws \Bitrix\Main\ObjectPropertyException
+     * @throws \Bitrix\Main\SystemException
+     */
+    public static function getFirstByWhere(array $select, array $where): ?OrderProps
     {
-        return static::getWrapped(ToModuleTable::query()
+        return static::getWrapped(OrderPropsTable::query()
             ->setSelect($select)
             ->where($where)
             ->fetchObject());
