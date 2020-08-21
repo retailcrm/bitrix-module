@@ -42,6 +42,7 @@ class intaro_retailcrm extends CModule
     public const BONUS_PAY_SYSTEM_NAME        = 'Оплата бонусами';
     public const BONUS_PAY_SYSTEM_CODE        = 'retailcrmbonus';
     public const BONUS_PAY_SYSTEM_DESCRIPTION = 'Оплата бонусами программы лояльности retailCRM';
+
     /**
      * @var string[][]
      */
@@ -1530,6 +1531,7 @@ class intaro_retailcrm extends CModule
             ];
             $obUserField = new CUserTypeEntity;
             $dbRes = CUserTypeEntity::GetList([], ["FIELD_NAME" => $filedName])->fetch();
+
             if (!$dbRes['ID']) {
                 $obUserField->Add($arProps);
             }
@@ -1565,6 +1567,7 @@ class intaro_retailcrm extends CModule
                 'NAME'           => self::LP_ORDER_GROUP_NAME,
             ];
             $result =  OrderPropsGroupTable::add($groupFields);
+
             return $result->getId();
         }
     }
@@ -1623,7 +1626,7 @@ class intaro_retailcrm extends CModule
             AddMessage2Log($exception->getMessage());
         }
 
-        if (count($arrPaySystemAction) === 0) {
+        if (isset($arrPaySystemAction) && count($arrPaySystemAction) === 0) {
             $result     = PaySystemActionTable::add(
                 [
                     'NAME'                 => GetMessage('BONUS_PAY_SYSTEM_NAME'),
@@ -1665,7 +1668,7 @@ class intaro_retailcrm extends CModule
     {
         $eventManager = EventManager::getInstance();
 
-        foreach (self::SUBSCRIBE_LP_EVENTS as $event){
+        foreach (self::SUBSCRIBE_LP_EVENTS as $event) {
             try {
                 $events = ToModuleRepository::getCollectionByWhere(
                     ['ID'],
@@ -1698,6 +1701,7 @@ class intaro_retailcrm extends CModule
     private function deleteLPEvents(): void
     {
         $eventManager = EventManager::getInstance();
+
         foreach (self::SUBSCRIBE_LP_EVENTS as $event){
             $eventManager->unRegisterEventHandler(
                 $event['FROM_MODULE'],
