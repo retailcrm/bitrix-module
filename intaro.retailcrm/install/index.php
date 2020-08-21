@@ -23,6 +23,7 @@ if (class_exists('intaro_retailcrm')) {
 
 class intaro_retailcrm extends CModule
 {
+    public const V5 = 'v5';
     public $MODULE_ID           = 'intaro.retailcrm';
     public $OLD_MODULE_ID       = 'intaro.intarocrm';
     public $MODULE_VERSION;
@@ -150,17 +151,10 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../classes/general/Exception/CurlException.php');
         include($this->INSTALL_PATH . '/../classes/general/RestNormalizer.php');
         include($this->INSTALL_PATH . '/../classes/general/Logger.php');
-        
         $version = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_VERSION, 0);
-        if ($version === 'v4') {
-            include($this->INSTALL_PATH . '/../classes/general/ApiClient_v4.php');
-            include($this->INSTALL_PATH . '/../classes/general/order/RetailCrmOrder_v4.php');
-            include($this->INSTALL_PATH . '/../classes/general/history/RetailCrmHistory_v4.php');
-        } elseif ($version === 'v5') {
-            include($this->INSTALL_PATH . '/../classes/general/ApiClient_v5.php');
-            include($this->INSTALL_PATH . '/../classes/general/order/RetailCrmOrder_v5.php');
-            include($this->INSTALL_PATH . '/../classes/general/history/RetailCrmHistory_v5.php');
-        }
+        include($this->INSTALL_PATH . '/../classes/general/ApiClient_v5.php');
+        include($this->INSTALL_PATH . '/../classes/general/order/RetailCrmOrder_v5.php');
+        include($this->INSTALL_PATH . '/../classes/general/history/RetailCrmHistory_v5.php');
         
         $step = intval($_REQUEST['step']);
         
@@ -177,7 +171,7 @@ class intaro_retailcrm extends CModule
                 $type["NAME"] = $APPLICATION->ConvertCharset((string)$field, 'utf-8', SITE_CHARSET);
                 $type["ID"]   = (string)$field["id"];
                 
-                if ($field["group"] === 'custom') {
+                if ($field["group"] == 'custom') {
                     $arResult['customFields'][] = $type;
                 } elseif (!$field["group"]) {
                     $arResult['orderProps'][] = $type;
@@ -192,7 +186,7 @@ class intaro_retailcrm extends CModule
             }
         }
         
-        if ($step === 11) {
+        if ($step == 11) {
             $arResult['arSites'] = RCrmActions::SitesList();
             if (count($arResult['arSites']) < 2) {
                 $step = 2;
@@ -221,7 +215,7 @@ class intaro_retailcrm extends CModule
             $APPLICATION->IncludeAdminFile(
                 GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step1.php'
             );
-        } elseif ($step === 11) {
+        } elseif ($step == 11) {
             //new page
             if (!CModule::IncludeModule("sale")) {
                 $arResult['errCode'] = 'ERR_SALE';
@@ -284,7 +278,7 @@ class intaro_retailcrm extends CModule
             $APPLICATION->IncludeAdminFile(
                 GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step11.php'
             );
-        } elseif ($step === 2) {
+        } elseif ($step == 2) {
             if (!CModule::IncludeModule("sale")) {
                 $arResult['errCode'] = 'ERR_SALE';
             }
@@ -317,7 +311,7 @@ class intaro_retailcrm extends CModule
                         $siteCode[$site['LID']] = null;
                     }
                 }
-                if (count($arResult['arSites']) !== count($siteCode)) {
+                if (count($arResult['arSites']) != count($siteCode)) {
                     $arResult['errCode'] = 'ERR_FIELDS_API_HOST';
                     $APPLICATION->IncludeAdminFile(
                         GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step11.php'
@@ -334,7 +328,7 @@ class intaro_retailcrm extends CModule
                 
                 // form correct url
                 $api_host = parse_url($api_host);
-                if ($api_host['scheme'] !== 'https') {
+                if ($api_host['scheme'] != 'https') {
                     $api_host['scheme'] = 'https';
                 }
                 $api_host = $api_host['scheme'] . '://' . $api_host['host'];
@@ -428,7 +422,7 @@ class intaro_retailcrm extends CModule
             $APPLICATION->IncludeAdminFile(
                 GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step2.php'
             );
-        } elseif ($step === 3) {
+        } elseif ($step == 3) {
             if (!CModule::IncludeModule("sale")) {
                 $arResult['errCode'] = 'ERR_SALE';
             }
@@ -456,12 +450,12 @@ class intaro_retailcrm extends CModule
             //bitrix deliveryTypesList
             $arResult['bitrixDeliveryTypesList'] = RCrmActions::DeliveryList();
             
-            if (htmlspecialchars(trim($_POST['delivery-types-export'])) === 'false') {
+            if (htmlspecialchars(trim($_POST['delivery-types-export'])) == 'false') {
                 $deliveryTypesArr = [];
                 foreach ($arResult['bitrixDeliveryTypesList'] as $delivery) {
                     $deliveryTypesArr[$delivery['ID']] = htmlspecialchars(trim($_POST['delivery-type-' . $delivery['ID']]));
                 }
-            } elseif (htmlspecialchars(trim($_POST['delivery-types-export'])) === 'true') {
+            } elseif (htmlspecialchars(trim($_POST['delivery-types-export'])) == 'true') {
                 // send to intaro crm and save delivery types!
                 $arDeliveryServiceAll = Manager::getActiveList();
                 foreach ($arResult['bitrixDeliveryTypesList'] as $deliveryType) {
@@ -484,9 +478,9 @@ class intaro_retailcrm extends CModule
                     if ($load) {
                         $deliveryTypesArr[$deliveryType['ID']] = $deliveryType['ID'];
                         foreach ($arDeliveryServiceAll as $deliveryService) {
-                            if ($deliveryService['PARENT_ID'] !== 0 && $deliveryService['PARENT_ID'] === $deliveryType['ID']) {
+                            if ($deliveryService['PARENT_ID'] != 0 && $deliveryService['PARENT_ID'] == $deliveryType['ID']) {
                                 $srv = explode(':', $deliveryService['CODE']);
-                                if (count($srv) === 2) {
+                                if (count($srv) == 2) {
                                     try {
                                         $this->RETAIL_CRM_API->deliveryServicesEdit(RCrmActions::clearArr([
                                             'code'         => $srv[1],
@@ -522,7 +516,7 @@ class intaro_retailcrm extends CModule
             
             foreach ($arResult['bitrixStatusesList'] as $status) {
                 $paymentStatusesArr[$status['ID']] = htmlspecialchars(trim($_POST['payment-status-' . $status['ID']]));
-                if (trim($_POST['order-cansel-' . $status['ID']]) === 'Y') {
+                if (trim($_POST['order-cansel-' . $status['ID']]) == 'Y') {
                     $canselOrderArr[] = $status['ID'];
                 }
             }
@@ -570,7 +564,7 @@ class intaro_retailcrm extends CModule
             $APPLICATION->IncludeAdminFile(
                 GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step3.php'
             );
-        } elseif ($step === 4) {
+        } elseif ($step == 4) {
             if (!CModule::IncludeModule("sale")) {
                 $arResult['errCode'] = 'ERR_SALE';
             }
@@ -584,7 +578,7 @@ class intaro_retailcrm extends CModule
             if (!empty($_SERVER['HTTP_X_REQUESTED_WITH'])
                 && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
                 && isset($_POST['ajax'])
-                && $_POST['ajax'] === 1
+                && $_POST['ajax'] == 1
             ) {
                 $historyTime = Date('');
                 $this->loadDeps();
@@ -671,11 +665,11 @@ class intaro_retailcrm extends CModule
                 GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step4.php'
             );
             
-        } elseif ($step === 5) {
+        } elseif ($step == 5) {
             if (!empty($_SERVER['HTTP_X_REQUESTED_WITH'])
                 && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
                 && isset($_POST['ajax'])
-                && $_POST['ajax'] === 1
+                && $_POST['ajax'] == 1
             ) {
                 CModule::IncludeModule('highloadblock');
                 $rsData               = HighloadBlockTable::getList(['filter' => ['TABLE_NAME' => $_POST['table']]]);
@@ -778,7 +772,7 @@ class intaro_retailcrm extends CModule
             $APPLICATION->IncludeAdminFile(
                 GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step5.php'
             );
-        } elseif ($step === 6) {
+        } elseif ($step == 6) {
             if (!CModule::IncludeModule("iblock")) {
                 $arResult['errCode'] = 'ERR_IBLOCK';
             }
@@ -873,7 +867,7 @@ class intaro_retailcrm extends CModule
                     $propertiesUnitProduct[$iblock][$prop] = $val;
                 }
                 
-                if ($hlblockModule === true && $prop !== 'picture') {
+                if ($hlblockModule == true && $prop != 'picture') {
                     foreach ($hlblockList as $tableName => $hb) {
                         foreach ($_POST['highloadblock_product' . $tableName . '_' . $prop] as $iblock => $val) {
                             $propertiesHbProduct[$tableName][$iblock][$prop] = $val;
@@ -906,7 +900,7 @@ class intaro_retailcrm extends CModule
                 $profileName = $_POST['SETUP_PROFILE_NAME'];
             }
             
-            if ($typeLoading !== 'none' && $profileName === "") {
+            if ($typeLoading != 'none' && $profileName == "") {
                 $arResult['errCode'] = 'ERR_FIELDS_PROFILE';
             }
             
@@ -992,7 +986,7 @@ class intaro_retailcrm extends CModule
                     $dbProfile = CCatalogExport::GetList([], ["FILE_NAME" => $this->RETAIL_CRM_EXPORT]);
                     
                     while ($arProfile = $dbProfile->Fetch()) {
-                        if ($arProfile["DEFAULT_PROFILE"] !== "Y") {
+                        if ($arProfile["DEFAULT_PROFILE"] != "Y") {
                             CAgent::RemoveAgent("CCatalogExport::PreGenerateExport(" . $arProfile['ID'] . ");", "catalog");
                             CCatalogExport::Delete($arProfile['ID']);
                         }
@@ -1121,8 +1115,6 @@ class intaro_retailcrm extends CModule
             
             RCrmActions::sendConfiguration($this->RETAIL_CRM_API, $api_version);
             
-            
-            
             $APPLICATION->IncludeAdminFile(
                 GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step6.php'
             );
@@ -1143,17 +1135,9 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../classes/general/Exception/CurlException.php');
         include($this->INSTALL_PATH . '/../classes/general/RCrmActions.php');
         include($this->INSTALL_PATH . '/../classes/general/Logger.php');
-        
-        
-        if ($api_version === 'v4') {
-            include($this->INSTALL_PATH . '/../classes/general/ApiClient_v4.php');
-            include($this->INSTALL_PATH . '/../classes/general/order/RetailCrmOrder_v4.php');
-            include($this->INSTALL_PATH . '/../classes/general/history/RetailCrmHistory_v4.php');
-        } elseif ($api_version === 'v5') {
-            include($this->INSTALL_PATH . '/../classes/general/ApiClient_v5.php');
-            include($this->INSTALL_PATH . '/../classes/general/order/RetailCrmOrder_v5.php');
-            include($this->INSTALL_PATH . '/../classes/general/history/RetailCrmHistory_v5.php');
-        }
+        include($this->INSTALL_PATH . '/../classes/general/ApiClient_v5.php');
+        include($this->INSTALL_PATH . '/../classes/general/order/RetailCrmOrder_v5.php');
+        include($this->INSTALL_PATH . '/../classes/general/history/RetailCrmHistory_v5.php');
         
         $retail_crm_api = new ApiClient($api_host, $api_key);
         
@@ -1389,10 +1373,8 @@ class intaro_retailcrm extends CModule
     function ping($api_host, $api_key)
     {
         global $APPLICATION;
-        
-        $versions = ['v5', 'v4'];
-        foreach ($versions as $version) {
-            $client = new RetailCrm\Http\Client($api_host . '/api/' . $version, ['apiKey' => $api_key]);
+
+            $client = new RetailCrm\Http\Client($api_host . '/api/'.self::V5, ['apiKey' => $api_key]);
             try {
                 $result = $client->makeRequest('/reference/sites', 'GET');
             } catch (CurlException $e) {
@@ -1404,15 +1386,14 @@ class intaro_retailcrm extends CModule
                 $res['errCode'] = 'ERR_' . $e->getCode();
             }
             
-            if ($result->getStatusCode() === 200) {
-                COption::SetOptionString($this->MODULE_ID, $this->CRM_API_VERSION, $version);
+            if ($result->getStatusCode() == 200) {
+                COption::SetOptionString($this->MODULE_ID, $this->CRM_API_VERSION, self::V5);
                 $res['sitesList'] = $APPLICATION->ConvertCharsetArray($result->sites, 'utf-8', SITE_CHARSET);
                 
                 return $res;
             } else {
                 $res['errCode'] = 'ERR_METHOD_NOT_FOUND';
             }
-        }
         
         return $res;
     }

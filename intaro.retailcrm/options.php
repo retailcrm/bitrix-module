@@ -73,10 +73,10 @@ if (RetailcrmConfigProvider::isPhoneRequired()) {
     echo ShowMessage(["TYPE" => "ERROR", "MESSAGE" => GetMessage('PHONE_REQUIRED')]);
 }
 
-if ($_GET['errc']) {
+if (array_key_exists('errc', $_GET) && is_string($_GET['errc']) && strlen($_GET['errc']) > 0) {
     echo CAdminMessage::ShowMessage(GetMessage($_GET['errc']));
 }
-if ($_GET['ok'] && $_GET['ok'] === 'Y') {
+if (!empty($_GET['ok']) && $_GET['ok'] === 'Y') {
     echo CAdminMessage::ShowNote(GetMessage('ICRM_OPTIONS_OK'));
 }
 

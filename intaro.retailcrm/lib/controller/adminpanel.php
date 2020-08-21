@@ -28,6 +28,7 @@ class AdminPanel extends Controller
         $status    = ConfigProvider::getLoyaltyProgramStatus();
         $newStatus = $status === 'N' || $status === null ? 'Y' : 'N';
         ConfigProvider::setLoyaltyProgramStatus($newStatus);
+        
         return ['newStatus' => $newStatus];
     }
 }
