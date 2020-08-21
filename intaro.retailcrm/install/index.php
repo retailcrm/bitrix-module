@@ -64,6 +64,7 @@ class intaro_retailcrm extends CModule
     public const BONUS_PAY_SYSTEM_NAME        = 'Оплата бонусами';
     public const BONUS_PAY_SYSTEM_CODE        = 'retailcrmbonus';
     public const BONUS_PAY_SYSTEM_DESCRIPTION = 'Оплата бонусами программы лояльности retailCRM';
+
     /**
      * @var string[][]
      */
@@ -1657,7 +1658,6 @@ class intaro_retailcrm extends CModule
             $props = array_merge($arProps, $customProps);
             $obUserField = new CUserTypeEntity;
             $dbRes       = CUserTypeEntity::GetList([], ["FIELD_NAME" => $filed['name']])->fetch();
-
             if (!$dbRes['ID']) {
                 $obUserField->Add($props);
             }
@@ -1694,7 +1694,8 @@ class intaro_retailcrm extends CModule
                 'NAME' => GetMessage('LP_ORDER_GROUP_NAME'),
             ])->getId();
         }
-    }
+
+            }
 
     /**
      * create loyalty program events handlers
@@ -1774,6 +1775,7 @@ class intaro_retailcrm extends CModule
     private function deleteLPEvents(): void
     {
         $eventManager = EventManager::getInstance();
+
         foreach (self::SUBSCRIBE_LP_EVENTS as $event){
             $eventManager->unRegisterEventHandler(
                 $event['FROM_MODULE'],
