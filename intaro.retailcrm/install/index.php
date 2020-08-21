@@ -1507,6 +1507,7 @@ class intaro_retailcrm extends CModule
     public function addLPOrderProps(): void
     {
         $persons = PersonTypeRepository::getCollectionByWhere(['ID']);
+        
         foreach ($persons as $person) {
             $personId = $person->getID();
             $groupID = $this->getGroupID($personId);
@@ -1625,7 +1626,7 @@ class intaro_retailcrm extends CModule
             ->fetchCollection();
 
         if (count($arrPaySystemAction) === 0) {
-            $result     = PaySystemActionTable::add(
+            $result = PaySystemActionTable::add(
                 [
                     'NAME' => self::BONUS_PAY_SYSTEM_NAME,
                     'PSA_NAME' => self::BONUS_PAY_SYSTEM_NAME,
@@ -1649,12 +1650,11 @@ class intaro_retailcrm extends CModule
                     'XML_ID' => 'intaro_' . randString(15),
                 ]
             );
-            $updateData = [
+
+            PaySystemActionTable::update($result->getId(), [
                 'PAY_SYSTEM_ID' => $result->getId(),
                 'PARAMS' => serialize(['BX_PAY_SYSTEM_ID' => $result->getId()]),
-            ];
-
-            PaySystemActionTable::update($result->getId(), $updateData);
+            ]);
         }
     }
 
@@ -1666,7 +1666,6 @@ class intaro_retailcrm extends CModule
         $eventManager = EventManager::getInstance();
 
         foreach (self::SUBSCRIBE_LP_EVENTS as $event) {
-
             try {
                 $events = ToModuleRepository::getCollectionByWhere(
                     ['ID'],
