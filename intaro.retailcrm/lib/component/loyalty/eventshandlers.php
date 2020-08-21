@@ -3,7 +3,7 @@
  * PHP version 7.1
  *
  * @category Integration
- * @package  Intaro\RetailCrm\Component
+ * @package  Intaro\RetailCrm\Component\Loyalty
  * @author   retailCRM <integration@retailcrm.ru>
  * @license  MIT
  * @link     http://retailcrm.ru
