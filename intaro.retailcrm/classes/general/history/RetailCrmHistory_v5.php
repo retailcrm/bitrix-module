@@ -1256,6 +1256,7 @@ class RetailCrmHistory
 
     public static function assemblyCustomer($customerHistory)
     {
+        $customerHistory = self::filterHistory($customerHistory, 'customer');
         $server = \Bitrix\Main\Context::getCurrent()->getServer()->getDocumentRoot();
         $fields = array();
         if (file_exists($server . '/bitrix/modules/intaro.retailcrm/classes/general/config/objects.xml')) {
