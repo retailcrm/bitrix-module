@@ -1613,7 +1613,7 @@ class intaro_retailcrm extends CModule
             );
         }
     }
-    
+
     /**
      * add bonus pay system
      */
@@ -1625,37 +1625,37 @@ class intaro_retailcrm extends CModule
                 ['ACTION_FILE', '=', self::BONUS_PAY_SYSTEM_CODE],
             ])
             ->fetchCollection();
-    
+
         if (count($arrPaySystemAction) === 0) {
             $result     = PaySystemActionTable::add(
                 [
-                    'NAME'                 => self::BONUS_PAY_SYSTEM_NAME,
-                    'PSA_NAME'             => self::BONUS_PAY_SYSTEM_NAME,
-                    'ACTION_FILE'          => self::BONUS_PAY_SYSTEM_CODE,
-                    'DESCRIPTION'          => self::BONUS_PAY_SYSTEM_DESCRIPTION,
-                    'RESULT_FILE'          => '',
-                    'NEW_WINDOW'           => 'N',
-                    'ENCODING'             => 'utf-8',
-                    'ACTIVE'               => 'Y',
-                    'HAVE_PAYMENT'         => 'Y',
-                    'HAVE_ACTION'          => 'N',
-                    'AUTO_CHANGE_1C'       => 'N',
-                    'HAVE_RESULT'          => 'N',
-                    'HAVE_PRICE'           => 'N',
-                    'HAVE_PREPAY'          => 'N',
-                    'HAVE_RESULT_RECEIVE'  => 'N',
-                    'ALLOW_EDIT_PAYMENT'   => 'Y',
-                    'IS_CASH'              => 'N',
-                    'CAN_PRINT_CHECK'      => 'N',
+                    'NAME' => self::BONUS_PAY_SYSTEM_NAME,
+                    'PSA_NAME' => self::BONUS_PAY_SYSTEM_NAME,
+                    'ACTION_FILE' => self::BONUS_PAY_SYSTEM_CODE,
+                    'DESCRIPTION' => self::BONUS_PAY_SYSTEM_DESCRIPTION,
+                    'RESULT_FILE' => '',
+                    'NEW_WINDOW' => 'N',
+                    'ENCODING' => 'utf-8',
+                    'ACTIVE' => 'Y',
+                    'HAVE_PAYMENT' => 'Y',
+                    'HAVE_ACTION' => 'N',
+                    'AUTO_CHANGE_1C' => 'N',
+                    'HAVE_RESULT' => 'N',
+                    'HAVE_PRICE' => 'N',
+                    'HAVE_PREPAY' => 'N',
+                    'HAVE_RESULT_RECEIVE' => 'N',
+                    'ALLOW_EDIT_PAYMENT' => 'Y',
+                    'IS_CASH' => 'N',
+                    'CAN_PRINT_CHECK' => 'N',
                     'ENTITY_REGISTRY_TYPE' => 'ORDER',
-                    'XML_ID'               => 'intaro_' . randString(15),
+                    'XML_ID' => 'intaro_' . randString(15),
                 ]
             );
             $updateData = [
                 'PAY_SYSTEM_ID' => $result->getId(),
-                'PARAMS'        => serialize(['BX_PAY_SYSTEM_ID' => $result->getId()]),
+                'PARAMS' => serialize(['BX_PAY_SYSTEM_ID' => $result->getId()]),
             ];
-            
+
             PaySystemActionTable::update($result->getId(), $updateData);
         }
     }
@@ -1712,5 +1712,4 @@ class intaro_retailcrm extends CModule
             );
         }
     }
-
 }
