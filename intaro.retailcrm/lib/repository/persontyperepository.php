@@ -3,7 +3,7 @@
  * PHP version 7.1
  *
  * @category Integration
- * @package  Intaro\RetailCrm\Model\Api
+ * @package  Intaro\RetailCrm\Repository
  * @author   retailCRM <integration@retailcrm.ru>
  * @license  MIT
  * @link     http://retailcrm.ru
@@ -15,7 +15,7 @@ use Bitrix\Main\Type\Collection;
 use Bitrix\Sale\Internals\PersonTypeTable;
 
 /**
- * Class ToModuleRepository
+ * Class PersonTypeRepository
  *
  * @package Intaro\RetailCrm\Repository
  */

@@ -15,9 +15,8 @@ namespace Intaro\RetailCrm\Component\Loyalty;
 use Bitrix\Main\Event;
 
 /**
- * Class ServiceLocator
- *
- * @package Intaro\RetailCrm\Component\EventsHandlers
+ * Class EventsHandlers
+ * @package Intaro\RetailCrm\Component\Loyalty
  */
 class EventsHandlers
 {
