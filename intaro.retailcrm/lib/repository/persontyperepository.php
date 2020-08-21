@@ -24,12 +24,12 @@ class PersonTypeRepository extends AbstractRepository
     /**
      * @param array $select
      * @param array $where
-     * @return \Bitrix\Main\Type\Collection|null
+     * @return \Bitrix\Main\Type\Collection|null|Bitrix\Sale\Internals\EO_PersonType_Collection
      * @throws \Bitrix\Main\ArgumentException
      * @throws \Bitrix\Main\ObjectPropertyException
      * @throws \Bitrix\Main\SystemException
      */
-    public static function getCollectionByWhere(array $select = ['*'], array $where = []): ?Collection
+    public static function getCollectionByWhere(array $select = ['*'], array $where = [])
     {
         return PersonTypeTable::query()
             ->setSelect($select)
