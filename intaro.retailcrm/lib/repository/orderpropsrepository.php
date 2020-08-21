@@ -22,7 +22,7 @@ use Intaro\RetailCrm\Model\Bitrix\OrderProps;
  */
 class OrderPropsRepository extends AbstractRepository
 {
-    /**
+/**
      * @param array $select
      * @param array $where
      * @return \Intaro\RetailCrm\Model\Bitrix\OrderProps|null
