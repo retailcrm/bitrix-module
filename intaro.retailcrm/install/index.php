@@ -1629,7 +1629,7 @@ class intaro_retailcrm extends CModule
                     'name'  => "UF_PD_PROC_PL_INTARO",
                     'title' => GetMessage('UF_PD_PROC_PL_INTARO_TITLE'),
                 ],
-                [
+            [
                     'name'  => "UF_EXT_REG_PL_INTARO",
                     'title' => GetMessage('UF_EXT_REG_PL_INTARO_TITLE'),
                 ],
@@ -1733,6 +1733,9 @@ class intaro_retailcrm extends CModule
     /**
      * @param $personID
      * @param $groupID
+     * @throws \Bitrix\Main\ArgumentException
+     * @throws \Bitrix\Main\ObjectPropertyException
+     * @throws \Bitrix\Main\SystemException
      */
     private function addBonusField($personID, $groupID): void
     {
@@ -1743,7 +1746,7 @@ class intaro_retailcrm extends CModule
 
         $bonusProp = OrderPropsRepository::getFirstByWhere(['ID'], $where);
 
-        if ($bonusProp === false) {
+        if ($bonusProp === false || $bonusProp === null) {
             $fields = [
                 "REQUIRED"        => "N",
                 "NAME"            => self::BONUS_COUNT,
