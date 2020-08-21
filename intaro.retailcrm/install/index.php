@@ -33,7 +33,9 @@ use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupPropsCategories;
 use Intaro\RetailCrm\Repository\CatalogRepository;
 use Intaro\RetailCrm\Vendor\Symfony\Component\Process\PhpExecutableFinder;
 use RetailCrm\Response\ApiResponse;
-use Intaro\RetailCrm\Model\Bitrix\ORM\ToModuleTable;
+use Intaro\RetailCrm\Repository\OrderPropsRepository;
+use Intaro\RetailCrm\Repository\PersonTypeRepository;
+use Intaro\RetailCrm\Repository\ToModuleRepository;
 
 IncludeModuleLangFile(__FILE__);
 if (class_exists('intaro_retailcrm')) {
@@ -259,6 +261,12 @@ class intaro_retailcrm extends CModule
                 unset($type);
             }
         }
+
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/orderprops.php');
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/tomodule.php');
+        include($this->INSTALL_PATH . '/../lib/repository/orderpropsrepository.php');
+        include($this->INSTALL_PATH . '/../lib/repository/persontyperepository.php');
+        include($this->INSTALL_PATH . '/../lib/repository/tomodulerepository.php');
 
         $this->CopyFiles();
         $this->addBonusPaySystem();
@@ -1553,9 +1561,7 @@ class intaro_retailcrm extends CModule
      */
     public function addLPOrderProps(): void
     {
-        $persons = PersonTypeTable::query()
-            ->setSelect(['ID'])
-            ->fetchCollection();
+        $persons = PersonTypeRepository::getCollectionByWhere(['ID']);
 
         foreach ($persons as $person) {
             $personId = $person->getID();
@@ -1625,19 +1631,16 @@ class intaro_retailcrm extends CModule
     /**
      * @param $personID
      * @param $groupID
-     * @throws \Bitrix\Main\ArgumentException
-     * @throws \Bitrix\Main\ObjectPropertyException
-     * @throws \Bitrix\Main\SystemException
      */
     private function addBonusField($personID, $groupID): void
     {
-        $bonusProp = OrderPropsTable::query()
-            ->setSelect(['ID'])
-            ->where([
-                ['PERSON_TYPE_ID', '=', $personID],
-                ['PROPS_GROUP_ID', '=', $groupID],
-            ])
-            ->fetch();
+        $where = [
+            ['PERSON_TYPE_ID', '=', $personID],
+            ['PROPS_GROUP_ID', '=', $groupID],
+        ];
+
+        $bonusProp = OrderPropsRepository::getFirstByWhere(['ID'], $where);
+
         if ($bonusProp === false) {
             $fields = [
                 "REQUIRED"        => "N",
@@ -1665,41 +1668,48 @@ class intaro_retailcrm extends CModule
      */
     private function addBonusPaySystem(): void
     {
-        $arrPaySystemAction = PaySystemActionTable::query()->setSelect(['ID'])->where(
-            [
-                ['ACTION_FILE', '=', self::BONUS_PAY_SYSTEM_CODE],
-            ]
-        )->fetchCollection();
-
+        try {
+            $arrPaySystemAction = PaySystemActionTable::query()
+                ->setSelect(['ID'])
+                ->where([
+                    ['ACTION_FILE', '=', self::BONUS_PAY_SYSTEM_CODE],
+                ])
+                ->fetchCollection();
+        } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
+            AddMessage2Log($exception->getMessage());
+        }
 
         if (count($arrPaySystemAction) === 0) {
-            $data       = [
-                'NAME'                 => self::BONUS_PAY_SYSTEM_NAME,
-                'PSA_NAME'             => self::BONUS_PAY_SYSTEM_NAME,
-                'ACTION_FILE'          => self::BONUS_PAY_SYSTEM_CODE,
-                'DESCRIPTION'          => self::BONUS_PAY_SYSTEM_DESCRIPTION,
-                'RESULT_FILE'          => '',
-                'NEW_WINDOW'           => 'N',
-                'ENCODING'             => 'utf-8',
-                'ACTIVE'               => 'Y',
-                'HAVE_PAYMENT'         => 'Y',
-                'HAVE_ACTION'          => 'N',
-                'AUTO_CHANGE_1C'       => 'N',
-                'HAVE_RESULT'          => 'N',
-                'HAVE_PRICE'           => 'N',
-                'HAVE_PREPAY'          => 'N',
-                'HAVE_RESULT_RECEIVE'  => 'N',
-                'ALLOW_EDIT_PAYMENT'   => 'Y',
-                'IS_CASH'              => 'N',
-                'CAN_PRINT_CHECK'      => 'N',
-                'ENTITY_REGISTRY_TYPE' => 'ORDER',
-                'XML_ID'               => 'intaro_' . randString(15),
-            ];
-            $result     = PaySystemActionTable::add($data);
+            $result     = PaySystemActionTable::add(
+                [
+                    'NAME'                 => GetMessage('BONUS_PAY_SYSTEM_NAME'),
+                    'PSA_NAME'             => GetMessage('BONUS_PAY_SYSTEM_NAME'),
+                    'CODE'                 => self::INTARO_BONUS,
+                    'ACTION_FILE'          => self::BONUS_PAY_SYSTEM_CODE,
+                    'DESCRIPTION'          => GetMessage('BONUS_PAY_SYSTEM_DESCRIPTION'),
+                    'RESULT_FILE'          => '',
+                    'NEW_WINDOW'           => 'N',
+                    'ENCODING'             => 'utf-8',
+                    'ACTIVE'               => 'Y',
+                    'HAVE_PAYMENT'         => 'Y',
+                    'HAVE_ACTION'          => 'N',
+                    'AUTO_CHANGE_1C'       => 'N',
+                    'HAVE_RESULT'          => 'N',
+                    'HAVE_PRICE'           => 'N',
+                    'HAVE_PREPAY'          => 'N',
+                    'HAVE_RESULT_RECEIVE'  => 'N',
+                    'ALLOW_EDIT_PAYMENT'   => 'Y',
+                    'IS_CASH'              => 'N',
+                    'CAN_PRINT_CHECK'      => 'N',
+                    'ENTITY_REGISTRY_TYPE' => 'ORDER',
+                    'XML_ID'               => 'intaro_' . randString(15),
+                ]
+            );
             $updateData = [
                 'PAY_SYSTEM_ID' => $result->getId(),
                 'PARAMS'        => serialize(['BX_PAY_SYSTEM_ID' => $result->getId()]),
             ];
+
             PaySystemActionTable::update($result->getId(), $updateData);
         }
     }
@@ -1710,27 +1720,30 @@ class intaro_retailcrm extends CModule
     private function addLPEvents(): void
     {
         $eventManager = EventManager::getInstance();
-        include($this->INSTALL_PATH . '/../lib/model/bitrix/orm/tomodule.php');
 
         foreach (self::SUBSCRIBE_LP_EVENTS as $event){
-
-           $events =  ToModuleTable::query()->setSelect(['ID'])->where(
-                [
-                    ['from_module_id', '=', $event['FROM_MODULE']],
-                    ['to_module_id', '=', $this->MODULE_ID],
-                    ['to_method', '=', $event['EVENT_NAME'] . 'Handler'],
-                    ['to_class', '=', EventsHandlers::class],
-                ]
-            )->fetchCollection();
-
-            if (count($events) === 0) {
-                $eventManager->registerEventHandler(
-                    $event['FROM_MODULE'],
-                    $event['EVENT_NAME'],
-                    $this->MODULE_ID,
-                    EventsHandlers::class,
-                    $event['EVENT_NAME'] . 'Handler'
+            try {
+                $events = ToModuleRepository::getCollectionByWhere(
+                    ['ID'],
+                    [
+                        ['from_module_id', '=', $event['FROM_MODULE']],
+                        ['to_module_id', '=', $this->MODULE_ID],
+                        ['to_method', '=', $event['EVENT_NAME'] . 'Handler'],
+                        ['to_class', '=', EventsHandlers::class],
+                    ]
                 );
+
+                if ($events !== null && count($events) === 0) {
+                    $eventManager->registerEventHandler(
+                        $event['FROM_MODULE'],
+                        $event['EVENT_NAME'],
+                        $this->MODULE_ID,
+                        EventsHandlers::class,
+                        $event['EVENT_NAME'] . 'Handler'
+                    );
+                }
+            } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
+                AddMessage2Log($exception->getMessage(), $this->MODULE_ID);
             }
         }
     }
