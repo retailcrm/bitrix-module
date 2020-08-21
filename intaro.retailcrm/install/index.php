@@ -1507,11 +1507,9 @@ class intaro_retailcrm extends CModule
     public function addLPOrderProps(): void
     {
         $persons = PersonTypeRepository::getCollectionByWhere(['ID']);
-        
         foreach ($persons as $person) {
             $personId = $person->getID();
             $groupID = $this->getGroupID($personId);
-
             if (isset($groupID)) {
                 $this->addBonusField($personId, $groupID);
             }
