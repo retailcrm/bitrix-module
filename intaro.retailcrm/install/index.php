@@ -904,7 +904,7 @@ class intaro_retailcrm extends CModule
                 $arResult['errCode'] = 'ERR_FIELDS_PROFILE';
             }
             
-            if ($filename === "") {
+            if (empty($filename)) {
                 $arResult['errCode'] = 'ERR_FIELDS_FILE';
             }
             
