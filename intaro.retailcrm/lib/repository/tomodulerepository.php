@@ -37,7 +37,7 @@ class ToModuleRepository extends AbstractRepository
             ->where($where)
             ->fetchObject();
     }
-    
+
     /**
      * @param array $select
      * @param array $where
