@@ -42,6 +42,7 @@ class intaro_retailcrm extends CModule
     public const BONUS_PAY_SYSTEM_NAME        = 'Оплата бонусами';
     public const BONUS_PAY_SYSTEM_CODE        = 'retailcrmbonus';
     public const BONUS_PAY_SYSTEM_DESCRIPTION = 'Оплата бонусами программы лояльности retailCRM';
+    
     /**
      * @var string[][]
      */
@@ -1494,6 +1495,7 @@ class intaro_retailcrm extends CModule
     public function addLPOrderProps(): void
     {
         $persons = PersonTypeRepository::getCollectionByWhere(['ID']);
+        
         foreach ($persons as $person) {
             $personId = $person->getID();
             $groupID = $this->getGroupID($personId);
@@ -1519,6 +1521,7 @@ class intaro_retailcrm extends CModule
             ];
             $obUserField = new CUserTypeEntity;
             $dbRes = CUserTypeEntity::GetList([], ["FIELD_NAME" => $filedName])->fetch();
+            
             if (!$dbRes['ID']) {
                 $obUserField->Add($arProps);
             }
@@ -1554,6 +1557,7 @@ class intaro_retailcrm extends CModule
                 'NAME'           => self::LP_ORDER_GROUP_NAME,
             ];
             $result =  OrderPropsGroupTable::add($groupFields);
+            
             return $result->getId();
         }
     }
@@ -1608,7 +1612,6 @@ class intaro_retailcrm extends CModule
             ])
             ->fetchCollection();
     
-    
         if (count($arrPaySystemAction) === 0) {
             $data       = [
                 'NAME'                 => self::BONUS_PAY_SYSTEM_NAME,
@@ -1656,6 +1659,7 @@ class intaro_retailcrm extends CModule
                 ['to_method', '=', $event['EVENT_NAME'] . 'Handler'],
                 ['to_class', '=', EventsHandlers::class],
             ];
+    
             try {
                 $events = ToModuleRepository::getCollectionByWhere($select, $where);
                 if ($events !== null && count($events) === 0) {
@@ -1668,7 +1672,7 @@ class intaro_retailcrm extends CModule
                     );
                 }
             } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
-            AddMessage2Log($exception->getMessage(), $this->MODULE_ID);
+                AddMessage2Log($exception->getMessage(), $this->MODULE_ID);
             }
         }
     }
@@ -1679,6 +1683,7 @@ class intaro_retailcrm extends CModule
     private function deleteLPEvents(): void
     {
         $eventManager = EventManager::getInstance();
+        
         foreach (self::SUBSCRIBE_LP_EVENTS as $event){
             $eventManager->unRegisterEventHandler(
                 $event['FROM_MODULE'],
