@@ -48,7 +48,9 @@ use Intaro\RetailCrm\Repository\ToModuleRepository;
 use Bitrix\Highloadblock as HL;
 
 Loader::IncludeModule('highloadblock');
-use Intaro\RetailCrm\Model\Bitrix\ORM\ToModuleTable;
+use Intaro\RetailCrm\Repository\OrderPropsRepository;
+use Intaro\RetailCrm\Repository\PersonTypeRepository;
+use Intaro\RetailCrm\Repository\ToModuleRepository;
 
 IncludeModuleLangFile(__FILE__);
 if (class_exists('intaro_retailcrm')) {
@@ -295,12 +297,6 @@ class intaro_retailcrm extends CModule
             }
         }
 
-        try {
-            $this->addLPOrderProps();
-        } catch (ObjectPropertyException | ArgumentException | SystemException $e) {
-            return false;
-        }
-
         include($this->INSTALL_PATH . '/../lib/model/bitrix/abstractmodelproxy.php');
         include($this->INSTALL_PATH . '/../lib/model/bitrix/orderprops.php');
         include($this->INSTALL_PATH . '/../lib/model/bitrix/tomodule.php');
@@ -316,7 +312,6 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../lib/service/orderloyaltydataservice.php');
 
         $this->CopyFiles();
-        $this->addBonusPaySystem();
         $this->addLPUserFields();
         $this->addLPEvents();
         $this->addAgreement();
@@ -1738,19 +1733,16 @@ class intaro_retailcrm extends CModule
     /**
      * @param $personID
      * @param $groupID
-     * @throws \Bitrix\Main\ArgumentException
-     * @throws \Bitrix\Main\ObjectPropertyException
-     * @throws \Bitrix\Main\SystemException
      */
     private function addBonusField($personID, $groupID): void
     {
-        $bonusProp = OrderPropsTable::query()
-            ->setSelect(['ID'])
-            ->where([
-                ['PERSON_TYPE_ID', '=', $personID],
-                ['PROPS_GROUP_ID', '=', $groupID],
-            ])
-            ->fetch();
+        $where = [
+            ['PERSON_TYPE_ID', '=', $personID],
+            ['PROPS_GROUP_ID', '=', $groupID],
+        ];
+
+        $bonusProp = OrderPropsRepository::getFirstByWhere(['ID'], $where);
+
         if ($bonusProp === false) {
             $fields = [
                 "REQUIRED"        => "N",
