@@ -41,6 +41,7 @@ class ToModuleRepository extends AbstractRepository
     /**
      * @param array $select
      * @param array $where
+     *
      * @return \Bitrix\Main\Type\Collection|Intaro\RetailCrm\Model\Bitrix\ORM\EO_ToModule_Collection|null
      * @throws \Bitrix\Main\ArgumentException
      * @throws \Bitrix\Main\ObjectPropertyException
