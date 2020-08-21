@@ -18,7 +18,7 @@ use Bitrix\Sale\Internals\OrderPropsTable;
 use Intaro\RetailCrm\Model\Bitrix\ORM\ToModuleTable;
 
 /**
- * Class ToModule
+ * Class OrderProps
  *
  * @package Intaro\RetailCrm\Model\Bitrix
  *

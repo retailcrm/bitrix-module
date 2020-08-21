@@ -3,7 +3,7 @@
  * PHP version 7.1
  *
  * @category Integration
- * @package  Intaro\RetailCrm\Model\Api
+ * @package  Intaro\RetailCrm\Repository
  * @author   retailCRM <integration@retailcrm.ru>
  * @license  MIT
  * @link     http://retailcrm.ru
@@ -17,8 +17,7 @@ use Intaro\RetailCrm\Model\Bitrix\OrderProps;
 
 
 /**
- * Class RepositoryRepository
- *
+ * Class OrderPropsRepository
  * @package Intaro\RetailCrm\Repository
  */
 class OrderPropsRepository extends AbstractRepository
