@@ -1511,6 +1511,7 @@ class intaro_retailcrm extends CModule
         foreach ($persons as $person) {
             $personId = $person->getID();
             $groupID = $this->getGroupID($personId);
+            
             if (isset($groupID)) {
                 $this->addBonusField($personId, $groupID);
             }
