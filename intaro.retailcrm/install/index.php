@@ -13,10 +13,7 @@ use Bitrix\Main\Loader;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
 use Bitrix\Sale\Internals\OrderPropsGroupTable;
-use Bitrix\Sale\Internals\OrderPropsTable;
 use Bitrix\Sale\Internals\PaySystemActionTable;
-use Bitrix\Sale\Internals\PersonTypeTable;
-use Intaro\RetailCrm\Component\Constants;
 use Bitrix\Highloadblock\HighloadBlockTable;
 use Bitrix\Main\Application;
 use Bitrix\Main\Context;
@@ -90,7 +87,6 @@ class intaro_retailcrm extends CModule
     public $CRM_ORDER_HISTORY         = 'order_history';
     public $CRM_CUSTOMER_HISTORY      = 'customer_history';
     public $CRM_CATALOG_BASE_PRICE    = 'catalog_base_price';
-    //public $CRM_CATALOG_IBLOCKS = 'catalog_base_iblocks';
     public $CRM_ORDER_NUMBERS   = 'order_numbers';
     public $CRM_CANSEL_ORDER    = 'cansel_order';
     public $CRM_CURRENCY        = 'currency';
@@ -165,10 +161,10 @@ class intaro_retailcrm extends CModule
         $infoSale = CModule::CreateModuleObject('sale')->MODULE_VERSION;
         if (version_compare($infoSale, '16', '<=')) {
             $APPLICATION->ThrowException(GetMessage("SALE_VERSION_ERR"));
-
+            
             return false;
         }
-        
+
         if (!Loader::includeModule('sale')) {
             return false;
         }
@@ -178,7 +174,7 @@ class intaro_retailcrm extends CModule
             
             return false;
         }
-        
+
         include($this->INSTALL_PATH . '/../classes/general/Http/Client.php');
         include($this->INSTALL_PATH . '/../classes/general/Response/ApiResponse.php');
         include($this->INSTALL_PATH . '/../classes/general/RCrmActions.php');
@@ -225,7 +221,7 @@ class intaro_retailcrm extends CModule
                 unset($type);
             }
         }
-        
+
         include($this->INSTALL_PATH . '/../lib/model/bitrix/abstractmodelproxy.php');
         include($this->INSTALL_PATH . '/../lib/model/bitrix/orderprops.php');
         include($this->INSTALL_PATH . '/../lib/model/bitrix/tomodule.php');
@@ -653,7 +649,6 @@ class intaro_retailcrm extends CModule
                 } else {
                     $finish = (int)$_POST['finish'];
                 }
-<<<<<<< HEAD
 
                 if (!$countAll) {
                     $percent = 100;
@@ -661,13 +656,10 @@ class intaro_retailcrm extends CModule
                     $percent = round(100 - ($countLeft * 100 / $countAll), 1);
                 }
 
-=======
-                $percent = round(100 - ($countLeft * 100 / $countAll), 1);
-                
->>>>>>> Loyalty feature installer (#118)
                 if (!$countLeft) {
                     $finish = 1;
                 }
+
                 $APPLICATION->RestartBuffer();
                 header('Content-Type: application/x-javascript; charset=' . LANG_CHARSET);
                 die(json_encode(["finish" => $finish, "percent" => $percent]));
@@ -1024,6 +1016,9 @@ class intaro_retailcrm extends CModule
                 $dateAgent->format('d.m.Y H:i:s'), // date of first start
                 30
             );
+            
+            $this->CopyFiles();
+
             if (isset($_POST['LOAD_NOW'])) {
                 $loader                        = new RetailCrmICML();
                 $loader->iblocks               = $iblocks;
