@@ -1,5 +1,6 @@
 <?php
 
+use Intaro\RetailCrm\Component\ServiceLocator;
 use Bitrix\Sale\Delivery\Services\EmptyDeliveryService;
 use Bitrix\Sale\Internals\OrderPropsTable;
 use Bitrix\Sale\Internals\StatusTable;
@@ -9,13 +10,17 @@ use RetailCrm\Exception\InvalidJsonException;
 use Intaro\RetailCrm\Service\ManagerService;
 
 IncludeModuleLangFile(__FILE__);
+
+require_once __DIR__ . '/../../lib/component/servicelocator.php';
+require_once __DIR__ . '/../../lib/service/utils.php';
+
 class RCrmActions
 {
     public static $MODULE_ID = 'intaro.retailcrm';
     public static $CRM_ORDER_FAILED_IDS = 'order_failed_ids';
     public static $CRM_API_VERSION = 'api_version';
     public const CANCEL_PROPERTY_CODE = 'INTAROCRM_IS_CANCELED';
-    
+
     /**
      * @return array
      */
@@ -23,7 +28,7 @@ class RCrmActions
     {
         $arSites = [];
         $rsSites = CSite::GetList($by, $sort, ['ACTIVE' => 'Y']);
-        
+
         while ($ar = $rsSites->Fetch()) {
             $arSites[] = $ar;
         }
@@ -202,7 +207,7 @@ class RCrmActions
     {
         RetailCrmOrder::uploadOrders();
         $failedIds = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_FAILED_IDS, 0));
-        
+
         if (is_array($failedIds) && !empty($failedIds)) {
             RetailCrmOrder::uploadOrders(50, true);
         }
@@ -242,7 +247,7 @@ class RCrmActions
     public static function clearArr($arr)
     {
         /** @var \Intaro\RetailCrm\Service\Utils $utils */
-        $utils = \Intaro\RetailCrm\Component\ServiceLocator::get(\Intaro\RetailCrm\Service\Utils::class);
+        $utils = ServiceLocator::getOrCreate(\Intaro\RetailCrm\Service\Utils::class);
         return $utils->clearArray($arr);
     }
 
@@ -255,7 +260,7 @@ class RCrmActions
     public static function toJSON($str)
     {
         /** @var \Intaro\RetailCrm\Service\Utils $utils */
-        $utils = \Intaro\RetailCrm\Component\ServiceLocator::get(\Intaro\RetailCrm\Service\Utils::class);
+        $utils = ServiceLocator::getOrCreate(\Intaro\RetailCrm\Service\Utils::class);
         return $utils->toUTF8($str);
     }
 
@@ -268,7 +273,7 @@ class RCrmActions
     public static function fromJSON($str)
     {
         /** @var \Intaro\RetailCrm\Service\Utils $utils */
-        $utils = \Intaro\RetailCrm\Component\ServiceLocator::get(\Intaro\RetailCrm\Service\Utils::class);
+        $utils = ServiceLocator::get(\Intaro\RetailCrm\Service\Utils::class);
         return $utils->fromUTF8($str);
     }
 

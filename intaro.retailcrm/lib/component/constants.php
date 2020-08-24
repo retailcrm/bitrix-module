@@ -72,4 +72,5 @@ class Constants
     public const SEND_PAYMENT_AMOUNT = 'send_payment_amount';
     public const CRM_ONLINE_CONSULTANT = 'online_consultant';
     public const CRM_ONLINE_CONSULTANT_SCRIPT = 'online_consultant_script';
+    public const LOYALTY_PROGRAM_TOGGLE = 'loyalty_program_toggle';
 }
