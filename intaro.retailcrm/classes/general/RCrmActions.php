@@ -452,10 +452,10 @@ class RCrmActions
             case 'ordersEdit':
             case 'customersGet':
             case 'customersEdit':
-            case 'customersСorporateGet':
+            case 'customersCorporateGet':
                 return self::proxy($api, $methodApi, $method, array($params, 'externalId', $site));
-            case 'customersСorporateGetById':
-                return self::proxy($api, 'customersСorporateGet', $method, array($params, 'id', $site));
+            case 'customersCorporateGetById':
+                return self::proxy($api, 'customersCorporateGet', $method, array($params, 'id', $site));
             case 'customersGetById':
                 return self::proxy($api, 'customersGet', $method, array($params, 'id', $site));
 
@@ -492,7 +492,7 @@ class RCrmActions
             if ($result->getStatusCode() !== 200 && $result->getStatusCode() !== 201) {
                 if ($methodApi == 'ordersGet'
                     || $methodApi == 'customersGet'
-                    || $methodApi == 'customersСorporateGet'
+                    || $methodApi == 'customersCorporateGet'
                 ) {
                     Logger::getInstance()->write(array(
                         'api' => $version,
