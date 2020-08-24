@@ -175,7 +175,7 @@ class intaro_retailcrm extends CModule
             
             return false;
         }
-
+        
         include($this->INSTALL_PATH . '/../classes/general/Http/Client.php');
         include($this->INSTALL_PATH . '/../classes/general/Response/ApiResponse.php');
         include($this->INSTALL_PATH . '/../classes/general/RCrmActions.php');
@@ -242,7 +242,7 @@ class intaro_retailcrm extends CModule
         } catch (ObjectPropertyException | ArgumentException | SystemException $e) {
             return false;
         }
-       
+
         if ($step == 11) {
             $arResult['arSites'] = RCrmActions::SitesList();
             if (count($arResult['arSites']) < 2) {
