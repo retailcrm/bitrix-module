@@ -4,6 +4,7 @@ use Bitrix\Currency\CurrencyManager;
 use Bitrix\Main\Application;
 use Bitrix\Sale\Delivery\Services\Manager;
 use Intaro\RetailCrm\Component\ConfigProvider;
+use Intaro\RetailCrm\Component\Constants;
 use RetailCrm\Exception\CurlException;
 
 IncludeModuleLangFile(__FILE__);
@@ -254,34 +255,33 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
     //form order types ids arr
     $orderTypesList = RCrmActions::OrderTypesList($arResult['arSites']);
-
     $orderTypesArr = [];
+
     foreach ($orderTypesList as $orderType) {
         $orderTypesArr[$orderType['ID']] = htmlspecialchars(trim($_POST['order-type-' . $orderType['ID']]));
     }
 
     //form delivery types ids arr
     $arResult['bitrixDeliveryTypesList'] = RCrmActions::DeliveryList();
-
     $deliveryTypesArr = [];
+
     foreach ($arResult['bitrixDeliveryTypesList'] as $delivery) {
         $deliveryTypesArr[$delivery['ID']] = htmlspecialchars(trim($_POST['delivery-type-' . $delivery['ID']]));
     }
 
     //form payment types ids arr
     $arResult['bitrixPaymentTypesList'] = RCrmActions::PaymentList();
-
     $paymentTypesArr = [];
+
     foreach ($arResult['bitrixPaymentTypesList'] as $payment) {
         $paymentTypesArr[$payment['ID']] = htmlspecialchars(trim($_POST['payment-type-' . $payment['ID']]));
     }
 
     //form payment statuses ids arr
     $arResult['bitrixStatusesList'] = RCrmActions::StatusesList();
-
     $paymentStatusesArr = [];
     $canselOrderArr     = [];
-    //$paymentStatusesArr['YY'] = htmlspecialchars(trim($_POST['payment-status-YY']));
+
     foreach ($arResult['bitrixStatusesList'] as $status) {
         $paymentStatusesArr[$status['ID']] = htmlspecialchars(trim($_POST['payment-status-' . $status['ID']]));
         if (trim($_POST['order-cansel-' . $status['ID']]) === 'Y') {
@@ -341,6 +341,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     }
 
     $customFieldsArr = [];
+
     foreach ($orderTypesList as $orderType) {
         $_customFieldsArr = [];
         foreach ($arResult['customFields'] as $custom) {
@@ -351,6 +352,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
     //contragents type list
     $contragentTypeArr = [];
+
     foreach ($orderTypesList as $orderType) {
         $contragentTypeArr[$orderType['ID']] = htmlspecialchars(trim($_POST['contragent-type-' . $orderType['ID']]));
     }
@@ -363,6 +365,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $bitrixStoresArr          = [];
     $bitrixShopsArr           = [];
     $bitrixIblocksInventories = [];
+
     if (htmlspecialchars(trim($_POST['inventories-upload'])) === 'Y') {
         $inventoriesUpload = 'Y';
         $dateAgent         = new DateTime();
@@ -404,6 +407,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $bitrixPricesArr     = [];
     $bitrixIblocksPrices = [];
     $bitrixPriceShopsArr = [];
+
     if (htmlspecialchars(trim($_POST['prices-upload'])) === 'Y') {
         $pricesUpload = 'Y';
 
@@ -546,7 +550,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         }
 
         $crmUrl .= 'api/' . $version;
-
         $client = new RetailCrm\Http\Client($crmUrl, ['apiKey' => $apiKey]);
         $result = $client->makeRequest(
             '/reference/payment-statuses',
@@ -785,7 +788,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             "TITLE" => GetMessage('ICRM_OPTIONS_ORDER_DISCHARGE_CAPTION'),
         ]
     ];
-
     $tabControl = new CAdminTabControl("tabControl", $aTabs);
     $tabControl->Begin();
     ?>
@@ -1479,7 +1481,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 <br>
                 <div class="install-load-block" id="result">
                     <div class="install-load-label" id="status"><?php echo GetMessage('ORDER_UPLOAD_INFO'); ?></div>
-
                     <div class="install-progress-bar-outer">
                         <div class="install-progress-bar-alignment" style="width: 100%;">
                             <div class="install-progress-bar-inner" id="indicator" style="width: 0%;">
@@ -1792,7 +1793,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                         <input name="ua-index-<? echo $sitesList['LID']; ?>" value="<?php echo $optionUaKeys[$sitesList['LID']]['INDEX']; ?>" type="text">
                     </td>
                 </tr>
-            <?php endforeach;?>
+            <?php endforeach; ?>
 
             <tr class="heading r-consultant-button">
                 <td colspan="2" class="option-other-heading">
@@ -1903,15 +1904,15 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                     <b>
                         <label><input class="addr" type="checkbox" name="shipment_deducted" value="Y" <?php if ($optionShipmentDeducted === 'Y') {
                                 echo "checked";
-                            } ?>><?php echo "Изменять статус отгрузки при получении соответствующего флага из crm" ?></label>
+                            } ?>><?php echo GetMessage('CHANGE_SHIPMENT_STATUS_FROM_CRM'); ?></label>
                     </b>
                 </td>
             </tr>
         <?php endif; ?>
 
         <?php $tabControl->Buttons(); ?>
-        <input type="hidden" name="Update" value="Y" />
-        <input type="submit" title="<?php echo GetMessage('ICRM_OPTIONS_SUBMIT_TITLE'); ?>" value="<?php echo GetMessage('ICRM_OPTIONS_SUBMIT_VALUE'); ?>" name="btn-update" class="adm-btn-save" />
+        <input type="hidden" name="Update" value="Y"/>
+        <input type="submit" title="<?php echo GetMessage('ICRM_OPTIONS_SUBMIT_TITLE'); ?>" value="<?php echo GetMessage('ICRM_OPTIONS_SUBMIT_VALUE'); ?>" name="btn-update" class="adm-btn-save"/>
         <?php $tabControl->End(); ?>
     </form>
 <?php } ?>
