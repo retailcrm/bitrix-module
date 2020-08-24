@@ -504,7 +504,7 @@ class ConfigProvider
      */
     public static function getCurrencyOrDefault()
     {
-        return self::getCurrency() ?: \Bitrix\Currency\CurrencyManager::getBaseCurrency();
+        return self::getCurrency() ?: CurrencyManager::getBaseCurrency();
     }
 
     /**

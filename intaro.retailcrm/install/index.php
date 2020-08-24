@@ -57,6 +57,7 @@ class intaro_retailcrm extends CModule
         ['EVENT_NAME' => 'OnSaleOrderDeleted', 'FROM_MODULE' => 'sale'],
         ['EVENT_NAME' => 'OnSaleComponentOrderOneStepProcess', 'FROM_MODULE' => 'sale'],
     ];
+
     public const V5 = 'v5';
     public $MODULE_ID           = 'intaro.retailcrm';
     public $OLD_MODULE_ID       = 'intaro.intarocrm';
@@ -165,10 +166,10 @@ class intaro_retailcrm extends CModule
         $infoSale = CModule::CreateModuleObject('sale')->MODULE_VERSION;
         if (version_compare($infoSale, '16', '<=')) {
             $APPLICATION->ThrowException(GetMessage("SALE_VERSION_ERR"));
-
+            
             return false;
         }
-        
+
         if (!Loader::includeModule('sale')) {
             return false;
         }
@@ -178,7 +179,7 @@ class intaro_retailcrm extends CModule
             
             return false;
         }
-        
+
         include($this->INSTALL_PATH . '/../classes/general/Http/Client.php');
         include($this->INSTALL_PATH . '/../classes/general/Response/ApiResponse.php');
         include($this->INSTALL_PATH . '/../classes/general/RCrmActions.php');
@@ -225,7 +226,7 @@ class intaro_retailcrm extends CModule
                 unset($type);
             }
         }
-        
+
         include($this->INSTALL_PATH . '/../lib/model/bitrix/abstractmodelproxy.php');
         include($this->INSTALL_PATH . '/../lib/model/bitrix/orderprops.php');
         include($this->INSTALL_PATH . '/../lib/model/bitrix/tomodule.php');
@@ -1019,6 +1020,9 @@ class intaro_retailcrm extends CModule
                 $dateAgent->format('d.m.Y H:i:s'), // date of first start
                 30
             );
+
+            $this->CopyFiles();
+
             if (isset($_POST['LOAD_NOW'])) {
                 $loader                        = new RetailCrmICML();
                 $loader->iblocks               = $iblocks;
@@ -1292,7 +1296,7 @@ class intaro_retailcrm extends CModule
     
     public function CopyFiles(): void
     {
-        $pathFrom      = $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install';
+        $pathFrom = $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install';
     
         CopyDirFiles(
             $pathFrom . '/export',
