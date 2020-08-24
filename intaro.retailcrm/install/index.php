@@ -162,10 +162,10 @@ class intaro_retailcrm extends CModule
         $infoSale = CModule::CreateModuleObject('sale')->MODULE_VERSION;
         if (version_compare($infoSale, '16', '<=')) {
             $APPLICATION->ThrowException(GetMessage("SALE_VERSION_ERR"));
-
+            
             return false;
         }
-        
+
         if (!Loader::includeModule('sale')) {
             return false;
         }
@@ -175,7 +175,7 @@ class intaro_retailcrm extends CModule
             
             return false;
         }
-        
+
         include($this->INSTALL_PATH . '/../classes/general/Http/Client.php');
         include($this->INSTALL_PATH . '/../classes/general/Response/ApiResponse.php');
         include($this->INSTALL_PATH . '/../classes/general/RCrmActions.php');
