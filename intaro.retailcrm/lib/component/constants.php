@@ -69,4 +69,5 @@ class Constants
     public const CRM_INTEGRATION_DELIVERY = 'integration_delivery';
     public const CRM_SHIPMENT_DEDUCTED = 'shipment_deducted';
     public const CORPORATE_CONTRAGENT_TYPE = 'legal-entity';
+    public const LOYALTY_PROGRAM_TOGGLE = 'loyalty_program_toggle';
 }
