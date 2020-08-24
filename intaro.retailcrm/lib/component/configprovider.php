@@ -16,9 +16,6 @@ use Bitrix\Main\ArgumentNullException;
 use Bitrix\Main\ArgumentOutOfRangeException;
 use Bitrix\Main\Config\Option;
 use Intaro\RetailCrm\Service\Utils;
-use Bitrix\Main\ArgumentNullException;
-use Bitrix\Main\ArgumentOutOfRangeException;
-use Bitrix\Main\Config\Option;
 
 /**
  * Class ConfigProvider
@@ -754,7 +751,7 @@ class ConfigProvider
      *
      * @param string $value
      */
-    public function setOnlineConsultantScript($value)
+    public static function setOnlineConsultantScript($value)
     {
         static::setOption(Constants::CRM_ONLINE_CONSULTANT_SCRIPT, $value);
     }
