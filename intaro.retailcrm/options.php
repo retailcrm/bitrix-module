@@ -1,19 +1,4 @@
 <?php
-
-use Bitrix\Currency\CurrencyManager;
-use Bitrix\Main\Application;
-use Bitrix\Main\LoaderException;
-use Bitrix\Main\SystemException;
-use Bitrix\Main\UI\Extension;
-use Bitrix\Sale\Delivery\Services\Manager;
-use Intaro\RetailCrm\Component\ConfigProvider;
-use Intaro\RetailCrm\Component\Constants;
-use Intaro\RetailCrm\Repository\AgreementRepository;
-use Intaro\RetailCrm\Repository\TemplateRepository;
-use Intaro\RetailCrm\Service\OrderLoyaltyDataService;
-use RetailCrm\Exception\CurlException;
-use \Intaro\RetailCrm\Service\Utils as RetailcrmUtils;
-
 IncludeModuleLangFile(__FILE__);
 $mid = 'intaro.retailcrm';
 $uri = $APPLICATION->GetCurPage() . '?mid=' . htmlspecialchars($mid) . '&lang=' . LANGUAGE_ID;
@@ -232,7 +217,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
     //bitrix site list
     $siteListArr = [];
-
     foreach ($arResult['arSites'] as $arSites) {
         if (count($arResult['arSites']) > 1) {
             if ($_POST['sites-id-' . $arSites['LID']]) {
@@ -265,6 +249,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $orderTypesList = RCrmActions::OrderTypesList($arResult['arSites']);
     $orderTypesArr = [];
 
+    $orderTypesArr = array();
     foreach ($orderTypesList as $orderType) {
         $orderTypesArr[$orderType['ID']] = htmlspecialchars(trim($_POST['order-type-' . $orderType['ID']]));
     }
@@ -273,6 +258,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $arResult['bitrixDeliveryTypesList'] = RCrmActions::DeliveryList();
     $deliveryTypesArr = [];
 
+    $deliveryTypesArr = array();
     foreach ($arResult['bitrixDeliveryTypesList'] as $delivery) {
         $deliveryTypesArr[$delivery['ID']] = htmlspecialchars(trim($_POST['delivery-type-' . $delivery['ID']]));
     }
@@ -281,6 +267,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $arResult['bitrixPaymentTypesList'] = RCrmActions::PaymentList();
     $paymentTypesArr = [];
 
+    $paymentTypesArr = array();
     foreach ($arResult['bitrixPaymentTypesList'] as $payment) {
         $paymentTypesArr[$payment['ID']] = htmlspecialchars(trim($_POST['payment-type-' . $payment['ID']]));
     }
@@ -290,6 +277,9 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $paymentStatusesArr = [];
     $canselOrderArr     = [];
 
+    $paymentStatusesArr = array();
+    $canselOrderArr = array();
+    //$paymentStatusesArr['YY'] = htmlspecialchars(trim($_POST['payment-status-YY']));
     foreach ($arResult['bitrixStatusesList'] as $status) {
         $paymentStatusesArr[$status['ID']] = htmlspecialchars(trim($_POST['payment-status-' . $status['ID']]));
         if (trim($_POST['order-cansel-' . $status['ID']]) === 'Y') {
@@ -349,7 +339,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     }
 
     $customFieldsArr = [];
-
     foreach ($orderTypesList as $orderType) {
         $_customFieldsArr = [];
         foreach ($arResult['customFields'] as $custom) {
@@ -360,7 +349,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
     //contragents type list
     $contragentTypeArr = [];
-
     foreach ($orderTypesList as $orderType) {
         $contragentTypeArr[$orderType['ID']] = htmlspecialchars(trim($_POST['contragent-type-' . $orderType['ID']]));
     }
@@ -373,7 +361,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $bitrixStoresArr          = [];
     $bitrixShopsArr           = [];
     $bitrixIblocksInventories = [];
-
     if (htmlspecialchars(trim($_POST['inventories-upload'])) === 'Y') {
         $inventoriesUpload = 'Y';
         $dateAgent         = new DateTime();
@@ -415,7 +402,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $bitrixPricesArr     = [];
     $bitrixIblocksPrices = [];
     $bitrixPriceShopsArr = [];
-
     if (htmlspecialchars(trim($_POST['prices-upload'])) === 'Y') {
         $pricesUpload = 'Y';
 
@@ -575,18 +561,18 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     if ($_POST[$CRM_CURRENCY]) {
         COption::SetOptionString($mid, $CRM_CURRENCY, $_POST['currency']);
     }
-    
+
     if (isset($_POST['loyalty_toggle']) && $_POST['loyalty_toggle'] === 'on') {
         try {
             $hlName = RetailcrmUtils::getHlClassByName(Constants::HL_LOYALTY_CODE);
-            
+
             if (empty($hlName)) {
                 OrderLoyaltyDataService::createLoyaltyHlBlock();
             }
         } catch (LoaderException | SystemException $e) {
             AddMessage2Log($e->getMessage());
         }
-        
+
         ConfigProvider::setLoyaltyProgramStatus('Y');
     } else {
         ConfigProvider::setLoyaltyProgramStatus('N');
@@ -696,6 +682,18 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         $badJson = true;
         echo CAdminMessage::ShowMessage(GetMessage('ERR_JSON'));
     }
+
+    $deliveryTypes = array();
+    $deliveryIntegrationCode = array();
+    foreach ($arResult['deliveryTypesList'] as $deliveryType) {
+        if ($deliveryType['active'] === true) {
+            $deliveryTypes[$deliveryType['code']] = $deliveryType;
+            $deliveryIntegrationCode[$deliveryType['code']] = $deliveryType['integrationCode'];
+        }
+    }
+
+    $arResult['deliveryTypesList'] = $deliveryTypes;
+    COption::SetOptionString($mid, RetailcrmConstants::CRM_INTEGRATION_DELIVERY, serialize(RCrmActions::clearArr($deliveryIntegrationCode)));
 
     //bitrix orderTypesList -- personTypes
     $arResult['bitrixOrderTypesList'] = RCrmActions::OrderTypesList($arResult['arSites']);
@@ -825,6 +823,27 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     CJSCore::Init(array("jquery"));
     ?>
     <script type="text/javascript">
+
+        function switchPLStatus() {
+            BX.ajax.runAction('intaro:retailcrm.api.adminpanel.loyaltyprogramtoggle',
+                {
+                    data: {
+                        sessid: BX.bitrix_sessid()
+                    }
+                }
+            ).then(
+                function(data) {
+                    if (data.status === 'success') {
+                        if (data.data.newStatus === 'Y') {
+                            $('#loyalty_main_settings').show(500);
+                        } else {
+                            $('#loyalty_main_settings').hide(500);
+                        }
+                    }
+                }
+            );
+        }
+
         function createTemplates(donor) {
             BX.ajax.runAction('intaro:retailcrm.api.adminpanel.createTemplate',
                 {
@@ -2091,7 +2110,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                     </td>
                 </tr>
             <?php endforeach; ?>
-
             <tr class="heading r-consultant-button">
                 <td colspan="2" class="option-other-heading">
                     <b>
@@ -2201,7 +2219,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                     <b>
                         <label><input class="addr" type="checkbox" name="shipment_deducted" value="Y" <?php if ($optionShipmentDeducted === 'Y') {
                                 echo "checked";
-                            } ?>><?php echo GetMessage('CHANGE_SHIPMENT_STATUS_FROM_CRM'); ?></label>
+                            } ?>><?php echo "Изменять статус отгрузки при получении соответствующего флага из crm" ?></label>
                     </b>
                 </td>
             </tr>
