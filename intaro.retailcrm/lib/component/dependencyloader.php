@@ -11,6 +11,9 @@
  */
 namespace Intaro\RetailCrm\Component;
 
+use CModule;
+use RCrmActions;
+
 /**
  * Class DependencyLoader
  *

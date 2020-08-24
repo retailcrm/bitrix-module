@@ -9,7 +9,11 @@
  * @package  RetailCRM
  */
 
+use Intaro\RetailCrm\Component\ConfigProvider;
+
 IncludeModuleLangFile(__FILE__);
+
+require_once __DIR__ . '/../../lib/component/configprovider.php';
 
 /**
  * PHP version 5.3
@@ -19,6 +23,6 @@ IncludeModuleLangFile(__FILE__);
  * @category RetailCRM
  * @package  RetailCRM
  */
-class RetailcrmConfigProvider extends \Intaro\RetailCrm\Component\ConfigProvider
+class RetailcrmConfigProvider extends ConfigProvider
 {
 }

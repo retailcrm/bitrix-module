@@ -9,7 +9,11 @@
  * @package  RetailCRM
  */
 
+use Intaro\RetailCrm\Component\Constants;
+
 IncludeModuleLangFile(__FILE__);
+
+require_once __DIR__ . '/../../lib/component/constants.php';
 
 /**
  * PHP version 5.3
@@ -19,6 +23,6 @@ IncludeModuleLangFile(__FILE__);
  * @category RetailCRM
  * @package  RetailCRM
  */
-class RetailcrmConstants extends \Intaro\RetailCrm\Component\Constants
+class RetailcrmConstants extends Constants
 {
 }
