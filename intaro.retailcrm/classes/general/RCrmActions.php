@@ -1,5 +1,12 @@
 <?php
+
+use Intaro\RetailCrm\Component\ServiceLocator;
+
 IncludeModuleLangFile(__FILE__);
+
+require_once __DIR__ . '/../../lib/component/servicelocator.php';
+require_once __DIR__ . '/../../lib/service/utils.php';
+
 class RCrmActions
 {
     public static $MODULE_ID = 'intaro.retailcrm';
@@ -227,7 +234,7 @@ class RCrmActions
     public static function clearArr($arr)
     {
         /** @var \Intaro\RetailCrm\Service\Utils $utils */
-        $utils = \Intaro\RetailCrm\Component\ServiceLocator::get(\Intaro\RetailCrm\Service\Utils::class);
+        $utils = ServiceLocator::getOrCreate(\Intaro\RetailCrm\Service\Utils::class);
         return $utils->clearArray($arr);
     }
 
@@ -240,7 +247,7 @@ class RCrmActions
     public static function toJSON($str)
     {
         /** @var \Intaro\RetailCrm\Service\Utils $utils */
-        $utils = \Intaro\RetailCrm\Component\ServiceLocator::get(\Intaro\RetailCrm\Service\Utils::class);
+        $utils = ServiceLocator::getOrCreate(\Intaro\RetailCrm\Service\Utils::class);
         return $utils->toUTF8($str);
     }
 
@@ -253,7 +260,7 @@ class RCrmActions
     public static function fromJSON($str)
     {
         /** @var \Intaro\RetailCrm\Service\Utils $utils */
-        $utils = \Intaro\RetailCrm\Component\ServiceLocator::get(\Intaro\RetailCrm\Service\Utils::class);
+        $utils = ServiceLocator::get(\Intaro\RetailCrm\Service\Utils::class);
         return $utils->fromUTF8($str);
     }
 

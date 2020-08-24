@@ -11,6 +11,7 @@
  */
 namespace Intaro\RetailCrm\Component;
 
+use Bitrix\Currency\CurrencyManager;
 use Bitrix\Main\ArgumentNullException;
 use Bitrix\Main\ArgumentOutOfRangeException;
 use Bitrix\Main\Config\Option;
@@ -99,7 +100,10 @@ class ConfigProvider
 
     /** @var array $integrationDeliveriesMapping */
     protected static $integrationDeliveriesMapping;
-
+    
+    /** @var bool|null|string $loyaltyProgramStatus */
+    protected static $loyaltyProgramStatus;
+    
     /**
      * @return bool|string|null
      */
@@ -500,7 +504,7 @@ class ConfigProvider
      */
     public static function getCurrencyOrDefault()
     {
-        return self::getCurrency() ? self::getCurrency() : \Bitrix\Currency\CurrencyManager::getBaseCurrency();
+        return self::getCurrency() ?: CurrencyManager::getBaseCurrency();
     }
 
     /**
@@ -659,5 +663,22 @@ class ConfigProvider
     protected static function isEmptyNotZero($value): bool
     {
         return empty($value) && $value !== 0;
+    }
+    
+    /**
+     * @return bool|string|null
+     */
+    public static function getLoyaltyProgramStatus()
+    {
+        return static::getOption(Constants::LOYALTY_PROGRAM_TOGGLE);
+    }
+    
+    /**
+     * @param bool|string|null $loyaltyProgramStatus
+     * @throws \Bitrix\Main\ArgumentOutOfRangeException
+     */
+    public static function setLoyaltyProgramStatus($loyaltyProgramStatus): void
+    {
+        static::setOption(Constants::LOYALTY_PROGRAM_TOGGLE, $loyaltyProgramStatus);
     }
 }
