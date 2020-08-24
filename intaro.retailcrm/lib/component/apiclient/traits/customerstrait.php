@@ -156,7 +156,8 @@ trait CustomersTrait
      *
      * @return CustomerChangeResponse|null
      */
-    public function customersEdit(CustomersEditRequest $request): ?CustomerChangeResponse {
+    public function customersEdit(CustomersEditRequest $request): ?CustomerChangeResponse
+    {
         $serialized = Serializer::serializeArray($request);
         $response = $this->client->customersEdit($serialized['customer'], $request->by, $request->site);
 

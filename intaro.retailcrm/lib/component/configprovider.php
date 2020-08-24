@@ -102,6 +102,9 @@ class ConfigProvider
     /** @var array $integrationDeliveriesMapping */
     protected static $integrationDeliveriesMapping;
 
+    /** @var bool|null|string $loyaltyProgramStatus */
+    protected static $loyaltyProgramStatus;
+
     /**
      * @return bool|string|null
      */
@@ -546,7 +549,7 @@ class ConfigProvider
      */
     public static function getCurrencyOrDefault()
     {
-        return self::getCurrency() ? self::getCurrency() : CurrencyManager::getBaseCurrency();
+        return self::getCurrency() ?: CurrencyManager::getBaseCurrency();
     }
 
     /**
@@ -803,5 +806,22 @@ class ConfigProvider
     public static function getUtils(): Utils
     {
         return ServiceLocator::get(Utils::class);
+    }
+
+    /**
+     * @return bool|string|null
+     */
+    public static function getLoyaltyProgramStatus()
+    {
+        return static::getOption(Constants::LOYALTY_PROGRAM_TOGGLE);
+    }
+
+    /**
+     * @param bool|string|null $loyaltyProgramStatus
+     * @throws \Bitrix\Main\ArgumentOutOfRangeException
+     */
+    public static function setLoyaltyProgramStatus($loyaltyProgramStatus): void
+    {
+        static::setOption(Constants::LOYALTY_PROGRAM_TOGGLE, $loyaltyProgramStatus);
     }
 }
