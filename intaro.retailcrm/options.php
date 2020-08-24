@@ -1,4 +1,12 @@
 <?php
+
+use Bitrix\Currency\CurrencyManager;
+use Bitrix\Main\Application;
+use Bitrix\Sale\Delivery\Services\Manager;
+use Intaro\RetailCrm\Component\ConfigProvider;
+use Intaro\RetailCrm\Component\Constants;
+use RetailCrm\Exception\CurlException;
+
 IncludeModuleLangFile(__FILE__);
 $mid = 'intaro.retailcrm';
 $uri = $APPLICATION->GetCurPage() . '?mid=' . htmlspecialchars($mid) . '&lang=' . LANGUAGE_ID;
@@ -249,7 +257,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $orderTypesList = RCrmActions::OrderTypesList($arResult['arSites']);
     $orderTypesArr = [];
 
-    $orderTypesArr = array();
     foreach ($orderTypesList as $orderType) {
         $orderTypesArr[$orderType['ID']] = htmlspecialchars(trim($_POST['order-type-' . $orderType['ID']]));
     }
@@ -258,7 +265,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $arResult['bitrixDeliveryTypesList'] = RCrmActions::DeliveryList();
     $deliveryTypesArr = [];
 
-    $deliveryTypesArr = array();
     foreach ($arResult['bitrixDeliveryTypesList'] as $delivery) {
         $deliveryTypesArr[$delivery['ID']] = htmlspecialchars(trim($_POST['delivery-type-' . $delivery['ID']]));
     }
@@ -267,7 +273,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $arResult['bitrixPaymentTypesList'] = RCrmActions::PaymentList();
     $paymentTypesArr = [];
 
-    $paymentTypesArr = array();
     foreach ($arResult['bitrixPaymentTypesList'] as $payment) {
         $paymentTypesArr[$payment['ID']] = htmlspecialchars(trim($_POST['payment-type-' . $payment['ID']]));
     }
@@ -277,9 +282,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $paymentStatusesArr = [];
     $canselOrderArr     = [];
 
-    $paymentStatusesArr = array();
-    $canselOrderArr = array();
-    //$paymentStatusesArr['YY'] = htmlspecialchars(trim($_POST['payment-status-YY']));
     foreach ($arResult['bitrixStatusesList'] as $status) {
         $paymentStatusesArr[$status['ID']] = htmlspecialchars(trim($_POST['payment-status-' . $status['ID']]));
         if (trim($_POST['order-cansel-' . $status['ID']]) === 'Y') {
@@ -339,6 +341,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     }
 
     $customFieldsArr = [];
+
     foreach ($orderTypesList as $orderType) {
         $_customFieldsArr = [];
         foreach ($arResult['customFields'] as $custom) {
@@ -349,6 +352,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
     //contragents type list
     $contragentTypeArr = [];
+
     foreach ($orderTypesList as $orderType) {
         $contragentTypeArr[$orderType['ID']] = htmlspecialchars(trim($_POST['contragent-type-' . $orderType['ID']]));
     }
@@ -361,6 +365,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $bitrixStoresArr          = [];
     $bitrixShopsArr           = [];
     $bitrixIblocksInventories = [];
+
     if (htmlspecialchars(trim($_POST['inventories-upload'])) === 'Y') {
         $inventoriesUpload = 'Y';
         $dateAgent         = new DateTime();
@@ -402,6 +407,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $bitrixPricesArr     = [];
     $bitrixIblocksPrices = [];
     $bitrixPriceShopsArr = [];
+
     if (htmlspecialchars(trim($_POST['prices-upload'])) === 'Y') {
         $pricesUpload = 'Y';
 
@@ -2219,7 +2225,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                     <b>
                         <label><input class="addr" type="checkbox" name="shipment_deducted" value="Y" <?php if ($optionShipmentDeducted === 'Y') {
                                 echo "checked";
-                            } ?>><?php echo "Изменять статус отгрузки при получении соответствующего флага из crm" ?></label>
+                            } ?>><?php echo GetMessage('CHANGE_SHIPMENT_STATUS_FROM_CRM'); ?></label>
                     </b>
                 </td>
             </tr>
