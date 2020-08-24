@@ -437,7 +437,6 @@ class intaro_retailcrm extends CModule
                 }
 
                 $ping = $this->ping($api_host, $api_key);
-
                 if (isset($ping['sitesList'])) {
                     $arResult['sitesList'] = $ping['sitesList'];
                 } elseif (isset($ping['errCode'])) {
@@ -1031,7 +1030,6 @@ class intaro_retailcrm extends CModule
                     'SETUP_PROFILE_NAME'           => $profileName,
                     'maxOffersValue'             => $maxOffers,
                 ];
-
                 global $oldValues;
 
                 $oldValues = $arOldValues;
@@ -1115,7 +1113,7 @@ class intaro_retailcrm extends CModule
             if ((int) $profileId <= 0) {
                 $arResult['errCode'] = 'ERR_IBLOCK';
 
-                return;
+                return false;
             }
 
             COption::SetOptionString(
@@ -1127,21 +1125,19 @@ class intaro_retailcrm extends CModule
             $agentId = null;
 
             if ($typeLoading === 'agent') {
-                $dateAgent = new DateTime();
-                $intAgent = new DateInterval('PT60S'); // PT60S - 60 sec;
-                $dateAgent->add($intAgent);
-                $agentId = CAgent::AddAgent(
-                    'CCatalogExport::PreGenerateExport(' . $profileId . ');',
+                    $dateAgent = new DateTime();
+                    $intAgent  = new DateInterval('PT60S'); // PT60S - 60 sec;
+                    $dateAgent->add($intAgent);
+                   $agentId = CAgent::AddAgent(
+                        'CCatalogExport::PreGenerateExport(' . $profileId . ');',
                     'catalog',
                     'N',
                     86400,
                     $dateAgent->format('d.m.Y H:i:s'),
-                    'Y',
-                    $dateAgent->format('d.m.Y H:i:s'),
-                    30
-                );
-
-                CCatalogExport::Update($profileId, [
+                        'Y',
+                        $dateAgent->format('d.m.Y H:i:s'),
+                        30
+                    );CCatalogExport::Update($profileId, [
                     "IN_AGENT" => "Y",
                 ]);
             }
@@ -1161,7 +1157,6 @@ class intaro_retailcrm extends CModule
                 );
             }
 
-
             if ('cron' === $typeLoading) {
                 include($this->INSTALL_PATH . '/../lib/vendor/symfony/component/process/phpexecutablefinder.php');
                 include($this->INSTALL_PATH . '/../lib/vendor/symfony/component/process/executablefinder.php');
@@ -1173,12 +1168,11 @@ class intaro_retailcrm extends CModule
                 if (!file_exists($_SERVER["DOCUMENT_ROOT"] . CATALOG_PATH2EXPORTS . "cron_frame.php")) {
                     CheckDirPath($_SERVER["DOCUMENT_ROOT"] . CATALOG_PATH2EXPORTS);
                     $tmp_file_size = filesize($_SERVER["DOCUMENT_ROOT"] . CATALOG_PATH2EXPORTS_DEF . "cron_frame.php");
-                    $fp = fopen($_SERVER["DOCUMENT_ROOT"] . CATALOG_PATH2EXPORTS_DEF . "cron_frame.php", "rb");
-                    $tmp_data = fread($fp, $tmp_file_size);
+                    $fp            = fopen($_SERVER["DOCUMENT_ROOT"] . CATALOG_PATH2EXPORTS_DEF . "cron_frame.php", "rb");
+                    $tmp_data      = fread($fp, $tmp_file_size);
                     fclose($fp);
 
-                    $tmp_data = str_replace("#DOCUMENT_ROOT#", $_SERVER["DOCUMENT_ROOT"], $tmp_data);
-                    $tmp_data = str_replace("#PHP_PATH#", $agent_php_path, $tmp_data);
+                    $tmp_data = str_replace(["#DOCUMENT_ROOT#", "#PHP_PATH#"], [$_SERVER["DOCUMENT_ROOT"], $agent_php_path], $tmp_data);
 
                     $fp = fopen($_SERVER["DOCUMENT_ROOT"] . CATALOG_PATH2EXPORTS . "cron_frame.php", "ab");
                     fwrite($fp, $tmp_data);
@@ -1188,8 +1182,8 @@ class intaro_retailcrm extends CModule
                 $cfg_data = "";
                 if (file_exists($_SERVER["DOCUMENT_ROOT"] . "/bitrix/crontab/crontab.cfg")) {
                     $cfg_file_size = filesize($_SERVER["DOCUMENT_ROOT"] . "/bitrix/crontab/crontab.cfg");
-                    $fp = fopen($_SERVER["DOCUMENT_ROOT"] . "/bitrix/crontab/crontab.cfg", "rb");
-                    $cfg_data = fread($fp, $cfg_file_size);
+                    $fp            = fopen($_SERVER["DOCUMENT_ROOT"] . "/bitrix/crontab/crontab.cfg", "rb");
+                    $cfg_data      = fread($fp, $cfg_file_size);
                     fclose($fp);
                 }
 
@@ -1229,7 +1223,7 @@ class intaro_retailcrm extends CModule
 
                 CheckDirPath($_SERVER["DOCUMENT_ROOT"] . "/bitrix/crontab/");
                 $cfg_data = preg_replace("#[\r\n]{2,}#im", "\n", $cfg_data);
-                $fp = fopen($_SERVER["DOCUMENT_ROOT"] . "/bitrix/crontab/crontab.cfg", "wb");
+                $fp       = fopen($_SERVER["DOCUMENT_ROOT"] . "/bitrix/crontab/crontab.cfg", "wb");
                 fwrite($fp, $cfg_data);
                 fclose($fp);
 
@@ -1533,7 +1527,7 @@ class intaro_retailcrm extends CModule
     {
         global $APPLICATION;
 
-        $client = new RetailCrm\Http\Client($api_host . '/api/'.self::V5, ['apiKey' => $api_key]);
+            $client = new RetailCrm\Http\Client($api_host . '/api/'.self::V5, ['apiKey' => $api_key]);
         try {
             $result = $client->makeRequest('/reference/sites', 'GET');
         } catch (CurlException $e) {

@@ -4,6 +4,7 @@ namespace Intaro\RetailCrm\Controller;
 
 use Bitrix\Main\Engine\ActionFilter\Authentication;
 use Bitrix\Main\Engine\Controller;
+use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Constants;
 
 class AdminPanel extends Controller
@@ -23,7 +24,7 @@ class AdminPanel extends Controller
             ],
         ];
     }
-    
+
     /**
      * @param array  $templates
      * @param string $donor
@@ -33,15 +34,15 @@ class AdminPanel extends Controller
     public function createTemplateAction(array $templates, string $donor ,$replaceDefaultTemplate = 'N'): array
     {
         $templateName = $replaceDefaultTemplate === 'Y' ? '.default' : Constants::MODULE_ID;
-    
+
         $donor = str_replace(['../', './'], '', $donor);
-        
-    
+
+
         foreach ($templates as $template) {
-    
+
             $template['location'] = str_replace(['../', './'], '', $template['location']);
             $template['name'] = str_replace(['../', './'], '', $template['name']);
-            
+
             $pathFrom = $_SERVER['DOCUMENT_ROOT']
                 . '/bitrix/modules/'
                 . Constants::MODULE_ID
@@ -53,7 +54,7 @@ class AdminPanel extends Controller
                 . $donor
                 . '/'
                 . $templateName;
-    
+
             if ($replaceDefaultTemplate === 'Y' && file_exists($pathTo)) {
                 $backPath = $_SERVER['DOCUMENT_ROOT']
                     . $template['location']
@@ -62,7 +63,7 @@ class AdminPanel extends Controller
                     . $donor
                     . '/'
                     . $templateName.'_backup';
-                    
+
                  CopyDirFiles(
                     $pathTo,
                     $backPath,
@@ -71,7 +72,7 @@ class AdminPanel extends Controller
                     false
                 );
             }
-            
+
             $status = CopyDirFiles(
                 $pathFrom,
                 $pathTo,
@@ -80,9 +81,22 @@ class AdminPanel extends Controller
                 false
             );
         }
-        
+
         return [
             'status' => $status ?? false,
         ];
+    }
+
+    /**
+     * @return string[]
+     * @throws \Bitrix\Main\ArgumentOutOfRangeException
+     */
+    public function LoyaltyProgramToggleAction(): array
+    {
+        $status    = ConfigProvider::getLoyaltyProgramStatus();
+        $newStatus = $status === 'N' || $status === null ? 'Y' : 'N';
+        ConfigProvider::setLoyaltyProgramStatus($newStatus);
+
+        return ['newStatus' => $newStatus];
     }
 }
