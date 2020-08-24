@@ -72,6 +72,7 @@ $MESS ['ORDER_TYPES_LIST_CUSTOM'] = 'Внимание! Используется 
 $MESS ['ORDER_UPL_START'] = 'Начать выгрузку';
 
 $MESS ['UPLOAD_ORDERS_OPTIONS'] = 'Ручная выгрузка';
+
 $MESS ['LOYALTY_PROGRAM_TITLE'] = 'Программа лояльности';
 $MESS ['LOYALTY_PROGRAM_TOGGLE_MSG'] = 'Включить программу лояльности';
 $MESS ['OTHER_OPTIONS'] = 'Прочие настройки';
