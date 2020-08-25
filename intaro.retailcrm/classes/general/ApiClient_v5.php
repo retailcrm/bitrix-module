@@ -238,7 +238,7 @@ class ApiClient
      *
      * @return ApiResponse
      */
-    public function customersСorporateFixExternalIds(array $ids)
+    public function customersCorporateFixExternalIds(array $ids)
     {
         if (! count($ids)) {
             throw new \InvalidArgumentException(
@@ -293,7 +293,7 @@ class ApiClient
      *
      * @return ApiResponse
      */
-    public function customersСorporateGet($id, $by = 'externalId', $site = null)
+    public function customersCorporateGet($id, $by = 'externalId', $site = null)
     {
         $this->checkIdParameter($by);
 
@@ -362,7 +362,7 @@ class ApiClient
      *
      * @return ApiResponse
      */
-    public function customersСorporateEdit(array $customer, $by = 'externalId', $site = null)
+    public function customersCorporateEdit(array $customer, $by = 'externalId', $site = null)
     {
         if (!count($customer)) {
             throw new \InvalidArgumentException(
@@ -398,7 +398,7 @@ class ApiClient
      * @return ApiResponse
      *
      */
-    public function customersСorporateHistory(array $filter = array(), $page = null, $limit = null)
+    public function customersCorporateHistory(array $filter = array(), $page = null, $limit = null)
     {
         $parameters = array();
 
