@@ -1256,6 +1256,7 @@ class RetailCrmHistory
 
     public static function assemblyCustomer($customerHistory)
     {
+        $customerHistory = self::filterHistory($customerHistory, 'customer');
         $server = \Bitrix\Main\Context::getCurrent()->getServer()->getDocumentRoot();
         $fields = array();
         if (file_exists($server . '/bitrix/modules/intaro.retailcrm/classes/general/config/objects.xml')) {
@@ -1324,6 +1325,7 @@ class RetailCrmHistory
 
     public static function assemblyOrder($orderHistory)
     {
+        $orderHistory = self::filterHistory($orderHistory, 'order');
         $server = \Bitrix\Main\Context::getCurrent()->getServer()->getDocumentRoot();
 
         if (file_exists($server . '/bitrix/modules/intaro.retailcrm/classes/general/config/objects.xml')) {
@@ -1469,7 +1471,76 @@ class RetailCrmHistory
 
         return $orders;
     }
-
+    
+    /**
+     * Filters out history by these terms:
+     *  - Changes from current API key will be added only if CMS changes are more actual than history.
+     *  - All other changes will be merged as usual.
+     * It fixes these problems:
+     *  - Changes from current API key are merged when it's not needed.
+     *  - Changes from CRM can overwrite more actual changes from CMS due to ignoring current API key changes.
+     *
+     * @param array  $historyEntries Raw history from CRM
+     * @param string $recordType     Entity field name, e.g. `customer` or `order`.
+     *
+     * @return array
+     */
+    private static function filterHistory($historyEntries, $recordType)
+    {
+        $history          = [];
+        $organizedHistory = [];
+        $notOurChanges    = [];
+        
+        foreach ($historyEntries as $entry) {
+            if (!isset($entry[$recordType]['externalId'])) {
+                if ($entry['source'] == 'api'
+                    && isset($change['apiKey']['current'])
+                    && $entry['apiKey']['current'] == true
+                    && $entry['field'] != 'externalId'
+                ) {
+                    continue;
+                }
+                
+                $history[] = $entry;
+                
+                continue;
+            }
+            
+            $externalId = $entry[$recordType]['externalId'];
+            $field      = $entry['field'];
+            
+            if (!isset($organizedHistory[$externalId])) {
+                $organizedHistory[$externalId] = [];
+            }
+            
+            if (!isset($notOurChanges[$externalId])) {
+                $notOurChanges[$externalId] = [];
+            }
+            
+            if ($entry['source'] == 'api'
+                && isset($entry['apiKey']['current'])
+                && $entry['apiKey']['current'] == true
+            ) {
+                if (isset($notOurChanges[$externalId][$field]) || $entry['field'] == 'externalId') {
+                    $organizedHistory[$externalId][] = $entry;
+                } else {
+                    continue;
+                }
+            } else {
+                $organizedHistory[$externalId][]    = $entry;
+                $notOurChanges[$externalId][$field] = true;
+            }
+        }
+        
+        unset($notOurChanges);
+        
+        foreach ($organizedHistory as $historyChunk) {
+            $history = array_merge($history, $historyChunk);
+        }
+        
+        return $history;
+    }
+    
     /**
      * Update shipment in order
      *
