@@ -349,45 +349,6 @@ class ApiClient
         );
     }
 
-    /**
-     * Edit a customer corporate
-     *
-     * @param array  $customer customer data
-     * @param string $by       (default: 'externalId')
-     * @param string $site     (default: null)
-     *
-     * @throws \InvalidArgumentException
-     * @throws \RetailCrm\Exception\CurlException
-     * @throws \RetailCrm\Exception\InvalidJsonException
-     *
-     * @return ApiResponse
-     */
-    public function customersCorporateEdit(array $customer, $by = 'externalId', $site = null)
-    {
-        if (!count($customer)) {
-            throw new \InvalidArgumentException(
-                'Parameter `customer` must contains a data'
-            );
-        }
-
-        $this->checkIdParameter($by);
-
-        if (!array_key_exists($by, $customer)) {
-            throw new \InvalidArgumentException(
-                sprintf('Customer array must contain the "%s" parameter.', $by)
-            );
-        }
-
-        return $this->client->makeRequest(
-            sprintf('/customers-corporate/%s/edit', $customer[$by]),
-            Client::METHOD_POST,
-            $this->fillSite(
-                $site,
-                array('customerCorporate' => json_encode($customer), 'by' => $by)
-            )
-        );
-    }
-
     /*
      * Get customers  corporate history
      *
