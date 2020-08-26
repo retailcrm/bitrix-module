@@ -141,6 +141,7 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../classes/general/Exception/CurlException.php');
         include($this->INSTALL_PATH . '/../classes/general/RestNormalizer.php');
         include($this->INSTALL_PATH . '/../classes/general/Logger.php');
+        include($this->INSTALL_PATH . '/../classes/general/services/RetailCrmService.php');
 
         $version = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_VERSION, 0);
         if ($version == 'v4') {
