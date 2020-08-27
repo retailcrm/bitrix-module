@@ -714,7 +714,7 @@ class RetailCrmHistory
                                     if(!empty($order['delivery']['address'][$key])){
                                         $parameters = array();
                                         $locPoint = explode('.', $order['delivery']['address'][$key]);
-										$locComma = explode(',', $order['delivery']['address'][$key]);
+                                        $locComma = explode(',', $order['delivery']['address'][$key]);
                                         if (count($locPoint) == 1) {
                                             $parameters['filter']['PHRASE'] = RCrmActions::fromJSON(trim($locPoint[0]));
                                         } elseif (count($locPoint) == 2) {
