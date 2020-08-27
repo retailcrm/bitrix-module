@@ -713,12 +713,17 @@ class RetailCrmHistory
                                     $order['delivery']['address'][$key] = trim($order['delivery']['address'][$key]);
                                     if(!empty($order['delivery']['address'][$key])){
                                         $parameters = array();
-                                        $loc = explode('.', $order['delivery']['address'][$key]);
-                                        if (count($loc) == 1) {
-                                            $parameters['filter']['PHRASE'] = RCrmActions::fromJSON(trim($loc[0]));
-                                        } elseif (count($loc) == 2) {
-                                            $parameters['filter']['PHRASE'] = RCrmActions::fromJSON(trim($loc[1]));
-                                        } else {
+                                        $locPoint = explode('.', $order['delivery']['address'][$key]);
+										$locComma = explode(',', $order['delivery']['address'][$key]);
+                                        if (count($locPoint) == 1) {
+                                            $parameters['filter']['PHRASE'] = RCrmActions::fromJSON(trim($locPoint[0]));
+                                        } elseif (count($locPoint) == 2) {
+                                            $parameters['filter']['PHRASE'] = RCrmActions::fromJSON(trim($locPoint[1]));
+										} elseif (count($locComma) == 1){
+											$parameters['filter']['PHRASE'] = RCrmActions::fromJSON(trim($locComma[0]));
+										} elseif (count($locComma) == 2){
+											$parameters['filter']['PHRASE'] = RCrmActions::fromJSON(trim($locComma[1]));
+										}else {
                                             RCrmActions::eventLog(
                                                 'RetailCrmHistory::orderHistory',
                                                 'RetailCrmHistory::setProp',
