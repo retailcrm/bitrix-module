@@ -719,11 +719,11 @@ class RetailCrmHistory
                                             $parameters['filter']['PHRASE'] = RCrmActions::fromJSON(trim($locPoint[0]));
                                         } elseif (count($locPoint) == 2) {
                                             $parameters['filter']['PHRASE'] = RCrmActions::fromJSON(trim($locPoint[1]));
-										} elseif (count($locComma) == 1){
-											$parameters['filter']['PHRASE'] = RCrmActions::fromJSON(trim($locComma[0]));
-										} elseif (count($locComma) == 2){
-											$parameters['filter']['PHRASE'] = RCrmActions::fromJSON(trim($locComma[1]));
-										}else {
+                                        } elseif (count($locComma) == 1){
+                                            $parameters['filter']['PHRASE'] = RCrmActions::fromJSON(trim($locComma[0]));
+                                        } elseif (count($locComma) == 2){
+                                             $parameters['filter']['PHRASE'] = RCrmActions::fromJSON(trim($locComma[1]));
+                                        } else {
                                             RCrmActions::eventLog(
                                                 'RetailCrmHistory::orderHistory',
                                                 'RetailCrmHistory::setProp',
