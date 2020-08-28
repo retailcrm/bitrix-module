@@ -1129,7 +1129,7 @@ class RetailCrmHistory
                     }
 
                     if (isset($order['fullPaidAt']) && is_string($order['fullPaidAt'])) {
-                        $newOrder->setField('PAID', 'Y');
+                        $newOrder->setFieldNoDemand('PAYED', 'Y');
                     }
 
                     if ($shipmentDeducted === 'Y') {
