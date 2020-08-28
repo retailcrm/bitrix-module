@@ -504,7 +504,6 @@ class RetailCrmHistory
                 }
 
                 if (isset($order['externalId'])) {
-
                     $itemUpdate = false;
 
                     if ($order['externalId'] && is_numeric($order['externalId'])) {
