@@ -504,6 +504,7 @@ class RetailCrmHistory
                 }
 
                 if (isset($order['externalId'])) {
+
                     $itemUpdate = false;
 
                     if ($order['externalId'] && is_numeric($order['externalId'])) {
@@ -1129,7 +1130,7 @@ class RetailCrmHistory
                     }
 
                     if (isset($order['fullPaidAt']) && is_string($order['fullPaidAt'])) {
-                        $newOrder->setField('PAID', 'Y');
+                        $newOrder->setFieldNoDemand('PAYED', 'Y');
                     }
 
                     if ($shipmentDeducted === 'Y') {
