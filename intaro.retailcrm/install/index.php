@@ -1287,19 +1287,20 @@ class intaro_retailcrm extends CModule
     
     public function CopyFiles(): void
     {
-        $path_from      = $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install';
-        $saleSystemPath = COption::GetOptionString('sale', 'path2user_ps_files');
+        $pathFrom      = $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install';
     
         CopyDirFiles(
-            $path_from . '/export',
+            $pathFrom . '/export',
             $_SERVER['DOCUMENT_ROOT'],
             true,
             true,
             false
         );
         CopyDirFiles(
-            $path_from . '/export_sale_payment',
-            $_SERVER['DOCUMENT_ROOT'] . $saleSystemPath,
+            $pathFrom
+            . '/export_sale_payment',
+            $_SERVER['DOCUMENT_ROOT']
+            . COption::GetOptionString('sale', 'path2user_ps_files'),
             true,
             true,
             false
@@ -1481,13 +1482,14 @@ class intaro_retailcrm extends CModule
      */
     public function addLPUserFields(): void
     {
-        $fieldNames = [
-            "UF_REG_IN_PL_INTARO",
-            "UF_AGREE_PL_INTARO",
-            "UF_PD_PROC_PL_INTARO",
-            "UF_EXT_REG_PL_INTARO",
-        ];
-        $this->addCustomUserFields($fieldNames);
+        $this->addCustomUserFields(
+            [
+                "UF_REG_IN_PL_INTARO",
+                "UF_AGREE_PL_INTARO",
+                "UF_PD_PROC_PL_INTARO",
+                "UF_EXT_REG_PL_INTARO",
+            ]
+        );
     }
     
     /**
