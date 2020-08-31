@@ -97,6 +97,9 @@ use RetailCrm\Response\ApiResponse;
  * @method ApiResponse statisticUpdate()
  * @method ApiResponse getSite()
  * @method ApiResponse setSite($site)
+ * @method ApiResponse confirmLpVerificationBySMS(SmsVerificationConfirm $verificationConfirm)
+ * @method ApiResponse sendSmsForLpVerification(SmsVerificationCreate $verificationCreate)
+ * @method ApiResponse checkStatusPlVerification(string $string)
  */
 class ClientAdapter
 {
