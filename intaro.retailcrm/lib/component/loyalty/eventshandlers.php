@@ -93,6 +93,6 @@ class EventsHandlers
     public function OnSaleComponentOrderOneStepProcessHandler($arResult, $arUserResult, $arParams)
     {
         AddMessage2Log('OnSaleComponentOrderOneStepProcessHandler work! '. $arUserResult. $arParams);
-        return  $arResult;
+        return $arResult;
     }
 }
