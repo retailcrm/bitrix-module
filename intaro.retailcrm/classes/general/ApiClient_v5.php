@@ -2931,4 +2931,20 @@ class ApiClient
 
         return $params;
     }
+    
+    protected function confirmLpVerificationBySMS()
+    {
+    
+    }
+    
+    protected function sendSmsForLpVerification()
+    {
+    
+    }
+    
+    protected function checkStatusPlVerification()
+    {
+    
+    }
+    
 }
