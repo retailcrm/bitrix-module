@@ -1319,9 +1319,11 @@ class intaro_retailcrm extends CModule
         unlink($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/retailcrm_setup.php');
         unlink($defaultSite['ABS_DOC_ROOT'] . '/retailcrm/agent.php');
         rmdir($defaultSite['ABS_DOC_ROOT'] . '/retailcrm/');
-    
-        $saleSystemPath = COption::GetOptionString('sale', 'path2user_ps_files');
-        DeleteDirFilesEx($_SERVER['DOCUMENT_ROOT'] . $saleSystemPath . 'retailcrmbonus');
+        DeleteDirFilesEx(
+            $_SERVER['DOCUMENT_ROOT']
+            . COption::GetOptionString('sale', 'path2user_ps_files')
+            . 'retailcrmbonus'
+        );
     }
     
     public function GetProfileSetupVars(
@@ -1574,32 +1576,34 @@ class intaro_retailcrm extends CModule
      */
     private function addBonusField($personID, $groupID): void
     {
-        $where = [
-            ['PERSON_TYPE_ID', '=', $personID],
-            ['PROPS_GROUP_ID', '=', $groupID],
-        ];
-       
-        $bonusProp = OrderPropsRepository::getFirstByWhere(['ID'], $where);
+        $bonusProp = OrderPropsRepository::getFirstByWhere(
+            ['ID'],
+            [
+                ['PERSON_TYPE_ID', '=', $personID],
+                ['PROPS_GROUP_ID', '=', $groupID],
+            ]
+        );
 
         if ($bonusProp === null) {
-            $fields = [
-                "REQUIRED"        => "N",
-                "NAME"            => self::BONUS_COUNT,
-                "TYPE"            => "TEXT",
-                "CODE"            => "BONUS_RETAILCRM",
-                "USER_PROPS"      => "Y",
-                "IS_LOCATION"     => "N",
-                "IS_LOCATION4TAX" => "N",
-                "IS_EMAIL"        => "N",
-                "IS_PROFILE_NAME" => "N",
-                "IS_PAYER"        => "N",
-                'IS_FILTERED'     => 'Y',
-                'PERSON_TYPE_ID'  => $personID,
-                'PROPS_GROUP_ID'  => $groupID,
-                "DEFAULT_VALUE"   => 0,
-                "DESCRIPTION"     => self::BONUS_COUNT,
-            ];
-            CSaleOrderProps::Add($fields);
+            CSaleOrderProps::Add(
+                [
+                    "REQUIRED"        => "N",
+                    "NAME"            => self::BONUS_COUNT,
+                    "TYPE"            => "TEXT",
+                    "CODE"            => "BONUS_RETAILCRM",
+                    "USER_PROPS"      => "Y",
+                    "IS_LOCATION"     => "N",
+                    "IS_LOCATION4TAX" => "N",
+                    "IS_EMAIL"        => "N",
+                    "IS_PROFILE_NAME" => "N",
+                    "IS_PAYER"        => "N",
+                    'IS_FILTERED'     => 'Y',
+                    'PERSON_TYPE_ID'  => $personID,
+                    'PROPS_GROUP_ID'  => $groupID,
+                    "DEFAULT_VALUE"   => 0,
+                    "DESCRIPTION"     => self::BONUS_COUNT,
+                ]
+            );
         }
     }
     
@@ -1616,29 +1620,30 @@ class intaro_retailcrm extends CModule
             ->fetchCollection();
     
         if (count($arrPaySystemAction) === 0) {
-            $data       = [
-                'NAME'                 => self::BONUS_PAY_SYSTEM_NAME,
-                'PSA_NAME'             => self::BONUS_PAY_SYSTEM_NAME,
-                'ACTION_FILE'          => self::BONUS_PAY_SYSTEM_CODE,
-                'DESCRIPTION'          => self::BONUS_PAY_SYSTEM_DESCRIPTION,
-                'RESULT_FILE'          => '',
-                'NEW_WINDOW'           => 'N',
-                'ENCODING'             => 'utf-8',
-                'ACTIVE'               => 'Y',
-                'HAVE_PAYMENT'         => 'Y',
-                'HAVE_ACTION'          => 'N',
-                'AUTO_CHANGE_1C'       => 'N',
-                'HAVE_RESULT'          => 'N',
-                'HAVE_PRICE'           => 'N',
-                'HAVE_PREPAY'          => 'N',
-                'HAVE_RESULT_RECEIVE'  => 'N',
-                'ALLOW_EDIT_PAYMENT'   => 'Y',
-                'IS_CASH'              => 'N',
-                'CAN_PRINT_CHECK'      => 'N',
-                'ENTITY_REGISTRY_TYPE' => 'ORDER',
-                'XML_ID'               => 'intaro_' . randString(15),
-            ];
-            $result     = PaySystemActionTable::add($data);
+            $result     = PaySystemActionTable::add(
+                [
+                    'NAME'                 => self::BONUS_PAY_SYSTEM_NAME,
+                    'PSA_NAME'             => self::BONUS_PAY_SYSTEM_NAME,
+                    'ACTION_FILE'          => self::BONUS_PAY_SYSTEM_CODE,
+                    'DESCRIPTION'          => self::BONUS_PAY_SYSTEM_DESCRIPTION,
+                    'RESULT_FILE'          => '',
+                    'NEW_WINDOW'           => 'N',
+                    'ENCODING'             => 'utf-8',
+                    'ACTIVE'               => 'Y',
+                    'HAVE_PAYMENT'         => 'Y',
+                    'HAVE_ACTION'          => 'N',
+                    'AUTO_CHANGE_1C'       => 'N',
+                    'HAVE_RESULT'          => 'N',
+                    'HAVE_PRICE'           => 'N',
+                    'HAVE_PREPAY'          => 'N',
+                    'HAVE_RESULT_RECEIVE'  => 'N',
+                    'ALLOW_EDIT_PAYMENT'   => 'Y',
+                    'IS_CASH'              => 'N',
+                    'CAN_PRINT_CHECK'      => 'N',
+                    'ENTITY_REGISTRY_TYPE' => 'ORDER',
+                    'XML_ID'               => 'intaro_' . randString(15),
+                ]
+            );
             $updateData = [
                 'PAY_SYSTEM_ID' => $result->getId(),
                 'PARAMS'        => serialize(['BX_PAY_SYSTEM_ID' => $result->getId()]),
@@ -1655,16 +1660,17 @@ class intaro_retailcrm extends CModule
         $eventManager = EventManager::getInstance();
 
         foreach (self::SUBSCRIBE_LP_EVENTS as $event){
-            $select = ['ID'];
-            $where = [
-                ['from_module_id', '=', $event['FROM_MODULE']],
-                ['to_module_id', '=', $this->MODULE_ID],
-                ['to_method', '=', $event['EVENT_NAME'] . 'Handler'],
-                ['to_class', '=', EventsHandlers::class],
-            ];
     
             try {
-                $events = ToModuleRepository::getCollectionByWhere($select, $where);
+                $events = ToModuleRepository::getCollectionByWhere(
+                    ['ID'],
+                    [
+                        ['from_module_id', '=', $event['FROM_MODULE']],
+                        ['to_module_id', '=', $this->MODULE_ID],
+                        ['to_method', '=', $event['EVENT_NAME'] . 'Handler'],
+                        ['to_class', '=', EventsHandlers::class],
+                    ]
+                );
                 
                 if ($events !== null && count($events) === 0) {
                     $eventManager->registerEventHandler(
