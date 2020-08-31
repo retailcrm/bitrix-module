@@ -1594,21 +1594,21 @@ class intaro_retailcrm extends CModule
         if ($bonusProp === null) {
             CSaleOrderProps::Add(
                 [
-                    "REQUIRED" => "N",
-                    "NAME" => self::BONUS_COUNT,
-                    "TYPE" => "TEXT",
-                    "CODE" => "BONUS_RETAILCRM",
-                    "USER_PROPS" => "Y",
-                    "IS_LOCATION" => "N",
+                    "REQUIRED"        => "N",
+                    "NAME"            => self::BONUS_COUNT,
+                    "TYPE"            => "TEXT",
+                    "CODE"            => "BONUS_RETAILCRM",
+                    "USER_PROPS"      => "Y",
+                    "IS_LOCATION"     => "N",
                     "IS_LOCATION4TAX" => "N",
-                    "IS_EMAIL" => "N",
+                    "IS_EMAIL"        => "N",
                     "IS_PROFILE_NAME" => "N",
-                    "IS_PAYER" => "N",
-                    'IS_FILTERED' => 'Y',
-                    'PERSON_TYPE_ID' => $personID,
-                    'PROPS_GROUP_ID' => $groupID,
-                    "DEFAULT_VALUE" => 0,
-                    "DESCRIPTION" => self::BONUS_COUNT,
+                    "IS_PAYER"        => "N",
+                    'IS_FILTERED'     => 'Y',
+                    'PERSON_TYPE_ID'  => $personID,
+                    'PROPS_GROUP_ID'  => $groupID,
+                    "DEFAULT_VALUE"   => 0,
+                    "DESCRIPTION"     => self::BONUS_COUNT
                 ]
             );
         }
@@ -1629,26 +1629,26 @@ class intaro_retailcrm extends CModule
         if (count($arrPaySystemAction) === 0) {
             $result = PaySystemActionTable::add(
                 [
-                    'NAME' => self::BONUS_PAY_SYSTEM_NAME,
-                    'PSA_NAME' => self::BONUS_PAY_SYSTEM_NAME,
-                    'ACTION_FILE' => self::BONUS_PAY_SYSTEM_CODE,
-                    'DESCRIPTION' => self::BONUS_PAY_SYSTEM_DESCRIPTION,
-                    'RESULT_FILE' => '',
-                    'NEW_WINDOW' => 'N',
-                    'ENCODING' => 'utf-8',
-                    'ACTIVE' => 'Y',
-                    'HAVE_PAYMENT' => 'Y',
-                    'HAVE_ACTION' => 'N',
-                    'AUTO_CHANGE_1C' => 'N',
-                    'HAVE_RESULT' => 'N',
-                    'HAVE_PRICE' => 'N',
-                    'HAVE_PREPAY' => 'N',
-                    'HAVE_RESULT_RECEIVE' => 'N',
-                    'ALLOW_EDIT_PAYMENT' => 'Y',
-                    'IS_CASH' => 'N',
-                    'CAN_PRINT_CHECK' => 'N',
+                    'NAME'                 => self::BONUS_PAY_SYSTEM_NAME,
+                    'PSA_NAME'             => self::BONUS_PAY_SYSTEM_NAME,
+                    'ACTION_FILE'          => self::BONUS_PAY_SYSTEM_CODE,
+                    'DESCRIPTION'          => self::BONUS_PAY_SYSTEM_DESCRIPTION,
+                    'RESULT_FILE'          => '',
+                    'NEW_WINDOW'           => 'N',
+                    'ENCODING'             => 'utf-8',
+                    'ACTIVE'               => 'Y',
+                    'HAVE_PAYMENT'         => 'Y',
+                    'HAVE_ACTION'          => 'N',
+                    'AUTO_CHANGE_1C'       => 'N',
+                    'HAVE_RESULT'          => 'N',
+                    'HAVE_PRICE'           => 'N',
+                    'HAVE_PREPAY'          => 'N',
+                    'HAVE_RESULT_RECEIVE'  => 'N',
+                    'ALLOW_EDIT_PAYMENT'   => 'Y',
+                    'IS_CASH'              => 'N',
+                    'CAN_PRINT_CHECK'      => 'N',
                     'ENTITY_REGISTRY_TYPE' => 'ORDER',
-                    'XML_ID' => 'intaro_' . randString(15),
+                    'XML_ID'               => 'intaro_' . randString(15),
                 ]
             );
 
@@ -1677,7 +1677,7 @@ class intaro_retailcrm extends CModule
                         ['to_class', '=', EventsHandlers::class],
                     ]
                 );
-
+                
                 if ($events !== null && count($events) === 0) {
                     $eventManager->registerEventHandler(
                         $event['FROM_MODULE'],
