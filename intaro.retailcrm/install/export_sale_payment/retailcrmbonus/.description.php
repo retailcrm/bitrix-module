@@ -4,5 +4,3 @@ $filePath = $_SERVER['DOCUMENT_ROOT'] . BX_ROOT . '/modules/intaro.retailcrm/lib
 if (file_exists($filePath)) {
     require_once($filePath);
 }
-
-
