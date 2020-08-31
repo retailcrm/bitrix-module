@@ -56,8 +56,8 @@ if (class_exists('intaro_retailcrm')) {
 
 class intaro_retailcrm extends CModule
 {
-    public const        LP_ORDER_GROUP_NAME = 'Программа лояльности';
-    public const        BONUS_COUNT         = 'Количество бонусов';
+    public const LP_ORDER_GROUP_NAME          = 'Программа лояльности';
+    public const BONUS_COUNT                  = 'Количество бонусов';
     public const BONUS_PAY_SYSTEM_NAME        = 'Оплата бонусами';
     public const BONUS_PAY_SYSTEM_CODE        = 'retailcrmbonus';
     public const BONUS_PAY_SYSTEM_DESCRIPTION = 'Оплата бонусами программы лояльности retailCRM';
@@ -1380,8 +1380,8 @@ class intaro_retailcrm extends CModule
 
     public function CopyFiles(): void
     {
-        $pathFrom = $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install';
-
+        $pathFrom      = $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install';
+        $saleSystemPath = COption::GetOptionString('sale', 'path2user_ps_files');
         CopyDirFiles(
             $pathFrom . '/export',
             $_SERVER['DOCUMENT_ROOT'],
