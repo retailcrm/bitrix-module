@@ -37,8 +37,8 @@ if (class_exists('intaro_retailcrm')) {
 
 class intaro_retailcrm extends CModule
 {
-    public const        LP_ORDER_GROUP_NAME = 'Программа лояльности';
-    public const        BONUS_COUNT         = 'Количество бонусов';
+    public const LP_ORDER_GROUP_NAME          = 'Программа лояльности';
+    public const BONUS_COUNT                  = 'Количество бонусов';
     public const BONUS_PAY_SYSTEM_NAME        = 'Оплата бонусами';
     public const BONUS_PAY_SYSTEM_CODE        = 'retailcrmbonus';
     public const BONUS_PAY_SYSTEM_DESCRIPTION = 'Оплата бонусами программы лояльности retailCRM';
@@ -1296,7 +1296,9 @@ class intaro_retailcrm extends CModule
 
     public function CopyFiles(): void
     {
-        $path_from = $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install';
+        $path_from      = $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install';
+        $saleSystemPath = COption::GetOptionString('sale', 'path2user_ps_files');
+
         CopyDirFiles(
             $path_from . '/export',
             $_SERVER['DOCUMENT_ROOT'],
@@ -1304,7 +1306,6 @@ class intaro_retailcrm extends CModule
             true,
             false
         );
-        $saleSystemPath = COption::GetOptionString('sale', 'path2user_ps_files');
         CopyDirFiles(
             $path_from . '/export_sale_payment',
             $_SERVER['DOCUMENT_ROOT'] . $saleSystemPath,
@@ -1509,7 +1510,7 @@ class intaro_retailcrm extends CModule
         foreach ($persons as $person) {
             $personId = $person->getID();
             $groupID = $this->getGroupID($personId);
-            
+
             if (isset($groupID)) {
                 $this->addBonusField($personId, $groupID);
             }
@@ -1567,7 +1568,7 @@ class intaro_retailcrm extends CModule
                 'PERSON_TYPE_ID' => $personId,
                 'NAME'           => self::LP_ORDER_GROUP_NAME,
             ];
-            $result =  OrderPropsGroupTable::add($groupFields);
+            $result = OrderPropsGroupTable::add($groupFields);
 
             return $result->getId();
         }
