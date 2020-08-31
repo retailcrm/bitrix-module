@@ -7,13 +7,15 @@
  */
 global $MESS;
 
+use Bitrix\Highloadblock\HighloadBlockTable;
+use Bitrix\Main\Application;
 use Bitrix\Main\ArgumentException;
+use Bitrix\Main\Context;
 use Bitrix\Main\EventManager;
 use Bitrix\Main\Loader;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
 use Bitrix\Sale\Internals\OrderPropsGroupTable;
-use Bitrix\Sale\Internals\OrderPropsTable;
 use Bitrix\Sale\Internals\PaySystemActionTable;
 use Bitrix\Sale\Internals\PersonTypeTable;
 use Intaro\RetailCrm\Component\Constants;
@@ -29,6 +31,9 @@ use Bitrix\Sale\Internals\OrderPropsGroupTable;
 use Bitrix\Sale\Internals\PaySystemActionTable;
 use Bitrix\Sale\Delivery\Services\Manager;
 use Bitrix\Sale\Internals\OrderTable;
+use Intaro\RetailCrm\Component\Handlers\EventsHandlers;
+use Intaro\RetailCrm\Model\Bitrix\Agreement;
+use Intaro\RetailCrm\Repository\AgreementRepository;
 use Intaro\RetailCrm\Component\Handlers\EventsHandlers;
 use Intaro\RetailCrm\Model\Bitrix\Agreement;
 use Intaro\RetailCrm\Repository\AgreementRepository;
@@ -56,25 +61,15 @@ if (class_exists('intaro_retailcrm')) {
 
 class intaro_retailcrm extends CModule
 {
-    public const LP_ORDER_GROUP_NAME          = 'Программа лояльности';
-    public const BONUS_COUNT                  = 'Количество бонусов';
-    public const BONUS_PAY_SYSTEM_NAME        = 'Оплата бонусами';
     public const BONUS_PAY_SYSTEM_CODE        = 'retailcrmbonus';
-    public const BONUS_PAY_SYSTEM_DESCRIPTION = 'Оплата бонусами программы лояльности retailCRM';
 
     /**
      * @var string[][]
      */
     private const SUBSCRIBE_LP_EVENTS = [
-        ['EVENT_NAME' => 'OnBeforeSalePaymentSetField', 'FROM_MODULE' => 'sale'],
-        ['EVENT_NAME' => 'OnBeforeEndBufferContent', 'FROM_MODULE' => 'main'],
-        ['EVENT_NAME' => 'OnSaleOrderBeforeSaved', 'FROM_MODULE' => 'sale'],
-        ['EVENT_NAME' => 'OnSaleOrderPaid', 'FROM_MODULE' => 'sale'],
-        ['EVENT_NAME' => 'OnSaleStatusOrderChange', 'FROM_MODULE' => 'sale'],
         ['EVENT_NAME' => 'OnSaleOrderSaved', 'FROM_MODULE' => 'sale'],
-        ['EVENT_NAME' => 'OnSaleOrderCanceled', 'FROM_MODULE' => 'sale'],
-        ['EVENT_NAME' => 'OnSaleOrderDeleted', 'FROM_MODULE' => 'sale'],
-        ['EVENT_NAME' => 'OnSaleComponentOrderOneStepProcess', 'FROM_MODULE' => 'sale'],
+        ['EVENT_NAME' => 'OnSaleComponentOrderResultPrepared', 'FROM_MODULE' => 'sale'],
+        ['EVENT_NAME' => 'OnAfterUserRegister', 'FROM_MODULE' => 'main'],
     ];
     public const V5 = 'v5';
     public const BONUS_PAY_SYSTEM_CODE        = 'retailcrmbonus';
@@ -198,15 +193,16 @@ class intaro_retailcrm extends CModule
         }
 
         $infoSale = CModule::CreateModuleObject('sale')->MODULE_VERSION;
-
         if (version_compare($infoSale, '16', '<=')) {
             $APPLICATION->ThrowException(GetMessage("SALE_VERSION_ERR"));
 
             return false;
         }
 
+
         if (!Loader::includeModule('sale')) {
             return false;
+
         }
 
 
@@ -1367,7 +1363,6 @@ class intaro_retailcrm extends CModule
 
         RCrmActions::sendConfiguration($retail_crm_api, $api_version, false);
 
-        $this->deleteLPEvents();
         $this->DeleteFiles();
         $this->deleteLPEvents();
 
@@ -1380,8 +1375,7 @@ class intaro_retailcrm extends CModule
 
     public function CopyFiles(): void
     {
-        $pathFrom      = $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install';
-        $saleSystemPath = COption::GetOptionString('sale', 'path2user_ps_files');
+        $pathFrom = $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install';
         CopyDirFiles(
             $pathFrom . '/export',
             $_SERVER['DOCUMENT_ROOT'],
@@ -1563,7 +1557,7 @@ class intaro_retailcrm extends CModule
     {
         global $APPLICATION;
 
-            $client = new RetailCrm\Http\Client($api_host . '/api/'.self::V5, ['apiKey' => $api_key]);
+        $client = new RetailCrm\Http\Client($api_host . '/api/'.self::V5, ['apiKey' => $api_key]);
         try {
             $result = $client->makeRequest('/reference/sites', 'GET');
         } catch (CurlException $e) {
@@ -1730,40 +1724,36 @@ class intaro_retailcrm extends CModule
     }
 
     /**
-     * @param $personID
-     * @param $groupID
-     * @throws \Bitrix\Main\ArgumentException
-     * @throws \Bitrix\Main\ObjectPropertyException
-     * @throws \Bitrix\Main\SystemException
+     * create loyalty program events handlers
      */
-    private function addBonusField($personID, $groupID): void
+    private function addLPEvents(): void
     {
-        $where = [
-            ['PERSON_TYPE_ID', '=', $personID],
-            ['PROPS_GROUP_ID', '=', $groupID],
-        ];
+        $eventManager = EventManager::getInstance();
 
-        $bonusProp = OrderPropsRepository::getFirstByWhere(['ID'], $where);
+        foreach (self::SUBSCRIBE_LP_EVENTS as $event){
+            try {
+                $events = ToModuleRepository::getCollectionByWhere(
+                    ['ID'],
+                    [
+                        ['from_module_id', '=', $event['FROM_MODULE']],
+                        ['to_module_id', '=', $this->MODULE_ID],
+                        ['to_method', '=', $event['EVENT_NAME'] . 'Handler'],
+                        ['to_class', '=', EventsHandlers::class],
+                    ]
+                );
 
-        if ($bonusProp === false || $bonusProp === null) {
-            $fields = [
-                "REQUIRED"        => "N",
-                "NAME"            => self::BONUS_COUNT,
-                "TYPE"            => "TEXT",
-                "CODE"            => "BONUS_RETAILCRM",
-                "USER_PROPS"      => "Y",
-                "IS_LOCATION"     => "N",
-                "IS_LOCATION4TAX" => "N",
-                "IS_EMAIL"        => "N",
-                "IS_PROFILE_NAME" => "N",
-                "IS_PAYER"        => "N",
-                'IS_FILTERED'     => 'Y',
-                'PERSON_TYPE_ID'  => $personID,
-                'PROPS_GROUP_ID'  => $groupID,
-                "DEFAULT_VALUE"   => 0,
-                "DESCRIPTION"     => self::BONUS_COUNT,
-            ];
-            CSaleOrderProps::Add($fields);
+                if ($events !== null && count($events) === 0) {
+                    $eventManager->registerEventHandler(
+                        $event['FROM_MODULE'],
+                        $event['EVENT_NAME'],
+                        $this->MODULE_ID,
+                        EventsHandlers::class,
+                        $event['EVENT_NAME'] . 'Handler'
+                    );
+                }
+            } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
+                AddMessage2Log($exception->getMessage(), $this->MODULE_ID);
+            }
         }
     }
 
