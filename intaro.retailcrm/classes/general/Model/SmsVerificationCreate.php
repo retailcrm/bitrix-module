@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Class SmsVerificationConfirm
+ * Class SmsVerificationCreate
  */
-class SmsVerificationConfirm extends BaseModel
+class SmsVerificationCreate extends BaseModel
 {
     /**@var integer $length */
     protected $length;
