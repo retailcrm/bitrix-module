@@ -14,6 +14,14 @@
 
 namespace RetailCrm;
 
+use Intaro\RetailCrm\Component\Json\Deserializer;
+use Intaro\RetailCrm\Component\Json\Serializer;
+use Intaro\RetailCrm\Model\Api\Request\SmsVerification\SmsVerificationConfirmRequest;
+use Intaro\RetailCrm\Model\Api\Request\SmsVerification\SmsVerificationCreateRequest;
+use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationConfirmResponse;
+use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationCreateResponse;
+use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusRequest;
+use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusResponse;
 use RetailCrm\Http\Client;
 use RetailCrm\Response\ApiResponse;
 use smsverificationconfirm;
@@ -2934,34 +2942,51 @@ class ApiClient
         return $params;
     }
     
-    protected function confirmLpVerificationBySMS(smsverificationconfirm $smsVerificationConfirm)
+    /**
+     * @param \Intaro\RetailCrm\Model\Api\Request\SmsVerification\SmsVerificationConfirmRequest $request
+     * @return \Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationConfirmResponse|null
+     */
+    protected function confirmLpVerificationBySMS(SmsVerificationConfirmRequest $request): ?SmsVerificationConfirmResponse
     {
-    /*    $parameters['phone'] = $phone;
-        $parameters['details'] = isset($details) ? $details : 0;
-        */
-        return $this->client->makeRequest(
+        $serialized = Serializer::serializeArray($request);
+        $response   = $this->client->makeRequest(
             '/verification/sms/confirm',
             Client::METHOD_POST,
-            $smsVerificationConfirm
+            $serialized
         );
+        
+        return Deserializer::deserializeArray($response->getResponseBody(), SmsVerificationConfirmResponse::class);
     }
     
-    protected function sendSmsForLpVerification(smsverificationcreate $smsVerificationCreate)
+    /**
+     * @param \Intaro\RetailCrm\Model\Api\Request\SmsVerification\SmsVerificationCreateRequest $request
+     * @return \Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationCreateResponse|null
+     */
+    protected function sendSmsForLpVerification(SmsVerificationCreateRequest $request): ?SmsVerificationCreateResponse
     {
-        return $this->client->makeRequest(
+        $serialized = Serializer::serializeArray($request);
+        $response   = $this->client->makeRequest(
             '/verification/sms/send',
             Client::METHOD_POST,
-            $smsVerificationCreate
+            $serialized
         );
+        
+        return Deserializer::deserializeArray($response->getResponseBody(), SmsVerificationCreateResponse::class);
     }
     
-    protected function checkStatusPlVerification($checkId)
+    /**
+     * @param \Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusRequest $request
+     * @return \Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusResponse|null
+     */
+    protected function checkStatusPlVerification(SmsVerificationStatusRequest $request): ?SmsVerificationStatusResponse
     {
-        return $this->client->makeRequest(
-            "/verification/sms/$checkId/status",
+        $serialized = Serializer::serializeArray($request);
+        $response   = $this->client->makeRequest(
+            "/verification/sms/$request->checkId/status",
             Client::METHOD_GET,
-            ['checkId' => $checkId]
+            $serialized
         );
+        
+        return Deserializer::deserializeArray($response->getResponseBody(), SmsVerificationStatusResponse::class);
     }
-    
 }

@@ -19,5 +19,5 @@ class SmsVerificationStatusRequest extends AbstractApiModel
      * @Mapping\Type("string")
      * @Mapping\SerializedName("checkId")
      */
-    protected $checkId;
+    public $checkId;
 }
