@@ -16,6 +16,8 @@ namespace RetailCrm;
 
 use RetailCrm\Http\Client;
 use RetailCrm\Response\ApiResponse;
+use smsverificationconfirm;
+use smsverificationcreate;
 
 /**
  * PHP version 5.3
@@ -2932,19 +2934,34 @@ class ApiClient
         return $params;
     }
     
-    protected function confirmLpVerificationBySMS()
+    protected function confirmLpVerificationBySMS(smsverificationconfirm $smsVerificationConfirm)
     {
-    
+    /*    $parameters['phone'] = $phone;
+        $parameters['details'] = isset($details) ? $details : 0;
+        */
+        return $this->client->makeRequest(
+            '/verification/sms/confirm',
+            Client::METHOD_POST,
+            $smsVerificationConfirm
+        );
     }
     
-    protected function sendSmsForLpVerification()
+    protected function sendSmsForLpVerification(smsverificationcreate $smsVerificationCreate)
     {
-    
+        return $this->client->makeRequest(
+            '/verification/sms/send',
+            Client::METHOD_POST,
+            $smsVerificationCreate
+        );
     }
     
-    protected function checkStatusPlVerification()
+    protected function checkStatusPlVerification($checkId)
     {
-    
+        return $this->client->makeRequest(
+            "/verification/sms/$checkId/status",
+            Client::METHOD_GET,
+            ['checkId' => $checkId]
+        );
     }
     
 }
