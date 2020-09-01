@@ -189,7 +189,20 @@ class RetailCrmHistory
             $historyFilter['sinceId'] = $end['id'];
         }
     }
-
+    public static function orderParsLocationDelivery($adress)
+    {
+        $loc = $adress.replace('.', '');
+        $loc = $loc.replace(',', '');
+        $loc = $loc.replace('/', '');
+        $loc = $loc.split();
+        if (count($loc) == 1 && !empty($loc[0])) {
+            return RCrmActions::fromJSON(trim($loc[0]));
+        } elseif (count($loc) == 2  && !empty($loc[1])) {
+            return RCrmActions::fromJSON(trim($loc[1]));
+        } else{
+            return [];
+        }    
+    }
     public static function orderHistory()
     {
         global $USER;
@@ -713,16 +726,9 @@ class RetailCrmHistory
                                     $order['delivery']['address'][$key] = trim($order['delivery']['address'][$key]);
                                     if(!empty($order['delivery']['address'][$key])){
                                         $parameters = array();
-                                        $locPoint = explode('.', $order['delivery']['address'][$key]);
-                                        $locComma = explode(',', $order['delivery']['address'][$key]);
-                                        if (count($locPoint) == 1) {
-                                            $parameters['filter']['PHRASE'] = RCrmActions::fromJSON(trim($locPoint[0]));
-                                        } elseif (count($locPoint) == 2) {
-                                            $parameters['filter']['PHRASE'] = RCrmActions::fromJSON(trim($locPoint[1]));
-                                        } elseif (count($locComma) == 1){
-                                            $parameters['filter']['PHRASE'] = RCrmActions::fromJSON(trim($locComma[0]));
-                                        } elseif (count($locComma) == 2){
-                                             $parameters['filter']['PHRASE'] = RCrmActions::fromJSON(trim($locComma[1]));
+                                        $loc = self::orderParsLocationDelivery($order['delivery']['address'][$key]);
+                                        if (!empty($loc)) {
+                                            $parameters['filter']['PHRASE'] = $loc;
                                         } else {
                                             RCrmActions::eventLog(
                                                 'RetailCrmHistory::orderHistory',
