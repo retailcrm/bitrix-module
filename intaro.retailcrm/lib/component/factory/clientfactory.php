@@ -11,7 +11,6 @@ use Intaro\RetailCrm\Component\ConfigProvider;
  */
 class ClientFactory
 {
-    
     /**
      * Create ClientAdapter with current data for access to CRM
      *
