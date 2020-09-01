@@ -1,12 +1,9 @@
 <?php
 
+
 namespace Intaro\RetailCrm\Model\Api;
 
-/**
- * Class SmsVerificationConfirm
- *
- * @package Intaro\RetailCrm\Model\Api
- */
+
 class SmsVerificationConfirm extends AbstractApiModel
 {
     /**
