@@ -1,9 +1,13 @@
 <?php
 
-
 namespace Intaro\RetailCrm\Model\Api;
 
+use Intaro\RetailCrm\Component\Json\Mapping;
 
+/**
+ * Class SmsVerificationCreate
+ * @package Intaro\RetailCrm\Model\Api
+ */
 class SmsVerificationCreate extends AbstractApiModel
 {
     /**

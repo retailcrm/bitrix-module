@@ -3,6 +3,7 @@
 namespace Intaro\RetailCrm\Model\Api\Response\SmsVerification;
 
 use Intaro\RetailCrm\Model\Api\AbstractApiModel;
+use Intaro\RetailCrm\Component\Json\Mapping;
 
 /**
  * Class SmsVerificationConfirmResponse

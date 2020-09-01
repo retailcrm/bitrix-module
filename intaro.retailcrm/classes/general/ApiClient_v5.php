@@ -24,8 +24,6 @@ use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusReq
 use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusResponse;
 use RetailCrm\Http\Client;
 use RetailCrm\Response\ApiResponse;
-use smsverificationconfirm;
-use smsverificationcreate;
 
 /**
  * PHP version 5.3
