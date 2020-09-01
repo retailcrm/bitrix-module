@@ -761,7 +761,7 @@ class ConfigProvider
      */
     protected static function getUnserializedOption($option, $def = 0)
     {
-        return unserialize(static::getOption($option, $def), []);
+        return unserialize(static::getOption($option, $def));
     }
 
     /**
