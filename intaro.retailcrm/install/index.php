@@ -1660,6 +1660,7 @@ class intaro_retailcrm extends CModule
                 'PAY_SYSTEM_ID' => $result->getId(),
                 'PARAMS'        => serialize(['BX_PAY_SYSTEM_ID' => $result->getId()]),
             ];
+            
             PaySystemActionTable::update($result->getId(), $updateData);
         }
     }
