@@ -7,6 +7,7 @@
  */
 global $MESS;
 
+
 use Bitrix\Main\ArgumentException;
 use Bitrix\Main\EventManager;
 use Bitrix\Main\Loader;
@@ -30,6 +31,7 @@ use Intaro\RetailCrm\Repository\OrderPropsRepository;
 use Intaro\RetailCrm\Repository\PersonTypeRepository;
 use Intaro\RetailCrm\Repository\ToModuleRepository;
 
+
 IncludeModuleLangFile(__FILE__);
 if (class_exists('intaro_retailcrm')) {
     return false;
@@ -37,6 +39,7 @@ if (class_exists('intaro_retailcrm')) {
 
 class intaro_retailcrm extends CModule
 {
+
     public const LP_ORDER_GROUP_NAME          = 'Программа лояльности';
     public const BONUS_COUNT                  = 'Количество бонусов';
     public const BONUS_PAY_SYSTEM_NAME        = 'Оплата бонусами';
@@ -165,10 +168,11 @@ class intaro_retailcrm extends CModule
         $infoSale = CModule::CreateModuleObject('sale')->MODULE_VERSION;
         if (version_compare($infoSale, '16', '<=')) {
             $APPLICATION->ThrowException(GetMessage("SALE_VERSION_ERR"));
-
+            
             return false;
         }
         
+
         if (!Loader::includeModule('sale')) {
             return false;
         }
@@ -190,7 +194,6 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../classes/general/RestNormalizer.php');
         include($this->INSTALL_PATH . '/../classes/general/Logger.php');
         include($this->INSTALL_PATH . '/../classes/general/services/RetailCrmService.php');
-
         $version = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_VERSION, 0);
         include($this->INSTALL_PATH . '/../classes/general/ApiClient_v5.php');
         include($this->INSTALL_PATH . '/../classes/general/order/RetailCrmOrder_v5.php');
@@ -226,6 +229,7 @@ class intaro_retailcrm extends CModule
             }
         }
         
+
         include($this->INSTALL_PATH . '/../lib/model/bitrix/abstractmodelproxy.php');
         include($this->INSTALL_PATH . '/../lib/model/bitrix/orderprops.php');
         include($this->INSTALL_PATH . '/../lib/model/bitrix/tomodule.php');
@@ -1014,6 +1018,8 @@ class intaro_retailcrm extends CModule
                 $dateAgent->format('d.m.Y H:i:s'), // date of first start
                 30
             );
+            
+            $this->CopyFiles();
             if (isset($_POST['LOAD_NOW'])) {
                 $loader                        = new RetailCrmICML();
                 $loader->iblocks               = $iblocks;
@@ -1707,5 +1713,4 @@ class intaro_retailcrm extends CModule
             );
         }
     }
-    
 }
