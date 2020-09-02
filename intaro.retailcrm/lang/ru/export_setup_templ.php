@@ -1,4 +1,5 @@
 <?php
+
 $MESS["CET_ERROR_NO_NAME"] = "Введите название профиля выгрузки.";
 $MESS["CET_STEP1"] = "Шаг";
 $MESS["CET_STEP2"] = "из";

@@ -1,4 +1,5 @@
 <?php
+
 $MESS ['STEP_NAME'] = 'Шаг 2';
 $MESS ['MOD_NEXT_STEP'] = 'Следующий шаг';
 $MESS ['MOD_PREV_STEP'] = 'Предыдущий шаг';

@@ -161,6 +161,7 @@ class RetailCrmOrder
 
         //basket
         foreach ($arFields['BASKET'] as $position => $product) {
+            $itemId = null;
             $externalId = $position . "_" . $product['PRODUCT_ID'];
 
             if (isset($orderItems[$externalId])) { //update

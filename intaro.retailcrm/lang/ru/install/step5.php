@@ -1,4 +1,5 @@
 <?php
+
 $MESS ['STEP_NAME'] = 'Шаг 5';
 $MESS ['MOD_NEXT_STEP'] = 'Завершить установку';
 $MESS ['MOD_PREV_STEP'] = 'Предыдущий шаг';

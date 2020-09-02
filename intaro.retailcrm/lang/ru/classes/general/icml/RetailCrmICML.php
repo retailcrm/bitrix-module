@@ -1,4 +1,5 @@
 <?php
+
 $MESS["ROOT_CATEGORY_FOR_CATALOG"] = "Корневой раздел для каталога \"%s\"";
 $MESS["PROPERTY_ARTICLE_HEADER_NAME"] = "Артикул";
 $MESS["PROPERTY_MANUFACTURER_HEADER_NAME"] = "Производитель";
