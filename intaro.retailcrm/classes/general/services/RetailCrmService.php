@@ -40,7 +40,7 @@ class RetailCrmService
                     unset($order['delivery']['data']);
                     break;
                 default:
-                    break;
+		            break;
             }
         }
         return $order;
