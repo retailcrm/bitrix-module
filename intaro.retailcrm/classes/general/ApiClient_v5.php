@@ -2941,50 +2941,43 @@ class ApiClient
     }
     
     /**
-     * @param \Intaro\RetailCrm\Model\Api\Request\SmsVerification\SmsVerificationConfirmRequest $request
-     * @return \Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationConfirmResponse|null
+     * @param array $request
+     * @return \RetailCrm\Response\ApiResponse
      */
-    protected function confirmLpVerificationBySMS(SmsVerificationConfirmRequest $request): ?SmsVerificationConfirmResponse
+    protected function confirmLpVerificationBySMS(array $request): ApiResponse
     {
-        $serialized = Serializer::serializeArray($request);
-        $response   = $this->client->makeRequest(
+        return $this->client->makeRequest(
             '/verification/sms/confirm',
             Client::METHOD_POST,
-            $serialized
+            $request
         );
-        
-        return Deserializer::deserializeArray($response->getResponseBody(), SmsVerificationConfirmResponse::class);
     }
     
     /**
-     * @param \Intaro\RetailCrm\Model\Api\Request\SmsVerification\SmsVerificationCreateRequest $request
-     * @return \Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationCreateResponse|null
+     * @param array $request
+     * @return \RetailCrm\Response\ApiResponse
      */
-    protected function sendSmsForLpVerification(SmsVerificationCreateRequest $request): ?SmsVerificationCreateResponse
+    protected function sendSmsForLpVerification(array $request): ApiResponse
     {
-        $serialized = Serializer::serializeArray($request);
-        $response   = $this->client->makeRequest(
+        return $this->client->makeRequest(
             '/verification/sms/send',
             Client::METHOD_POST,
-            $serialized
+            $request
         );
-        
-        return Deserializer::deserializeArray($response->getResponseBody(), SmsVerificationCreateResponse::class);
     }
     
     /**
-     * @param \Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusRequest $request
-     * @return \Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusResponse|null
+     * @param array $request
+     * @param int   $checkId
+     * @return \RetailCrm\Response\ApiResponse
      */
-    protected function checkStatusPlVerification(SmsVerificationStatusRequest $request): ?SmsVerificationStatusResponse
+    protected function checkStatusPlVerification(array $request, int $checkId): ApiResponse
     {
-        $serialized = Serializer::serializeArray($request);
-        $response   = $this->client->makeRequest(
-            "/verification/sms/$request->checkId/status",
+        return $this->client->makeRequest(
+            "/verification/sms/$checkId/status",
             Client::METHOD_GET,
-            $serialized
+            $request
         );
         
-        return Deserializer::deserializeArray($response->getResponseBody(), SmsVerificationStatusResponse::class);
     }
 }
