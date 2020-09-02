@@ -591,7 +591,12 @@ class intaro_retailcrm extends CModule
                 } else {
                     $finish = (int)$_POST['finish'];
                 }
-                $percent = round(100 - ($countLeft * 100 / $countAll), 1);
+
+                if (!$countAll) {
+                    $percent = 100;
+                } else {
+                    $percent = round(100 - ($countLeft * 100 / $countAll), 1);
+                }
 
                 if (!$countLeft) {
                     $finish = 1;
