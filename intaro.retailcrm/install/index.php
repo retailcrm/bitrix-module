@@ -54,6 +54,7 @@ class intaro_retailcrm extends CModule
         ['EVENT_NAME' => 'OnSaleOrderDeleted', 'FROM_MODULE' => 'sale'],
         ['EVENT_NAME' => 'OnSaleComponentOrderOneStepProcess', 'FROM_MODULE' => 'sale'],
     ];
+
     public const V5 = 'v5';
     public $MODULE_ID           = 'intaro.retailcrm';
     public $OLD_MODULE_ID       = 'intaro.intarocrm';
@@ -220,6 +221,26 @@ class intaro_retailcrm extends CModule
                 }
                 unset($type);
             }
+        }
+
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/abstractmodelproxy.php');
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/orderprops.php');
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/tomodule.php');
+        include($this->INSTALL_PATH . '/../lib/repository/abstractrepository.php');
+        include($this->INSTALL_PATH . '/../lib/repository/orderpropsrepository.php');
+        include($this->INSTALL_PATH . '/../lib/repository/persontyperepository.php');
+        include($this->INSTALL_PATH . '/../lib/repository/tomodulerepository.php');
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/orm/tomodule.php');
+      
+        $this->CopyFiles();
+        $this->addBonusPaySystem();
+        $this->addLPUserFields();
+        $this->addLPEvents();
+        
+        try {
+            $this->addLPOrderProps();
+        } catch (ObjectPropertyException | ArgumentException | SystemException $e) {
+            return false;
         }
 
         include($this->INSTALL_PATH . '/../lib/model/bitrix/abstractmodelproxy.php');
@@ -1292,7 +1313,7 @@ class intaro_retailcrm extends CModule
     
     public function CopyFiles(): void
     {
-        $pathFrom      = $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install';
+        $pathFrom = $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install';
     
         CopyDirFiles(
             $pathFrom . '/export',

@@ -260,7 +260,7 @@ class RCrmActions
     public static function fromJSON($str)
     {
         /** @var \Intaro\RetailCrm\Service\Utils $utils */
-        $utils = ServiceLocator::get(\Intaro\RetailCrm\Service\Utils::class);
+        $utils = ServiceLocator::getOrCreate(\Intaro\RetailCrm\Service\Utils::class);
         return $utils->fromUTF8($str);
     }
 
