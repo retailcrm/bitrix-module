@@ -20,6 +20,10 @@ use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationCreateRes
 use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusRequest;
 use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusResponse;
 
+/**
+ * Trait LoyaltyTrait
+ * @package Intaro\RetailCrm\Component\ApiClient\Traits
+ */
 trait LoyaltyTrait
 {
     /**

@@ -2970,6 +2970,5 @@ class ApiClient
             Client::METHOD_GET,
             $request
         );
-        
     }
 }
