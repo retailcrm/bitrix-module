@@ -2925,4 +2925,44 @@ class ApiClient
 
         return $params;
     }
+    
+    /**
+     * @param array $request
+     * @return \RetailCrm\Response\ApiResponse
+     */
+    protected function confirmLpVerificationBySMS(array $request): ApiResponse
+    {
+        return $this->client->makeRequest(
+            '/verification/sms/confirm',
+            Client::METHOD_POST,
+            $request
+        );
+    }
+    
+    /**
+     * @param array $request
+     * @return \RetailCrm\Response\ApiResponse
+     */
+    protected function sendSmsForLpVerification(array $request): ApiResponse
+    {
+        return $this->client->makeRequest(
+            '/verification/sms/send',
+            Client::METHOD_POST,
+            $request
+        );
+    }
+    
+    /**
+     * @param array $request
+     * @param int   $checkId
+     * @return \RetailCrm\Response\ApiResponse
+     */
+    protected function checkStatusPlVerification(array $request, int $checkId): ApiResponse
+    {
+        return $this->client->makeRequest(
+            "/verification/sms/$checkId/status",
+            Client::METHOD_GET,
+            $request
+        );
+    }
 }
