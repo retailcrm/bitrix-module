@@ -13,6 +13,7 @@ namespace Intaro\RetailCrm\Component\ApiClient;
 
 use Intaro\RetailCrm\Component\ApiClient\Traits\CustomersCorporateTrait;
 use Intaro\RetailCrm\Component\ApiClient\Traits\CustomersTrait;
+use Intaro\RetailCrm\Component\ApiClient\Traits\LoyaltyTrait;
 use RetailCrm\Response\ApiResponse;
 
 /**
@@ -102,6 +103,7 @@ class ClientAdapter
 {
     use CustomersTrait;
     use CustomersCorporateTrait;
+    use LoyaltyTrait;
 
     /** @var string */
     public const ID = 'id';
