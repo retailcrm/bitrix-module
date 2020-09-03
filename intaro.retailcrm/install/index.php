@@ -243,6 +243,26 @@ class intaro_retailcrm extends CModule
             return false;
         }
 
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/abstractmodelproxy.php');
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/orderprops.php');
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/tomodule.php');
+        include($this->INSTALL_PATH . '/../lib/repository/abstractrepository.php');
+        include($this->INSTALL_PATH . '/../lib/repository/orderpropsrepository.php');
+        include($this->INSTALL_PATH . '/../lib/repository/persontyperepository.php');
+        include($this->INSTALL_PATH . '/../lib/repository/tomodulerepository.php');
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/orm/tomodule.php');
+      
+        $this->CopyFiles();
+        $this->addBonusPaySystem();
+        $this->addLPUserFields();
+        $this->addLPEvents();
+        
+        try {
+            $this->addLPOrderProps();
+        } catch (ObjectPropertyException | ArgumentException | SystemException $e) {
+            return false;
+        }
+
         if ($step == 11) {
             $arResult['arSites'] = RCrmActions::SitesList();
             if (count($arResult['arSites']) < 2) {
@@ -1710,4 +1730,5 @@ class intaro_retailcrm extends CModule
             );
         }
     }
+    
 }
