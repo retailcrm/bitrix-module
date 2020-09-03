@@ -103,7 +103,7 @@ class ConfigProvider
     
     /** @var bool|null|string $loyaltyProgramStatus */
     protected static $loyaltyProgramStatus;
-    
+
     /**
      * @return bool|string|null
      */

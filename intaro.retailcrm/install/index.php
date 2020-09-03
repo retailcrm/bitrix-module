@@ -7,7 +7,6 @@
  */
 global $MESS;
 
-
 use Bitrix\Main\ArgumentException;
 use Bitrix\Main\EventManager;
 use Bitrix\Main\Loader;
@@ -31,7 +30,6 @@ use Intaro\RetailCrm\Repository\OrderPropsRepository;
 use Intaro\RetailCrm\Repository\PersonTypeRepository;
 use Intaro\RetailCrm\Repository\ToModuleRepository;
 
-
 IncludeModuleLangFile(__FILE__);
 if (class_exists('intaro_retailcrm')) {
     return false;
@@ -39,7 +37,6 @@ if (class_exists('intaro_retailcrm')) {
 
 class intaro_retailcrm extends CModule
 {
-
     public const LP_ORDER_GROUP_NAME          = 'Программа лояльности';
     public const BONUS_COUNT                  = 'Количество бонусов';
     public const BONUS_PAY_SYSTEM_NAME        = 'Оплата бонусами';
@@ -60,6 +57,7 @@ class intaro_retailcrm extends CModule
         ['EVENT_NAME' => 'OnSaleOrderDeleted', 'FROM_MODULE' => 'sale'],
         ['EVENT_NAME' => 'OnSaleComponentOrderOneStepProcess', 'FROM_MODULE' => 'sale'],
     ];
+
     public const V5 = 'v5';
     public $MODULE_ID           = 'intaro.retailcrm';
     public $OLD_MODULE_ID       = 'intaro.intarocrm';
@@ -229,6 +227,26 @@ class intaro_retailcrm extends CModule
             }
         }
         
+
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/abstractmodelproxy.php');
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/orderprops.php');
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/tomodule.php');
+        include($this->INSTALL_PATH . '/../lib/repository/abstractrepository.php');
+        include($this->INSTALL_PATH . '/../lib/repository/orderpropsrepository.php');
+        include($this->INSTALL_PATH . '/../lib/repository/persontyperepository.php');
+        include($this->INSTALL_PATH . '/../lib/repository/tomodulerepository.php');
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/orm/tomodule.php');
+      
+        $this->CopyFiles();
+        $this->addBonusPaySystem();
+        $this->addLPUserFields();
+        $this->addLPEvents();
+        
+        try {
+            $this->addLPOrderProps();
+        } catch (ObjectPropertyException | ArgumentException | SystemException $e) {
+            return false;
+        }
 
         include($this->INSTALL_PATH . '/../lib/model/bitrix/abstractmodelproxy.php');
         include($this->INSTALL_PATH . '/../lib/model/bitrix/orderprops.php');
@@ -657,11 +675,17 @@ class intaro_retailcrm extends CModule
                 } else {
                     $finish = (int)$_POST['finish'];
                 }
-                $percent = round(100 - ($countLeft * 100 / $countAll), 1);
-                
+
+                if (!$countAll) {
+                    $percent = 100;
+                } else {
+                    $percent = round(100 - ($countLeft * 100 / $countAll), 1);
+                }
+
                 if (!$countLeft) {
                     $finish = 1;
                 }
+              
                 $APPLICATION->RestartBuffer();
                 header('Content-Type: application/x-javascript; charset=' . LANG_CHARSET);
                 die(json_encode(["finish" => $finish, "percent" => $percent]));
@@ -1020,6 +1044,7 @@ class intaro_retailcrm extends CModule
             );
             
             $this->CopyFiles();
+
             if (isset($_POST['LOAD_NOW'])) {
                 $loader                        = new RetailCrmICML();
                 $loader->iblocks               = $iblocks;
@@ -1293,7 +1318,7 @@ class intaro_retailcrm extends CModule
     
     public function CopyFiles(): void
     {
-        $pathFrom      = $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install';
+        $pathFrom = $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install';
     
         CopyDirFiles(
             $pathFrom . '/export',
@@ -1713,4 +1738,5 @@ class intaro_retailcrm extends CModule
             );
         }
     }
+    
 }
