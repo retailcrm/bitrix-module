@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 
 class ClientFactoryTest extends TestCase
 {
-    public function testCreacteClientAdapter(): void
+    public function testCreateClientAdapter(): void
     {
         $client = ClientFactory::createClientAdapter();
     
