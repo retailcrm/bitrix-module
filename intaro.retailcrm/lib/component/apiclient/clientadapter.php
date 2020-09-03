@@ -19,6 +19,7 @@ use Intaro\RetailCrm\Component\Json\Deserializer;
 use Intaro\RetailCrm\Model\Api\Response\Settings\CredentialsResponse;
 use Intaro\RetailCrm\Component\ApiClient\Traits\CustomersCorporateTrait;
 use Intaro\RetailCrm\Component\ApiClient\Traits\CustomersTrait;
+use Intaro\RetailCrm\Component\ApiClient\Traits\LoyaltyTrait;
 use RetailCrm\Response\ApiResponse;
 
 /**

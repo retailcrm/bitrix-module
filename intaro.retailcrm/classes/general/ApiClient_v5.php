@@ -53,10 +53,10 @@ class ApiClient
 
         $versionedUrl = $url . 'api/' . self::VERSION;
         $unversionedUrl = $url . 'api';
-        
+
         $this->client = new Client($versionedUrl, array('apiKey' => $apiKey));
         $this->siteCode = $site;
-        
+
         $this->unversionedClient = new Client($unversionedUrl, ['apiKey' => $apiKey]);
     }
 
@@ -608,7 +608,7 @@ class ApiClient
             $this->fillSite($site, $parameters)
         );
     }
-    
+
     /**
      * Create corporate customer address
      *
@@ -2912,7 +2912,7 @@ class ApiClient
 
         return true;
     }
-    
+
     /**
      * Fill params by site value
      *
@@ -2931,7 +2931,7 @@ class ApiClient
 
         return $params;
     }
-    
+
     /**
      * @param array $request
      * @param int   $checkId
@@ -2945,7 +2945,7 @@ class ApiClient
             $request
         );
     }
-    
+
     /**
      * @param array $request
      * @return \RetailCrm\Response\ApiResponse
@@ -2962,7 +2962,7 @@ class ApiClient
             ]
         );
     }
-    
+
     /**
      * @param array $request
      * @return \RetailCrm\Response\ApiResponse
@@ -2978,7 +2978,7 @@ class ApiClient
             ]
         );
     }
-    
+
     /**
      * @return \RetailCrm\Response\ApiResponse
      */
@@ -2989,7 +2989,7 @@ class ApiClient
             Client::METHOD_GET
         );
     }
-    
+
     /**
      * @param array $request
      * @return \RetailCrm\Response\ApiResponse
@@ -3005,7 +3005,7 @@ class ApiClient
             ]
         );
     }
-    
+
     /**
      * @param int $loyaltyId
      * @return \RetailCrm\Response\ApiResponse
@@ -3017,7 +3017,7 @@ class ApiClient
             Client::METHOD_POST
         );
     }
-    
+
     /**
      * @param array $request
      * @return \RetailCrm\Response\ApiResponse
@@ -3032,7 +3032,7 @@ class ApiClient
             ]
         );
     }
-    
+
     /**
      * @param array $request
      * @return \RetailCrm\Response\ApiResponse
@@ -3042,6 +3042,32 @@ class ApiClient
         return $this->client->makeRequest(
             "/loyalty/accounts",
             Client::METHOD_GET,
+            $request
+        );
+    }
+
+    /**
+     * @param array $request
+     * @return \RetailCrm\Response\ApiResponse
+     */
+    protected function confirmLpVerificationBySMS(array $request): ApiResponse
+    {
+        return $this->client->makeRequest(
+            '/verification/sms/confirm',
+            Client::METHOD_POST,
+            $request
+        );
+    }
+
+    /**
+     * @param array $request
+     * @return \RetailCrm\Response\ApiResponse
+     */
+    protected function sendSmsForLpVerification(array $request): ApiResponse
+    {
+        return $this->client->makeRequest(
+            '/verification/sms/send',
+            Client::METHOD_POST,
             $request
         );
     }
