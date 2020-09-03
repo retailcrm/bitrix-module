@@ -169,6 +169,7 @@ class intaro_retailcrm extends CModule
             
             return false;
         }
+        
 
         if (!Loader::includeModule('sale')) {
             return false;
@@ -179,7 +180,7 @@ class intaro_retailcrm extends CModule
             
             return false;
         }
-
+        
         include($this->INSTALL_PATH . '/../classes/general/Http/Client.php');
         include($this->INSTALL_PATH . '/../classes/general/Response/ApiResponse.php');
         include($this->INSTALL_PATH . '/../classes/general/RCrmActions.php');
@@ -191,7 +192,6 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../classes/general/RestNormalizer.php');
         include($this->INSTALL_PATH . '/../classes/general/Logger.php');
         include($this->INSTALL_PATH . '/../classes/general/services/RetailCrmService.php');
-
         $version = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_VERSION, 0);
         include($this->INSTALL_PATH . '/../classes/general/ApiClient_v5.php');
         include($this->INSTALL_PATH . '/../classes/general/order/RetailCrmOrder_v5.php');
@@ -225,6 +225,27 @@ class intaro_retailcrm extends CModule
                 }
                 unset($type);
             }
+        }
+        
+
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/abstractmodelproxy.php');
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/orderprops.php');
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/tomodule.php');
+        include($this->INSTALL_PATH . '/../lib/repository/abstractrepository.php');
+        include($this->INSTALL_PATH . '/../lib/repository/orderpropsrepository.php');
+        include($this->INSTALL_PATH . '/../lib/repository/persontyperepository.php');
+        include($this->INSTALL_PATH . '/../lib/repository/tomodulerepository.php');
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/orm/tomodule.php');
+      
+        $this->CopyFiles();
+        $this->addBonusPaySystem();
+        $this->addLPUserFields();
+        $this->addLPEvents();
+        
+        try {
+            $this->addLPOrderProps();
+        } catch (ObjectPropertyException | ArgumentException | SystemException $e) {
+            return false;
         }
 
         include($this->INSTALL_PATH . '/../lib/model/bitrix/abstractmodelproxy.php');
@@ -664,6 +685,7 @@ class intaro_retailcrm extends CModule
                 if (!$countLeft) {
                     $finish = 1;
                 }
+              
                 $APPLICATION->RestartBuffer();
                 header('Content-Type: application/x-javascript; charset=' . LANG_CHARSET);
                 die(json_encode(["finish" => $finish, "percent" => $percent]));
@@ -1020,7 +1042,7 @@ class intaro_retailcrm extends CModule
                 $dateAgent->format('d.m.Y H:i:s'), // date of first start
                 30
             );
-
+            
             $this->CopyFiles();
 
             if (isset($_POST['LOAD_NOW'])) {
