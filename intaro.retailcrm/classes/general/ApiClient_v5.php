@@ -14,14 +14,6 @@
 
 namespace RetailCrm;
 
-use Intaro\RetailCrm\Component\Json\Deserializer;
-use Intaro\RetailCrm\Component\Json\Serializer;
-use Intaro\RetailCrm\Model\Api\Request\SmsVerification\SmsVerificationConfirmRequest;
-use Intaro\RetailCrm\Model\Api\Request\SmsVerification\SmsVerificationCreateRequest;
-use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationConfirmResponse;
-use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationCreateResponse;
-use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusRequest;
-use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusResponse;
 use RetailCrm\Http\Client;
 use RetailCrm\Response\ApiResponse;
 

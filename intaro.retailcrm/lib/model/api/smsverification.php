@@ -1,13 +1,24 @@
 <?php
-
-
+/**
+ * PHP version 7.1
+ *
+ * @category Integration
+ * @package  Intaro\RetailCrm\Model\Api
+ * @author   retailCRM <integration@retailcrm.ru>
+ * @license  MIT
+ * @link     http://retailcrm.ru
+ * @see      http://retailcrm.ru/docs
+ */
 namespace Intaro\RetailCrm\Model\Api;
 
-
+/**
+ * Class SmsVerification
+ * @package Intaro\RetailCrm\Model\Api
+ */
 class SmsVerification extends AbstractApiModel
 {
     /**
-     *    Дата создания. (Y-m-d H:i:s)
+     * Дата создания. (Y-m-d H:i:s)
      *
      * @var \DateTime
      *
@@ -17,7 +28,8 @@ class SmsVerification extends AbstractApiModel
     public $createdAt;
     
     /**
-     *    Дата окончания срока жизни. (Y-m-d H:i:s)
+     * Дата окончания срока жизни. (Y-m-d H:i:s)
+     *
      * @var \DateTime
      *
      * @Mapping\Type("DateTime<'Y-m-d H:i:s'>")
@@ -27,6 +39,7 @@ class SmsVerification extends AbstractApiModel
     
     /**
      * Дата успешной верификации. (Y-m-d H:i:s)
+     *
      * @var \DateTime
      *
      * @Mapping\Type("DateTime<'Y-m-d H:i:s'>")

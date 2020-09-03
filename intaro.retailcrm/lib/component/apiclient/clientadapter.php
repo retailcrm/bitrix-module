@@ -14,9 +14,6 @@ namespace Intaro\RetailCrm\Component\ApiClient;
 use Intaro\RetailCrm\Component\ApiClient\Traits\CustomersCorporateTrait;
 use Intaro\RetailCrm\Component\ApiClient\Traits\CustomersTrait;
 use Intaro\RetailCrm\Component\ApiClient\Traits\LoyaltyTrait;
-use Intaro\RetailCrm\Model\Api\Request\SmsVerification\SmsVerificationConfirmRequest;
-use Intaro\RetailCrm\Model\Api\Request\SmsVerification\SmsVerificationCreateRequest;
-use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusRequest;
 use RetailCrm\Response\ApiResponse;
 
 /**
@@ -101,9 +98,6 @@ use RetailCrm\Response\ApiResponse;
  * @method ApiResponse statisticUpdate()
  * @method ApiResponse getSite()
  * @method ApiResponse setSite($site)
- * @method ApiResponse confirmLpVerificationBySMS(SmsVerificationConfirmRequest $request)
- * @method ApiResponse sendSmsForLpVerification(SmsVerificationCreateRequest $request)
- * @method ApiResponse checkStatusPlVerification(SmsVerificationStatusRequest $request)
  */
 class ClientAdapter
 {

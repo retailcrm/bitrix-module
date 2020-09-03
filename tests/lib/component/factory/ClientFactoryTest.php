@@ -1,5 +1,4 @@
 <?php
-
 namespace Tests\Intaro\RetailCrm\Component\Factory;
 
 use Bitrix\Main\Config\Option;
@@ -13,9 +12,10 @@ class ClientFactoryTest extends TestCase
     public function testCreacteClientAdapter(): void
     {
         $client = ClientFactory::creacteClientAdapter();
+    
         if (empty(ConfigProvider::getApiUrl())) {
             self::assertEquals(null, $client);
-        }else{
+        } else {
             self::assertEquals(ClientAdapter::class, get_class($client));
         }
     }
