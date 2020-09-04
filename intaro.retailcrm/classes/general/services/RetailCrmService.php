@@ -12,28 +12,37 @@ class RetailCrmService
                     unset($order['height']);
                     unset($order['length']);
                     unset($order['width']);
+                    unset($order['weight']);
+                    unset($order['phone']);
+                    unset($order['delivery']['cost']);
+                    unset($order['shipmentStore']);
+                    unset($order['delivery']['address']);
+                    unset($order['delivery']['data']);
                     break;
                 case "dpd":
                     unset($order['manager']);
                     unset($order['firstName']);
                     unset($order['lastName']);
+                    unset($order['weight']);
+                    unset($order['phone']);
+                    unset($order['delivery']['cost']);
+                    unset($order['shipmentStore']);
+                    unset($order['delivery']['address']);
+                    unset($order['delivery']['data']);
                     break;
                 case "newpost":
                     unset($order['customer']);
+                    unset($order['weight']);
+                    unset($order['phone']);
+                    unset($order['delivery']['cost']);
+                    unset($order['shipmentStore']);
+                    unset($order['delivery']['address']);
+                    unset($order['delivery']['data']);
                     break;
                 default:
-                    unset($order['firstName']);
-                    unset($order['lastName']);
+                    break;
             }
-
-            unset($order['weight']);
-            unset($order['phone']);
-            unset($order['delivery']['cost']);
-            unset($order['shipmentStore']);
-            unset($order['delivery']['address']);
-            unset($order['delivery']['data']);
         }
-
         return $order;
     }
 }
