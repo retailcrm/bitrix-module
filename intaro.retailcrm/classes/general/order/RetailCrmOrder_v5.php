@@ -526,8 +526,12 @@ class RetailCrmOrder
                 return $uploaded;
             };
 
-            if (false === $uploadItems($resCustomers, 'customersUpload')) {
-                return false;
+            $chunkCustomers = array_chunk($resCustomers[$order['LID']], 50, true);
+            foreach ($chunkCustomers as $user) {
+                $arUser[$order['LID']] = $user;
+                if (false === $uploadItems($arUser, 'customersUpload')) {
+                    return false;
+                }
             }
 
             if ("Y" == RetailcrmConfigProvider::getCorporateClientStatus()) {
