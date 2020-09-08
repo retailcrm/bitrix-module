@@ -195,7 +195,7 @@ class RetailCrmEvent
 
         $orderCompany = null;
 
-        if ("Y" == $optionCorpClient && $optionsContragentType[$arOrder['PERSON_TYPE_ID']] == 'legal-entity') {
+        if ("Y" === $optionCorpClient && $optionsContragentType[$arOrder['PERSON_TYPE_ID']] == 'legal-entity') {
             //corparate cliente
             $nickName = '';
             $address = '';
