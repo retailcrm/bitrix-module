@@ -39,6 +39,12 @@ class RetailCrmService
                     unset($order['delivery']['address']);
                     unset($order['delivery']['data']);
                     break;
+                case "boxberry":
+                    unset($order['firstName']);
+                    unset($order['lastName']);
+                    unset($order['delivery']['address']);
+                    unset($order['delivery']['cost']);
+                    break;
                 default:
                     break;
             }
