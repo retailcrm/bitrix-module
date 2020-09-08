@@ -732,6 +732,12 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             "TAB" => GetMessage('OTHER_OPTIONS'),
             "ICON" => '',
             "TITLE" => GetMessage('ICRM_OPTIONS_ORDER_DISCHARGE_CAPTION')
+        ),
+        array(
+            "DIV" => "edit5",
+            "TAB" => GetMessage('UPLOAD_ORDERS_OPTIONS'),
+            "ICON" => '',
+            "TITLE" => GetMessage('ORDER_UPLOAD'),
         )
     );
     $tabControl = new CAdminTabControl("tabControl", $aTabs);
@@ -1478,175 +1484,172 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                 </td>
             </tr>
         <?php endif;?>
+
+        <?php //manual order upload?>
+        <?php $tabControl->BeginNextTab(); ?>
+
+            <style type="text/css">
+                .instal-load-label {
+                    color: #000;
+                    margin-bottom: 15px;
+                }
+
+                .instal-progress-bar-outer {
+                    height: 32px;
+                    border:1px solid;
+                    border-color:#9ba6a8 #b1bbbe #bbc5c9 #b1bbbe;
+                    -webkit-box-shadow: 1px 1px 0 #fff, inset 0 2px 2px #c0cbce;
+                    box-shadow: 1px 1px 0 #fff, inset 0 2px 2px #c0cbce;
+                    background-color:#cdd8da;
+                    background-image:-webkit-linear-gradient(top, #cdd8da, #c3ced1);
+                    background-image:-moz-linear-gradient(top, #cdd8da, #c3ced1);
+                    background-image:-ms-linear-gradient(top, #cdd8da, #c3ced1);
+                    background-image:-o-linear-gradient(top, #cdd8da, #c3ced1);
+                    background-image:linear-gradient(top, #ced9db, #c3ced1);
+                    border-radius: 2px;
+                    text-align: center;
+                    color: #6a808e;
+                    text-shadow: 0 1px rgba(255,255,255,0.85);
+                    font-size: 18px;
+                    line-height: 35px;
+                    font-weight: bold;
+                }
+
+                .instal-progress-bar-alignment {
+                    height: 28px;
+                    margin: 0;
+                    position: relative;
+                }
+
+                .instal-progress-bar-inner {
+                    height: 28px;
+                    border-radius: 2px;
+                    border-top: solid 1px #52b9df;
+                    background-color:#2396ce;
+                    background-image:-webkit-linear-gradient(top, #27a8d7, #2396ce, #1c79c0);
+                    background-image:-moz-linear-gradient(top, #27a8d7, #2396ce, #1c79c0);
+                    background-image:-ms-linear-gradient(top, #27a8d7, #2396ce, #1c79c0);
+                    background-image:-o-linear-gradient(top, #27a8d7, #2396ce, #1c79c0);
+                    background-image:linear-gradient(top, #27a8d7, #2396ce, #1c79c0);
+                    position: absolute;
+                    overflow: hidden;
+                    top: 1px;
+                    left:0;
+                }
+
+                .instal-progress-bar-inner-text {
+                    color: #fff;
+                    text-shadow: 0 1px rgba(0,0,0,0.2);
+                    font-size: 18px;
+                    line-height: 32px;
+                    font-weight: bold;
+                    text-align: center;
+                    position: absolute;
+                    left: -2px;
+                    top: -2px;
+                }
+
+                .order-upload-button{
+                    padding: 1px 13px 2px;
+                    height:28px;
+                }
+
+                .order-upload-button div{
+                    float:right;
+                    position:relative;
+                    visible: none;
+                }
+            </style>
+
+            <script type="text/javascript">
+                $(document).ready(function() {
+                    $('#percent').width($('.instal-progress-bar-outer').width());
+
+                    $(window).resize(function(){ // strechin progress bar
+                        $('#percent').width($('.instal-progress-bar-outer').width());
+                    });
+
+                    // orderUpload function
+                    function orderUpload() {
+
+                        var handlerUrl = $('#upload-orders').attr('action');
+                        var step       = $('input[name="step"]').val();
+                        var orders     = $('input[name="orders"]').val();
+                        var data = 'orders=' + orders + '&step=' + step + '&ajax=2';
+
+                        // ajax request
+                        $.ajax({
+                            type: 'POST',
+                            url: handlerUrl,
+                            data: data,
+                            dataType: 'json',
+                            success: function(response) {
+                                $('input[name="step"]').val(response.step);
+                                if(response.step == 'end'){
+                                    $('input[name="step"]').val(0);
+                                    BX.closeWait();
+                                }
+                                else{
+                                    orderUpload();
+                                }
+
+                                $('#indicator').css('width', response.percent + '%');
+                                $('#percent').html(response.percent + '%');
+                                $('#percent2').html(response.percent + '%');
+
+                            },
+                            error: function () {
+                                BX.closeWait();
+                                $('#status').text('<?php echo GetMessage('MESS_4'); ?>');
+
+                                alert('<?php echo GetMessage('MESS_5'); ?>');
+                            }
+                        });
+                    }
+
+                    $('input[name="start"]').live('click', function() {
+                        BX.showWait();
+                        $('#indicator').css('width', 0);
+                        $('#percent2').html('0%');
+                        $('#percent').css('width', '100%');
+
+                        orderUpload();
+
+                        return false;
+                    });
+                });
+            </script>
+
+            <form id="upload-orders" action="<?php echo $uri; ?>" method="POST">
+                <input type="hidden" name="step" value="0">
+                <div>
+                    <?php echo GetMessage('ORDER_NUMBER'); ?>
+                    <input id="order-nombers" style="width:86%" type="text" value="" name="orders">
+                </div>
+                <br>
+                <div class="instal-load-block" id="result">
+                    <div class="instal-load-label" id="status"><?php echo GetMessage('ORDER_UPLOAD_INFO'); ?></div>
+
+                    <div class="instal-progress-bar-outer">
+                        <div class="instal-progress-bar-alignment" style="width: 100%;">
+                            <div class="instal-progress-bar-inner" id="indicator" style="width: 0%;">
+                                <div class="instal-progress-bar-inner-text" style="width: 100%;" id="percent">0%</div>
+                            </div>
+                            <span id="percent2">0%</span>
+                        </div>
+                    </div>
+                </div>
+                <br />
+                <div class="order-upload-button">
+                    <div align="left">
+                        <input type="submit" name="start" value="<?php echo GetMessage('ORDER_UPL_START'); ?>" class="adm-btn-save">
+                    </div>
+                </div>
+            </form>
+
         <?php $tabControl->Buttons(); ?>
         <input type="hidden" name="Update" value="Y" />
         <input type="submit" title="<?php echo GetMessage('ICRM_OPTIONS_SUBMIT_TITLE'); ?>" value="<?php echo GetMessage('ICRM_OPTIONS_SUBMIT_VALUE'); ?>" name="btn-update" class="adm-btn-save" />
         <?php $tabControl->End(); ?>
     </form>
 <?php } ?>
-
-<?php //order upload?>
-<?php if($_GET['upl'] == 1){?>
-    <style type="text/css">
-        .instal-load-label {
-            color: #000;
-            margin-bottom: 15px;
-        }
-
-        .instal-progress-bar-outer {
-            height: 32px;
-            border:1px solid;
-            border-color:#9ba6a8 #b1bbbe #bbc5c9 #b1bbbe;
-            -webkit-box-shadow: 1px 1px 0 #fff, inset 0 2px 2px #c0cbce;
-            box-shadow: 1px 1px 0 #fff, inset 0 2px 2px #c0cbce;
-            background-color:#cdd8da;
-            background-image:-webkit-linear-gradient(top, #cdd8da, #c3ced1);
-            background-image:-moz-linear-gradient(top, #cdd8da, #c3ced1);
-            background-image:-ms-linear-gradient(top, #cdd8da, #c3ced1);
-            background-image:-o-linear-gradient(top, #cdd8da, #c3ced1);
-            background-image:linear-gradient(top, #ced9db, #c3ced1);
-            border-radius: 2px;
-            text-align: center;
-            color: #6a808e;
-            text-shadow: 0 1px rgba(255,255,255,0.85);
-            font-size: 18px;
-            line-height: 35px;
-            font-weight: bold;
-        }
-
-        .instal-progress-bar-alignment {
-            height: 28px;
-            margin: 0;
-            position: relative;
-        }
-
-        .instal-progress-bar-inner {
-            height: 28px;
-            border-radius: 2px;
-            border-top: solid 1px #52b9df;
-            background-color:#2396ce;
-            background-image:-webkit-linear-gradient(top, #27a8d7, #2396ce, #1c79c0);
-            background-image:-moz-linear-gradient(top, #27a8d7, #2396ce, #1c79c0);
-            background-image:-ms-linear-gradient(top, #27a8d7, #2396ce, #1c79c0);
-            background-image:-o-linear-gradient(top, #27a8d7, #2396ce, #1c79c0);
-            background-image:linear-gradient(top, #27a8d7, #2396ce, #1c79c0);
-            position: absolute;
-            overflow: hidden;
-            top: 1px;
-            left:0;
-        }
-
-        .instal-progress-bar-inner-text {
-            color: #fff;
-            text-shadow: 0 1px rgba(0,0,0,0.2);
-            font-size: 18px;
-            line-height: 32px;
-            font-weight: bold;
-            text-align: center;
-            position: absolute;
-            left: -2px;
-            top: -2px;
-        }
-
-        .order-upload-button{
-            padding: 1px 13px 2px;
-            height:28px;
-        }
-
-        .order-upload-button div{
-            float:right;
-            position:relative;
-            visible: none;
-        }
-    </style>
-
-    <script type="text/javascript">
-        $(document).ready(function() {
-            $('#percent').width($('.instal-progress-bar-outer').width());
-
-            $(window).resize(function(){ // strechin progress bar
-                $('#percent').width($('.instal-progress-bar-outer').width());
-            });
-
-            // orderUpload function
-            function orderUpload() {
-
-                var handlerUrl = $('#upload-orders').attr('action');
-                var step       = $('input[name="step"]').val();
-                var orders     = $('input[name="orders"]').val();
-                var data = 'orders=' + orders + '&step=' + step + '&ajax=2';
-
-                // ajax request
-                $.ajax({
-                    type: 'POST',
-                    url: handlerUrl,
-                    data: data,
-                    dataType: 'json',
-                    success: function(response) {
-                        $('input[name="step"]').val(response.step);
-                        if(response.step == 'end'){
-                            $('input[name="step"]').val(0);
-                            BX.closeWait();
-                        }
-                        else{
-                            orderUpload();
-                        }
-                        $('#indicator').css('width', response.percent + '%');
-                        $('#percent').html(response.percent + '%');
-                        $('#percent2').html(response.percent + '%');
-
-                    },
-                    error: function () {
-                        BX.closeWait();
-                        $('#status').text('<?php echo GetMessage('MESS_4'); ?>');
-
-                        alert('<?php echo GetMessage('MESS_5'); ?>');
-                    }
-                });
-            }
-
-            $('input[name="start"]').live('click', function() {
-                BX.showWait();
-                $('#indicator').css('width', 0);
-                $('#percent2').html('0%');
-                orderUpload();
-
-                return false;
-            });
-        });
-    </script>
-    <br>
-    <form id="upload-orders" action="<?php echo $uri; ?>" method="POST">
-        <input type="hidden" name="step" value="0">
-        <div class="adm-detail-content-item-block">
-            <table class="adm-detail-content-table edit-table" id="edit1_edit_table">
-                <tbody>
-                <tr class="heading">
-                    <td colspan="2"><b><?php echo GetMessage('ORDER_UPLOAD'); ?></b></td>
-                </tr>
-                <tr>
-                    <td class="adm-detail-content-cell-r"><?php echo GetMessage('ORDER_NUMBER'); ?> <input id="order-nombers" style="width:86%" type="text" value="" name="orders"></td>
-                </tr>
-                </tbody>
-            </table>
-            <div class="instal-load-block" id="result">
-                <div class="instal-load-label" id="status"><?php echo GetMessage('ORDER_UPLOAD_INFO'); ?></div>
-
-                <div class="instal-progress-bar-outer">
-                    <div class="instal-progress-bar-alignment" style="width: 100%;">
-                        <div class="instal-progress-bar-inner" id="indicator" style="width: 0%;">
-                            <div class="instal-progress-bar-inner-text" style="width: 100%;" id="percent">0%</div>
-                        </div>
-                        <span id="percent2">0%</span>
-                    </div>
-                </div>
-            </div>
-            <br />
-            <div class="order-upload-button">
-                <div align="left">
-                    <input type="submit" name="start" value="<?php echo GetMessage('ORDER_UPL_START'); ?>" class="adm-btn-save">
-                </div>
-            </div>
-        </div>
-    </form>
-<?php }?>
