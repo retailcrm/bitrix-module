@@ -1571,10 +1571,9 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
 
                     // orderUpload function
                     function orderUpload() {
-
                         var handlerUrl = $('#upload-orders').attr('action');
-                        var step       = $('input[name="step"]').val();
-                        var orders     = $('input[name="orders"]').val();
+                        var step       = encodeURIComponent($('input[name="step"]').val());
+                        var orders     = encodeURIComponent($('input[name="orders"]').val());
                         var data = 'orders=' + orders + '&step=' + step + '&ajax=2';
 
                         // ajax request
@@ -1588,15 +1587,13 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                                 if(response.step == 'end'){
                                     $('input[name="step"]').val(0);
                                     BX.closeWait();
-                                }
-                                else{
+                                } else {
                                     orderUpload();
                                 }
 
                                 $('#indicator').css('width', response.percent + '%');
                                 $('#percent').html(response.percent + '%');
                                 $('#percent2').html(response.percent + '%');
-
                             },
                             error: function () {
                                 BX.closeWait();
