@@ -690,7 +690,6 @@ class RetailCrmHistory
                         }
                     }
 
-
                     //optionsOrderProps
                     if ($optionsOrderProps[$personType]) {
                         foreach ($optionsOrderProps[$personType] as $key => $orderProp) {
