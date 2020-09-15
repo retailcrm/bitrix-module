@@ -61,10 +61,13 @@ class UserVerificationService
         $this->checkAuth();
         $userId = $this->user->GetID();
         
-        $where  = [['ID', '=', $userId]];
-        $select = ['PERSONAL_PHONE'];
         /** @var \Intaro\RetailCrm\Model\Bitrix\User $user */
-        $user                  = UserRepository::getFirstByParams($where, $select);
+        $user = UserRepository::getFirstByParams(
+            [
+                ['ID', '=', $userId]
+            ],
+            ['PERSONAL_PHONE']
+        );
         $request               = new SmsVerificationCreateRequest();
         $request->verification = new SmsVerificationCreate();
         
@@ -88,6 +91,7 @@ class UserVerificationService
     {
         $request          = new SmsVerificationStatusRequest();
         $request->checkId = $checkId;
+        
         return $this->client->checkStatusPlVerification($request);
     }
     
@@ -104,10 +108,13 @@ class UserVerificationService
         $request->verification = new SmsVerificationConfirm();
         $request->verification->setCode($code);
         $request->verification->setCheckId($checkId);
+        
         return $this->client->confirmLpVerificationBySMS($request);
     }
     
     /**
+     * Проверяем статус регистрации пользователя в ПЛ
+     *
      * @param int $userId
      * @return bool
      */
