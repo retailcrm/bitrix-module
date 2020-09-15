@@ -11,6 +11,10 @@
  */
 namespace Intaro\RetailCrm\Repository;
 
+use Bitrix\Main\ArgumentException;
+use Bitrix\Main\ObjectPropertyException;
+use Bitrix\Main\SystemException;
+use Bitrix\Main\UserTable;
 use Intaro\RetailCrm\Component\Json\Deserializer;
 use Intaro\RetailCrm\Model\Bitrix\User;
 
@@ -35,5 +39,27 @@ class UserRepository extends AbstractRepository
         }
 
         return Deserializer::deserializeArray($fields, User::class);
+    }
+    
+    /**
+     * @param array $where
+     * @param array $select
+     * @return mixed|null
+     */
+    public static function getFirstByParams(array $where, array $select){
+        try {
+            $user = UserTable::query()
+                ->setSelect($select)
+                ->where($where)
+                ->fetch();
+        } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
+            return null;
+        }
+    
+        if (!$user) {
+            return null;
+        }
+        
+        return Deserializer::deserializeArray($user, User::class);
     }
 }
