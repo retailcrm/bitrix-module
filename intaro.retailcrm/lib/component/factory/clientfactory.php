@@ -25,7 +25,7 @@ class ClientFactory
      *
      * @return \Intaro\RetailCrm\Component\ApiClient\ClientAdapter|null
      */
-    public static function creacteClientAdapter(): ?ClientAdapter
+    public static function createClientAdapter(): ?ClientAdapter
     {
         $apiHost = ConfigProvider::getApiUrl();
         $apiKey  = ConfigProvider::getApiKey();
