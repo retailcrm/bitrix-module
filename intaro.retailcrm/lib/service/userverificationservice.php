@@ -59,8 +59,8 @@ class UserVerificationService
         int $verificationLength = self::DEFAULT_CODE_LENGHT
     ) {
         $this->checkAuth();
-        $userId = $this->user->GetID();
         
+        $userId = $this->user->GetID();
         /** @var \Intaro\RetailCrm\Model\Bitrix\User $user */
         $user = UserRepository::getFirstByParams(
             [
@@ -131,6 +131,7 @@ class UserVerificationService
     {
         global $USER;
         $this->user = $USER;
+        
         if (!$this->user->IsAuthorized()) {
             throw new Exception(self::NOT_AUTHORIZE);
         }
