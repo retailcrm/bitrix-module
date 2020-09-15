@@ -11,7 +11,7 @@ class ClientFactoryTest extends TestCase
 {
     public function testCreacteClientAdapter(): void
     {
-        $client = ClientFactory::creacteClientAdapter();
+        $client = ClientFactory::createClientAdapter();
     
         if (empty(ConfigProvider::getApiUrl())) {
             self::assertEquals(null, $client);
