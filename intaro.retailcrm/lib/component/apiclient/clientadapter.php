@@ -106,7 +106,6 @@ class ClientAdapter
     use LoyaltyTrait;
     use CustomersTrait;
     use CustomersCorporateTrait;
-    use LoyaltyTrait;
 
     /** @var string */
     public const ID = 'id';
