@@ -27,11 +27,13 @@ class UserVerificationService
 {
     const NOT_AUTHORIZE       = 'Пользователь не авторизован';
     const DEFAULT_CODE_LENGHT = 4;
+    
     /**
      * @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter
      */
     private $client;
     private $userId;
+    
     /**
      * @var \CAllUser|\CUser
      */
@@ -39,7 +41,7 @@ class UserVerificationService
     
     public function __construct()
     {
-        $this->client = ClientFactory::creacteClientAdapter();
+        $this->client = ClientFactory::createClientAdapter();
     }
     
     /**
@@ -58,12 +60,14 @@ class UserVerificationService
     ) {
         $this->checkAuth();
         $userId = $this->user->GetID();
+        
         $where  = [['ID', '=', $userId]];
         $select = ['PERSONAL_PHONE'];
         /** @var \Intaro\RetailCrm\Model\Bitrix\User $user */
         $user                  = UserRepository::getFirstByParams($where, $select);
         $request               = new SmsVerificationCreateRequest();
         $request->verification = new SmsVerificationCreate();
+        
         $request->verification->setLength($verificationLength);
         $request->verification->setPhone($user->getPersonalPhone());
         $request->verification->setPhone($this->userId);
@@ -75,6 +79,8 @@ class UserVerificationService
     }
     
     /**
+     * Получает статус текущего состояния верификации
+     *
      * @param string $checkId Идентификатор проверки кода
      * @return \Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusResponse|null
      */

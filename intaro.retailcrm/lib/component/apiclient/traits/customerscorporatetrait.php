@@ -33,7 +33,6 @@ use Intaro\RetailCrm\Model\Api\Response\OperationResponse;
  */
 trait CustomersCorporateTrait
 {
-
     /**
      * Create customers corporate
      *

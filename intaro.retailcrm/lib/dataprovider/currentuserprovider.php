@@ -21,15 +21,19 @@ use Intaro\RetailCrm\Model\Bitrix\User;
 class CurrentUserProvider
 {
     /**
-     * @param $userId
+     * Получает текущего пользователя
+     *
      * @return \Intaro\RetailCrm\Model\Bitrix\User|null
      */
-    public function get($userId): ?User
+    public function get(): ?User
     {
-        return UserRepository::getById($userId);
+        global $USER;
+        return UserRepository::getById($USER->GetID());
     }
     
     /**
+     * Получаем ID пользователя
+     *
      * @return int|null
      */
     public function getId(): ?int

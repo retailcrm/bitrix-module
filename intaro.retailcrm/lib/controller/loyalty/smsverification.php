@@ -14,29 +14,102 @@ namespace Intaro\RetailCrm\Controller\Loyalty;
 use Bitrix\Main\Engine\ActionFilter\Authentication;
 use Bitrix\Main\Engine\ActionFilter\HttpMethod;
 use Bitrix\Main\Engine\Controller;
+use Bitrix\Main\Request;
+use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Service\UserVerificationService;
 
+/**
+ * Class AdminPanel
+ * @package Intaro\RetailCrm\Controller\Loyalty
+ */
 class AdminPanel extends Controller
 {
-    
+    /** @var int  */
     const DEFAULT_CODE_LENGHT = 4;
     
+    /** @var UserVerificationService */
+    private $service;
+    
+    /**
+     * AdminPanel constructor.
+     * @param \Bitrix\Main\Request|null $request
+     */
+    public function __construct(Request $request = null)
+    {
+        $this->service = ServiceLocator::get(UserVerificationService::class);
+        parent::__construct($request);
+    }
+    
+    /**
+     * Send verification sms
+     *
+     * @param string   $actionType
+     * @param int|null $orderId
+     * @param int      $verificationLength
+     * @return \Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationCreateResponse|null
+     * @throws \Exception
+     */
+    public function sendSmsAction(
+        string $actionType = 'verify_customer',
+        int $orderId = null,
+        int $verificationLength = self::DEFAULT_CODE_LENGHT
+    ) {
+        return $this->service->sendSms($actionType, $orderId, $verificationLength);
+    }
+    
+    /**
+     * Контроллер получает статус текущего состояния верификации
+     *
+     * @param string $checkId
+     * @return \Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusResponse|null
+     */
+    public function getSmsStatusAction(string $checkId)
+    {
+        return $this->service->getSmsStatus($checkId);
+    }
+    
+    /**
+     * Контроллер подтверждает верификацию
+     *
+     * @param string $code
+     * @param string $checkId
+     * @return \Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationConfirmResponse|null
+     */
+    public function confirmVerificationAction(string $code, string $checkId)
+    {
+        return $this->service->confirmVerification($code, $checkId);
+    }
+    
+    /**
+     * Контроллер проверяет, зарегистрирован ли пользователь в программе лояльности
+     *
+     * @param int $userId
+     * @return bool
+     */
+    public function checkPlRegistrationStatusAction(int $userId)
+    {
+        return $this->service->checkPlRegistrationStatus($userId);
+    }
+    
+    /**
+     * @return \array[][]
+     */
     public function configureActions(): array
     {
         return [
-            'sendSms'                   => [
+            'sendSms' => [
                 '-prefilters' => [
                     new Authentication,
                     new HttpMethod(['GET']),
                 ],
             ],
-            'getSmsStatus'              => [
+            'getSmsStatus' => [
                 '-prefilters' => [
                     new Authentication,
                     new HttpMethod(['GET']),
                 ],
             ],
-            'confirmVerification'       => [
+            'confirmVerification' => [
                 '-prefilters' => [
                     new Authentication,
                     new HttpMethod(['GET']),
@@ -50,54 +123,4 @@ class AdminPanel extends Controller
             ],
         ];
     }
-    
-    /**
-     * send verification sms
-     *
-     * @param string   $actionType
-     * @param int|null $orderId
-     * @param int      $verificationLength
-     * @return \Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationCreateResponse|null
-     * @throws \Exception
-     */
-    public function sendSmsAction(
-        string $actionType = 'verify_customer',
-        int $orderId = null,
-        int $verificationLength = self::DEFAULT_CODE_LENGHT
-    ) {
-        $service = new UserVerificationService();
-        return $service->sendSms($actionType, $orderId, $verificationLength);
-    }
-    
-    /**
-     * @param string $checkId
-     * @return \Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusResponse|null
-     */
-    public function getSmsStatusAction(string $checkId)
-    {
-        $service = new UserVerificationService();
-        return $service->getSmsStatus($checkId);
-    }
-    
-    /**
-     * @param string $code
-     * @param string $checkId
-     * @return \Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationConfirmResponse|null
-     */
-    public function confirmVerificationAction(string $code, string $checkId)
-    {
-        $service = new UserVerificationService();
-        return $service->confirmVerification($code, $checkId);
-    }
-    
-    /**
-     * @param int $userId
-     * @return bool
-     */
-    public function checkPlRegistrationStatusAction(int $userId)
-    {
-        $service = new UserVerificationService();
-        return $service->checkPlRegistrationStatus($userId);
-    }
-    
 }

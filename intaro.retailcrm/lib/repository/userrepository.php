@@ -42,11 +42,11 @@ class UserRepository extends AbstractRepository
     }
     
     /**
-     * @param $where
-     * @param $select
+     * @param array $where
+     * @param array $select
      * @return mixed|null
      */
-    public static function getFirstByParams($where, $select){
+    public static function getFirstByParams(array $where, array $select){
         try {
             $user = UserTable::query()
                 ->setSelect($select)
