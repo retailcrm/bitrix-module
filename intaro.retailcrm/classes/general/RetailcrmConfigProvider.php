@@ -351,6 +351,36 @@ class RetailcrmConfigProvider
     }
 
     /**
+     * getSendPaymentAmount
+     *
+     * @return bool|string|null
+     */
+    public static function getSendPaymentAmount()
+    {
+        return static::getOption(RetailcrmConstants::SEND_PAYMENT_AMOUNT);
+    }
+
+    /**
+     * setSendPaymentAmount
+     *
+     * @param string $value
+     */
+    public static function setSendPaymentAmount($value)
+    {
+        static::setOption(RetailcrmConstants::SEND_PAYMENT_AMOUNT, $value);
+    }
+
+    /**
+     * Returns true if payment amount should be sent from CMS to retailCRM.
+     *
+     * @return bool|string|null
+     */
+    public static function shouldSendPaymentAmount()
+    {
+        return static::getSendPaymentAmount() === 'Y';
+    }
+
+    /**
      * setLastOrderId
      *
      * @param $id

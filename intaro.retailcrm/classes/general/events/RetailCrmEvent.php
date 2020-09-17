@@ -486,8 +486,7 @@ class RetailCrmEvent
 
         if (!empty($arPayment['PAY_SYSTEM_ID']) && isset($optionsPaymentTypes[$arPayment['PAY_SYSTEM_ID']])) {
             $paymentToCrm = array(
-                'type' => $optionsPaymentTypes[$arPayment['PAY_SYSTEM_ID']],
-                'amount' => $arPayment['SUM']
+                'type' => $optionsPaymentTypes[$arPayment['PAY_SYSTEM_ID']]
             );
 
             if (!empty($arPayment['ID'])) {
@@ -509,6 +508,10 @@ class RetailCrmEvent
 
             if (!empty($arPayment['ORDER_ID'])) {
                 $paymentToCrm['order']['externalId'] = $arPayment['ORDER_ID'];
+            }
+
+            if (RetailcrmConfigProvider::shouldSendPaymentAmount()) {
+                $paymentToCrm['amount'] = $arPayment['SUM'];
             }
         } else {
             RCrmActions::eventLog('RetailCrmEvent::paymentSave', 'payments', 'OrderID = ' . $arPayment['ID'] . '. Payment not found.');
