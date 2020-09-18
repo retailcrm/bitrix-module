@@ -213,6 +213,16 @@ class RetailcrmConfigProvider
     }
 
     /**
+     * setOrderTypes
+     *
+     * @param array $orderTypesArr
+     */
+    public static function setOrderTypes($orderTypesArr)
+    {
+        static::setOption(RetailcrmConstants::CRM_ORDER_TYPES_ARR, serialize(RCrmActions::clearArr($orderTypesArr)));
+    }
+
+    /**
      * getDeliveryTypes
      *
      * @return array
@@ -224,6 +234,16 @@ class RetailcrmConfigProvider
         }
 
         return static::$deliveryTypes;
+    }
+
+    /**
+     * setDeliveryTypes
+     *
+     * @param array $deliveryTypesArr
+     */
+    public static function setDeliveryTypes($deliveryTypesArr)
+    {
+        static::setOption(RetailcrmConstants::CRM_DELIVERY_TYPES_ARR, serialize(RCrmActions::clearArr($deliveryTypesArr)));
     }
 
     /**
@@ -241,6 +261,16 @@ class RetailcrmConfigProvider
     }
 
     /**
+     * setPaymentTypes
+     *
+     * @param array $paymentTypesArr
+     */
+    public static function setPaymentTypes($paymentTypesArr)
+    {
+        static::setOption(RetailcrmConstants::CRM_PAYMENT_TYPES, serialize(RCrmActions::clearArr($paymentTypesArr)));
+    }
+
+    /**
      * getPaymentStatuses
      *
      * @return array
@@ -252,6 +282,16 @@ class RetailcrmConfigProvider
         }
 
         return static::$paymentStatuses;
+    }
+
+    /**
+     * getPaymentStatuses
+     *
+     * @param array $paymentStatusesArr
+     */
+    public static function setPaymentStatuses($paymentStatusesArr)
+    {
+        static::setOption(RetailcrmConstants::CRM_PAYMENT_STATUSES, serialize(RCrmActions::clearArr($paymentStatusesArr)));
     }
 
     /**
@@ -308,6 +348,16 @@ class RetailcrmConfigProvider
         }
 
         return static::$contragentTypes;
+    }
+
+    /**
+     * setContragentTypes
+     *
+     * @param array $contragentTypeArr
+     */
+    public static function setContragentTypes($contragentTypeArr)
+    {
+        static::setOption(RetailcrmConstants::CRM_CONTRAGENT_TYPE, serialize(RCrmActions::clearArr($contragentTypeArr)));
     }
 
     /**
