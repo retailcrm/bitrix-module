@@ -8,9 +8,9 @@ class RetailCrmService
     /**
      * @param $order
      *
-     * @return mixed
+     * @return array
      */
-    public static function unsetIntegrationDeliveryFields($order)
+    public static function unsetIntegrationDeliveryFields(array $order): array
     {
         $integrationDelivery = unserialize(COption::GetOptionString(RetailcrmConstants::MODULE_ID, RetailcrmConstants::CRM_INTEGRATION_DELIVERY, 0));
         $deliveryCode        = $order['delivery']['code'];
