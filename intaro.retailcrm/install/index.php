@@ -19,15 +19,16 @@ use Bitrix\Sale\Internals\OrderPropsGroupTable;
 use Bitrix\Sale\Internals\PaySystemActionTable;
 use Bitrix\Sale\Delivery\Services\Manager;
 use Bitrix\sale\EventActions;
-use Bitrix\Sale\Internals\OrderPropsGroupTable;
 use Bitrix\Sale\Internals\OrderTable;
-use Bitrix\Sale\Internals\PaySystemActionTable;
+use Bitrix\Sale\Internals\OrderPropsTable;
+use Bitrix\Sale\Internals\PersonTypeTable;
+use Intaro\RetailCrm\Component\Constants;
+use \RetailCrm\ApiClient;
+use RetailCrm\Exception\CurlException;
 use Intaro\RetailCrm\Component\Loyalty\EventsHandlers;
 use Intaro\RetailCrm\Repository\OrderPropsRepository;
 use Intaro\RetailCrm\Repository\PersonTypeRepository;
 use Intaro\RetailCrm\Repository\ToModuleRepository;
-use RetailCrm\ApiClient;
-use RetailCrm\Exception\CurlException;
 
 IncludeModuleLangFile(__FILE__);
 if (class_exists('intaro_retailcrm')) {
@@ -36,10 +37,10 @@ if (class_exists('intaro_retailcrm')) {
 
 class intaro_retailcrm extends CModule
 {
-    public const LP_ORDER_GROUP_NAME = 'Программа лояльности';
-    public const BONUS_COUNT = 'Количество бонусов';
-    public const BONUS_PAY_SYSTEM_NAME = 'Оплата бонусами';
-    public const BONUS_PAY_SYSTEM_CODE = 'retailcrmbonus';
+    public const LP_ORDER_GROUP_NAME          = 'Программа лояльности';
+    public const BONUS_COUNT                  = 'Количество бонусов';
+    public const BONUS_PAY_SYSTEM_NAME        = 'Оплата бонусами';
+    public const BONUS_PAY_SYSTEM_CODE        = 'retailcrmbonus';
     public const BONUS_PAY_SYSTEM_DESCRIPTION = 'Оплата бонусами программы лояльности retailCRM';
 
     /**
@@ -58,8 +59,8 @@ class intaro_retailcrm extends CModule
     ];
 
     public const V5 = 'v5';
-    public $MODULE_ID = 'intaro.retailcrm';
-    public $OLD_MODULE_ID = 'intaro.intarocrm';
+    public $MODULE_ID           = 'intaro.retailcrm';
+    public $OLD_MODULE_ID       = 'intaro.intarocrm';
     public $MODULE_VERSION;
     public $MODULE_VERSION_DATE;
     public $MODULE_NAME;
@@ -168,8 +169,10 @@ class intaro_retailcrm extends CModule
             return false;
         }
 
+
         if (!Loader::includeModule('sale')) {
             return false;
+
         }
 
         if (!date_default_timezone_get() && !ini_get('date.timezone')) {
@@ -189,7 +192,6 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../classes/general/RestNormalizer.php');
         include($this->INSTALL_PATH . '/../classes/general/Logger.php');
         include($this->INSTALL_PATH . '/../classes/general/services/RetailCrmService.php');
-
         $version = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_VERSION, 0);
         include($this->INSTALL_PATH . '/../classes/general/ApiClient_v5.php');
         include($this->INSTALL_PATH . '/../classes/general/order/RetailCrmOrder_v5.php');
@@ -521,10 +523,10 @@ class intaro_retailcrm extends CModule
                     $load = true;
                     try {
                         $this->RETAIL_CRM_API->deliveryTypesEdit(RCrmActions::clearArr([
-                            'code' => $deliveryType['ID'],
-                            'name' => RCrmActions::toJSON($deliveryType['NAME']),
-                            'defaultCost' => $deliveryType['CONFIG']['MAIN']['PRICE'],
-                            'description' => RCrmActions::toJSON($deliveryType['DESCRIPTION']),
+                            'code'         => $deliveryType['ID'],
+                            'name'         => RCrmActions::toJSON($deliveryType['NAME']),
+                            'defaultCost'  => $deliveryType['CONFIG']['MAIN']['PRICE'],
+                            'description'  => RCrmActions::toJSON($deliveryType['DESCRIPTION']),
                             'paymentTypes' => '',
                         ]));
                     } catch (CurlException $e) {
@@ -542,8 +544,8 @@ class intaro_retailcrm extends CModule
                                 if (count($srv) == 2) {
                                     try {
                                         $this->RETAIL_CRM_API->deliveryServicesEdit(RCrmActions::clearArr([
-                                            'code' => $srv[1],
-                                            'name' => RCrmActions::toJSON($deliveryService['NAME']),
+                                            'code'         => $srv[1],
+                                            'name'         => RCrmActions::toJSON($deliveryService['NAME']),
                                             'deliveryType' => $deliveryType['ID'],
                                         ]));
                                     } catch (CurlException $e) {
@@ -802,8 +804,8 @@ class intaro_retailcrm extends CModule
                 COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_LAST_ID, $orderLastId);
             } else {
                 $dbOrder = OrderTable::GetList([
-                    'order' => ["ID" => "DESC"],
-                    'limit' => 1,
+                    'order'  => ["ID" => "DESC"],
+                    'limit'  => 1,
                     'select' => ['ID'],
                 ]);
                 $arOrder = $dbOrder->fetch();
@@ -888,15 +890,15 @@ class intaro_retailcrm extends CModule
             }
 
             $iblockProperties = [
-                "article" => "article",
+                "article"      => "article",
                 "manufacturer" => "manufacturer",
-                "color" => "color",
-                "weight" => "weight",
-                "size" => "size",
-                "length" => "length",
-                "width" => "width",
-                "height" => "height",
-                "picture" => "picture",
+                "color"        => "color",
+                "weight"       => "weight",
+                "size"         => "size",
+                "length"       => "length",
+                "width"        => "width",
+                "height"       => "height",
+                "picture"      => "picture",
             ];
 
             $propertiesSKU     = [];
@@ -975,14 +977,14 @@ class intaro_retailcrm extends CModule
 
             if (isset($arResult['errCode']) && $arResult['errCode']) {
                 $arOldValues = [
-                    'IBLOCK_EXPORT' => $iblocks,
-                    'IBLOCK_PROPERTY_SKU' => $propertiesSKU,
-                    'IBLOCK_PROPERTY_UNIT_SKU' => $propertiesUnitSKU,
-                    'IBLOCK_PROPERTY_PRODUCT' => $propertiesProduct,
+                    'IBLOCK_EXPORT'                => $iblocks,
+                    'IBLOCK_PROPERTY_SKU'          => $propertiesSKU,
+                    'IBLOCK_PROPERTY_UNIT_SKU'     => $propertiesUnitSKU,
+                    'IBLOCK_PROPERTY_PRODUCT'      => $propertiesProduct,
                     'IBLOCK_PROPERTY_UNIT_PRODUCT' => $propertiesUnitProduct,
-                    'SETUP_FILE_NAME' => $filename,
-                    'SETUP_PROFILE_NAME' => $profileName,
-                    'MAX_OFFERS_VALUE' => $maxOffers,
+                    'SETUP_FILE_NAME'              => $filename,
+                    'SETUP_PROFILE_NAME'           => $profileName,
+                    'MAX_OFFERS_VALUE'             => $maxOffers,
                 ];
                 global $oldValues;
                 $oldValues = $arOldValues;
@@ -1059,7 +1061,7 @@ class intaro_retailcrm extends CModule
                     }
                 }
 
-                $ar         = $this->GetProfileSetupVars(
+                $ar = $this->GetProfileSetupVars(
                     $iblocks,
                     $propertiesProduct,
                     $propertiesUnitProduct,
@@ -1071,15 +1073,15 @@ class intaro_retailcrm extends CModule
                     $maxOffers
                 );
                 $PROFILE_ID = CCatalogExport::Add([
-                    "LAST_USE" => false,
-                    "FILE_NAME" => $this->RETAIL_CRM_EXPORT,
-                    "NAME" => $profileName,
+                    "LAST_USE"        => false,
+                    "FILE_NAME"       => $this->RETAIL_CRM_EXPORT,
+                    "NAME"            => $profileName,
                     "DEFAULT_PROFILE" => "N",
-                    "IN_MENU" => "N",
-                    "IN_AGENT" => "N",
-                    "IN_CRON" => "N",
-                    "NEED_EDIT" => "N",
-                    "SETUP_VARS" => $ar,
+                    "IN_MENU"         => "N",
+                    "IN_AGENT"        => "N",
+                    "IN_CRON"         => "N",
+                    "NEED_EDIT"       => "N",
+                    "SETUP_VARS"      => $ar,
                 ]);
                 if (intval($PROFILE_ID) <= 0) {
                     $arResult['errCode'] = 'ERR_IBLOCK';
@@ -1345,8 +1347,7 @@ class intaro_retailcrm extends CModule
         $propertiesHbProduct,
         $filename,
         $maxOffers
-    ): string
-    {
+    ): string {
         $strVars = "";
         foreach ($iblocks as $key => $val) {
             $strVars .= 'IBLOCK_EXPORT[' . $key . ']=' . $val . '&';
@@ -1462,7 +1463,7 @@ class intaro_retailcrm extends CModule
     {
         global $APPLICATION;
 
-        $client = new RetailCrm\Http\Client($api_host . '/api/' . self::V5, ['apiKey' => $api_key]);
+        $client = new RetailCrm\Http\Client($api_host . '/api/'.self::V5, ['apiKey' => $api_key]);
         try {
             $result = $client->makeRequest('/reference/sites', 'GET');
         } catch (CurlException $e) {
@@ -1578,99 +1579,13 @@ class intaro_retailcrm extends CModule
     }
 
     /**
-     * @param $personID
-     * @param $groupID
-     *
-     * @throws \Bitrix\Main\ArgumentException
-     * @throws \Bitrix\Main\ObjectPropertyException
-     * @throws \Bitrix\Main\SystemException
-     */
-    private function addBonusField($personID, $groupID): void
-    {
-        $bonusProp = OrderPropsRepository::getFirstByWhere(
-            ['ID'],
-            [
-                ['PERSON_TYPE_ID', '=', $personID],
-                ['PROPS_GROUP_ID', '=', $groupID],
-            ]
-        );
-
-        if ($bonusProp === null) {
-            CSaleOrderProps::Add(
-                [
-                    "REQUIRED" => "N",
-                    "NAME" => self::BONUS_COUNT,
-                    "TYPE" => "TEXT",
-                    "CODE" => "BONUS_RETAILCRM",
-                    "USER_PROPS" => "Y",
-                    "IS_LOCATION" => "N",
-                    "IS_LOCATION4TAX" => "N",
-                    "IS_EMAIL" => "N",
-                    "IS_PROFILE_NAME" => "N",
-                    "IS_PAYER"        => "N",
-                    'IS_FILTERED'     => 'Y',
-                    'PERSON_TYPE_ID'  => $personID,
-                    'PROPS_GROUP_ID'  => $groupID,
-                    "DEFAULT_VALUE"   => 0,
-                    "DESCRIPTION"     => self::BONUS_COUNT
-                ]
-            );
-        }
-    }
-
-    /**
-     * add bonus pay system
-     */
-    private function addBonusPaySystem(): void
-    {
-        $arrPaySystemAction = PaySystemActionTable::query()
-            ->setSelect(['ID'])
-            ->where([
-                ['ACTION_FILE', '=', self::BONUS_PAY_SYSTEM_CODE],
-            ])
-            ->fetchCollection();
-
-        if (count($arrPaySystemAction) === 0) {
-            $result = PaySystemActionTable::add(
-                [
-                    'NAME' => self::BONUS_PAY_SYSTEM_NAME,
-                    'PSA_NAME' => self::BONUS_PAY_SYSTEM_NAME,
-                    'ACTION_FILE' => self::BONUS_PAY_SYSTEM_CODE,
-                    'DESCRIPTION' => self::BONUS_PAY_SYSTEM_DESCRIPTION,
-                    'RESULT_FILE' => '',
-                    'NEW_WINDOW' => 'N',
-                    'ENCODING' => 'utf-8',
-                    'ACTIVE' => 'Y',
-                    'HAVE_PAYMENT' => 'Y',
-                    'HAVE_ACTION' => 'N',
-                    'AUTO_CHANGE_1C' => 'N',
-                    'HAVE_RESULT' => 'N',
-                    'HAVE_PRICE' => 'N',
-                    'HAVE_PREPAY' => 'N',
-                    'HAVE_RESULT_RECEIVE' => 'N',
-                    'ALLOW_EDIT_PAYMENT' => 'Y',
-                    'IS_CASH' => 'N',
-                    'CAN_PRINT_CHECK' => 'N',
-                    'ENTITY_REGISTRY_TYPE' => 'ORDER',
-                    'XML_ID' => 'intaro_' . randString(15),
-                ]
-            );
-
-            PaySystemActionTable::update($result->getId(), [
-                'PAY_SYSTEM_ID' => $result->getId(),
-                'PARAMS' => serialize(['BX_PAY_SYSTEM_ID' => $result->getId()]),
-            ]);
-        }
-    }
-
-    /**
      * create loyalty program events handlers
      */
     private function addLPEvents(): void
     {
         $eventManager = EventManager::getInstance();
 
-        foreach (self::SUBSCRIBE_LP_EVENTS as $event) {
+        foreach (self::SUBSCRIBE_LP_EVENTS as $event){
             try {
                 $events = ToModuleRepository::getCollectionByWhere(
                     ['ID'],
@@ -1696,6 +1611,92 @@ class intaro_retailcrm extends CModule
             }
         }
     }
+    
+    /**
+     * @param $personID
+     * @param $groupID
+     * @throws \Bitrix\Main\ArgumentException
+     * @throws \Bitrix\Main\ObjectPropertyException
+     * @throws \Bitrix\Main\SystemException
+     */
+    private function addBonusField($personID, $groupID): void
+    {
+        $bonusProp = OrderPropsRepository::getFirstByWhere(
+            ['ID'],
+            [
+                ['PERSON_TYPE_ID', '=', $personID],
+                ['PROPS_GROUP_ID', '=', $groupID],
+            ]
+        );
+
+        if ($bonusProp === null) {
+            CSaleOrderProps::Add(
+                [
+                    "REQUIRED"        => "N",
+                    "NAME"            => self::BONUS_COUNT,
+                    "TYPE"            => "TEXT",
+                    "CODE"            => "BONUS_RETAILCRM",
+                    "USER_PROPS"      => "Y",
+                    "IS_LOCATION"     => "N",
+                    "IS_LOCATION4TAX" => "N",
+                    "IS_EMAIL"        => "N",
+                    "IS_PROFILE_NAME" => "N",
+                    "IS_PAYER"        => "N",
+                    'IS_FILTERED'     => 'Y',
+                    'PERSON_TYPE_ID'  => $personID,
+                    'PROPS_GROUP_ID'  => $groupID,
+                    "DEFAULT_VALUE"   => 0,
+                    "DESCRIPTION"     => self::BONUS_COUNT,
+                ]
+            );
+        }
+    }
+
+    /**
+     * add bonus pay system
+     */
+    private function addBonusPaySystem(): void
+    {
+        $arrPaySystemAction = PaySystemActionTable::query()
+            ->setSelect(['ID'])
+            ->where([
+                ['ACTION_FILE', '=', self::BONUS_PAY_SYSTEM_CODE],
+            ])
+            ->fetchCollection();
+
+        if (count($arrPaySystemAction) === 0) {
+            $result     = PaySystemActionTable::add(
+                [
+                    'NAME'                 => self::BONUS_PAY_SYSTEM_NAME,
+                    'PSA_NAME'             => self::BONUS_PAY_SYSTEM_NAME,
+                    'ACTION_FILE'          => self::BONUS_PAY_SYSTEM_CODE,
+                    'DESCRIPTION'          => self::BONUS_PAY_SYSTEM_DESCRIPTION,
+                    'RESULT_FILE'          => '',
+                    'NEW_WINDOW'           => 'N',
+                    'ENCODING'             => 'utf-8',
+                    'ACTIVE'               => 'Y',
+                    'HAVE_PAYMENT'         => 'Y',
+                    'HAVE_ACTION'          => 'N',
+                    'AUTO_CHANGE_1C'       => 'N',
+                    'HAVE_RESULT'          => 'N',
+                    'HAVE_PRICE'           => 'N',
+                    'HAVE_PREPAY'          => 'N',
+                    'HAVE_RESULT_RECEIVE'  => 'N',
+                    'ALLOW_EDIT_PAYMENT'   => 'Y',
+                    'IS_CASH'              => 'N',
+                    'CAN_PRINT_CHECK'      => 'N',
+                    'ENTITY_REGISTRY_TYPE' => 'ORDER',
+                    'XML_ID'               => 'intaro_' . randString(15),
+                ]
+            );
+            $updateData = [
+                'PAY_SYSTEM_ID' => $result->getId(),
+                'PARAMS'        => serialize(['BX_PAY_SYSTEM_ID' => $result->getId()]),
+            ];
+
+            PaySystemActionTable::update($result->getId(), $updateData);
+        }
+    }
 
     /**
      * delete loyalty program events handlers
@@ -1704,15 +1705,14 @@ class intaro_retailcrm extends CModule
     {
         $eventManager = EventManager::getInstance();
 
-        foreach (self::SUBSCRIBE_LP_EVENTS as $event) {
+        foreach (self::SUBSCRIBE_LP_EVENTS as $event){
             $eventManager->unRegisterEventHandler(
                 $event['FROM_MODULE'],
                 $event['EVENT_NAME'],
                 $this->MODULE_ID,
                 EventsHandlers::class,
-                $event['EVENT_NAME'] . 'Handler'
+                $event['EVENT_NAME'].'Handler'
             );
         }
     }
-
 }
