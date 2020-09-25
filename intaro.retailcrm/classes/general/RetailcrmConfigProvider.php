@@ -213,6 +213,16 @@ class RetailcrmConfigProvider
     }
 
     /**
+     * setOrderTypes
+     *
+     * @param array $orderTypesArr
+     */
+    public static function setOrderTypes($orderTypesArr)
+    {
+        static::setOption(RetailcrmConstants::CRM_ORDER_TYPES_ARR, serialize(RCrmActions::clearArr($orderTypesArr)));
+    }
+
+    /**
      * getDeliveryTypes
      *
      * @return array
@@ -224,6 +234,16 @@ class RetailcrmConfigProvider
         }
 
         return static::$deliveryTypes;
+    }
+
+    /**
+     * setDeliveryTypes
+     *
+     * @param array $deliveryTypesArr
+     */
+    public static function setDeliveryTypes($deliveryTypesArr)
+    {
+        static::setOption(RetailcrmConstants::CRM_DELIVERY_TYPES_ARR, serialize(RCrmActions::clearArr($deliveryTypesArr)));
     }
 
     /**
@@ -241,6 +261,16 @@ class RetailcrmConfigProvider
     }
 
     /**
+     * setPaymentTypes
+     *
+     * @param array $paymentTypesArr
+     */
+    public static function setPaymentTypes($paymentTypesArr)
+    {
+        static::setOption(RetailcrmConstants::CRM_PAYMENT_TYPES, serialize(RCrmActions::clearArr($paymentTypesArr)));
+    }
+
+    /**
      * getPaymentStatuses
      *
      * @return array
@@ -252,6 +282,16 @@ class RetailcrmConfigProvider
         }
 
         return static::$paymentStatuses;
+    }
+
+    /**
+     * getPaymentStatuses
+     *
+     * @param array $paymentStatusesArr
+     */
+    public static function setPaymentStatuses($paymentStatusesArr)
+    {
+        static::setOption(RetailcrmConstants::CRM_PAYMENT_STATUSES, serialize(RCrmActions::clearArr($paymentStatusesArr)));
     }
 
     /**
@@ -311,6 +351,16 @@ class RetailcrmConfigProvider
     }
 
     /**
+     * setContragentTypes
+     *
+     * @param array $contragentTypeArr
+     */
+    public static function setContragentTypes($contragentTypeArr)
+    {
+        static::setOption(RetailcrmConstants::CRM_CONTRAGENT_TYPE, serialize(RCrmActions::clearArr($contragentTypeArr)));
+    }
+
+    /**
      * getCustomFields
      *
      * @return array
@@ -348,6 +398,36 @@ class RetailcrmConfigProvider
     public static function getLastOrderId()
     {
         return static::getOption(RetailcrmConstants::CRM_ORDER_LAST_ID);
+    }
+
+    /**
+     * getSendPaymentAmount
+     *
+     * @return bool|string|null
+     */
+    public static function getSendPaymentAmount()
+    {
+        return static::getOption(RetailcrmConstants::SEND_PAYMENT_AMOUNT);
+    }
+
+    /**
+     * setSendPaymentAmount
+     *
+     * @param string $value
+     */
+    public static function setSendPaymentAmount($value)
+    {
+        static::setOption(RetailcrmConstants::SEND_PAYMENT_AMOUNT, $value);
+    }
+
+    /**
+     * Returns true if payment amount should be sent from CMS to retailCRM.
+     *
+     * @return bool|string|null
+     */
+    public static function shouldSendPaymentAmount()
+    {
+        return static::getSendPaymentAmount() === 'Y';
     }
 
     /**

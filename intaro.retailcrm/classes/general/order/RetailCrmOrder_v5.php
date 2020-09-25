@@ -255,18 +255,25 @@ class RetailCrmOrder
         foreach ($arFields['PAYMENTS'] as $payment) {
             if (!empty($payment['PAY_SYSTEM_ID']) && isset($arParams['optionsPayTypes'][$payment['PAY_SYSTEM_ID']])) {
                 $pm = array(
-                    'type' => $arParams['optionsPayTypes'][$payment['PAY_SYSTEM_ID']],
-                    'amount' => $payment['SUM']
+                    'type' => $arParams['optionsPayTypes'][$payment['PAY_SYSTEM_ID']]
                 );
+
                 if (!empty($payment['ID'])) {
                     $pm['externalId'] = RCrmActions::generatePaymentExternalId($payment['ID']);
                 }
+
                 if (!empty($payment['DATE_PAID'])) {
                     $pm['paidAt'] = new \DateTime($payment['DATE_PAID']);
                 }
+
                 if (!empty($arParams['optionsPayment'][$payment['PAID']])) {
                     $pm['status'] = $arParams['optionsPayment'][$payment['PAID']];
                 }
+
+                if (RetailcrmConfigProvider::shouldSendPaymentAmount()) {
+                    $pm['amount'] = $payment['SUM'];
+                }
+
                 $payments[] = $pm;
             } else {
                 RCrmActions::eventLog(

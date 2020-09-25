@@ -77,4 +77,5 @@ class RetailcrmConstants
     const CANCEL_PROPERTY_CODE = 'INTAROCRM_IS_CANCELED';
     const CRM_INTEGRATION_DELIVERY = 'integration_delivery';
     const CRM_SHIPMENT_DEDUCTED = 'shipment_deducted';
+    const SEND_PAYMENT_AMOUNT = 'send_payment_amount';
 }
