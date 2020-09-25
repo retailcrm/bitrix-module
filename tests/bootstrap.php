@@ -32,4 +32,7 @@ if (!IsModuleInstalled('intaro.retailcrm')) {
     RegisterModule('intaro.retailcrm');
 }
 
+COption::SetOptionString('intaro.retailcrm', 'api_version', 'v5');
 CModule::IncludeModule('intaro.retailcrm');
+
+require_once 'BitrixTestCase.php';
