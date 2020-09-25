@@ -376,18 +376,6 @@ class RetailCrmOrder
         $optionsContragentType = RetailcrmConfigProvider::getContragentTypes();
         $optionsCustomFields = RetailcrmConfigProvider::getCustomFields();
 
-        $getSite = function ($key) use ($optionsSitesList) {
-            if ($optionsSitesList) {
-                if (array_key_exists($key, $optionsSitesList) && $optionsSitesList[$key] != null) {
-                    return $optionsSitesList[$key];
-                } else {
-                    return false;
-                }
-            }
-
-            return null;
-        };
-
         $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
 
         $arParams = array(
@@ -417,7 +405,7 @@ class RetailCrmOrder
             $arCustomerCorporate = array();
             $order = self::orderObjToArr($id);
             $user = Bitrix\Main\UserTable::getById($order['USER_ID'])->fetch();
-            $site = $getSite($order['LID']);
+            $site = RetailCrmOrder::getSite($order['LID'], $optionsSitesList);
 
             if (true === $site) {
                 continue;
@@ -485,48 +473,7 @@ class RetailCrmOrder
         }
 
         if (count($resOrders) > 0) {
-            $uploadItems = function ($pack, $method) use ($getSite, $api, $optionsSitesList) {
-                $uploaded = array();
-
-                foreach ($pack as $key => $itemLoad) {
-                    $site = $getSite($key);
-
-                    if (true === $site) {
-                        continue;
-                    }
-
-                    /** @var \RetailCrm\Response\ApiResponse|bool $response */
-                    $response = RCrmActions::apiMethod(
-                        $api,
-                        $method,
-                        __METHOD__,
-                        $itemLoad,
-                        $site
-                    );
-
-                    if ($response === false) {
-                        return false;
-                    }
-
-                    if ($response instanceof \RetailCrm\Response\ApiResponse) {
-                        if ($response->offsetExists('uploadedCustomers')) {
-                            $uploaded = array_merge($uploaded, $response['uploadedCustomers']);
-                        }
-
-                        if ($response->offsetExists('uploadedOrders')) {
-                            $uploaded = array_merge($uploaded, $response['uploadedOrders']);
-                        }
-                    }
-
-                    if (count($optionsSitesList) > 1) {
-                        time_nanosleep(0, 250000000);
-                    }
-                }
-
-                return $uploaded;
-            };
-
-            if (false === $uploadItems($resCustomers, 'customersUpload')) {
+            if (false === RetailCrmOrder::uploadCustomersList($resCustomers, $api, $optionsSitesList)) {
                 return false;
             }
 
@@ -593,7 +540,7 @@ class RetailCrmOrder
                 }
             }
 
-            if (false === $uploadItems($resOrders, 'ordersUpload')) {
+            if (false === RetailCrmOrder::uploadOrdersList($resOrders, $api, $optionsSitesList)) {
                 return false;
             }
 
@@ -605,6 +552,111 @@ class RetailCrmOrder
         }
 
         return true;
+    }
+
+    /**
+     * @param array $resCustomers
+     * @param RetailCrm\ApiClient $api
+     * @param array $optionsSitesList
+     *
+     * @return array|false
+     */
+    public static function uploadCustomersList($resCustomers, $api, $optionsSitesList)
+    {
+        return RetailCrmOrder::uploadItems(
+            $resCustomers,
+            'customersUpload',
+            'uploadedCustomers',
+            $api,
+            $optionsSitesList
+        );
+    }
+
+    /**
+     * @param array $resOrders
+     * @param RetailCrm\ApiClient $api
+     * @param array $optionsSitesList
+     *
+     * @return array|false
+     */
+    public static function uploadOrdersList($resOrders, $api, $optionsSitesList)
+    {
+        return RetailCrmOrder::uploadItems(
+            $resOrders,
+            'ordersUpload',
+            'uploadedOrders',
+            $api,
+            $optionsSitesList
+        );
+    }
+
+    /**
+     * @param string $key
+     * @param array $optionsSitesList
+     *
+     * @return false|mixed|null
+     */
+    public static function getSite($key, $optionsSitesList)
+    {
+        if ($optionsSitesList) {
+            if (array_key_exists($key, $optionsSitesList) && $optionsSitesList[$key] != null) {
+                return $optionsSitesList[$key];
+            } else {
+                return false;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param array $pack
+     * @param string $method
+     * @param string $keyResponse
+     * @param RetailCrm\ApiClient $api
+     * @param array $optionsSitesList
+     *
+     * @return array|false
+     */
+    public static function uploadItems($pack, $method, $keyResponse, $api, $optionsSitesList)
+    {
+        $uploaded = array();
+        $sizePack = 50;
+
+        foreach ($pack as $key => $itemLoad) {
+            $site = RetailCrmOrder::getSite($key, $optionsSitesList);
+
+            if (true === $site) {
+                continue;
+            }
+
+            $chunkList = array_chunk($itemLoad, $sizePack, true);
+
+            foreach ($chunkList as $chunk) {
+                time_nanosleep(0, 250000000);
+
+                /** @var \RetailCrm\Response\ApiResponse|bool $response */
+                $response = RCrmActions::apiMethod(
+                    $api,
+                    $method,
+                    __METHOD__,
+                    $chunk,
+                    $site
+                );
+
+                if ($response === false) {
+                    return false;
+                }
+
+                if ($response instanceof \RetailCrm\Response\ApiResponse) {
+                    if ($response->offsetExists($keyResponse)) {
+                        $uploaded = array_merge($uploaded, $response[$keyResponse]);
+                    }
+                }
+            }
+        }
+
+        return $uploaded;
     }
 
     /**

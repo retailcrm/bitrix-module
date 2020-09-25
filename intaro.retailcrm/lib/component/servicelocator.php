@@ -87,12 +87,12 @@ class ServiceLocator
     }
     
     /**
-         * Get or create service (instantiates service if it wasn't created earlier; $name must be FQN).
-         *
-         * @param string $name
-         *
-         * @return mixed
-         */
+     * Get or create service (instantiates service if it wasn't created earlier; $name must be FQN).
+     *
+     * @param string $name
+     *
+     * @return mixed
+     */
     public static function getOrCreate(string $name)
     {
         $service = static::$services[$name];
@@ -104,7 +104,7 @@ class ServiceLocator
 
         return $service;
     }
-    
+
     /**
      * Sets service into ServiceContainer.
      *
