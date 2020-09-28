@@ -543,7 +543,17 @@ class RetailcrmConfigProvider
     {
         return COption::GetOptionString("main", "new_user_phone_required") === 'Y';
     }
-
+    
+    /**
+     * Return integration_delivery option
+     *
+     * @return mixed
+     */
+    public static function getCrmIntegrationDelivery()
+    {
+        return static::getUnserializedOption(RetailcrmConstants::CRM_INTEGRATION_DELIVERY);
+    }
+    
     /**
      * Wraps Bitrix COption::GetOptionString(...)
      *
@@ -603,15 +613,5 @@ class RetailcrmConfigProvider
     private static function isEmptyNotZero($value)
     {
         return empty($value) && $value !== 0;
-    }
-    
-    /**
-     * Return integration_delivery option
-     *
-     * @return mixed
-     */
-    public static function getCrmIntegrationDelivery()
-    {
-        return unserialize(COption::GetOptionString(RetailcrmConstants::MODULE_ID, RetailcrmConstants::CRM_INTEGRATION_DELIVERY, 0));
     }
 }
