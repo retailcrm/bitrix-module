@@ -604,4 +604,14 @@ class RetailcrmConfigProvider
     {
         return empty($value) && $value !== 0;
     }
+    
+    /**
+     * Return integration_delivery option
+     *
+     * @return mixed
+     */
+    public static function getCrmIntegrationDelivery()
+    {
+        return unserialize(COption::GetOptionString(RetailcrmConstants::MODULE_ID, RetailcrmConstants::CRM_INTEGRATION_DELIVERY, 0));
+    }
 }
