@@ -24,7 +24,7 @@ class SmsVerificationStatusRequest extends AbstractApiModel
     /**
      * Номер телефона для отправки сообщения
      *
-     * @var string $phone
+     * @var string $checkId
      *
      * @Mapping\Type("string")
      * @Mapping\SerializedName("checkId")
