@@ -623,7 +623,17 @@ class RetailcrmConfigProvider
     {
         return COption::GetOptionString("main", "new_user_phone_required") === 'Y';
     }
-
+    
+    /**
+     * Return integration_delivery option
+     *
+     * @return mixed
+     */
+    public static function getCrmIntegrationDelivery()
+    {
+        return static::getUnserializedOption(RetailcrmConstants::CRM_INTEGRATION_DELIVERY);
+    }
+    
     /**
      * Wraps Bitrix COption::GetOptionString(...)
      *
