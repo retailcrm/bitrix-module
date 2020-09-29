@@ -14,9 +14,7 @@ namespace Intaro\RetailCrm\Component\ApiClient\Traits;
 use Intaro\RetailCrm\Component\Json\Deserializer;
 use Intaro\RetailCrm\Component\Json\Serializer;
 use Intaro\RetailCrm\Model\Api\Request\SmsVerification\SmsVerificationConfirmRequest;
-use Intaro\RetailCrm\Model\Api\Request\SmsVerification\SmsVerificationCreateRequest;
 use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationConfirmResponse;
-use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationCreateResponse;
 use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusRequest;
 use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusResponse;
 
@@ -36,18 +34,6 @@ trait LoyaltyTrait
         $response   = $this->client->confirmLpVerificationBySMS($serialized);
         
         return Deserializer::deserializeArray($response->getResponseBody(), SmsVerificationConfirmResponse::class);
-    }
-    
-    /**
-     * @param \Intaro\RetailCrm\Model\Api\Request\SmsVerification\SmsVerificationCreateRequest $request
-     * @return \Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationCreateResponse|null
-     */
-    protected function sendSmsForLpVerification(SmsVerificationCreateRequest $request): ?SmsVerificationCreateResponse
-    {
-        $serialized = Serializer::serializeArray($request);
-        $response   = $this->client->sendSmsForLpVerification($serialized);
-        
-        return Deserializer::deserializeArray($response->getResponseBody(), SmsVerificationCreateResponse::class);
     }
     
     /**
