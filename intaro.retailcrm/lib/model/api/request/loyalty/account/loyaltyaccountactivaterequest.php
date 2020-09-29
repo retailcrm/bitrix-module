@@ -17,14 +17,14 @@ use Intaro\RetailCrm\Model\Api\AbstractApiModel;
 /**
  * Class LoyaltyAccountActivateRequest
  *
- * @package Intaro\RetailCrm\Model\Api\Response\SmsVerification
+ * @package Intaro\RetailCrm\Model\Api\Request\Loyalty\Account
  */
 class LoyaltyAccountActivateRequest extends AbstractApiModel
 {
     /**
      * Id участия в программе лояльности
      *
-     * @var string $loyaltyId
+     * @var integer $loyaltyId
      *
      * @Mapping\Type("integer")
      * @Mapping\SerializedName("id")

@@ -11,8 +11,11 @@
  */
 namespace Intaro\RetailCrm\Model\Api;
 
+use DateTime;
+
 /**
  * Class SmsVerification
+ *
  * @package Intaro\RetailCrm\Model\Api
  */
 class SmsVerification extends AbstractApiModel
@@ -70,7 +73,7 @@ class SmsVerification extends AbstractApiModel
     /**
      * @param \DateTime $createdAt
      */
-    public function setCreatedAt(\DateTime $createdAt): void
+    public function setCreatedAt(DateTime $createdAt): void
     {
         $this->createdAt = $createdAt;
     }
@@ -94,7 +97,7 @@ class SmsVerification extends AbstractApiModel
     /**
      * @param \DateTime $verifiedAt
      */
-    public function setVerifiedAt(\DateTime $verifiedAt): void
+    public function setVerifiedAt(DateTime $verifiedAt): void
     {
         $this->verifiedAt = $verifiedAt;
     }
@@ -102,7 +105,7 @@ class SmsVerification extends AbstractApiModel
     /**
      * @param \DateTime $expiredAt
      */
-    public function setExpiredAt(\DateTime $expiredAt): void
+    public function setExpiredAt(DateTime $expiredAt): void
     {
         $this->expiredAt = $expiredAt;
     }

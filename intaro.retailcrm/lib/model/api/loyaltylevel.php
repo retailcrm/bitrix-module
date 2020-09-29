@@ -12,19 +12,29 @@
 namespace Intaro\RetailCrm\Model\Api;
 
 /**
- * Class SerializedOrderDelivery
+ * Class LoyaltyLevel
  *
  * @package Intaro\RetailCrm\Model\Api
  */
-class SerializedOrderDelivery
+class LoyaltyLevel
 {
     /**
-     * Цена товара/SKU/Стоимость доставки
+     * ID уровня
      *
-     * @var double $cost
+     * @var integer $id
      *
-     * @Mapping\Type("double")
-     * @Mapping\SerializedName("cost")
+     * @Mapping\Type("string")
+     * @Mapping\SerializedName("id")
      */
-    public $cost;
+    public $id;
+    
+    /**
+     * Название уровня
+     *
+     * @var string $name
+     *
+     * @Mapping\Type("string")
+     * @Mapping\SerializedName("name")
+     */
+    public $name;
 }
