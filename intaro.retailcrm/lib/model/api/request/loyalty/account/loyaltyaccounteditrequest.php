@@ -13,6 +13,7 @@ namespace Intaro\RetailCrm\Model\Api\Request\Loyalty\Account;
 
 use Intaro\RetailCrm\Component\Json\Mapping;
 use Intaro\RetailCrm\Model\Api\AbstractApiModel;
+use Intaro\RetailCrm\Model\Api\LoyaltyAccount;
 
 /**
  * Class LoyaltyAccountEditRequest
@@ -27,5 +28,21 @@ class LoyaltyAccountEditRequest extends AbstractApiModel
      * @Mapping\Type("\Intaro\RetailCrm\Model\Api\LoyaltyAccount")
      * @Mapping\SerializedName("loyalty_account")
      */
-    public $loyaltyAccount;
+    private $loyaltyAccount;
+    
+    /**
+     * @return \Intaro\RetailCrm\Model\Api\LoyaltyAccount
+     */
+    public function getLoyaltyAccount(): LoyaltyAccount
+    {
+        return $this->loyaltyAccount;
+    }
+    
+    /**
+     * @param \Intaro\RetailCrm\Model\Api\LoyaltyAccount $loyaltyAccount
+     */
+    public function setLoyaltyAccount(LoyaltyAccount $loyaltyAccount): void
+    {
+        $this->loyaltyAccount = $loyaltyAccount;
+    }
 }

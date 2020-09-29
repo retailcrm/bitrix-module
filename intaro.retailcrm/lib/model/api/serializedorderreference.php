@@ -24,7 +24,7 @@ class SerializedOrderReference
      * @Mapping\Type("integer")
      * @Mapping\SerializedName("id")
      */
-    public $id;
+    private $id;
     
     /**
      * @var float $bonuses
@@ -32,5 +32,37 @@ class SerializedOrderReference
      * @Mapping\Type("float")
      * @Mapping\SerializedName("bonuses")
      */
-    public $bonuses;
+    private $bonuses;
+    
+    /**
+     * @return float
+     */
+    public function getBonuses(): float
+    {
+        return $this->bonuses;
+    }
+    
+    /**
+     * @param float $bonuses
+     */
+    public function setBonuses(float $bonuses): void
+    {
+        $this->bonuses = $bonuses;
+    }
+    
+    /**
+     * @return int
+     */
+    public function getId(): int
+    {
+        return $this->id;
+    }
+    
+    /**
+     * @param int $id
+     */
+    public function setId(int $id): void
+    {
+        $this->id = $id;
+    }
 }
