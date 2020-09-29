@@ -12,19 +12,19 @@
 namespace Intaro\RetailCrm\Model\Api;
 
 /**
- * Class SerializedOrderDelivery
+ * Class AbstractLoyaltyEvent
  *
  * @package Intaro\RetailCrm\Model\Api
  */
-class SerializedOrderDelivery
+class AbstractLoyaltyEvent
 {
     /**
-     * Цена товара/SKU/Стоимость доставки
+     * ID события
      *
-     * @var double $cost
+     * @var integer $id
      *
-     * @Mapping\Type("double")
-     * @Mapping\SerializedName("cost")
+     * @Mapping\Type("integer")
+     * @Mapping\SerializedName("id")
      */
-    public $cost;
+    public $id;
 }
