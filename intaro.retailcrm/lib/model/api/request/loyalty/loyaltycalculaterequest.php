@@ -13,6 +13,7 @@ namespace Intaro\RetailCrm\Model\Api\Request\Loyalty;
 
 use Intaro\RetailCrm\Component\Json\Mapping;
 use Intaro\RetailCrm\Model\Api\AbstractApiModel;
+use Intaro\RetailCrm\Model\Api\SerializedOrder;
 
 /**
  * Class LoyaltyCalculateRequest
@@ -27,7 +28,7 @@ class LoyaltyCalculateRequest extends AbstractApiModel
      * @Mapping\Type("string")
      * @Mapping\SerializedName("site")
      */
-    public $site;
+    private $site;
     
     /**
      * @var \Intaro\RetailCrm\Model\Api\SerializedOrder
@@ -35,5 +36,37 @@ class LoyaltyCalculateRequest extends AbstractApiModel
      * @Mapping\Type("\Intaro\RetailCrm\Model\Api\SerializedOrder")
      * @Mapping\SerializedName("order")
      */
-    public $order;
+    private $order;
+    
+    /**
+     * @return string
+     */
+    public function getSite(): string
+    {
+        return $this->site;
+    }
+    
+    /**
+     * @param string $site
+     */
+    public function setSite(string $site): void
+    {
+        $this->site = $site;
+    }
+    
+    /**
+     * @return \Intaro\RetailCrm\Model\Api\SerializedOrder
+     */
+    public function getOrder(): SerializedOrder
+    {
+        return $this->order;
+    }
+    
+    /**
+     * @param \Intaro\RetailCrm\Model\Api\SerializedOrder $order
+     */
+    public function setOrder(SerializedOrder $order): void
+    {
+        $this->order = $order;
+    }
 }
