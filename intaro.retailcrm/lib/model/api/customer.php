@@ -11,6 +11,7 @@
  */
 namespace Intaro\RetailCrm\Model\Api;
 
+use DateTime;
 use Intaro\RetailCrm\Component\Json\Mapping;
 
 /**
@@ -28,7 +29,7 @@ class Customer extends AbstractApiModel
      * @Mapping\Type("integer")
      * @Mapping\SerializedName("id")
      */
-    public $id;
+    private $id;
 
     /**
      * Внешний ID [обычного|корпоративного] клиента
@@ -38,7 +39,7 @@ class Customer extends AbstractApiModel
      * @Mapping\Type("string")
      * @Mapping\SerializedName("externalId")
      */
-    public $externalId;
+    private $externalId;
 
     /**
      * Внешний идентификатор [обычного|корпоративного] клиента в складской системе
@@ -48,7 +49,7 @@ class Customer extends AbstractApiModel
      * @Mapping\Type("string")
      * @Mapping\SerializedName("uuid")
      */
-    public $uuid;
+    private $uuid;
 
     /**
      * Тип клиента (корпоративный или обычный)
@@ -58,7 +59,7 @@ class Customer extends AbstractApiModel
      * @Mapping\Type("string")
      * @Mapping\SerializedName("type")
      */
-    public $type;
+    private $type;
 
     /**
      * Контактное лицо корпоративного клиента является основным
@@ -68,7 +69,7 @@ class Customer extends AbstractApiModel
      * @Mapping\Type("boolean")
      * @Mapping\SerializedName("isMain")
      */
-    public $isMain;
+    private $isMain;
 
     /**
      * Индикатор подписки на рассылку
@@ -78,7 +79,7 @@ class Customer extends AbstractApiModel
      * @Mapping\Type("boolean")
      * @Mapping\SerializedName("subscribed")
      */
-    public $subscribed;
+    private $subscribed;
 
     /**
      * Кука Daemon Collector
@@ -88,7 +89,7 @@ class Customer extends AbstractApiModel
      * @Mapping\Type("string")
      * @Mapping\SerializedName("browserId")
      */
-    public $browserId;
+    private $browserId;
 
     /**
      * Является ли клиент контактным лицом корпоративного клиента
@@ -98,7 +99,7 @@ class Customer extends AbstractApiModel
      * @Mapping\Type("boolean")
      * @Mapping\SerializedName("isContact")
      */
-    public $isContact;
+    private $isContact;
 
     /**
      * Дата создания в системе
@@ -108,7 +109,7 @@ class Customer extends AbstractApiModel
      * @Mapping\Type("DateTime<'Y-m-d H:i:s'>")
      * @Mapping\SerializedName("createdAt")
      */
-    public $createdAt;
+    private $createdAt;
 
     /**
      * Имя
@@ -118,7 +119,7 @@ class Customer extends AbstractApiModel
      * @Mapping\Type("string")
      * @Mapping\SerializedName("firstName")
      */
-    public $firstName;
+    private $firstName;
 
     /**
      * Фамилия
@@ -128,7 +129,7 @@ class Customer extends AbstractApiModel
      * @Mapping\Type("string")
      * @Mapping\SerializedName("lastName")
      */
-    public $lastName;
+    private $lastName;
 
     /**
      * Отчество
@@ -138,7 +139,7 @@ class Customer extends AbstractApiModel
      * @Mapping\Type("string")
      * @Mapping\SerializedName("patronymic")
      */
-    public $patronymic;
+    private $patronymic;
 
     /**
      * Адрес электронной почты
@@ -148,7 +149,7 @@ class Customer extends AbstractApiModel
      * @Mapping\Type("string")
      * @Mapping\SerializedName("email")
      */
-    public $email;
+    private $email;
 
     /**
      * Телефоны
@@ -158,7 +159,7 @@ class Customer extends AbstractApiModel
      * @Mapping\Type("array<Intaro\RetailCrm\Model\Api\Phone>")
      * @Mapping\SerializedName("phones")
      */
-    public $phones;
+    private $phones;
 
     /**
      * Дата рождения
@@ -168,7 +169,7 @@ class Customer extends AbstractApiModel
      * @Mapping\Type("DateTime<'Y-m-d'>")
      * @Mapping\SerializedName("birthday")
      */
-    public $birthday;
+    private $birthday;
 
     /**
      * Пол
@@ -178,7 +179,7 @@ class Customer extends AbstractApiModel
      * @Mapping\Type("string")
      * @Mapping\SerializedName("sex")
      */
-    public $sex;
+    private $sex;
 
     /**
      * ID менеджера, к которому привязан клиент
@@ -188,7 +189,7 @@ class Customer extends AbstractApiModel
      * @Mapping\Type("integer")
      * @Mapping\SerializedName("managerId")
      */
-    public $managerId;
+    private $managerId;
 
     /**
      * Реквизиты
@@ -198,7 +199,7 @@ class Customer extends AbstractApiModel
      * @Mapping\Type("Intaro\RetailCrm\Model\Api\Contragent")
      * @Mapping\SerializedName("contragent")
      */
-    public $contragent;
+    private $contragent;
 
     /**
      * Список пользовательских полей
@@ -208,7 +209,7 @@ class Customer extends AbstractApiModel
      * @Mapping\Type("array")
      * @Mapping\SerializedName("customFields")
      */
-    public $customFields;
+    private $customFields;
 
     /**
      * Магазин, с которого пришел клиент
@@ -218,7 +219,7 @@ class Customer extends AbstractApiModel
      * @Mapping\Type("string")
      * @Mapping\SerializedName("site")
      */
-    public $site;
+    private $site;
 
     /**
      * Наименование
@@ -228,7 +229,7 @@ class Customer extends AbstractApiModel
      * @Mapping\Type("string")
      * @Mapping\SerializedName("nickName")
      */
-    public $nickName;
+    private $nickName;
 
     /**
      * Адрес
@@ -238,7 +239,7 @@ class Customer extends AbstractApiModel
      * @Mapping\Type("Intaro\RetailCrm\Model\Api\Address")
      * @Mapping\SerializedName("address")
      */
-    public $address;
+    private $address;
 
     /**
      * Адреса
@@ -248,7 +249,7 @@ class Customer extends AbstractApiModel
      * @Mapping\Type("array<Intaro\RetailCrm\Model\Api\Address>")
      * @Mapping\SerializedName("addresses")
      */
-    public $addresses;
+    private $addresses;
 
     /**
      * Основной адрес
@@ -258,7 +259,7 @@ class Customer extends AbstractApiModel
      * @Mapping\Type("Intaro\RetailCrm\Model\Api\Address")
      * @Mapping\SerializedName("mainAddress")
      */
-    public $mainAddress;
+    private $mainAddress;
 
     /**
      * Компании
@@ -268,7 +269,7 @@ class Customer extends AbstractApiModel
      * @Mapping\Type("array<Intaro\RetailCrm\Model\Api\Company>")
      * @Mapping\SerializedName("companies")
      */
-    public $companies;
+    private $companies;
 
     /**
      * Основная компания
@@ -278,7 +279,7 @@ class Customer extends AbstractApiModel
      * @Mapping\Type("Intaro\RetailCrm\Model\Api\Company")
      * @Mapping\SerializedName("mainCompany")
      */
-    public $mainCompany;
+    private $mainCompany;
 
     /**
      * Контактные лица
@@ -288,7 +289,7 @@ class Customer extends AbstractApiModel
      * @Mapping\Type("array<Intaro\RetailCrm\Model\Api\CustomerContact>")
      * @Mapping\SerializedName("customerContacts")
      */
-    public $customerContacts;
+    private $customerContacts;
 
     /**
      * Основное контактное лицо
@@ -298,7 +299,7 @@ class Customer extends AbstractApiModel
      * @Mapping\Type("Intaro\RetailCrm\Model\Api\CustomerContact")
      * @Mapping\SerializedName("mainCustomerContact")
      */
-    public $mainCustomerContact;
+    private $mainCustomerContact;
 
     /**
      * Персональная скидка
@@ -308,5 +309,469 @@ class Customer extends AbstractApiModel
      * @Mapping\Type("double")
      * @Mapping\SerializedName("personalDiscount")
      */
-    public $personalDiscount;
+    private $personalDiscount;
+    
+    /**
+     * @return int
+     */
+    public function getId(): int
+    {
+        return $this->id;
+    }
+    
+    /**
+     * @param int $id
+     */
+    public function setId(int $id): void
+    {
+        $this->id = $id;
+    }
+    
+    /**
+     * @return float
+     */
+    public function getPersonalDiscount(): float
+    {
+        return $this->personalDiscount;
+    }
+    
+    /**
+     * @param float $personalDiscount
+     */
+    public function setPersonalDiscount(float $personalDiscount): void
+    {
+        $this->personalDiscount = $personalDiscount;
+    }
+    
+    /**
+     * @return \Intaro\RetailCrm\Model\Api\CustomerContact
+     */
+    public function getMainCustomerContact(): \Intaro\RetailCrm\Model\Api\CustomerContact
+    {
+        return $this->mainCustomerContact;
+    }
+    
+    /**
+     * @param \Intaro\RetailCrm\Model\Api\CustomerContact $mainCustomerContact
+     */
+    public function setMainCustomerContact(\Intaro\RetailCrm\Model\Api\CustomerContact $mainCustomerContact): void
+    {
+        $this->mainCustomerContact = $mainCustomerContact;
+    }
+    
+    /**
+     * @return array
+     */
+    public function getCustomerContacts(): array
+    {
+        return $this->customerContacts;
+    }
+    
+    /**
+     * @param array $customerContacts
+     */
+    public function setCustomerContacts(array $customerContacts): void
+    {
+        $this->customerContacts = $customerContacts;
+    }
+    
+    /**
+     * @return \Intaro\RetailCrm\Model\Api\Company
+     */
+    public function getMainCompany(): \Intaro\RetailCrm\Model\Api\Company
+    {
+        return $this->mainCompany;
+    }
+    
+    /**
+     * @param \Intaro\RetailCrm\Model\Api\Company $mainCompany
+     */
+    public function setMainCompany(\Intaro\RetailCrm\Model\Api\Company $mainCompany): void
+    {
+        $this->mainCompany = $mainCompany;
+    }
+    
+    /**
+     * @return array
+     */
+    public function getCompanies(): array
+    {
+        return $this->companies;
+    }
+    
+    /**
+     * @param array $companies
+     */
+    public function setCompanies(array $companies): void
+    {
+        $this->companies = $companies;
+    }
+    
+    /**
+     * @return \Intaro\RetailCrm\Model\Api\Address
+     */
+    public function getMainAddress(): \Intaro\RetailCrm\Model\Api\Address
+    {
+        return $this->mainAddress;
+    }
+    
+    /**
+     * @param \Intaro\RetailCrm\Model\Api\Address $mainAddress
+     */
+    public function setMainAddress(\Intaro\RetailCrm\Model\Api\Address $mainAddress): void
+    {
+        $this->mainAddress = $mainAddress;
+    }
+    
+    /**
+     * @return array
+     */
+    public function getAddresses(): array
+    {
+        return $this->addresses;
+    }
+    
+    /**
+     * @param array $addresses
+     */
+    public function setAddresses(array $addresses): void
+    {
+        $this->addresses = $addresses;
+    }
+    
+    /**
+     * @return \Intaro\RetailCrm\Model\Api\Address
+     */
+    public function getAddress(): \Intaro\RetailCrm\Model\Api\Address
+    {
+        return $this->address;
+    }
+    
+    /**
+     * @param \Intaro\RetailCrm\Model\Api\Address $address
+     */
+    public function setAddress(\Intaro\RetailCrm\Model\Api\Address $address): void
+    {
+        $this->address = $address;
+    }
+    
+    /**
+     * @return array
+     */
+    public function getCustomFields(): array
+    {
+        return $this->customFields;
+    }
+    
+    /**
+     * @param array $customFields
+     */
+    public function setCustomFields(array $customFields): void
+    {
+        $this->customFields = $customFields;
+    }
+    
+    /**
+     * @return string
+     */
+    public function getNickName(): string
+    {
+        return $this->nickName;
+    }
+    
+    /**
+     * @param string $nickName
+     */
+    public function setNickName(string $nickName): void
+    {
+        $this->nickName = $nickName;
+    }
+    
+    /**
+     * @return string
+     */
+    public function getSite(): string
+    {
+        return $this->site;
+    }
+    
+    /**
+     * @param string $site
+     */
+    public function setSite(string $site): void
+    {
+        $this->site = $site;
+    }
+    
+    /**
+     * @return \Intaro\RetailCrm\Model\Api\Contragent
+     */
+    public function getContragent(): \Intaro\RetailCrm\Model\Api\Contragent
+    {
+        return $this->contragent;
+    }
+    
+    /**
+     * @param \Intaro\RetailCrm\Model\Api\Contragent $contragent
+     */
+    public function setContragent(\Intaro\RetailCrm\Model\Api\Contragent $contragent): void
+    {
+        $this->contragent = $contragent;
+    }
+    
+    /**
+     * @return int
+     */
+    public function getManagerId(): int
+    {
+        return $this->managerId;
+    }
+    
+    /**
+     * @param int $managerId
+     */
+    public function setManagerId(int $managerId): void
+    {
+        $this->managerId = $managerId;
+    }
+    
+    /**
+     * @return string
+     */
+    public function getSex(): string
+    {
+        return $this->sex;
+    }
+    
+    /**
+     * @param string $sex
+     */
+    public function setSex(string $sex): void
+    {
+        $this->sex = $sex;
+    }
+    
+    /**
+     * @return \DateTime
+     */
+    public function getBirthday(): DateTime
+    {
+        return $this->birthday;
+    }
+    
+    /**
+     * @param \DateTime $birthday
+     */
+    public function setBirthday(DateTime $birthday): void
+    {
+        $this->birthday = $birthday;
+    }
+    
+    /**
+     * @return \Intaro\RetailCrm\Model\Api\Phone[]
+     */
+    public function getPhones(): array
+    {
+        return $this->phones;
+    }
+    
+    /**
+     * @param \Intaro\RetailCrm\Model\Api\Phone[] $phones
+     */
+    public function setPhones(array $phones): void
+    {
+        $this->phones = $phones;
+    }
+    
+    /**
+     * @return string
+     */
+    public function getEmail(): string
+    {
+        return $this->email;
+    }
+    
+    /**
+     * @param string $email
+     */
+    public function setEmail(string $email): void
+    {
+        $this->email = $email;
+    }
+    
+    /**
+     * @return string
+     */
+    public function getPatronymic(): string
+    {
+        return $this->patronymic;
+    }
+    
+    /**
+     * @param string $patronymic
+     */
+    public function setPatronymic(string $patronymic): void
+    {
+        $this->patronymic = $patronymic;
+    }
+    
+    /**
+     * @return string
+     */
+    public function getLastName(): string
+    {
+        return $this->lastName;
+    }
+    
+    /**
+     * @param string $lastName
+     */
+    public function setLastName(string $lastName): void
+    {
+        $this->lastName = $lastName;
+    }
+    
+    /**
+     * @return string
+     */
+    public function getFirstName(): string
+    {
+        return $this->firstName;
+    }
+    
+    /**
+     * @param string $firstName
+     */
+    public function setFirstName(string $firstName): void
+    {
+        $this->firstName = $firstName;
+    }
+    
+    /**
+     * @return \DateTime
+     */
+    public function getCreatedAt(): DateTime
+    {
+        return $this->createdAt;
+    }
+    
+    /**
+     * @param \DateTime $createdAt
+     */
+    public function setCreatedAt(DateTime $createdAt): void
+    {
+        $this->createdAt = $createdAt;
+    }
+    
+    /**
+     * @return bool
+     */
+    public function isContact(): bool
+    {
+        return $this->isContact;
+    }
+    
+    /**
+     * @param bool $isContact
+     */
+    public function setIsContact(bool $isContact): void
+    {
+        $this->isContact = $isContact;
+    }
+    
+    /**
+     * @return bool
+     */
+    public function isBrowserId(): bool
+    {
+        return $this->browserId;
+    }
+    
+    /**
+     * @param bool $browserId
+     */
+    public function setBrowserId(bool $browserId): void
+    {
+        $this->browserId = $browserId;
+    }
+    
+    /**
+     * @return bool
+     */
+    public function isSubscribed(): bool
+    {
+        return $this->subscribed;
+    }
+    
+    /**
+     * @param bool $subscribed
+     */
+    public function setSubscribed(bool $subscribed): void
+    {
+        $this->subscribed = $subscribed;
+    }
+    
+    /**
+     * @return bool
+     */
+    public function isMain(): bool
+    {
+        return $this->isMain;
+    }
+    
+    /**
+     * @param bool $isMain
+     */
+    public function setIsMain(bool $isMain): void
+    {
+        $this->isMain = $isMain;
+    }
+    
+    /**
+     * @return string
+     */
+    public function getType(): string
+    {
+        return $this->type;
+    }
+    
+    /**
+     * @param string $type
+     */
+    public function setType(string $type): void
+    {
+        $this->type = $type;
+    }
+    
+    /**
+     * @return string
+     */
+    public function getUuid(): string
+    {
+        return $this->uuid;
+    }
+    
+    /**
+     * @param string $uuid
+     */
+    public function setUuid(string $uuid): void
+    {
+        $this->uuid = $uuid;
+    }
+    
+    /**
+     * @return string
+     */
+    public function getExternalId(): string
+    {
+        return $this->externalId;
+    }
+    
+    /**
+     * @param string $externalId
+     */
+    public function setExternalId(string $externalId): void
+    {
+        $this->externalId = $externalId;
+    }
 }
