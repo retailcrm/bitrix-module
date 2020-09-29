@@ -28,7 +28,7 @@ class SmsVerification extends AbstractApiModel
      * @Mapping\Type("DateTime<'Y-m-d H:i:s'>")
      * @Mapping\SerializedName("createdAt")
      */
-    public $createdAt;
+    private $createdAt;
     
     /**
      * Дата окончания срока жизни. (Y-m-d H:i:s)
@@ -38,7 +38,7 @@ class SmsVerification extends AbstractApiModel
      * @Mapping\Type("DateTime<'Y-m-d H:i:s'>")
      * @Mapping\SerializedName("expiredAt")
      */
-    public $expiredAt;
+    private $expiredAt;
     
     /**
      * Дата успешной верификации. (Y-m-d H:i:s)
@@ -48,7 +48,7 @@ class SmsVerification extends AbstractApiModel
      * @Mapping\Type("DateTime<'Y-m-d H:i:s'>")
      * @Mapping\SerializedName("verifiedAt")
      */
-    public $verifiedAt;
+    private $verifiedAt;
     
     /**
      * Идентификатор для проверки кода
@@ -58,7 +58,7 @@ class SmsVerification extends AbstractApiModel
      * @Mapping\Type("string")
      * @Mapping\SerializedName("checkId")
      */
-    public $checkId;
+    private $checkId;
     
     /**
      * Тип действия
@@ -68,7 +68,7 @@ class SmsVerification extends AbstractApiModel
      * @Mapping\Type("string")
      * @Mapping\SerializedName("actionType")
      */
-    public $actionType;
+    private $actionType;
     
     /**
      * @param \DateTime $createdAt
