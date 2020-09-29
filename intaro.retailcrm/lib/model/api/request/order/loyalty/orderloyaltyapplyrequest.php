@@ -17,7 +17,7 @@ use Intaro\RetailCrm\Model\Api\AbstractApiModel;
 /**
  * Class OrderLoyaltyApplyRequest
  *
- * @package Intaro\RetailCrm\Model\Api\Response\SmsVerification
+ * @package Intaro\RetailCrm\Model\Api\Request\Order\Loyalty
  */
 class OrderLoyaltyApplyRequest extends AbstractApiModel
 {
