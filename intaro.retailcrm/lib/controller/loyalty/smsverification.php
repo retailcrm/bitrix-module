@@ -41,23 +41,6 @@ class AdminPanel extends Controller
     }
     
     /**
-     * Send verification sms
-     *
-     * @param string   $actionType
-     * @param int|null $orderId
-     * @param int      $verificationLength
-     * @return \Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationCreateResponse|null
-     * @throws \Exception
-     */
-    public function sendSmsAction(
-        string $actionType = 'verify_customer',
-        int $orderId = null,
-        int $verificationLength = self::DEFAULT_CODE_LENGHT
-    ) {
-        return $this->service->sendSms($actionType, $orderId, $verificationLength);
-    }
-    
-    /**
      * Контроллер получает статус текущего состояния верификации
      *
      * @param string $checkId
