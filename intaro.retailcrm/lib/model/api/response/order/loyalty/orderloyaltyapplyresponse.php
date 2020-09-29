@@ -13,6 +13,8 @@ namespace Intaro\RetailCrm\Model\Api\Response\Order\Loyalty;
 
 use Intaro\RetailCrm\Component\Json\Mapping;
 use Intaro\RetailCrm\Model\Api\AbstractApiModel;
+use Intaro\RetailCrm\Model\Api\SerializedLoyaltyOrder;
+use Intaro\RetailCrm\Model\Api\SmsVerification;
 
 /**
  * Class OrderLoyaltyApplyResponse
@@ -29,7 +31,7 @@ class OrderLoyaltyApplyResponse extends AbstractApiModel
      * @Mapping\Type("boolean")
      * @Mapping\SerializedName("success")
      */
-    public $success;
+    private $success;
     
     /**
      * @var \Intaro\RetailCrm\Model\Api\SerializedLoyaltyOrder
@@ -37,7 +39,7 @@ class OrderLoyaltyApplyResponse extends AbstractApiModel
      * @Mapping\Type("\Intaro\RetailCrm\Model\Api\SerializedLoyaltyOrder")
      * @Mapping\SerializedName("order")
      */
-    public $order;
+    private $order;
     
     /**
      * @var \Intaro\RetailCrm\Model\Api\SmsVerification
@@ -45,5 +47,53 @@ class OrderLoyaltyApplyResponse extends AbstractApiModel
      * @Mapping\Type("\Intaro\RetailCrm\Model\Api\SerializedLoyaltyOrder")
      * @Mapping\SerializedName("verification")
      */
-    public $verification;
+    private $verification;
+    
+    /**
+     * @return bool
+     */
+    public function isSuccess(): bool
+    {
+        return $this->success;
+    }
+    
+    /**
+     * @param bool $success
+     */
+    public function setSuccess(bool $success): void
+    {
+        $this->success = $success;
+    }
+    
+    /**
+     * @return \Intaro\RetailCrm\Model\Api\SerializedLoyaltyOrder
+     */
+    public function getOrder(): SerializedLoyaltyOrder
+    {
+        return $this->order;
+    }
+    
+    /**
+     * @param \Intaro\RetailCrm\Model\Api\SerializedLoyaltyOrder $order
+     */
+    public function setOrder(SerializedLoyaltyOrder $order): void
+    {
+        $this->order = $order;
+    }
+    
+    /**
+     * @return \Intaro\RetailCrm\Model\Api\SmsVerification
+     */
+    public function getVerification(): SmsVerification
+    {
+        return $this->verification;
+    }
+    
+    /**
+     * @param \Intaro\RetailCrm\Model\Api\SmsVerification $verification
+     */
+    public function setVerification(SmsVerification $verification): void
+    {
+        $this->verification = $verification;
+    }
 }

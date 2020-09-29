@@ -29,5 +29,21 @@ class LoyaltyAccountActivateRequest extends AbstractApiModel
      * @Mapping\Type("integer")
      * @Mapping\SerializedName("id")
      */
-    public $loyaltyId;
+    private $loyaltyId;
+    
+    /**
+     * @return int
+     */
+    public function getLoyaltyId(): int
+    {
+        return $this->loyaltyId;
+    }
+    
+    /**
+     * @param int $loyaltyId
+     */
+    public function setLoyaltyId(int $loyaltyId): void
+    {
+        $this->loyaltyId = $loyaltyId;
+    }
 }
