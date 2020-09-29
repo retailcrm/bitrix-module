@@ -13,6 +13,7 @@ namespace Intaro\RetailCrm\Model\Api\Response\Loyalty\Account;
 
 use Intaro\RetailCrm\Component\Json\Mapping;
 use Intaro\RetailCrm\Model\Api\AbstractApiModel;
+use Intaro\RetailCrm\Model\Api\LoyaltyAccount;
 
 /**
  * Class LoyaltyAccountEditResponse
@@ -29,7 +30,7 @@ class LoyaltyAccountEditResponse extends AbstractApiModel
      * @Mapping\Type("boolean")
      * @Mapping\SerializedName("success")
      */
-    public $success;
+    private $success;
     
     /**
      * @var \Intaro\RetailCrm\Model\Api\LoyaltyAccount
@@ -37,7 +38,7 @@ class LoyaltyAccountEditResponse extends AbstractApiModel
      * @Mapping\Type("\Intaro\RetailCrm\Model\Api\LoyaltyAccount")
      * @Mapping\SerializedName("loyalty_account")
      */
-    public $loyaltyAccount;
+    private $loyaltyAccount;
     
     /**
      * @var array $warnings
@@ -45,5 +46,53 @@ class LoyaltyAccountEditResponse extends AbstractApiModel
      * @Mapping\Type("array")
      * @Mapping\SerializedName("warnings")
      */
-    public $warnings;
+    private $warnings;
+    
+    /**
+     * @return bool
+     */
+    public function isSuccess(): bool
+    {
+        return $this->success;
+    }
+    
+    /**
+     * @param bool $success
+     */
+    public function setSuccess(bool $success): void
+    {
+        $this->success = $success;
+    }
+    
+    /**
+     * @return \Intaro\RetailCrm\Model\Api\LoyaltyAccount
+     */
+    public function getLoyaltyAccount(): LoyaltyAccount
+    {
+        return $this->loyaltyAccount;
+    }
+    
+    /**
+     * @param \Intaro\RetailCrm\Model\Api\LoyaltyAccount $loyaltyAccount
+     */
+    public function setLoyaltyAccount(LoyaltyAccount $loyaltyAccount): void
+    {
+        $this->loyaltyAccount = $loyaltyAccount;
+    }
+    
+    /**
+     * @return array
+     */
+    public function getWarnings(): array
+    {
+        return $this->warnings;
+    }
+    
+    /**
+     * @param array $warnings
+     */
+    public function setWarnings(array $warnings): void
+    {
+        $this->warnings = $warnings;
+    }
 }

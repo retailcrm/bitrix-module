@@ -26,7 +26,7 @@ class LoyaltyAccount
      * @Mapping\Type("boolean")
      * @Mapping\SerializedName("active")
      */
-    public $active;
+    private $active;
     
     /**
      * Номер телефона
@@ -36,7 +36,7 @@ class LoyaltyAccount
      * @Mapping\Type("string")
      * @Mapping\SerializedName("phoneNumber")
      */
-    public $phoneNumber;
+    private $phoneNumber;
     
     /**
      * Номер карты
@@ -46,7 +46,7 @@ class LoyaltyAccount
      * @Mapping\Type("string")
      * @Mapping\SerializedName("cardNumber")
      */
-    public $cardNumber;
+    private $cardNumber;
     
     /**
      * Id участия в программе лояльности
@@ -56,7 +56,7 @@ class LoyaltyAccount
      * @Mapping\Type("integer")
      * @Mapping\SerializedName("id")
      */
-    public $id;
+    private $id;
     
     /**
      * Количество бонусов
@@ -66,7 +66,7 @@ class LoyaltyAccount
      * @Mapping\Type("float")
      * @Mapping\SerializedName("amount")
      */
-    public $amount;
+    private $amount;
     
     /**
      * Дата создания
@@ -76,7 +76,7 @@ class LoyaltyAccount
      * @Mapping\Type("DateTime<'Y-m-d H:i:s'>")
      * @Mapping\SerializedName("createdAt")
      */
-    public $createdAt;
+    private $createdAt;
     
     /**
      * @var \DateTime $activatedAt
@@ -84,7 +84,7 @@ class LoyaltyAccount
      * @Mapping\Type("DateTime<'Y-m-d H:i:s'>")
      * @Mapping\SerializedName("activatedAt")
      */
-    public $activatedAt;
+    private $activatedAt;
     
     /**
      * Идентификатор последней смс-верификации
@@ -94,5 +94,133 @@ class LoyaltyAccount
      * @Mapping\Type("string")
      * @Mapping\SerializedName("lastCheckId")
      */
-    public $lastCheckId;
+    private $lastCheckId;
+    
+    /**
+     * @return string
+     */
+    public function getLastCheckId(): string
+    {
+        return $this->lastCheckId;
+    }
+    
+    /**
+     * @param string $lastCheckId
+     */
+    public function setLastCheckId(string $lastCheckId): void
+    {
+        $this->lastCheckId = $lastCheckId;
+    }
+    
+    /**
+     * @return \DateTime
+     */
+    public function getActivatedAt(): \DateTime
+    {
+        return $this->activatedAt;
+    }
+    
+    /**
+     * @param \DateTime $activatedAt
+     */
+    public function setActivatedAt(\DateTime $activatedAt): void
+    {
+        $this->activatedAt = $activatedAt;
+    }
+    
+    /**
+     * @return \DateTime
+     */
+    public function getCreatedAt(): \DateTime
+    {
+        return $this->createdAt;
+    }
+    
+    /**
+     * @param \DateTime $createdAt
+     */
+    public function setCreatedAt(\DateTime $createdAt): void
+    {
+        $this->createdAt = $createdAt;
+    }
+    
+    /**
+     * @return float
+     */
+    public function getAmount(): float
+    {
+        return $this->amount;
+    }
+    
+    /**
+     * @param float $amount
+     */
+    public function setAmount(float $amount): void
+    {
+        $this->amount = $amount;
+    }
+    
+    /**
+     * @return int
+     */
+    public function getId(): int
+    {
+        return $this->id;
+    }
+    
+    /**
+     * @param int $id
+     */
+    public function setId(int $id): void
+    {
+        $this->id = $id;
+    }
+    
+    /**
+     * @return string
+     */
+    public function getCardNumber(): string
+    {
+        return $this->cardNumber;
+    }
+    
+    /**
+     * @param string $cardNumber
+     */
+    public function setCardNumber(string $cardNumber): void
+    {
+        $this->cardNumber = $cardNumber;
+    }
+    
+    /**
+     * @return string
+     */
+    public function getPhoneNumber(): string
+    {
+        return $this->phoneNumber;
+    }
+    
+    /**
+     * @param string $phoneNumber
+     */
+    public function setPhoneNumber(string $phoneNumber): void
+    {
+        $this->phoneNumber = $phoneNumber;
+    }
+    
+    /**
+     * @return bool
+     */
+    public function isActive(): bool
+    {
+        return $this->active;
+    }
+    
+    /**
+     * @param bool $active
+     */
+    public function setActive(bool $active): void
+    {
+        $this->active = $active;
+    }
 }
