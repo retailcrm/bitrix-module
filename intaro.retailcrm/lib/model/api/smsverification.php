@@ -28,7 +28,7 @@ class SmsVerification extends AbstractApiModel
      * @Mapping\Type("DateTime<'Y-m-d H:i:s'>")
      * @Mapping\SerializedName("createdAt")
      */
-    private $createdAt;
+    public $createdAt;
     
     /**
      * Дата окончания срока жизни. (Y-m-d H:i:s)
@@ -38,7 +38,7 @@ class SmsVerification extends AbstractApiModel
      * @Mapping\Type("DateTime<'Y-m-d H:i:s'>")
      * @Mapping\SerializedName("expiredAt")
      */
-    private $expiredAt;
+    public $expiredAt;
     
     /**
      * Дата успешной верификации. (Y-m-d H:i:s)
@@ -48,7 +48,7 @@ class SmsVerification extends AbstractApiModel
      * @Mapping\Type("DateTime<'Y-m-d H:i:s'>")
      * @Mapping\SerializedName("verifiedAt")
      */
-    private $verifiedAt;
+    public $verifiedAt;
     
     /**
      * Идентификатор для проверки кода
@@ -58,7 +58,7 @@ class SmsVerification extends AbstractApiModel
      * @Mapping\Type("string")
      * @Mapping\SerializedName("checkId")
      */
-    private $checkId;
+    public $checkId;
     
     /**
      * Тип действия
@@ -68,45 +68,5 @@ class SmsVerification extends AbstractApiModel
      * @Mapping\Type("string")
      * @Mapping\SerializedName("actionType")
      */
-    private $actionType;
-    
-    /**
-     * @param \DateTime $createdAt
-     */
-    public function setCreatedAt(DateTime $createdAt): void
-    {
-        $this->createdAt = $createdAt;
-    }
-    
-    /**
-     * @param string $actionType
-     */
-    public function setActionType(string $actionType): void
-    {
-        $this->actionType = $actionType;
-    }
-    
-    /**
-     * @param string $checkId
-     */
-    public function setCheckId(string $checkId): void
-    {
-        $this->checkId = $checkId;
-    }
-    
-    /**
-     * @param \DateTime $verifiedAt
-     */
-    public function setVerifiedAt(DateTime $verifiedAt): void
-    {
-        $this->verifiedAt = $verifiedAt;
-    }
-    
-    /**
-     * @param \DateTime $expiredAt
-     */
-    public function setExpiredAt(DateTime $expiredAt): void
-    {
-        $this->expiredAt = $expiredAt;
-    }
+    public $actionType;
 }
