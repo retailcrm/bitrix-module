@@ -264,6 +264,7 @@ $APPLICATION->SetAdditionalCSS($templateFolder . '/style.css', true);
 $this->addExternalJs($templateFolder . '/order_ajax.js');
 PropertyValueCollection::initJs();
 $this->addExternalJs($templateFolder . '/script.js');
+CJSCore::Init(["jquery"]);
 $this->addExternalJs($templateFolder . '/scripts/lodash.js');
 $this->addExternalJs($templateFolder . '/scripts/intaro.js');
 ?>
@@ -424,27 +425,29 @@ if (strlen($request->get('ORDER_ID')) > 0) {
                 <? endif ?>
 
                 <!--	INTARO BONUS BLOCK	-->
-                <? if ($arResult['LOYALTY_STATUS']  === 'Y'): ?>
-                <div id="bx-soa-intaro" data-visited="true" class="bx-soa-section bx-selected">
-                    <div class="bx-soa-section-title-container">
-                        <h2 class="bx-soa-section-title col-sm-9">
-                            <span class="bx-soa-section-title-count"></span> Оплата бонусами
-                        </h2>
-                        <div class="col-xs-12 col-sm-3 text-right"><a href="javascript:void(0)" class="bx-soa-editstep"><?=$arParams['MESS_EDIT']?></a></div>
-                    </div>
-                    <div class="bx-soa-section-content container-fluid" id="bx-soa-intaro-content">
-
-                        <div class="bx-soa-coupon">
-                           Сколько бонусов потратить:
-                            <div class="bx-soa-coupon-block">
-                                <div class="bx-input"><input class="form-control" type="text" id='bonus-input'>
-                                    <a href="javascript:void(0)" class="pull-right btn btn-default btn-md" onclick="updateOrder()">Пересчитать</a>
-                                </div>
+                <? if ($arResult['LOYALTY_STATUS'] === 'Y'): ?>
+                    <div id="bx-soa-intaro" data-visited="true" class="bx-soa-section bx-selected">
+                        <div class="bx-soa-section-title-container">
+                            <h2 class="bx-soa-section-title col-sm-9">
+                                <span class="bx-soa-section-title-count"></span> Оплата бонусами
+                            </h2>
+                            <div class="col-xs-12 col-sm-3 text-right"><a href="javascript:void(0)" class="bx-soa-editstep"><?=$arParams['MESS_EDIT']?></a></div>
                         </div>
-                           
-                            <div class="bx-soa-coupon-label">Доступно бонусов: <label id="available-bonuses"><?= $arResult['AVAILABLE_BONUSES']?></label></div>
+                        <div class="bx-soa-section-content container-fluid" id="bx-soa-intaro-content">
+
+                            <div class="bx-soa-coupon">
+                                Сколько бонусов потратить:
+                                <div class="bx-soa-coupon-block">
+                                    <div class="bx-input">
+                                        <input name='bonus-input' class="form-control" type="number" max="<?=$arResult['AVAILABLE_BONUSES']?>" id='bonus-input'>
+                                        <input name="available-bonuses" class="form-control" type="hidden" id='bonus-input' value="<?=$arResult['AVAILABLE_BONUSES']?>">
+                                    </div>
+                                </div>
+                                <div>Всего бонусов: <label id="total-bonuses-count"><?=$arResult['TOTAL_BONUSES_COUNT']?></label></div>
+                                <div>Можно применить: <label id="available-bonuses"><?=$arResult['AVAILABLE_BONUSES']?></label></div>
+                            </div>
+                        </div>
                     </div>
-                </div>
                 <? endif ?>
 
                 <!--	ORDER SAVE BLOCK	-->
@@ -593,7 +596,7 @@ if (strlen($request->get('ORDER_ID')) > 0) {
             pickUpBlockId:      'bx-soa-pickup',
             propsBlockId:       'bx-soa-properties',
             totalBlockId:       'bx-soa-total',
-            loyaltyStatus:       '<?=$arResult['LOYALTY_STATUS']?>'
+            loyaltyStatus:      '<?=$arResult['LOYALTY_STATUS']?>'
         });
     </script>
     <script>
