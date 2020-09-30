@@ -28,21 +28,5 @@ class SerializedOrderDelivery
      * @Mapping\Type("double")
      * @Mapping\SerializedName("cost")
      */
-    private $cost;
-    
-    /**
-     * @return float
-     */
-    public function getCost(): float
-    {
-        return $this->cost;
-    }
-    
-    /**
-     * @param float $cost
-     */
-    public function setCost(float $cost): void
-    {
-        $this->cost = $cost;
-    }
+    public $cost;
 }
