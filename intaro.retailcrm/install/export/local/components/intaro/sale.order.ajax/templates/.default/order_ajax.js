@@ -8320,8 +8320,6 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
                          }
     };
 
-
-    //ПРАВИЛ. отображает все службы доставок
     BX.Sale.OrderAjaxComponent.editPaySystemItems = function(paySystemNode) {
         if (!this.result.PAY_SYSTEM || this.result.PAY_SYSTEM.length <= 0)
             return;
@@ -8331,9 +8329,8 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 
         for (i = 0; i < this.paySystemPagination.currentPage.length; i++) {
 
+            //скрываем бонусный способ оплаты
             if (this.paySystemPagination.currentPage[i].CODE === 'INTARO_BONUS' && this.loyaltyStatus === "Y") {
-
-               document.getElementById('available-bonuses').innerText = 'Бонусов доступно: ';
                continue;
             }
 
@@ -8346,6 +8343,4 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 
         paySystemNode.appendChild(paySystemItemsContainer);
     };
-
-
 })();
