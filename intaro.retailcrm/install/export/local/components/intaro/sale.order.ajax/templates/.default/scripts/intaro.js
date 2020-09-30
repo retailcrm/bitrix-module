@@ -1,7 +1,18 @@
-function calculateBonuses(leading) {
-    console.log(leading);
-}
+$(document).ready(function() {
+    let intervalId;
 
-jQuery('#bonus-input').on('click', _.debounce(calculateBonuses, 300, {
-    'leading': 'test',
-}));
+    function make_ajax_request(e) {
+        setTimeout(function() {
+            BX.Sale.OrderAjaxComponent.sendRequest();
+            console.log('test');
+        }, 2000);
+    }
+
+    $('#bonus-input')
+        .on('keydown', function() {
+            clearInterval(intervalId);
+        })
+
+    $('#bonus-input').on('keydown',
+        _.debounce(make_ajax_request, 1300));
+});
