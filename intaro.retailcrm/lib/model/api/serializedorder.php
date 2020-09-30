@@ -26,7 +26,7 @@ class SerializedOrder
      * @Mapping\Type("double")
      * @Mapping\SerializedName("discountManualAmount")
      */
-    private $discountManualAmount;
+    public $discountManualAmount;
     
     /**
      * Процентная скидка на весь заказ. Система округляет это значение до 2 знаков после запятой
@@ -36,7 +36,7 @@ class SerializedOrder
      * @Mapping\Type("double")
      * @Mapping\SerializedName("discountManualPercent")
      */
-    private $discountManualPercent;
+    public $discountManualPercent;
     
     /**
      * Клиент
@@ -46,7 +46,7 @@ class SerializedOrder
      * @Mapping\Type("\Intaro\RetailCrm\Model\Api\SerializedRelationCustomer")
      * @Mapping\SerializedName("customer")
      */
-    private $customer;
+    public $customer;
     
     /**
      * @var array $items
@@ -54,7 +54,7 @@ class SerializedOrder
      * @Mapping\Type("array<Intaro\RetailCrm\Model\Api\SerializedOrderProduct>")
      * @Mapping\SerializedName("items")
      */
-    private $items;
+    public $items;
     
     /**
      * @var \Intaro\RetailCrm\Model\Api\SerializedOrderDelivery
@@ -62,85 +62,5 @@ class SerializedOrder
      * @Mapping\Type("\Intaro\RetailCrm\Model\Api\SerializedOrderDelivery")
      * @Mapping\SerializedName("delivery")
      */
-    private $delivery;
-    
-    /**
-     * @return \Intaro\RetailCrm\Model\Api\SerializedOrderDelivery
-     */
-    public function getDelivery(): \Intaro\RetailCrm\Model\Api\SerializedOrderDelivery
-    {
-        return $this->delivery;
-    }
-    
-    /**
-     * @param \Intaro\RetailCrm\Model\Api\SerializedOrderDelivery $delivery
-     */
-    public function setDelivery(\Intaro\RetailCrm\Model\Api\SerializedOrderDelivery $delivery): void
-    {
-        $this->delivery = $delivery;
-    }
-    
-    /**
-     * @return array
-     */
-    public function getItems(): array
-    {
-        return $this->items;
-    }
-    
-    /**
-     * @param array $items
-     */
-    public function setItems(array $items): void
-    {
-        $this->items = $items;
-    }
-    
-    /**
-     * @return \Intaro\RetailCrm\Model\Api\SerializedRelationCustomer
-     */
-    public function getCustomer(): \Intaro\RetailCrm\Model\Api\SerializedRelationCustomer
-    {
-        return $this->customer;
-    }
-    
-    /**
-     * @param \Intaro\RetailCrm\Model\Api\SerializedRelationCustomer $customer
-     */
-    public function setCustomer(\Intaro\RetailCrm\Model\Api\SerializedRelationCustomer $customer): void
-    {
-        $this->customer = $customer;
-    }
-    
-    /**
-     * @return float
-     */
-    public function getDiscountManualPercent(): float
-    {
-        return $this->discountManualPercent;
-    }
-    
-    /**
-     * @param float $discountManualPercent
-     */
-    public function setDiscountManualPercent(float $discountManualPercent): void
-    {
-        $this->discountManualPercent = $discountManualPercent;
-    }
-    
-    /**
-     * @return float
-     */
-    public function getDiscountManualAmount(): float
-    {
-        return $this->discountManualAmount;
-    }
-    
-    /**
-     * @param float $discountManualAmount
-     */
-    public function setDiscountManualAmount(float $discountManualAmount): void
-    {
-        $this->discountManualAmount = $discountManualAmount;
-    }
+    public $delivery;
 }
