@@ -30,7 +30,7 @@ class LoyaltyCalculateResponse extends AbstractApiModel
      * @Mapping\Type("boolean")
      * @Mapping\SerializedName("success")
      */
-    private $success;
+    public $success;
     
     /**
      * @var \Intaro\RetailCrm\Model\Api\SerializedLoyaltyOrder
@@ -38,7 +38,7 @@ class LoyaltyCalculateResponse extends AbstractApiModel
      * @Mapping\Type("\Intaro\RetailCrm\Model\Api\SerializedLoyaltyOrder")
      * @Mapping\SerializedName("order")
      */
-    private $order;
+    public $order;
     
     /**
      * @var \Intaro\RetailCrm\Model\Api\CalculateMaximum
@@ -46,7 +46,7 @@ class LoyaltyCalculateResponse extends AbstractApiModel
      * @Mapping\Type("\Intaro\RetailCrm\Model\Api\CalculateMaximum")
      * @Mapping\SerializedName("maximum")
      */
-    private $maximum;
+    public $maximum;
     
     /**
      * Позиция в заказе
@@ -56,69 +56,5 @@ class LoyaltyCalculateResponse extends AbstractApiModel
      * @Mapping\Type("array<Intaro\RetailCrm\Model\Api\LoyaltyCalculation>")
      * @Mapping\SerializedName("calculations")
      */
-    private $calculations;
-    
-    /**
-     * @return bool
-     */
-    public function isSuccess(): bool
-    {
-        return $this->success;
-    }
-    
-    /**
-     * @param bool $success
-     */
-    public function setSuccess(bool $success): void
-    {
-        $this->success = $success;
-    }
-    
-    /**
-     * @return \Intaro\RetailCrm\Model\Api\SerializedLoyaltyOrder
-     */
-    public function getOrder(): SerializedLoyaltyOrder
-    {
-        return $this->order;
-    }
-    
-    /**
-     * @param \Intaro\RetailCrm\Model\Api\SerializedLoyaltyOrder $order
-     */
-    public function setOrder(SerializedLoyaltyOrder $order): void
-    {
-        $this->order = $order;
-    }
-    
-    /**
-     * @return \Intaro\RetailCrm\Model\Api\CalculateMaximum
-     */
-    public function getMaximum(): CalculateMaximum
-    {
-        return $this->maximum;
-    }
-    
-    /**
-     * @param \Intaro\RetailCrm\Model\Api\CalculateMaximum $maximum
-     */
-    public function setMaximum(CalculateMaximum $maximum): void
-    {
-        $this->maximum = $maximum;
-    }
-    
-    /**
-     * @return array
-     */
-    public function getCalculations(): array
-    {
-        return $this->calculations;
-    }
-    
-    /**
-     * @param array $calculations
-     */
-    public function setCalculations(array $calculations): void
-    {
-        $this->calculations = $calculations;
-    }
+    public $calculations;
 }
