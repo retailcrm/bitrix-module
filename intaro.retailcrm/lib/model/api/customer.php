@@ -11,6 +11,7 @@
  */
 namespace Intaro\RetailCrm\Model\Api;
 
+use DateTime;
 use Intaro\RetailCrm\Component\Json\Mapping;
 
 /**
@@ -299,4 +300,14 @@ class Customer extends AbstractApiModel
      * @Mapping\SerializedName("mainCustomerContact")
      */
     public $mainCustomerContact;
+
+    /**
+     * Персональная скидка
+     *
+     * @var double $mainCustomerContact
+     *
+     * @Mapping\Type("double")
+     * @Mapping\SerializedName("personalDiscount")
+     */
+    public $personalDiscount;
 }

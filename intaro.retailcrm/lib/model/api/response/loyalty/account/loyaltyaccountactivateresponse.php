@@ -3,28 +3,28 @@
  * PHP version 7.1
  *
  * @category Integration
- * @package  Intaro\RetailCrm\Model\Api\Response\SmsVerification
+ * @package  Intaro\RetailCrm\Model\Api\Response\Loyalty\Account
  * @author   retailCRM <integration@retailcrm.ru>
  * @license  MIT
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
  */
-namespace Intaro\RetailCrm\Model\Api\Response\SmsVerification;
+namespace Intaro\RetailCrm\Model\Api\Response\Loyalty\Account;
 
-use Intaro\RetailCrm\Model\Api\AbstractApiModel;
 use Intaro\RetailCrm\Component\Json\Mapping;
+use Intaro\RetailCrm\Model\Api\AbstractApiModel;
+use Intaro\RetailCrm\Model\Api\LoyaltyAccount;
 use Intaro\RetailCrm\Model\Api\SmsVerification;
 
 /**
- * Class SmsVerificationStatusResponse
+ * Class LoyaltyAccountActivateResponse
  *
- * @package Intaro\RetailCrm\Model\Api\Response\SmsVerification
+ * @package Intaro\RetailCrm\Model\Api\Response\Loyalty\Account
  */
-class SmsVerificationStatusResponse extends SmsVerificationConfirmResponse
+class LoyaltyAccountActivateResponse extends AbstractApiModel
 {
     /**
      * Результат запроса (успешный/неуспешный)
- 
      *
      * @var boolean $success
      *
@@ -32,6 +32,14 @@ class SmsVerificationStatusResponse extends SmsVerificationConfirmResponse
      * @Mapping\SerializedName("success")
      */
     public $success;
+    
+    /**
+     * @var \Intaro\RetailCrm\Model\Api\LoyaltyAccount
+     *
+     * @Mapping\Type("\Intaro\RetailCrm\Model\Api\LoyaltyAccount")
+     * @Mapping\SerializedName("loyalty_account")
+     */
+    public $loyaltyAccount;
     
     /**
      * @var \Intaro\RetailCrm\Model\Api\SmsVerification

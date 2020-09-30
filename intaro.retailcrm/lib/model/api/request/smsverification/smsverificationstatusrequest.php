@@ -22,9 +22,9 @@ use Intaro\RetailCrm\Component\Json\Mapping;
 class SmsVerificationStatusRequest extends AbstractApiModel
 {
     /**
-     * Номер телефона для отправки сообщения
+     * Идентификатор проверки кода
      *
-     * @var string $phone
+     * @var string $checkId
      *
      * @Mapping\Type("string")
      * @Mapping\SerializedName("checkId")

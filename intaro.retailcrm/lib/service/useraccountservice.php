@@ -16,25 +16,26 @@ use Intaro\RetailCrm\Component\Factory\ClientFactory;
 use Intaro\RetailCrm\Model\Api\Request\SmsVerification\SmsVerificationConfirmRequest;
 use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusRequest;
 use Intaro\RetailCrm\Model\Api\SmsVerificationConfirm;
+use Intaro\RetailCrm\Repository\UserRepository;
 
 /**
  * Class UserVerificationService
  */
-class UserVerificationService
+class UserAccountService
 {
-    const NOT_AUTHORIZE       = 'Пользователь не авторизован';
-    const DEFAULT_CODE_LENGHT = 4;
-    
     /**
      * @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter
      */
     private $client;
     
+    /**
+     * UserAccountService constructor.
+     */
     public function __construct()
     {
         $this->client = ClientFactory::createClientAdapter();
     }
-    
+   
     /**
      * Получает статус текущего состояния верификации
      *
@@ -75,7 +76,7 @@ class UserVerificationService
     public function checkPlRegistrationStatus(int $userId)
     {
         //TODO когда метод будет реализован в АПИ, нужно будет написать реализацию
-        return $userId;
+        return true;
     }
     
     /**
