@@ -28,21 +28,5 @@ class OrderLoyaltyApplyRequest extends AbstractApiModel
      * @Mapping\Type("\Intaro\RetailCrm\Model\Api\SerializedOrderReference")
      * @Mapping\SerializedName("order")
      */
-    private $order;
-    
-    /**
-     * @return \Intaro\RetailCrm\Model\Api\SerializedOrderReference
-     */
-    public function getOrder(): SerializedOrderReference
-    {
-        return $this->order;
-    }
-    
-    /**
-     * @param \Intaro\RetailCrm\Model\Api\SerializedOrderReference $order
-     */
-    public function setOrder(SerializedOrderReference $order): void
-    {
-        $this->order = $order;
-    }
+    public $order;
 }
