@@ -10,5 +10,6 @@ if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) die();
 
 $arResult['LOYALTY_STATUS'] = ConfigProvider::getLoyaltyProgramStatus();
 $arResult['AVAILABLE_BONUSES'] = 300;
+$arResult['TOTAL_BONUSES_COUNT'] = 600;
 $component = $this->__component;
 $component::scaleImages($arResult['JS_DATA'], $arParams['SERVICES_IMAGES_SCALING']);
