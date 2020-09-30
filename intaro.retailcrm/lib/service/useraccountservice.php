@@ -23,13 +23,14 @@ use Intaro\RetailCrm\Repository\UserRepository;
  */
 class UserAccountService
 {
-
-    
     /**
      * @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter
      */
     private $client;
     
+    /**
+     * UserAccountService constructor.
+     */
     public function __construct()
     {
         $this->client = ClientFactory::createClientAdapter();

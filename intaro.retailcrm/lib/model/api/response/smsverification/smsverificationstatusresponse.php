@@ -31,7 +31,7 @@ class SmsVerificationStatusResponse extends SmsVerificationConfirmResponse
      * @Mapping\Type("boolean")
      * @Mapping\SerializedName("success")
      */
-    private $success;
+    public $success;
     
     /**
      * @var \Intaro\RetailCrm\Model\Api\SmsVerification
@@ -39,37 +39,5 @@ class SmsVerificationStatusResponse extends SmsVerificationConfirmResponse
      * @Mapping\Type("\Intaro\RetailCrm\Model\Api\SmsVerification")
      * @Mapping\SerializedName("verification")
      */
-    private $verification;
-    
-    /**
-     * @return \Intaro\RetailCrm\Model\Api\SmsVerification
-     */
-    public function getVerification(): SmsVerification
-    {
-        return $this->verification;
-    }
-    
-    /**
-     * @param \Intaro\RetailCrm\Model\Api\SmsVerification $verification
-     */
-    public function setVerification(SmsVerification $verification): void
-    {
-        $this->verification = $verification;
-    }
-    
-    /**
-     * @return bool
-     */
-    public function isSuccess(): bool
-    {
-        return $this->success;
-    }
-    
-    /**
-     * @param bool $success
-     */
-    public function setSuccess(bool $success): void
-    {
-        $this->success = $success;
-    }
+    public $verification;
 }
