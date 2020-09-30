@@ -28,7 +28,7 @@ class SerializedRelationCustomer
      * @Mapping\Type("integer")
      * @Mapping\SerializedName("id")
      */
-    private $id;
+    public $id;
     
     /**
      * Процентная скидка на весь заказ. Система округляет это значение до 2 знаков после запятой
@@ -38,37 +38,5 @@ class SerializedRelationCustomer
      * @Mapping\Type("string")
      * @Mapping\SerializedName("externalId")
      */
-    private $externalId;
-    
-    /**
-     * @return int
-     */
-    public function getId(): int
-    {
-        return $this->id;
-    }
-    
-    /**
-     * @param int $id
-     */
-    public function setId(int $id): void
-    {
-        $this->id = $id;
-    }
-    
-    /**
-     * @return string
-     */
-    public function getExternalId(): string
-    {
-        return $this->externalId;
-    }
-    
-    /**
-     * @param string $externalId
-     */
-    public function setExternalId(string $externalId): void
-    {
-        $this->externalId = $externalId;
-    }
+    public $externalId;
 }

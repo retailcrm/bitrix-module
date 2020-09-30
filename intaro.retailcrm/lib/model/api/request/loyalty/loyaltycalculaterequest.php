@@ -28,7 +28,7 @@ class LoyaltyCalculateRequest extends AbstractApiModel
      * @Mapping\Type("string")
      * @Mapping\SerializedName("site")
      */
-    private $site;
+    public $site;
     
     /**
      * @var \Intaro\RetailCrm\Model\Api\SerializedOrder
@@ -36,37 +36,5 @@ class LoyaltyCalculateRequest extends AbstractApiModel
      * @Mapping\Type("\Intaro\RetailCrm\Model\Api\SerializedOrder")
      * @Mapping\SerializedName("order")
      */
-    private $order;
-    
-    /**
-     * @return string
-     */
-    public function getSite(): string
-    {
-        return $this->site;
-    }
-    
-    /**
-     * @param string $site
-     */
-    public function setSite(string $site): void
-    {
-        $this->site = $site;
-    }
-    
-    /**
-     * @return \Intaro\RetailCrm\Model\Api\SerializedOrder
-     */
-    public function getOrder(): SerializedOrder
-    {
-        return $this->order;
-    }
-    
-    /**
-     * @param \Intaro\RetailCrm\Model\Api\SerializedOrder $order
-     */
-    public function setOrder(SerializedOrder $order): void
-    {
-        $this->order = $order;
-    }
+    public $order;
 }
