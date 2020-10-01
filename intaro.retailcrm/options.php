@@ -1418,14 +1418,14 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             <tr class="heading r-dc-button">
                 <td colspan="2" class="option-other-heading">
                     <b>
-                        <label><input class="addr" type="checkbox" name="discount_round" value="Y" <?php if($optionDiscRound === 'Y') echo "checked"; ?>><?php echo "Округление цены товара при сборе одинаковых товарных позиций" ?></label>
+                        <label><input class="addr" type="checkbox" name="discount_round" value="Y" <?php if($optionDiscRound === 'Y') echo "checked"; ?>><?php echo GetMessage('ROUND_PRICE_FOR_SAME_POSITIONS'); ?></label>
                     </b>
                 </td>
             </tr>
 
             <tr class="r-dc" <?php if($optionDiscRound !== 'Y') echo 'style="display: none;"'; ?>>
                 <td class="option-head" colspan="2">
-                    <b><?php echo "При включенной опции округление будет происходить в меньшую сторону" ?></b>
+                    <b><?php echo GetMessage('ROUND_LABEL'); ?></b>
                 </td>
             </tr>
 
@@ -1489,7 +1489,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             <tr class="heading">
                 <td colspan="2" class="option-other-heading">
                     <b>
-                        <label><input class="addr" type="checkbox" name="shipment_deducted" value="Y" <?php if($optionShipmentDeducted === 'Y') echo "checked"; ?>><?php echo "Изменять статус отгрузки при получении соответствующего флага из crm" ?></label>
+                        <label><input class="addr" type="checkbox" name="shipment_deducted" value="Y" <?php if($optionShipmentDeducted === 'Y') echo "checked"; ?>><?php echo GetMessage('CHANGE_SHIPMENT_STATUS_FROM_CRM'); ?></label>
                     </b>
                 </td>
             </tr>
