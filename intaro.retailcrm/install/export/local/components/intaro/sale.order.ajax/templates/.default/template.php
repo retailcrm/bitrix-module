@@ -494,7 +494,8 @@ if (strlen($request->get('ORDER_ID')) > 0) {
             <!--	SIDEBAR BLOCK	-->
             <div id="bx-soa-total" class="col-sm-3 bx-soa-sidebar">
                 <div class="bx-soa-cart-total-ghost"></div>
-                <div class="bx-soa-cart-total"></div>
+                <div class="bx-soa-cart-total">
+                </div>
             </div>
 
         </div>
