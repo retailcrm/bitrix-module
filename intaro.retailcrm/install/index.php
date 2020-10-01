@@ -56,6 +56,7 @@ class intaro_retailcrm extends CModule
         ['EVENT_NAME' => 'OnSaleOrderCanceled', 'FROM_MODULE' => 'sale'],
         ['EVENT_NAME' => 'OnSaleOrderDeleted', 'FROM_MODULE' => 'sale'],
         ['EVENT_NAME' => 'OnSaleComponentOrderOneStepProcess', 'FROM_MODULE' => 'sale'],
+        ['EVENT_NAME' => 'OnSaleComponentOrderResultPrepared', 'FROM_MODULE' => 'sale'],
     ];
 
     public const V5 = 'v5';
