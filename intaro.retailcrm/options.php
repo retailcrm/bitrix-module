@@ -930,6 +930,39 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             );
         }
 
+        function editSaleTemplates(method){
+
+            let templates = [];
+            let i = 0;
+            $('#lp-templates input:checkbox:checked')
+                .each(
+                    function(index, checkbox){
+                       templates[i] = $(checkbox).val();
+                       i++;
+                    }
+                );
+            let requestAdress = 'intaro:retailcrm.api.adminpanel.' + method;
+            BX.ajax.runAction(requestAdress,
+                {
+                    data: {
+                        sessid: BX.bitrix_sessid(),
+                        templates: templates
+                    }
+                }
+            );
+        }
+
+        function replaceDefSaleTemplate() {
+            console.log($('#lp-templates').serializeArray());
+            BX.ajax.runAction('intaro:retailcrm.api.adminpanel.replaceDefSaleTemplate',
+                {
+                    data: {
+                        sessid: BX.bitrix_sessid()
+                    }
+                }
+            )
+        }
+
         function replaceDefSaleTemplate() {
             console.log($('#lp-templates').serializeArray());
             BX.ajax.runAction('intaro:retailcrm.api.adminpanel.replaceDefSaleTemplate',
@@ -1578,6 +1611,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                     <input type="button" onclick="replaceDefaultTemplates('main.register')" class="adm-btn-save" value="<?php echo GetMessage('LP_REPLACE_TEMPLATE'); ?>" />
                                 </td>
                                 <td width="50%" >
+                                    <?php echo GetMessage('LP_TEMP_CHOICE_MSG'); ?>
+                                    <hr>
                                     <div id="lp-reg-templates">
                                         <?php
                                         $templates = TemplateRepository::getAllIds();
