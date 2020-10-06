@@ -846,6 +846,39 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             );
         }
 
+        function editSaleTemplates(method){
+
+            let templates = [];
+            let i = 0;
+            $('#lp-templates input:checkbox:checked')
+                .each(
+                    function(index, checkbox){
+                       templates[i] = $(checkbox).val();
+                       i++;
+                    }
+                );
+            let requestAdress = 'intaro:retailcrm.api.adminpanel.' + method;
+            BX.ajax.runAction(requestAdress,
+                {
+                    data: {
+                        sessid: BX.bitrix_sessid(),
+                        templates: templates
+                    }
+                }
+            );
+        }
+
+        function replaceDefSaleTemplate() {
+            console.log($('#lp-templates').serializeArray());
+            BX.ajax.runAction('intaro:retailcrm.api.adminpanel.replaceDefSaleTemplate',
+                {
+                    data: {
+                        sessid: BX.bitrix_sessid()
+                    }
+                }
+            )
+        }
+
         function replaceDefSaleTemplate() {
             console.log($('#lp-templates').serializeArray());
             BX.ajax.runAction('intaro:retailcrm.api.adminpanel.replaceDefSaleTemplate',
@@ -1393,11 +1426,11 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 <?php endforeach; ?>
             <?php endforeach; ?>
 
-        <?php $tabControl->BeginNextTab(); ?>
-                <?php
-                //loyalty program options
-                $loyaltyProgramToggle = ConfigProvider::getLoyaltyProgramStatus();
-                ?>
+            <?php $tabControl->BeginNextTab(); ?>
+            <?php
+            //loyalty program options
+            $loyaltyProgramToggle = ConfigProvider::getLoyaltyProgramStatus();
+            ?>
             <tr class="heading">
                 <td colspan="2" class="option-other-heading">
                     <b>
@@ -1451,6 +1484,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                     <input type="button" onclick="replaceDefaultSaleTemplates()" class="adm-btn-save" value="<?php echo GetMessage('LP_REPLACE_TEMPLATE'); ?>" />
                                 </td>
                                 <td width="50%" >
+                                    <?php echo GetMessage('LP_TEMP_CHOICE_MSG'); ?>
+                                    <hr>
                                     <div id="lp-templates">
                                         <?php
                                         $templates = TemplateRepository::getAllIds();
@@ -1459,23 +1494,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                             <p><input type="checkbox" name="<?= $template['name']?>" value="<?= $template['name']?>" templateFolder="<?= $template['folder']?>"> <?= $template['name']?> (<?= $template['folder']?>)</p>
                                         <?php } ?>
                                     </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td width="20%" >
-                                    <button type="button" onclick="editSaleTemplates('createSaleTemplate')"><?php echo GetMessage('LP_CREATE_TEMPLATE'); ?></button>
-                                </td>
-                                <td width="80%">
-                                    <?php echo GetMessage('LP_CUSTOM_TEMP_CREATE_MSG'); ?>
-                                </td>
-
-                            </tr>
-                            <tr>
-                                <td width="20%" >
-                                    <button type="button" onclick="editSaleTemplates('replaceDefSaleTemplate')"><?php echo GetMessage('LP_REPLACE_TEMPLATE'); ?></button>
-                                </td>
-                                <td width="80%" >
-                                    <?php echo GetMessage('LP_DEF_TEMP_CREATE_MSG'); ?>
                                 </td>
                             </tr>
                         </table>
