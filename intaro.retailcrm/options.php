@@ -5,6 +5,7 @@ use Bitrix\Main\Application;
 use Bitrix\Sale\Delivery\Services\Manager;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Constants;
+use Intaro\RetailCrm\Repository\TemplateRepository;
 use RetailCrm\Exception\CurlException;
 
 IncludeModuleLangFile(__FILE__);
@@ -727,8 +728,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $optionsOrderDimensions = COption::GetOptionString($mid, $CRM_DIMENSIONS, 'N');
     $addressOptions         = unserialize(COption::GetOptionString($mid, $CRM_ADDRESS_OPTIONS, 0));
     
-    //loyalty program options
-    $loyaltyProgramToggle = ConfigProvider::getLoyaltyProgramStatus();
+
     
     $aTabs      = [
         [
@@ -765,9 +765,44 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $tabControl = new CAdminTabControl("tabControl", $aTabs);
     $tabControl->Begin();
     ?>
-    <?php $APPLICATION->AddHeadString('<script type="text/javascript" src="/bitrix/js/main/jquery/jquery-1.7.min.js"></script>'); ?>
+    <?php
+    CJSCore::Init(array("jquery"));
+    ?>
     <script type="text/javascript">
+        
+        function editSaleTemplates(method){
 
+            let templates = [];
+            let i = 0;
+            $('#lp-templates input:checkbox:checked')
+                .each(
+                    function(index, checkbox){
+                       templates[i] = $(checkbox).val();
+                       i++;
+                    }
+                );
+            let requestAdress = 'intaro:retailcrm.api.adminpanel.' + method;
+            BX.ajax.runAction(requestAdress,
+                {
+                    data: {
+                        sessid: BX.bitrix_sessid(),
+                        templates: templates
+                    }
+                }
+            );
+        }
+
+        function replaceDefSaleTemplate() {
+            console.log($('#lp-templates').serializeArray());
+            BX.ajax.runAction('intaro:retailcrm.api.adminpanel.replaceDefSaleTemplate',
+                {
+                    data: {
+                        sessid: BX.bitrix_sessid()
+                    }
+                }
+            )
+        }
+        
         function switchPLStatus() {
             BX.ajax.runAction('intaro:retailcrm.api.adminpanel.loyaltyprogramtoggle',
                 {
@@ -950,7 +985,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 		}
 
     </style>
-    <form method="POST" action="<?php echo $uri; ?>" id="FORMACTION">
+    <div method="POST" action="<?php echo $uri; ?>" id="FORMACTION">
         <?php
         echo bitrix_sessid_post();
         $tabControl->BeginNextTab();
@@ -1283,18 +1318,70 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             <?php endforeach; ?>
             
             <?php $tabControl->BeginNextTab(); ?>
-            <label>
-                <input class="addr" type="checkbox" name="loyalty_toggle" onclick="switchPLStatus();" <?php if ($loyaltyProgramToggle === 'Y') {
-                    echo "checked";
-                } ?>>
-                <?php echo GetMessage('LOYALTY_PROGRAM_TOGGLE_MSG'); ?>
-            </label>
-            <div id="loyalty_main_settings" <?php if ($loyaltyProgramToggle !== 'Y') {
-                echo "hidden";
-            } ?>>
-                #MAIN_SETTINGS
-            </div>
-            
+        
+            <?php
+            //loyalty program options
+            $loyaltyProgramToggle = ConfigProvider::getLoyaltyProgramStatus();
+            ?>
+            <tr class="heading">
+                <td colspan="2" class="option-other-heading">
+                    <b>
+                        <label>
+                            <input class="addr" type="checkbox" name="loyalty_toggle" onclick="switchPLStatus();" <?php if ($loyaltyProgramToggle === 'Y') {
+                                echo "checked";
+                            } ?>>
+                            <?php echo GetMessage('LOYALTY_PROGRAM_TOGGLE_MSG'); ?>
+                        </label>
+                    </b>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div id="loyalty_main_settings" <?php if ($loyaltyProgramToggle !== 'Y') {
+                        echo "hidden";
+                    } ?>>
+                        <table>
+                            <tr class="heading">
+                                <td colspan="2" class="option-other-heading">
+                                    <?php echo GetMessage('LP_SALE_ORDER_AJAX_HEAD'); ?>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="2">
+                                    <?php echo GetMessage('LP_TEMP_CHOICE_MSG'); ?>
+                                    <hr>
+                                    <div id="lp-templates">
+                                        <?php
+                                        $templates = TemplateRepository::getAllIds();
+                                        foreach ($templates as $template) {
+                                            ?>
+                                            <p><input type="checkbox" name="<?= $template?>" value="<?= $template?>"> <?= $template?></p>
+                                        <?php } ?>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td width="20%" >
+                                    <button type="button" onclick="editSaleTemplates('createSaleTemplate')"><?php echo GetMessage('LP_CREATE_TEMPLATE'); ?></button>
+                                </td>
+                                <td width="80%">
+                                    <?php echo GetMessage('LP_CUSTOM_TEMP_CREATE_MSG'); ?>
+                                </td>
+                                
+                            </tr>
+                            <tr>
+                                <td width="20%" >
+                                    <button type="button" onclick="editSaleTemplates('replaceDefSaleTemplate')"><?php echo GetMessage('LP_REPLACE_TEMPLATE'); ?></button>
+                                </td>
+                                <td width="80%" >
+                                    <?php echo GetMessage('LP_DEF_TEMP_CREATE_MSG'); ?>
+                                </td>
+                                
+                            </tr>
+                        </table>
+                    </div>
+                </td>
+            </tr>
             <?php $tabControl->BeginNextTab(); ?>
             <input type="hidden" name="tab" value="catalog">
             <tr class="heading">
