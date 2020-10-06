@@ -19,10 +19,10 @@ namespace Intaro\RetailCrm\Repository;
  */
 class TemplateRepository extends AbstractRepository
 {
-    
+
     public const BITRIX_TEMPLATE_DIR = '/bitrix/templates/';
     public const LOCAL_TEMPLATE_DIR  = '/local/templates/';
-    
+
     /**
      * @return array|false
      */
@@ -33,16 +33,16 @@ class TemplateRepository extends AbstractRepository
             self::LOCAL_TEMPLATE_DIR,
         ];
         $result   = [];
-        
+
         foreach ($scanDirs as $scanDir) {
             $handle = opendir($_SERVER['DOCUMENT_ROOT'] . '/' . $scanDir);
-            
+
             if ($handle) {
                 while (($file = readdir($handle)) !== false) {
                     if ($file === "." || $file === "..") {
                         continue;
                     }
-                    
+
                     if (is_dir($_SERVER['DOCUMENT_ROOT'] . '/' . $scanDir . '/' . $file)) {
                         $result[] = [
                             'name' => $file,
@@ -50,10 +50,11 @@ class TemplateRepository extends AbstractRepository
                         ];
                     }
                 }
+
                 closedir($handle);
             }
         }
-        
+
         return $result;
     }
 }
