@@ -19,7 +19,7 @@ class AdminPanel extends Controller
             ],
         ];
     }
-    
+
     /**
      * @return string[]
      * @throws \Bitrix\Main\ArgumentOutOfRangeException
@@ -29,10 +29,10 @@ class AdminPanel extends Controller
         $status    = ConfigProvider::getLoyaltyProgramStatus();
         $newStatus = $status !== 'Y' ? 'Y' : 'N';
         ConfigProvider::setLoyaltyProgramStatus($newStatus);
-        
+
         return ['newStatus' => $newStatus];
     }
-    
+
     /**
      * @param       $templates
      * @param string $defreplace
@@ -41,26 +41,26 @@ class AdminPanel extends Controller
     public function createSaleTemplateAction($templates, $defreplace = 'N'): array
     {
         $templateName = $defreplace === 'Y' ? '.default' : Constants::MODULE_ID;
-        
+
         foreach ($templates as $template) {
             $pathFrom = $_SERVER['DOCUMENT_ROOT']
                 . '/bitrix/modules/'
                 . Constants::MODULE_ID
                 . '/install/export/local/components/intaro/sale.order.ajax/templates/.default';
-            
+
             $pathTo = $_SERVER['DOCUMENT_ROOT']
                 . $template['location']
                 . $template['name']
                 . '/components/bitrix/sale.order.ajax/'
                 . $templateName;
-    
+
             if ($defreplace === 'Y' && file_exists($pathTo)) {
                 $backPath = $_SERVER['DOCUMENT_ROOT']
                     . $template['location']
                     . $template['name']
                     . '/components/bitrix/sale.order.ajax/'
                     . $templateName.'_backup';
-                    
+
                  CopyDirFiles(
                     $pathTo,
                     $backPath,
@@ -69,7 +69,7 @@ class AdminPanel extends Controller
                     false
                 );
             }
-            
+
             $status = CopyDirFiles(
                 $pathFrom,
                 $pathTo,
@@ -78,9 +78,17 @@ class AdminPanel extends Controller
                 false
             );
         }
-        
+
         return [
             'status' => $status,
         ];
+    }
+
+    /**
+     * @return string[]
+     */
+    public function ReplaceDefSaleTemplateAction(): array
+    {
+        return ['status' => 'ok'];
     }
 }
