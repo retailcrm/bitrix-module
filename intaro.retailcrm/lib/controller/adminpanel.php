@@ -94,9 +94,28 @@ class AdminPanel extends Controller
     public function LoyaltyProgramToggleAction(): array
     {
         $status    = ConfigProvider::getLoyaltyProgramStatus();
-        $newStatus = $status === 'N' || $status === null ? 'Y' : 'N';
+        $newStatus = $status !== 'Y' ? 'Y' : 'N';
         ConfigProvider::setLoyaltyProgramStatus($newStatus);
 
         return ['newStatus' => $newStatus];
+    }
+    
+    /**
+     * @return string[]
+     */
+    public function CreateSaleTemplateAction($templates): array
+    {
+        return [
+            'status' => 'ok',
+            'templates' => $templates,
+        ];
+    }
+    
+    /**
+     * @return string[]
+     */
+    public function ReplaceDefSaleTemplateAction(): array
+    {
+        return ['status' => 'ok'];
     }
 }
