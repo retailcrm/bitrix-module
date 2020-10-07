@@ -69,14 +69,6 @@ class EventsHandlers
     /**
      * @param \Bitrix\Main\Event $event
      */
-    public function OnSaleOrderSavedHandler(Event $event): void
-    {
-        AddMessage2Log('OnSaleOrderSavedHandler work! ' . $event->getDebugInfo());
-    }
-    
-    /**
-     * @param \Bitrix\Main\Event $event
-     */
     public function OnSaleOrderCanceledHandler(Event $event): void
     {
         AddMessage2Log('OnSaleOrderCanceledHandler work! ' . $event->getDebugInfo());
@@ -103,7 +95,14 @@ class EventsHandlers
         return $arResult;
     }
     
-    public function OnSaleComponentOrderResultPreparedHandler($order, $arUserResult, HttpRequest $request, $arParams, &$arResult)
+    /**
+     * @param                          $order
+     * @param                          $arUserResult
+     * @param \Bitrix\Main\HttpRequest $request
+     * @param                          $arParams
+     * @param                          $arResult
+     */
+    public function OnSaleComponentOrderResultPreparedHandler($order, $arUserResult, HttpRequest $request, $arParams, &$arResult): void
     {
         if (ConfigProvider::getLoyaltyProgramStatus() === 'Y') {
             $isBonusError     = false;
@@ -121,10 +120,26 @@ class EventsHandlers
                 && $isBonusError === false
                 && $arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE'] > $bonusInput
             ) {
-                $arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE']          = $arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE'] - $bonusInput;
-                $arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE_FORMATED'] = number_format($arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE'], 0, ',', ' ' );
-                $arResult['JS_DATA']['TOTAL']['BONUS_PAYMENT'] = $bonusInput;
+                $arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE']          -= $bonusInput;
+                $arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE_FORMATED'] = number_format($arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE'], 0, ',', ' ');
+                $arResult['JS_DATA']['TOTAL']['BONUS_PAYMENT']              = $bonusInput;
             }
+        }
+    }
+    
+    /**
+     * @param \Bitrix\Main\Event $event
+     */
+    public function OnSaleOrderSavedHandler(Event $event): void
+    {
+        $order = $event->getParameter("ENTITY");
+        $oldValues = $event->getParameter("VALUES");
+        $isNew = $event->getParameter("IS_NEW");
+    
+        if ($isNew)
+        {
+            $sum = $order->getPrice();
+           
         }
     }
 }
