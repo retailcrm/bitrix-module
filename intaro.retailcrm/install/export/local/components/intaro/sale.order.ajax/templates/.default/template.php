@@ -436,11 +436,12 @@ if (strlen($request->get('ORDER_ID')) > 0) {
                         <div class="bx-soa-section-content container-fluid" id="bx-soa-intaro-content">
 
                             <div class="bx-soa-coupon">
-                                Сколько бонусов потратить:
+                               <div id="bonus-msg">Сколько бонусов потратить?</div>
                                 <div class="bx-soa-coupon-block">
                                     <div class="bx-input">
                                         <input name='bonus-input' class="form-control" type="number" max="<?=$arResult['AVAILABLE_BONUSES']?>" id='bonus-input'>
-                                        <input name="available-bonuses" class="form-control" type="hidden" id='bonus-input' value="<?=$arResult['AVAILABLE_BONUSES']?>">
+                                        <input name="available-bonuses" class="form-control" type="hidden" id='available-bonus-input' value="<?=$arResult['AVAILABLE_BONUSES']?>">
+                                        <div id="bonus-input-error"></div>
                                     </div>
                                 </div>
                                 <div>Всего бонусов: <label id="total-bonuses-count"><?=$arResult['TOTAL_BONUSES_COUNT']?></label></div>
