@@ -103,11 +103,29 @@ class AdminPanel extends Controller
     /**
      * @return string[]
      */
-    public function CreateSaleTemplateAction($templates): array
+    public function createSaleTemplateAction($templates): array
     {
+        foreach ($templates as $template){
+            $pathFrom = $_SERVER['DOCUMENT_ROOT']
+                . '/bitrix/modules/'
+                . Constants::MODULE_ID
+                . '/install/export/local/components/intaro/sale.order.ajax/templates/.default';
+            
+            $pathTo = $_SERVER['DOCUMENT_ROOT']
+                . '/local/templates/'
+                . $template
+                . '/components/bitrix/sale.order.ajax/intaro.retailCRM';
+
+           $status = CopyDirFiles(
+                $pathFrom,
+                $pathTo,
+                true,
+                true,
+                false
+            );
+        }
         return [
-            'status' => 'ok',
-            'templates' => $templates,
+            'status' => $status,
         ];
     }
     
