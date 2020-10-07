@@ -769,6 +769,17 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     CJSCore::Init(array("jquery"));
     ?>
     <script type="text/javascript">
+
+        function createSaleTemplates() {
+            BX.ajax.runAction( 'intaro:retailcrm.api.adminpanel.createSaleTemplate',
+                {
+                    data: {
+                        sessid: BX.bitrix_sessid(),
+                        templates: ['.default']
+                    }
+                }
+            );
+        }
         
         function editSaleTemplates(method){
 
@@ -1348,8 +1359,26 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                             </tr>
                             <tr>
                                 <td colspan="2">
-                                    <?php echo GetMessage('LP_TEMP_CHOICE_MSG'); ?>
+                                    <div style="text-align: center;"><h4>Создание дополнительного шаблона</h4></div>
+                                    <?php echo GetMessage('LP_CUSTOM_TEMP_CREATE_MSG'); ?>
+                                    <div style="text-align: center;">
+                                        <input type="button" onclick="createSaleTemplates()" class="adm-btn-save" value="<?php echo GetMessage('LP_CREATE_TEMPLATE'); ?>"/>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="2">
+                                    <div style="text-align: center;"><h4>Замена стандартного шаблона</h4></div>
+                                        <?php echo GetMessage('LP_DEF_TEMP_CREATE_MSG'); ?>
                                     <hr>
+                                        <?php echo GetMessage('LP_TEMP_CHOICE_MSG'); ?>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td width="50%" >
+                                    <input type="button" onclick="editSaleTemplates('replaceDefSaleTemplate')" class="adm-btn-save" value="<?php echo GetMessage('LP_REPLACE_TEMPLATE'); ?>" />
+                                </td>
+                                <td width="50%" >
                                     <div id="lp-templates">
                                         <?php
                                         $templates = TemplateRepository::getAllIds();
@@ -1358,23 +1387,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                             <p><input type="checkbox" name="<?= $template?>" value="<?= $template?>"> <?= $template?></p>
                                         <?php } ?>
                                     </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td width="20%" >
-                                    <button type="button" onclick="editSaleTemplates('createSaleTemplate')"><?php echo GetMessage('LP_CREATE_TEMPLATE'); ?></button>
-                                </td>
-                                <td width="80%">
-                                    <?php echo GetMessage('LP_CUSTOM_TEMP_CREATE_MSG'); ?>
-                                </td>
-                                
-                            </tr>
-                            <tr>
-                                <td width="20%" >
-                                    <button type="button" onclick="editSaleTemplates('replaceDefSaleTemplate')"><?php echo GetMessage('LP_REPLACE_TEMPLATE'); ?></button>
-                                </td>
-                                <td width="80%" >
-                                    <?php echo GetMessage('LP_DEF_TEMP_CREATE_MSG'); ?>
                                 </td>
                                 
                             </tr>
