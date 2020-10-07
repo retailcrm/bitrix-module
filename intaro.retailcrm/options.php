@@ -839,10 +839,10 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             );
         }
 
-        function editSaleTemplates(method){
-
+        function editSaleTemplates(method) {
             let templates = [];
             let i = 0;
+
             $('#lp-templates input:checkbox:checked')
                 .each(
                     function(index, checkbox){
@@ -1471,11 +1471,9 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                             </tr>
                             <tr>
                                 <td width="50%" >
-                                    <input type="button" onclick="replaceDefaultSaleTemplates()" class="adm-btn-save" value="<?php echo GetMessage('LP_REPLACE_TEMPLATE'); ?>" />
+                                    <input type="button" onclick="editSaleTemplates('replaceDefSaleTemplate')" class="adm-btn-save" value="<?php echo GetMessage('LP_REPLACE_TEMPLATE'); ?>" />
                                 </td>
                                 <td width="50%" >
-                                    <?php echo GetMessage('LP_TEMP_CHOICE_MSG'); ?>
-                                    <hr>
                                     <div id="lp-templates">
                                         <?php
                                         $templates = TemplateRepository::getAllIds();
