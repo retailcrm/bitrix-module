@@ -20,9 +20,6 @@ use Bitrix\Sale\Internals\PaySystemActionTable;
 use Bitrix\Sale\Delivery\Services\Manager;
 use Bitrix\sale\EventActions;
 use Bitrix\Sale\Internals\OrderTable;
-use Bitrix\Sale\Internals\OrderPropsTable;
-use Bitrix\Sale\Internals\PersonTypeTable;
-use Intaro\RetailCrm\Component\Constants;
 use \RetailCrm\ApiClient;
 use RetailCrm\Exception\CurlException;
 use Intaro\RetailCrm\Component\Loyalty\EventsHandlers;
@@ -1316,6 +1313,22 @@ class intaro_retailcrm extends CModule
             true,
             false
         );
+    
+        $lpTemplatePath = $_SERVER['DOCUMENT_ROOT']
+            . '/local/templates/.default/components/bitrix/sale.order.ajax/intaro.retailcrm';
+        
+        if (!file_exists($lpTemplatePath)){
+            $pathFrom = $_SERVER['DOCUMENT_ROOT']
+                . '/bitrix/modules/intaro.retailcrm/install/export/local/components/intaro/sale.order.ajax/templates/.default';
+            
+            CopyDirFiles(
+                $pathFrom,
+                $lpTemplatePath,
+                true,
+                true,
+                false
+            );
+        }
     }
 
     public function DeleteFiles(): void

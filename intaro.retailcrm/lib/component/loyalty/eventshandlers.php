@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PHP version 7.1
  *
@@ -9,12 +10,18 @@
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
  */
-
 namespace Intaro\RetailCrm\Component\Loyalty;
 
+use Bitrix\Main\ArgumentException;
 use Bitrix\Main\Event;
 use Bitrix\Main\HttpRequest;
+use Bitrix\Main\ObjectPropertyException;
+use Bitrix\Main\SystemException;
+use Bitrix\Sale\PaySystem\Manager;
+use Exception;
 use Intaro\RetailCrm\Component\ConfigProvider;
+use Intaro\RetailCrm\Repository\PaySystemActionRepository;
+use Intaro\RetailCrm\Service\LoyaltyService;
 
 /**
  * Class EventsHandlers
@@ -108,7 +115,7 @@ class EventsHandlers
             $bonusInput       = (int)$request->get('bonus-input');
             $availableBonuses = (int)$request->get('available-bonuses');
             
-            if ($bonusInput > $availableBonuses) {
+            if ($bonusInput >= $availableBonuses) {
                 $arResult['LOYALTY']['ERROR'] = self::BONUS_ERROR_MSG;
                 $isBonusError                 = true;
             }
@@ -117,7 +124,7 @@ class EventsHandlers
                 $bonusInput > 0
                 && $availableBonuses > 0
                 && $isBonusError === false
-                && $arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE'] > $bonusInput
+                && $arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE'] >= $bonusInput
             ) {
                 $arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE']          -= $bonusInput;
                 $arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE_FORMATED'] = number_format($arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE'], 0, ',', ' ');
@@ -127,18 +134,44 @@ class EventsHandlers
     }
     
     /**
+     * Обработчик события, вызываемого ПОСЛЕ сохранения заказа
+     *
      * @param \Bitrix\Main\Event $event
      */
     public function OnSaleOrderSavedHandler(Event $event): void
     {
+        /**@var \Bitrix\Sale\Order $order */
         $order = $event->getParameter("ENTITY");
-        $oldValues = $event->getParameter("VALUES");
         $isNew = $event->getParameter("IS_NEW");
-    
-        if ($isNew)
-        {
-            $sum = $order->getPrice();
-           
+        
+        if (isset($_POST['bonus-input'], $_POST['available-bonuses'])
+            && $isNew
+            && (int)$_POST['available-bonuses'] >= (int)$_POST['bonus-input']) {
+            $orderId    = $order->getId();
+            $bonusCount = $_POST['bonus-input'];
+            $service    = new LoyaltyService();
+            $response   = $service->sendBonusPayment($orderId, $bonusCount);
+            
+            //TODO - заглушка до появления api на стороне CRM. После появления реального апи - убрать
+            $response->success=true;
+            
+            if ($response->success) {
+                try {
+                    $bonusPaySystem    = PaySystemActionRepository::getFirstByWhere(['ID'], [['ACTION_FILE', '=', 'retailcrmbonus']]);
+                    $paymentCollection = $order->getPaymentCollection();
+                    
+                    if ($bonusPaySystem !== null) {
+                        $service    = Manager::getObjectById($bonusPaySystem->getId());
+                        $newPayment = $paymentCollection->createItem($service);
+                        
+                        $newPayment->setField('SUM', $bonusCount);
+                        $newPayment->setPaid('Y');
+                        $order->save();
+                    }
+                } catch (ObjectPropertyException | ArgumentException | SystemException | Exception $e) {
+                    AddMessage2Log('ERROR PaySystemActionRepository: ' . $e->getMessage());
+                }
+            }
         }
     }
 }
