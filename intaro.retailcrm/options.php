@@ -804,33 +804,43 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     ?>
     <script type="text/javascript">
         function createSaleTemplates() {
-            BX.ajax.runAction( 'intaro:retailcrm.api.adminpanel.createSaleTemplate',
+            BX.ajax.runAction('intaro:retailcrm.api.adminpanel.createSaleTemplate',
                 {
                     data: {
-                        sessid: BX.bitrix_sessid(),
-                        templates: ['.default']
+                        sessid:    BX.bitrix_sessid(),
+                        templates: [
+                            {
+                                'location': '/local/templates/',
+                                'name':     '.default'
+                            }
+                        ]
                     }
                 }
             );
         }
 
-        function editSaleTemplates(method){
-
+        function replaceDefaultSaleTemplates(){
             let templates = [];
             let i = 0;
+
             $('#lp-templates input:checkbox:checked')
                 .each(
                     function(index, checkbox){
-                       templates[i] = $(checkbox).val();
+                       templates[i] = {
+                           'name': $(checkbox).val(),
+                           'location': $(checkbox).attr('templateFolder')
+                       };
                        i++;
                     }
                 );
-            let requestAdress = 'intaro:retailcrm.api.adminpanel.' + method;
-            BX.ajax.runAction(requestAdress,
+            let requestAddress = 'intaro:retailcrm.api.adminpanel.createSaleTemplate';
+
+            BX.ajax.runAction(requestAddress,
                 {
                     data: {
                         sessid: BX.bitrix_sessid(),
-                        templates: templates
+                        templates: templates,
+                        defreplace: 'Y'
                     }
                 }
             );
@@ -1413,7 +1423,11 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                             </tr>
                             <tr>
                                 <td colspan="2">
-                                    <div style="text-align: center;"><h4>Создание дополнительного шаблона</h4></div>
+                                    <div style="text-align: center;">
+                                        <h4>
+                                            <?= GetMessage('CREATING_AN_ADDITIONAL_TEMPLATE') ?>
+                                        </h4>
+                                    </div>
                                     <?php echo GetMessage('LP_CUSTOM_TEMP_CREATE_MSG'); ?>
                                     <div style="text-align: center;">
                                         <input type="button" onclick="createSaleTemplates()" class="adm-btn-save" value="<?php echo GetMessage('LP_CREATE_TEMPLATE'); ?>"/>
@@ -1422,7 +1436,11 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                             </tr>
                             <tr>
                                 <td colspan="2">
-                                    <div style="text-align: center;"><h4>Замена стандартного шаблона</h4></div>
+                                    <div style="text-align: center;">
+                                        <h4>
+                                            <?= GetMessage('REPLACING_THE_STANDARD_TEMPLATE') ?>
+                                        </h4>
+                                    </div>
                                         <?php echo GetMessage('LP_DEF_TEMP_CREATE_MSG'); ?>
                                     <hr>
                                         <?php echo GetMessage('LP_TEMP_CHOICE_MSG'); ?>
@@ -1430,7 +1448,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                             </tr>
                             <tr>
                                 <td width="50%" >
-                                    <input type="button" onclick="editSaleTemplates('replaceDefSaleTemplate')" class="adm-btn-save" value="<?php echo GetMessage('LP_REPLACE_TEMPLATE'); ?>" />
+                                    <input type="button" onclick="replaceDefaultSaleTemplates()" class="adm-btn-save" value="<?php echo GetMessage('LP_REPLACE_TEMPLATE'); ?>" />
                                 </td>
                                 <td width="50%" >
                                     <div id="lp-templates">
@@ -1438,7 +1456,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                         $templates = TemplateRepository::getAllIds();
                                         foreach ($templates as $template) {
                                             ?>
-                                            <p><input type="checkbox" name="<?= $template?>" value="<?= $template?>"> <?= $template?></p>
+                                            <p><input type="checkbox" name="<?= $template['name']?>" value="<?= $template['name']?>" templateFolder="<?= $template['folder']?>"> <?= $template['name']?> (<?= $template['folder']?>)</p>
                                         <?php } ?>
                                     </div>
                                 </td>
