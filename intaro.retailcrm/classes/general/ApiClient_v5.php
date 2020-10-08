@@ -2964,11 +2964,24 @@ class ApiClient
      * @param int   $checkId
      * @return \RetailCrm\Response\ApiResponse
      */
-    protected function checkStatusPlVerification(array $request, int $checkId): ApiResponse
+    public function checkStatusPlVerification(array $request, int $checkId): ApiResponse
     {
         return $this->client->makeRequest(
             "/verification/sms/$checkId/status",
             Client::METHOD_GET,
+            $request
+        );
+    }
+    
+    /**
+     * @param array $request
+     * @return \RetailCrm\Response\ApiResponse
+     */
+    public function loyaltyOrderApply(array $request): ApiResponse
+    {
+        return $this->client->makeRequest(
+            "/api/v5/orders/loyalty/apply",
+            Client::METHOD_POST,
             $request
         );
     }
