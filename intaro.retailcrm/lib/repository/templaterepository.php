@@ -29,24 +29,25 @@ class TemplateRepository extends AbstractRepository
     public static function getAllIds()
     {
         $scanDirs = [
-            $_SERVER['DOCUMENT_ROOT'] . self::BITRIX_TEMPLATE_DIR,
-            $_SERVER['DOCUMENT_ROOT'] . self::LOCAL_TEMPLATE_DIR,
+            self::BITRIX_TEMPLATE_DIR,
+            self::LOCAL_TEMPLATE_DIR,
         ];
-        $result = [];
+        $result   = [];
         
         foreach ($scanDirs as $scanDir) {
-            $handle = opendir($scanDir);
+            $handle = opendir($_SERVER['DOCUMENT_ROOT'] . '/' . $scanDir);
             
             if ($handle) {
-                
                 while (($file = readdir($handle)) !== false) {
-                    
                     if ($file === "." || $file === "..") {
                         continue;
                     }
                     
-                    if (is_dir($scanDir . '/' . $file)) {
-                        $result[] = $file;
+                    if (is_dir($_SERVER['DOCUMENT_ROOT'] . '/' . $scanDir . '/' . $file)) {
+                        $result[] = [
+                            'name' => $file,
+                            'folder'   => $scanDir,
+                        ];
                     }
                 }
                 closedir($handle);
