@@ -903,23 +903,28 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             );
         }
 
-        function editSaleTemplates(method) {
+        function replaceDefaultSaleTemplates(){
             let templates = [];
             let i = 0;
 
             $('#lp-templates input:checkbox:checked')
                 .each(
                     function(index, checkbox){
-                       templates[i] = $(checkbox).val();
+                       templates[i] = {
+                           'name': $(checkbox).val(),
+                           'location': $(checkbox).attr('templateFolder')
+                       };
                        i++;
                     }
                 );
-            let requestAdress = 'intaro:retailcrm.api.adminpanel.' + method;
-            BX.ajax.runAction(requestAdress,
+            let requestAddress = 'intaro:retailcrm.api.adminpanel.createSaleTemplate';
+
+            BX.ajax.runAction(requestAddress,
                 {
                     data: {
                         sessid: BX.bitrix_sessid(),
-                        templates: templates
+                        templates: templates,
+                        defreplace: 'Y'
                     }
                 }
             );
