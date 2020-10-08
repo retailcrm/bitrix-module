@@ -1,4 +1,7 @@
-<? use Intaro\RetailCrm\Component\ConfigProvider;
+<?php
+
+use Bitrix\Main\Loader;
+use Intaro\RetailCrm\Component\ConfigProvider;
 
 if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) die();
 
@@ -7,6 +10,8 @@ if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) die();
  * @var array $arResult
  * @var SaleOrderAjax $component
  */
+
+Loader::includeModule('intaro.retailcrm');
 
 $arResult['LOYALTY_STATUS'] = ConfigProvider::getLoyaltyProgramStatus();
 $arResult['AVAILABLE_BONUSES'] = 300;
