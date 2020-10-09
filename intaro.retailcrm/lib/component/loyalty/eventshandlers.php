@@ -152,7 +152,7 @@ class EventsHandlers
             $service    = new LoyaltyService();
             $response   = $service->sendBonusPayment($orderId, $bonusCount);
             
-            //TODO - заглушка до появления api на стороне CRM. После появления реального апи - убрать
+            //TODO - заглушка до появления api на стороне CRM. После появления реального апи - убрать следующую строку
             $response->success=true;
             
             if ($response->success) {

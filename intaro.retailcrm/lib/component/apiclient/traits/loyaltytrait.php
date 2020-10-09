@@ -13,8 +13,10 @@ namespace Intaro\RetailCrm\Component\ApiClient\Traits;
 
 use Intaro\RetailCrm\Component\Json\Deserializer;
 use Intaro\RetailCrm\Component\Json\Serializer;
+use Intaro\RetailCrm\Model\Api\Request\Loyalty\LoyaltyCalculateRequest;
 use Intaro\RetailCrm\Model\Api\Request\Order\Loyalty\OrderLoyaltyApplyRequest;
 use Intaro\RetailCrm\Model\Api\Request\SmsVerification\SmsVerificationConfirmRequest;
+use Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse;
 use Intaro\RetailCrm\Model\Api\Response\Order\Loyalty\OrderLoyaltyApplyResponse;
 use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationConfirmResponse;
 use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusRequest;
@@ -60,5 +62,17 @@ trait LoyaltyTrait
         $response   = $this->client->loyaltyOrderApply($serialized);
         
         return Deserializer::deserializeArray($response->getResponseBody(), OrderLoyaltyApplyResponse::class);
+    }
+    
+    /**
+     * @param \Intaro\RetailCrm\Model\Api\Request\Loyalty\LoyaltyCalculateRequest $request
+     * @return mixed
+     */
+    public function loyaltyCalculate(LoyaltyCalculateRequest $request): ?LoyaltyCalculateResponse
+    {
+        $serialized = Serializer::serializeArray($request);
+        $response   = $this->client->loyaltyOrderApply($serialized);
+        
+        return Deserializer::deserializeArray($response->getResponseBody(), LoyaltyCalculateResponse::class);
     }
 }

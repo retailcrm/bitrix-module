@@ -425,18 +425,18 @@ if (strlen($request->get('ORDER_ID')) > 0) {
                 <? endif ?>
 
                 <!--	INTARO BONUS BLOCK	-->
-                <? if ($arResult['LOYALTY_STATUS'] === 'Y'): ?>
+                <? if ($arResult['LOYALTY_STATUS'] === 'Y' ): ?>
                     <div id="bx-soa-intaro" data-visited="true" class="bx-soa-section bx-selected">
                         <div class="bx-soa-section-title-container">
                             <h2 class="bx-soa-section-title col-sm-9">
-                                <span class="bx-soa-section-title-count"></span> Оплата бонусами
+                                <span class="bx-soa-section-title-count"></span><?= Loc::getMessage('BONUS_PAYMENT') ?>
                             </h2>
                             <div class="col-xs-12 col-sm-3 text-right"><a href="javascript:void(0)" class="bx-soa-editstep"><?=$arParams['MESS_EDIT']?></a></div>
                         </div>
                         <div class="bx-soa-section-content container-fluid" id="bx-soa-intaro-content">
-
+                            <? if ($arResult['LP_CALCULATE_SUCCESS'] === true ): ?>
                             <div class="bx-soa-coupon">
-                               <div id="bonus-msg">Сколько бонусов потратить?</div>
+                               <div id="bonus-msg"><?= Loc::getMessage('HOW_MANY_BONUSES_TO_SPEND') ?></div>
                                 <div class="bx-soa-coupon-block">
                                     <div class="bx-input">
                                         <input name='bonus-input' class="form-control" type="number" max="<?=$arResult['AVAILABLE_BONUSES']?>" id='bonus-input'>
@@ -444,9 +444,12 @@ if (strlen($request->get('ORDER_ID')) > 0) {
                                         <div id="bonus-input-error"></div>
                                     </div>
                                 </div>
-                                <div>Всего бонусов: <label id="total-bonuses-count"><?=$arResult['TOTAL_BONUSES_COUNT']?></label></div>
-                                <div>Можно применить: <label id="available-bonuses"><?=$arResult['AVAILABLE_BONUSES']?></label></div>
+                                <div><?= Loc::getMessage('BONUS_TOTAL') ?> <label id="total-bonuses-count"><?=$arResult['TOTAL_BONUSES_COUNT']?></label></div>
+                                <div><?= Loc::getMessage('YOU_CAN_SPEND') ?> <label id="available-bonuses"><?=$arResult['AVAILABLE_BONUSES']?></label></div>
                             </div>
+                            <? else: ?>
+                                <?= Loc::getMessage('CALCULATION_ERROR') ?>
+                            <? endif ?>
                         </div>
                     </div>
                 <? endif ?>

@@ -8186,7 +8186,8 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
                          }
     };
 
-    BX.Sale.OrderAjaxComponent.editPaySystemItems = function(paySystemNode) {
+    BX.Sale.OrderAjaxComponent.editPaySystemItems = function(paySystemNode)
+    {
         if (!this.result.PAY_SYSTEM || this.result.PAY_SYSTEM.length <= 0)
             return;
 
