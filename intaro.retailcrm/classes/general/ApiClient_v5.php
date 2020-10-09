@@ -2985,4 +2985,15 @@ class ApiClient
             $request
         );
     }
+    
+    /**
+     * @return \RetailCrm\Response\ApiResponse
+     */
+    public function getCredentials(): ApiResponse
+    {
+        return $this->client->makeRequest(
+            "/api/credentials",
+            Client::METHOD_GET
+        );
+    }
 }
