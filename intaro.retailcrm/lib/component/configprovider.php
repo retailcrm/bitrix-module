@@ -868,21 +868,4 @@ class ConfigProvider
     {
         return ServiceLocator::get(Utils::class);
     }
-
-    /**
-     * @return bool|string|null
-     */
-    public static function getLoyaltyProgramStatus()
-    {
-        return static::getOption(Constants::LOYALTY_PROGRAM_TOGGLE);
-    }
-
-    /**
-     * @param bool|string|null $loyaltyProgramStatus
-     * @throws \Bitrix\Main\ArgumentOutOfRangeException
-     */
-    public static function setLoyaltyProgramStatus($loyaltyProgramStatus): void
-    {
-        static::setOption(Constants::LOYALTY_PROGRAM_TOGGLE, $loyaltyProgramStatus);
-    }
 }
