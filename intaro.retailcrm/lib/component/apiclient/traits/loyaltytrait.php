@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PHP version 7.1
  *
@@ -9,6 +10,7 @@
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
  */
+
 namespace Intaro\RetailCrm\Component\ApiClient\Traits;
 
 use Intaro\RetailCrm\Component\Json\Deserializer;
@@ -39,14 +41,14 @@ trait LoyaltyTrait
      * @param \Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusRequest $request
      * @return \Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusResponse|null
      */
-    protected function checkStatusPlVerification(SmsVerificationStatusRequest $request): ?SmsVerificationStatusResponse
+    public function checkStatusPlVerification(SmsVerificationStatusRequest $request): ?SmsVerificationStatusResponse
     {
         $serialized = Serializer::serializeArray($request);
         $response   = $this->client->checkStatusPlVerification($serialized, $request->checkId);
-        
+
         return Deserializer::deserializeArray($response->getResponseBody(), SmsVerificationStatusResponse::class);
     }
-    
+
     /**
      * @param \Intaro\RetailCrm\Model\Api\Request\Order\Loyalty\OrderLoyaltyApplyRequest $request
      * @return mixed
@@ -55,10 +57,10 @@ trait LoyaltyTrait
     {
         $serialized = Serializer::serializeArray($request);
         $response   = $this->client->loyaltyOrderApply($serialized);
-        
+
         return Deserializer::deserializeArray($response->getResponseBody(), OrderLoyaltyApplyResponse::class);
     }
-    
+
     /**
      * @param \Intaro\RetailCrm\Model\Api\Request\Loyalty\LoyaltyCalculateRequest $request
      * @return mixed
@@ -67,10 +69,10 @@ trait LoyaltyTrait
     {
         $serialized = Serializer::serializeArray($request);
         $response   = $this->client->loyaltyOrderCalculate($serialized);
-    
+
         return Deserializer::deserializeArray($response->getResponseBody(), LoyaltyCalculateResponse::class);
     }
-    
+
     /**
      * @param \Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountCreateRequest $request
      * @return \Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountCreateResponse|null
@@ -83,7 +85,7 @@ trait LoyaltyTrait
 
         return Deserializer::deserializeArray($response->getResponseBody(), LoyaltyAccountCreateResponse::class);
     }
-    
+
     /**
      * @param \Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountActivateRequest $request
      * @return \Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountActivateResponse|null
@@ -95,7 +97,7 @@ trait LoyaltyTrait
 
         return Deserializer::deserializeArray($response->getResponseBody(), LoyaltyAccountActivateResponse::class);
     }
-    
+
     /**
      * @param \Intaro\RetailCrm\Model\Api\Request\SmsVerification\SmsVerificationConfirmRequest $request
      * @return \Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountActivateResponse|null
@@ -107,11 +109,11 @@ trait LoyaltyTrait
 
         return Deserializer::deserializeArray($response->getResponseBody(), SmsVerificationConfirmResponse::class);
     }
-    
-    
+
+
     /**
      * @param \Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountRequest $request
-     * @return \Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountResponse|null
+     * @return \Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountResponse|null
      */
     public function getLoyaltyAccounts(LoyaltyAccountRequest $request): ?LoyaltyAccountResponse
     {
