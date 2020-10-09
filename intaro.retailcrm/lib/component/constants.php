@@ -59,8 +59,8 @@ class Constants
     public const CRM_CURRENCY = 'currency';
     public const CRM_ADDRESS_OPTIONS = 'address_options';
     public const CRM_DIMENSIONS = 'order_dimensions';
-    public const PROTOCOL = 'protocol';
-    public const CRM_ORDER_FAILED_IDS = 'order_failed_ids';
+    public const PROTOCOL                       = 'protocol';
+    public const CRM_ORDER_FAILED_IDS           = 'order_failed_ids';
     public const CRM_CUSTOMERS_HISTORY_SINCE_ID = 'customer_history';
     public const CRM_ORDER_HISTORY_DATE = 'order_history_date';
     public const CRM_CATALOG_BASE_PRICE = 'catalog_base_price';
@@ -73,4 +73,5 @@ class Constants
     public const CRM_ONLINE_CONSULTANT = 'online_consultant';
     public const CRM_ONLINE_CONSULTANT_SCRIPT = 'online_consultant_script';
     public const LOYALTY_PROGRAM_TOGGLE = 'loyalty_program_toggle';
+    public const CLIENT_ID              = 'client_id';
 }
