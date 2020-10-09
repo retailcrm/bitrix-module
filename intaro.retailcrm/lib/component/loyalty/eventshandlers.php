@@ -103,6 +103,40 @@ class EventsHandlers
     }
 
     /**
+     * Обработчик события, вызываемого при обновлении заказа
+     *
+     * @param                          $order
+     * @param                          $arUserResult
+     * @param \Bitrix\Main\HttpRequest $request
+     * @param                          $arParams
+     * @param                          $arResult
+     */
+    public function OnSaleComponentOrderResultPreparedHandler($order, $arUserResult, HttpRequest $request, $arParams, &$arResult): void
+    {
+        if (ConfigProvider::getLoyaltyProgramStatus() === 'Y') {
+            $isBonusError     = false;
+            $bonusInput       = (int)$request->get('bonus-input');
+            $availableBonuses = (int)$request->get('available-bonuses');
+
+            if ($bonusInput > $availableBonuses) {
+                $arResult['LOYALTY']['ERROR'] = self::BONUS_ERROR_MSG;
+                $isBonusError                 = true;
+            }
+
+            if (
+                $bonusInput > 0
+                && $availableBonuses > 0
+                && $isBonusError === false
+                && $arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE'] >= $bonusInput
+            ) {
+                $arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE']          -= $bonusInput;
+                $arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE_FORMATED'] = number_format($arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE'], 0, ',', ' ');
+                $arResult['JS_DATA']['TOTAL']['BONUS_PAYMENT']              = $bonusInput;
+            }
+        }
+    }
+
+    /**
      * Обработчик события, вызываемого ПОСЛЕ сохранения заказа
      *
      * @param \Bitrix\Main\Event $event
@@ -140,38 +174,6 @@ class EventsHandlers
                 } catch (ObjectPropertyException | ArgumentException | SystemException | Exception $e) {
                     AddMessage2Log('ERROR PaySystemActionRepository: ' . $e->getMessage());
                 }
-            }
-        }
-    }
-
-    /**
-     * @param                          $order
-     * @param                          $arUserResult
-     * @param \Bitrix\Main\HttpRequest $request
-     * @param                          $arParams
-     * @param                          $arResult
-     */
-    public function OnSaleComponentOrderResultPreparedHandler($order, $arUserResult, HttpRequest $request, $arParams, &$arResult): void
-    {
-        if (ConfigProvider::getLoyaltyProgramStatus() === 'Y') {
-            $isBonusError     = false;
-            $bonusInput       = (int)$request->get('bonus-input');
-            $availableBonuses = (int)$request->get('available-bonuses');
-
-            if ($bonusInput > $availableBonuses) {
-                $arResult['LOYALTY']['ERROR'] = self::BONUS_ERROR_MSG;
-                $isBonusError                 = true;
-            }
-
-            if (
-                $bonusInput > 0
-                && $availableBonuses > 0
-                && $isBonusError === false
-                && $arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE'] > $bonusInput
-            ) {
-                $arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE']          -= $bonusInput;
-                $arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE_FORMATED'] = number_format($arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE'], 0, ',', ' ');
-                $arResult['JS_DATA']['TOTAL']['BONUS_PAYMENT']              = $bonusInput;
             }
         }
     }
