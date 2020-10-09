@@ -1438,7 +1438,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                     <div id="loyalty_main_settings" <?php if ($loyaltyProgramToggle !== 'Y') {
                         echo "hidden";
                     } ?>>
-                        <table>
+                        <table width="100%">
                             <tr class="heading">
                                 <td colspan="2" class="option-other-heading">
                                     <?php echo GetMessage('LP_SALE_ORDER_AJAX_HEAD'); ?>
@@ -1470,8 +1470,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                 </td>
                             </tr>
                             <tr>
-                                <td width="50%" >
-                                    <input type="button" onclick="editSaleTemplates('replaceDefSaleTemplate')" class="adm-btn-save" value="<?php echo GetMessage('LP_REPLACE_TEMPLATE'); ?>" />
+                                <td width="50%" align="center">
+                                    <input type="button" onclick="replaceDefaultSaleTemplates()" class="adm-btn-save" value="<?php echo GetMessage('LP_REPLACE_TEMPLATE'); ?>" />
                                 </td>
                                 <td width="50%" >
                                     <div id="lp-templates">
