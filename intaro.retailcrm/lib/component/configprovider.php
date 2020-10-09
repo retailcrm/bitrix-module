@@ -636,6 +636,31 @@ class ConfigProvider
     }
 
     /**
+     * @return bool|string|null
+     */
+    public static function getClientId()
+    {
+        return static::getOption(Constants::CLIENT_ID);
+    }
+
+    /**
+     * @return string|null
+     */
+    public static function getLoyaltyProgramStatus()
+    {
+        return static::getOption(Constants::LOYALTY_PROGRAM_TOGGLE);
+    }
+
+    /**
+     * @param bool|string|null $loyaltyProgramStatus
+     * @throws \Bitrix\Main\ArgumentOutOfRangeException
+     */
+    public static function setLoyaltyProgramStatus($loyaltyProgramStatus): void
+    {
+        static::setOption(Constants::LOYALTY_PROGRAM_TOGGLE, $loyaltyProgramStatus);
+    }
+
+    /**
      * Wraps Bitrix \COption::GetOptionString(...)
      *
      * @param string $option
@@ -806,22 +831,5 @@ class ConfigProvider
     public static function getUtils(): Utils
     {
         return ServiceLocator::get(Utils::class);
-    }
-
-    /**
-     * @return bool|string|null
-     */
-    public static function getLoyaltyProgramStatus()
-    {
-        return static::getOption(Constants::LOYALTY_PROGRAM_TOGGLE);
-    }
-
-    /**
-     * @param bool|string|null $loyaltyProgramStatus
-     * @throws \Bitrix\Main\ArgumentOutOfRangeException
-     */
-    public static function setLoyaltyProgramStatus($loyaltyProgramStatus): void
-    {
-        static::setOption(Constants::LOYALTY_PROGRAM_TOGGLE, $loyaltyProgramStatus);
     }
 }
