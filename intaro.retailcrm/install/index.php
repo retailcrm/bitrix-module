@@ -239,12 +239,6 @@ class intaro_retailcrm extends CModule
         $this->addLPUserFields();
         $this->addLPEvents();
 
-        try {
-            $this->addLPOrderProps();
-        } catch (ObjectPropertyException | ArgumentException | SystemException $e) {
-            return false;
-        }
-
         if ($step == 11) {
             $arResult['arSites'] = RCrmActions::SitesList();
             if (count($arResult['arSites']) < 2) {
@@ -1517,27 +1511,6 @@ class intaro_retailcrm extends CModule
     }
 
     /**
-     * add LP Order Props
-     *
-     * @throws \Bitrix\Main\ArgumentException
-     * @throws \Bitrix\Main\ObjectPropertyException
-     * @throws \Bitrix\Main\SystemException
-     */
-    public function addLPOrderProps(): void
-    {
-        $persons = PersonTypeRepository::getCollectionByWhere(['ID']);
-
-        foreach ($persons as $person) {
-            $personId = $person->getID();
-            $groupID  = $this->getGroupID($personId);
-
-            if (isset($groupID)) {
-                $this->addBonusField($personId, $groupID);
-            }
-        }
-    }
-
-    /**
      * @param        $fieldNames
      * @param string $filedType
      */
@@ -1626,46 +1599,6 @@ class intaro_retailcrm extends CModule
         }
     }
     
-    /**
-     * @param $personID
-     * @param $groupID
-     * @throws \Bitrix\Main\ArgumentException
-     * @throws \Bitrix\Main\ObjectPropertyException
-     * @throws \Bitrix\Main\SystemException
-     */
-    private function addBonusField($personID, $groupID): void
-    {
-        $bonusProp = OrderPropsRepository::getFirstByWhere(
-            ['ID'],
-            [
-                ['PERSON_TYPE_ID', '=', $personID],
-                ['PROPS_GROUP_ID', '=', $groupID],
-            ]
-        );
-
-        if ($bonusProp === null) {
-            CSaleOrderProps::Add(
-                [
-                    "REQUIRED"        => "N",
-                    "NAME"            => self::BONUS_COUNT,
-                    "TYPE"            => "TEXT",
-                    "CODE"            => "BONUS_RETAILCRM",
-                    "USER_PROPS"      => "Y",
-                    "IS_LOCATION"     => "N",
-                    "IS_LOCATION4TAX" => "N",
-                    "IS_EMAIL"        => "N",
-                    "IS_PROFILE_NAME" => "N",
-                    "IS_PAYER"        => "N",
-                    'IS_FILTERED'     => 'Y',
-                    'PERSON_TYPE_ID'  => $personID,
-                    'PROPS_GROUP_ID'  => $groupID,
-                    "DEFAULT_VALUE"   => 0,
-                    "DESCRIPTION"     => self::BONUS_COUNT,
-                ]
-            );
-        }
-    }
-
     /**
      * add bonus pay system
      */

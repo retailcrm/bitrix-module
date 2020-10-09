@@ -102,6 +102,8 @@ class EventsHandlers
     }
     
     /**
+     * Обработчик события, вызываемого при обновлении заказа
+     *
      * @param                          $order
      * @param                          $arUserResult
      * @param \Bitrix\Main\HttpRequest $request
@@ -115,7 +117,7 @@ class EventsHandlers
             $bonusInput       = (int)$request->get('bonus-input');
             $availableBonuses = (int)$request->get('available-bonuses');
             
-            if ($bonusInput >= $availableBonuses) {
+            if ($bonusInput > $availableBonuses) {
                 $arResult['LOYALTY']['ERROR'] = self::BONUS_ERROR_MSG;
                 $isBonusError                 = true;
             }
