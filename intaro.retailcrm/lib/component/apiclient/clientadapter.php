@@ -101,6 +101,7 @@ use RetailCrm\Response\ApiResponse;
  * @method ApiResponse statisticUpdate()
  * @method ApiResponse getSite()
  * @method ApiResponse setSite($site)
+ * @method ApiResponse getCredentials()
  */
 class ClientAdapter
 {
