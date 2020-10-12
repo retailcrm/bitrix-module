@@ -11,15 +11,15 @@
  */
 namespace Intaro\RetailCrm\Model\Api\Response\SmsVerification;
 
-use Intaro\RetailCrm\Model\Api\AbstractApiModel;
 use Intaro\RetailCrm\Component\Json\Mapping;
+use Intaro\RetailCrm\Model\Api\Response\AbstractApiResponseModel;
 
 /**
  * Class SmsVerificationConfirmResponse
  *
  * @package Intaro\RetailCrm\Model\Api\Response\SmsVerification
  */
-class SmsVerificationConfirmResponse extends AbstractApiModel
+class SmsVerificationConfirmResponse extends AbstractApiResponseModel
 {
     /**
      * @var bool

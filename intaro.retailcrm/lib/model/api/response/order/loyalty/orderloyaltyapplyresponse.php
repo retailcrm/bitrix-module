@@ -12,16 +12,14 @@
 namespace Intaro\RetailCrm\Model\Api\Response\Order\Loyalty;
 
 use Intaro\RetailCrm\Component\Json\Mapping;
-use Intaro\RetailCrm\Model\Api\AbstractApiModel;
-use Intaro\RetailCrm\Model\Api\SerializedLoyaltyOrder;
-use Intaro\RetailCrm\Model\Api\SmsVerification;
+use Intaro\RetailCrm\Model\Api\Response\AbstractApiResponseModel;
 
 /**
  * Class OrderLoyaltyApplyResponse
  *
  * @package Intaro\RetailCrm\Model\Api\Response\SmsVerification
  */
-class OrderLoyaltyApplyResponse extends AbstractApiModel
+class OrderLoyaltyApplyResponse extends AbstractApiResponseModel
 {
     /**
      * Результат запроса (успешный/неуспешный)
