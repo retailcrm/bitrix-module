@@ -19,6 +19,7 @@ use Bitrix\Main\Event;
 use Bitrix\Main\HttpRequest;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
+use Bitrix\Sale\Order;
 use Bitrix\Sale\PaySystem\Manager;
 use Exception;
 use Intaro\RetailCrm\Component\ConfigProvider;
@@ -108,13 +109,13 @@ class EventsHandlers
     /**
      * Обработчик события, вызываемого при обновлении заказа
      *
-     * @param                          $order
-     * @param                          $arUserResult
+     * @param \Bitrix\Sale\Order       $order
+     * @param array                    $arUserResult
      * @param \Bitrix\Main\HttpRequest $request
-     * @param                          $arParams
-     * @param                          $arResult
+     * @param array                    $arParams
+     * @param array                    $arResult
      */
-    public function OnSaleComponentOrderResultPreparedHandler($order, $arUserResult, HttpRequest $request, $arParams, &$arResult): void
+    public function OnSaleComponentOrderResultPreparedHandler(Order $order, array $arUserResult, HttpRequest $request, array $arParams, array &$arResult): void
     {
         if (ConfigProvider::getLoyaltyProgramStatus() === 'Y') {
             $bonusInput       = (int)$request->get('bonus-input');
