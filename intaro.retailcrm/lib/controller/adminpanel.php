@@ -28,17 +28,18 @@ class AdminPanel extends Controller
     {
         $status    = ConfigProvider::getLoyaltyProgramStatus();
         $newStatus = $status !== 'Y' ? 'Y' : 'N';
+        
         ConfigProvider::setLoyaltyProgramStatus($newStatus);
         
         return ['newStatus' => $newStatus];
     }
     
     /**
-     * @param       $templates
+     * @param array  $templates
      * @param string $replaceDefaultTemplate
      * @return array
      */
-    public function createSaleTemplateAction($templates, $replaceDefaultTemplate = 'N'): array
+    public function createSaleTemplateAction(array $templates, $replaceDefaultTemplate = 'N'): array
     {
         $templateName = $replaceDefaultTemplate === 'Y' ? '.default' : Constants::MODULE_ID;
         

@@ -11,9 +11,7 @@
  */
 namespace Intaro\RetailCrm\Model\Api\Response\SmsVerification;
 
-use Intaro\RetailCrm\Model\Api\AbstractApiModel;
 use Intaro\RetailCrm\Component\Json\Mapping;
-use Intaro\RetailCrm\Model\Api\SmsVerification;
 
 /**
  * Class SmsVerificationStatusResponse

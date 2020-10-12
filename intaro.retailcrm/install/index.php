@@ -1312,7 +1312,7 @@ class intaro_retailcrm extends CModule
         $lpTemplatePath = $_SERVER['DOCUMENT_ROOT']
             . '/local/templates/.default/components/bitrix/sale.order.ajax/intaro.retailcrm';
         
-        if (!file_exists($lpTemplatePath)){
+        if (!file_exists($lpTemplatePath)) {
             $pathFrom = $_SERVER['DOCUMENT_ROOT']
                 . '/bitrix/modules/intaro.retailcrm/install/export/local/components/intaro/sale.order.ajax/templates/.default';
             

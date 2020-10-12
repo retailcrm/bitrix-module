@@ -17,7 +17,7 @@ $(document).ready(function() {
         let availableBonuses = Number.parseInt($('#available-bonus-input').val());
         let inputBonuses = Number.parseInt($('#bonus-input').val());
         if (inputBonuses > availableBonuses) {
-            $('#bonus-input-error').html('Вы не можете потратить более ' + availableBonuses + ' бонусов');
+            $('#bonus-input-error').text('Вы не можете потратить более ' + availableBonuses + ' бонусов');
         }else{
             $('#bonus-input-error').html(null);
         }
