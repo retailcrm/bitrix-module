@@ -12,14 +12,13 @@
 namespace Intaro\RetailCrm\Model\Api\Response;
 
 use Intaro\RetailCrm\Component\Json\Mapping;
-use Intaro\RetailCrm\Model\Api\AbstractApiModel;
 
 /**
  * Class OperationResponse
  *
  * @package Intaro\RetailCrm\Model\Api
  */
-class OperationResponse extends AbstractApiModel
+class OperationResponse extends AbstractApiResponseModel
 {
     /**
      * @var bool

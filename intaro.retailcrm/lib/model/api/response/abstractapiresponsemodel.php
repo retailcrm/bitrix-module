@@ -3,7 +3,7 @@
  * PHP version 7.1
  *
  * @category Integration
- * @package  Intaro\RetailCrm\Model\Api\Response
+ * @package  Intaro\RetailCrm\Model\Api
  * @author   retailCRM <integration@retailcrm.ru>
  * @license  MIT
  * @link     http://retailcrm.ru
@@ -11,20 +11,20 @@
  */
 namespace Intaro\RetailCrm\Model\Api\Response;
 
-use Intaro\RetailCrm\Component\Json\Mapping;
+use Intaro\RetailCrm\Model\Api\AbstractApiModel;
 
 /**
- * Class CreateResponse
+ * Class AbstractApiResponseModel
  *
  * @package Intaro\RetailCrm\Model\Api
  */
-class CreateResponse extends OperationResponse
+class AbstractApiResponseModel extends AbstractApiModel
 {
     /**
-     * @var int
+     * @var string
      *
-     * @Mapping\Type("int")
-     * @Mapping\SerializedName("id")
+     * @Mapping\Type("string")
+     * @Mapping\SerializedName("errorMsg")
      */
-    public $id;
+    public $errorMsg;
 }
