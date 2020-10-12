@@ -812,12 +812,11 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             );
         }
 
-        function replaceDefaultSaleTemplates(){
+        function replaceDefaultSaleTemplates() {
             let templates = [];
             let i = 0;
 
-            $('#lp-templates input:checkbox:checked')
-                .each(
+            $('#lp-templates input:checkbox:checked').each(
                     function(index, checkbox){
                        templates[i] = {
                            'name': $(checkbox).val(),
@@ -826,9 +825,9 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                        i++;
                     }
                 );
-            let requestAddress = 'intaro:retailcrm.api.adminpanel.createSaleTemplate';
 
-            BX.ajax.runAction(requestAddress,
+            BX.ajax.runAction(
+                'intaro:retailcrm.api.adminpanel.createSaleTemplate',
                 {
                     data: {
                         sessid: BX.bitrix_sessid(),
@@ -1075,7 +1074,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 		}
 
     </style>
-    <div method="POST" action="<?php echo $uri; ?>" id="FORMACTION">
+    <form method="POST" action="<?php echo $uri; ?>" id="FORMACTION">
         <?php
         echo bitrix_sessid_post();
         $tabControl->BeginNextTab();
