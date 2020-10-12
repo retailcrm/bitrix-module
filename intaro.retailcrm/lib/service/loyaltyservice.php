@@ -16,6 +16,7 @@ use Bitrix\Catalog\GroupTable;
 use Bitrix\Main\ArgumentException;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
+use Intaro\RetailCrm\Component\ApiClient\ClientAdapter;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\LoyaltyCalculateRequest;
@@ -78,7 +79,8 @@ class LoyaltyService
             $request->order->discountManualPercent = $discountPercent;
         }
         
-        $client        = new SettingsService();
+        /** @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter $client*/
+        $client        = ClientFactory::createClientAdapter();
         $credentials   = $client->getCredentials();
         $request->site = $credentials->sitesAvailable[0];
         
@@ -100,11 +102,14 @@ class LoyaltyService
             $product->quantity          = $item['QUANTITY'];
             
             try {
-                $price = GroupTable::query()->setSelect(['NAME'])->where(
-                    [
-                        ['ID', '=', $item['PRICE_TYPE_ID']],
-                    ]
-                )->fetch();
+                $price = GroupTable::query()
+                    ->setSelect(['NAME'])
+                    ->where(
+                        [
+                            ['ID', '=', $item['PRICE_TYPE_ID']],
+                        ]
+                    )
+                    ->fetch();
                 
                 $product->priceType->code = $price['NAME'];
             } catch (ObjectPropertyException | ArgumentException | SystemException $e) {

@@ -50,6 +50,7 @@ class TemplateRepository extends AbstractRepository
                         ];
                     }
                 }
+                
                 closedir($handle);
             }
         }

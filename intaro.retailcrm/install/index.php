@@ -56,7 +56,8 @@ class intaro_retailcrm extends CModule
         ['EVENT_NAME' => 'OnSaleComponentOrderResultPrepared', 'FROM_MODULE' => 'sale'],
     ];
 
-    public const V5 = 'v5';
+    public const V5           = 'v5';
+    public const INTARO_BONUS = 'INTARO_BONUS';
     public $MODULE_ID           = 'intaro.retailcrm';
     public $OLD_MODULE_ID       = 'intaro.intarocrm';
     public $MODULE_VERSION;
@@ -1616,6 +1617,7 @@ class intaro_retailcrm extends CModule
                 [
                     'NAME'                 => self::BONUS_PAY_SYSTEM_NAME,
                     'PSA_NAME'             => self::BONUS_PAY_SYSTEM_NAME,
+                    'CODE'                 => self::INTARO_BONUS,
                     'ACTION_FILE'          => self::BONUS_PAY_SYSTEM_CODE,
                     'DESCRIPTION'          => self::BONUS_PAY_SYSTEM_DESCRIPTION,
                     'RESULT_FILE'          => '',

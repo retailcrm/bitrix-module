@@ -8197,7 +8197,7 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
         for (i = 0; i < this.paySystemPagination.currentPage.length; i++) {
 
             //скрываем бонусный способ оплаты
-            if (this.paySystemPagination.currentPage[i].CODE === 'INTARO_BONUS' && this.loyaltyStatus === "Y") {
+            if (this.paySystemPagination.currentPage[i].CODE === 'INTARO_BONUS') {
                continue;
             }
 
