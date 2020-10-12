@@ -11,16 +11,14 @@
  */
 namespace Intaro\RetailCrm\Model\Api\Response\Loyalty;
 
-use Intaro\RetailCrm\Model\Api\AbstractApiModel;
-use Intaro\RetailCrm\Model\Api\CalculateMaximum;
-use Intaro\RetailCrm\Model\Api\SerializedLoyaltyOrder;
+use Intaro\RetailCrm\Model\Api\Response\AbstractApiResponseModel;
 
 /**
  * Class LoyaltyCalculateResponse
  *
  * @package Intaro\RetailCrm\Model\Api\Response\Loyalty
  */
-class LoyaltyCalculateResponse extends AbstractApiModel
+class LoyaltyCalculateResponse extends AbstractApiResponseModel
 {
     /**
      * Результат запроса (успешный/неуспешный)
