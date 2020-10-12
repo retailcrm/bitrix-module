@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PHP version 7.1
  *
@@ -9,15 +10,12 @@
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
  */
-
 namespace Intaro\RetailCrm\Service;
 
 use Bitrix\Catalog\GroupTable;
 use Bitrix\Main\ArgumentException;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
-use Intaro\RetailCrm\Component\ApiClient\ClientAdapter;
-use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\LoyaltyCalculateRequest;
 use Intaro\RetailCrm\Model\Api\Request\Order\Loyalty\OrderLoyaltyApplyRequest;
@@ -45,16 +43,22 @@ class LoyaltyService
     
     /**
      * @param $orderId
-     * @param $bonusConunt
+     * @param $bonusCount
      * @return \Intaro\RetailCrm\Model\Api\Response\Order\Loyalty\OrderLoyaltyApplyResponse|mixed|null
      */
-    public function sendBonusPayment($orderId, $bonusConunt)
+    public function sendBonusPayment($orderId, $bonusCount)
     {
         $request                 = new OrderLoyaltyApplyRequest();
         $request->order->id      = $orderId;
-        $request->order->bonuses = $bonusConunt;
+        $request->order->bonuses = $bonusCount;
         
-        return $this->client->loyaltyOrderApply($request);
+        $result = $this->client->loyaltyOrderApply($request);
+        
+        if (isset($result->errorMsg) && !empty($result->errorMsg)) {
+            AddMessage2Log($result->errorMsg);
+        }
+
+        return $result;
     }
     
     /**
@@ -117,7 +121,13 @@ class LoyaltyService
             }
             $request->order->items[] = $product;
         }
+    
+        $result = $this->client->loyaltyCalculate($request);
         
-        return $this->client->loyaltyCalculate($request);
+        if (isset($result->errorMsg) && !empty($result->errorMsg)) {
+            AddMessage2Log($result->errorMsg);
+        }
+        
+        return $result;
     }
 }

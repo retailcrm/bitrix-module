@@ -11,15 +11,14 @@
  */
 namespace Intaro\RetailCrm\Model\Api\Response\Loyalty\Account;
 
-use Intaro\RetailCrm\Model\Api\AbstractApiModel;
-use Intaro\RetailCrm\Model\Api\LoyaltyAccount;
+use Intaro\RetailCrm\Model\Api\Response\AbstractApiResponseModel;
 
 /**
  * Class LoyaltyAccountCreateResponse
  *
  * @package Intaro\RetailCrm\Model\Api\Response\Loyalty\Account
  */
-class LoyaltyAccountCreateResponse extends AbstractApiModel
+class LoyaltyAccountCreateResponse extends AbstractApiResponseModel
 {
     /**
      * Результат запроса (успешный/неуспешный)
