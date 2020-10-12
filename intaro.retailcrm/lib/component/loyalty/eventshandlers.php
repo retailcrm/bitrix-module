@@ -12,6 +12,8 @@
  */
 namespace Intaro\RetailCrm\Component\Loyalty;
 
+IncludeModuleLangFile(__FILE__);
+
 use Bitrix\Main\ArgumentException;
 use Bitrix\Main\Event;
 use Bitrix\Main\HttpRequest;
@@ -20,6 +22,7 @@ use Bitrix\Main\SystemException;
 use Bitrix\Sale\PaySystem\Manager;
 use Exception;
 use Intaro\RetailCrm\Component\ConfigProvider;
+use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Repository\PaySystemActionRepository;
 use Intaro\RetailCrm\Service\LoyaltyService;
 
@@ -114,19 +117,16 @@ class EventsHandlers
     public function OnSaleComponentOrderResultPreparedHandler($order, $arUserResult, HttpRequest $request, $arParams, &$arResult): void
     {
         if (ConfigProvider::getLoyaltyProgramStatus() === 'Y') {
-            $isBonusError     = false;
             $bonusInput       = (int)$request->get('bonus-input');
             $availableBonuses = (int)$request->get('available-bonuses');
 
             if ($bonusInput > $availableBonuses) {
-                $arResult['LOYALTY']['ERROR'] = self::BONUS_ERROR_MSG;
-                $isBonusError                 = true;
+                $arResult['LOYALTY']['ERROR'] = GetMessage('BONUS_ERROR_MSG');
+                return;
             }
 
-            if (
-                $bonusInput > 0
+            if ($bonusInput > 0
                 && $availableBonuses > 0
-                && $isBonusError === false
                 && $arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE'] >= $bonusInput
             ) {
                 $arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE']          -= $bonusInput;
@@ -149,7 +149,8 @@ class EventsHandlers
 
         if (isset($_POST['bonus-input'], $_POST['available-bonuses'])
             && $isNew
-            && (int)$_POST['available-bonuses'] >= (int)$_POST['bonus-input']) {
+            && (int) $_POST['available-bonuses'] >= (int) $_POST['bonus-input']
+        ) {
             $orderId    = $order->getId();
             $bonusCount = $_POST['bonus-input'];
             $service    = new LoyaltyService();
