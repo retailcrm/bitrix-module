@@ -12,12 +12,14 @@
  */
 namespace Intaro\RetailCrm\Model\Api\Response\Settings;
 
+use Intaro\RetailCrm\Model\Api\Response\AbstractApiResponseModel;
+
 /**
  * Class CredentialsResponse
  *
  * @package Intaro\RetailCrm\Model\Api\Response\Settings
  */
-class CredentialsResponse
+class CredentialsResponse extends AbstractApiResponseModel
 {
     /**
      * Результат запроса (успешный/неуспешный)
