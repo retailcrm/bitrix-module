@@ -15,6 +15,8 @@ use Intaro\RetailCrm\Component\ApiClient\Traits\BaseClientTrait;
 use Intaro\RetailCrm\Component\ApiClient\Traits\CustomersCorporateTrait;
 use Intaro\RetailCrm\Component\ApiClient\Traits\CustomersTrait;
 use Intaro\RetailCrm\Component\ApiClient\Traits\LoyaltyTrait;
+use Intaro\RetailCrm\Component\Json\Deserializer;
+use Intaro\RetailCrm\Model\Api\Response\Settings\CredentialsResponse;
 use RetailCrm\Response\ApiResponse;
 
 /**
@@ -128,5 +130,15 @@ class ClientAdapter
         }
 
         throw new \RuntimeException(sprintf("Method '%s' doesn't exist.", $name));
+    }
+    
+    /**
+     * @return \Intaro\RetailCrm\Model\Api\Response\Settings\CredentialsResponse
+     */
+    public function getCredentials(): CredentialsResponse
+    {
+        $response = $this->client->getCredentials();
+        
+        return Deserializer::deserializeArray($response->getResponseBody(), CredentialsResponse::class);
     }
 }

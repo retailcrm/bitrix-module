@@ -20,9 +20,6 @@ use Bitrix\Sale\Internals\PaySystemActionTable;
 use Bitrix\Sale\Delivery\Services\Manager;
 use Bitrix\sale\EventActions;
 use Bitrix\Sale\Internals\OrderTable;
-use Bitrix\Sale\Internals\OrderPropsTable;
-use Bitrix\Sale\Internals\PersonTypeTable;
-use Intaro\RetailCrm\Component\Constants;
 use \RetailCrm\ApiClient;
 use RetailCrm\Exception\CurlException;
 use Intaro\RetailCrm\Component\Loyalty\EventsHandlers;
@@ -56,9 +53,11 @@ class intaro_retailcrm extends CModule
         ['EVENT_NAME' => 'OnSaleOrderCanceled', 'FROM_MODULE' => 'sale'],
         ['EVENT_NAME' => 'OnSaleOrderDeleted', 'FROM_MODULE' => 'sale'],
         ['EVENT_NAME' => 'OnSaleComponentOrderOneStepProcess', 'FROM_MODULE' => 'sale'],
+        ['EVENT_NAME' => 'OnSaleComponentOrderResultPrepared', 'FROM_MODULE' => 'sale'],
     ];
 
-    public const V5 = 'v5';
+    public const V5           = 'v5';
+    public const INTARO_BONUS = 'INTARO_BONUS';
     public $MODULE_ID           = 'intaro.retailcrm';
     public $OLD_MODULE_ID       = 'intaro.intarocrm';
     public $MODULE_VERSION;
@@ -240,12 +239,6 @@ class intaro_retailcrm extends CModule
         $this->addBonusPaySystem();
         $this->addLPUserFields();
         $this->addLPEvents();
-
-        try {
-            $this->addLPOrderProps();
-        } catch (ObjectPropertyException | ArgumentException | SystemException $e) {
-            return false;
-        }
 
         if ($step == 11) {
             $arResult['arSites'] = RCrmActions::SitesList();
@@ -1315,6 +1308,22 @@ class intaro_retailcrm extends CModule
             true,
             false
         );
+    
+        $lpTemplatePath = $_SERVER['DOCUMENT_ROOT']
+            . '/local/templates/.default/components/bitrix/sale.order.ajax/intaro.retailcrm';
+        
+        if (!file_exists($lpTemplatePath)) {
+            $pathFrom = $_SERVER['DOCUMENT_ROOT']
+                . '/bitrix/modules/intaro.retailcrm/install/export/local/components/intaro/sale.order.ajax/templates/.default';
+            
+            CopyDirFiles(
+                $pathFrom,
+                $lpTemplatePath,
+                true,
+                true,
+                false
+            );
+        }
     }
 
     public function DeleteFiles(): void
@@ -1503,27 +1512,6 @@ class intaro_retailcrm extends CModule
     }
 
     /**
-     * add LP Order Props
-     *
-     * @throws \Bitrix\Main\ArgumentException
-     * @throws \Bitrix\Main\ObjectPropertyException
-     * @throws \Bitrix\Main\SystemException
-     */
-    public function addLPOrderProps(): void
-    {
-        $persons = PersonTypeRepository::getCollectionByWhere(['ID']);
-
-        foreach ($persons as $person) {
-            $personId = $person->getID();
-            $groupID  = $this->getGroupID($personId);
-
-            if (isset($groupID)) {
-                $this->addBonusField($personId, $groupID);
-            }
-        }
-    }
-
-    /**
      * @param        $fieldNames
      * @param string $filedType
      */
@@ -1613,46 +1601,6 @@ class intaro_retailcrm extends CModule
     }
     
     /**
-     * @param $personID
-     * @param $groupID
-     * @throws \Bitrix\Main\ArgumentException
-     * @throws \Bitrix\Main\ObjectPropertyException
-     * @throws \Bitrix\Main\SystemException
-     */
-    private function addBonusField($personID, $groupID): void
-    {
-        $bonusProp = OrderPropsRepository::getFirstByWhere(
-            ['ID'],
-            [
-                ['PERSON_TYPE_ID', '=', $personID],
-                ['PROPS_GROUP_ID', '=', $groupID],
-            ]
-        );
-
-        if ($bonusProp === null) {
-            CSaleOrderProps::Add(
-                [
-                    "REQUIRED"        => "N",
-                    "NAME"            => self::BONUS_COUNT,
-                    "TYPE"            => "TEXT",
-                    "CODE"            => "BONUS_RETAILCRM",
-                    "USER_PROPS"      => "Y",
-                    "IS_LOCATION"     => "N",
-                    "IS_LOCATION4TAX" => "N",
-                    "IS_EMAIL"        => "N",
-                    "IS_PROFILE_NAME" => "N",
-                    "IS_PAYER"        => "N",
-                    'IS_FILTERED'     => 'Y',
-                    'PERSON_TYPE_ID'  => $personID,
-                    'PROPS_GROUP_ID'  => $groupID,
-                    "DEFAULT_VALUE"   => 0,
-                    "DESCRIPTION"     => self::BONUS_COUNT,
-                ]
-            );
-        }
-    }
-
-    /**
      * add bonus pay system
      */
     private function addBonusPaySystem(): void
@@ -1669,6 +1617,7 @@ class intaro_retailcrm extends CModule
                 [
                     'NAME'                 => self::BONUS_PAY_SYSTEM_NAME,
                     'PSA_NAME'             => self::BONUS_PAY_SYSTEM_NAME,
+                    'CODE'                 => self::INTARO_BONUS,
                     'ACTION_FILE'          => self::BONUS_PAY_SYSTEM_CODE,
                     'DESCRIPTION'          => self::BONUS_PAY_SYSTEM_DESCRIPTION,
                     'RESULT_FILE'          => '',
