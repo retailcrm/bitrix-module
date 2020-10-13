@@ -27,7 +27,12 @@ class AdminPanel extends Controller
     public function LoyaltyProgramToggleAction(): array
     {
         $status    = ConfigProvider::getLoyaltyProgramStatus();
-        $newStatus = $status !== 'Y' ? 'Y' : 'N';
+    
+        if ($status !== 'Y') {
+            $newStatus = 'Y';
+        } else {
+            $newStatus = 'N';
+        }
         
         ConfigProvider::setLoyaltyProgramStatus($newStatus);
 
