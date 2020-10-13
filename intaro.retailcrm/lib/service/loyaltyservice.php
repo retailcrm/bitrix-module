@@ -42,11 +42,11 @@ class LoyaltyService
     }
     
     /**
-     * @param $orderId
-     * @param $bonusCount
+     * @param int $orderId
+     * @param int $bonusCount
      * @return \Intaro\RetailCrm\Model\Api\Response\Order\Loyalty\OrderLoyaltyApplyResponse|mixed|null
      */
-    public function sendBonusPayment($orderId, $bonusCount)
+    public function sendBonusPayment(int $orderId, int $bonusCount)
     {
         $request                 = new OrderLoyaltyApplyRequest();
         $request->order->id      = $orderId;
@@ -62,12 +62,12 @@ class LoyaltyService
     }
     
     /**
-     * @param $basketItems
-     * @param $discountPrice
-     * @param $discountPercent
+     * @param array $basketItems
+     * @param int   $discountPrice
+     * @param int   $discountPercent
      * @return \Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse|mixed|null
      */
-    public function calculateBonus($basketItems, $discountPrice, $discountPercent)
+    public function calculateBonus(array $basketItems, int $discountPrice, int $discountPercent)
     {
         global $USER;
         
