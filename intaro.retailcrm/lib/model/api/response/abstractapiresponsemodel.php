@@ -27,4 +27,12 @@ class AbstractApiResponseModel extends AbstractApiModel
      * @Mapping\SerializedName("errorMsg")
      */
     public $errorMsg;
+    
+    /**
+     * @var array
+     *
+     * @Mapping\Type("array")
+     * @Mapping\SerializedName("errors")
+     */
+    public $errors;
 }
