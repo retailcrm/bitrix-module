@@ -110,11 +110,15 @@ $MESS['PHONE_REQUIRED'] = "В настройках главного модуля
 $MESS ['LOYALTY_PROGRAM_TITLE'] = 'Программа лояльности';
 $MESS ['LOYALTY_PROGRAM_TOGGLE_MSG'] = 'Активность программы лояльности';
 $MESS ['LP_CUSTOM_TEMP_CREATE_MSG'] = 'Создать шаблон intaro.retailCRM для компонента оформления заказа sale.order.ajax c функциями Программы лояльности. <br> <b>Внимение:</b> если шаблон уже существует, то он будет перезаписан';
-$MESS ['LP_DEF_TEMP_CREATE_MSG'] = 'Заменить шаблон .default компонента sale.order.ajax шаблоном с функциями Программы лояльности. <br> Если в папке .local уже есть шаблон .default для sale.order.ajax, то он будет скопирован в папку .default_backup';
+$MESS ['LP_CUSTOM_REG_TEMP_CREATE_MSG'] = 'Создать шаблон intaro.retailCRM для компонента регистрации main.register c функциями Программы лояльности. <br> <b>Внимение:</b> если шаблон уже существует, то он будет перезаписан';
+$MESS ['LP_DEF_TEMP_CREATE_MSG'] = 'Заменить шаблон .default компонента sale.order.ajax шаблоном с функциями Программы лояльности. <br>  Если в папке шаблонов компонента уже будет .default, то он будет скопирован в папку .default_backup';
 $MESS ['LP_CREATE_TEMPLATE'] = 'Создать шаблон';
 $MESS ['LP_REPLACE_TEMPLATE'] = 'Заменить шаблон';
 $MESS ['LP_SALE_ORDER_AJAX_HEAD'] = ' Управление компонентом Оформление заказа (sale.order.ajax)';
-$MESS ['LP_TEMP_CHOICE_MSG'] = 'Выберите, в каких шаблонах сайта будет доступен шаблон компонента Оформление заказа с функциями Программы лояльности:';
+$MESS ['LP_TEMP_CHOICE_MSG'] = 'Выберите, в каких шаблонах сайта будет доступен шаблон компонента с функциями Программы лояльности:';
 $MESS ['CREATING_AN_ADDITIONAL_TEMPLATE'] = 'Создание дополнительного шаблона';
 $MESS ['REPLACING_THE_STANDARD_TEMPLATE'] = 'Замена стандартного шаблона .default';
+
+$MESS ['LP_MAIN_REGISTER_HEAD'] = 'Управление компонентом регистрации (main.register)';
+$MESS ['LP_DEF_TEMP_REG_CREATE_MSG'] = 'Заменить шаблон .default компонента main.register шаблоном с функциями Программы лояльности. <br> Если в папке шаблонов компонента уже будет .default, то он будет скопирован в папку .default_backup';
 

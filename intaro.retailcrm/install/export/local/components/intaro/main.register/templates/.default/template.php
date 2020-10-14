@@ -23,17 +23,93 @@ if($arResult["SHOW_SMS_FIELD"] == true)
 	CJSCore::Init('phone_auth');
 }
 ?>
+<?php CUtil::InitJSCore( array('ajax' , 'jquery' , 'popup' )); ?>
+<div id="uf_agree_pl_intaro_popup" style="display:none;">
+    <?= $arResult['AGREEMENT_LOYALTY_PROGRAM']?>
+</div>
+<div id="uf_pd_proc_pl_intaro_popup" style="display:none;">
+    <?= $arResult['AGREEMENT_PERSONAL_DATA']?>
+</div>
+<script>
+    BX.ready(function(){
+        const lpAgreementPopup = new BX.PopupWindow('lp_agreement_popup', window.body, {
+            autoHide:    true,
+            offsetTop:   1,
+            offsetLeft:  0,
+            lightShadow: true,
+            closeIcon:   true,
+            closeByEsc:  true,
+            overlay:     {
+                backgroundColor: 'grey', opacity: '30'
+            }
+        });
+        lpAgreementPopup.setContent(BX('uf_agree_pl_intaro_popup'));
+        BX.bindDelegate(
+            document.body, 'click', {className: 'lp_agreement_link' },
+            BX.proxy(function(e){
+                if(!e)
+                    e = window.event;
+                lpAgreementPopup.show();
+                return BX.PreventDefault(e);
+            }, lpAgreementPopup)
+        );
+        
+        const personalDataAgreementPopup = new BX.PopupWindow('personal_data_agreement_popup', window.body, {
+            autoHide:    true,
+            offsetTop:   1,
+            offsetLeft:  0,
+            lightShadow: true,
+            closeIcon:   true,
+            closeByEsc:  true,
+            overlay:     {
+                backgroundColor: 'grey', opacity: '30'
+            }
+        });
+        personalDataAgreementPopup.setContent(BX('uf_pd_proc_pl_intaro_popup'));
+        BX.bindDelegate(
+            document.body, 'click', {className: 'personal_data_agreement_link'},
+            BX.proxy(function(e){
+                if(!e)
+                    e = window.event;
+                personalDataAgreementPopup.show();
+                return BX.PreventDefault(e);
+            }, personalDataAgreementPopup)
+        );
+    });
+</script>
+
+
 <div class="bx-auth-reg">
 
 <?if($USER->IsAuthorized()):?>
 
 <p><?echo GetMessage("MAIN_REGISTER_AUTH")?></p>
+<?php
+    $this->addExternalJs(SITE_TEMPLATE_PATH . '/script.js');
+    
+    $rsUser = CUser::GetByID($USER->GetID());
+    $arUser = $rsUser->Fetch();
 
+if (
+    isset($arUser['UF_REG_IN_PL_INTARO'], $arUser['UF_AGREE_PL_INTARO'], $arUser['UF_PD_PROC_PL_INTARO'])
+    && (int)$arUser['UF_REG_IN_PL_INTARO'] === 1
+    && (int)$arUser['UF_AGREE_PL_INTARO'] === 1
+    && (int)$arUser['UF_PD_PROC_PL_INTARO'] === 1
+) { ?>
+    <b>Для завершения регистрации в программе лояльности введите номер телефона</b><br>
+    <b>Мы отправим на него код подтверждения</b><br>
+<input type="tel" id="regNumber" placeholder="+7 (900) 000-00-00">
+<input type="button" onclick="addTelNumber(<?=$USER->GetID()?>)" value="Отправить код подтверждения"/>
+<br>
+    <div id="confirmationCode" style="display: none;">
+        <input type="text" placeholder="Код подтверждения">
+    </div>
+<?php } ?>
 <?else:?>
 <?
 if (count($arResult["ERRORS"]) > 0):
 	foreach ($arResult["ERRORS"] as $key => $error)
-		if (intval($key) == 0 && $key !== 0) 
+		if (intval($key) == 0 && $key !== 0)
 			$arResult["ERRORS"][$key] = str_replace("#FIELD_NAME#", "&quot;".GetMessage("REGISTER_FIELD_".$key)."&quot;", $error);
 
 	ShowError(implode("<br />", $arResult["ERRORS"]));
@@ -225,6 +301,37 @@ document.getElementById('bx_auth_secure').style.display = 'inline-block';
 				array("bVarsFromForm" => $arResult["bVarsFromForm"], "arUserField" => $arUserField, "form_name" => "regform"), null, array("HIDE_ICONS"=>"Y"));?></td></tr>
 	<?endforeach;?>
 <?endif;?>
+<tr>
+    <td>
+        <div class="fields boolean" id="main_UF_REG_IN_PL_INTARO">
+            <div class="fields boolean"><input type="hidden" value="0" name="UF_REG_IN_PL_INTARO">
+                <label><input type="checkbox" value="1" name="UF_REG_IN_PL_INTARO"> да</label></div>
+        </div>
+    </td>
+    <td><?= GetMessage("UF_REG_IN_PL_INTARO")?></td>
+</tr>
+<tr>
+    <td>
+        <div class="fields boolean" id="main_UF_AGREE_PL_INTARO">
+            <div class="fields boolean"><input type="hidden" value="0" name="UF_AGREE_PL_INTARO">
+                <label><input type="checkbox" value="1" name="UF_AGREE_PL_INTARO"> да</label></div>
+        </div>
+    </td>
+    <td>
+        <?= GetMessage("I_AM_AGREE")?> <a class="lp_agreement_link" href="javascript:void(0)" ><?= GetMessage("UF_AGREE_PL_INTARO")?></a>
+    </td>
+</tr>
+<tr>
+    <td>
+        <div class="fields boolean" id="main_UF_PD_PROC_PL_INTARO">
+            <div class="fields boolean"><input type="hidden" value="0" name="UF_PD_PROC_PL_INTARO">
+                <label><input type="checkbox" value="1" name="UF_PD_PROC_PL_INTARO"> да</label></div>
+        </div>
+    </td>
+    <td>
+        <?= GetMessage("I_AM_AGREE")?> <a class="personal_data_agreement_link" href="javascript:void(0)" ><?= GetMessage("UF_PD_PROC_PL_INTARO")?></a>
+    </td>
+</tr>
 <?// ******************** /User properties ***************************************************?>
 <?
 /* CAPTCHA */

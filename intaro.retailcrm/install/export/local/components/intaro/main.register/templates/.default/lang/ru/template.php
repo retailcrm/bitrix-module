@@ -1,4 +1,4 @@
-<?
+<?php
 $MESS["AUTH_REGISTER"] = "Регистрация";
 $MESS["REGISTER_CAPTCHA_TITLE"] = "Защита от автоматической регистрации";
 $MESS["REGISTER_CAPTCHA_PROMT"] = "Введите слово на картинке";
@@ -60,4 +60,7 @@ $MESS["AUTH_SECURE_NOTE"] = "Перед отправкой формы парол
 $MESS["AUTH_NONSECURE_NOTE"] = "Пароль будет отправлен в открытом виде. Включите JavaScript в браузере, чтобы зашифровать пароль перед отправкой.";
 $MESS["main_register_sms"] = "Код подтверждения из СМС:";
 $MESS["main_register_sms_send"] = "Отправить";
-?>
+$MESS["UF_REG_IN_PL_INTARO"] = "Зарегистрироваться в программе лояльности:";
+$MESS["UF_AGREE_PL_INTARO"] = "программы лояльности:";
+$MESS["I_AM_AGREE"] = "Я согласен с условиями";
+$MESS["UF_PD_PROC_PL_INTARO"] = "обработки персональных данных:";

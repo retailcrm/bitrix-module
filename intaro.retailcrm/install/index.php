@@ -10,21 +10,24 @@ global $MESS;
 use Bitrix\Highloadblock\HighloadBlockTable;
 use Bitrix\Main\Application;
 use Bitrix\Main\ArgumentException;
+use Bitrix\Main\ArgumentOutOfRangeException;
 use Bitrix\Main\Context;
 use Bitrix\Main\EventManager;
 use Bitrix\Main\Loader;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
+use Bitrix\Main\UserConsent\Internals\AgreementTable;
 use Bitrix\Sale\Internals\OrderPropsGroupTable;
 use Bitrix\Sale\Internals\PaySystemActionTable;
 use Bitrix\Sale\Delivery\Services\Manager;
 use Bitrix\sale\EventActions;
 use Bitrix\Sale\Internals\OrderTable;
+use Intaro\RetailCrm\Component\ConfigProvider;
+use Intaro\RetailCrm\Model\Bitrix\Agreement;
+use Intaro\RetailCrm\Repository\AgreementRepository;
 use \RetailCrm\ApiClient;
 use RetailCrm\Exception\CurlException;
 use Intaro\RetailCrm\Component\Loyalty\EventsHandlers;
-use Intaro\RetailCrm\Repository\OrderPropsRepository;
-use Intaro\RetailCrm\Repository\PersonTypeRepository;
 use Intaro\RetailCrm\Repository\ToModuleRepository;
 
 IncludeModuleLangFile(__FILE__);
@@ -55,9 +58,12 @@ class intaro_retailcrm extends CModule
         ['EVENT_NAME' => 'OnSaleComponentOrderOneStepProcess', 'FROM_MODULE' => 'sale'],
         ['EVENT_NAME' => 'OnSaleComponentOrderResultPrepared', 'FROM_MODULE' => 'sale'],
     ];
-
-    public const V5           = 'v5';
-    public const INTARO_BONUS = 'INTARO_BONUS';
+    
+    public const V5                             = 'v5';
+    public const INTARO_BONUS                   = 'INTARO_BONUS';
+    public const AGREEMENT_LOYALTY_PROGRAM_CODE = 'AGREEMENT_LOYALTY_PROGRAM_CODE';
+    public const AGREEMENT_PERSONAL_DATA_CODE   = 'AGREEMENT_PERSONAL_DATA_CODE';
+    
     public $MODULE_ID           = 'intaro.retailcrm';
     public $OLD_MODULE_ID       = 'intaro.intarocrm';
     public $MODULE_VERSION;
@@ -234,11 +240,16 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../lib/repository/persontyperepository.php');
         include($this->INSTALL_PATH . '/../lib/repository/tomodulerepository.php');
         include($this->INSTALL_PATH . '/../lib/model/bitrix/orm/tomodule.php');
-
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/agreement.php');
+        include($this->INSTALL_PATH . '/../lib/component/configprovider.php');
+        include($this->INSTALL_PATH . '/../lib/component/constants.php');
+        include($this->INSTALL_PATH . '/../lib/repository/agreementrepository.php');
+       
         $this->CopyFiles();
         $this->addBonusPaySystem();
         $this->addLPUserFields();
         $this->addLPEvents();
+        $this->addAgreement();
 
         if ($step == 11) {
             $arResult['arSites'] = RCrmActions::SitesList();
@@ -1662,6 +1673,48 @@ class intaro_retailcrm extends CModule
                 EventsHandlers::class,
                 $event['EVENT_NAME'].'Handler'
             );
+        }
+    }
+    
+    /**
+     * Добавление соглашений для формы регистрации
+     */
+    private function addAgreement(): void
+    {
+        $isAgreementLoyaltyProgram = AgreementRepository::getFirstByWhere(
+            ['ID'],
+            [
+                ['CODE', '=', self::AGREEMENT_LOYALTY_PROGRAM_CODE]
+            ]
+        );
+    
+        if (!isset($isAgreementLoyaltyProgram['ID'])) {
+            $agreementLoyaltyProgram = new Agreement();
+            $agreementLoyaltyProgram->setCode(self::AGREEMENT_LOYALTY_PROGRAM_CODE);
+            $agreementLoyaltyProgram->setDateInsert(new \Bitrix\Main\Type\DateTime());
+            $agreementLoyaltyProgram->setActive('Y');
+            $agreementLoyaltyProgram->setName(GetMessage('AGREEMENT_LOYALTY_PROGRAM_TITLE'));
+            $agreementLoyaltyProgram->setType('C');
+            $agreementLoyaltyProgram->setAgreementText(GetMessage('AGREEMENT_LOYALTY_PROGRAM_TEXT'));
+            $agreementLoyaltyProgram->save();
+        }
+    
+        $isAgreementPersonalProgram = AgreementRepository::getFirstByWhere(
+            ['ID'],
+            [
+                ['CODE', '=', self::AGREEMENT_PERSONAL_DATA_CODE]
+            ]
+        );
+        
+        if (!isset($isAgreementPersonalProgram['ID'])) {
+            $agreementPersonalData = new Agreement();
+            $agreementPersonalData->setCode(self::AGREEMENT_PERSONAL_DATA_CODE);
+            $agreementPersonalData->setDateInsert(new \Bitrix\Main\Type\DateTime());
+            $agreementPersonalData->setActive('Y');
+            $agreementPersonalData->setName(GetMessage('AGREEMENT_PERSONAL_DATA_TITLE'));
+            $agreementPersonalData->setType('C');
+            $agreementPersonalData->setAgreementText(GetMessage('AGREEMENT_PERSONAL_DATA_TEXT'));
+            $agreementPersonalData->save();
         }
     }
 }
