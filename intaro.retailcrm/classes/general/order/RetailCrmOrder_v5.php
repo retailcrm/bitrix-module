@@ -457,7 +457,7 @@ class RetailCrmOrder
                 }
             }
 
-            $arOrders = self::orderSend($order, $api, $arParams, false, $site);
+            $arOrders = self::orderSend($order, $api, $arParams, false, $site,'ordersCreate');
 
             if (!$arCustomer || !$arOrders) {
                 continue;
