@@ -29,4 +29,14 @@ class LoyaltyAccountCreateRequest extends AbstractApiModel
      * @Mapping\SerializedName("loyalty_account")
      */
     public $loyaltyAccount;
+    
+    /**
+     * Символьный код магазина
+     *
+     * @var string $site
+     *
+     * @Mapping\Type("string")
+     * @Mapping\SerializedName("site")
+     */
+    public $site;
 }

@@ -96,13 +96,15 @@ if (
     && (int)$arUser['UF_AGREE_PL_INTARO'] === 1
     && (int)$arUser['UF_PD_PROC_PL_INTARO'] === 1
 ) { ?>
-    <b>Для завершения регистрации в программе лояльности введите номер телефона</b><br>
-    <b>Мы отправим на него код подтверждения</b><br>
-<input type="tel" id="regNumber" placeholder="+7 (900) 000-00-00">
-<input type="button" onclick="addTelNumber(<?=$USER->GetID()?>)" value="Отправить код подтверждения"/>
-<br>
-    <div id="confirmationCode" style="display: none;">
-        <input type="text" placeholder="Код подтверждения">
+    <div id="regbody">
+        <b>Для завершения регистрации в программе лояльности введите номер телефона и номер карты</b><br>
+        <input type="tel" id="loyaltyRegPhone" placeholder="+7 (900) 000-00-00">
+        <br>
+        <input type="text" id="loyaltyRegCard" placeholder="Номер карты">
+        <input type="button" onclick="addTelNumber(<?=$USER->GetID()?>)" value="Отправить"/>
+        <br>
+        <div id="confirmationCode" style="display: none;">
+        </div>
     </div>
 <?php } ?>
 <?else:?>

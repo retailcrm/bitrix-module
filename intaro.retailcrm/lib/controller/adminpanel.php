@@ -17,6 +17,11 @@ class AdminPanel extends Controller
                     Authentication::class,
                 ],
             ],
+            'createTemplate' => [
+                '-prefilters' => [
+                    Authentication::class,
+                ],
+            ],
         ];
     }
     

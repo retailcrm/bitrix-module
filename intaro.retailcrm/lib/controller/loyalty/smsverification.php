@@ -19,10 +19,10 @@ use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Service\UserVerificationService;
 
 /**
- * Class AdminPanel
+ * Class SmsVerification
  * @package Intaro\RetailCrm\Controller\Loyalty
  */
-class AdminPanel extends Controller
+class SmsVerification extends Controller
 {
     /** @var int  */
     const DEFAULT_CODE_LENGHT = 4;

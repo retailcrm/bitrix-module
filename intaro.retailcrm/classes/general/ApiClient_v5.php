@@ -34,6 +34,7 @@ class ApiClient
     const VERSION = 'v5';
 
     protected $client;
+    protected $unversionedClient;
 
     /**
      * Site code
@@ -55,10 +56,13 @@ class ApiClient
             $url .= '/';
         }
 
-        $url = $url . 'api/' . self::VERSION;
-
-        $this->client = new Client($url, array('apiKey' => $apiKey));
+        $versionedUrl = $url . 'api/' . self::VERSION;
+        $unversionedUrl = $url . 'api';
+        
+        $this->client = new Client($versionedUrl, array('apiKey' => $apiKey));
         $this->siteCode = $site;
+        
+        $this->unversionedClient = new Client($unversionedUrl, ['apiKey' => $apiKey]);
     }
 
     /**
@@ -2979,7 +2983,7 @@ class ApiClient
     public function loyaltyOrderApply(array $request): ApiResponse
     {
         return $this->client->makeRequest(
-            "/api/v5/orders/loyalty/apply",
+            "/orders/loyalty/apply",
             Client::METHOD_POST,
             $request
         );
@@ -2990,9 +2994,34 @@ class ApiClient
      */
     public function getCredentials(): ApiResponse
     {
-        return $this->client->makeRequest(
-            "/api/credentials",
+        return $this->unversionedClient->makeRequest(
+            "/credentials",
             Client::METHOD_GET
+        );
+    }
+    
+    /**
+     * @param array $request
+     * @return \RetailCrm\Response\ApiResponse
+     */
+    public function createLoyaltyAccount(array $request): ApiResponse
+    {
+        return $this->client->makeRequest(
+            "/loyalty/account/create",
+            Client::METHOD_POST,
+            $request
+        );
+    }
+    
+    /**
+     * @param int $loyaltyId
+     * @return \RetailCrm\Response\ApiResponse
+     */
+    public function activateLoyaltyAccount(int $loyaltyId): ApiResponse
+    {
+        return $this->client->makeRequest(
+            "/api/v5/loyalty/account/".$loyaltyId."/activate",
+            Client::METHOD_POST
         );
     }
 }

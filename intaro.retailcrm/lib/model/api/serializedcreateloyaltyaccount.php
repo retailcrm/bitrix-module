@@ -11,6 +11,8 @@
  */
 namespace Intaro\RetailCrm\Model\Api;
 
+use Intaro\RetailCrm\Component\Json\Mapping;
+
 /**
  * Class SerializedCreateLoyaltyAccount
  *
@@ -57,4 +59,14 @@ class SerializedCreateLoyaltyAccount
      * @Mapping\SerializedName("customerId")
      */
     public $customerId;
+    
+    /**
+     * Ассоциативный массив пользовательских полей
+     *
+     * @var array $customFields
+     *
+     * @Mapping\Type("array")
+     * @Mapping\SerializedName("customFields")
+     */
+    public $customFields;
 }

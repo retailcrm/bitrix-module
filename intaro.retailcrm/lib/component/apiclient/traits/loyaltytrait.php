@@ -13,9 +13,13 @@ namespace Intaro\RetailCrm\Component\ApiClient\Traits;
 
 use Intaro\RetailCrm\Component\Json\Deserializer;
 use Intaro\RetailCrm\Component\Json\Serializer;
+use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountActivateRequest;
+use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountCreateRequest;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\LoyaltyCalculateRequest;
 use Intaro\RetailCrm\Model\Api\Request\Order\Loyalty\OrderLoyaltyApplyRequest;
 use Intaro\RetailCrm\Model\Api\Request\SmsVerification\SmsVerificationConfirmRequest;
+use Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountActivateResponse;
+use Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountCreateResponse;
 use Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse;
 use Intaro\RetailCrm\Model\Api\Response\Order\Loyalty\OrderLoyaltyApplyResponse;
 use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationConfirmResponse;
@@ -74,5 +78,29 @@ trait LoyaltyTrait
         $response   = $this->client->loyaltyOrderApply($serialized);
         
         return Deserializer::deserializeArray($response->getResponseBody(), LoyaltyCalculateResponse::class);
+    }
+    
+    /**
+     * @param \Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountCreateRequest $request
+     * @return \Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountCreateResponse|null
+     */
+    public function createLoyaltyAccount(LoyaltyAccountCreateRequest $request): ?LoyaltyAccountCreateResponse
+    {
+        $serialized = Serializer::serializeArray($request);
+        $response   = $this->client->createLoyaltyAccount($serialized);
+    
+        return Deserializer::deserializeArray($response->getResponseBody(), LoyaltyAccountCreateResponse::class);
+    }
+    
+    /**
+     * @param \Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountActivateRequest $request
+     * @return \Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountActivateResponse|null
+     */
+    public function activateLoyaltyAccount(LoyaltyAccountActivateRequest $request): ?LoyaltyAccountActivateResponse
+    {
+        $serialized = Serializer::serializeArray($request);
+        $response   = $this->client->activateLoyaltyAccount($serialized['loyaltyId']);
+    
+        return Deserializer::deserializeArray($response->getResponseBody(), LoyaltyAccountActivateResponse::class);
     }
 }

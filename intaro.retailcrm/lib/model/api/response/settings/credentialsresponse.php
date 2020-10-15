@@ -13,6 +13,7 @@
 namespace Intaro\RetailCrm\Model\Api\Response\Settings;
 
 use Intaro\RetailCrm\Model\Api\Response\AbstractApiResponseModel;
+use Intaro\RetailCrm\Component\Json\Mapping;
 
 /**
  * Class CredentialsResponse
@@ -24,9 +25,9 @@ class CredentialsResponse extends AbstractApiResponseModel
     /**
      * Результат запроса (успешный/неуспешный)
      *
-     * @var boolean $success
+     * @var \bool $success
      *
-     * @Mapping\Type("boolean")
+     * @Mapping\Type("bool")
      * @Mapping\SerializedName("success")
      */
     public $success;
