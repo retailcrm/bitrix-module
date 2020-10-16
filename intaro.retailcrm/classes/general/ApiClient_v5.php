@@ -3020,8 +3020,21 @@ class ApiClient
     public function activateLoyaltyAccount(int $loyaltyId): ApiResponse
     {
         return $this->client->makeRequest(
-            "/api/v5/loyalty/account/".$loyaltyId."/activate",
+            "/loyalty/account/".$loyaltyId."/activate",
             Client::METHOD_POST
+        );
+    }
+    
+    /**
+     * @param array $request
+     * @return \RetailCrm\Response\ApiResponse
+     */
+    public function sendVerificationCode(array  $request): ApiResponse
+    {
+        return $this->client->makeRequest(
+            "/verification/sms/confirm",
+            Client::METHOD_POST,
+            $request
         );
     }
 }

@@ -78,7 +78,6 @@ if($arResult["SHOW_SMS_FIELD"] == true)
     });
 </script>
 
-
 <div class="bx-auth-reg">
 
 <?if($USER->IsAuthorized()):?>
@@ -97,14 +96,18 @@ if (
     && (int)$arUser['UF_PD_PROC_PL_INTARO'] === 1
 ) { ?>
     <div id="regbody">
-        <b>Для завершения регистрации в программе лояльности введите номер телефона и номер карты</b><br>
+        <b><?= GetMessage('REG_LP_MESSAGE')?></b><br>
         <input type="tel" id="loyaltyRegPhone" placeholder="+7 (900) 000-00-00">
         <br>
-        <input type="text" id="loyaltyRegCard" placeholder="Номер карты">
-        <input type="button" onclick="addTelNumber(<?=$USER->GetID()?>)" value="Отправить"/>
+        <input type="text" id="loyaltyRegCard" placeholder="<?= GetMessage('LP_CARD_NUMBER')?>">
+        <input type="button" onclick="addTelNumber(<?=$USER->GetID()?>)" value="<?= GetMessage('SEND')?>"/>
         <br>
-        <div id="confirmationCode" style="display: none;">
+        <div id="verificationCodeBlock" style="display: none;">
+            <b><?= GetMessage('SEND_VERIFICATION_CODE')?></b><br>
+            <input type="text" id="verificationCode" placeholder="<?= GetMessage('VERIFICATION_CODE')?>">
+            <input type="button" onclick="sendVerificationCode()" value="<?= GetMessage('SEND')?>"/>
         </div>
+        <div id="errorMsg" style="color: brown"></div>
     </div>
 <?php } ?>
 <?else:?>

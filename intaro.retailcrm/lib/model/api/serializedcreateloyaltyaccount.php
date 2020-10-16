@@ -41,16 +41,6 @@ class SerializedCreateLoyaltyAccount
     public $cardNumber;
     
     /**
-     * ID участия
-     *
-     * @var integer $loyaltyId
-     *
-     * @Mapping\Type("integer")
-     * @Mapping\SerializedName("loyaltyId")
-     */
-    public $loyaltyId;
-    
-    /**
      * 	ID клиента
      *
      * @var integer $customerId

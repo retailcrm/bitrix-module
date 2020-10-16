@@ -19,6 +19,12 @@ $MESS ['AGREEMENT_PERSONAL_DATA_TEXT'] = 'Вставить текст согла
 
 $MESS ['AGREEMENT_LOYALTY_PROGRAM_TITLE'] = 'Условия программы лояльности retailCRM';
 $MESS ['AGREEMENT_PERSONAL_DATA_TITLE']   = 'Согласие на обработку персональных данных retailCRM';
+
+$MESS ['UF_REG_IN_PL_INTARO_TITLE']   = 'Зарегистрироваться в программе лояльности';
+$MESS ['UF_AGREE_PL_INTARO_TITLE']    = 'Я согласен с условиями программы лояльности';
+$MESS ['UF_PD_PROC_PL_INTARO_TITLE']  = 'Согласие на обработку персональных данных';
+$MESS ['UF_EXT_REG_PL_INTARO_TITLE']  = 'Поле, с меткой регистрации пользователя в ПЛ';
+$MESS ['UF_CARD_NUMBER_INTARO_TITLE'] = 'Номер карты программы лояльности';
 /*
 $MESS ['ORDER_PROPS'] = 'Настройки соответствия полей заказа retailCRM свойствам заказа 1С-Битрикс';
 $MESS ['FIO'] = 'Ф.И.О.';

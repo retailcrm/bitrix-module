@@ -103,4 +103,16 @@ trait LoyaltyTrait
     
         return Deserializer::deserializeArray($response->getResponseBody(), LoyaltyAccountActivateResponse::class);
     }
+    
+    /**
+     * @param \Intaro\RetailCrm\Model\Api\Request\SmsVerification\SmsVerificationConfirmRequest $request
+     * @return \Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountActivateResponse|null
+     */
+    public function sendVerificationCode(SmsVerificationConfirmRequest $request): ?SmsVerificationConfirmResponse
+    {
+        $serialized = Serializer::serializeArray($request);
+        $response   = $this->client->sendVerificationCode($serialized);
+    
+        return Deserializer::deserializeArray($response->getResponseBody(), SmsVerificationConfirmResponse::class);
+    }
 }

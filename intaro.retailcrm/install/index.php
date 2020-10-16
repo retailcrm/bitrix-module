@@ -1320,20 +1320,27 @@ class intaro_retailcrm extends CModule
             false
         );
     
-        $lpTemplatePath = $_SERVER['DOCUMENT_ROOT']
-            . '/local/templates/.default/components/bitrix/sale.order.ajax/intaro.retailcrm';
+        $lpTemplateNames = [
+            'sale.order.ajax',
+            'main.register',
+        ];
         
-        if (!file_exists($lpTemplatePath)) {
-            $pathFrom = $_SERVER['DOCUMENT_ROOT']
-                . '/bitrix/modules/intaro.retailcrm/install/export/local/components/intaro/sale.order.ajax/templates/.default';
-            
-            CopyDirFiles(
-                $pathFrom,
-                $lpTemplatePath,
-                true,
-                true,
-                false
-            );
+        foreach ($lpTemplateNames as $lpTemplateName){
+            $lpTemplatePath = $_SERVER['DOCUMENT_ROOT']
+                . '/local/templates/.default/components/bitrix/' . $lpTemplateName . '/intaro.retailcrm';
+    
+            if (!file_exists($lpTemplatePath)) {
+                $pathFrom = $_SERVER['DOCUMENT_ROOT']
+                    . '/bitrix/modules/intaro.retailcrm/install/export/local/components/intaro/' . $lpTemplateName . '/templates/.default';
+        
+                CopyDirFiles(
+                    $pathFrom,
+                    $lpTemplatePath,
+                    true,
+                    true,
+                    false
+                );
+            }
         }
     }
 
@@ -1514,31 +1521,55 @@ class intaro_retailcrm extends CModule
     {
         $this->addCustomUserFields(
             [
-                "UF_REG_IN_PL_INTARO",
-                "UF_AGREE_PL_INTARO",
-                "UF_PD_PROC_PL_INTARO",
-                "UF_EXT_REG_PL_INTARO",
+                [
+                    'name'  => "UF_CARD_NUM_INTARO",
+                    'title' => GetMessage('UF_CARD_NUMBER_INTARO_TITLE'),
+                ],
+            ],
+            'string'
+        );
+        
+        $this->addCustomUserFields(
+            [
+                [
+                    'name'  => "UF_REG_IN_PL_INTARO",
+                    'title' => GetMessage('UF_REG_IN_PL_INTARO_TITLE'),
+                ],
+                [
+                    'name'  => "UF_AGREE_PL_INTARO",
+                    'title' => GetMessage('UF_AGREE_PL_INTARO_TITLE'),
+                ],
+                [
+                    'name'  => "UF_PD_PROC_PL_INTARO",
+                    'title' => GetMessage('UF_PD_PROC_PL_INTARO_TITLE'),
+                ],
+                [
+                    'name'  => "UF_EXT_REG_PL_INTARO",
+                    'title' => GetMessage('UF_EXT_REG_PL_INTARO_TITLE'),
+                ],
             ]
         );
     }
-
+    
     /**
-     * @param        $fieldNames
+     * @param        $fields
      * @param string $filedType
      */
-    public function addCustomUserFields($fieldNames, $filedType = 'boolean'): void
+    public function addCustomUserFields($fields, $filedType = 'boolean'): void
     {
-        foreach ($fieldNames as $filedName) {
-            $arProps = [
-                "ENTITY_ID" => 'USER',
-                "FIELD_NAME" => $filedName,
-                "USER_TYPE_ID" => $filedType,
-                "MULTIPLE" => "N",
-                "MANDATORY" => "N"
+        foreach ($fields as $filed) {
+            $arProps     = [
+                "ENTITY_ID"       => 'USER',
+                "FIELD_NAME"      => $filed['name'],
+                "USER_TYPE_ID"    => $filedType,
+                "MULTIPLE"        => "N",
+                "MANDATORY"       => "N",
+                "EDIT_FORM_LABEL" => ["ru" => $filed['title']],
+            
             ];
             $obUserField = new CUserTypeEntity;
-            $dbRes = CUserTypeEntity::GetList([], ["FIELD_NAME" => $filedName])->fetch();
-
+            $dbRes       = CUserTypeEntity::GetList([], ["FIELD_NAME" => $filed['name']])->fetch();
+            
             if (!$dbRes['ID']) {
                 $obUserField->Add($arProps);
             }
