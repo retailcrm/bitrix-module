@@ -146,12 +146,27 @@ class Register extends Controller
         if ($verificationResult->success === true
             && isset($verificationResult->verification->verifiedAt)
             && !empty($verificationResult->verification->verifiedAt)) {
+    
+            global $USER_FIELD_MANAGER;
+            global $USER;
+    
+           $isUpdate =  $USER_FIELD_MANAGER->Update('USER', $USER->GetID(), [
+                'UF_EXT_REG_PL_INTARO' => 'Y',
+            ]);
             
+           if ($isUpdate) {
+               return [
+                   'status' => 'activate',
+                   'msg' => 'Регистрация в программе лояльности успешно завершена',
+                   'msgColor' => 'green'
+               ];
+           }
+    
             return [
-                'status' => 'activate',
-                'msg' => 'Регистрация в программе лояльности успешно завершена',
-                'msgColor' => 'green'
-                ];
+                'status'   => 'error',
+                'msg' => 'Регистрация прошла успешно, но статус не был сохранен в БД сайта',
+                'msgColor' => 'brown'
+            ];
         }
     
         return [
