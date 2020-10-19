@@ -26,6 +26,9 @@ use Exception;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Repository\PaySystemActionRepository;
 use Intaro\RetailCrm\Service\LoyaltyService;
+use RetailCrm\ApiClient;
+use RetailcrmConfigProvider;
+use RetailCrmUser;
 
 /**
  * Class EventsHandlers
@@ -201,4 +204,19 @@ class EventsHandlers
             }
         }
     }
+    
+    /**
+     * @param $arFields
+     * @return mixed
+     */
+    public function OnAfterUserRegisterHandler($arFields)
+    {
+        if (isset($arFields['USER_ID']) && $arFields['USER_ID'] > 0) {
+            $arFields['ID'] = $arFields['USER_ID'];
+            $optionsSitesList = RetailcrmConfigProvider::getSitesList();
+            $api = new ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
+            RetailCrmUser::customerSend($arFields, $api, 'individual', true, $optionsSitesList);
+        }
+    }
 }
+

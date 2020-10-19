@@ -57,6 +57,7 @@ class intaro_retailcrm extends CModule
         ['EVENT_NAME' => 'OnSaleOrderDeleted', 'FROM_MODULE' => 'sale'],
         ['EVENT_NAME' => 'OnSaleComponentOrderOneStepProcess', 'FROM_MODULE' => 'sale'],
         ['EVENT_NAME' => 'OnSaleComponentOrderResultPrepared', 'FROM_MODULE' => 'sale'],
+        ['EVENT_NAME' => 'OnAfterUserRegister', 'FROM_MODULE' => 'main'],
     ];
     
     public const V5                             = 'v5';
@@ -1647,13 +1648,17 @@ class intaro_retailcrm extends CModule
      */
     private function addBonusPaySystem(): void
     {
-        $arrPaySystemAction = PaySystemActionTable::query()
-            ->setSelect(['ID'])
-            ->where([
-                ['ACTION_FILE', '=', self::BONUS_PAY_SYSTEM_CODE],
-            ])
-            ->fetchCollection();
-
+        try {
+            $arrPaySystemAction = PaySystemActionTable::query()
+                ->setSelect(['ID'])
+                ->where([
+                    ['ACTION_FILE', '=', self::BONUS_PAY_SYSTEM_CODE],
+                ])
+                ->fetchCollection();
+        } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
+            AddMessage2Log($exception->getMessage());
+        }
+    
         if (count($arrPaySystemAction) === 0) {
             $result     = PaySystemActionTable::add(
                 [

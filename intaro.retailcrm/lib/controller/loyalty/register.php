@@ -31,7 +31,8 @@ class Register extends Controller
         if (!is_numeric($phoneNumber)) {
             return [
                 'status'   => 'error',
-                'errorMsg' => 'Некорректный номер телефона',
+                'msg' => 'Некорректный номер телефона',
+                'msgColor' => 'brown'
             ];
         }
         
@@ -69,13 +70,18 @@ class Register extends Controller
             if ($createResponse->success === false) {
                 return [
                     'status'   => 'error',
-                    'errorMsg' => $createResponse->errorMsg,
+                    'msg' => $createResponse->errorMsg,
+                    'msgColor' => 'brown'
                 ];
             }
             
             //если участник ПЛ создан и активирован
             if ($createResponse->loyaltyAccount->active) {
-                return ['status' => 'activate'];
+                return [
+                    'status' => 'activate',
+                    'msg' => 'Регистрация в программе лояльности успешно завершена',
+                    'msgColor' => 'green'
+                ];
             }
             
             $activateRequest            = new LoyaltyAccountActivateRequest();
@@ -89,7 +95,8 @@ class Register extends Controller
         
         return [
             'status'   => 'error',
-            'errorMsg' => 'Ошибка запроса',
+            'msg' => 'Ошибка запроса',
+            'msgColor' => 'brown'
         ];
     }
     
@@ -105,7 +112,8 @@ class Register extends Controller
         if (empty($code) && $lengthCode > self::MIN_CODE_LENGTH && $lengthCode < self::MAX_CODE_LENGTH) {
             return [
                 'status'   => 'error',
-                'errorMsg' => 'Код не введен',
+                'msg' => 'Код не введен',
+                'msgColor' => 'brown'
             ];
         }
         
@@ -120,7 +128,8 @@ class Register extends Controller
         if ($verificationResult === null) {
             return [
                 'status'   => 'error',
-                'errorMsg' => 'ОШибка запроса на подтверждение',
+                'msg' => 'ОШибка запроса на подтверждение',
+                'msgColor' => 'brown'
             ];
         }
         
@@ -129,7 +138,8 @@ class Register extends Controller
             
             return [
                 'status'   => 'error',
-                'errorMsg' => 'Ошибка. ' . $errMsg,
+                'msg' => 'Ошибка. ' . $errMsg,
+                'msgColor' => 'brown'
             ];
         }
         
@@ -137,12 +147,17 @@ class Register extends Controller
             && isset($verificationResult->verification->verifiedAt)
             && !empty($verificationResult->verification->verifiedAt)) {
             
-            return [ 'status'   => 'complete'];
+            return [
+                'status' => 'activate',
+                'msg' => 'Регистрация в программе лояльности успешно завершена',
+                'msgColor' => 'green'
+                ];
         }
     
         return [
             'status'   => 'error',
-            'errorMsg' => 'Ошибка.',
+            'msg' => 'Ошибка.',
+            'msgColor' => 'brown'
         ];
     }
 }

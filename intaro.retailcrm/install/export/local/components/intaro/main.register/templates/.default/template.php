@@ -107,7 +107,7 @@ if (
             <input type="text" id="verificationCode" placeholder="<?= GetMessage('VERIFICATION_CODE')?>">
             <input type="button" onclick="sendVerificationCode()" value="<?= GetMessage('SEND')?>"/>
         </div>
-        <div id="errorMsg" style="color: brown"></div>
+        <div id="msg"></div>
     </div>
 <?php } ?>
 <?else:?>
