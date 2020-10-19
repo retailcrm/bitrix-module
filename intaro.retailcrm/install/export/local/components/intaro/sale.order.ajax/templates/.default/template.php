@@ -572,6 +572,8 @@ if (strlen($request->get('ORDER_ID')) > 0) {
             siteID:             '<?=CUtil::JSEscape($component->getSiteId())?>',
             ajaxUrl:            '<?=CUtil::JSEscape($component->getPath() . '/ajax.php')?>',
             templateFolder:     '<?=CUtil::JSEscape($templateFolder)?>',
+            willBeCredited:     '<?=$arResult['WILL_BE_CREDITED']?>',
+            bonusCurrency:     '<?=$arResult['BONUS_CURRENCY']?>',
             propertyValidation: true,
             showWarnings:       true,
             pickUpMap:          {

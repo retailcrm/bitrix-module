@@ -96,6 +96,9 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
         init: function(parameters) {
             this.initializePrimaryFields();
 
+            this.willBeCredited = parameters.willBeCredited || 0;
+            this.bonusCurrency = parameters.bonusCurrency || '# руб.';
+
             this.result = parameters.result || {};
             this.prepareLocations(parameters.locations);
             this.params                = parameters.params || {};
@@ -8306,9 +8309,18 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
 
         //добавление строки с бонусами
         if (this.result.TOTAL.BONUS_PAYMENT !== undefined && this.result.TOTAL.BONUS_PAYMENT > 0) {
-            const bonusPayment = this.result.TOTAL.BONUS_PAYMENT.toString();
-            this.totalInfoBlockNode.appendChild(this.createTotalUnit('Бонусы:', bonusPayment, {highlighted: true}));
+            let bonusPayment = this.result.TOTAL.BONUS_PAYMENT.toString();
+            bonusPayment =  this.bonusCurrency
+                .replace('&#8381;', '₽')
+                .replace('&euro;', '€')
+                .replace('&#8372;', '¥')
+                .replace('#', bonusPayment);
+            this.totalInfoBlockNode.appendChild(this.createTotalUnit('Бонусная скидка:', bonusPayment));
         }
+
+        const willBeCredited = this.willBeCredited;
+        this.totalInfoBlockNode.appendChild(this.createTotalUnit('Будет начислено бонусов:', willBeCredited, {highlighted: true}));
+
 
         if (this.options.showPayedFromInnerBudget)
         {
