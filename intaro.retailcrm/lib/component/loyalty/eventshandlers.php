@@ -23,7 +23,6 @@ use Bitrix\Sale\Order;
 use Bitrix\Sale\PaySystem\Manager;
 use Exception;
 use Intaro\RetailCrm\Component\ConfigProvider;
-use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Repository\PaySystemActionRepository;
 use Intaro\RetailCrm\Service\LoyaltyService;
 
@@ -104,7 +103,7 @@ class EventsHandlers
     }
     
     /**
-     * Обработчик события, вызываемого при обновлении заказа
+     * Обработчик события, вызываемого при обновлении еще не сохраненного заказа
      *
      * @param \Bitrix\Sale\Order       $order
      * @param array                    $arUserResult
@@ -155,7 +154,7 @@ class EventsHandlers
             $response   = $service->sendBonusPayment($orderId, $bonusCount);
             
             //TODO - заглушка до появления api на стороне CRM. После появления реального апи - убрать следующую строку
-            $response->success=true;
+            $response->success = true;
             
             if ($response->success) {
                 try {
@@ -163,6 +162,16 @@ class EventsHandlers
                     $paymentCollection = $order->getPaymentCollection();
                     
                     if ($bonusPaySystem !== null) {
+                        if (count($paymentCollection) === 1) {
+                            /** @var \Bitrix\Sale\Payment $payment */
+                            foreach ($paymentCollection as $payment){
+                                $oldSum = $payment->getField('SUM');
+                                
+                                $payment->setField('SUM', $oldSum - $bonusCount);
+                                break;
+                            }
+                        }
+                        
                         $service    = Manager::getObjectById($bonusPaySystem->getId());
                         $newPayment = $paymentCollection->createItem($service);
                         
