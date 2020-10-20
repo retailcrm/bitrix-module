@@ -176,7 +176,17 @@ class EventsHandlers
                         $newPayment = $paymentCollection->createItem($service);
                         
                         $newPayment->setField('SUM', $bonusCount);
-                        $newPayment->setPaid('Y');
+                        
+                        //если верификация необходима, но не пройдена
+                        if (isset($response->verification) && !isset($response->verification->verifiedAt)) {
+                            $newPayment->setPaid('N');
+                        }
+    
+                        //если верификация не нужна
+                        if (!isset($response->verification)) {
+                            $newPayment->setPaid('Y');
+                        }
+                        
                         $order->save();
                     }
                 } catch (ObjectPropertyException | ArgumentException | SystemException | Exception $e) {

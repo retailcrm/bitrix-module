@@ -16,6 +16,46 @@ if ($arParams["SET_TITLE"] == "Y")
 
 <? if (!empty($arResult["ORDER"])): ?>
 
+    <?php
+    $order             = Bitrix\Sale\Order::load($arResult["ORDER"]['ID']);
+    $paymentCollection = $order->getPaymentCollection();
+    /** @var \Bitrix\Sale\Payment $payment */
+    foreach ($paymentCollection as $payment) {
+        $isPaid = $payment->isPaid();
+        
+        try {
+           $paySystemAction =  \Intaro\RetailCrm\Repository\PaySystemActionRepository::getFirstByWhere(
+               ['*'],
+                [
+                    [
+                        'ID',
+                        '=',
+                        $payment->getField('PAY_SYSTEM_ID'),
+                    ],
+                ]
+            );
+        } catch (\Bitrix\Main\ObjectPropertyException | \Bitrix\Main\ArgumentException | \Bitrix\Main\SystemException $e) {
+        
+        }
+        
+        //если есть бонусная оплата и она не оплачена, то отрисовываем форму введения кода верификации
+        $isPaid=false;//TODO заглушка - убрать после теста
+        if ($paySystemAction->get('CODE') === 'INTARO_BONUS' && !$isPaid) {
+            ?>
+            <div id="orderConfirm">
+                <b><?= GetMessage('CONFIRM_MESSAGE')?></b><br>
+                <div id="orderVerificationCodeBlock" style="display: none;">
+                    <b><?= GetMessage('SEND_VERIFICATION_CODE')?></b><br>
+                    <input type="text" id="orderVerificationCode" placeholder="<?= GetMessage('VERIFICATION_CODE')?>">
+                    <input type="button" onclick="sendVerificationCode()" value="<?= GetMessage('SEND')?>"/>
+                </div>
+                <div id="msg"></div>
+            </div>
+            <?php
+        }
+    }
+    ?>
+
 	<table class="sale_order_full_table">
 		<tr>
 			<td>
