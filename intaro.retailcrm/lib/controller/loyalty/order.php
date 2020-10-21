@@ -65,6 +65,7 @@ class Order extends Controller
                 Loader::includeModule('sale');
                 
                 $order = \Bitrix\Sale\Order::load($orderId);
+                
                 if (!$order) {
                     AddMessage2Log('ОШибка списания бонусов (не удалось получить заказ) по заказу №'.$orderId);
                     return [
@@ -102,6 +103,7 @@ class Order extends Controller
             } catch (Exception | ArgumentNullException $exception) {
                 AddMessage2Log($exception->getMessage());
             }
+            
             return [
                 'status'   => 'success',
                 'msg'      => 'Бонусы успешно списаны',
