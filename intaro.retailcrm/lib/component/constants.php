@@ -74,4 +74,5 @@ class Constants
     public const CRM_ONLINE_CONSULTANT_SCRIPT = 'online_consultant_script';
     public const LOYALTY_PROGRAM_TOGGLE = 'loyalty_program_toggle';
     public const CLIENT_ID              = 'client_id';
+    public const BONUS_PAYMENT_CODE             = 'INTARO_BONUS';
 }
