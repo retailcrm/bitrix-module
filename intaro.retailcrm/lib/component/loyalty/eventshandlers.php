@@ -184,7 +184,8 @@ class EventsHandlers
                         $newPayment->setField('SUM', $bonusCount);
 
                         //если верификация необходима, но не пройдена
-                        if (isset($response->verification, $response->verification->checkId) && !isset($response->verification->verifiedAt)
+                        if (isset($response->verification, $response->verification->checkId)
+                            && !isset($response->verification->verifiedAt)
                         ) {
                             $newPayment->setPaid('N');
                             $newPayment->setField('COMMENTS', $response->verification->checkId);
