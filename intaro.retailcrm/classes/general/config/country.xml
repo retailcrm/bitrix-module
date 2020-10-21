@@ -19,7 +19,7 @@
 		<alpha3>AUS</alpha3>
 		<iso>036</iso>
 		<location>Океания</location>
-		<location-precise>Австралия и Новая Зеландия</location-precise>
+		<location-precise>Австралия</location-precise>
 	</country>
 
 	<country>
@@ -309,9 +309,9 @@
 	</country>
 
 	<country>
-		<name>Босния и Герцеговина</name>
-		<fullname> </fullname>
-		<english>Bosnia and Herzegovina</english>
+		<name>Босния и Герцеговина</name>
+		<fullname>Босния и Герцеговина</fullname>
+		<english>Bosnia-Herzegovina</english>
 		<alpha>BA</alpha>
 		<alpha3>BIH</alpha3>
 		<iso>070</iso>
@@ -980,7 +980,7 @@
 	</country>
 
 	<country>
-		<name>Киргизия</name>
+		<name>Кыргызстан</name>
 		<fullname>Киргизская Республика</fullname>
 		<english>Kyrgyzstan</english>
 		<alpha>KG</alpha>
@@ -1431,7 +1431,7 @@
 	</country>
 
 	<country>
-		<name>Молдова, Республика</name>
+		<name>Молдавия</name>
 		<fullname>Республика Молдова</fullname>
 		<english>Moldova</english>
 		<alpha>MD</alpha>
@@ -1581,7 +1581,7 @@
 		<alpha3>NZL</alpha3>
 		<iso>554</iso>
 		<location>Океания</location>
-		<location-precise>Австралия и Новая Зеландия</location-precise>
+		<location-precise>Новая Зеландия</location-precise>
 	</country>
 
 	<country>
@@ -1761,8 +1761,8 @@
 	</country>
 
 	<country>
-		<name>Папский Престол (Государство — город Ватикан)</name>
-		<fullname> </fullname>
+		<name>Ватикан</name>
+		<fullname>Vatican City </fullname>
 		<english>Holy See (Vatican City State)</english>
 		<alpha>VA</alpha>
 		<alpha3>VAT</alpha3>
@@ -1849,8 +1849,8 @@
 	</country>
 
 	<country>
-		<name>Республика Македония</name>
-		<fullname> </fullname>
+		<name>Македония</name>
+		<fullname>Macedonia</fullname>
 		<english>Macedonia, The Former Yugoslav Republic Of</english>
 		<alpha>MK</alpha>
 		<alpha3>MKD</alpha3>
@@ -2137,7 +2137,7 @@
 	</country>
 
 	<country>
-		<name>Соединенное Королевство</name>
+		<name>Великобритания</name>
 		<fullname>Соединенное Королевство Великобритании и Северной Ирландии</fullname>
 		<english>United Kingdom</english>
 		<alpha>GB</alpha>
@@ -2343,7 +2343,7 @@
 	</country>
 
 	<country>
-		<name>Туркмения</name>
+		<name>Туркменистан</name>
 		<fullname>Туркменистан</fullname>
 		<english>Turkmenistan</english>
 		<alpha>TM</alpha>
@@ -2563,8 +2563,8 @@
 	</country>
 
 	<country>
-		<name>Чешская Республика</name>
-		<fullname> </fullname>
+		<name>Чешская республика</name>
+		<fullname>Czech Republic</fullname>
 		<english>Czech Republic</english>
 		<alpha>CZ</alpha>
 		<alpha3>CZE</alpha3>
