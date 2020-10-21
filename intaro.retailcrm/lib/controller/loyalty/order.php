@@ -22,9 +22,11 @@ use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\Request;
 use Bitrix\Main\SystemException;
 use Exception;
+use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Repository\PaySystemActionRepository;
 use Intaro\RetailCrm\Service\UserVerificationService;
+use Bitrix\Sale\Order as BitrixOrder;
 
 /**
  * Class AdminPanel
@@ -64,10 +66,10 @@ class Order extends Controller
             try {
                 Loader::includeModule('sale');
                 
-                $order = \Bitrix\Sale\Order::load($orderId);
+                $order = BitrixOrder::load($orderId);
                 
                 if (!$order) {
-                    AddMessage2Log('ОШибка списания бонусов (не удалось получить заказ) по заказу №'.$orderId);
+                    AddMessage2Log('Ошибка списания бонусов (не удалось получить объект Order) по заказу №' . $orderId);
                     return [
                         'status'   => 'error',
                         'msg'      => 'Ошибка',
@@ -94,7 +96,7 @@ class Order extends Controller
                     
                     if (isset($paySystemAction)
                         && !$isPaid
-                        && $paySystemAction->get('CODE') === 'INTARO_BONUS'
+                        && $paySystemAction->get('CODE') === Constants::BONUS_PAYMENT_CODE
                     ) {
                         $payment->setPaid('Y');
                         $order->save();
