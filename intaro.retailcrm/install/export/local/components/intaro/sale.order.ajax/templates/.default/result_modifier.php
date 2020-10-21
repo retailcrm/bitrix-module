@@ -18,6 +18,7 @@ if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) {
 Loader::includeModule('intaro.retailcrm');
 
 $arResult['LOYALTY_STATUS'] = ConfigProvider::getLoyaltyProgramStatus();
+$arResult['PERSONAL_LOYALTY_STATUS'] = LoyaltyService::getLoyaltyPersonalStatus();
 
 //TODO Закомментированно до появления реального апи
 //TODO добавить проверку на участие покупателя в программе лояльности (таска 68813)

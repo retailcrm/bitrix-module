@@ -19,6 +19,7 @@ use Bitrix\Main\Event;
 use Bitrix\Main\HttpRequest;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
+use Bitrix\Sale\Internals\PaymentTable;
 use Bitrix\Sale\Order;
 use Bitrix\Sale\PaySystem\Manager;
 use Exception;
@@ -155,6 +156,8 @@ class EventsHandlers
             
             //TODO - заглушка до появления api на стороне CRM. После появления реального апи - убрать следующую строку
             $response->success = true;
+            $response->verification->checkId = 'проверочный код.';
+            //конец заглушки
             
             if ($response->success) {
                 try {
@@ -178,8 +181,10 @@ class EventsHandlers
                         $newPayment->setField('SUM', $bonusCount);
                         
                         //если верификация необходима, но не пройдена
-                        if (isset($response->verification) && !isset($response->verification->verifiedAt)) {
+                        if (isset($response->verification, $response->verification->checkId) && !isset($response->verification->verifiedAt)
+                        ) {
                             $newPayment->setPaid('N');
+                            $newPayment->setField('COMMENTS', $response->verification->checkId);
                         }
     
                         //если верификация не нужна

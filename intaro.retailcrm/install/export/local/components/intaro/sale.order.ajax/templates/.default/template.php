@@ -425,7 +425,7 @@ if (strlen($request->get('ORDER_ID')) > 0) {
                 <? endif ?>
 
                 <!--	INTARO BONUS BLOCK	-->
-                <? if ($arResult['LOYALTY_STATUS'] === 'Y' ): ?>
+                <? if ($arResult['LOYALTY_STATUS'] === 'Y' && $arResult['PERSONAL_LOYALTY_STATUS'] === true): ?>
                     <div id="bx-soa-intaro" data-visited="true" class="bx-soa-section bx-selected">
                         <div class="bx-soa-section-title-container">
                             <h2 class="bx-soa-section-title col-sm-9">
@@ -594,16 +594,17 @@ if (strlen($request->get('ORDER_ID')) > 0) {
                     zoom: 7
                 }
             },
-            orderBlockId:       'bx-soa-order',
-            authBlockId:        'bx-soa-auth',
-            basketBlockId:      'bx-soa-basket',
-            regionBlockId:      'bx-soa-region',
-            paySystemBlockId:   'bx-soa-paysystem',
-            deliveryBlockId:    'bx-soa-delivery',
-            pickUpBlockId:      'bx-soa-pickup',
-            propsBlockId:       'bx-soa-properties',
-            totalBlockId:       'bx-soa-total',
-            loyaltyStatus:      '<?=$arResult['LOYALTY_STATUS']?>'
+            orderBlockId:          'bx-soa-order',
+            authBlockId:           'bx-soa-auth',
+            basketBlockId:         'bx-soa-basket',
+            regionBlockId:         'bx-soa-region',
+            paySystemBlockId:      'bx-soa-paysystem',
+            deliveryBlockId:       'bx-soa-delivery',
+            pickUpBlockId:         'bx-soa-pickup',
+            propsBlockId:          'bx-soa-properties',
+            totalBlockId:          'bx-soa-total',
+            loyaltyStatus:         '<?=$arResult['LOYALTY_STATUS']?>',
+            personalLoyaltyStatus: '<?=$arResult['PERSONAL_LOYALTY_STATUS']?>'
         });
     </script>
     <script>

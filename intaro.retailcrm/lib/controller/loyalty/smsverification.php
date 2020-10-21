@@ -32,6 +32,7 @@ class AdminPanel extends Controller
     
     /**
      * AdminPanel constructor.
+     *
      * @param \Bitrix\Main\Request|null $request
      */
     public function __construct(Request $request = null)

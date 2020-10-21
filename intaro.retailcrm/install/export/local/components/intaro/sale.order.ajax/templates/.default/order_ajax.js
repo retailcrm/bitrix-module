@@ -134,6 +134,7 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
             this.propsHiddenBlockNode     = BX(parameters.propsBlockId + '-hidden');
 
             this.loyaltyStatus     = parameters.loyaltyStatus;
+            this.personalLoyaltyStatus     = parameters.personalLoyaltyStatus;
 
             if (this.result.SHOW_AUTH) {
                 this.authBlockNode.style.display = '';
@@ -8307,20 +8308,22 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
             this.totalInfoBlockNode.appendChild(this.createTotalUnit(discText + ':', total.DISCOUNT_PRICE_FORMATED, {highlighted: true}));
         }
 
-        //добавление строки с бонусами
-        if (this.result.TOTAL.BONUS_PAYMENT !== undefined && this.result.TOTAL.BONUS_PAYMENT > 0) {
-            let bonusPayment = this.result.TOTAL.BONUS_PAYMENT.toString();
-            bonusPayment =  this.bonusCurrency
-                .replace('&#8381;', '₽')
-                .replace('&euro;', '€')
-                .replace('&#8372;', '¥')
-                .replace('#', bonusPayment);
-            this.totalInfoBlockNode.appendChild(this.createTotalUnit('Бонусная скидка:', bonusPayment));
+        //проверяем включена ли ПЛ и участвует ли в ней данный пользователь
+        if (this.personalLoyaltyStatus === '1' && this.loyaltyStatus === 'Y') {
+            //добавление строки с бонусами
+            if (this.result.TOTAL.BONUS_PAYMENT !== undefined && this.result.TOTAL.BONUS_PAYMENT > 0) {
+                let bonusPayment = this.result.TOTAL.BONUS_PAYMENT.toString();
+                bonusPayment     = this.bonusCurrency
+                    .replace('&#8381;', '₽')
+                    .replace('&euro;', '€')
+                    .replace('&#8372;', '¥')
+                    .replace('#', bonusPayment);
+                this.totalInfoBlockNode.appendChild(this.createTotalUnit('Бонусная скидка:', bonusPayment));
+            }
+
+            const willBeCredited = this.willBeCredited;
+            this.totalInfoBlockNode.appendChild(this.createTotalUnit('Будет начислено бонусов:', willBeCredited, {highlighted: true}));
         }
-
-        const willBeCredited = this.willBeCredited;
-        this.totalInfoBlockNode.appendChild(this.createTotalUnit('Будет начислено бонусов:', willBeCredited, {highlighted: true}));
-
 
         if (this.options.showPayedFromInnerBudget)
         {

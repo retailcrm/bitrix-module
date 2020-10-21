@@ -1,6 +1,12 @@
-<? if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) die();
+<?php if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) {
+    die();
+}
 
+use Bitrix\Main\ArgumentException;
 use Bitrix\Main\Localization\Loc;
+use Bitrix\Main\ObjectPropertyException;
+use Bitrix\Main\SystemException;
+use Intaro\RetailCrm\Repository\PaySystemActionRepository;
 
 /**
  * @var array $arParams
@@ -14,17 +20,18 @@ if ($arParams["SET_TITLE"] == "Y")
 }
 ?>
 
-<? if (!empty($arResult["ORDER"])): ?>
+<?php if (!empty($arResult["ORDER"])): ?>
 
     <?php
     $order             = Bitrix\Sale\Order::load($arResult["ORDER"]['ID']);
     $paymentCollection = $order->getPaymentCollection();
     /** @var \Bitrix\Sale\Payment $payment */
     foreach ($paymentCollection as $payment) {
-        $isPaid = $payment->isPaid();
+        $isPaid  = $payment->isPaid();
+        $checkId = $payment->getField('COMMENTS');
         
         try {
-           $paySystemAction =  \Intaro\RetailCrm\Repository\PaySystemActionRepository::getFirstByWhere(
+           $paySystemAction =  PaySystemActionRepository::getFirstByWhere(
                ['*'],
                 [
                     [
@@ -34,23 +41,29 @@ if ($arParams["SET_TITLE"] == "Y")
                     ],
                 ]
             );
-        } catch (\Bitrix\Main\ObjectPropertyException | \Bitrix\Main\ArgumentException | \Bitrix\Main\SystemException $e) {
-        
+        } catch (ObjectPropertyException | ArgumentException | SystemException $e) {
+        AddMessage2Log($e->getMessage());
         }
         
         //если есть бонусная оплата и она не оплачена, то отрисовываем форму введения кода верификации
         $isPaid=false;//TODO заглушка - убрать после теста
-        if ($paySystemAction->get('CODE') === 'INTARO_BONUS' && !$isPaid) {
+        if (isset($paySystemAction)
+            && !$isPaid
+            && !empty($checkId)
+            && $paySystemAction->get('CODE') === 'INTARO_BONUS'
+            ) {
             ?>
             <div id="orderConfirm">
                 <b><?= GetMessage('CONFIRM_MESSAGE')?></b><br>
-                <div id="orderVerificationCodeBlock" style="display: none;">
+                <div id="orderVerificationCodeBlock">
                     <b><?= GetMessage('SEND_VERIFICATION_CODE')?></b><br>
+                    <label for="orderVerificationCode"></label>
                     <input type="text" id="orderVerificationCode" placeholder="<?= GetMessage('VERIFICATION_CODE')?>">
-                    <input type="button" onclick="sendVerificationCode()" value="<?= GetMessage('SEND')?>"/>
+                    <input type="button" onclick="sendVerificationCode(<?= $arResult["ORDER"]['ID'] ?>, '<?= $checkId ?>')" value="<?= GetMessage('SEND')?>"/>
                 </div>
                 <div id="msg"></div>
             </div>
+            <br><br>
             <?php
         }
     }
@@ -63,11 +76,6 @@ if ($arParams["SET_TITLE"] == "Y")
 					"#ORDER_DATE#" => $arResult["ORDER"]["DATE_INSERT"]->toUserTime()->format('d.m.Y H:i'),
 					"#ORDER_ID#" => $arResult["ORDER"]["ACCOUNT_NUMBER"]
 				))?>
-				<? if (!empty($arResult['ORDER']["PAYMENT_ID"])): ?>
-					<?=Loc::getMessage("SOA_PAYMENT_SUC", array(
-						"#PAYMENT_ID#" => $arResult['PAYMENT'][$arResult['ORDER']["PAYMENT_ID"]]['ACCOUNT_NUMBER']
-					))?>
-				<? endif ?>
 				<? if ($arParams['NO_PERSONAL'] !== 'Y'): ?>
 					<br /><br />
 					<?=Loc::getMessage('SOA_ORDER_SUC1', ['#LINK#' => $arParams['PATH_TO_PERSONAL']])?>
