@@ -56,9 +56,6 @@ class Order extends Controller
     {
         $response = $this->service->confirmVerification($verificationCode, $checkId);
     
-        $response->success = true;
-        $response->verification->verifiedAt = '123';
-        
         if ($response !== null
             && $response->success
             && isset($response->verification->verifiedAt)
