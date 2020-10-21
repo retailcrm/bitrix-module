@@ -8312,17 +8312,15 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
         if (this.personalLoyaltyStatus === '1' && this.loyaltyStatus === 'Y') {
             //добавление строки с бонусами
             if (this.result.TOTAL.BONUS_PAYMENT !== undefined && this.result.TOTAL.BONUS_PAYMENT > 0) {
-                let bonusPayment = this.result.TOTAL.BONUS_PAYMENT.toString();
-                bonusPayment     = this.bonusCurrency
+               let bonusPayment     = this.bonusCurrency
                     .replace('&#8381;', '₽')
                     .replace('&euro;', '€')
                     .replace('&#8372;', '¥')
-                    .replace('#', bonusPayment);
+                    .replace('#', this.result.TOTAL.BONUS_PAYMENT.toString());
                 this.totalInfoBlockNode.appendChild(this.createTotalUnit('Бонусная скидка:', bonusPayment));
             }
 
-            const willBeCredited = this.willBeCredited;
-            this.totalInfoBlockNode.appendChild(this.createTotalUnit('Будет начислено бонусов:', willBeCredited, {highlighted: true}));
+            this.totalInfoBlockNode.appendChild(this.createTotalUnit('Будет начислено бонусов:', this.willBeCredited, {highlighted: true}));
         }
 
         if (this.options.showPayedFromInnerBudget)

@@ -34,7 +34,7 @@ if ($calculate->success) {
 //TODO убрать заглушку после появления реальных методов
 $arResult['LP_CALCULATE_SUCCESS'] = true;
 $arResult['AVAILABLE_BONUSES']    = 300; //доступно
-$arResult['TOTAL_BONUSES_COUNT']  = 600; //всего на щету
+$arResult['TOTAL_BONUSES_COUNT']  = 600; //всего на счету
 $arResult['WILL_BE_CREDITED']     = 245; //будет начислено
 $component                        = $this->__component;
 $component::scaleImages($arResult['JS_DATA'], $arParams['SERVICES_IMAGES_SCALING']);

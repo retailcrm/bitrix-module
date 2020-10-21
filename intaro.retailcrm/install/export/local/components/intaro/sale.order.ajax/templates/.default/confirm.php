@@ -6,6 +6,7 @@ use Bitrix\Main\ArgumentException;
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
+use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Repository\PaySystemActionRepository;
 
 /**
@@ -14,25 +15,23 @@ use Intaro\RetailCrm\Repository\PaySystemActionRepository;
  * @var $APPLICATION CMain
  */
 
-if ($arParams["SET_TITLE"] == "Y")
-{
-	$APPLICATION->SetTitle(Loc::getMessage("SOA_ORDER_COMPLETE"));
+if ($arParams["SET_TITLE"] == "Y") {
+    $APPLICATION->SetTitle(Loc::getMessage("SOA_ORDER_COMPLETE"));
 }
 ?>
-
 <?php if (!empty($arResult["ORDER"])): ?>
-
     <?php
     $order             = Bitrix\Sale\Order::load($arResult["ORDER"]['ID']);
     $paymentCollection = $order->getPaymentCollection();
+    
     /** @var \Bitrix\Sale\Payment $payment */
     foreach ($paymentCollection as $payment) {
         $isPaid  = $payment->isPaid();
         $checkId = $payment->getField('COMMENTS');
         
         try {
-           $paySystemAction =  PaySystemActionRepository::getFirstByWhere(
-               ['*'],
+            $paySystemAction = PaySystemActionRepository::getFirstByWhere(
+                ['*'],
                 [
                     [
                         'ID',
@@ -42,24 +41,25 @@ if ($arParams["SET_TITLE"] == "Y")
                 ]
             );
         } catch (ObjectPropertyException | ArgumentException | SystemException $e) {
-        AddMessage2Log($e->getMessage());
+            AddMessage2Log($e->getMessage());
         }
         
         //если есть бонусная оплата и она не оплачена, то отрисовываем форму введения кода верификации
-        $isPaid=false;//TODO заглушка - убрать после теста
+        $isPaid = false;//TODO заглушка - убрать после теста
+        
         if (isset($paySystemAction)
             && !$isPaid
             && !empty($checkId)
-            && $paySystemAction->get('CODE') === 'INTARO_BONUS'
-            ) {
+            && $paySystemAction->get('CODE') === Constants::BONUS_PAYMENT_CODE
+        ) {
             ?>
             <div id="orderConfirm">
-                <b><?= GetMessage('CONFIRM_MESSAGE')?></b><br>
+                <b><?=GetMessage('CONFIRM_MESSAGE')?></b><br>
                 <div id="orderVerificationCodeBlock">
-                    <b><?= GetMessage('SEND_VERIFICATION_CODE')?></b><br>
+                    <b><?=GetMessage('SEND_VERIFICATION_CODE')?></b><br>
                     <label for="orderVerificationCode"></label>
-                    <input type="text" id="orderVerificationCode" placeholder="<?= GetMessage('VERIFICATION_CODE')?>">
-                    <input type="button" onclick="sendVerificationCode(<?= $arResult["ORDER"]['ID'] ?>, '<?= $checkId ?>')" value="<?= GetMessage('SEND')?>"/>
+                    <input type="text" id="orderVerificationCode" placeholder="<?=GetMessage('VERIFICATION_CODE')?>">
+                    <input type="button" onclick="sendVerificationCode(<?=$arResult["ORDER"]['ID']?>, '<?=$checkId?>')" value="<?=GetMessage('SEND')?>"/>
                 </div>
                 <div id="msg"></div>
             </div>
