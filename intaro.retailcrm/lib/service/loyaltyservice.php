@@ -14,12 +14,19 @@ namespace Intaro\RetailCrm\Service;
 
 use Bitrix\Catalog\GroupTable;
 use Bitrix\Main\ArgumentException;
+use Bitrix\Main\ArgumentNullException;
+use Bitrix\Main\Loader;
+use Bitrix\Main\LoaderException;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
+use Bitrix\Sale\Order;
+use CUser;
+use Exception;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\LoyaltyCalculateRequest;
 use Intaro\RetailCrm\Model\Api\Request\Order\Loyalty\OrderLoyaltyApplyRequest;
 use Intaro\RetailCrm\Model\Api\SerializedOrderProduct;
+use Intaro\RetailCrm\Repository\PaySystemActionRepository;
 
 /**
  * Class LoyaltyService
@@ -39,6 +46,17 @@ class LoyaltyService
     public function __construct()
     {
         $this->client = ClientFactory::createClientAdapter();
+    }
+    
+    /*
+     * Возвращает статус пользователя в системе лояльности
+     */
+    public static function getLoyaltyPersonalStatus(): bool
+    {
+        global $USER;
+        $userFields = CUser::GetByID($USER->GetID())->Fetch();
+    
+        return isset($userFields['UF_EXT_REG_PL_INTARO']) && $userFields['UF_EXT_REG_PL_INTARO'] === '1';
     }
     
     /**
