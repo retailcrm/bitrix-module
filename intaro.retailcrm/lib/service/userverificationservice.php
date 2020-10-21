@@ -14,6 +14,7 @@ namespace Intaro\RetailCrm\Service;
 use Exception;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
 use Intaro\RetailCrm\Model\Api\Request\SmsVerification\SmsVerificationConfirmRequest;
+use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationConfirmResponse;
 use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusRequest;
 use Intaro\RetailCrm\Model\Api\SmsVerificationConfirm;
 
@@ -56,7 +57,7 @@ class UserVerificationService
      * @param string $checkId Идентификатор проверки кода
      * @return \Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationConfirmResponse|null
      */
-    public function confirmVerification(string $code, string $checkId)
+    public function confirmVerification(string $code, string $checkId): ?SmsVerificationConfirmResponse
     {
         $request               = new SmsVerificationConfirmRequest();
         $request->verification = new SmsVerificationConfirm();
