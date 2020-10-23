@@ -83,16 +83,18 @@ if($arResult["SHOW_SMS_FIELD"] == true)
 <?if($USER->IsAuthorized()):?>
 
     <p><?php echo GetMessage("MAIN_REGISTER_AUTH") ?></p>
-    <?php
-    $this->addExternalJs(SITE_TEMPLATE_PATH . '/script.js');
-    ?>
+    
+<?php if ($arResult['LOYALTY_STATUS'] === 'Y'): ?>
+    <?php $this->addExternalJs(SITE_TEMPLATE_PATH . '/script.js'); ?>
+
     <?php if ($arResult['LP_ERRORS']): ?>
+
     <?=GetMessage('REG_LP_ERROR')?>
-<?php else: ?>
+        <?php else: ?>
     <!--елси регистрация в программе лояльности прошла успешно-->
     <?php if (isset($arResult['USER_FIELDS']['UF_EXT_REG_PL_INTARO']) && $arResult['USER_FIELDS']['UF_EXT_REG_PL_INTARO'] === 1): ?>
     <b><?=GetMessage('SUCCESS_PL_REG')?></b>
-<?php elseif ((int)$arResult['USER_FIELDS']['UF_EXT_REG_PL_INTARO'] === 0): ?>
+        <?php elseif ((int)$arResult['USER_FIELDS']['UF_EXT_REG_PL_INTARO'] === 0): ?>
     <div id="regbody">
         <b><?=GetMessage('REG_LP_MESSAGE')?></b><br>
         <input type="tel" id="loyaltyRegPhone" placeholder="+7 (900) 000-00-00">
@@ -107,7 +109,9 @@ if($arResult["SHOW_SMS_FIELD"] == true)
         </div>
         <div id="msg"></div>
     </div>
-<?php endif; ?>
+        <?php endif; ?>
+    <?php endif; ?>
+    
 <?php endif; ?>
 
 <?php else:?>
@@ -306,59 +310,62 @@ document.getElementById('bx_auth_secure').style.display = 'inline-block';
 				array("bVarsFromForm" => $arResult["bVarsFromForm"], "arUserField" => $arUserField, "form_name" => "regform"), null, array("HIDE_ICONS"=>"Y"));?></td></tr>
 	<?endforeach;?>
 <?endif;?>
-<tr>
-    <td></td>
-    <td><div class="fields boolean" id="main_UF_REG_IN_PL_INTARO">
-            <div class="fields boolean">
-                <input type="hidden" value="0" name="UF_REG_IN_PL_INTARO">
-                <label>
-                    <input type="checkbox" value="1" name="UF_REG_IN_PL_INTARO" onchange="lpFieldToggle()" id="checkbox_UF_REG_IN_PL_INTARO"> <?= GetMessage("UF_REG_IN_PL_INTARO")?>
-                </label>
+<?php if ($arResult['LOYALTY_STATUS'] === 'Y'): ?>
+    <tr>
+        <td></td>
+        <td>
+            <div class="fields boolean" id="main_UF_REG_IN_PL_INTARO">
+                <div class="fields boolean">
+                    <input type="hidden" value="0" name="UF_REG_IN_PL_INTARO">
+                    <label>
+                        <input type="checkbox" value="1" name="UF_REG_IN_PL_INTARO" onchange="lpFieldToggle()" id="checkbox_UF_REG_IN_PL_INTARO"> <?=GetMessage("UF_REG_IN_PL_INTARO")?>
+                    </label>
+                </div>
             </div>
-        </div>
-       </td>
-</tr>
-<tr class="lp_toggled_block" style="display: none">
-    <td><?= GetMessage("BONUS_CARD_NUMBER")?></td>
-    <td><input size="30" type="text" name="UF_CARD_NUM_INTARO" value=""></td>
-</tr>
-<tr class="lp_toggled_block" style="display: none">
-    <td>
-        <?= GetMessage("REGISTER_FIELD_PERSONAL_PHONE")?>
-    </td>
-    <td>
-        <input size="30" type="text" name="REGISTER[PERSONAL_PHONE]" value>
-    </td>
-</tr>
-<tr class="lp_toggled_block" style="display: none">
-    <td>
-        <div class="fields boolean" id="main_UF_AGREE_PL_INTARO">
-            <div class="fields boolean">
-                <input type="hidden" value="0" name="UF_AGREE_PL_INTARO">
-                <label>
-                    <input class="lp_agree_checkbox" type="checkbox" value="1" name="UF_AGREE_PL_INTARO" > <?= GetMessage("YES")?>
-                </label>
+        </td>
+    </tr>
+    <tr class="lp_toggled_block" style="display: none">
+        <td><?=GetMessage("BONUS_CARD_NUMBER")?></td>
+        <td><input size="30" type="text" name="UF_CARD_NUM_INTARO" value=""></td>
+    </tr>
+    <tr class="lp_toggled_block" style="display: none">
+        <td>
+            <?=GetMessage("REGISTER_FIELD_PERSONAL_PHONE")?>
+        </td>
+        <td>
+            <input size="30" type="text" name="REGISTER[PERSONAL_PHONE]" value>
+        </td>
+    </tr>
+    <tr class="lp_toggled_block" style="display: none">
+        <td>
+            <div class="fields boolean" id="main_UF_AGREE_PL_INTARO">
+                <div class="fields boolean">
+                    <input type="hidden" value="0" name="UF_AGREE_PL_INTARO">
+                    <label>
+                        <input class="lp_agree_checkbox" type="checkbox" value="1" name="UF_AGREE_PL_INTARO"> <?=GetMessage("YES")?>
+                    </label>
+                </div>
             </div>
-        </div>
-    </td>
-    <td>
-        <?= GetMessage("I_AM_AGREE")?> <a class="lp_agreement_link" href="javascript:void(0)" ><?= GetMessage("UF_AGREE_PL_INTARO")?></a>
-    </td>
-</tr>
-<tr class="lp_toggled_block" style="display: none">
-    <td>
-        <div class="fields boolean" id="main_UF_PD_PROC_PL_INTARO">
-            <div class="fields boolean"><input type="hidden" value="0" name="UF_PD_PROC_PL_INTARO">
-                <label>
-                    <input class="lp_agree_checkbox" type="checkbox" value="1" name="UF_PD_PROC_PL_INTARO"> <?= GetMessage("YES")?>
-                </label>
+        </td>
+        <td>
+            <?=GetMessage("I_AM_AGREE")?> <a class="lp_agreement_link" href="javascript:void(0)"><?=GetMessage("UF_AGREE_PL_INTARO")?></a>
+        </td>
+    </tr>
+    <tr class="lp_toggled_block" style="display: none">
+        <td>
+            <div class="fields boolean" id="main_UF_PD_PROC_PL_INTARO">
+                <div class="fields boolean"><input type="hidden" value="0" name="UF_PD_PROC_PL_INTARO">
+                    <label>
+                        <input class="lp_agree_checkbox" type="checkbox" value="1" name="UF_PD_PROC_PL_INTARO"> <?=GetMessage("YES")?>
+                    </label>
+                </div>
             </div>
-        </div>
-    </td>
-    <td>
-        <?= GetMessage("I_AM_AGREE")?> <a class="personal_data_agreement_link" href="javascript:void(0)" ><?= GetMessage("UF_PD_PROC_PL_INTARO")?></a>
-    </td>
-</tr>
+        </td>
+        <td>
+            <?=GetMessage("I_AM_AGREE")?> <a class="personal_data_agreement_link" href="javascript:void(0)"><?=GetMessage("UF_PD_PROC_PL_INTARO")?></a>
+        </td>
+    </tr>
+<?php endif; ?>
 <?// ******************** /User properties ***************************************************?>
 <?
 /* CAPTCHA */

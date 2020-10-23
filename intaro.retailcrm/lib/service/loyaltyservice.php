@@ -10,6 +10,7 @@
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
  */
+
 namespace Intaro\RetailCrm\Service;
 
 use Bitrix\Catalog\GroupTable;
@@ -55,7 +56,7 @@ class LoyaltyService
     {
         global $USER;
         $userFields = CUser::GetByID($USER->GetID())->Fetch();
-    
+        
         return isset($userFields['UF_EXT_REG_PL_INTARO']) && $userFields['UF_EXT_REG_PL_INTARO'] === '1';
     }
     
@@ -75,7 +76,7 @@ class LoyaltyService
         if (isset($result->errorMsg) && !empty($result->errorMsg)) {
             AddMessage2Log($result->errorMsg);
         }
-
+        
         return $result;
     }
     
@@ -101,7 +102,7 @@ class LoyaltyService
             $request->order->discountManualPercent = $discountPercent;
         }
         
-        /** @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter $client*/
+        /** @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter $client */
         $client        = ClientFactory::createClientAdapter();
         $credentials   = $client->getCredentials();
         $request->site = $credentials->sitesAvailable[0];
@@ -139,7 +140,7 @@ class LoyaltyService
             }
             $request->order->items[] = $product;
         }
-    
+        
         $result = $this->client->loyaltyCalculate($request);
         
         if (isset($result->errorMsg) && !empty($result->errorMsg)) {
@@ -147,5 +148,47 @@ class LoyaltyService
         }
         
         return $result;
+    }
+    
+    //TODO реализовать этот проверки регистрации в ПЛ
+    
+    /**
+     * @return array
+     */
+    public function checkRegInLp(): array
+    {
+        global $USER;
+        $rsUser     = CUser::GetByID($USER->GetID());
+        $userFields = $rsUser->Fetch();
+        $regInLp = [];
+        
+        //Изъявлял ли ранее пользователь желание участвовать в ПЛ?
+        if (isset($userFields['UF_REG_IN_PL_INTARO'])
+            && $userFields['UF_REG_IN_PL_INTARO'] === '1'
+        ) {
+            //ДА. Существует ли у него аккаунт?
+            if (isset($userFields['UF_LP_ID_INTARO'])
+                && $userFields['UF_LP_ID_INTARO'] === '1'
+            ) {
+                //ДА. Активен ли его аккаунт?
+                if (isset($userFields['UF_EXT_REG_PL_INTARO'])
+                    && $userFields['UF_EXT_REG_PL_INTARO'] === '1'
+                ) {
+                    //ДА. Отображаем сообщение "Вы зарегистрированы в Программе лояльности"
+                    $regInLp['msg'] = GetMessage('REG_COMPLETE');
+                } else {
+                    //НЕТ. Отображаем форму для активации
+                    $regInLp['msg'] = GetMessage('ACTIVATE_YOUR_ACCOUNT');
+                }
+            } else {
+                //НЕТ. Выясняем, каких полей не хватает для СОЗДАНИЯ аккаунта, выводим форму
+                $regInLp['msg'] = GetMessage('COMPLETE_YOUR_REGISTRATION');
+            }
+            
+        } else {
+            //НЕТ. Отображаем форму на создание новой регистрации в ПЛ
+            $regInLp['msg'] = GetMessage('INVITATION_TO_REGISTER');
+        }
+        return $regInLp;
     }
 }

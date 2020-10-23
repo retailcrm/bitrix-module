@@ -4,37 +4,29 @@ use Bitrix\Main\ArgumentException;
 use Bitrix\Main\Loader;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
+use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Repository\AgreementRepository;
+use Intaro\RetailCrm\Service\LoyaltyService;
+
 Loader::includeModule('intaro.retailcrm');
 
+$arResult['LOYALTY_STATUS'] = ConfigProvider::getLoyaltyProgramStatus();
+
 global $USER;
-if($USER->IsAuthorized()){
-    $rsUser = CUser::GetByID($USER->GetID());
-    $arResult['USER_FIELDS'] = $rsUser->Fetch();
-    
-    if (isset(
-        $arResult['USER_FIELDS']['UF_EXT_REG_PL_INTARO'],
-        $arResult['USER_FIELDS']['UF_AGREE_PL_INTARO'],
-        $arResult['USER_FIELDS']['UF_PD_PROC_PL_INTARO'],
-        $arResult['USER_FIELDS']['UF_EXT_REG_PL_INTARO'],
-        $arResult['USER_FIELDS']['UF_LP_ID_INTARO']
-    )) {
-        $arResult['LP_ERRORS'] = true;
-        
-        AddMessage2Log(GetMessage('LP_FIELDS_NOT_EXIST'));
-    }else{
-        $arResult['LP_ERRORS'] = false;
-    }
+//Активна ПЛ ?
+if ($arResult['LOYALTY_STATUS'] === 'Y' && $USER->IsAuthorized()) {
+    $service                  = new LoyaltyService();
+    $arResult['LP_REGISTER'] = $service->checkRegInLp();
 }
 
 try {
-    $agreementPersonalData = AgreementRepository::getFirstByWhere(
+    $agreementPersonalData                 = AgreementRepository::getFirstByWhere(
         ['AGREEMENT_TEXT'],
         [
             ['CODE', '=', 'AGREEMENT_PERSONAL_DATA_CODE'],
         ]
     );
-    $agreementLoyaltyProgram = AgreementRepository::getFirstByWhere(
+    $agreementLoyaltyProgram               = AgreementRepository::getFirstByWhere(
         ['AGREEMENT_TEXT'],
         [
             ['CODE', '=', 'AGREEMENT_LOYALTY_PROGRAM_CODE'],
