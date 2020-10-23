@@ -58,3 +58,13 @@ function sendVerificationCode() {
         }
     )
 }
+
+function lpFieldToggle(){
+    if ($('#checkbox_UF_REG_IN_PL_INTARO').is(':checked')){
+        $('.lp_toggled_block').css('display', 'table-row');
+        $('.lp_agree_checkbox').prop('checked', true);
+    } else {
+        $('.lp_toggled_block').css('display', 'none');
+        $('.lp_agree_checkbox').prop('checked', true);
+    }
+}

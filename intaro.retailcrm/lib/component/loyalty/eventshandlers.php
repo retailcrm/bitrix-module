@@ -24,8 +24,11 @@ use Bitrix\Sale\Order;
 use Bitrix\Sale\PaySystem\Manager;
 use Exception;
 use Intaro\RetailCrm\Component\ConfigProvider;
+use Intaro\RetailCrm\Model\Api\User;
 use Intaro\RetailCrm\Repository\PaySystemActionRepository;
+use Intaro\RetailCrm\Repository\UserRepository;
 use Intaro\RetailCrm\Service\LoyaltyService;
+use Intaro\RetailCrm\Service\UserAccountService;
 use RetailCrm\ApiClient;
 use RetailcrmConfigProvider;
 use RetailCrmUser;
@@ -150,7 +153,7 @@ class EventsHandlers
         
         if (isset($_POST['bonus-input'], $_POST['available-bonuses'])
             && $isNew
-            && (int) $_POST['available-bonuses'] >= (int) $_POST['bonus-input']
+            && (int)$_POST['available-bonuses'] >= (int)$_POST['bonus-input']
         ) {
             $orderId    = $order->getId();
             $bonusCount = $_POST['bonus-input'];
@@ -206,16 +209,60 @@ class EventsHandlers
     }
     
     /**
+     * Регистрирует пользователя в CRM системе после регистрации на сайте
+     *
      * @param $arFields
      * @return mixed
      */
     public function OnAfterUserRegisterHandler($arFields)
     {
         if (isset($arFields['USER_ID']) && $arFields['USER_ID'] > 0) {
-            $arFields['ID'] = $arFields['USER_ID'];
+            $user = UserRepository::getById($arFields['USER_ID']);
+            
+            if (isset($_POST['REGISTER']['PERSONAL_PHONE'])) {
+                $phone = htmlspecialchars($_POST['REGISTER']['PERSONAL_PHONE']);
+                
+                if ($user !== null) {
+                    $user->setPersonalPhone($phone);
+                    $user->save();
+                }
+                $arFields['PERSONAL_PHONE'] = $phone;
+            }
+            
+            $arFields['ID']   = $arFields['USER_ID'];
             $optionsSitesList = RetailcrmConfigProvider::getSitesList();
-            $api = new ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
+            $api              = new ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
             RetailCrmUser::customerSend($arFields, $api, 'individual', true, $optionsSitesList);
+
+            //Если пользователь выразил желание зарегистрироваться в ПЛ и согласился со всеми правилами
+            if ((int)$arFields['UF_REG_IN_PL_INTARO'] === 1
+                && (int)$arFields['UF_AGREE_PL_INTARO'] === 1
+                && (int)$arFields['UF_PD_PROC_PL_INTARO'] === 1
+            ) {
+                $phone          = $arFields['PERSONAL_PHONE'] ?? '';
+                $card           = $arFields['UF_CARD_NUM_INTARO'] ?? '';
+                $customerId     = (string) $arFields['USER_ID'];
+                $customFields   = $arFields['UF_CSTM_FLDS_INTARO'] ?? [];
+                $service        = new UserAccountService();
+                $createResponse = $service->createLoyaltyAccount($phone, $card, $customerId, $customFields);
+
+                //если участник ПЛ создан и активирован
+                if (($createResponse !== null)
+                    && $createResponse->success === true
+                    && $createResponse->loyaltyAccount->active
+                ) {
+                    global $USER_FIELD_MANAGER;
+                    
+                    $USER_FIELD_MANAGER->Update('USER', $arFields['USER_ID'], [
+                        'UF_EXT_REG_PL_INTARO' => 'Y',
+                        'UF_LP_ID_INTARO' => $createResponse->loyaltyAccount->id,
+                    ]);
+                }
+                
+                if (isset($createResponse->errorMsg)) {
+                    AddMessage2Log($createResponse->errorMsg);
+                }
+            }
         }
     }
 }

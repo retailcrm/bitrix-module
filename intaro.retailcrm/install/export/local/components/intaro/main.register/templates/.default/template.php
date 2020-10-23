@@ -82,35 +82,35 @@ if($arResult["SHOW_SMS_FIELD"] == true)
 
 <?if($USER->IsAuthorized()):?>
 
-<p><?echo GetMessage("MAIN_REGISTER_AUTH")?></p>
-<?php
+    <p><?php echo GetMessage("MAIN_REGISTER_AUTH") ?></p>
+    <?php
     $this->addExternalJs(SITE_TEMPLATE_PATH . '/script.js');
-    
-    $rsUser = CUser::GetByID($USER->GetID());
-    $arUser = $rsUser->Fetch();
-
-if (
-    isset($arUser['UF_REG_IN_PL_INTARO'], $arUser['UF_AGREE_PL_INTARO'], $arUser['UF_PD_PROC_PL_INTARO'])
-    && (int)$arUser['UF_REG_IN_PL_INTARO'] === 1
-    && (int)$arUser['UF_AGREE_PL_INTARO'] === 1
-    && (int)$arUser['UF_PD_PROC_PL_INTARO'] === 1
-) { ?>
+    ?>
+    <?php if ($arResult['LP_ERRORS']): ?>
+    <?=GetMessage('REG_LP_ERROR')?>
+<?php else: ?>
+    <!--елси регистрация в программе лояльности прошла успешно-->
+    <?php if (isset($arResult['USER_FIELDS']['UF_EXT_REG_PL_INTARO']) && $arResult['USER_FIELDS']['UF_EXT_REG_PL_INTARO'] === 1): ?>
+    <b><?=GetMessage('SUCCESS_PL_REG')?></b>
+<?php elseif ((int)$arResult['USER_FIELDS']['UF_EXT_REG_PL_INTARO'] === 0): ?>
     <div id="regbody">
-        <b><?= GetMessage('REG_LP_MESSAGE')?></b><br>
+        <b><?=GetMessage('REG_LP_MESSAGE')?></b><br>
         <input type="tel" id="loyaltyRegPhone" placeholder="+7 (900) 000-00-00">
         <br>
-        <input type="text" id="loyaltyRegCard" placeholder="<?= GetMessage('LP_CARD_NUMBER')?>">
-        <input type="button" onclick="addTelNumber(<?=$USER->GetID()?>)" value="<?= GetMessage('SEND')?>"/>
+        <input type="text" id="loyaltyRegCard" placeholder="<?=GetMessage('LP_CARD_NUMBER')?>">
+        <input type="button" onclick="addTelNumber(<?=$USER->GetID()?>)" value="<?=GetMessage('SEND')?>"/>
         <br>
         <div id="verificationCodeBlock" style="display: none;">
-            <b><?= GetMessage('SEND_VERIFICATION_CODE')?></b><br>
-            <input type="text" id="verificationCode" placeholder="<?= GetMessage('VERIFICATION_CODE')?>">
-            <input type="button" onclick="sendVerificationCode()" value="<?= GetMessage('SEND')?>"/>
+            <b><?=GetMessage('SEND_VERIFICATION_CODE')?></b><br>
+            <input type="text" id="verificationCode" placeholder="<?=GetMessage('VERIFICATION_CODE')?>">
+            <input type="button" onclick="sendVerificationCode()" value="<?=GetMessage('SEND')?>"/>
         </div>
         <div id="msg"></div>
     </div>
-<?php } ?>
-<?else:?>
+<?php endif; ?>
+<?php endif; ?>
+
+<?php else:?>
 <?
 if (count($arResult["ERRORS"]) > 0):
 	foreach ($arResult["ERRORS"] as $key => $error)
@@ -307,30 +307,52 @@ document.getElementById('bx_auth_secure').style.display = 'inline-block';
 	<?endforeach;?>
 <?endif;?>
 <tr>
-    <td>
-        <div class="fields boolean" id="main_UF_REG_IN_PL_INTARO">
-            <div class="fields boolean"><input type="hidden" value="0" name="UF_REG_IN_PL_INTARO">
-                <label><input type="checkbox" value="1" name="UF_REG_IN_PL_INTARO"> да</label></div>
+    <td></td>
+    <td><div class="fields boolean" id="main_UF_REG_IN_PL_INTARO">
+            <div class="fields boolean">
+                <input type="hidden" value="0" name="UF_REG_IN_PL_INTARO">
+                <label>
+                    <input type="checkbox" value="1" name="UF_REG_IN_PL_INTARO" onchange="lpFieldToggle()" id="checkbox_UF_REG_IN_PL_INTARO"> <?= GetMessage("UF_REG_IN_PL_INTARO")?>
+                </label>
+            </div>
         </div>
-    </td>
-    <td><?= GetMessage("UF_REG_IN_PL_INTARO")?></td>
+       </td>
 </tr>
-<tr>
+<tr class="lp_toggled_block" style="display: none">
+    <td><?= GetMessage("BONUS_CARD_NUMBER")?></td>
+    <td><input size="30" type="text" name="UF_CARD_NUM_INTARO" value=""></td>
+</tr>
+<tr class="lp_toggled_block" style="display: none">
+    <td>
+        <?= GetMessage("REGISTER_FIELD_PERSONAL_PHONE")?>
+    </td>
+    <td>
+        <input size="30" type="text" name="REGISTER[PERSONAL_PHONE]" value>
+    </td>
+</tr>
+<tr class="lp_toggled_block" style="display: none">
     <td>
         <div class="fields boolean" id="main_UF_AGREE_PL_INTARO">
-            <div class="fields boolean"><input type="hidden" value="0" name="UF_AGREE_PL_INTARO">
-                <label><input type="checkbox" value="1" name="UF_AGREE_PL_INTARO"> да</label></div>
+            <div class="fields boolean">
+                <input type="hidden" value="0" name="UF_AGREE_PL_INTARO">
+                <label>
+                    <input class="lp_agree_checkbox" type="checkbox" value="1" name="UF_AGREE_PL_INTARO" > <?= GetMessage("YES")?>
+                </label>
+            </div>
         </div>
     </td>
     <td>
         <?= GetMessage("I_AM_AGREE")?> <a class="lp_agreement_link" href="javascript:void(0)" ><?= GetMessage("UF_AGREE_PL_INTARO")?></a>
     </td>
 </tr>
-<tr>
+<tr class="lp_toggled_block" style="display: none">
     <td>
         <div class="fields boolean" id="main_UF_PD_PROC_PL_INTARO">
             <div class="fields boolean"><input type="hidden" value="0" name="UF_PD_PROC_PL_INTARO">
-                <label><input type="checkbox" value="1" name="UF_PD_PROC_PL_INTARO"> да</label></div>
+                <label>
+                    <input class="lp_agree_checkbox" type="checkbox" value="1" name="UF_PD_PROC_PL_INTARO"> <?= GetMessage("YES")?>
+                </label>
+            </div>
         </div>
     </td>
     <td>

@@ -3009,7 +3009,11 @@ class ApiClient
         return $this->client->makeRequest(
             "/loyalty/account/create",
             Client::METHOD_POST,
-            $request
+            [
+                'loyaltyAccount'=>json_encode($request['loyaltyAccount']),
+                'site'=>$request['site'],
+            ]
+            
         );
     }
     

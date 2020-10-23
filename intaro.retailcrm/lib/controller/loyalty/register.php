@@ -2,18 +2,13 @@
 
 namespace Intaro\RetailCrm\Controller\Loyalty;
 
-use Bitrix\Main\Engine\ActionFilter\Authentication;
 use Bitrix\Main\Engine\Controller;
-use Intaro\RetailCrm\Component\ConfigProvider;
-use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
-use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountActivateRequest;
-use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountCreateRequest;
 use Intaro\RetailCrm\Model\Api\Request\SmsVerification\SmsVerificationConfirmRequest;
-use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusRequest;
-use Intaro\RetailCrm\Model\Api\SerializedCreateLoyaltyAccount;
 use Intaro\RetailCrm\Model\Api\SmsVerificationConfirm;
 use Intaro\RetailCrm\Model\Bitrix\User;
+use Intaro\RetailCrm\Service\UserAccountService;
+use RetailCrm\ApiClient;
 
 class Register extends Controller
 {
@@ -51,19 +46,8 @@ class Register extends Controller
         
         //TODO когда станет известен формат карты ПЛ, то добавить валидацию ввода
         
-        /** @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter $client */
-        $client      = ClientFactory::createClientAdapter();
-        $credentials = $client->getCredentials();
-        
-        $createRequest                               = new LoyaltyAccountCreateRequest();
-        $createRequest->site                         = $credentials->sitesAvailable[0];
-        $createRequest->loyaltyAccount               = new SerializedCreateLoyaltyAccount();
-        $createRequest->loyaltyAccount->phoneNumber  = $loyaltyAccount['phone'] ?? '';
-        $createRequest->loyaltyAccount->cardNumber   = $loyaltyAccount['card'] ?? '';
-        $createRequest->loyaltyAccount->customerId   = $loyaltyAccount['customerId'];
-        $createRequest->loyaltyAccount->customFields = $loyaltyAccount['customFields'] ?? [];
-        
-        $createResponse = $client->createLoyaltyAccount($createRequest);
+        $service = new UserAccountService();
+        $createResponse = $service->createLoyaltyAccount($loyaltyAccount['phone'], $loyaltyAccount['card'], (string) $loyaltyAccount['customerId'], $loyaltyAccount['customFields']);
         //TODO добавить провеку на кастомные поля, когда будет готов метод запроса
         if ($createResponse !== null) {
             
@@ -83,10 +67,8 @@ class Register extends Controller
                     'msgColor' => 'green'
                 ];
             }
-            
-            $activateRequest            = new LoyaltyAccountActivateRequest();
-            $activateRequest->loyaltyId = $createResponse->loyaltyAccount->id;
-            $activateResponse           = $client->activateLoyaltyAccount($activateRequest);
+    
+           $activateResponse = $service->activateLoyaltyAccount($createResponse->loyaltyAccount->id);
             
             if (isset($activateResponse->verification)) {
                 return ['status' => 'smsVerification'];

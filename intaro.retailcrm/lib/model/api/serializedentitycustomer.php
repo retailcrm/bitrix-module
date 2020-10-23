@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PHP version 7.1
  *
@@ -9,34 +10,34 @@
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
  */
+
 namespace Intaro\RetailCrm\Model\Api;
 
 use Intaro\RetailCrm\Component\Json\Mapping;
 
 /**
- * Class LoyaltyLevel
- *
+ * Class SerializedEntityCustomer
  * @package Intaro\RetailCrm\Model\Api
  */
-class LoyaltyLevel
+class SerializedEntityCustomer
 {
     /**
-     * ID уровня
+     * Внутренний ID клиента
      *
      * @var integer $id
      *
-     * @Mapping\Type("string")
+     * @Mapping\Type("integer")
      * @Mapping\SerializedName("id")
      */
     public $id;
     
     /**
-     * Название уровня
+     * Внешний ID клиента
      *
-     * @var string $name
+     * @var string $externalId
      *
      * @Mapping\Type("string")
-     * @Mapping\SerializedName("name")
+     * @Mapping\SerializedName("id")
      */
-    public $name;
+    public $externalId;
 }

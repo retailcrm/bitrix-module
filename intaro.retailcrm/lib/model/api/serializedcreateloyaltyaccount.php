@@ -43,12 +43,12 @@ class SerializedCreateLoyaltyAccount
     /**
      * 	ID клиента
      *
-     * @var integer $customerId
+     * @var \Intaro\RetailCrm\Model\Api\SerializedEntityCustomer
      *
-     * @Mapping\Type("integer")
-     * @Mapping\SerializedName("customerId")
+     * @Mapping\Type("\Intaro\RetailCrm\Model\Api\SerializedEntityCustomer")
+     * @Mapping\SerializedName("customer")
      */
-    public $customerId;
+    public $customer;
     
     /**
      * Ассоциативный массив пользовательских полей

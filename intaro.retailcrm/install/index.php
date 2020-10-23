@@ -1526,6 +1526,10 @@ class intaro_retailcrm extends CModule
                     'name'  => "UF_CARD_NUM_INTARO",
                     'title' => GetMessage('UF_CARD_NUMBER_INTARO_TITLE'),
                 ],
+                [
+                    'name'  => "UF_LP_ID_INTARO",
+                    'title' => GetMessage('UF_LP_ID_INTARO_TITLE'),
+                ],
             ],
             'string'
         );
