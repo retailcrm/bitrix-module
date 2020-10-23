@@ -19,11 +19,11 @@ use Bitrix\Main\Event;
 use Bitrix\Main\HttpRequest;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
+use Bitrix\Sale\Internals\PaymentTable;
 use Bitrix\Sale\Order;
 use Bitrix\Sale\PaySystem\Manager;
 use Exception;
 use Intaro\RetailCrm\Component\ConfigProvider;
-use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Repository\PaySystemActionRepository;
 use Intaro\RetailCrm\Service\LoyaltyService;
 
@@ -104,7 +104,7 @@ class EventsHandlers
     }
     
     /**
-     * Обработчик события, вызываемого при обновлении заказа
+     * Обработчик события, вызываемого при обновлении еще не сохраненного заказа
      *
      * @param \Bitrix\Sale\Order       $order
      * @param array                    $arUserResult
@@ -155,7 +155,9 @@ class EventsHandlers
             $response   = $service->sendBonusPayment($orderId, $bonusCount);
             
             //TODO - заглушка до появления api на стороне CRM. После появления реального апи - убрать следующую строку
-            $response->success=true;
+            $response->success = true;
+            $response->verification->checkId = 'проверочный код.';
+            //конец заглушки
             
             if ($response->success) {
                 try {
@@ -163,11 +165,34 @@ class EventsHandlers
                     $paymentCollection = $order->getPaymentCollection();
                     
                     if ($bonusPaySystem !== null) {
+                        if (count($paymentCollection) === 1) {
+                            /** @var \Bitrix\Sale\Payment $payment */
+                            foreach ($paymentCollection as $payment){
+                                $oldSum = $payment->getField('SUM');
+                                
+                                $payment->setField('SUM', $oldSum - $bonusCount);
+                                break;
+                            }
+                        }
+                        
                         $service    = Manager::getObjectById($bonusPaySystem->getId());
                         $newPayment = $paymentCollection->createItem($service);
                         
                         $newPayment->setField('SUM', $bonusCount);
-                        $newPayment->setPaid('Y');
+                        
+                        //если верификация необходима, но не пройдена
+                        if (isset($response->verification, $response->verification->checkId)
+                            && !isset($response->verification->verifiedAt)
+                        ) {
+                            $newPayment->setPaid('N');
+                            $newPayment->setField('COMMENTS', $response->verification->checkId);
+                        }
+    
+                        //если верификация не нужна
+                        if (!isset($response->verification)) {
+                            $newPayment->setPaid('Y');
+                        }
+                        
                         $order->save();
                     }
                 } catch (ObjectPropertyException | ArgumentException | SystemException | Exception $e) {

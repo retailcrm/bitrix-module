@@ -20,3 +20,32 @@ $(document).ready(function() {
 
     $('#bonus-input').on('keydown', _.debounce(makeAjaxRequest, 1000));
 });
+
+function sendVerificationCode(orderId, checkId) {
+    const verificationCode = $('#orderVerificationCode').val();
+
+    BX.ajax.runAction('intaro:retailcrm.api.loyalty.order.sendVerificationCode',
+        {
+            data: {
+                sessid: BX.bitrix_sessid(),
+                verificationCode:   verificationCode,
+                orderId: orderId,
+                checkId: checkId
+            }
+        }
+    ).then(
+        function(response) {
+            if (response.data.status === 'error' && response.data.msg !== undefined) {
+                const msg = $('#msg');
+                msg.text(response.data.msg);
+                msg.css('color', response.data.msgColor);
+            }
+
+            if (response.data.status === 'success') {
+                const msgBlock = $('#orderConfirm');
+                msgBlock.text(response.data.msg);
+                msgBlock.css('color', response.data.msgColor);
+            }
+        }
+    )
+}
