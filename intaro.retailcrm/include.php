@@ -2,6 +2,8 @@
 
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Service\CollectorCookieExtractor;
+use Intaro\RetailCrm\Service\LoyaltyService;
+use Intaro\RetailCrm\Service\UserAccountService;
 use Intaro\RetailCrm\Service\UserVerificationService;
 use Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\AnnotationReader;
 use Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\AnnotationRegistry;
@@ -29,5 +31,7 @@ ServiceLocator::registerServices([
     Logger::class,
     AnnotationReader::class,
     CollectorCookieExtractor::class,
-    UserVerificationService::class
+    UserVerificationService::class,
+    UserAccountService::class,
+    LoyaltyService::class
 ]);

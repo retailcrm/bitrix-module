@@ -120,6 +120,17 @@ class UserAccountService
     }
     
     /**
+     * @param $ufExtRegPlIntaro
+     * @return array
+     */
+    public function getExtFields($ufExtRegPlIntaro): array
+    {
+        //узнаем, какие поля не заполненые у этого пользователя
+        //если все заполнено, то пытаемся активировать
+        //если в ответ получаем номер кода подтверждения, то отдаем два поля: скрытое с номером отправки и инпут для ввода кода проверки
+    }
+    
+    /**
      * @throws \Exception
      */
     private function checkAuth()
