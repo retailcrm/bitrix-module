@@ -25,10 +25,14 @@ use CUser;
 use Exception;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
 use Intaro\RetailCrm\Component\ServiceLocator;
+use Intaro\RetailCrm\Model\Api\PriceType;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountActivateRequest;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\LoyaltyCalculateRequest;
 use Intaro\RetailCrm\Model\Api\Request\Order\Loyalty\OrderLoyaltyApplyRequest;
+use Intaro\RetailCrm\Model\Api\SerializedOrder;
 use Intaro\RetailCrm\Model\Api\SerializedOrderProduct;
+use Intaro\RetailCrm\Model\Api\SerializedOrderProductOffer;
+use Intaro\RetailCrm\Model\Api\SerializedRelationCustomer;
 use Intaro\RetailCrm\Repository\PaySystemActionRepository;
 
 /**
@@ -99,8 +103,10 @@ class LoyaltyService
     public function calculateBonus(array $basketItems, int $discountPrice, int $discountPercent)
     {
         global $USER;
-        
+    
         $request                              = new LoyaltyCalculateRequest();
+        $request->order                       = new SerializedOrder();
+        $request->order->customer             = new SerializedRelationCustomer();
         $request->order->customer->id         = $USER->GetID();
         $request->order->customer->externalId = $USER->GetID();
         
@@ -129,6 +135,7 @@ class LoyaltyService
             }
             
             $product->initialPrice      = $item['PRICE'];
+            $product->offer = new SerializedOrderProductOffer();
             $product->offer->externalId = $item['ID'];
             $product->offer->id         = $item['ID'];
             $product->offer->xmlId      = $item['XML_ID'];
@@ -143,7 +150,7 @@ class LoyaltyService
                         ]
                     )
                     ->fetch();
-                
+                $product->priceType = new PriceType();
                 $product->priceType->code = $price['NAME'];
             } catch (ObjectPropertyException | ArgumentException | SystemException $e) {
                 AddMessage2Log('GroupTable query error: ' . $e->getMessage());

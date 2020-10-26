@@ -2990,6 +2990,22 @@ class ApiClient
     }
     
     /**
+     * @param array $request
+     * @return \RetailCrm\Response\ApiResponse
+     */
+    public function loyaltyOrderCalculate(array $request): ApiResponse
+    {
+        return $this->client->makeRequest(
+            "/loyalty/calculate",
+            Client::METHOD_POST,
+            [
+               'site'=> json_encode($request['site']),
+               'order'=> json_encode($request['order'])
+            ]
+        );
+    }
+    
+    /**
      * @return \RetailCrm\Response\ApiResponse
      */
     public function getCredentials(): ApiResponse

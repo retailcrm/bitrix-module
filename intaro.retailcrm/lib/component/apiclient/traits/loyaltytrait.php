@@ -75,7 +75,7 @@ trait LoyaltyTrait
     public function loyaltyCalculate(LoyaltyCalculateRequest $request): ?LoyaltyCalculateResponse
     {
         $serialized = Serializer::serializeArray($request);
-        $response   = $this->client->loyaltyOrderApply($serialized);
+        $response   = $this->client->loyaltyOrderCalculate($serialized);
         
         return Deserializer::deserializeArray($response->getResponseBody(), LoyaltyCalculateResponse::class);
     }
