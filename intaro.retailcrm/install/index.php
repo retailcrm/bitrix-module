@@ -10,24 +10,21 @@ global $MESS;
 use Bitrix\Highloadblock\HighloadBlockTable;
 use Bitrix\Main\Application;
 use Bitrix\Main\ArgumentException;
-use Bitrix\Main\ArgumentOutOfRangeException;
 use Bitrix\Main\Context;
 use Bitrix\Main\EventManager;
 use Bitrix\Main\Loader;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
-use Bitrix\Main\UserConsent\Internals\AgreementTable;
 use Bitrix\Sale\Internals\OrderPropsGroupTable;
 use Bitrix\Sale\Internals\PaySystemActionTable;
 use Bitrix\Sale\Delivery\Services\Manager;
 use Bitrix\sale\EventActions;
 use Bitrix\Sale\Internals\OrderTable;
-use Intaro\RetailCrm\Component\ConfigProvider;
+use Intaro\RetailCrm\Component\Handlers\EventsHandlers;
 use Intaro\RetailCrm\Model\Bitrix\Agreement;
 use Intaro\RetailCrm\Repository\AgreementRepository;
 use \RetailCrm\ApiClient;
 use RetailCrm\Exception\CurlException;
-use Intaro\RetailCrm\Component\Loyalty\EventsHandlers;
 use Intaro\RetailCrm\Repository\ToModuleRepository;
 
 IncludeModuleLangFile(__FILE__);
@@ -1003,7 +1000,6 @@ class intaro_retailcrm extends CModule
             RegisterModule($this->MODULE_ID);
             RegisterModuleDependences("sale", "OnOrderUpdate", $this->MODULE_ID, "RetailCrmEvent", "onUpdateOrder");
             RegisterModuleDependences("main", "OnAfterUserUpdate", $this->MODULE_ID, "RetailCrmEvent", "OnAfterUserUpdate");
-            RegisterModuleDependences("sale", EventActions::EVENT_ON_ORDER_SAVED, $this->MODULE_ID, "RetailCrmEvent", "orderSave");
             RegisterModuleDependences("sale", "OnSaleOrderDeleted", $this->MODULE_ID, "RetailCrmEvent", "orderDelete");
             RegisterModuleDependences("sale", "OnSalePaymentEntitySaved", $this->MODULE_ID, "RetailCrmEvent", "paymentSave");
             RegisterModuleDependences("sale", "OnSalePaymentEntityDeleted", $this->MODULE_ID, "RetailCrmEvent", "paymentDelete");
@@ -1256,16 +1252,6 @@ class intaro_retailcrm extends CModule
         COption::RemoveOption($this->MODULE_ID, $this->HISTORY_TIME);
         COption::RemoveOption($this->MODULE_ID, $this->CLIENT_ID);
         COption::RemoveOption($this->MODULE_ID, $this->PROTOCOL);
-
-        if (CModule::IncludeModule('sale')) {
-            UnRegisterModuleDependences(
-                "sale",
-                EventActions::EVENT_ON_ORDER_SAVED,
-                $this->MODULE_ID,
-                "RetailCrmEvent",
-                "orderSave"
-            );
-        }
 
         UnRegisterModuleDependences("sale", "OnOrderUpdate", $this->MODULE_ID, "RetailCrmEvent", "onUpdateOrder");
         UnRegisterModuleDependences("main", "OnAfterUserUpdate", $this->MODULE_ID, "RetailCrmEvent", "OnAfterUserUpdate");
@@ -1523,15 +1509,22 @@ class intaro_retailcrm extends CModule
         $this->addCustomUserFields(
             [
                 [
-                    'name'  => "UF_CARD_NUM_INTARO",
-                    'title' => GetMessage('UF_CARD_NUMBER_INTARO_TITLE'),
-                ],
-                [
                     'name'  => "UF_LP_ID_INTARO",
                     'title' => GetMessage('UF_LP_ID_INTARO_TITLE'),
                 ],
             ],
             'string'
+        );
+    
+        $this->addCustomUserFields(
+            [
+                [
+                    'name'  => "UF_LP_ID_INTARO",
+                    'title' => GetMessage('UF_LP_ID_INTARO_TITLE'),
+                ],
+            ],
+            'string',
+            ['EDIT_IN_LIST' => 'N']
         );
         
         $this->addCustomUserFields(
@@ -1559,8 +1552,9 @@ class intaro_retailcrm extends CModule
     /**
      * @param        $fields
      * @param string $filedType
+     * @param array  $customProps
      */
-    public function addCustomUserFields($fields, $filedType = 'boolean'): void
+    public function addCustomUserFields($fields, $filedType = 'boolean', $customProps  = []): void
     {
         foreach ($fields as $filed) {
             $arProps     = [
@@ -1572,11 +1566,12 @@ class intaro_retailcrm extends CModule
                 "EDIT_FORM_LABEL" => ["ru" => $filed['title']],
             
             ];
+            $props = array_merge($arProps, $customProps);
             $obUserField = new CUserTypeEntity;
             $dbRes       = CUserTypeEntity::GetList([], ["FIELD_NAME" => $filed['name']])->fetch();
             
             if (!$dbRes['ID']) {
-                $obUserField->Add($arProps);
+                $obUserField->Add($props);
             }
         }
     }

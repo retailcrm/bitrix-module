@@ -109,8 +109,8 @@ $MESS['PHONE_REQUIRED'] = "В настройках главного модуля
 
 $MESS ['LOYALTY_PROGRAM_TITLE'] = 'Программа лояльности';
 $MESS ['LOYALTY_PROGRAM_TOGGLE_MSG'] = 'Активность программы лояльности';
-$MESS ['LP_CUSTOM_TEMP_CREATE_MSG'] = 'Создать шаблон intaro.retailCRM для компонента оформления заказа sale.order.ajax c функциями Программы лояльности. <br> <b>Внимение:</b> если шаблон уже существует, то он будет перезаписан';
-$MESS ['LP_CUSTOM_REG_TEMP_CREATE_MSG'] = 'Создать шаблон intaro.retailCRM для компонента регистрации main.register c функциями Программы лояльности. <br> <b>Внимение:</b> если шаблон уже существует, то он будет перезаписан';
+$MESS ['LP_CUSTOM_TEMP_CREATE_MSG'] = 'Создать шаблон intaro.retailCRM для компонента оформления заказа sale.order.ajax c функциями Программы лояльности. <br> <b>Внимание:</b> если шаблон уже существует, то он будет перезаписан';
+$MESS ['LP_CUSTOM_REG_TEMP_CREATE_MSG'] = 'Создать шаблон intaro.retailCRM для компонента регистрации main.register c функциями Программы лояльности. <br> <b>Внимание:</b> если шаблон уже существует, то он будет перезаписан';
 $MESS ['LP_DEF_TEMP_CREATE_MSG'] = 'Заменить шаблон .default компонента sale.order.ajax шаблоном с функциями Программы лояльности. <br>  Если в папке шаблонов компонента уже будет .default, то он будет скопирован в папку .default_backup';
 $MESS ['LP_CREATE_TEMPLATE'] = 'Создать шаблон';
 $MESS ['LP_REPLACE_TEMPLATE'] = 'Заменить шаблон';

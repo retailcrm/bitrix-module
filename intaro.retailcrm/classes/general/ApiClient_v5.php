@@ -617,24 +617,19 @@ class ApiClient
             $this->fillSite($site, $parameters)
         );
     }
-
+    
     /**
      * Create corporate customer address
      *
-     * @param string $id       corporate customer identifier
-     * @param array  $address  (default: array())
-     * @param string $by       (default: 'externalId')
-     * @param string $site     (default: null)
-     *
-     * @throws \InvalidArgumentException
-     * @throws \RetailCrm\Exception\CurlException
-     * @throws \RetailCrm\Exception\InvalidJsonException
+     * @param string $id      corporate customer identifier
+     * @param array  $address (default: array())
+     * @param string $by      (default: 'externalId')
+     * @param null   $site    (default: null)
      *
      * @return \RetailCrm\Response\ApiResponse
      */
-    public function customersCorporateAddressesCreate($id, array $address = [], $by = 'externalId', $site = null)
+    public function customersCorporateAddressesCreate($id, array $address = [], $by = 'externalId', $site = null): ApiResponse
     {
-        /* @noinspection PhpUndefinedMethodInspection */
         return $this->client->makeRequest(
             "/customers-corporate/$id/addresses/create",
             Client::METHOD_POST,
@@ -2985,7 +2980,11 @@ class ApiClient
         return $this->client->makeRequest(
             "/orders/loyalty/apply",
             Client::METHOD_POST,
-            $request
+            [
+                'site'    => $request['site'],
+                'order'   => json_encode($request['order']),
+                'bonuses' => $request['bonuses'],
+            ]
         );
     }
     

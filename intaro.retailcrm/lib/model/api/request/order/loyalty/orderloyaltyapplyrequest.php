@@ -22,10 +22,30 @@ use Intaro\RetailCrm\Model\Api\AbstractApiModel;
 class OrderLoyaltyApplyRequest extends AbstractApiModel
 {
     /**
+     * Символьный код магазина
+     *
+     * @var string $site
+     *
+     * @Mapping\Type("string")
+     * @Mapping\SerializedName("site")
+     */
+    public $site;
+    
+    /**
      * @var \Intaro\RetailCrm\Model\Api\SerializedOrderReference
      *
      * @Mapping\Type("\Intaro\RetailCrm\Model\Api\SerializedOrderReference")
      * @Mapping\SerializedName("order")
      */
     public $order;
+    
+    /**
+     * Количество бонусов для списания
+     *
+     * @var float $bonuses
+     *
+     * @Mapping\Type("float")
+     * @Mapping\SerializedName("bonuses")
+     */
+    public $bonuses;
 }

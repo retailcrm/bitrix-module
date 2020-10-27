@@ -10,22 +10,17 @@
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
  */
-namespace Intaro\RetailCrm\Component\Loyalty;
+namespace Intaro\RetailCrm\Component\Handlers;
 
 IncludeModuleLangFile(__FILE__);
 
-use Bitrix\Main\ArgumentException;
 use Bitrix\Main\Event;
 use Bitrix\Main\HttpRequest;
-use Bitrix\Main\ObjectPropertyException;
-use Bitrix\Main\SystemException;
 use Bitrix\Sale\Order;
-use Bitrix\Sale\PaySystem\Manager;
-use Exception;
 use Intaro\RetailCrm\Component\ConfigProvider;
-use Intaro\RetailCrm\Repository\PaySystemActionRepository;
 use Intaro\RetailCrm\Repository\UserRepository;
 use Intaro\RetailCrm\Service\LoyaltyService;
+use Intaro\RetailCrm\Service\OrderService;
 use Intaro\RetailCrm\Service\UserAccountService;
 use RetailCrm\ApiClient;
 use RetailcrmConfigProvider;
@@ -139,71 +134,17 @@ class EventsHandlers
     }
     
     /**
-     * Обработчик события, вызываемого ПОСЛЕ сохранения заказа
+     * Обработчик события, вызываемого ПОСЛЕ сохранения заказа (OnSaleOrderSaved)
      *
      * @param \Bitrix\Main\Event $event
      */
     public function OnSaleOrderSavedHandler(Event $event): void
     {
-        /**@var \Bitrix\Sale\Order $order */
-        $order = $event->getParameter("ENTITY");
-        $isNew = $event->getParameter("IS_NEW");
-        
-        if (isset($_POST['bonus-input'], $_POST['available-bonuses'])
-            && $isNew
-            && (int)$_POST['available-bonuses'] >= (int)$_POST['bonus-input']
-        ) {
-            $orderId    = $order->getId();
-            $bonusCount = $_POST['bonus-input'];
-            $service    = new LoyaltyService();
-            $response   = $service->sendBonusPayment($orderId, $bonusCount);
-            
-            //TODO - заглушка до появления api на стороне CRM. После появления реального апи - убрать следующую строку
-            $response->success = true;
-            $response->verification->checkId = 'проверочный код.';
-            //конец заглушки
-            
-            if ($response->success) {
-                try {
-                    $bonusPaySystem    = PaySystemActionRepository::getFirstByWhere(['ID'], [['ACTION_FILE', '=', 'retailcrmbonus']]);
-                    $paymentCollection = $order->getPaymentCollection();
-                    
-                    if ($bonusPaySystem !== null) {
-                        if (count($paymentCollection) === 1) {
-                            /** @var \Bitrix\Sale\Payment $payment */
-                            foreach ($paymentCollection as $payment){
-                                $oldSum = $payment->getField('SUM');
-                                
-                                $payment->setField('SUM', $oldSum - $bonusCount);
-                                break;
-                            }
-                        }
-                        
-                        $service    = Manager::getObjectById($bonusPaySystem->getId());
-                        $newPayment = $paymentCollection->createItem($service);
-                        
-                        $newPayment->setField('SUM', $bonusCount);
-                        
-                        //если верификация необходима, но не пройдена
-                        if (isset($response->verification, $response->verification->checkId)
-                            && !isset($response->verification->verifiedAt)
-                        ) {
-                            $newPayment->setPaid('N');
-                            $newPayment->setField('COMMENTS', $response->verification->checkId);
-                        }
+        $orderService   = new OrderService();
+        $loyaltyService = new LoyaltyService();
     
-                        //если верификация не нужна
-                        if (!isset($response->verification)) {
-                            $newPayment->setPaid('Y');
-                        }
-                        
-                        $order->save();
-                    }
-                } catch (ObjectPropertyException | ArgumentException | SystemException | Exception $e) {
-                    AddMessage2Log('ERROR PaySystemActionRepository: ' . $e->getMessage());
-                }
-            }
-        }
+        $orderService->saveOrderInCRM($event);
+        $loyaltyService->applyBonusesInOrder($event);
     }
     
     /**

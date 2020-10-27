@@ -8,7 +8,6 @@ use Intaro\RetailCrm\Model\Api\Request\SmsVerification\SmsVerificationConfirmReq
 use Intaro\RetailCrm\Model\Api\SmsVerificationConfirm;
 use Intaro\RetailCrm\Model\Bitrix\User;
 use Intaro\RetailCrm\Service\UserAccountService;
-use RetailCrm\ApiClient;
 
 class Register extends Controller
 {

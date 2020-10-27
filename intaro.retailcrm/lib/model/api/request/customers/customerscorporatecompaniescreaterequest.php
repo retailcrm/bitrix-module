@@ -32,7 +32,7 @@ class CustomersCorporateCompaniesCreateRequest extends AbstractApiModel
     public $externalId;
 
     /**
-     * @var \Intaro\RetailCrm\Model\Api\Company
+     * @var \Intaro\RetailCrm\Model\Api\Company $company
      *
      * @Mapping\Type("Intaro\RetailCrm\Model\Api\Company")
      * @Mapping\SerializedName("company")

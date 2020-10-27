@@ -16,11 +16,13 @@ namespace Intaro\RetailCrm\Service;
 use Bitrix\Catalog\GroupTable;
 use Bitrix\Main\ArgumentException;
 use Bitrix\Main\ArgumentNullException;
+use Bitrix\Main\Event;
 use Bitrix\Main\Loader;
 use Bitrix\Main\LoaderException;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
 use Bitrix\Sale\Order;
+use Bitrix\Sale\PaySystem\Manager;
 use CUser;
 use Exception;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
@@ -32,6 +34,7 @@ use Intaro\RetailCrm\Model\Api\Request\Order\Loyalty\OrderLoyaltyApplyRequest;
 use Intaro\RetailCrm\Model\Api\SerializedOrder;
 use Intaro\RetailCrm\Model\Api\SerializedOrderProduct;
 use Intaro\RetailCrm\Model\Api\SerializedOrderProductOffer;
+use Intaro\RetailCrm\Model\Api\SerializedOrderReference;
 use Intaro\RetailCrm\Model\Api\SerializedRelationCustomer;
 use Intaro\RetailCrm\Repository\PaySystemActionRepository;
 
@@ -81,9 +84,14 @@ class LoyaltyService
      */
     public function sendBonusPayment(int $orderId, int $bonusCount)
     {
-        $request                 = new OrderLoyaltyApplyRequest();
-        $request->order->id      = $orderId;
-        $request->order->bonuses = $bonusCount;
+        $request                    = new OrderLoyaltyApplyRequest();
+        $request->order             = new SerializedOrderReference();
+        $request->order->externalId = $orderId;
+        $request->bonuses           = $bonusCount;
+        /** @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter $client */
+        $client        = ClientFactory::createClientAdapter();
+        $credentials   = $client->getCredentials();
+        $request->site = $credentials->sitesAvailable[0];
         
         $result = $this->client->loyaltyOrderApply($request);
         
@@ -277,6 +285,66 @@ class LoyaltyService
             ];
         }
         return $regInLp;
+    }
+    
+    /**
+     * @param \Bitrix\Main\Event $event
+     */
+    public function applyBonusesInOrder(Event $event): void
+    {
+        /**@var \Bitrix\Sale\Order $order */
+        $order = $event->getParameter("ENTITY");
+        $isNew = $event->getParameter("IS_NEW");
+    
+        if (isset($_POST['bonus-input'], $_POST['available-bonuses'])
+            && $isNew
+            && (int)$_POST['available-bonuses'] >= (int)$_POST['bonus-input']
+        ) {
+            $orderId    = $order->getId();
+            $bonusCount = (int) $_POST['bonus-input'];
+            $response   = $this->sendBonusPayment($orderId, $bonusCount);
+        
+            if ($response->success) {
+                try {
+                    $bonusPaySystem    = PaySystemActionRepository::getFirstByWhere(['ID'], [['ACTION_FILE', '=', 'retailcrmbonus']]);
+                    $paymentCollection = $order->getPaymentCollection();
+                
+                    if ($bonusPaySystem !== null) {
+                        if (count($paymentCollection) === 1) {
+                            /** @var \Bitrix\Sale\Payment $payment */
+                            foreach ($paymentCollection as $payment){
+                                $oldSum = $payment->getField('SUM');
+                            
+                                $payment->setField('SUM', $oldSum - $bonusCount);
+                                break;
+                            }
+                        }
+                    
+                        $service    = Manager::getObjectById($bonusPaySystem->getId());
+                        $newPayment = $paymentCollection->createItem($service);
+                    
+                        $newPayment->setField('SUM', $bonusCount);
+                    
+                        //если верификация необходима, но не пройдена
+                        if (isset($response->verification, $response->verification->checkId)
+                            && !isset($response->verification->verifiedAt)
+                        ) {
+                            $newPayment->setPaid('N');
+                            $newPayment->setField('COMMENTS', $response->verification->checkId);
+                        }
+                    
+                        //если верификация не нужна
+                        if (!isset($response->verification)) {
+                            $newPayment->setPaid('Y');
+                        }
+                    
+                        $order->save();
+                    }
+                } catch (ObjectPropertyException | ArgumentException | SystemException | Exception $e) {
+                    AddMessage2Log('ERROR PaySystemActionRepository: ' . $e->getMessage());
+                }
+            }
+        }
     }
     
     /**

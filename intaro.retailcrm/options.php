@@ -1474,9 +1474,9 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                     ?>
                                     <h4>Редактирование соглашений</h4>
                                     <?php if (isset($isAgreementLoyaltyProgram['ID']) && isset($isAgreementLoyaltyProgram['ID'])) { ?>
-                                        <a href="<?= SITE_SERVER_NAME . '/bitrix/admin/agreement_edit.php?ID=' . $isAgreementLoyaltyProgram['ID']?>">Редактирование "Соглашения на обработку персональных данных"</a>
+                                        <a href="<?= SITE_SERVER_NAME . '/bitrix/admin/agreement_edit.php?ID=' . $isAgreementLoyaltyProgram['ID']?>">Соглашение на обработку персональных данных</a>
                                         <br>
-                                        <a href="<?= SITE_SERVER_NAME . '/bitrix/admin/agreement_edit.php?ID=' . $isAgreementLoyaltyProgram['ID']?>">Ссылка на Согласие с условиями программы лояльности</a>
+                                        <a href="<?= SITE_SERVER_NAME . '/bitrix/admin/agreement_edit.php?ID=' . $isAgreementLoyaltyProgram['ID']?>">Согласие с условиями программы лояльности</a>
                                     <?php } ?>
                                 </td>
                             </tr>
