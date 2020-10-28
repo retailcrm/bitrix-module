@@ -30,7 +30,9 @@ use Intaro\RetailCrm\Model\Api\Request\Customers\CustomersCorporateCompaniesCrea
 use Intaro\RetailCrm\Model\Api\Request\Customers\CustomersCorporateCompaniesRequest;
 use Intaro\RetailCrm\Model\Api\Request\Customers\CustomersCorporateContactsCreateRequest;
 use Intaro\RetailCrm\Model\Api\Request\Customers\CustomersCorporateListRequest;
+use Intaro\RetailCrm\Model\Api\Request\Customers\CustomersGetRequest;
 use RCrmActions;
+use RetailCrm\ApiClient;
 use RetailcrmConfigProvider;
 use RetailCrmCorporateClient;
 use RetailCrmOrder;
@@ -43,9 +45,17 @@ use RetailCrmUser;
  */
 class OrderService
 {
-    public function saveOrderInCRM($event)
+    //TODO перевести запросы с массивов на модели
+    /**
+     * @param $event
+     * @return bool
+     * @throws \Bitrix\Main\ArgumentException
+     * @throws \Bitrix\Main\ObjectPropertyException
+     * @throws \Bitrix\Main\SystemException
+     */
+    public function saveOrderInCRM($event): bool
     {
-        if (true === $GLOBALS['ORDER_DELETE_USER_ADMIN']) {
+        if (true == $GLOBALS['ORDER_DELETE_USER_ADMIN']) {
             return false;
         }
         
@@ -87,23 +97,14 @@ class OrderService
             
             return false;
         }
-    
-        try {
-            $arOrder = RetailCrmOrder::orderObjToArr($obOrder);
-        } catch (SystemException $exception) {
-            AddMessage2Log($exception->getMessage());
-        }
-    
-        /** @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter $client */
-        $api = ClientFactory::createClientAdapter();
         
-        if ($api === null) {
-            return false;
-        }
+        $arOrder = RetailCrmOrder::orderObjToArr($obOrder);
+        
+        $api = new ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
         
         //params
         $optionsOrderTypes     = RetailcrmConfigProvider::getOrderTypes();
-        $optionsDeliveryTypes  = RetailcrmConfigProvider::getDeliveryTypes();
+        $optionsDelivTypes     = RetailcrmConfigProvider::getDeliveryTypes();
         $optionsPayTypes       = RetailcrmConfigProvider::getPaymentTypes();
         $optionsPayStatuses    = RetailcrmConfigProvider::getPaymentStatuses(); // --statuses
         $optionsPayment        = RetailcrmConfigProvider::getPayment();
@@ -118,7 +119,7 @@ class OrderService
         
         $arParams = RCrmActions::clearArr([
             'optionsOrderTypes'     => $optionsOrderTypes,
-            'optionsDelivTypes'     => $optionsDeliveryTypes,
+            'optionsDelivTypes'     => $optionsDelivTypes,
             'optionsPayTypes'       => $optionsPayTypes,
             'optionsPayStatuses'    => $optionsPayStatuses,
             'optionsPayment'        => $optionsPayment,
@@ -131,9 +132,7 @@ class OrderService
         
         //many sites?
         if ($optionsSitesList) {
-            if (isset($arOrder)
-                && array_key_exists($arOrder['LID'], $optionsSitesList)
-                && $optionsSitesList[$arOrder['LID']] !== null) {
+            if (array_key_exists($arOrder['LID'], $optionsSitesList) && $optionsSitesList[$arOrder['LID']] !== null) {
                 $site = $optionsSitesList[$arOrder['LID']];
             } else {
                 return false;
@@ -157,53 +156,51 @@ class OrderService
             //corparate cliente
             $nickName    = '';
             $address     = '';
-            $contractor  = new Contragent();
+            $corpAddress = '';
+            $contragent  = [];
             $userCorp    = [];
             $corpName    = RetailcrmConfigProvider::getCorporateClientName();
             $corpAddress = RetailcrmConfigProvider::getCorporateClientAddress();
             
             foreach ($arOrder['PROPS']['properties'] as $prop) {
-                if ($prop['CODE'] === $corpName) {
+                if ($prop['CODE'] == $corpName) {
                     $nickName = $prop['VALUE'][0];
                 }
                 
-                if ($prop['CODE'] === $corpAddress) {
+                if ($prop['CODE'] == $corpAddress) {
                     $address = $prop['VALUE'][0];
                 }
                 
                 if (!empty($optionsLegalDetails)
                     && $search = array_search($prop['CODE'], $optionsLegalDetails[$arOrder['PERSON_TYPE_ID']], true)
                 ) {
-                    $contractor->{$search} = $prop['VALUE'][0];//legal order data
+                    $contragent[$search] = $prop['VALUE'][0];//legal order data
                 }
             }
-    
-            $customersCorporateRequest = new CustomersCorporateListRequest();
-            $customersCorporateRequest->filter->companyName = $nickName;
-            $response           = $api->customersCorporateList($customersCorporateRequest);
             
-            if ($response && $response->success === true) {
+            $customersCorporate = false;
+            $response           = $api->customersCorporateList(['companyName' => $nickName]);
+            
+            if ($response && $response->getStatusCode() === 200) {
                 $customersCorporate = $response['customersCorporate'];
                 $singleCorp         = reset($customersCorporate);
                 
                 if (!empty($singleCorp)) {
                     $userCorp['customerCorporate'] = $singleCorp;
+                    $companiesResponse             = $api->customersCorporateCompanies(
+                        $singleCorp['id'],
+                        [],
+                        null,
+                        null,
+                        'id',
+                        $site
+                    );
                     
-                    $customersCorporateCompaniesRequest = new CustomersCorporateCompaniesRequest();
-                    $customersCorporateCompaniesRequest->site = $site;
-                    $customersCorporateCompaniesRequest->by = 'id';
-                    $customersCorporateCompaniesRequest->idOrExternalId = $singleCorp['id'];
-                    $customersCorporateCompaniesRequest->filter =[];
-                    $customersCorporateCompaniesRequest->page =null;
-                    $customersCorporateCompaniesRequest->limit =null;
-                    
-                    $companiesResponse             = $api->customersCorporateCompanies($customersCorporateCompaniesRequest);
-                    
-                    if ($companiesResponse && $companiesResponse->success === true) {
+                    if ($companiesResponse && $companiesResponse->isSuccessful()) {
                         $orderCompany = array_reduce(
                             $companiesResponse['companies'],
-                            static function ($carry, $item) use ($nickName) {
-                                if (is_array($item) && $item['name'] === $nickName) {
+                            function ($carry, $item) use ($nickName) {
+                                if (is_array($item) && $item['name'] == $nickName) {
                                     $carry = $item;
                                 }
                                 
@@ -227,11 +224,7 @@ class OrderService
             $userCrm = RCrmActions::apiMethod($api, 'customersGet', __METHOD__, $arOrder['USER_ID'], $site);
             
             if (!isset($userCrm['customer'])) {
-                try {
-                    $arUser = UserTable::getById($arOrder['USER_ID'])->fetch();
-                } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
-                    AddMessage2Log($exception);
-                }
+                $arUser = UserTable::getById($arOrder['USER_ID'])->fetch();
                 
                 if (!empty($address)) {
                     $arUser['PERSONAL_STREET'] = $address;
@@ -272,57 +265,63 @@ class OrderService
                 
                 $arParams['customerCorporate'] = $resultUserCorp;
                 $arParams['orderCompany']      = $resultUserCorp['mainCompany'] ?? null;
-    
+                
+                $customerCorporateAddress = [];
+                $customerCorporateCompany = [];
                 $addressResult            = null;
                 $companyResult            = null;
-                $customerCorporateCompany = [];
                 
                 if (!empty($address)) {
-                    $customersCorporateAddressesCreateRequest = new CustomersCorporateAddressesCreateRequest();
-                    $customersCorporateAddressesCreateRequest->externalId = $resultUserCorp['id'];
-                    $customersCorporateAddressesCreateRequest->address = new Address;
-                    $customersCorporateAddressesCreateRequest->address->name = $nickName;
-                    $customersCorporateAddressesCreateRequest->address->isMain = true;
-                    $customersCorporateAddressesCreateRequest->address->text = $address;
-                    $customersCorporateAddressesCreateRequest->by = 'id';
-                    $customersCorporateAddressesCreateRequest->site = $site;
+                    //TODO address builder add
+                    $customerCorporateAddress = [
+                        'name'   => $nickName,
+                        'isMain' => true,
+                        'text'   => $address,
+                    ];
                     
-                    $addressResult = $api->customersCorporateAddressesCreate($customersCorporateAddressesCreateRequest);
+                    $addressResult = $api->customersCorporateAddressesCreate($resultUserCorp['id'], $customerCorporateAddress, 'id', $site);
                 }
-    
-                if ($addressResult->success === true) {
+                
+                $customerCorporateCompany = [
+                    'name'       => $nickName,
+                    'isMain'     => true,
+                    'contragent' => $contragent,
+                ];
+                
+                if ($addressResult !== null) {
                     $customerCorporateCompany['address'] = [
                         'id' => $addressResult['id'],
                     ];
                 }
                 
-                $customersCorporateCompaniesCreateRequest = new CustomersCorporateCompaniesCreateRequest();
-                $customersCorporateCompaniesCreateRequest->externalId = $resultUserCorp['id'];
-                $customersCorporateCompaniesCreateRequest->company = new Company();
-                $customersCorporateCompaniesCreateRequest->company->name = $nickName;
-                $customersCorporateCompaniesCreateRequest->company->isMain = true;
-                $customersCorporateCompaniesCreateRequest->company->contragent = $contractor;
-                $customersCorporateCompaniesCreateRequest->by = 'id';
-                $customersCorporateCompaniesCreateRequest->site = $site;
-    
-                $companyResult = $api->customersCorporateCompaniesCreate($customersCorporateCompaniesCreateRequest);
-    
-                $customersCorporateContactsCreateRequest= new CustomersCorporateContactsCreateRequest();
-                $customersCorporateContactsCreateRequest->contact = new CustomerContact;
-                $customersCorporateContactsCreateRequest->contact->isMain = true;
-                $customersCorporateContactsCreateRequest->contact->customer = new Customer;
-                $customersCorporateContactsCreateRequest->contact->customer->externalId = $arOrder['USER_ID'];
-                $customersCorporateContactsCreateRequest->contact->customer->site = $site;
-                $customersCorporateContactsCreateRequest->site = $site;
-                $customersCorporateContactsCreateRequest->idOrExternalId = $resultUserCorp['id'];
+                $companyResult = $api->customersCorporateCompaniesCreate($resultUserCorp['id'], $customerCorporateCompany, 'id', $site);
                 
-                if ($companyResult->success === true) {
-                    $company = new Company();
-                    $company->id = $companyResult->id;
-                    $customersCorporateContactsCreateRequest->contact->companies[0] = $company;
+                $customerCorporateContact = [
+                    'isMain'   => true,
+                    'customer' => [
+                        'externalId' => $arOrder['USER_ID'],
+                        'site'       => $site,
+                    ],
+                ];
+                
+                if ($companyResult !== null) {
+                    $orderCompany = [
+                        'id' => $companyResult['id'],
+                    ];
+                    
+                    $customerCorporateContact['companies'] = [
+                        [
+                            'company' => $orderCompany,
+                        ],
+                    ];
                 }
                 
-                $api->customersCorporateContactsCreate($customersCorporateContactsCreateRequest);
+                $api->customersCorporateContactsCreate(
+                    $resultUserCorp['id'],
+                    $customerCorporateContact,
+                    'id',
+                    $site
+                );
                 
                 $arParams['orderCompany'] = array_merge(
                     $customerCorporateCompany,
@@ -349,16 +348,8 @@ class OrderService
             //user
             $userCrm = RCrmActions::apiMethod($api, 'customersGet', __METHOD__, $arOrder['USER_ID'], $site);
             if (!isset($userCrm['customer'])) {
-                try {
-                    $arUser = UserTable::getById($arOrder['USER_ID'])->fetch();
-                } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
-                    AddMessage2Log($exception->getMessage());
-                    
-                    return false;
-                }
-                
+                $arUser     = UserTable::getById($arOrder['USER_ID'])->fetch();
                 $resultUser = RetailCrmUser::customerSend($arUser, $api, $optionsContragentType[$arOrder['PERSON_TYPE_ID']], true, $site);
-                
                 if (!$resultUser) {
                     RCrmActions::eventLog('RetailCrmEvent::orderSave', 'RetailCrmUser::customerSend', 'error during creating customer');
                     
@@ -368,18 +359,14 @@ class OrderService
         }
         
         //order
-        try {
-            $resultOrder = RetailCrmOrder::orderSend($arOrder, $api, $arParams, true, $site, $methodApi);
+        $resultOrder = RetailCrmOrder::orderSend($arOrder, $api, $arParams, true, $site, $methodApi);
+        
+        if (!$resultOrder) {
+            RCrmActions::eventLog('RetailCrmEvent::orderSave', 'RetailCrmOrder::orderSend', 'error during creating order');
             
-            if (!$resultOrder) {
-                RCrmActions::eventLog('RetailCrmEvent::orderSave', 'RetailCrmOrder::orderSend', 'error during creating order');
-                
-                return false;
-            }
-            
-            return true;
-        } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
-            AddMessage2Log($exception->getMessage());
+            return false;
         }
+        
+        return true;
     }
 }

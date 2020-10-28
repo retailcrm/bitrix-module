@@ -122,3 +122,7 @@ $MESS ['REPLACING_THE_STANDARD_TEMPLATE'] = 'Замена стандартног
 $MESS ['LP_MAIN_REGISTER_HEAD'] = 'Управление компонентом регистрации (main.register)';
 $MESS ['LP_DEF_TEMP_REG_CREATE_MSG'] = 'Заменить шаблон .default компонента main.register шаблоном с функциями Программы лояльности. <br> Если в папке шаблонов компонента уже будет .default, то он будет скопирован в папку .default_backup';
 
+$MESS ['AGREEMENT_PROCESSING_PERSONAL_DATA'] = 'Соглашение на обработку персональных данных';
+$MESS ['ACCEPTANCE_TERMS_LOYALTY_PROGRAM'] = 'Согласие с условиями программы лояльности';
+$MESS ['EDITING_AGREEMENTS'] = 'Редактирование соглашений';
+

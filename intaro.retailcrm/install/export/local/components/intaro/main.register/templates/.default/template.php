@@ -88,28 +88,41 @@ if ($arResult["SHOW_SMS_FIELD"] == true) {
         <?php $this->addExternalJs(SITE_TEMPLATE_PATH . '/script.js'); ?>
         
         <?php if (isset($arResult['LP_REGISTER']['msg'])) { ?>
-        <div id="lpRegMsg"><?=$arResult['LP_REGISTER']['msg']?></div>
+        <div id="lpRegMsg" class="lpRegMsg"><?=$arResult['LP_REGISTER']['msg']?></div>
     <?php } ?>
         
-        <?php if (isset($arResult['LP_REGISTER']['form']['fields'])) { ?>
+        <?php
+    if (isset($arResult['LP_REGISTER']['form']['fields'])) { ?>
         <div id="lpRegForm">
             <div id="lpRegFormInputs">
                 <?php
-                foreach ($arResult['LP_REGISTER']['form']['fields'] as $key => $field){
-                ?>
-                <label>
-                    <input
-                        name="<?=$key?>"
-                        type="<?=$field['type']?>"
-                        <?php if (isset($field['value'])) { ?>
-                            value="<?=$field['value']?>"
-                        <?php } ?>
-                    >
-                </label>
+                foreach ($arResult['LP_REGISTER']['form']['fields'] as $key => $field) {
+                    ?>
+                    <label>
+                        <input
+                            name="<?=$key?>"
+                            type="<?=$field['type']?>"
+                            <?php if (isset($field['value'])) { ?>
+                                value="<?=$field['value']?>"
+                            <?php } ?>
+                        >
+                
+                        <?php
+                        if ($key === 'UF_AGREE_PL_INTARO') { ?>
+                        <?=GetMessage('I_AM_AGREE')?><a class="lp_agreement_link" href="javascript:void(0)">
+                            <?php } ?>
+                        <?php
+                        if ($key === 'UF_PD_PROC_PL_INTARO') { ?>
+                        <?=GetMessage('I_AM_AGREE')?><a class="personal_data_agreement_link" href="javascript:void(0)">
+                            <?php } ?>
+                                <?=GetMessage($key)?>
+                                <?php
+                                if ($key === 'UF_PD_PROC_PL_INTARO' || $key === 'UF_AGREE_PL_INTARO') { ?></a><?php } ?>
+                    </label>
+                    <br>
+                <?php } ?>
             </div>
-            <?php } ?>
-            <input type="button" onclick="<?=$arResult['LP_REGISTER']['button']['action']?>()">
-
+            <input type="button" onclick="<?=$arResult['LP_REGISTER']['form']['button']['action']?>()" value="<?=GetMessage('SEND')?>">
         </div>
     <?php } ?>
     

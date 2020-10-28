@@ -14,8 +14,11 @@ namespace Intaro\RetailCrm\Component\Handlers;
 
 IncludeModuleLangFile(__FILE__);
 
+use Bitrix\Main\ArgumentException;
 use Bitrix\Main\Event;
 use Bitrix\Main\HttpRequest;
+use Bitrix\Main\ObjectPropertyException;
+use Bitrix\Main\SystemException;
 use Bitrix\Sale\Order;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Repository\UserRepository;
@@ -33,6 +36,14 @@ use RetailCrmUser;
  */
 class EventsHandlers
 {
+    /**
+     * EventsHandlers constructor.
+     */
+    public function __construct()
+    {
+        IncludeModuleLangFile(__FILE__);
+    }
+    
     /**
      * @param \Bitrix\Main\Event $event
      */
@@ -143,8 +154,20 @@ class EventsHandlers
         $orderService   = new OrderService();
         $loyaltyService = new LoyaltyService();
     
-        $orderService->saveOrderInCRM($event);
-        $loyaltyService->applyBonusesInOrder($event);
+        try {
+            $orderService->saveOrderInCRM($event);
+    
+            $isNew = $event->getParameter("IS_NEW");
+    
+            if (isset($_POST['bonus-input'], $_POST['available-bonuses'])
+                && $isNew
+                && (int)$_POST['available-bonuses'] >= (int)$_POST['bonus-input']
+            ) {
+                $loyaltyService->applyBonusesInOrder($event);
+            }
+        } catch (ObjectPropertyException | ArgumentException | SystemException $e) {
+            AddMessage2Log(GetMessage('CAN_NOT_SAVE_ORDER') . $e->getMessage());
+        }
     }
     
     /**

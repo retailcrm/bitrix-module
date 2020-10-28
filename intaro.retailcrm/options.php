@@ -1472,11 +1472,11 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                         ]
                                     );
                                     ?>
-                                    <h4>Редактирование соглашений</h4>
+                                    <h4><?= GetMessage('EDITING_AGREEMENTS')?></h4>
                                     <?php if (isset($isAgreementLoyaltyProgram['ID']) && isset($isAgreementLoyaltyProgram['ID'])) { ?>
-                                        <a href="<?= SITE_SERVER_NAME . '/bitrix/admin/agreement_edit.php?ID=' . $isAgreementLoyaltyProgram['ID']?>">Соглашение на обработку персональных данных</a>
+                                        <a href="<?= SITE_SERVER_NAME . '/bitrix/admin/agreement_edit.php?ID=' . $isAgreementLoyaltyProgram['ID']?>" target="_blank"><?= GetMessage('AGREEMENT_PROCESSING_PERSONAL_DATA')?></a>
                                         <br>
-                                        <a href="<?= SITE_SERVER_NAME . '/bitrix/admin/agreement_edit.php?ID=' . $isAgreementLoyaltyProgram['ID']?>">Согласие с условиями программы лояльности</a>
+                                        <a href="<?= SITE_SERVER_NAME . '/bitrix/admin/agreement_edit.php?ID=' . $isAgreementLoyaltyProgram['ID']?>" target="_blank"><?= GetMessage('ACCEPTANCE_TERMS_LOYALTY_PROGRAM')?></a>
                                     <?php } ?>
                                 </td>
                             </tr>

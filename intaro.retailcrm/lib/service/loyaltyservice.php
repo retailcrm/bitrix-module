@@ -45,12 +45,12 @@ use Intaro\RetailCrm\Repository\PaySystemActionRepository;
  */
 class LoyaltyService
 {
-    const STANDART_FIELDS = [
-        'UF_REG_IN_PL_INTARO_TITLE'  => 'checkbox',
-        'UF_AGREE_PL_INTARO_TITLE'   => 'checkbox',
-        'UF_PD_PROC_PL_INTARO_TITLE' => 'checkbox',
-        'UF_CARD_NUM_INTARO'         => 'text',
-        'PERSONAL_PHONE'             => 'text',
+    public const STANDARD_FIELDS = [
+        'UF_REG_IN_PL_INTARO'  => 'checkbox',
+        'UF_AGREE_PL_INTARO'   => 'checkbox',
+        'UF_PD_PROC_PL_INTARO' => 'checkbox',
+        'UF_CARD_NUM_INTARO'   => 'text',
+        'PERSONAL_PHONE'       => 'text',
     ];
     
     /**
@@ -63,6 +63,7 @@ class LoyaltyService
      */
     public function __construct()
     {
+        IncludeModuleLangFile(__FILE__);
         $this->client = ClientFactory::createClientAdapter();
     }
     
@@ -175,8 +176,7 @@ class LoyaltyService
         return $result;
     }
     
-    //TODO реализовать этот проверки регистрации в ПЛ
-    
+    //TODO доделать метод проверки регистрации в ПЛ
     /**
      * @return array
      */
@@ -269,7 +269,7 @@ class LoyaltyService
                         'name'   => GetMessage('CREATE'),
                         'action' => 'createAccount',
                     ],
-                    'fields' => $userFields,
+                    'fields' => $this->getFields($userFields),
                 ];
             }
             
@@ -281,7 +281,7 @@ class LoyaltyService
                     'name'   => GetMessage('CREATE'),
                     'action' => 'createAccount',
                 ],
-                'fields' => $this->getStandartFields(),
+                'fields' => $this->getFields($userFields),
             ];
         }
         return $regInLp;
@@ -292,16 +292,10 @@ class LoyaltyService
      */
     public function applyBonusesInOrder(Event $event): void
     {
-        /**@var \Bitrix\Sale\Order $order */
-        $order = $event->getParameter("ENTITY");
-        $isNew = $event->getParameter("IS_NEW");
-    
-        if (isset($_POST['bonus-input'], $_POST['available-bonuses'])
-            && $isNew
-            && (int)$_POST['available-bonuses'] >= (int)$_POST['bonus-input']
-        ) {
+            /**@var \Bitrix\Sale\Order $order */
+            $order      = $event->getParameter("ENTITY");
             $orderId    = $order->getId();
-            $bonusCount = (int) $_POST['bonus-input'];
+            $bonusCount = (int)$_POST['bonus-input'];
             $response   = $this->sendBonusPayment($orderId, $bonusCount);
         
             if ($response->success) {
@@ -344,28 +338,47 @@ class LoyaltyService
                     AddMessage2Log('ERROR PaySystemActionRepository: ' . $e->getMessage());
                 }
             }
-        }
     }
     
     /**
-     * @param bool $userFields
+     * @param array $userFields
      * @return array
      */
-    private function getStandartFields(bool $userFields)
+    private function getStandardFields(array $userFields): array
     {
         $resultFields = [];
-        foreach (self::STANDART_FIELDS as $key => $value) {
+        foreach (self::STANDARD_FIELDS as $key => $value) {
             if ($value === 'text' && empty($userFields[$key])) {
                 $resultFields[$key] = [
-                    'value' => $value,
+                    'type' => $value,
                 ];
             }
             if ($value === 'checkbox' && $userFields[$key] !== '1') {
                 $resultFields[$key] = [
-                    'value' => $value,
+                    'type' => $value,
                 ];
             }
         }
         return $resultFields;
+    }
+    
+    /**
+     * @param array $userFields
+     * @return array
+     */
+    private function getFields(array $userFields)
+    {
+        $standartFields = $this->getStandardFields($userFields);
+        $externalFields = $this->getExternalFields();
+        return array_merge($standartFields, $externalFields);
+    }
+    
+    /**
+     * TODO реализовать получение кастомных полей из CRM
+     * @return array
+     */
+    private function getExternalFields(): array
+    {
+        return [];
     }
 }
