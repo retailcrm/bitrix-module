@@ -284,10 +284,6 @@ class RetailCrmOrder
         if (count($payments) > 0) {
             $order['payments'] = $payments;
         }
-
-        if (ConfigProvider::getLoyaltyProgramStatus() === 'Y') {
-            $order['privilegeType'] = 'loyalty_level';
-        }
         
         //send
         if (function_exists('retailCrmBeforeOrderSend')) {
@@ -313,7 +309,12 @@ class RetailCrmOrder
         $order = $normalizer->normalize($order, 'orders');
 
         Logger::getInstance()->write($order, 'orderSend');
-        
+    
+    
+        if (ConfigProvider::getLoyaltyProgramStatus() === 'Y') {
+            $order['privilegeType'] = 'loyalty_level';
+        }
+    
         if ($send) {
             if (!RCrmActions::apiMethod($api, $methodApi, __METHOD__, $order, $site)) {
                 return false;

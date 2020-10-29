@@ -13,7 +13,7 @@ Loader::includeModule('intaro.retailcrm');
 $arResult['LOYALTY_STATUS'] = ConfigProvider::getLoyaltyProgramStatus();
 
 global $USER;
-//Активна ПЛ ?
+
 if ($arResult['LOYALTY_STATUS'] === 'Y' && $USER->IsAuthorized()) {
     $service                 = new LoyaltyService();
     $arResult['LP_REGISTER'] = $service->checkRegInLp();

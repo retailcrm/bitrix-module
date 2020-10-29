@@ -156,7 +156,7 @@ class EventsHandlers
     
         try {
             $orderService->saveOrderInCRM($event);
-    
+
             $isNew = $event->getParameter("IS_NEW");
     
             if (isset($_POST['bonus-input'], $_POST['available-bonuses'])

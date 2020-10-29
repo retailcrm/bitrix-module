@@ -398,7 +398,7 @@ class LoyaltyService
      * @param array $userFields
      * @return array
      */
-    private function getFields(array $userFields)
+    private function getFields(array $userFields): array
     {
         $standartFields = $this->getStandardFields($userFields);
         $externalFields = $this->getExternalFields();
