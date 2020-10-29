@@ -226,7 +226,6 @@ class LoyaltyService
                         ];
                     } else {
                         //НЕТ. Обязательных незаполненных полей нет. Тогда пробуем активировать аккаунт
-                        
                         $activateResponse = $userService->activateLoyaltyAccount($userFields['UF_EXT_REG_PL_INTARO']);
                         
                         if ($activateResponse !== null
@@ -274,18 +273,24 @@ class LoyaltyService
                     $service        = new UserAccountService();
                     $createResponse = $service->createLoyaltyAccount($phone, $card, $customerId, $customFields);
                     $service->activateLpUserInBitrix($createResponse, $userFields['ID']);
-                    
+
                     if ($createResponse !== null
                         && $createResponse->success === false
                         && isset($createResponse->errorMsg)
                         && !empty($createResponse->errorMsg)
                     ) {
-                        $errorDetails = $createResponse->errors['loyalty'] ?? '';
-                        
+                        if (isset($createResponse->errors) && is_array($createResponse->errors)) {
+                            $errorDetails = '';
+                            
+                            foreach ($createResponse->errors as $error) {
+                                $errorDetails .= $error.' ';
+                            }
+                        }
                         AddMessage2Log(GetMessage('REGISTER_ERROR') . ' ('.$createResponse->errorMsg.' '. $errorDetails .')');
                         
                         $regInLp['msg']  = GetMessage('REGISTER_ERROR') . ' ('.$createResponse->errorMsg.' '. $errorDetails .')';
-                    }else{
+                    }elseif($createResponse->success === true){
+                        //Повторная регистрация оказалась удачной
                         header("Refresh: 0");
                     }
                 }else{
@@ -299,7 +304,6 @@ class LoyaltyService
                     ];
                 }
             }
-            
         } else {
             //НЕТ. Отображаем форму на создание новой регистрации в ПЛ
             $regInLp['msg']  = GetMessage('INVITATION_TO_REGISTER');
@@ -311,6 +315,7 @@ class LoyaltyService
                 'fields' => $this->getFields($userFields),
             ];
         }
+        
         return $regInLp;
     }
     

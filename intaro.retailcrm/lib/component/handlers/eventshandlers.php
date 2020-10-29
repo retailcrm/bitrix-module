@@ -194,6 +194,7 @@ class EventsHandlers
             $arFields['ID']   = $arFields['USER_ID'];
             $optionsSitesList = RetailcrmConfigProvider::getSitesList();
             $api              = new ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
+            //TODO надо решить, что делать, если пользователь с таким externalID уже существует.
             RetailCrmUser::customerSend($arFields, $api, 'individual', true, $optionsSitesList);
 
             //Если пользователь выразил желание зарегистрироваться в ПЛ и согласился со всеми правилами
