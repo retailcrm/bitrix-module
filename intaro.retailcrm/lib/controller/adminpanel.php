@@ -26,25 +26,6 @@ class AdminPanel extends Controller
     }
     
     /**
-     * @return string[]
-     * @throws \Bitrix\Main\ArgumentOutOfRangeException
-     */
-    public function LoyaltyProgramToggleAction(): array
-    {
-        $status    = ConfigProvider::getLoyaltyProgramStatus();
-    
-        if ($status !== 'Y') {
-            $newStatus = 'Y';
-        } else {
-            $newStatus = 'N';
-        }
-        
-        ConfigProvider::setLoyaltyProgramStatus($newStatus);
-        
-        return ['newStatus' => $newStatus];
-    }
-    
-    /**
      * @param array  $templates
      * @param string $donor
      * @param string $replaceDefaultTemplate

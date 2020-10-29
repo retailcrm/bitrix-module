@@ -2,6 +2,7 @@
 
 use Bitrix\Currency\CurrencyManager;
 use Bitrix\Main\Application;
+use Bitrix\Main\UI\Extension;
 use Bitrix\Sale\Delivery\Services\Manager;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Constants;
@@ -557,6 +558,12 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         COption::SetOptionString($mid, $CRM_CURRENCY, $_POST['currency']);
     }
     
+    if (isset($_POST['loyalty_toggle']) && $_POST['loyalty_toggle'] === 'on') {
+        ConfigProvider::setLoyaltyProgramStatus('Y');
+    }else{
+        ConfigProvider::setLoyaltyProgramStatus('N');
+    }
+    
     COption::SetOptionString($mid, $CRM_ADDRESS_OPTIONS, serialize($addressDatailOptions));
     COption::SetOptionString($mid, $CRM_SITES_LIST, serialize($siteListArr));
     COption::SetOptionString($mid, $CRM_ORDER_TYPES_ARR, serialize(RCrmActions::clearArr($orderTypesArr)));
@@ -729,8 +736,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $optionsOrderDimensions = COption::GetOptionString($mid, $CRM_DIMENSIONS, 'N');
     $addressOptions         = unserialize(COption::GetOptionString($mid, $CRM_ADDRESS_OPTIONS, 0));
     
-
-    
     $aTabs      = [
         [
             "DIV"   => "edit1",
@@ -824,23 +829,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         }
 
         function switchPLStatus() {
-            BX.ajax.runAction('intaro:retailcrm.api.adminpanel.loyaltyprogramtoggle',
-                {
-                    data: {
-                        sessid: BX.bitrix_sessid()
-                    }
-                }
-            ).then(
-                function(data) {
-                    if (data.status === 'success') {
-                        if (data.data.newStatus === 'Y') {
-                            $('#loyalty_main_settings').show(500);
-                        } else {
-                            $('#loyalty_main_settings').hide(500);
-                        }
-                    }
-                }
-            );
+            $('#loyalty_main_settings').toggle(500);
         }
 
         $(document).ready(function() {
@@ -1347,7 +1336,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 <td colspan="2" class="option-other-heading">
                     <b>
                         <label>
-                            <input class="addr" type="checkbox" name="loyalty_toggle" onclick="switchPLStatus();" <?php if ($loyaltyProgramToggle === 'Y') {
+                            <input class="addr" type="checkbox" id="loyalty_toggle" name="loyalty_toggle" onclick="switchPLStatus();" <?php if ($loyaltyProgramToggle === 'Y') {
                                 echo "checked";
                             } ?>>
                             <?php echo GetMessage('LOYALTY_PROGRAM_TOGGLE_MSG'); ?>
