@@ -131,6 +131,30 @@ class UserAccountService
     }
     
     /**
+     * @param \Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountCreateResponse|null $createResponse
+     * @param int                                                                                    $userId
+     */
+    public function activateLpUserInBitrix(?LoyaltyAccountCreateResponse $createResponse, int $userId): void
+    {
+        //если участник ПЛ создан и активирован
+        if (($createResponse !== null)
+            && $createResponse->success === true
+            && $createResponse->loyaltyAccount->active
+        ) {
+            global $USER_FIELD_MANAGER;
+        
+            $USER_FIELD_MANAGER->Update('USER', $userId, [
+                'UF_EXT_REG_PL_INTARO' => 'Y',
+                'UF_LP_ID_INTARO' => $createResponse->loyaltyAccount->id,
+            ]);
+        }
+    
+        if (isset($createResponse->errorMsg)) {
+            AddMessage2Log($createResponse->errorMsg);
+        }
+    }
+    
+    /**
      * @throws \Exception
      */
     private function checkAuth()

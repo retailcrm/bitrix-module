@@ -263,14 +263,41 @@ class LoyaltyService
                 }
             } else {
                 //НЕТ. Выясняем, каких полей не хватает для СОЗДАНИЯ аккаунта, выводим форму
-                $regInLp['msg']  = GetMessage('COMPLETE_YOUR_REGISTRATION');
-                $regInLp['form'] = [
-                    'button' => [
-                        'name'   => GetMessage('CREATE'),
-                        'action' => 'createAccount',
-                    ],
-                    'fields' => $this->getFields($userFields),
-                ];
+                $fields = $this->getFields($userFields);
+                
+                //Если все необходимые поля заполнены, то пытаемся его еще раз зарегистрировать
+                if (empty($fields)) {
+                    $phone          = $userFields['PERSONAL_PHONE'] ?? '';
+                    $card           = $userFields['UF_CARD_NUM_INTARO'] ?? '';
+                    $customerId     = (string) $userFields['ID'];
+                    $customFields   = $userFields['UF_CSTM_FLDS_INTARO'] ?? [];
+                    $service        = new UserAccountService();
+                    $createResponse = $service->createLoyaltyAccount($phone, $card, $customerId, $customFields);
+                    $service->activateLpUserInBitrix($createResponse, $userFields['ID']);
+                    
+                    if ($createResponse !== null
+                        && $createResponse->success === false
+                        && isset($createResponse->errorMsg)
+                        && !empty($createResponse->errorMsg)
+                    ) {
+                        $errorDetails = $createResponse->errors['loyalty'] ?? '';
+                        
+                        AddMessage2Log(GetMessage('REGISTER_ERROR') . ' ('.$createResponse->errorMsg.' '. $errorDetails .')');
+                        
+                        $regInLp['msg']  = GetMessage('REGISTER_ERROR') . ' ('.$createResponse->errorMsg.' '. $errorDetails .')';
+                    }else{
+                        header("Refresh: 0");
+                    }
+                }else{
+                    $regInLp['msg']  = GetMessage('COMPLETE_YOUR_REGISTRATION');
+                    $regInLp['form'] = [
+                        'button' => [
+                            'name'   => GetMessage('CREATE'),
+                            'action' => 'createAccount',
+                        ],
+                        'fields' => $this->getFields($userFields),
+                    ];
+                }
             }
             
         } else {

@@ -208,22 +208,7 @@ class EventsHandlers
                 $service        = new UserAccountService();
                 $createResponse = $service->createLoyaltyAccount($phone, $card, $customerId, $customFields);
 
-                //если участник ПЛ создан и активирован
-                if (($createResponse !== null)
-                    && $createResponse->success === true
-                    && $createResponse->loyaltyAccount->active
-                ) {
-                    global $USER_FIELD_MANAGER;
-                    
-                    $USER_FIELD_MANAGER->Update('USER', $arFields['USER_ID'], [
-                        'UF_EXT_REG_PL_INTARO' => 'Y',
-                        'UF_LP_ID_INTARO' => $createResponse->loyaltyAccount->id,
-                    ]);
-                }
-                
-                if (isset($createResponse->errorMsg)) {
-                    AddMessage2Log($createResponse->errorMsg);
-                }
+                $service->activateLpUserInBitrix($createResponse, $arFields['USER_ID']);
             }
         }
     }
