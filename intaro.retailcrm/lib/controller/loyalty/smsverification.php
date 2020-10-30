@@ -17,7 +17,6 @@ use Bitrix\Main\Engine\Controller;
 use Bitrix\Main\Request;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Service\UserAccountService;
-use Intaro\RetailCrm\Service\UserVerificationService;
 
 /**
  * Class SmsVerification

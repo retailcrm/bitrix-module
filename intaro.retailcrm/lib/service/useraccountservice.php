@@ -26,7 +26,7 @@ use Intaro\RetailCrm\Model\Api\SmsVerificationConfirm;
 use RuntimeException;
 
 /**
- * Class UserVerificationService
+ * Class UserAccountService
  */
 class UserAccountService
 {
