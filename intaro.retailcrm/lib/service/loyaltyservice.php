@@ -206,7 +206,7 @@ class LoyaltyService
                     //ДА. Отображаем сообщение "Вы зарегистрированы в Программе лояльности"
                     $regInLp['msg'] = GetMessage('REG_COMPLETE');
                 } else {
-                    //НЕТ. Акаунт не активен
+                    //НЕТ. Аккаунт не активен
                     /** @var \Intaro\RetailCrm\Service\UserAccountService $userService */
                     $userService = ServiceLocator::get(UserAccountService::class);
                     $extFields   = $userService->getExtFields($userFields['UF_EXT_REG_PL_INTARO']);
@@ -272,6 +272,7 @@ class LoyaltyService
                     $customFields   = $userFields['UF_CSTM_FLDS_INTARO'] ?? [];
                     $service        = new UserAccountService();
                     $createResponse = $service->createLoyaltyAccount($phone, $card, $customerId, $customFields);
+                    
                     $service->activateLpUserInBitrix($createResponse, $userFields['ID']);
 
                     if ($createResponse !== null
@@ -279,13 +280,15 @@ class LoyaltyService
                         && isset($createResponse->errorMsg)
                         && !empty($createResponse->errorMsg)
                     ) {
+                        $errorDetails = '';
+                        
                         if (isset($createResponse->errors) && is_array($createResponse->errors)) {
-                            $errorDetails = '';
                             
                             foreach ($createResponse->errors as $error) {
                                 $errorDetails .= $error.' ';
                             }
                         }
+                        
                         AddMessage2Log(GetMessage('REGISTER_ERROR') . ' ('.$createResponse->errorMsg.' '. $errorDetails .')');
                         
                         $regInLp['msg']  = GetMessage('REGISTER_ERROR') . ' ('.$createResponse->errorMsg.' '. $errorDetails .')';
@@ -379,18 +382,21 @@ class LoyaltyService
     private function getStandardFields(array $userFields): array
     {
         $resultFields = [];
+        
         foreach (self::STANDARD_FIELDS as $key => $value) {
             if ($value === 'text' && empty($userFields[$key])) {
                 $resultFields[$key] = [
                     'type' => $value,
                 ];
             }
+            
             if ($value === 'checkbox' && $userFields[$key] !== '1') {
                 $resultFields[$key] = [
                     'type' => $value,
                 ];
             }
         }
+        
         return $resultFields;
     }
     
@@ -400,9 +406,10 @@ class LoyaltyService
      */
     private function getFields(array $userFields): array
     {
-        $standartFields = $this->getStandardFields($userFields);
+        $standardFields = $this->getStandardFields($userFields);
         $externalFields = $this->getExternalFields();
-        return array_merge($standartFields, $externalFields);
+        
+        return array_merge($standardFields, $externalFields);
     }
     
     /**

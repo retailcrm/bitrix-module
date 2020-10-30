@@ -1,8 +1,11 @@
 <?php
 
 use Bitrix\Currency\CurrencyLangTable;
+use Bitrix\Main\ArgumentException;
 use Bitrix\Main\Loader;
 use Bitrix\Main\LoaderException;
+use Bitrix\Main\ObjectPropertyException;
+use Bitrix\Main\SystemException;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Service\LoyaltyService;
 
@@ -38,15 +41,20 @@ if ($arResult['LOYALTY_STATUS'] === 'Y' && $arResult['PERSONAL_LOYALTY_STATUS'] 
     }
 
     $component = $this->__component;
+    
     $component::scaleImages($arResult['JS_DATA'], $arParams['SERVICES_IMAGES_SCALING']);
     
-    $currency = CurrencyLangTable::query()
-        ->setSelect(['FORMAT_STRING'])
-        ->where([
-            ['CURRENCY', '=', RetailcrmConfigProvider::getCurrencyOrDefault()],
-            ['LID', '=', 'LANGUAGE_ID'],
-        ])
-        ->fetch();
+    try {
+        $currency = CurrencyLangTable::query()
+            ->setSelect(['FORMAT_STRING'])
+            ->where([
+                ['CURRENCY', '=', RetailcrmConfigProvider::getCurrencyOrDefault()],
+                ['LID', '=', 'LANGUAGE_ID'],
+            ])
+            ->fetch();
+    } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
+        AddMessage2Log($exception->getMessage());
+    }
     
     $arResult['BONUS_CURRENCY'] = $currency['FORMAT_STRING'];
 }

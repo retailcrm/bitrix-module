@@ -173,10 +173,10 @@ class EventsHandlers
     /**
      * Регистрирует пользователя в CRM системе после регистрации на сайте
      *
-     * @param $arFields
+     * @param array $arFields
      * @return mixed
      */
-    public function OnAfterUserRegisterHandler($arFields)
+    public function OnAfterUserRegisterHandler(array $arFields): void
     {
         if (isset($arFields['USER_ID']) && $arFields['USER_ID'] > 0) {
             $user = UserRepository::getById($arFields['USER_ID']);
@@ -194,6 +194,7 @@ class EventsHandlers
             $arFields['ID']   = $arFields['USER_ID'];
             $optionsSitesList = RetailcrmConfigProvider::getSitesList();
             $api              = new ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
+            
             //TODO надо решить, что делать, если пользователь с таким externalID уже существует.
             RetailCrmUser::customerSend($arFields, $api, 'individual', true, $optionsSitesList);
 
@@ -214,4 +215,3 @@ class EventsHandlers
         }
     }
 }
-

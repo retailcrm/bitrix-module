@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * PHP version 7.1
  *
@@ -11,26 +10,10 @@
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
  */
-
 namespace Intaro\RetailCrm\Service;
 
-use Bitrix\Main\ArgumentException;
-use Bitrix\Main\ObjectPropertyException;
-use Bitrix\Main\SystemException;
 use Bitrix\Main\UserTable;
 use CModule;
-use Intaro\RetailCrm\Component\Factory\ClientFactory;
-use Intaro\RetailCrm\Model\Api\Address;
-use Intaro\RetailCrm\Model\Api\Company;
-use Intaro\RetailCrm\Model\Api\Contragent;
-use Intaro\RetailCrm\Model\Api\Customer;
-use Intaro\RetailCrm\Model\Api\CustomerContact;
-use Intaro\RetailCrm\Model\Api\Request\Customers\CustomersCorporateAddressesCreateRequest;
-use Intaro\RetailCrm\Model\Api\Request\Customers\CustomersCorporateCompaniesCreateRequest;
-use Intaro\RetailCrm\Model\Api\Request\Customers\CustomersCorporateCompaniesRequest;
-use Intaro\RetailCrm\Model\Api\Request\Customers\CustomersCorporateContactsCreateRequest;
-use Intaro\RetailCrm\Model\Api\Request\Customers\CustomersCorporateListRequest;
-use Intaro\RetailCrm\Model\Api\Request\Customers\CustomersGetRequest;
 use RCrmActions;
 use RetailCrm\ApiClient;
 use RetailcrmConfigProvider;
