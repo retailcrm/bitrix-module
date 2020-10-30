@@ -112,7 +112,7 @@ class LoyaltyService
     public function calculateBonus(array $basketItems, int $discountPrice, int $discountPercent)
     {
         global $USER;
-    
+        
         $request                              = new LoyaltyCalculateRequest();
         $request->order                       = new SerializedOrder();
         $request->order->customer             = new SerializedRelationCustomer();
@@ -144,14 +144,14 @@ class LoyaltyService
             }
             
             $product->initialPrice      = $item['PRICE'];
-            $product->offer = new SerializedOrderProductOffer();
+            $product->offer             = new SerializedOrderProductOffer();
             $product->offer->externalId = $item['ID'];
             $product->offer->id         = $item['ID'];
             $product->offer->xmlId      = $item['XML_ID'];
             $product->quantity          = $item['QUANTITY'];
             
             try {
-                $price = GroupTable::query()
+                $price                    = GroupTable::query()
                     ->setSelect(['NAME'])
                     ->where(
                         [
@@ -159,7 +159,7 @@ class LoyaltyService
                         ]
                     )
                     ->fetch();
-                $product->priceType = new PriceType();
+                $product->priceType       = new PriceType();
                 $product->priceType->code = $price['NAME'];
             } catch (ObjectPropertyException | ArgumentException | SystemException $e) {
                 AddMessage2Log('GroupTable query error: ' . $e->getMessage());
@@ -177,6 +177,7 @@ class LoyaltyService
     }
     
     //TODO доделать метод проверки регистрации в ПЛ
+    
     /**
      * @return array
      */
@@ -268,13 +269,13 @@ class LoyaltyService
                 if (empty($fields)) {
                     $phone          = $userFields['PERSONAL_PHONE'] ?? '';
                     $card           = $userFields['UF_CARD_NUM_INTARO'] ?? '';
-                    $customerId     = (string) $userFields['ID'];
+                    $customerId     = (string)$userFields['ID'];
                     $customFields   = $userFields['UF_CSTM_FLDS_INTARO'] ?? [];
                     $service        = new UserAccountService();
                     $createResponse = $service->createLoyaltyAccount($phone, $card, $customerId, $customFields);
                     
                     $service->activateLpUserInBitrix($createResponse, $userFields['ID']);
-
+                    
                     if ($createResponse !== null
                         && $createResponse->success === false
                         && isset($createResponse->errorMsg)
@@ -285,18 +286,18 @@ class LoyaltyService
                         if (isset($createResponse->errors) && is_array($createResponse->errors)) {
                             
                             foreach ($createResponse->errors as $error) {
-                                $errorDetails .= $error.' ';
+                                $errorDetails .= $error . ' ';
                             }
                         }
                         
-                        AddMessage2Log(GetMessage('REGISTER_ERROR') . ' ('.$createResponse->errorMsg.' '. $errorDetails .')');
+                        AddMessage2Log(GetMessage('REGISTER_ERROR') . ' (' . $createResponse->errorMsg . ' ' . $errorDetails . ')');
                         
-                        $regInLp['msg']  = GetMessage('REGISTER_ERROR') . ' ('.$createResponse->errorMsg.' '. $errorDetails .')';
-                    }elseif($createResponse->success === true){
+                        $regInLp['msg'] = GetMessage('REGISTER_ERROR') . ' (' . $createResponse->errorMsg . ' ' . $errorDetails . ')';
+                    } elseif ($createResponse->success === true) {
                         //Повторная регистрация оказалась удачной
                         header("Refresh: 0");
                     }
-                }else{
+                } else {
                     $regInLp['msg']  = GetMessage('COMPLETE_YOUR_REGISTRATION');
                     $regInLp['form'] = [
                         'button' => [
@@ -327,52 +328,52 @@ class LoyaltyService
      */
     public function applyBonusesInOrder(Event $event): void
     {
-            /**@var \Bitrix\Sale\Order $order */
-            $order      = $event->getParameter("ENTITY");
-            $orderId    = $order->getId();
-            $bonusCount = (int)$_POST['bonus-input'];
-            $response   = $this->sendBonusPayment($orderId, $bonusCount);
+        /**@var \Bitrix\Sale\Order $order */
+        $order      = $event->getParameter("ENTITY");
+        $orderId    = $order->getId();
+        $bonusCount = (int)$_POST['bonus-input'];
+        $response   = $this->sendBonusPayment($orderId, $bonusCount);
         
-            if ($response->success) {
-                try {
-                    $bonusPaySystem    = PaySystemActionRepository::getFirstByWhere(['ID'], [['ACTION_FILE', '=', 'retailcrmbonus']]);
-                    $paymentCollection = $order->getPaymentCollection();
+        if ($response->success) {
+            try {
+                $bonusPaySystem    = PaySystemActionRepository::getFirstByWhere(['ID'], [['ACTION_FILE', '=', 'retailcrmbonus']]);
+                $paymentCollection = $order->getPaymentCollection();
                 
-                    if ($bonusPaySystem !== null) {
-                        if (count($paymentCollection) === 1) {
-                            /** @var \Bitrix\Sale\Payment $payment */
-                            foreach ($paymentCollection as $payment){
-                                $oldSum = $payment->getField('SUM');
+                if ($bonusPaySystem !== null) {
+                    if (count($paymentCollection) === 1) {
+                        /** @var \Bitrix\Sale\Payment $payment */
+                        foreach ($paymentCollection as $payment) {
+                            $oldSum = $payment->getField('SUM');
                             
-                                $payment->setField('SUM', $oldSum - $bonusCount);
-                                break;
-                            }
+                            $payment->setField('SUM', $oldSum - $bonusCount);
+                            break;
                         }
-                    
-                        $service    = Manager::getObjectById($bonusPaySystem->getId());
-                        $newPayment = $paymentCollection->createItem($service);
-                    
-                        $newPayment->setField('SUM', $bonusCount);
-                    
-                        //если верификация необходима, но не пройдена
-                        if (isset($response->verification, $response->verification->checkId)
-                            && !isset($response->verification->verifiedAt)
-                        ) {
-                            $newPayment->setPaid('N');
-                            $newPayment->setField('COMMENTS', $response->verification->checkId);
-                        }
-                    
-                        //если верификация не нужна
-                        if (!isset($response->verification)) {
-                            $newPayment->setPaid('Y');
-                        }
-                    
-                        $order->save();
                     }
-                } catch (ObjectPropertyException | ArgumentException | SystemException | Exception $e) {
-                    AddMessage2Log('ERROR PaySystemActionRepository: ' . $e->getMessage());
+                    
+                    $service    = Manager::getObjectById($bonusPaySystem->getId());
+                    $newPayment = $paymentCollection->createItem($service);
+                    
+                    $newPayment->setField('SUM', $bonusCount);
+                    
+                    //если верификация необходима, но не пройдена
+                    if (isset($response->verification, $response->verification->checkId)
+                        && !isset($response->verification->verifiedAt)
+                    ) {
+                        $newPayment->setPaid('N');
+                        $newPayment->setField('COMMENTS', $response->verification->checkId);
+                    }
+                    
+                    //если верификация не нужна
+                    if (!isset($response->verification)) {
+                        $newPayment->setPaid('Y');
+                    }
+                    
+                    $order->save();
                 }
+            } catch (ObjectPropertyException | ArgumentException | SystemException | Exception $e) {
+                AddMessage2Log('ERROR PaySystemActionRepository: ' . $e->getMessage());
             }
+        }
     }
     
     /**

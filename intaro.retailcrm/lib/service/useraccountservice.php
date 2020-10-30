@@ -19,6 +19,7 @@ use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountCreateReque
 use Intaro\RetailCrm\Model\Api\Request\SmsVerification\SmsVerificationConfirmRequest;
 use Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountActivateResponse;
 use Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountCreateResponse;
+use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationConfirmResponse;
 use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusRequest;
 use Intaro\RetailCrm\Model\Api\SerializedCreateLoyaltyAccount;
 use Intaro\RetailCrm\Model\Api\SmsVerificationConfirm;
@@ -58,23 +59,6 @@ class UserAccountService
     }
     
     /**
-     * Подтверждает верификацию
-     *
-     * @param string $code    Проверочный код
-     * @param string $checkId Идентификатор проверки кода
-     * @return \Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationConfirmResponse|null
-     */
-    public function confirmVerification(string $code, string $checkId)
-    {
-        $request               = new SmsVerificationConfirmRequest();
-        $request->verification = new SmsVerificationConfirm();
-        $request->verification->setCode($code);
-        $request->verification->setCheckId($checkId);
-        
-        return $this->client->confirmLpVerificationBySMS($request);
-    }
-    
-    /**
      * Проверяем статус регистрации пользователя в ПЛ
      *
      * @param int $userId
@@ -94,6 +78,7 @@ class UserAccountService
     {
         $activateRequest            = new LoyaltyAccountActivateRequest();
         $activateRequest->loyaltyId = $loyaltyId;
+        
         return $this->client->activateLoyaltyAccount($activateRequest);
     }
     
@@ -104,10 +89,10 @@ class UserAccountService
      * @param array  $customFields
      * @return \Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountCreateResponse|null
      */
-    public function createLoyaltyAccount(string $phone, string $card, string $externalId, array $customFields=[]): ?LoyaltyAccountCreateResponse
+    public function createLoyaltyAccount(string $phone, string $card, string $externalId, array $customFields = []): ?LoyaltyAccountCreateResponse
     {
         $credentials = $this->client->getCredentials();
-    
+        
         $createRequest                                       = new LoyaltyAccountCreateRequest();
         $createRequest->site                                 = $credentials->sitesAvailable[0];
         $createRequest->loyaltyAccount                       = new SerializedCreateLoyaltyAccount();
@@ -115,7 +100,7 @@ class UserAccountService
         $createRequest->loyaltyAccount->cardNumber           = $card ?? '';
         $createRequest->loyaltyAccount->customer->externalId = $externalId;
         $createRequest->loyaltyAccount->customFields         = $customFields ?? [];
-
+        
         return $this->client->createLoyaltyAccount($createRequest);
     }
     
@@ -142,28 +127,33 @@ class UserAccountService
             && $createResponse->loyaltyAccount->active
         ) {
             global $USER_FIELD_MANAGER;
-        
+            
             $USER_FIELD_MANAGER->Update('USER', $userId, [
                 'UF_EXT_REG_PL_INTARO' => 'Y',
-                'UF_LP_ID_INTARO' => $createResponse->loyaltyAccount->id,
+                'UF_LP_ID_INTARO'      => $createResponse->loyaltyAccount->id,
             ]);
         }
-    
+        
         if (isset($createResponse->errorMsg)) {
             AddMessage2Log($createResponse->errorMsg);
         }
     }
     
     /**
-     * @throws \Exception
+     * Подтверждает верификацию
+     *
+     * @param string $code    Проверочный код
+     * @param string $checkId Идентификатор проверки кода
+     * @return \Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationConfirmResponse|null
      */
-    private function checkAuth()
+    public function confirmVerification(string $code, string $checkId): ?SmsVerificationConfirmResponse
     {
-        global $USER;
-        $user = $USER;
+        $request                        = new SmsVerificationConfirmRequest();
+        $request->verification          = new SmsVerificationConfirm();
+        $request->verification->code    = $code;
+        $request->verification->checkId = $checkId;
         
-        if (!$user->IsAuthorized()) {
-            throw new RuntimeException(self::NOT_AUTHORIZE);
-        }
+        return $this->client->confirmLpVerificationBySMS($request);
     }
 }
+

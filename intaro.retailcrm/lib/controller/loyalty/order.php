@@ -25,6 +25,7 @@ use Exception;
 use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Repository\PaySystemActionRepository;
+use Intaro\RetailCrm\Service\UserAccountService;
 use Intaro\RetailCrm\Service\UserVerificationService;
 use Bitrix\Sale\Order as BitrixOrder;
 
@@ -34,7 +35,7 @@ use Bitrix\Sale\Order as BitrixOrder;
  */
 class Order extends Controller
 {
-    /** @var UserVerificationService */
+    /** @var UserAccountService */
     private $service;
     
     /**
@@ -44,7 +45,7 @@ class Order extends Controller
      */
     public function __construct(Request $request = null)
     {
-        $this->service = ServiceLocator::get(UserVerificationService::class);
+        $this->service = ServiceLocator::get(UserAccountService::class);
         parent::__construct($request);
     }
     
