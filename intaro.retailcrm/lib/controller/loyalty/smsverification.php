@@ -16,18 +16,18 @@ use Bitrix\Main\Engine\ActionFilter\HttpMethod;
 use Bitrix\Main\Engine\Controller;
 use Bitrix\Main\Request;
 use Intaro\RetailCrm\Component\ServiceLocator;
-use Intaro\RetailCrm\Service\UserVerificationService;
+use Intaro\RetailCrm\Service\LpUserAccountService;
 
 /**
- * Class AdminPanel
+ * Class SmsVerification
  * @package Intaro\RetailCrm\Controller\Loyalty
  */
-class AdminPanel extends Controller
+class SmsVerification extends Controller
 {
     /** @var int  */
     const DEFAULT_CODE_LENGHT = 4;
     
-    /** @var UserVerificationService */
+    /** @var LpUserAccountService */
     private $service;
     
     /**
@@ -37,7 +37,7 @@ class AdminPanel extends Controller
      */
     public function __construct(Request $request = null)
     {
-        $this->service = ServiceLocator::get(UserVerificationService::class);
+        $this->service = ServiceLocator::get(LpUserAccountService::class);
         parent::__construct($request);
     }
     

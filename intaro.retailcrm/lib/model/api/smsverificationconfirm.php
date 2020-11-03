@@ -27,7 +27,7 @@ class SmsVerificationConfirm extends AbstractApiModel
      * @Mapping\Type("string")
      * @Mapping\SerializedName("code")
      */
-    protected $code;
+    public $code;
     
     /**
      * Идентификатор проверки кода
@@ -37,21 +37,7 @@ class SmsVerificationConfirm extends AbstractApiModel
      * @Mapping\Type("string")
      * @Mapping\SerializedName("checkId")
      */
-    protected $checkId;
+    public $checkId;
     
-    /**
-     * @param string $code
-     */
-    public function setCode(string $code): void
-    {
-        $this->code = $code;
-    }
     
-    /**
-     * @param string $checkId
-     */
-    public function setCheckId(string $checkId): void
-    {
-        $this->checkId = $checkId;
-    }
 }

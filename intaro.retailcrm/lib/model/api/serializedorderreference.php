@@ -11,6 +11,8 @@
  */
 namespace Intaro\RetailCrm\Model\Api;
 
+use Intaro\RetailCrm\Component\Json\Mapping;
+
 /**
  * Class LoyaltyCalculateRequest
  *
@@ -19,6 +21,8 @@ namespace Intaro\RetailCrm\Model\Api;
 class SerializedOrderReference
 {
     /**
+     * Внутренний ID заказа
+     *
      * @var integer $id
      *
      * @Mapping\Type("integer")
@@ -27,10 +31,22 @@ class SerializedOrderReference
     public $id;
     
     /**
-     * @var float $bonuses
+     * Внешний ID заказа
      *
-     * @Mapping\Type("float")
-     * @Mapping\SerializedName("bonuses")
+     * @var string $externalId
+     *
+     * @Mapping\Type("string")
+     * @Mapping\SerializedName("externalId")
      */
-    public $bonuses;
+    public $externalId;
+    
+    /**
+     * Номер заказа
+     *
+     * @var string $number
+     *
+     * @Mapping\Type("string")
+     * @Mapping\SerializedName("number")
+     */
+    public $number;
 }
