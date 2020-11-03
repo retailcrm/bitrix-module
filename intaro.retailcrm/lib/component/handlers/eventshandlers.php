@@ -20,13 +20,18 @@ use Bitrix\Main\HttpRequest;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
 use Bitrix\Sale\Order;
+use CUser;
+use Intaro\RetailCrm\Component\Builder\Api\CustomerBuilder;
 use Intaro\RetailCrm\Component\ConfigProvider;
+use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Repository\UserRepository;
 use Intaro\RetailCrm\Service\LoyaltyService;
-use Intaro\RetailCrm\Service\OrderService;
-use Intaro\RetailCrm\Service\UserAccountService;
+use Intaro\RetailCrm\Service\LpUserAccountService;
+use Intaro\RetailCrm\Service\UserService;
 use RetailCrm\ApiClient;
+use RetailCrm\Http\Client;
 use RetailcrmConfigProvider;
+use RetailCrmEvent;
 use RetailCrmUser;
 
 /**
@@ -151,12 +156,13 @@ class EventsHandlers
      */
     public function OnSaleOrderSavedHandler(Event $event): void
     {
-        $orderService   = new OrderService();
-        $loyaltyService = new LoyaltyService();
-    
+        /* @var LoyaltyService $service*/
+        $loyaltyService = ServiceLocator::get(LoyaltyService::class);
+        $retailCrmEvent = new RetailCrmEvent();
+        
         try {
-            $orderService->saveOrderInCRM($event);
-
+            $retailCrmEvent->orderSave($event);
+    
             $isNew = $event->getParameter("IS_NEW");
     
             if (isset($_POST['bonus-input'], $_POST['available-bonuses'])
@@ -188,15 +194,16 @@ class EventsHandlers
                     $user->setPersonalPhone($phone);
                     $user->save();
                 }
+                
                 $arFields['PERSONAL_PHONE'] = $phone;
             }
-            
-            $arFields['ID']   = $arFields['USER_ID'];
-            $optionsSitesList = RetailcrmConfigProvider::getSitesList();
-            $api              = new ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
-            
-            //TODO надо решить, что делать, если пользователь с таким externalID уже существует.
-            RetailCrmUser::customerSend($arFields, $api, 'individual', true, $optionsSitesList);
+
+        $builder = new CustomerBuilder();
+        $customer = $builder->setUser(UserRepository::getById($arFields['USER_ID']))->getResult();
+    
+        /* @var UserService $userService */
+        $userService = ServiceLocator::get(UserService::class);
+        $userService->addNewUser($customer);
 
             //Если пользователь выразил желание зарегистрироваться в ПЛ и согласился со всеми правилами
             if ((int)$arFields['UF_REG_IN_PL_INTARO'] === 1
@@ -207,7 +214,7 @@ class EventsHandlers
                 $card           = $arFields['UF_CARD_NUM_INTARO'] ?? '';
                 $customerId     = (string) $arFields['USER_ID'];
                 $customFields   = $arFields['UF_CSTM_FLDS_INTARO'] ?? [];
-                $service        = new UserAccountService();
+                $service        = new LpUserAccountService();
                 $createResponse = $service->createLoyaltyAccount($phone, $card, $customerId, $customFields);
 
                 $service->activateLpUserInBitrix($createResponse, $arFields['USER_ID']);

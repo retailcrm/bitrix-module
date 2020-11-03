@@ -34,7 +34,9 @@ class AdminPanel extends Controller
     public function createTemplateAction(array $templates, string $donor ,$replaceDefaultTemplate = 'N'): array
     {
         $templateName = $replaceDefaultTemplate === 'Y' ? '.default' : Constants::MODULE_ID;
-        
+    
+        $donor = str_replace(['../', './'], '', $donor);
+    
         foreach ($templates as $template) {
             $pathFrom = $_SERVER['DOCUMENT_ROOT']
                 . '/bitrix/modules/'

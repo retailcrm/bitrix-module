@@ -7,6 +7,7 @@ use Bitrix\Main\LoaderException;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
 use Intaro\RetailCrm\Component\ConfigProvider;
+use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Service\LoyaltyService;
 
 if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) {
@@ -30,7 +31,8 @@ $arResult['LOYALTY_STATUS']          = ConfigProvider::getLoyaltyProgramStatus()
 $arResult['PERSONAL_LOYALTY_STATUS'] = LoyaltyService::getLoyaltyPersonalStatus();
 
 if ($arResult['LOYALTY_STATUS'] === 'Y' && $arResult['PERSONAL_LOYALTY_STATUS'] === true) {
-    $service   = new LoyaltyService();
+    /* @var LoyaltyService $service*/
+    $service   = ServiceLocator::get(LoyaltyService::class);
     $calculate = $service->calculateBonus($arResult['BASKET_ITEMS'], $arResult['DISCOUNT_PRICE'], $arResult['DISCOUNT_PERCENT']);
 
     if ($calculate->success) {

@@ -2998,8 +2998,8 @@ class ApiClient
             "/loyalty/calculate",
             Client::METHOD_POST,
             [
-               'site'=> json_encode($request['site']),
-               'order'=> json_encode($request['order'])
+                'site'  => json_encode($request['site']),
+                'order' => json_encode($request['order']),
             ]
         );
     }
@@ -3025,10 +3025,9 @@ class ApiClient
             "/loyalty/account/create",
             Client::METHOD_POST,
             [
-                'loyaltyAccount'=>json_encode($request['loyaltyAccount']),
-                'site'=>$request['site'],
+                'loyaltyAccount' => json_encode($request['loyaltyAccount']),
+                'site'           => $request['site'],
             ]
-            
         );
     }
     

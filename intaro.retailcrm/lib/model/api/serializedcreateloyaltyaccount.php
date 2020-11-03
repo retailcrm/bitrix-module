@@ -41,11 +41,11 @@ class SerializedCreateLoyaltyAccount
     public $cardNumber;
     
     /**
-     * 	ID клиента
+     * ID клиента
      *
-     * @var \Intaro\RetailCrm\Model\Api\SerializedEntityCustomer
+     * @var \Intaro\RetailCrm\Model\Api\IdentifiersPair
      *
-     * @Mapping\Type("\Intaro\RetailCrm\Model\Api\SerializedEntityCustomer")
+     * @Mapping\Type("\Intaro\RetailCrm\Model\Api\IdentifiersPair")
      * @Mapping\SerializedName("customer")
      */
     public $customer;

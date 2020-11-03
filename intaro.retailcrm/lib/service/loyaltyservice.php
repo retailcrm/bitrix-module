@@ -31,6 +31,7 @@ use Intaro\RetailCrm\Model\Api\PriceType;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountActivateRequest;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\LoyaltyCalculateRequest;
 use Intaro\RetailCrm\Model\Api\Request\Order\Loyalty\OrderLoyaltyApplyRequest;
+use Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountCreateResponse;
 use Intaro\RetailCrm\Model\Api\SerializedOrder;
 use Intaro\RetailCrm\Model\Api\SerializedOrderProduct;
 use Intaro\RetailCrm\Model\Api\SerializedOrderProductOffer;
@@ -186,7 +187,6 @@ class LoyaltyService
         global $USER;
         $rsUser     = CUser::GetByID($USER->GetID());
         $userFields = $rsUser->Fetch();
-        $regInLp    = [];
         
         if (!$userFields) {
             return [];
@@ -205,122 +205,69 @@ class LoyaltyService
                     && $userFields['UF_EXT_REG_PL_INTARO'] === '1'
                 ) {
                     //ДА. Отображаем сообщение "Вы зарегистрированы в Программе лояльности"
-                    $regInLp['msg'] = GetMessage('REG_COMPLETE');
-                } else {
-                    //НЕТ. Аккаунт не активен
-                    /** @var \Intaro\RetailCrm\Service\UserAccountService $userService */
-                    $userService = ServiceLocator::get(UserAccountService::class);
-                    $extFields   = $userService->getExtFields($userFields['UF_EXT_REG_PL_INTARO']);
-                    
-                    //Есть ли обязательные поля, которые нужно заполнить для завершения активации?
-                    if (!empty($extFields)) {
-                        //Да, есть незаполненные обязательные поля
-                        $regInLp = [
-                            'msg'  => GetMessage('ACTIVATE_YOUR_ACCOUNT'),
-                            'form' => [
-                                'button' => [
-                                    'name'   => GetMessage('ACTIVATE'),
-                                    'action' => 'activateAccount',
-                                ],
-                                'fields' => $extFields,
-                            ],
-                        ];
-                    } else {
-                        //НЕТ. Обязательных незаполненных полей нет. Тогда пробуем активировать аккаунт
-                        $activateResponse = $userService->activateLoyaltyAccount($userFields['UF_EXT_REG_PL_INTARO']);
-                        
-                        if ($activateResponse !== null
-                            && isset($activateResponse->loyaltyAccount->active)
-                            && $activateResponse->loyaltyAccount->active === true) {
-                            $regInLp['msg'] = GetMessage('REG_COMPLETE');
-                        }
-                        
-                        //нужна смс верификация
-                        if (isset($activateResponse->verification, $activateResponse->verification->checkId)
-                            && $activateResponse !== null
-                            && !isset($activateResponse->verification->verifiedAt)
-                        ) {
-                            $regInLp = [
-                                'msg'  => GetMessage('SMS_VERIFICATION'),
-                                'form' => [
-                                    'button' => [
-                                        'name'   => GetMessage('SEND'),
-                                        'action' => 'sendSmsCode',
-                                    ],
-                                    'fields' => [
-                                        'smsVerificationCode' => [
-                                            'type' => 'text',
-                                        ],
-                                        'checkId'             => [
-                                            'type'  => 'hidden',
-                                            'value' => $activateResponse->verification->checkId,
-                                        ],
-                                    ],
-                                ],
-                            ];
-                        }
-                    }
+                    return ['msg' => GetMessage('REG_COMPLETE')];
                 }
-            } else {
-                //НЕТ. Выясняем, каких полей не хватает для СОЗДАНИЯ аккаунта, выводим форму
-                $fields = $this->getFields($userFields);
-                
-                //Если все необходимые поля заполнены, то пытаемся его еще раз зарегистрировать
-                if (empty($fields)) {
-                    $phone          = $userFields['PERSONAL_PHONE'] ?? '';
-                    $card           = $userFields['UF_CARD_NUM_INTARO'] ?? '';
-                    $customerId     = (string)$userFields['ID'];
-                    $customFields   = $userFields['UF_CSTM_FLDS_INTARO'] ?? [];
-                    $service        = new UserAccountService();
-                    $createResponse = $service->createLoyaltyAccount($phone, $card, $customerId, $customFields);
-                    
-                    $service->activateLpUserInBitrix($createResponse, $userFields['ID']);
-                    
-                    if ($createResponse !== null
-                        && $createResponse->success === false
-                        && isset($createResponse->errorMsg)
-                        && !empty($createResponse->errorMsg)
-                    ) {
-                        $errorDetails = '';
-                        
-                        if (isset($createResponse->errors) && is_array($createResponse->errors)) {
-                            
-                            foreach ($createResponse->errors as $error) {
-                                $errorDetails .= $error . ' ';
-                            }
-                        }
-                        
-                        AddMessage2Log(GetMessage('REGISTER_ERROR') . ' (' . $createResponse->errorMsg . ' ' . $errorDetails . ')');
-                        
-                        $regInLp['msg'] = GetMessage('REGISTER_ERROR') . ' (' . $createResponse->errorMsg . ' ' . $errorDetails . ')';
-                    } elseif ($createResponse->success === true) {
-                        //Повторная регистрация оказалась удачной
-                        header("Refresh: 0");
-                    }
-                } else {
-                    $regInLp['msg']  = GetMessage('COMPLETE_YOUR_REGISTRATION');
-                    $regInLp['form'] = [
-                        'button' => [
-                            'name'   => GetMessage('CREATE'),
-                            'action' => 'createAccount',
+    
+                //НЕТ. Аккаунт не активен
+                /** @var \Intaro\RetailCrm\Service\LpUserAccountService $userService */
+                $userService = ServiceLocator::get(LpUserAccountService::class);
+                $extFields   = $userService->getExtFields($userFields['UF_EXT_REG_PL_INTARO']);
+    
+                //Есть ли обязательные поля, которые нужно заполнить для завершения активации?
+                if (!empty($extFields)) {
+                    //Да, есть незаполненные обязательные поля
+                    return [
+                        'msg'  => GetMessage('ACTIVATE_YOUR_ACCOUNT'),
+                        'form' => [
+                            'button' => [
+                                'name'   => GetMessage('ACTIVATE'),
+                                'action' => 'activateAccount',
+                            ],
+                            'fields' => $extFields,
                         ],
-                        'fields' => $this->getFields($userFields),
                     ];
                 }
+    
+                return $this->tryActivate($userFields);
             }
-        } else {
-            //НЕТ. Отображаем форму на создание новой регистрации в ПЛ
-            $regInLp['msg']  = GetMessage('INVITATION_TO_REGISTER');
-            $regInLp['form'] = [
+    
+            //Аккаунт не существует. Выясняем, каких полей не хватает для СОЗДАНИЯ аккаунта, выводим форму
+            $fields = $this->getFields($userFields);
+    
+            //Если все необходимые поля заполнены, то пытаемся его еще раз зарегистрировать
+            if (empty($fields)) {
+                $createResponse = $this->registerAndActivateUser($userFields);
+
+                if ($createResponse === false) {
+                    header('Refresh 0');
+                }
+                
+                return $createResponse;
+            }
+    
+            return [
+                'msg'  => GetMessage('COMPLETE_YOUR_REGISTRATION'),
+                'form' => [
+                    'button' => [
+                        'name'   => GetMessage('CREATE'),
+                        'action' => 'createAccount',
+                    ],
+                    'fields' => $this->getFields($userFields),
+                ],
+            ];
+        }
+    
+        //НЕТ. Отображаем форму на создание новой регистрации в ПЛ
+        return [
+            'msg'  => GetMessage('INVITATION_TO_REGISTER'),
+            'form' => [
                 'button' => [
                     'name'   => GetMessage('CREATE'),
                     'action' => 'createAccount',
                 ],
                 'fields' => $this->getFields($userFields),
-            ];
-        }
-        
-        return $regInLp;
+            ],
+        ];
     }
     
     /**
@@ -420,5 +367,91 @@ class LoyaltyService
     private function getExternalFields(): array
     {
         return [];
+    }
+    
+    /**
+     * @param array $userFields
+     * @return string[]|false
+     */
+    private function registerAndActivateUser(array $userFields)
+    {
+        /* @var \Intaro\RetailCrm\Service\LpUserAccountService $service*/
+        $service        = ServiceLocator::get(LpUserAccountService::class);
+        $phone          = $userFields['PERSONAL_PHONE'] ?? '';
+        $card           = $userFields['UF_CARD_NUM_INTARO'] ?? '';
+        $customerId     = (string)$userFields['ID'];
+        $customFields   = $userFields['UF_CSTM_FLDS_INTARO'] ?? [];
+    
+        $createResponse = $service->createLoyaltyAccount($phone, $card, $customerId, $customFields);
+    
+        $service->activateLpUserInBitrix($createResponse, $userFields['ID']);
+    
+        if ($createResponse !== null
+            && $createResponse->success === false
+            && isset($createResponse->errorMsg)
+            && !empty($createResponse->errorMsg)) {
+                $errorDetails = '';
+            
+                if (isset($createResponse->errors) && is_array($createResponse->errors)) {
+                
+                    foreach ($createResponse->errors as $error) {
+                        $errorDetails .= $error . ' ';
+                    }
+                }
+            
+                AddMessage2Log(GetMessage('REGISTER_ERROR') . ' (' . $createResponse->errorMsg . ' ' . $errorDetails . ')');
+            
+                return ['msg' => GetMessage('REGISTER_ERROR') . ' (' . $createResponse->errorMsg . ' ' . $errorDetails . ')'];
+            }
+    
+        if ($createResponse->success === true
+        ) {
+            //Повторная регистрация оказалась удачной
+            return false;
+        }
+    }
+    
+    /**
+     * @param $userFields
+     * @return array
+     */
+    private function tryActivate($userFields): ?array
+    {
+        /** @var \Intaro\RetailCrm\Service\LpUserAccountService $userService */
+        $userService = ServiceLocator::get(LpUserAccountService::class);
+        
+        //НЕТ. Обязательных незаполненных полей нет. Тогда пробуем активировать аккаунт
+        $activateResponse = $userService->activateLoyaltyAccount($userFields['UF_EXT_REG_PL_INTARO']);
+    
+        if ($activateResponse !== null
+            && isset($activateResponse->loyaltyAccount->active)
+            && $activateResponse->loyaltyAccount->active === true) {
+            return ['msg' => GetMessage('REG_COMPLETE')];
+        }
+    
+        //нужна смс верификация
+        if (isset($activateResponse->verification, $activateResponse->verification->checkId)
+            && $activateResponse !== null
+            && !isset($activateResponse->verification->verifiedAt)
+        ) {
+            return [
+                'msg'  => GetMessage('SMS_VERIFICATION'),
+                'form' => [
+                    'button' => [
+                        'name'   => GetMessage('SEND'),
+                        'action' => 'sendSmsCode',
+                    ],
+                    'fields' => [
+                        'smsVerificationCode' => [
+                            'type' => 'text',
+                        ],
+                        'checkId'             => [
+                            'type'  => 'hidden',
+                            'value' => $activateResponse->verification->checkId,
+                        ],
+                    ],
+                ],
+            ];
+        }
     }
 }

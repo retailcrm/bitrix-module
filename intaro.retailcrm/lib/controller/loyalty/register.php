@@ -7,7 +7,7 @@ use Intaro\RetailCrm\Component\Factory\ClientFactory;
 use Intaro\RetailCrm\Model\Api\Request\SmsVerification\SmsVerificationConfirmRequest;
 use Intaro\RetailCrm\Model\Api\SmsVerificationConfirm;
 use Intaro\RetailCrm\Model\Bitrix\User;
-use Intaro\RetailCrm\Service\UserAccountService;
+use Intaro\RetailCrm\Service\LpUserAccountService;
 
 class Register extends Controller
 {
@@ -20,13 +20,13 @@ class Register extends Controller
      */
     public function accountCreateAction(array $loyaltyAccount): array
     {
-        $phoneNumber = preg_replace('/\s|\+|-|\(|\)/', '', $loyaltyAccount['phone']);
-        
+        $phoneNumber = $this->phoneValidate($loyaltyAccount['phone']);
+    
         if (!is_numeric($phoneNumber)) {
             return [
                 'status'   => 'error',
-                'msg' => 'Некорректный номер телефона',
-                'msgColor' => 'brown'
+                'msg'      => 'Некорректный номер телефона',
+                'msgColor' => 'brown',
             ];
         }
         
@@ -45,11 +45,10 @@ class Register extends Controller
         
         //TODO когда станет известен формат карты ПЛ, то добавить валидацию ввода
         
-        $service = new UserAccountService();
+        $service = new LpUserAccountService();
         $createResponse = $service->createLoyaltyAccount($loyaltyAccount['phone'], $loyaltyAccount['card'], (string) $loyaltyAccount['customerId'], $loyaltyAccount['customFields']);
         //TODO добавить провеку на кастомные поля, когда будет готов метод запроса
         if ($createResponse !== null) {
-            
             if ($createResponse->success === false) {
                 return [
                     'status'   => 'error',
@@ -79,6 +78,18 @@ class Register extends Controller
             'msg' => 'Ошибка запроса',
             'msgColor' => 'brown'
         ];
+    }
+    
+    /**
+     * Валидирует телефон
+     *
+     * @param string $phoneNumber
+     * @return string|string[]|null
+     */
+    private function phoneValidate(string $phoneNumber){
+        $phoneNumber = preg_replace('/\s|\+|-|\(|\)/', '', $phoneNumber);
+        
+        return $phoneNumber;
     }
     
     /**
@@ -126,7 +137,8 @@ class Register extends Controller
         
         if ($verificationResult->success === true
             && isset($verificationResult->verification->verifiedAt)
-            && !empty($verificationResult->verification->verifiedAt)) {
+            && !empty($verificationResult->verification->verifiedAt)
+        ) {
     
             global $USER_FIELD_MANAGER;
             global $USER;

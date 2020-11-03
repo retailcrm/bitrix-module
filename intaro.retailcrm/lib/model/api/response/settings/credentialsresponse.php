@@ -25,7 +25,7 @@ class CredentialsResponse extends AbstractApiResponseModel
     /**
      * Результат запроса (успешный/неуспешный)
      *
-     * @var \bool $success
+     * @var bool $success
      *
      * @Mapping\Type("bool")
      * @Mapping\SerializedName("success")

@@ -560,7 +560,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     
     if (isset($_POST['loyalty_toggle']) && $_POST['loyalty_toggle'] === 'on') {
         ConfigProvider::setLoyaltyProgramStatus('Y');
-    }else{
+    } else {
         ConfigProvider::setLoyaltyProgramStatus('N');
     }
     

@@ -46,8 +46,7 @@ function sendVerificationCode() {
     ).then(
         function(response) {
             if (response.data.status === 'error' && response.data.msg !== undefined) {
-                const msg = response.data.msg;
-                $('#msg').text(msg);
+                $('#msg').text(response.data.msg);
             }
 
             if (response.data.status === 'activate') {

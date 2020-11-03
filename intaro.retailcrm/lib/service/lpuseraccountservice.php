@@ -28,7 +28,7 @@ use RuntimeException;
 /**
  * Class UserAccountService
  */
-class UserAccountService
+class LpUserAccountService
 {
     public const NOT_AUTHORIZE = 'Пользователь на авторизован';
     /**
@@ -37,7 +37,7 @@ class UserAccountService
     private $client;
     
     /**
-     * UserAccountService constructor.
+     * LpUserAccountService constructor.
      */
     public function __construct()
     {

@@ -16,7 +16,7 @@ use Bitrix\Main\Engine\ActionFilter\HttpMethod;
 use Bitrix\Main\Engine\Controller;
 use Bitrix\Main\Request;
 use Intaro\RetailCrm\Component\ServiceLocator;
-use Intaro\RetailCrm\Service\UserAccountService;
+use Intaro\RetailCrm\Service\LpUserAccountService;
 
 /**
  * Class SmsVerification
@@ -27,7 +27,7 @@ class SmsVerification extends Controller
     /** @var int  */
     const DEFAULT_CODE_LENGHT = 4;
     
-    /** @var UserAccountService */
+    /** @var LpUserAccountService */
     private $service;
     
     /**
@@ -37,7 +37,7 @@ class SmsVerification extends Controller
      */
     public function __construct(Request $request = null)
     {
-        $this->service = ServiceLocator::get(UserAccountService::class);
+        $this->service = ServiceLocator::get(LpUserAccountService::class);
         parent::__construct($request);
     }
     

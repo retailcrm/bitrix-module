@@ -5,6 +5,7 @@ use Bitrix\Main\Loader;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
 use Intaro\RetailCrm\Component\ConfigProvider;
+use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Repository\AgreementRepository;
 use Intaro\RetailCrm\Service\LoyaltyService;
 
@@ -15,7 +16,8 @@ $arResult['LOYALTY_STATUS'] = ConfigProvider::getLoyaltyProgramStatus();
 global $USER;
 
 if ($arResult['LOYALTY_STATUS'] === 'Y' && $USER->IsAuthorized()) {
-    $service                 = new LoyaltyService();
+    /* @var LoyaltyService $service*/
+    $service                 = ServiceLocator::get(LoyaltyService::class);
     $arResult['LP_REGISTER'] = $service->checkRegInLp();
 }
 
