@@ -138,7 +138,7 @@ class ClientAdapter
     public function getCredentials(): CredentialsResponse
     {
         $response = $this->client->getCredentials();
-        
+
         return Deserializer::deserializeArray($response->getResponseBody(), CredentialsResponse::class);
     }
 }

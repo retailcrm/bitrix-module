@@ -2,9 +2,11 @@
 
 use Bitrix\Currency\CurrencyManager;
 use Bitrix\Main\Application;
+use Bitrix\Main\UI\Extension;
 use Bitrix\Sale\Delivery\Services\Manager;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Constants;
+use Intaro\RetailCrm\Repository\AgreementRepository;
 use Intaro\RetailCrm\Repository\TemplateRepository;
 use RetailCrm\Exception\CurlException;
 
@@ -556,6 +558,12 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         COption::SetOptionString($mid, $CRM_CURRENCY, $_POST['currency']);
     }
     
+    if (isset($_POST['loyalty_toggle']) && $_POST['loyalty_toggle'] === 'on') {
+        ConfigProvider::setLoyaltyProgramStatus('Y');
+    } else {
+        ConfigProvider::setLoyaltyProgramStatus('N');
+    }
+    
     COption::SetOptionString($mid, $CRM_ADDRESS_OPTIONS, serialize($addressDatailOptions));
     COption::SetOptionString($mid, $CRM_SITES_LIST, serialize($siteListArr));
     COption::SetOptionString($mid, $CRM_ORDER_TYPES_ARR, serialize(RCrmActions::clearArr($orderTypesArr)));
@@ -728,8 +736,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $optionsOrderDimensions = COption::GetOptionString($mid, $CRM_DIMENSIONS, 'N');
     $addressOptions         = unserialize(COption::GetOptionString($mid, $CRM_ADDRESS_OPTIONS, 0));
     
-
-    
     $aTabs      = [
         [
             "DIV"   => "edit1",
@@ -769,9 +775,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     CJSCore::Init(array("jquery"));
     ?>
     <script type="text/javascript">
-
-        function createSaleTemplates() {
-            BX.ajax.runAction('intaro:retailcrm.api.adminpanel.createSaleTemplate',
+        function createTemplates(donor) {
+            BX.ajax.runAction('intaro:retailcrm.api.adminpanel.createTemplate',
                 {
                     data: {
                         sessid:    BX.bitrix_sessid(),
@@ -780,17 +785,28 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                 'location': '/local/templates/',
                                 'name':     '.default'
                             }
-                        ]
+                        ],
+                        donor:     donor
                     }
                 }
             );
         }
         
-        function replaceDefaultSaleTemplates() {
+        function replaceDefaultTemplates(donor) {
             let templates = [];
             let i = 0;
-            
-            $('#lp-templates input:checkbox:checked').each(
+
+            let node;
+
+            if (donor === 'sale.order.ajax') {
+                node = $('#lp-sale-templates input:checkbox:checked');
+            }
+
+            if (donor === 'main.register') {
+                node = $('#lp-reg-templates input:checkbox:checked');
+            }
+
+            node.each(
                     function(index, checkbox){
                        templates[i] = {
                            'name': $(checkbox).val(),
@@ -800,35 +816,20 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                     }
                 );
            
-            BX.ajax.runAction('intaro:retailcrm.api.adminpanel.createSaleTemplate',
+            BX.ajax.runAction('intaro:retailcrm.api.adminpanel.createTemplate',
                 {
                     data: {
-                        sessid: BX.bitrix_sessid(),
-                        templates: templates,
-                        defreplace: 'Y'
+                        sessid:     BX.bitrix_sessid(),
+                        templates:  templates,
+                        donor:      donor,
+                        replaceDefaultTemplate: 'Y'
                     }
                 }
             );
         }
 
         function switchPLStatus() {
-            BX.ajax.runAction('intaro:retailcrm.api.adminpanel.loyaltyprogramtoggle',
-                {
-                    data: {
-                        sessid: BX.bitrix_sessid()
-                    }
-                }
-            ).then(
-                function(data) {
-                    if (data.status === 'success') {
-                        if (data.data.newStatus === 'Y') {
-                            $('#loyalty_main_settings').show(500);
-                        } else {
-                            $('#loyalty_main_settings').hide(500);
-                        }
-                    }
-                }
-            );
+            $('#loyalty_main_settings').toggle(500);
         }
 
         $(document).ready(function() {
@@ -1335,7 +1336,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 <td colspan="2" class="option-other-heading">
                     <b>
                         <label>
-                            <input class="addr" type="checkbox" name="loyalty_toggle" onclick="switchPLStatus();" <?php if ($loyaltyProgramToggle === 'Y') {
+                            <input class="addr" type="checkbox" id="loyalty_toggle" name="loyalty_toggle" onclick="switchPLStatus();" <?php if ($loyaltyProgramToggle === 'Y') {
                                 echo "checked";
                             } ?>>
                             <?php echo GetMessage('LOYALTY_PROGRAM_TOGGLE_MSG'); ?>
@@ -1363,7 +1364,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                     </div>
                                     <?php echo GetMessage('LP_CUSTOM_TEMP_CREATE_MSG'); ?>
                                     <div style="text-align: center;">
-                                        <input type="button" onclick="createSaleTemplates()" class="adm-btn-save" value="<?php echo GetMessage('LP_CREATE_TEMPLATE'); ?>"/>
+                                        <input type="button" onclick="createTemplates('sale.order.ajax')" class="adm-btn-save" value="<?php echo GetMessage('LP_CREATE_TEMPLATE'); ?>"/>
                                     </div>
                                 </td>
                             </tr>
@@ -1381,10 +1382,10 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                             </tr>
                             <tr>
                                 <td width="50%" align="center">
-                                    <input type="button" onclick="replaceDefaultSaleTemplates()" class="adm-btn-save" value="<?php echo GetMessage('LP_REPLACE_TEMPLATE'); ?>" />
+                                    <input type="button" onclick="replaceDefaultTemplates('sale.order.ajax')" class="adm-btn-save" value="<?php echo GetMessage('LP_REPLACE_TEMPLATE'); ?>" />
                                 </td>
                                 <td width="50%" >
-                                    <div id="lp-templates">
+                                    <div id="lp-sale-templates">
                                         <?php
                                         $templates = TemplateRepository::getAllIds();
                                         foreach ($templates as $template) {
@@ -1395,6 +1396,80 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                 </td>
                                 
                             </tr>
+                        </table>
+                        <table width="100%">
+                            <tr class="heading">
+                                <td colspan="2" class="option-other-heading">
+                                    <?php echo GetMessage('LP_MAIN_REGISTER_HEAD'); ?>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="2">
+                                    <div style="text-align: center;">
+                                        <h4>
+                                            <?=GetMessage('CREATING_AN_ADDITIONAL_TEMPLATE')?>
+                                        </h4>
+                                    </div>
+                                    <?php echo GetMessage('LP_CUSTOM_REG_TEMP_CREATE_MSG'); ?>
+                                    <div style="text-align: center;">
+                                        <input type="button" onclick="createTemplates('main.register')" class="adm-btn-save" value="<?php echo GetMessage('LP_CREATE_TEMPLATE'); ?>"/>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="2">
+                                    <div style="text-align: center;">
+                                        <h4>
+                                            <?= GetMessage('REPLACING_THE_STANDARD_TEMPLATE') ?>
+                                        </h4>
+                                    </div>
+                                    <?php echo GetMessage('LP_DEF_TEMP_REG_CREATE_MSG'); ?>
+                                    <hr>
+                                    <?php echo GetMessage('LP_TEMP_CHOICE_MSG'); ?>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td width="50%" align="center">
+                                    <input type="button" onclick="replaceDefaultTemplates('main.register')" class="adm-btn-save" value="<?php echo GetMessage('LP_REPLACE_TEMPLATE'); ?>" />
+                                </td>
+                                <td width="50%" >
+                                    <div id="lp-reg-templates">
+                                        <?php
+                                        $templates = TemplateRepository::getAllIds();
+                                        foreach ($templates as $template) {
+                                            ?>
+                                            <p><input type="checkbox" name="<?= $template['name']?>" value="<?= $template['name']?>" templateFolder="<?= $template['folder']?>"> <?= $template['name']?> (<?= $template['folder']?>)</p>
+                                        <?php } ?>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="text-align: center;" colspan="2">
+                                    
+                                    <?php
+                                    $isAgreementPersonalProgram = AgreementRepository::getFirstByWhere(
+                                        ['ID'],
+                                        [
+                                            ['CODE', '=', 'AGREEMENT_PERSONAL_DATA_CODE']
+                                        ]
+                                    );
+                                    $isAgreementLoyaltyProgram = AgreementRepository::getFirstByWhere(
+                                        ['ID'],
+                                        [
+                                            ['CODE', '=', 'AGREEMENT_LOYALTY_PROGRAM_CODE']
+                                        ]
+                                    );
+                                    ?>
+                                    <h4><?= GetMessage('EDITING_AGREEMENTS')?></h4>
+                                    <?php if (isset($isAgreementLoyaltyProgram['ID']) && isset($isAgreementLoyaltyProgram['ID'])) { ?>
+                                        <a href="<?= SITE_SERVER_NAME . '/bitrix/admin/agreement_edit.php?ID=' . $isAgreementLoyaltyProgram['ID']?>" target="_blank"><?= GetMessage('AGREEMENT_PROCESSING_PERSONAL_DATA')?></a>
+                                        <br>
+                                        <a href="<?= SITE_SERVER_NAME . '/bitrix/admin/agreement_edit.php?ID=' . $isAgreementLoyaltyProgram['ID']?>" target="_blank"><?= GetMessage('ACCEPTANCE_TERMS_LOYALTY_PROGRAM')?></a>
+                                    <?php } ?>
+                                </td>
+                            </tr>
+                            
                         </table>
                     </div>
                 </td>

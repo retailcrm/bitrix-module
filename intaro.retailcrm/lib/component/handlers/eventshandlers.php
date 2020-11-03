@@ -10,7 +10,7 @@
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
  */
-namespace Intaro\RetailCrm\Component\Loyalty;
+namespace Intaro\RetailCrm\Component\Handlers;
 
 IncludeModuleLangFile(__FILE__);
 
@@ -19,13 +19,20 @@ use Bitrix\Main\Event;
 use Bitrix\Main\HttpRequest;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
-use Bitrix\Sale\Internals\PaymentTable;
 use Bitrix\Sale\Order;
-use Bitrix\Sale\PaySystem\Manager;
-use Exception;
+use CUser;
+use Intaro\RetailCrm\Component\Builder\Api\CustomerBuilder;
 use Intaro\RetailCrm\Component\ConfigProvider;
-use Intaro\RetailCrm\Repository\PaySystemActionRepository;
+use Intaro\RetailCrm\Component\ServiceLocator;
+use Intaro\RetailCrm\Repository\UserRepository;
 use Intaro\RetailCrm\Service\LoyaltyService;
+use Intaro\RetailCrm\Service\LpUserAccountService;
+use Intaro\RetailCrm\Service\UserService;
+use RetailCrm\ApiClient;
+use RetailCrm\Http\Client;
+use RetailcrmConfigProvider;
+use RetailCrmEvent;
+use RetailCrmUser;
 
 /**
  * Class EventsHandlers
@@ -34,6 +41,14 @@ use Intaro\RetailCrm\Service\LoyaltyService;
  */
 class EventsHandlers
 {
+    /**
+     * EventsHandlers constructor.
+     */
+    public function __construct()
+    {
+        IncludeModuleLangFile(__FILE__);
+    }
+    
     /**
      * @param \Bitrix\Main\Event $event
      */
@@ -135,69 +150,77 @@ class EventsHandlers
     }
     
     /**
-     * Обработчик события, вызываемого ПОСЛЕ сохранения заказа
+     * Обработчик события, вызываемого ПОСЛЕ сохранения заказа (OnSaleOrderSaved)
      *
      * @param \Bitrix\Main\Event $event
      */
     public function OnSaleOrderSavedHandler(Event $event): void
     {
-        /**@var \Bitrix\Sale\Order $order */
-        $order = $event->getParameter("ENTITY");
-        $isNew = $event->getParameter("IS_NEW");
+        /* @var LoyaltyService $service*/
+        $loyaltyService = ServiceLocator::get(LoyaltyService::class);
+        $retailCrmEvent = new RetailCrmEvent();
         
-        if (isset($_POST['bonus-input'], $_POST['available-bonuses'])
-            && $isNew
-            && (int) $_POST['available-bonuses'] >= (int) $_POST['bonus-input']
-        ) {
-            $orderId    = $order->getId();
-            $bonusCount = $_POST['bonus-input'];
-            $service    = new LoyaltyService();
-            $response   = $service->sendBonusPayment($orderId, $bonusCount);
-            
-            //TODO - заглушка до появления api на стороне CRM. После появления реального апи - убрать следующую строку
-            $response->success = true;
-            $response->verification->checkId = 'проверочный код.';
-            //конец заглушки
-            
-            if ($response->success) {
-                try {
-                    $bonusPaySystem    = PaySystemActionRepository::getFirstByWhere(['ID'], [['ACTION_FILE', '=', 'retailcrmbonus']]);
-                    $paymentCollection = $order->getPaymentCollection();
-                    
-                    if ($bonusPaySystem !== null) {
-                        if (count($paymentCollection) === 1) {
-                            /** @var \Bitrix\Sale\Payment $payment */
-                            foreach ($paymentCollection as $payment){
-                                $oldSum = $payment->getField('SUM');
-                                
-                                $payment->setField('SUM', $oldSum - $bonusCount);
-                                break;
-                            }
-                        }
-                        
-                        $service    = Manager::getObjectById($bonusPaySystem->getId());
-                        $newPayment = $paymentCollection->createItem($service);
-                        
-                        $newPayment->setField('SUM', $bonusCount);
-                        
-                        //если верификация необходима, но не пройдена
-                        if (isset($response->verification, $response->verification->checkId)
-                            && !isset($response->verification->verifiedAt)
-                        ) {
-                            $newPayment->setPaid('N');
-                            $newPayment->setField('COMMENTS', $response->verification->checkId);
-                        }
+        try {
+            // TODO: Replace old call with a new one.
+            $retailCrmEvent->orderSave($event);
     
-                        //если верификация не нужна
-                        if (!isset($response->verification)) {
-                            $newPayment->setPaid('Y');
-                        }
-                        
-                        $order->save();
-                    }
-                } catch (ObjectPropertyException | ArgumentException | SystemException | Exception $e) {
-                    AddMessage2Log('ERROR PaySystemActionRepository: ' . $e->getMessage());
+            $isNew = $event->getParameter("IS_NEW");
+    
+            if (isset($_POST['bonus-input'], $_POST['available-bonuses'])
+                && $isNew
+                && (int)$_POST['available-bonuses'] >= (int)$_POST['bonus-input']
+            ) {
+                $loyaltyService->applyBonusesInOrder($event);
+            }
+        } catch (ObjectPropertyException | ArgumentException | SystemException $e) {
+            AddMessage2Log(GetMessage('CAN_NOT_SAVE_ORDER') . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Регистрирует пользователя в CRM системе после регистрации на сайте
+     *
+     * @param array $arFields
+     * @return mixed
+     */
+    public function OnAfterUserRegisterHandler(array $arFields): void
+    {
+        if (isset($arFields['USER_ID']) && $arFields['USER_ID'] > 0) {
+            $user = UserRepository::getById($arFields['USER_ID']);
+            
+            if (isset($_POST['REGISTER']['PERSONAL_PHONE'])) {
+                $phone = htmlspecialchars($_POST['REGISTER']['PERSONAL_PHONE']);
+                
+                if ($user !== null) {
+                    $user->setPersonalPhone($phone);
+                    $user->save();
                 }
+                
+                $arFields['PERSONAL_PHONE'] = $phone;
+            }
+
+        $builder = new CustomerBuilder();
+        $customer = $builder->setUser(UserRepository::getById($arFields['USER_ID']))->getResult();
+    
+        /* @var UserService $userService */
+        $userService = ServiceLocator::get(UserService::class);
+        $userService->addNewUser($customer);
+
+            //Если пользователь выразил желание зарегистрироваться в ПЛ и согласился со всеми правилами
+            if ((int)$arFields['UF_REG_IN_PL_INTARO'] === 1
+                && (int)$arFields['UF_AGREE_PL_INTARO'] === 1
+                && (int)$arFields['UF_PD_PROC_PL_INTARO'] === 1
+            ) {
+                $phone          = $arFields['PERSONAL_PHONE'] ?? '';
+                $card           = $arFields['UF_CARD_NUM_INTARO'] ?? '';
+                $customerId     = (string) $arFields['USER_ID'];
+                $customFields   = $arFields['UF_CSTM_FLDS_INTARO'] ?? [];
+                
+                /** @var LpUserAccountService $service */
+                $service        = ServiceLocator::get(LpUserAccountService::class);
+                $createResponse = $service->createLoyaltyAccount($phone, $card, $customerId, $customFields);
+
+                $service->activateLpUserInBitrix($createResponse, $arFields['USER_ID']);
             }
         }
     }

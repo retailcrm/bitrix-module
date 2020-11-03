@@ -71,5 +71,7 @@ class Constants
     public const CORPORATE_CONTRAGENT_TYPE      = 'legal-entity';
     public const LOYALTY_PROGRAM_TOGGLE         = 'loyalty_program_toggle';
     public const CLIENT_ID                      = 'client_id';
+    public const AGREEMENT_LOYALTY_PROGRAM      = 'agreement_loyalty_program';
+    public const AGREEMENT_PERSONAL_DATA        = 'agreement_personal_data';
     public const BONUS_PAYMENT_CODE             = 'INTARO_BONUS';
 }

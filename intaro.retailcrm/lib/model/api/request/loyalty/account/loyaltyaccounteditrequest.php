@@ -26,7 +26,7 @@ class LoyaltyAccountEditRequest extends AbstractApiModel
      * @var \Intaro\RetailCrm\Model\Api\LoyaltyAccount
      *
      * @Mapping\Type("\Intaro\RetailCrm\Model\Api\LoyaltyAccount")
-     * @Mapping\SerializedName("loyalty_account")
+     * @Mapping\SerializedName("loyaltyAccount")
      */
     public $loyaltyAccount;
 }

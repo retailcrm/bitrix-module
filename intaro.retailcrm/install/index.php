@@ -20,11 +20,11 @@ use Bitrix\Sale\Internals\PaySystemActionTable;
 use Bitrix\Sale\Delivery\Services\Manager;
 use Bitrix\sale\EventActions;
 use Bitrix\Sale\Internals\OrderTable;
+use Intaro\RetailCrm\Component\Handlers\EventsHandlers;
+use Intaro\RetailCrm\Model\Bitrix\Agreement;
+use Intaro\RetailCrm\Repository\AgreementRepository;
 use \RetailCrm\ApiClient;
 use RetailCrm\Exception\CurlException;
-use Intaro\RetailCrm\Component\Loyalty\EventsHandlers;
-use Intaro\RetailCrm\Repository\OrderPropsRepository;
-use Intaro\RetailCrm\Repository\PersonTypeRepository;
 use Intaro\RetailCrm\Repository\ToModuleRepository;
 
 IncludeModuleLangFile(__FILE__);
@@ -54,10 +54,14 @@ class intaro_retailcrm extends CModule
         ['EVENT_NAME' => 'OnSaleOrderDeleted', 'FROM_MODULE' => 'sale'],
         ['EVENT_NAME' => 'OnSaleComponentOrderOneStepProcess', 'FROM_MODULE' => 'sale'],
         ['EVENT_NAME' => 'OnSaleComponentOrderResultPrepared', 'FROM_MODULE' => 'sale'],
+        ['EVENT_NAME' => 'OnAfterUserRegister', 'FROM_MODULE' => 'main'],
     ];
-
-    public const V5           = 'v5';
-    public const INTARO_BONUS = 'INTARO_BONUS';
+    
+    public const V5                             = 'v5';
+    public const INTARO_BONUS                   = 'INTARO_BONUS';
+    public const AGREEMENT_LOYALTY_PROGRAM_CODE = 'AGREEMENT_LOYALTY_PROGRAM_CODE';
+    public const AGREEMENT_PERSONAL_DATA_CODE   = 'AGREEMENT_PERSONAL_DATA_CODE';
+    
     public $MODULE_ID           = 'intaro.retailcrm';
     public $OLD_MODULE_ID       = 'intaro.intarocrm';
     public $MODULE_VERSION;
@@ -234,11 +238,16 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../lib/repository/persontyperepository.php');
         include($this->INSTALL_PATH . '/../lib/repository/tomodulerepository.php');
         include($this->INSTALL_PATH . '/../lib/model/bitrix/orm/tomodule.php');
-
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/agreement.php');
+        include($this->INSTALL_PATH . '/../lib/component/configprovider.php');
+        include($this->INSTALL_PATH . '/../lib/component/constants.php');
+        include($this->INSTALL_PATH . '/../lib/repository/agreementrepository.php');
+       
         $this->CopyFiles();
         $this->addBonusPaySystem();
         $this->addLPUserFields();
         $this->addLPEvents();
+        $this->addAgreement();
 
         if ($step == 11) {
             $arResult['arSites'] = RCrmActions::SitesList();
@@ -991,7 +1000,6 @@ class intaro_retailcrm extends CModule
             RegisterModule($this->MODULE_ID);
             RegisterModuleDependences("sale", "OnOrderUpdate", $this->MODULE_ID, "RetailCrmEvent", "onUpdateOrder");
             RegisterModuleDependences("main", "OnAfterUserUpdate", $this->MODULE_ID, "RetailCrmEvent", "OnAfterUserUpdate");
-            RegisterModuleDependences("sale", EventActions::EVENT_ON_ORDER_SAVED, $this->MODULE_ID, "RetailCrmEvent", "orderSave");
             RegisterModuleDependences("sale", "OnSaleOrderDeleted", $this->MODULE_ID, "RetailCrmEvent", "orderDelete");
             RegisterModuleDependences("sale", "OnSalePaymentEntitySaved", $this->MODULE_ID, "RetailCrmEvent", "paymentSave");
             RegisterModuleDependences("sale", "OnSalePaymentEntityDeleted", $this->MODULE_ID, "RetailCrmEvent", "paymentDelete");
@@ -1245,16 +1253,6 @@ class intaro_retailcrm extends CModule
         COption::RemoveOption($this->MODULE_ID, $this->CLIENT_ID);
         COption::RemoveOption($this->MODULE_ID, $this->PROTOCOL);
 
-        if (CModule::IncludeModule('sale')) {
-            UnRegisterModuleDependences(
-                "sale",
-                EventActions::EVENT_ON_ORDER_SAVED,
-                $this->MODULE_ID,
-                "RetailCrmEvent",
-                "orderSave"
-            );
-        }
-
         UnRegisterModuleDependences("sale", "OnOrderUpdate", $this->MODULE_ID, "RetailCrmEvent", "onUpdateOrder");
         UnRegisterModuleDependences("main", "OnAfterUserUpdate", $this->MODULE_ID, "RetailCrmEvent", "OnAfterUserUpdate");
         UnRegisterModuleDependences("sale", "OnSaleOrderDeleted", $this->MODULE_ID, "RetailCrmEvent", "orderDelete");
@@ -1309,20 +1307,27 @@ class intaro_retailcrm extends CModule
             false
         );
     
-        $lpTemplatePath = $_SERVER['DOCUMENT_ROOT']
-            . '/local/templates/.default/components/bitrix/sale.order.ajax/intaro.retailcrm';
+        $lpTemplateNames = [
+            'sale.order.ajax',
+            'main.register',
+        ];
         
-        if (!file_exists($lpTemplatePath)) {
-            $pathFrom = $_SERVER['DOCUMENT_ROOT']
-                . '/bitrix/modules/intaro.retailcrm/install/export/local/components/intaro/sale.order.ajax/templates/.default';
-            
-            CopyDirFiles(
-                $pathFrom,
-                $lpTemplatePath,
-                true,
-                true,
-                false
-            );
+        foreach ($lpTemplateNames as $lpTemplateName){
+            $lpTemplatePath = $_SERVER['DOCUMENT_ROOT']
+                . '/local/templates/.default/components/bitrix/' . $lpTemplateName . '/intaro.retailcrm';
+    
+            if (!file_exists($lpTemplatePath)) {
+                $pathFrom = $_SERVER['DOCUMENT_ROOT']
+                    . '/bitrix/modules/intaro.retailcrm/install/export/local/components/intaro/' . $lpTemplateName . '/templates/.default';
+        
+                CopyDirFiles(
+                    $pathFrom,
+                    $lpTemplatePath,
+                    true,
+                    true,
+                    false
+                );
+            }
         }
     }
 
@@ -1503,33 +1508,70 @@ class intaro_retailcrm extends CModule
     {
         $this->addCustomUserFields(
             [
-                "UF_REG_IN_PL_INTARO",
-                "UF_AGREE_PL_INTARO",
-                "UF_PD_PROC_PL_INTARO",
-                "UF_EXT_REG_PL_INTARO",
+                [
+                    'name'  => "UF_CARD_NUM_INTARO",
+                    'title' => GetMessage('UF_CARD_NUMBER_INTARO_TITLE'),
+                ],
+            ],
+            'string'
+        );
+    
+        $this->addCustomUserFields(
+            [
+                [
+                    'name'  => "UF_LP_ID_INTARO",
+                    'title' => GetMessage('UF_LP_ID_INTARO_TITLE'),
+                ],
+            ],
+            'string',
+            ['EDIT_IN_LIST' => 'N']
+        );
+        
+        $this->addCustomUserFields(
+            [
+                [
+                    'name'  => "UF_REG_IN_PL_INTARO",
+                    'title' => GetMessage('UF_REG_IN_PL_INTARO_TITLE'),
+                ],
+                [
+                    'name'  => "UF_AGREE_PL_INTARO",
+                    'title' => GetMessage('UF_AGREE_PL_INTARO_TITLE'),
+                ],
+                [
+                    'name'  => "UF_PD_PROC_PL_INTARO",
+                    'title' => GetMessage('UF_PD_PROC_PL_INTARO_TITLE'),
+                ],
+                [
+                    'name'  => "UF_EXT_REG_PL_INTARO",
+                    'title' => GetMessage('UF_EXT_REG_PL_INTARO_TITLE'),
+                ],
             ]
         );
     }
-
+    
     /**
-     * @param        $fieldNames
+     * @param        $fields
      * @param string $filedType
+     * @param array  $customProps
      */
-    public function addCustomUserFields($fieldNames, $filedType = 'boolean'): void
+    public function addCustomUserFields($fields, $filedType = 'boolean', $customProps  = []): void
     {
-        foreach ($fieldNames as $filedName) {
-            $arProps = [
-                "ENTITY_ID" => 'USER',
-                "FIELD_NAME" => $filedName,
-                "USER_TYPE_ID" => $filedType,
-                "MULTIPLE" => "N",
-                "MANDATORY" => "N"
+        foreach ($fields as $filed) {
+            $arProps     = [
+                "ENTITY_ID"       => 'USER',
+                "FIELD_NAME"      => $filed['name'],
+                "USER_TYPE_ID"    => $filedType,
+                "MULTIPLE"        => "N",
+                "MANDATORY"       => "N",
+                "EDIT_FORM_LABEL" => ["ru" => $filed['title']],
+            
             ];
+            $props = array_merge($arProps, $customProps);
             $obUserField = new CUserTypeEntity;
-            $dbRes = CUserTypeEntity::GetList([], ["FIELD_NAME" => $filedName])->fetch();
-
+            $dbRes       = CUserTypeEntity::GetList([], ["FIELD_NAME" => $filed['name']])->fetch();
+            
             if (!$dbRes['ID']) {
-                $obUserField->Add($arProps);
+                $obUserField->Add($props);
             }
         }
     }
@@ -1605,13 +1647,17 @@ class intaro_retailcrm extends CModule
      */
     private function addBonusPaySystem(): void
     {
-        $arrPaySystemAction = PaySystemActionTable::query()
-            ->setSelect(['ID'])
-            ->where([
-                ['ACTION_FILE', '=', self::BONUS_PAY_SYSTEM_CODE],
-            ])
-            ->fetchCollection();
-
+        try {
+            $arrPaySystemAction = PaySystemActionTable::query()
+                ->setSelect(['ID'])
+                ->where([
+                    ['ACTION_FILE', '=', self::BONUS_PAY_SYSTEM_CODE],
+                ])
+                ->fetchCollection();
+        } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
+            AddMessage2Log($exception->getMessage());
+        }
+    
         if (count($arrPaySystemAction) === 0) {
             $result     = PaySystemActionTable::add(
                 [
@@ -1662,6 +1708,48 @@ class intaro_retailcrm extends CModule
                 EventsHandlers::class,
                 $event['EVENT_NAME'].'Handler'
             );
+        }
+    }
+    
+    /**
+     * Добавление соглашений для формы регистрации
+     */
+    private function addAgreement(): void
+    {
+        $isAgreementLoyaltyProgram = AgreementRepository::getFirstByWhere(
+            ['ID'],
+            [
+                ['CODE', '=', self::AGREEMENT_LOYALTY_PROGRAM_CODE]
+            ]
+        );
+    
+        if (!isset($isAgreementLoyaltyProgram['ID'])) {
+            $agreementLoyaltyProgram = new Agreement();
+            $agreementLoyaltyProgram->setCode(self::AGREEMENT_LOYALTY_PROGRAM_CODE);
+            $agreementLoyaltyProgram->setDateInsert(new \Bitrix\Main\Type\DateTime());
+            $agreementLoyaltyProgram->setActive('Y');
+            $agreementLoyaltyProgram->setName(GetMessage('AGREEMENT_LOYALTY_PROGRAM_TITLE'));
+            $agreementLoyaltyProgram->setType('C');
+            $agreementLoyaltyProgram->setAgreementText(GetMessage('AGREEMENT_LOYALTY_PROGRAM_TEXT'));
+            $agreementLoyaltyProgram->save();
+        }
+    
+        $isAgreementPersonalProgram = AgreementRepository::getFirstByWhere(
+            ['ID'],
+            [
+                ['CODE', '=', self::AGREEMENT_PERSONAL_DATA_CODE]
+            ]
+        );
+        
+        if (!isset($isAgreementPersonalProgram['ID'])) {
+            $agreementPersonalData = new Agreement();
+            $agreementPersonalData->setCode(self::AGREEMENT_PERSONAL_DATA_CODE);
+            $agreementPersonalData->setDateInsert(new \Bitrix\Main\Type\DateTime());
+            $agreementPersonalData->setActive('Y');
+            $agreementPersonalData->setName(GetMessage('AGREEMENT_PERSONAL_DATA_TITLE'));
+            $agreementPersonalData->setType('C');
+            $agreementPersonalData->setAgreementText(GetMessage('AGREEMENT_PERSONAL_DATA_TEXT'));
+            $agreementPersonalData->save();
         }
     }
 }
