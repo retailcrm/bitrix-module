@@ -661,6 +661,42 @@ class ConfigProvider
     }
 
     /**
+     * @return string|null
+     */
+    public static function getAgreementLoyaltyProgram(): ?string
+    {
+        return static::getOption(Constants::AGREEMENT_LOYALTY_PROGRAM);
+    }
+
+    /**
+     * @return string|null
+     */
+    public static function getAgreementPersonalData(): ?string
+    {
+        return static::getOption(Constants::AGREEMENT_PERSONAL_DATA);
+    }
+
+    /**
+     * @param $agreementLoyaltyProgramId
+     * @return void
+     * @throws \Bitrix\Main\ArgumentOutOfRangeException
+     */
+    public static function setAgreementLoyaltyProgram($agreementLoyaltyProgramId): void
+    {
+        static::setOption(Constants::AGREEMENT_LOYALTY_PROGRAM, $agreementLoyaltyProgramId);
+    }
+
+    /**
+     * @param $agreementPersonalData
+     * @return void
+     * @throws \Bitrix\Main\ArgumentOutOfRangeException
+     */
+    public static function setAgreementPersonalData($agreementPersonalData): void
+    {
+        static::setOption(Constants::AGREEMENT_PERSONAL_DATA, $agreementPersonalData);
+    }
+
+    /**
      * Wraps Bitrix \COption::GetOptionString(...)
      *
      * @param string $option

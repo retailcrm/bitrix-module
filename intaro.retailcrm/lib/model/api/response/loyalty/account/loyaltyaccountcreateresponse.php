@@ -12,6 +12,7 @@
 namespace Intaro\RetailCrm\Model\Api\Response\Loyalty\Account;
 
 use Intaro\RetailCrm\Model\Api\Response\AbstractApiResponseModel;
+use Intaro\RetailCrm\Component\Json\Mapping;
 
 /**
  * Class LoyaltyAccountCreateResponse
@@ -34,7 +35,7 @@ class LoyaltyAccountCreateResponse extends AbstractApiResponseModel
      * @var \Intaro\RetailCrm\Model\Api\LoyaltyAccount
      *
      * @Mapping\Type("\Intaro\RetailCrm\Model\Api\LoyaltyAccount")
-     * @Mapping\SerializedName("loyalty_account")
+     * @Mapping\SerializedName("loyaltyAccount")
      */
     public $loyaltyAccount;
     
