@@ -36,8 +36,13 @@ class AdminPanel extends Controller
         $templateName = $replaceDefaultTemplate === 'Y' ? '.default' : Constants::MODULE_ID;
     
         $donor = str_replace(['../', './'], '', $donor);
+        
     
         foreach ($templates as $template) {
+    
+            $template['location'] = str_replace(['../', './'], '', $template['location']);
+            $template['name'] = str_replace(['../', './'], '', $template['name']);
+            
             $pathFrom = $_SERVER['DOCUMENT_ROOT']
                 . '/bitrix/modules/'
                 . Constants::MODULE_ID

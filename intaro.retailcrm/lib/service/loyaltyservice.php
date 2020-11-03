@@ -278,7 +278,7 @@ class LoyaltyService
         /**@var \Bitrix\Sale\Order $order */
         $order      = $event->getParameter("ENTITY");
         $orderId    = $order->getId();
-        $bonusCount = (int)$_POST['bonus-input'];
+        $bonusCount = (int) $_POST['bonus-input'];
         $response   = $this->sendBonusPayment($orderId, $bonusCount);
         
         if ($response->success) {
@@ -375,37 +375,36 @@ class LoyaltyService
      */
     private function registerAndActivateUser(array $userFields)
     {
-        /* @var \Intaro\RetailCrm\Service\LpUserAccountService $service*/
-        $service        = ServiceLocator::get(LpUserAccountService::class);
-        $phone          = $userFields['PERSONAL_PHONE'] ?? '';
-        $card           = $userFields['UF_CARD_NUM_INTARO'] ?? '';
-        $customerId     = (string)$userFields['ID'];
-        $customFields   = $userFields['UF_CSTM_FLDS_INTARO'] ?? [];
-    
+        /* @var \Intaro\RetailCrm\Service\LpUserAccountService $service */
+        $service      = ServiceLocator::get(LpUserAccountService::class);
+        $phone        = $userFields['PERSONAL_PHONE'] ?? '';
+        $card         = $userFields['UF_CARD_NUM_INTARO'] ?? '';
+        $customerId   = (string)$userFields['ID'];
+        $customFields = $userFields['UF_CSTM_FLDS_INTARO'] ?? [];
+        
         $createResponse = $service->createLoyaltyAccount($phone, $card, $customerId, $customFields);
-    
+        
         $service->activateLpUserInBitrix($createResponse, $userFields['ID']);
     
         if ($createResponse !== null
             && $createResponse->success === false
             && isset($createResponse->errorMsg)
-            && !empty($createResponse->errorMsg)) {
-                $errorDetails = '';
-            
-                if (isset($createResponse->errors) && is_array($createResponse->errors)) {
-                
-                    foreach ($createResponse->errors as $error) {
-                        $errorDetails .= $error . ' ';
-                    }
-                }
-            
-                AddMessage2Log(GetMessage('REGISTER_ERROR') . ' (' . $createResponse->errorMsg . ' ' . $errorDetails . ')');
-            
-                return ['msg' => GetMessage('REGISTER_ERROR') . ' (' . $createResponse->errorMsg . ' ' . $errorDetails . ')'];
-            }
-    
-        if ($createResponse->success === true
+            && !empty($createResponse->errorMsg)
         ) {
+            $errorDetails = '';
+        
+            if (isset($createResponse->errors) && is_array($createResponse->errors)) {
+                $errorDetails = Utils::getResponseErrors($createResponse);
+            }
+        
+            $msg = sprintf('%s (%s %s)', GetMessage('REGISTER_ERROR'), $createResponse->errorMsg, $errorDetails);
+            
+            AddMessage2Log($msg);
+            
+            return ['msg' => $msg];
+        }
+        
+        if ($createResponse->success === true) {
             //Повторная регистрация оказалась удачной
             return false;
         }
@@ -425,7 +424,8 @@ class LoyaltyService
     
         if ($activateResponse !== null
             && isset($activateResponse->loyaltyAccount->active)
-            && $activateResponse->loyaltyAccount->active === true) {
+            && $activateResponse->loyaltyAccount->active === true
+        ) {
             return ['msg' => GetMessage('REG_COMPLETE')];
         }
     

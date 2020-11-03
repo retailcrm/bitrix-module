@@ -161,6 +161,7 @@ class EventsHandlers
         $retailCrmEvent = new RetailCrmEvent();
         
         try {
+            // TODO: Replace old call with a new one.
             $retailCrmEvent->orderSave($event);
     
             $isNew = $event->getParameter("IS_NEW");
@@ -214,7 +215,9 @@ class EventsHandlers
                 $card           = $arFields['UF_CARD_NUM_INTARO'] ?? '';
                 $customerId     = (string) $arFields['USER_ID'];
                 $customFields   = $arFields['UF_CSTM_FLDS_INTARO'] ?? [];
-                $service        = new LpUserAccountService();
+                
+                /** @var LpUserAccountService $service */
+                $service        = ServiceLocator::get(LpUserAccountService::class);
                 $createResponse = $service->createLoyaltyAccount($phone, $card, $customerId, $customFields);
 
                 $service->activateLpUserInBitrix($createResponse, $arFields['USER_ID']);

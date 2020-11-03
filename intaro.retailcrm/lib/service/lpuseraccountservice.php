@@ -31,6 +31,7 @@ use RuntimeException;
 class LpUserAccountService
 {
     public const NOT_AUTHORIZE = 'Пользователь на авторизован';
+    
     /**
      * @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter
      */
@@ -105,14 +106,12 @@ class LpUserAccountService
     }
     
     /**
-     * @param $ufExtRegPlIntaro
+     * @param $isExternalRegister
      * @return array
      */
-    public function getExtFields($ufExtRegPlIntaro): array
+    public function getExtFields($isExternalRegister): array
     {
-        //узнаем, какие поля не заполненые у этого пользователя
-        //если все заполнено, то пытаемся активировать
-        //если в ответ получаем номер кода подтверждения, то отдаем два поля: скрытое с номером отправки и инпут для ввода кода проверки
+        //TODO Реализовать метод, когда появится возможность получить обязательные поля
     }
     
     /**
@@ -133,9 +132,17 @@ class LpUserAccountService
                 'UF_LP_ID_INTARO'      => $createResponse->loyaltyAccount->id,
             ]);
         }
-        
+    
         if (isset($createResponse->errorMsg)) {
-            AddMessage2Log($createResponse->errorMsg);
+            $errorDetails = '';
+        
+            if (isset($createResponse->errors) && is_array($createResponse->errors)) {
+                $errorDetails = Utils::getResponseErrors($createResponse);
+            }
+        
+            $msg = sprintf('%s (%s %s)', GetMessage('REGISTER_ERROR'), $createResponse->errorMsg, $errorDetails);
+        
+            AddMessage2Log($msg);
         }
     }
     

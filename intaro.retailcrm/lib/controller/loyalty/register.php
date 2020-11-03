@@ -3,6 +3,7 @@
 namespace Intaro\RetailCrm\Controller\Loyalty;
 
 use Bitrix\Main\Engine\Controller;
+use Bitrix\Main\Request;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
 use Intaro\RetailCrm\Model\Api\Request\SmsVerification\SmsVerificationConfirmRequest;
 use Intaro\RetailCrm\Model\Api\SmsVerificationConfirm;
@@ -15,6 +16,16 @@ class Register extends Controller
     public const MAX_CODE_LENGTH = 11;
     
     /**
+     * Register constructor.
+     * @param \Bitrix\Main\Request|null $request
+     */
+    public function __construct(Request $request = null)
+    {
+        IncludeModuleLangFile(__FILE__);
+        parent::__construct($request);
+    }
+    
+    /**
      * @param array $loyaltyAccount
      * @return array|string[]
      */
@@ -25,7 +36,7 @@ class Register extends Controller
         if (!is_numeric($phoneNumber)) {
             return [
                 'status'   => 'error',
-                'msg'      => 'Некорректный номер телефона',
+                'msg'      => GetMessage('PHONE_ERROR'),
                 'msgColor' => 'brown',
             ];
         }
@@ -61,7 +72,7 @@ class Register extends Controller
             if ($createResponse->loyaltyAccount->active) {
                 return [
                     'status' => 'activate',
-                    'msg' => 'Регистрация в программе лояльности успешно завершена',
+                    'msg' =>  GetMessage('SUCCESS_REGISTER'),
                     'msgColor' => 'green'
                 ];
             }
@@ -75,7 +86,7 @@ class Register extends Controller
         
         return [
             'status'   => 'error',
-            'msg' => 'Ошибка запроса',
+            'msg' => GetMessage('REQUEST_ERROR'),
             'msgColor' => 'brown'
         ];
     }
@@ -104,7 +115,7 @@ class Register extends Controller
         if (empty($code) && $lengthCode > self::MIN_CODE_LENGTH && $lengthCode < self::MAX_CODE_LENGTH) {
             return [
                 'status'   => 'error',
-                'msg' => 'Код не введен',
+                'msg' => GetMessage('EMPTY_CODE'),
                 'msgColor' => 'brown'
             ];
         }
@@ -120,7 +131,7 @@ class Register extends Controller
         if ($verificationResult === null) {
             return [
                 'status'   => 'error',
-                'msg' => 'ОШибка запроса на подтверждение',
+                'msg' => GetMessage('CONFIRMATION_ERROR'),
                 'msgColor' => 'brown'
             ];
         }
@@ -130,7 +141,7 @@ class Register extends Controller
             
             return [
                 'status'   => 'error',
-                'msg' => 'Ошибка. ' . $errMsg,
+                'msg' => GetMessage('ERROR') . $errMsg,
                 'msgColor' => 'brown'
             ];
         }
@@ -150,21 +161,21 @@ class Register extends Controller
            if ($isUpdate) {
                return [
                    'status' => 'activate',
-                   'msg' => 'Регистрация в программе лояльности успешно завершена',
+                   'msg' => GetMessage('SUCCESS_REGISTER'),
                    'msgColor' => 'green'
                ];
            }
     
             return [
                 'status'   => 'error',
-                'msg' => 'Регистрация прошла успешно, но статус не был сохранен в БД сайта',
+                'msg' => GetMessage('STATUS_ADD_ERROR'),
                 'msgColor' => 'brown'
             ];
         }
     
         return [
             'status'   => 'error',
-            'msg' => 'Ошибка.',
+            'msg' => GetMessage('ERROR'),
             'msgColor' => 'brown'
         ];
     }

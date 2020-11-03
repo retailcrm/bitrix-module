@@ -50,7 +50,7 @@ if ($arResult['LOYALTY_STATUS'] === 'Y' && $arResult['PERSONAL_LOYALTY_STATUS'] 
         $currency = CurrencyLangTable::query()
             ->setSelect(['FORMAT_STRING'])
             ->where([
-                ['CURRENCY', '=', RetailcrmConfigProvider::getCurrencyOrDefault()],
+                ['CURRENCY', '=', ConfigProvider::getCurrencyOrDefault()],
                 ['LID', '=', 'LANGUAGE_ID'],
             ])
             ->fetch();
