@@ -13,7 +13,6 @@ namespace Intaro\RetailCrm\Model\Api\Request\Loyalty;
 
 use Intaro\RetailCrm\Component\Json\Mapping;
 use Intaro\RetailCrm\Model\Api\AbstractApiModel;
-use Intaro\RetailCrm\Model\Api\SerializedOrder;
 
 /**
  * Class LoyaltyCalculateRequest
