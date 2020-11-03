@@ -11,6 +11,8 @@
  */
 namespace Intaro\RetailCrm\Model\Api;
 
+use Intaro\RetailCrm\Component\Json\Mapping;
+
 /**
  * Class CalculateMaximum
  *

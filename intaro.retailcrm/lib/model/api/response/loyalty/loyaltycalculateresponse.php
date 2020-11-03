@@ -12,6 +12,7 @@
 namespace Intaro\RetailCrm\Model\Api\Response\Loyalty;
 
 use Intaro\RetailCrm\Model\Api\Response\AbstractApiResponseModel;
+use Intaro\RetailCrm\Component\Json\Mapping;
 
 /**
  * Class LoyaltyCalculateResponse

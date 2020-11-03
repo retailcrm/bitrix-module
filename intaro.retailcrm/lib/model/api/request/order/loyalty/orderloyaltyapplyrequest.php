@@ -13,7 +13,6 @@ namespace Intaro\RetailCrm\Model\Api\Request\Order\Loyalty;
 
 use Intaro\RetailCrm\Component\Json\Mapping;
 use Intaro\RetailCrm\Model\Api\AbstractApiModel;
-use Intaro\RetailCrm\Model\Api\SerializedOrderReference;
 
 /**
  * Class OrderLoyaltyApplyRequest
@@ -23,10 +22,30 @@ use Intaro\RetailCrm\Model\Api\SerializedOrderReference;
 class OrderLoyaltyApplyRequest extends AbstractApiModel
 {
     /**
+     * Символьный код магазина
+     *
+     * @var string $site
+     *
+     * @Mapping\Type("string")
+     * @Mapping\SerializedName("site")
+     */
+    public $site;
+    
+    /**
      * @var \Intaro\RetailCrm\Model\Api\SerializedOrderReference
      *
      * @Mapping\Type("\Intaro\RetailCrm\Model\Api\SerializedOrderReference")
      * @Mapping\SerializedName("order")
      */
     public $order;
+    
+    /**
+     * Количество бонусов для списания
+     *
+     * @var float $bonuses
+     *
+     * @Mapping\Type("float")
+     * @Mapping\SerializedName("bonuses")
+     */
+    public $bonuses;
 }

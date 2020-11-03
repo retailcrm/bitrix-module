@@ -13,7 +13,6 @@ namespace Intaro\RetailCrm\Model\Api\Request\Loyalty\Account;
 
 use Intaro\RetailCrm\Component\Json\Mapping;
 use Intaro\RetailCrm\Model\Api\AbstractApiModel;
-use Intaro\RetailCrm\Model\Api\SerializedCreateLoyaltyAccount;
 
 /**
  * Class LoyaltyAccountCreateRequest
@@ -26,7 +25,17 @@ class LoyaltyAccountCreateRequest extends AbstractApiModel
      * @var \Intaro\RetailCrm\Model\Api\SerializedCreateLoyaltyAccount
      *
      * @Mapping\Type("\Intaro\RetailCrm\Model\Api\SerializedCreateLoyaltyAccount")
-     * @Mapping\SerializedName("loyalty_account")
+     * @Mapping\SerializedName("loyaltyAccount")
      */
     public $loyaltyAccount;
+    
+    /**
+     * Символьный код магазина
+     *
+     * @var string $site
+     *
+     * @Mapping\Type("string")
+     * @Mapping\SerializedName("site")
+     */
+    public $site;
 }
