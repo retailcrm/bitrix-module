@@ -12,6 +12,9 @@
 namespace Intaro\RetailCrm\Service;
 
 use Bitrix\Main\Text\Encoding;
+use Intaro\RetailCrm\Model\Api\AbstractApiModel;
+use Intaro\RetailCrm\Model\Api\ApiModelInterface;
+use Intaro\RetailCrm\Model\Api\Response\AbstractApiResponseModel;
 
 /**
  * Class Utils
@@ -120,5 +123,20 @@ class Utils
         }
 
         return $result;
+    }
+    
+    /**
+     * @param $response
+     * @return string
+     */
+    public static function getResponseErrors(AbstractApiResponseModel $response): string
+    {
+        $errorDetails= '';
+        
+        foreach ($response->errors as $error) {
+            $errorDetails .= $error . ' ';
+        }
+        
+        return $errorDetails;
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PHP version 7.1
  *
@@ -10,6 +11,8 @@
  * @see      http://retailcrm.ru/docs
  */
 namespace Intaro\RetailCrm\Model\Api;
+
+use Intaro\RetailCrm\Component\Json\Mapping;
 
 /**
  * Метод применения бонусов по программе лояльности
