@@ -182,6 +182,7 @@ class EventsHandlers
      *
      * @param array $arFields
      * @return mixed
+     * @throws \Intaro\RetailCrm\Component\Builder\Exception\BuilderException
      */
     public function OnAfterUserRegisterHandler(array $arFields): void
     {
@@ -198,10 +199,18 @@ class EventsHandlers
                 
                 $arFields['PERSONAL_PHONE'] = $phone;
             }
-
-        $builder = new CustomerBuilder();
-        $customer = $builder->setUser(UserRepository::getById($arFields['USER_ID']))->getResult();
     
+            $contragentsTypes = ConfigProvider::getContragentTypes();
+            $key = array_search('individual', $contragentsTypes, true);
+            $builder = new CustomerBuilder();
+            $customer = $builder
+                ->reset()
+                ->setAttachDaemonCollectorId(true)
+                ->setPersonTypeId($key)
+                ->setUser(UserRepository::getById($arFields['USER_ID']))
+                ->build()
+                ->getResult();
+            
         /* @var UserService $userService */
         $userService = ServiceLocator::get(UserService::class);
         $userService->addNewUser($customer);

@@ -1362,7 +1362,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                             <?= GetMessage('CREATING_AN_ADDITIONAL_TEMPLATE') ?>
                                         </h4>
                                     </div>
-                                    <?php echo GetMessage('LP_CUSTOM_TEMP_CREATE_MSG'); ?>
+                                    <?= sprintf(GetMessage('LP_CUSTOM_TEMP_CREATE_MSG'), 'sale.order.ajax') ?>
                                     <div style="text-align: center;">
                                         <input type="button" onclick="createTemplates('sale.order.ajax')" class="adm-btn-save" value="<?php echo GetMessage('LP_CREATE_TEMPLATE'); ?>"/>
                                     </div>
@@ -1375,7 +1375,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                             <?= GetMessage('REPLACING_THE_STANDARD_TEMPLATE') ?>
                                         </h4>
                                     </div>
-                                        <?php echo GetMessage('LP_DEF_TEMP_CREATE_MSG'); ?>
+                                    <?= sprintf(GetMessage('LP_DEF_TEMP_CREATE_MSG'), 'sale.order.ajax') ?>
                                     <hr>
                                         <?php echo GetMessage('LP_TEMP_CHOICE_MSG'); ?>
                                 </td>
@@ -1410,7 +1410,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                             <?=GetMessage('CREATING_AN_ADDITIONAL_TEMPLATE')?>
                                         </h4>
                                     </div>
-                                    <?php echo GetMessage('LP_CUSTOM_REG_TEMP_CREATE_MSG'); ?>
+                                    <?= sprintf(GetMessage('LP_CUSTOM_TEMP_CREATE_MSG'), 'main.register') ?>
                                     <div style="text-align: center;">
                                         <input type="button" onclick="createTemplates('main.register')" class="adm-btn-save" value="<?php echo GetMessage('LP_CREATE_TEMPLATE'); ?>"/>
                                     </div>
@@ -1423,7 +1423,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                             <?= GetMessage('REPLACING_THE_STANDARD_TEMPLATE') ?>
                                         </h4>
                                     </div>
-                                    <?php echo GetMessage('LP_DEF_TEMP_REG_CREATE_MSG'); ?>
+                                    <?= sprintf(GetMessage('LP_DEF_TEMP_CREATE_MSG'), 'main.register') ?>
                                     <hr>
                                     <?php echo GetMessage('LP_TEMP_CHOICE_MSG'); ?>
                                 </td>
@@ -1474,7 +1474,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                         <table width="100%">
                             <tr class="heading">
                                 <td colspan="2" class="option-other-heading">
-                                    <?php echo GetMessage('LP_MAIN_REGISTER_HEAD'); ?>
+                                    <?php echo GetMessage('LP_MAIN_BASKET_HEAD'); ?>
                                 </td>
                             </tr>
                             <tr>
@@ -1484,7 +1484,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                             <?=GetMessage('CREATING_AN_ADDITIONAL_TEMPLATE')?>
                                         </h4>
                                     </div>
-                                    <?php echo GetMessage('LP_CUSTOM_REG_TEMP_CREATE_MSG'); ?>
+                                    <?= sprintf(GetMessage('LP_CUSTOM_TEMP_CREATE_MSG'), 'sale.basket.basket') ?>
                                     <div style="text-align: center;">
                                         <input type="button" onclick="createTemplates('sale.basket.basket')" class="adm-btn-save" value="<?php echo GetMessage('LP_CREATE_TEMPLATE'); ?>"/>
                                     </div>
@@ -1497,7 +1497,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                             <?= GetMessage('REPLACING_THE_STANDARD_TEMPLATE') ?>
                                         </h4>
                                     </div>
-                                    <?php echo GetMessage('LP_DEF_TEMP_REG_CREATE_MSG'); ?>
+                                    <?= sprintf(GetMessage('LP_DEF_TEMP_CREATE_MSG'), 'sale.basket.basket') ?>
                                     <hr>
                                     <?php echo GetMessage('LP_TEMP_CHOICE_MSG'); ?>
                                 </td>

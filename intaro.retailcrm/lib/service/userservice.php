@@ -52,15 +52,20 @@ class UserService
     
     /**
      * @param \Intaro\RetailCrm\Model\Api\Customer $customer
-     * @return \Intaro\RetailCrm\Model\Api\Response\CustomersUploadResponse|null
+     * @return \Intaro\RetailCrm\Model\Api\Response\CustomerChangeResponse|\Intaro\RetailCrm\Model\Api\Response\CustomersUploadResponse|null
      */
-    public function addNewUser(Customer $customer): ?CustomersUploadResponse
+    public function addNewUser(Customer $customer)
     {
+
+        $credentials = $this->client->getCredentials();
+        
         $customersGetRequest       = new CustomersGetRequest();
-        $customersGetRequest->id   = $customer->id;
+        $customersGetRequest->id   = $customer->externalId;
         $customersGetRequest->by   = 'externalId';
-        $customersGetRequest->site = $customer->site;
+        $customersGetRequest->site = $credentials->sitesAvailable[0];
         $customerResponse          = $this->client->customersGet($customersGetRequest);
+        
+        $customer->site = $credentials->sitesAvailable[0];
         
         if ($customerResponse !== null
             && $customerResponse->success
@@ -68,15 +73,16 @@ class UserService
         ) {
             $customersEditRequest           = new CustomersEditRequest();
             $customersEditRequest->customer = $customer;
-            $customersEditRequest->site     = $customer->site;
-            
-            $this->client->customersEdit($customersEditRequest);
-        } else {
-            $customersUploadRequest               = new CustomersUploadRequest();
-            $customersUploadRequest->site         = $customer->site;
-            $customersUploadRequest->customers[0] = $customer;
-    
-            return $this->client->customersUpload($customersUploadRequest);
+            $customersEditRequest->site     = $credentials->sitesAvailable[0];
+            $customersEditRequest->by       = 'externalId';
+
+            return $this->client->customersEdit($customersEditRequest);
         }
+        
+        $customersUploadRequest               = new CustomersUploadRequest();
+        $customersUploadRequest->site         = $credentials->sitesAvailable[0];
+        $customersUploadRequest->customers[0] = $customer;
+        
+        return $this->client->customersUpload($customersUploadRequest);
     }
 }

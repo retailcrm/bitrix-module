@@ -12,6 +12,7 @@
 
 namespace Intaro\RetailCrm\Service;
 
+use CUser;
 use Exception;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountActivateRequest;
@@ -112,6 +113,7 @@ class LpUserAccountService
     public function getExtFields($isExternalRegister): array
     {
         //TODO Реализовать метод, когда появится возможность получить обязательные поля
+        return [];
     }
     
     /**
@@ -123,7 +125,7 @@ class LpUserAccountService
         //если участник ПЛ создан и активирован
         if (($createResponse !== null)
             && $createResponse->success === true
-            && $createResponse->loyaltyAccount->active
+            && $createResponse->loyaltyAccount->active === true
         ) {
             global $USER_FIELD_MANAGER;
             
@@ -133,7 +135,7 @@ class LpUserAccountService
             ]);
         }
     
-        if (isset($createResponse->errorMsg)) {
+        if (isset($createResponse->errorMsg) && !empty($createResponse->errorMsg)) {
             $errorDetails = '';
         
             if (isset($createResponse->errors) && is_array($createResponse->errors)) {
