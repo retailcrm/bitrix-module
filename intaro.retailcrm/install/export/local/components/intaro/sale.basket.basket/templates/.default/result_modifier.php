@@ -13,10 +13,8 @@ use Bitrix\Main;
 use Bitrix\Main\ArgumentException;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
-use Intaro\RetailCrm\Component\Builder\Api\CustomerBuilder;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\ServiceLocator;
-use Intaro\RetailCrm\Repository\UserRepository;
 use Intaro\RetailCrm\Service\LoyaltyService;
 
 try {
@@ -26,7 +24,7 @@ try {
 }
 
 $contragentsTypes = ConfigProvider::getContragentTypes();
-$key = array_search('individual', $contragentsTypes, true);
+$key              = array_search('individual', $contragentsTypes, true);
 
 $defaultParams = [
     'TEMPLATE_THEME' => 'blue',
@@ -55,37 +53,22 @@ if ('' === $arParams['TEMPLATE_THEME']) {
 }
 
 
-$arResult['LOYALTY_STATUS']          = ConfigProvider::getLoyaltyProgramStatus();
-/* @var LoyaltyService $service*/
-$service   = ServiceLocator::get(LoyaltyService::class);
+$arResult['LOYALTY_STATUS'] = ConfigProvider::getLoyaltyProgramStatus();
+/* @var LoyaltyService $service */
+$service                             = ServiceLocator::get(LoyaltyService::class);
 $arResult['PERSONAL_LOYALTY_STATUS'] = $service::getLoyaltyPersonalStatus();
 
 if ($arResult['LOYALTY_STATUS'] === 'Y' && $arResult['PERSONAL_LOYALTY_STATUS'] === true) {
-   
-    $discountPercent = round($arResult['DISCOUNT_PRICE_ALL']/($arResult['allSum']/100), 0);
-    $calculate = $service->calculateBonus($arResult['BASKET_ITEM_RENDER_DATA'], $arResult['DISCOUNT_PRICE_ALL'], $discountPercent);
-
+    
+    $discountPercent = round($arResult['DISCOUNT_PRICE_ALL'] / ($arResult['allSum'] / 100), 0);
+    $calculate       = $service->calculateBonus($arResult['BASKET_ITEM_RENDER_DATA'], $arResult['DISCOUNT_PRICE_ALL'], $discountPercent);
     
     if ($calculate->success) {
-        $arResult['AVAILABLE_BONUSES']    = $calculate->order->bonusesChargeTotal;
-        $arResult['TOTAL_BONUSES_COUNT']  = $calculate->order->loyaltyAccount->amount;
-        $arResult['LP_CALCULATE_SUCCESS'] = $calculate->success;
-        $arResult['WILL_BE_CREDITED']     = $calculate->order->bonusesCreditTotal;
+        $arResult['LP_CALCULATE_SUCCESS']                  = $calculate->success;
+        $arResult['TOTAL_RENDER_DATA']['WILL_BE_CREDITED'] = $calculate->order->bonusesCreditTotal;
     }
     
-    $component = $this->__component;
-    
-    try {
-        $currency = CurrencyLangTable::query()
-            ->setSelect(['FORMAT_STRING'])
-            ->where([
-                ['CURRENCY', '=', ConfigProvider::getCurrencyOrDefault()],
-                ['LID', '=', 'LANGUAGE_ID'],
-            ])
-            ->fetch();
-    } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
-        AddMessage2Log($exception->getMessage());
+    foreach ($arResult['BASKET_ITEM_RENDER_DATA'] as $key => &$item) {
+        $item['WILL_BE_CREDITED_BONUS'] = $calculate->order->items[$key]->bonusesCreditTotal;
     }
-    
-    $arResult['BONUS_CURRENCY'] = $currency['FORMAT_STRING'];
 }

@@ -4,6 +4,7 @@ use Bitrix\Main\Localization\Loc;
 
 /**
  * @var array $arParams
+ * @var array $arResult
  */
 ?>
 <script id="basket-total-template" type="text/html">
@@ -42,6 +43,15 @@ use Bitrix\Main\Localization\Loc;
 								<?=Loc::getMessage('SBB_VAT')?>: {{{VAT_SUM_FORMATED}}}
 							{{/SHOW_VAT}}
 						</div>
+                        <?php
+                        if ($arResult['LOYALTY_STATUS'] === 'Y' && $arResult['PERSONAL_LOYALTY_STATUS'] === true) {
+                        ?>
+                        <div>
+                            <?=Loc::getMessage('BONUSES_TOTAL')?>: {{{WILL_BE_CREDITED}}}
+                        </div>
+                        <?php
+                        }
+                        ?>
 					</div>
 				</div>
 

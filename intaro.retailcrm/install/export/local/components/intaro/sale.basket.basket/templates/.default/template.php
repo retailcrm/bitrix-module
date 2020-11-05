@@ -2,8 +2,14 @@
 
 use Bitrix\Main;
 use Bitrix\Main\Localization\Loc;
+use Bitrix\Main\Security\Sign\Signer;
+use Bitrix\Main\UI\Extension;
 
-\Bitrix\Main\UI\Extension::load("ui.fonts.ruble");
+try {
+    Extension::load("ui.fonts.ruble");
+} catch (Main\LoaderException $exception) {
+    AddMessage2Log($exception->getMessage());
+}
 
 /**
  * @var array $arParams
@@ -26,7 +32,7 @@ if (empty($arParams['TEMPLATE_THEME']))
 if ($arParams['TEMPLATE_THEME'] === 'site')
 {
 	$templateId = Main\Config\Option::get('main', 'wizard_template_id', 'eshop_bootstrap', $component->getSiteId());
-	$templateId = preg_match('/^eshop_adapt/', $templateId) ? 'eshop_adapt' : $templateId;
+	$templateId = 0 === strpos($templateId, "eshop_adapt") ? 'eshop_adapt' : $templateId;
 	$arParams['TEMPLATE_THEME'] = Main\Config\Option::get('main', 'wizard_'.$templateId.'_theme_id', 'blue', $component->getSiteId());
 }
 
@@ -96,7 +102,7 @@ if ($arParams['USE_GIFTS'] === 'Y')
 		'HIDE_BLOCK_TITLE' => $arParams['GIFTS_HIDE_BLOCK_TITLE'],
 		'TEXT_LABEL_GIFT' => $arParams['GIFTS_TEXT_LABEL_GIFT'],
 
-		'DETAIL_URL' => isset($arParams['GIFTS_DETAIL_URL']) ? $arParams['GIFTS_DETAIL_URL'] : null,
+		'DETAIL_URL' => $arParams['GIFTS_DETAIL_URL'] ?? null,
 		'PRODUCT_QUANTITY_VARIABLE' => $arParams['GIFTS_PRODUCT_QUANTITY_VARIABLE'],
 		'PRODUCT_PROPS_VARIABLE' => $arParams['GIFTS_PRODUCT_PROPS_VARIABLE'],
 		'SHOW_OLD_PRICE' => $arParams['GIFTS_SHOW_OLD_PRICE'],
@@ -141,9 +147,7 @@ $this->addExternalJs($templateFolder.'/js/action-pool.js');
 $this->addExternalJs($templateFolder.'/js/filter.js');
 $this->addExternalJs($templateFolder.'/js/component.js');
 
-$mobileColumns = isset($arParams['COLUMNS_LIST_MOBILE'])
-	? $arParams['COLUMNS_LIST_MOBILE']
-	: $arParams['COLUMNS_LIST'];
+$mobileColumns = $arParams['COLUMNS_LIST_MOBILE'] ?? $arParams['COLUMNS_LIST'];
 $mobileColumns = array_fill_keys($mobileColumns, true);
 
 $jsTemplates = new Main\IO\Directory($documentRoot.$templateFolder.'/js-templates');
@@ -167,7 +171,7 @@ if (empty($arResult['ERROR_MESSAGE']))
 					style="display: none; opacity: 0;">
 				<?=$arParams['GIFTS_BLOCK_TITLE']?>
 			</div>
-			<?
+            <?php
 			$APPLICATION->IncludeComponent(
 				'bitrix:sale.products.gift.basket',
 				'.default',
@@ -176,7 +180,7 @@ if (empty($arResult['ERROR_MESSAGE']))
 			);
 			?>
 		</div>
-		<?
+        <?php
 	}
 
 	if ($arResult['BASKET_ITEM_MAX_COUNT_EXCEEDED'])
@@ -185,21 +189,21 @@ if (empty($arResult['ERROR_MESSAGE']))
 		<div id="basket-item-message">
 			<?=Loc::getMessage('SBB_BASKET_ITEM_MAX_COUNT_EXCEEDED', array('#PATH#' => $arParams['PATH_TO_BASKET']))?>
 		</div>
-		<?
+        <?php
 	}
 	?>
 	<div id="basket-root" class="bx-basket bx-<?=$arParams['TEMPLATE_THEME']?> bx-step-opacity" style="opacity: 0;">
-		<?
+        <?php
 		if (
 			$arParams['BASKET_WITH_ORDER_INTEGRATION'] !== 'Y'
-			&& in_array('top', $arParams['TOTAL_BLOCK_DISPLAY'])
+			&& in_array('top', $arParams['TOTAL_BLOCK_DISPLAY'], true)
 		)
 		{
 			?>
 			<div class="row">
 				<div class="col-xs-12" data-entity="basket-total-block"></div>
 			</div>
-			<?
+            <?php
 		}
 		?>
 
@@ -222,10 +226,12 @@ if (empty($arResult['ERROR_MESSAGE']))
 					<div class="basket-items-list-header" data-entity="basket-items-list-header">
 						<div class="basket-items-search-field" data-entity="basket-filter">
 							<div class="form has-feedback">
-								<input type="text" class="form-control"
-									placeholder="<?=Loc::getMessage('SBB_BASKET_FILTER')?>"
-									data-entity="basket-filter-input">
-								<span class="form-control-feedback basket-clear" data-entity="basket-filter-clear-btn"></span>
+                                <label>
+                                    <input type="text" class="form-control"
+                                        placeholder="<?=Loc::getMessage('SBB_BASKET_FILTER')?>"
+                                        data-entity="basket-filter-input">
+                                </label>
+                                <span class="form-control-feedback basket-clear" data-entity="basket-filter-clear-btn"></span>
 							</div>
 						</div>
 						<div class="basket-items-list-header-filter">
@@ -256,21 +262,21 @@ if (empty($arResult['ERROR_MESSAGE']))
 				</div>
 			</div>
 		</div>
-		<?
+        <?php
 		if (
 			$arParams['BASKET_WITH_ORDER_INTEGRATION'] !== 'Y'
-			&& in_array('bottom', $arParams['TOTAL_BLOCK_DISPLAY'])
+			&& in_array('bottom', $arParams['TOTAL_BLOCK_DISPLAY'], true)
 		)
 		{
 			?>
 			<div class="row">
 				<div class="col-xs-12" data-entity="basket-total-block"></div>
 			</div>
-			<?
+            <?php
 		}
 		?>
 	</div>
-	<?
+    <?php
 	if (!empty($arResult['CURRENCIES']) && Main\Loader::includeModule('currency'))
 	{
 		CJSCore::Init('currency');
@@ -279,10 +285,10 @@ if (empty($arResult['ERROR_MESSAGE']))
 		<script>
 			BX.Currency.setCurrencies(<?=CUtil::PhpToJSObject($arResult['CURRENCIES'], false, true, true)?>);
 		</script>
-		<?
+        <?php
 	}
 
-	$signer = new \Bitrix\Main\Security\Sign\Signer;
+	$signer = new Signer;
 	$signedTemplate = $signer->sign($templateName, 'sale.basket.basket');
 	$signedParams = $signer->sign(base64_encode(serialize($arParams)), 'sale.basket.basket');
 	$messages = Loc::loadLanguageFile(__FILE__);
@@ -299,7 +305,7 @@ if (empty($arResult['ERROR_MESSAGE']))
 			templateFolder: '<?=CUtil::JSEscape($templateFolder)?>'
 		});
 	</script>
-	<?
+    <?php
 	if ($arParams['USE_GIFTS'] === 'Y' && $arParams['GIFTS_PLACE'] === 'BOTTOM')
 	{
 		?>
@@ -319,7 +325,7 @@ if (empty($arResult['ERROR_MESSAGE']))
 			);
 			?>
 		</div>
-		<?
+        <?php
 	}
 }
 elseif ($arResult['EMPTY_BASKET'])

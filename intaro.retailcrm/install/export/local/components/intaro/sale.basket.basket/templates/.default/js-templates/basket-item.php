@@ -6,6 +6,7 @@ use Bitrix\Main\Localization\Loc;
  * @var array $mobileColumns
  * @var array $arParams
  * @var string $templateFolder
+ * @var string $arResult
  */
 
 $usePriceInAdditionalColumn = in_array('PRICE', $arParams['COLUMNS_LIST']) && $arParams['PRICE_DISPLAY_MODE'] === 'Y';
@@ -418,6 +419,18 @@ if (!empty($arParams['LABEL_PROP_POSITION']))
 								{{{SUM_PRICE_FORMATED}}}
 							</span>
 						</div>
+                        <?php
+                        if ($arResult['LOYALTY_STATUS'] === 'Y' && $arResult['PERSONAL_LOYALTY_STATUS'] === true) {
+                        ?>
+                                <div>
+                                    Бонусы: +
+                                    <span class="basket-item-property-custom-value" data-column-property-code="TYPE" data-entity="basket-item-property-column-value" id="basket-bonus-item-sum-price-{{ID}}">
+                                        {{{WILL_BE_CREDITED_BONUS}}}
+                                    </span>
+                                </div>
+                            <?php
+                        }
+                        ?>
 
 						{{#SHOW_DISCOUNT_PRICE}}
 							<div class="basket-item-price-difference">

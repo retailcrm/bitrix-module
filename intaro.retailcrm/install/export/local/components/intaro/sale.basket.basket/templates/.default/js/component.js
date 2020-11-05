@@ -405,14 +405,14 @@
 
 		fillTotalBlocks: function()
 		{
-			var totalNodes = this.getEntities(this.getCacheNode(this.ids.basketRoot), 'basket-total-block');
+			const totalNodes = this.getEntities(this.getCacheNode(this.ids.basketRoot), 'basket-total-block');
 
 			if (totalNodes && totalNodes.length)
 			{
-				var totalTemplate = this.getTemplate('basket-total-template');
+				const totalTemplate = this.getTemplate('basket-total-template');
 				if (totalTemplate)
 				{
-					var totalRender = this.render(totalTemplate, this.result.TOTAL_RENDER_DATA);
+					const totalRender = this.render(totalTemplate, this.result.TOTAL_RENDER_DATA);
 
 					for (var i in totalNodes)
 					{
