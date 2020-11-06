@@ -454,10 +454,10 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     }
 
     //online_consultant
-    if ($_POST['online_consultant'] == 'Y') {
+    if (htmlspecialchars(trim($_POST['online_consultant'] == 'Y'))) {
         $onlineConsultant = 'Y';
         $onlineConsultantScript = trim($_POST['online_consultant_script']);
-        RegisterModuleDependences("main", "OneBeforeProlog", $mid, "RetailCrmOnlineConsultant", "add");
+        RegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmOnlineConsultant", "add");
     } else {
         $onlineConsultant = 'N';
         UnRegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmOnlineConsultant", "add");
@@ -1457,8 +1457,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                     </b>
                 </td>
             </tr>
-            
-            <tr class="r-consultant" >
+
+            <tr class="r-consultant" <?php if (!$optionOnlineConsultant) echo 'style="display: none;"'; ?>> 
                 <td class="adm-detail-content-cell-l" width="45%"></td>
                 <td class="adm-detail-content-cell-r" width="55%">
                     <textarea name="online_consultant_script"><?php echo $optionOnlineConsultantScript; ?></textarea>

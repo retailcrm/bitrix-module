@@ -12,7 +12,6 @@ class RetailCrmOnlineConsultant
      */
     public static function add()
     {
-        die();
         if (RetailcrmConfigProvider::isOnlineConsultantEnabled() && ADMIN_SECTION !== true) {
             \Bitrix\Main\Page\Asset::getInstance()->addString(
                 RetailcrmConfigProvider::getOnlineConsultantScript(), 
