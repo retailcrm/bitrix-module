@@ -188,15 +188,14 @@ class LoyaltyService
     {
         global $USER_FIELD_MANAGER;
         global $USER;
-        
-        $rsUser     = CUser::GetByID($USER->GetID());
-        $userFields = $rsUser->Fetch();
     
+        $rsUser                             = CUser::GetByID($USER->GetID());
+        $userFields                         = $rsUser->Fetch();
         $userFields['UF_EXT_REG_PL_INTARO'] = $USER_FIELD_MANAGER->GetUserFieldValue(
-            'USER','UF_EXT_REG_PL_INTARO', $USER->GetID()
+            'USER', 'UF_EXT_REG_PL_INTARO', $USER->GetID()
         );
-        $userFields['UF_LP_ID_INTARO'] = $USER_FIELD_MANAGER->GetUserFieldValue(
-            'USER','UF_LP_ID_INTARO', $USER->GetID()
+        $userFields['UF_LP_ID_INTARO']      = $USER_FIELD_MANAGER->GetUserFieldValue(
+            'USER', 'UF_LP_ID_INTARO', $USER->GetID()
         );
         
         if (!$userFields) {

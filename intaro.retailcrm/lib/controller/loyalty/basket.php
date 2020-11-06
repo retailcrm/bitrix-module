@@ -57,6 +57,7 @@ class Basket extends Controller
         foreach ($basketData['BASKET_ITEM_RENDER_DATA'] as $key => &$item) {
             $item['WILL_BE_CREDITED_BONUS'] = $calculate->order->items[$key]->bonusesCreditTotal;
         }
+        
         $response['BASKET_ITEM_RENDER_DATA'] = $basketData['BASKET_ITEM_RENDER_DATA'];
         
         return $response;
