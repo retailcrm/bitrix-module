@@ -1442,6 +1442,17 @@
 	</country>
 
 	<country>
+		<name>Молдова</name>
+		<fullname>Республика Молдова</fullname>
+		<english>Moldova</english>
+		<alpha>MD</alpha>
+		<alpha3>MDA</alpha3>
+		<iso>498</iso>
+		<location>Европа</location>
+		<location-precise>Восточная Европа</location-precise>
+	</country>
+
+	<country>
 		<name>Монако</name>
 		<fullname>Княжество Монако</fullname>
 		<english>Monaco</english>
