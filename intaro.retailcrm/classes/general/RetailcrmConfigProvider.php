@@ -199,33 +199,34 @@ class RetailcrmConfigProvider
     }
 
     /**
-     * getOnlineConsultant
+     * isOnlineConsultantEnabled
      * 
-     * @return string
+     * @return bool
      */
-    public static function getOnlineConsultant($key)
+    public static function isOnlineConsultantEnabled()
     {
-        return static::getOption($key);
+        if (static::getOption(RetailcrmConstants::CRM_ONLINE_CONSULTANT) === 'Y') {
+            return true;
+        }
+        return false;
     }
-
 
     /**
      * getOnlineConsultantScript
      * 
      * @return string
      */
-    public static function getOnlineConsultantScript($key)
+    public static function getOnlineConsultantScript()
     {
-        return static::getOption($key);
+        return static::getOption(RetailcrmConstants::CRM_ONLINE_CONSULTANT_SCRIPT);
     }
 
     /**
      * setOnlineConsultant
      * 
-     * @param string $key
      * @param string $value
      */
-    public static function setOnlineConsultant($key, $value)
+    public static function setOnlineConsultant($value)
     {
         static::setOption(RetailcrmConstants::CRM_ONLINE_CONSULTANT, $value);
     }
@@ -236,9 +237,9 @@ class RetailcrmConfigProvider
      * @param string $key
      * @param string $value
      */
-    public function setOnlineConsultantScript($key, $value)
+    public function setOnlineConsultantScript($value)
     {
-        static::setOption(RetailcrmConstants::CRM_ONLINE_CONSULTANT, $value);
+        static::setOption(RetailcrmConstants::CRM_ONLINE_CONSULTANT_SCRIPT, $value);
     }
 
 

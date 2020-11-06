@@ -1,23 +1,23 @@
 <?php
 
 /**
- * class RetailCrmConsultant
+ * class RetailCrmOnlineConsultant
  */
-class RetailCrmConsultant
+class RetailCrmOnlineConsultant
 {
     /**
      * Add a script of online consultant
+     * 
+     * @return bool
      */
     public static function add()
     {
-        $CRM_ONLINE_CONSULTANT = RetailcrmConstants::CRM_ONLINE_CONSULTANT;
-        $CRM_ONLINE_CONSULTANT_SCRIPT = RetailcrmConstants::CRM_ONLINE_CONSULTANT_SCRIPT;
-
-        $onlineConsultant = RetailcrmConfigProvider::getOption($CRM_ONLINE_CONSULTANT);
-
-        if ($consultant === 'Y' && ADMIN_SECTION !== true) {
-            $onlineConsultantScript = RetailcrmConfigProvider::getOnlineConsultantScript($CRM_ONLINE_CONSULTANT_SCRIPT);
-            \Bitrix\Main\Page\Asset::getInstance()->addString($onlineConsultantScript, true);
+        die();
+        if (RetailcrmConfigProvider::isOnlineConsultantEnabled() && ADMIN_SECTION !== true) {
+            \Bitrix\Main\Page\Asset::getInstance()->addString(
+                RetailcrmConfigProvider::getOnlineConsultantScript(), 
+                true
+            );
             
             return true;
         } else {

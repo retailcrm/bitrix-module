@@ -456,7 +456,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     //online_consultant
     if ($_POST['online_consultant'] == 'Y') {
         $onlineConsultant = 'Y';
-        $onlineConsultantScript = $_POST['online_consultant_' . $site['LID']];
+        $onlineConsultantScript = trim($_POST['online_consultant_script']);
         RegisterModuleDependences("main", "OneBeforeProlog", $mid, "RetailCrmOnlineConsultant", "add");
     } else {
         $onlineConsultant = 'N';
@@ -574,8 +574,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     COption::SetOptionString($mid, $CRM_COLLECTOR, $collector);
     COption::SetOptionString($mid, $CRM_COLL_KEY, serialize(RCrmActions::clearArr($collectorKeys)));
 
-    RetailCrmConfigProvider::setOnlineConsultant(RetailcrmConstants::CRM_ONLINE_CONSULTANT, $onlineConsultant);
-    RetailCrmConfigProvider::setOnlineConsultant(RetailcrmConstants::CRM_ONLINE_CONSULTANT_SCRIPT, $onlineConsultantScript);
+    RetailCrmConfigProvider::setOnlineConsultant($onlineConsultant);
+    RetailCrmConfigProvider::setOnlineConsultantScript($onlineConsultantScript);
 
     COption::SetOptionString($mid, $CRM_UA, $ua);
     COption::SetOptionString($mid, $CRM_UA_KEYS, serialize(RCrmActions::clearArr($uaKeys)));
@@ -699,8 +699,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     $optionCollector = COption::GetOptionString($mid, $CRM_COLLECTOR, 0);
     $optionCollectorKeys = unserialize(COption::GetOptionString($mid, $CRM_COLL_KEY));
     
-    $optionOnlineConsultant = RetailcrmConfigProvider::getOnlineConsultant(RetailcrmConstants::CRM_ONLINE_CONSULTANT);
-    $optionOnlineConsultantScript = RetailcrmConfigProvider::getOnlineConsultant(RetailcrmConstants::CRM_ONLINE_CONSULTANT_SCRIPT);
+    $optionOnlineConsultant = RetailcrmConfigProvider::isOnlineConsultantEnabled();
+    $optionOnlineConsultantScript = RetailcrmConfigProvider::getOnlineConsultantScript();
 
     $optionUa = COption::GetOptionString($mid, $CRM_UA, 0);
     $optionUaKeys = unserialize(COption::GetOptionString($mid, $CRM_UA_KEYS));
@@ -1453,21 +1453,17 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             <tr class="heading r-consultant-button">
                 <td colspan="2" class="option-other-heading">
                     <b>
-                        <label><input class="addr" type="checkbox" name="online_consultant" value="Y" <?php if ($onlineConsultant === 'Y') echo "checked"; ?>><?php echo GetMessage('ONLINE_CONSULTANT'); ?></label>
+                        <label><input class="addr" type="checkbox" name="online_consultant" value="Y" <?php if ($optionOnlineConsultant) echo "checked"; ?>><?php echo GetMessage('ONLINE_CONSULTANT'); ?></label>
                     </b>
                 </td>
             </tr>
             
-            <?php foreach ($arResult['arSites'] as $sitesList): ?>
-                <tr class="r-consultant" <?php if($optionOnlineConsultant !== 'Y') echo 'style="display: none;"'; ?>>
-                    <td class="adm-detail-content-cell-l" width="45%"></td>
-                    <td class="adm-detail-content-cell-r" width="55%">
-                        <textarea name="online_consultant_<?echo $sitesList['LID'];?>"></textarea>
-                    </td>
-                </tr>
-            <?php endforeach;?>
-
-
+            <tr class="r-consultant" >
+                <td class="adm-detail-content-cell-l" width="45%"></td>
+                <td class="adm-detail-content-cell-r" width="55%">
+                    <textarea name="online_consultant_script"><?php echo $optionOnlineConsultantScript; ?></textarea>
+                </td>
+            </tr>
 
             <tr class="heading r-dc-button">
                 <td colspan="2" class="option-other-heading">
