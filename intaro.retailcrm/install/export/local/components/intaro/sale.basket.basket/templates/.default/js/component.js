@@ -639,6 +639,32 @@
 				url: this.ajaxUrl,
 				data: this.getData(data),
 				onsuccess: BX.delegate(function(result) {
+					BX.ajax.runAction('intaro:retailcrm.api.loyalty.basket.calculateBasketBonuses',
+						{
+							method:    'POST',
+							data:      {
+								sessid:     BX.bitrix_sessid(),
+								basketData: result.BASKET_DATA
+							},
+						}
+						).then(
+						BX.delegate(function(response) {
+								if (response.data.WILL_BE_CREDITED !== undefined) {
+									$('#BONUSES_TOTAL').text(response.data.WILL_BE_CREDITED);
+								}
+
+								if (response.data.BASKET_ITEM_RENDER_DATA !== undefined) {
+									response.data.BASKET_ITEM_RENDER_DATA.forEach(
+										function(item, i, arr) {
+											const itemId = '#basket-bonus-item-sum-price-'+item.ID;
+											$(itemId).text(item.WILL_BE_CREDITED_BONUS);
+										}
+									);
+								}
+							}
+							, this)
+					);
+
 					this.actionPool.doProcessing(false);
 
 					if (!BX.type.isPlainObject(result))

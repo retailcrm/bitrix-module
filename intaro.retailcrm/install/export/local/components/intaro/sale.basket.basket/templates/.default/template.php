@@ -13,6 +13,7 @@ try {
 
 /**
  * @var array $arParams
+ * @var array $arBasketJSParams
  * @var array $arResult
  * @var string $templateFolder
  * @var string $templateName
@@ -36,12 +37,8 @@ if ($arParams['TEMPLATE_THEME'] === 'site')
 	$arParams['TEMPLATE_THEME'] = Main\Config\Option::get('main', 'wizard_'.$templateId.'_theme_id', 'blue', $component->getSiteId());
 }
 
-if (!empty($arParams['TEMPLATE_THEME']))
-{
-	if (!is_file($documentRoot.'/bitrix/css/main/themes/'.$arParams['TEMPLATE_THEME'].'/style.css'))
-	{
-		$arParams['TEMPLATE_THEME'] = 'blue';
-	}
+if (!empty($arParams['TEMPLATE_THEME']) && !is_file($documentRoot . '/bitrix/css/main/themes/' . $arParams['TEMPLATE_THEME'] . '/style.css')) {
+    $arParams['TEMPLATE_THEME'] = 'blue';
 }
 
 if (!isset($arParams['DISPLAY_MODE']) || !in_array($arParams['DISPLAY_MODE'], array('extended', 'compact')))
@@ -304,6 +301,7 @@ if (empty($arResult['ERROR_MESSAGE']))
 			siteTemplateId: '<?=CUtil::JSEscape($component->getSiteTemplateId())?>',
 			templateFolder: '<?=CUtil::JSEscape($templateFolder)?>'
 		});
+        const basketJSParams = <?=CUtil::PhpToJSObject($arBasketJSParams)?>
 	</script>
     <?php
 	if ($arParams['USE_GIFTS'] === 'Y' && $arParams['GIFTS_PLACE'] === 'BOTTOM')

@@ -47,7 +47,7 @@ use Bitrix\Main\Localization\Loc;
                         if ($arResult['LOYALTY_STATUS'] === 'Y' && $arResult['PERSONAL_LOYALTY_STATUS'] === true) {
                         ?>
                         <div>
-                            <?=Loc::getMessage('BONUSES_TOTAL')?>: {{{WILL_BE_CREDITED}}}
+                            <?=Loc::getMessage('BONUSES_TOTAL')?>: <span id="BONUSES_TOTAL">{{{WILL_BE_CREDITED}}}</span>
                         </div>
                         <?php
                         }

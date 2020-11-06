@@ -156,7 +156,7 @@ class EventsHandlers
      */
     public function OnSaleOrderSavedHandler(Event $event): void
     {
-        /* @var LoyaltyService $service*/
+        /* @var LoyaltyService $loyaltyService*/
         $loyaltyService = ServiceLocator::get(LoyaltyService::class);
         $retailCrmEvent = new RetailCrmEvent();
         

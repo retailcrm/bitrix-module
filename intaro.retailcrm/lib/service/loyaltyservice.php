@@ -61,11 +61,13 @@ class LoyaltyService
     
     /**
      * LoyaltyService constructor.
+     * @throws \Bitrix\Main\LoaderException
      */
     public function __construct()
     {
         IncludeModuleLangFile(__FILE__);
         $this->client = ClientFactory::createClientAdapter();
+        Loader::includeModule('Catalog');
     }
     
     /*
