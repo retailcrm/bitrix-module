@@ -64,7 +64,11 @@ if ($arResult['LOYALTY_STATUS'] === 'Y'
     && $arResult['PERSONAL_LOYALTY_STATUS'] === true
 ) {
     $discountPercent = round($arResult['DISCOUNT_PRICE_ALL'] / ($arResult['allSum'] / 100), 0);
-    $calculate       = $service->calculateBonus($arResult['BASKET_ITEM_RENDER_DATA'], $arResult['DISCOUNT_PRICE_ALL'], $discountPercent);
+    $calculate       = $service->calculateBonus(
+        $arResult['BASKET_ITEM_RENDER_DATA'],
+        $arResult['DISCOUNT_PRICE_ALL'],
+        $discountPercent
+    );
     
     if ($calculate->success) {
         $arResult['LP_CALCULATE_SUCCESS']                  = $calculate->success;

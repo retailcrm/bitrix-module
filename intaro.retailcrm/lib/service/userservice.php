@@ -54,7 +54,7 @@ class UserService
      * @param \Intaro\RetailCrm\Model\Api\Customer $customer
      * @return \Intaro\RetailCrm\Model\Api\Response\CustomerChangeResponse|\Intaro\RetailCrm\Model\Api\Response\CustomersUploadResponse|null
      */
-    public function addNewUser(Customer $customer)
+    public function createOrUpdateUser(Customer $customer)
     {
         $credentials = $this->client->getCredentials();
         

@@ -514,9 +514,9 @@ class User extends AbstractSerializableModel
     private $indexSelector;
     
     /**
-     * @var  \Intaro\RetailCrm\Model\Bitrix\Loyalty $loyalty
+     * @var \Intaro\RetailCrm\Model\Bitrix\UserLoyaltyData $loyalty
      *
-     * @Mapping\Type("\Intaro\RetailCrm\Model\Bitrix\Loyalty")
+     * @Mapping\Type("\Intaro\RetailCrm\Model\Bitrix\UserLoyaltyData")
      * @Mapping\SerializedName("loyalty")
      */
     private $loyalty;
@@ -1713,17 +1713,17 @@ class User extends AbstractSerializableModel
     }
     
     /**
-     * @return \Intaro\RetailCrm\Model\Bitrix\Loyalty
+     * @return UserLoyaltyData
      */
-    public function getLoyalty(): \Intaro\RetailCrm\Model\Bitrix\Loyalty
+    public function getLoyalty(): UserLoyaltyData
     {
         return $this->loyalty;
     }
     
     /**
-     * @param \Intaro\RetailCrm\Model\Bitrix\Loyalty $loyalty
+     * @param UserLoyaltyData $loyalty
      */
-    public function setLoyalty(\Intaro\RetailCrm\Model\Bitrix\Loyalty $loyalty): void
+    public function setLoyalty(UserLoyaltyData $loyalty): void
     {
         $this->loyalty = $loyalty;
     }

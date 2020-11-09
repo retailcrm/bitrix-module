@@ -39,7 +39,7 @@ use Intaro\RetailCrm\Model\Api\SerializedOrderProduct;
 use Intaro\RetailCrm\Model\Api\SerializedOrderProductOffer;
 use Intaro\RetailCrm\Model\Api\SerializedOrderReference;
 use Intaro\RetailCrm\Model\Api\SerializedRelationCustomer;
-use Intaro\RetailCrm\Model\Bitrix\Loyalty;
+use Intaro\RetailCrm\Model\Bitrix\UserLoyaltyData;
 use Intaro\RetailCrm\Repository\PaySystemActionRepository;
 use Intaro\RetailCrm\Repository\UserRepository;
 
@@ -326,10 +326,10 @@ class LoyaltyService
     }
     
     /**
-     * @param \Intaro\RetailCrm\Model\Bitrix\Loyalty $loyalty
+     * @param \Intaro\RetailCrm\Model\Bitrix\UserLoyaltyData $loyalty
      * @return array
      */
-    private function getStandardFields(Loyalty $loyalty): array
+    private function getStandardFields(UserLoyaltyData $loyalty): array
     {
         $resultFields = [];
         $userFields = Serializer::serializeArray($loyalty);
@@ -352,10 +352,10 @@ class LoyaltyService
     }
     
     /**
-     * @param \Intaro\RetailCrm\Model\Bitrix\Loyalty $loyalty
+     * @param \Intaro\RetailCrm\Model\Bitrix\UserLoyaltyData $loyalty
      * @return array
      */
-    private function getFields(Loyalty $loyalty): array
+    private function getFields(UserLoyaltyData $loyalty): array
     {
         $standardFields = $this->getStandardFields($loyalty);
         $externalFields = $this->getExternalFields();

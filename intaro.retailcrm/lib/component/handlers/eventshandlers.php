@@ -213,7 +213,7 @@ class EventsHandlers
             
         /* @var UserService $userService */
         $userService = ServiceLocator::get(UserService::class);
-        $userService->addNewUser($customer);
+        $userService->createOrUpdateUser($customer);
 
             //Если пользователь выразил желание зарегистрироваться в ПЛ и согласился со всеми правилами
             if ((int)$arFields['UF_REG_IN_PL_INTARO'] === 1

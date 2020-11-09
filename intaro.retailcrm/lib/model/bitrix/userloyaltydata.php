@@ -20,7 +20,7 @@ namespace Intaro\RetailCrm\Model\Bitrix;
  *
  * @package Intaro\RetailCrm\Model\Bitrix
  */
-class Loyalty
+class UserLoyaltyData
 {
     /**
      * Номер бонусной карты в программе лояльности
