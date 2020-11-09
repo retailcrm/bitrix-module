@@ -56,7 +56,6 @@ class UserService
      */
     public function addNewUser(Customer $customer)
     {
-
         $credentials = $this->client->getCredentials();
         
         $customersGetRequest       = new CustomersGetRequest();

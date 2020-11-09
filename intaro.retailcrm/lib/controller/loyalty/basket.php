@@ -47,7 +47,10 @@ class Basket extends Controller
     public function calculateBasketBonusesAction(array $basketData): array
     {
         $discountPercent = round($basketData['DISCOUNT_PRICE_ALL'] / ($basketData['allSum'] / 100), 0);
-        $calculate       = $this->service->calculateBonus($basketData['BASKET_ITEM_RENDER_DATA'], $basketData['DISCOUNT_PRICE_ALL'], $discountPercent);
+        $calculate       = $this->service->calculateBonus($basketData['BASKET_ITEM_RENDER_DATA'],
+            $basketData['DISCOUNT_PRICE_ALL'],
+            $discountPercent
+        );
         
         if ($calculate->success) {
             $response['LP_CALCULATE_SUCCESS'] = $calculate->success;
