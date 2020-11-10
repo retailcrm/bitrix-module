@@ -27,12 +27,8 @@ use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Repository\UserRepository;
 use Intaro\RetailCrm\Service\LoyaltyService;
 use Intaro\RetailCrm\Service\LpUserAccountService;
-use Intaro\RetailCrm\Service\UserService;
-use RetailCrm\ApiClient;
-use RetailCrm\Http\Client;
-use RetailcrmConfigProvider;
+use Intaro\RetailCrm\Service\CustomerService;
 use RetailCrmEvent;
-use RetailCrmUser;
 
 /**
  * Class EventsHandlers
@@ -211,9 +207,9 @@ class EventsHandlers
                 ->build()
                 ->getResult();
             
-        /* @var UserService $userService */
-        $userService = ServiceLocator::get(UserService::class);
-        $userService->createOrUpdateUser($customer);
+        /* @var CustomerService $customerService */
+        $customerService = ServiceLocator::get(CustomerService::class);
+        $customerService->createOrUpdateCustomer($customer);
 
             //Если пользователь выразил желание зарегистрироваться в ПЛ и согласился со всеми правилами
             if ((int)$arFields['UF_REG_IN_PL_INTARO'] === 1

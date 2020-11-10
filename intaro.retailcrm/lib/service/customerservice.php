@@ -15,6 +15,7 @@ namespace Intaro\RetailCrm\Service;
 use Exception;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
 use Intaro\RetailCrm\Model\Api\Customer;
+use Intaro\RetailCrm\Model\Api\Request\Customers\CustomersCreateRequest;
 use Intaro\RetailCrm\Model\Api\Request\Customers\CustomersEditRequest;
 use Intaro\RetailCrm\Model\Api\Request\Customers\CustomersGetRequest;
 use Intaro\RetailCrm\Model\Api\Request\Customers\CustomersUploadRequest;
@@ -32,9 +33,9 @@ use Intaro\RetailCrm\Model\Api\User;
 use RuntimeException;
 
 /**
- * Class UserService
+ * Class CustomerService
  */
-class UserService
+class CustomerService
 {
     /**
      * @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter
@@ -59,64 +60,84 @@ class UserService
     /**
      * @param \Intaro\RetailCrm\Model\Api\Customer $customer
      *
-     * @return \Intaro\RetailCrm\Model\Api\Response\CustomerChangeResponse|\Intaro\RetailCrm\Model\Api\Response\CustomersUploadResponse|null
+     * @return false|int
      */
-    public function createOrUpdateUser(Customer $customer)
+    public function createOrUpdateCustomer(Customer $customer)
     {
-        $customerResponse = $this->getUser($customer->externalId);
+        $extCustomer = $this->getCustomer($customer->externalId);
         $customer->site   = $this->credentials->sitesAvailable[0];
         
-        if ($customerResponse !== null
-            && $customerResponse->success
-            && isset($customerResponse->customer->id)
-        ) {
-            return $this->editUser($customer);
+        if ($extCustomer !== null) {
+            return $this->editCustomer($customer);
         }
         
-        return $this->createUser($customer);
+        return $this->createCustomer($customer);
     }
     
     /**
      * @param \Intaro\RetailCrm\Model\Api\Customer $customer
      *
-     * @return \Intaro\RetailCrm\Model\Api\Response\CustomerChangeResponse|null
+     * @return false|int
      */
-    public function editUser(Customer $customer)
+    public function editCustomer(Customer $customer)
     {
         $customersEditRequest           = new CustomersEditRequest();
         $customersEditRequest->customer = $customer;
         $customersEditRequest->site     = $this->credentials->sitesAvailable[0];
         $customersEditRequest->by       = 'externalId';
+    
+        $response = $this->client->customersEdit($customersEditRequest);
+    
+        if ($response!==null && $response->success && $response->id > 0) {
+            return $response->id;
+        }
         
-        return $this->client->customersEdit($customersEditRequest);
+        Utils::handleErrors($response);
+    
+        return false;
     }
     
     /**
      * @param \Intaro\RetailCrm\Model\Api\Customer $customer
      *
-     * @return \Intaro\RetailCrm\Model\Api\Response\CustomersUploadResponse|null
+     * @return false|int
      */
-    public function createUser(Customer $customer)
+    public function createCustomer(Customer $customer)
     {
-        $customersUploadRequest               = new CustomersUploadRequest();
-        $customersUploadRequest->site         = $this->credentials->sitesAvailable[0];
-        $customersUploadRequest->customers[0] = $customer;
+        $customersUploadRequest           = new CustomersCreateRequest();
+        $customersUploadRequest->site     = $this->credentials->sitesAvailable[0];
+        $customersUploadRequest->customer = $customer;
+        $response                         = $this->client->customersCreate($customersUploadRequest);
+        
+        if ($response!==null && $response->success && $response->id > 0) {
+            return $response->id;
+        }
     
-        return $this->client->customersUpload($customersUploadRequest);
+        Utils::handleErrors($response);
+        
+        return false;
     }
     
     /**
-     * @param int $externalId
+     * @param string $externalId
      *
-     * @return \Intaro\RetailCrm\Model\Api\Response\CustomerResponse|null
+     * @return \Intaro\RetailCrm\Model\Api\Customer|null
      */
-    public function getUser(int $externalId)
+    public function getCustomer(string $externalId)
     {
         $customersGetRequest       = new CustomersGetRequest();
-        $customersGetRequest->id   = $externalId;
+        $customersGetRequest->id   = (int) $externalId;
         $customersGetRequest->by   = 'externalId';
         $customersGetRequest->site = $this->credentials->sitesAvailable[0];
+
+        $response = $this->client->customersGet($customersGetRequest);
         
-        return $this->client->customersGet($customersGetRequest);
+        if (isset($response->customer) && $response->customer->id > 0) {
+            return $response->customer;
+        }
+    
+        Utils::handleErrors($response);
+        
+        return null;
     }
 }

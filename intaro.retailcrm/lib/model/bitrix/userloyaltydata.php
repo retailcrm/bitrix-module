@@ -13,7 +13,7 @@
 namespace Intaro\RetailCrm\Model\Bitrix;
 
 /**
- * Class Loyalty
+ * Class UserLoyaltyData
  *
  * Описывает некоторые дополнительные поля сущности User,
  * представленные в таблице b_uts_user

@@ -135,17 +135,7 @@ class LpUserAccountService
             ]);
         }
     
-        if (isset($createResponse->errorMsg) && !empty($createResponse->errorMsg)) {
-            $errorDetails = '';
-        
-            if (isset($createResponse->errors) && is_array($createResponse->errors)) {
-                $errorDetails = Utils::getResponseErrors($createResponse);
-            }
-        
-            $msg = sprintf('%s (%s %s)', GetMessage('REGISTER_ERROR'), $createResponse->errorMsg, $errorDetails);
-        
-            AddMessage2Log($msg);
-        }
+        Utils::handleErrors($createResponse, GetMessage('REGISTER_ERROR'));
     }
     
     /**
