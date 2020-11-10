@@ -151,7 +151,7 @@ class Utils
             $errorDetails = '';
         
             if (isset($response->errors) && is_array($response->errors)) {
-                $errorDetails = Utils::getResponseErrors($response);
+                $errorDetails = self::getResponseErrors($response);
             }
         
             $msg = sprintf('%s (%s %s)', $errorMsg, $response->errorMsg, $errorDetails);
