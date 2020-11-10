@@ -1,16 +1,7 @@
-<?
-/**
- * Bitrix Framework
- * @package    bitrix
- * @subpackage main
- * @copyright  2001-2014 Bitrix
- */
-
+<?php
 /**
  * Bitrix vars
- * @param array                    $arParams
- * @param array                    $arResult
- * @param CBitrixComponentTemplate $this
+ * @var  array                     $arResult
  * @global CUser                   $USER
  * @global CMain                   $APPLICATION
  */
@@ -18,111 +9,26 @@
 if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) {
     die();
 }
-$APPLICATION->SetTitle(GetMessage("REGISTER_LP_TITLE"));
-
-if ($arResult["SHOW_SMS_FIELD"] == true) {
-    CJSCore::Init('phone_auth');
-}
 ?>
-<?php CUtil::InitJSCore(['ajax', 'jquery', 'popup']); ?>
-<div id="uf_agree_pl_intaro_popup" style="display:none;">
-    <?=$arResult['AGREEMENT_LOYALTY_PROGRAM']?>
-</div>
-<div id="uf_pd_proc_pl_intaro_popup" style="display:none;">
-    <?=$arResult['AGREEMENT_PERSONAL_DATA']?>
-</div>
-<script>
-    BX.ready(function() {
-        const lpAgreementPopup = new BX.PopupWindow('lp_agreement_popup', window.body, {
-            autoHide:    true,
-            offsetTop:   1,
-            offsetLeft:  0,
-            lightShadow: true,
-            closeIcon:   true,
-            closeByEsc:  true,
-            overlay:     {
-                backgroundColor: 'grey', opacity: '30'
-            }
-        });
-        lpAgreementPopup.setContent(BX('uf_agree_pl_intaro_popup'));
-        BX.bindDelegate(
-            document.body, 'click', {className: 'lp_agreement_link'},
-            BX.proxy(function(e) {
-                if (!e)
-                    e = window.event;
-                lpAgreementPopup.show();
-                return BX.PreventDefault(e);
-            }, lpAgreementPopup)
-        );
 
-        const personalDataAgreementPopup = new BX.PopupWindow('personal_data_agreement_popup', window.body, {
-            autoHide:    true,
-            offsetTop:   1,
-            offsetLeft:  0,
-            lightShadow: true,
-            closeIcon:   true,
-            closeByEsc:  true,
-            overlay:     {
-                backgroundColor: 'grey', opacity: '30'
-            }
-        });
-        personalDataAgreementPopup.setContent(BX('uf_pd_proc_pl_intaro_popup'));
-        BX.bindDelegate(
-            document.body, 'click', {className: 'personal_data_agreement_link'},
-            BX.proxy(function(e) {
-                if (!e)
-                    e = window.event;
-                personalDataAgreementPopup.show();
-                return BX.PreventDefault(e);
-            }, personalDataAgreementPopup)
-        );
-    });
-</script>
-
-<div class="bx-auth-reg">
-    <?php if ($USER->IsAuthorized()): ?>
-        <?php if ($arResult['LOYALTY_STATUS'] === 'Y'): ?>
-            <?php $this->addExternalJs(SITE_TEMPLATE_PATH . '/script.js'); ?>
-        
-            <?php if (isset($arResult['LP_REGISTER']['msg'])) { ?>
-                <div id="lpRegMsg" class="lpRegMsg"><?=$arResult['LP_REGISTER']['msg']?></div>
-            <?php } ?>
-        
-            <?php
-            if (isset($arResult['LP_REGISTER']['form']['fields'])) { ?>
-                <div id="lpRegForm">
-                    <div id="lpRegFormInputs">
-                        <?php
-                        foreach ($arResult['LP_REGISTER']['form']['fields'] as $key => $field) {
-                            ?>
-                            <label>
-                                <input
-                                    name="<?=$key?>"
-                                    type="<?=$field['type']?>"
-                                    <?php if (isset($field['value'])) { ?>
-                                        value="<?=$field['value']?>"
-                                    <?php } ?>
-                                >
-                            
-                                <?php
-                                if ($key === 'UF_AGREE_PL_INTARO') { ?>
-                                <?=GetMessage('I_AM_AGREE')?><a class="lp_agreement_link" href="javascript:void(0)">
-                                    <?php } ?>
-                                    <?php
-                                    if ($key === 'UF_PD_PROC_PL_INTARO') { ?>
-                                <?=GetMessage('I_AM_AGREE')?><a class="personal_data_agreement_link" href="javascript:void(0)">
-                                        <?php } ?>
-                                        <?=GetMessage($key)?>
-                                        <?php
-                                        if ($key === 'UF_PD_PROC_PL_INTARO' || $key === 'UF_AGREE_PL_INTARO') { ?></a><?php } ?>
-                            </label>
-                            <br>
-                        <?php } ?>
-                    </div>
-                    <input type="button" onclick="<?=$arResult['LP_REGISTER']['form']['button']['action']?>()" value="<?=GetMessage('SEND')?>">
-                </div>
-            <?php } ?>
+<p>
+    <? if (isset($arResult['BONUS_COUNT'])) {?>
+        <b>Бонусов на счете:</b> <?= $arResult['BONUS_COUNT']?><br>
+    <?php }?>
     
-        <?php endif; ?>
-    <?php endif; ?>
-</div>
+    <? if (isset($arResult['ACTIVE'])) {?>
+        <b>Активность аккаунта:</b> <?= $arResult['ACTIVE']?><br>
+    <?php }?>
+    
+    <? if (isset($arResult['CARD'])) {?>
+        <b>Номер бонусной карты:</b> <?= $arResult['CARD']?><br>
+    <?php }?>
+    
+    <? if (isset($arResult['PHONE'])) {?>
+        <b>Привязанный телефон:</b> <?= $arResult['PHONE']?><br>
+    <?php }?>
+    
+    <? if (isset($arResult['REGISTER_DATE'])) {?>
+        <b>Дата регистрации:</b> <?= $arResult['REGISTER_DATE']?><br>
+    <?php }?>
+</p>

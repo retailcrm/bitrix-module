@@ -25,20 +25,21 @@ $arResult['PERSONAL_LOYALTY_STATUS'] = LoyaltyService::getLoyaltyPersonalStatus(
 $customer = UserRepository::getById($USER->GetID());
 
 if ($arResult['LOYALTY_STATUS'] === 'Y'
-    && $arResult['PERSONAL_LOYALTY_STATUS'] === true
     && $customer->getLoyalty()->getIdInLoyalty() > 0
 ) {
-    $customer = UserRepository::getById($USER->GetID());
+    /* @var LoyaltyService $service */
+    $service  = ServiceLocator::get(LoyaltyService::class);
+    $response = $service->getLoyaltyAccounts($customer->getLoyalty()->getIdInLoyalty());
     
-    
-    if ($arResult['LOYALTY_STATUS'] === 'Y' && $USER->IsAuthorized()) {
-        /* @var LoyaltyService $service*/
-        $service    = ServiceLocator::get(LoyaltyService::class);
-        $service->getLoyaltyAccounts($customer->getLoyalty()->getIdInLoyalty());
+    if ($response !== null) {
+        $arResult['BONUS_COUNT']   = $response->any;
+        $arResult['ACTIVE']        = $response->any;
+        $arResult['CARD']          = $response->any;
+        $arResult['PHONE']         = $response->any;
+        $arResult['REGISTER_DATE'] = $response->any;
     }
     
     $this->IncludeComponentTemplate();
 } else {
     include_once __DIR__ . 'register.php';
 }
-
