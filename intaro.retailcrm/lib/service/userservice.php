@@ -42,46 +42,81 @@ class UserService
     private $client;
     
     /**
+     * @var \Intaro\RetailCrm\Model\Api\Response\Settings\CredentialsResponse
+     */
+    private $credentials;
+    
+    /**
      * LoyaltyService constructor.
      */
     public function __construct()
     {
         IncludeModuleLangFile(__FILE__);
-        $this->client = ClientFactory::createClientAdapter();
+        $this->client      = ClientFactory::createClientAdapter();
+        $this->credentials = $this->client->getCredentials();
     }
     
     /**
      * @param \Intaro\RetailCrm\Model\Api\Customer $customer
+     *
      * @return \Intaro\RetailCrm\Model\Api\Response\CustomerChangeResponse|\Intaro\RetailCrm\Model\Api\Response\CustomersUploadResponse|null
      */
     public function createOrUpdateUser(Customer $customer)
     {
-        $credentials = $this->client->getCredentials();
-        
-        $customersGetRequest       = new CustomersGetRequest();
-        $customersGetRequest->id   = $customer->externalId;
-        $customersGetRequest->by   = 'externalId';
-        $customersGetRequest->site = $credentials->sitesAvailable[0];
-        $customerResponse          = $this->client->customersGet($customersGetRequest);
-        
-        $customer->site = $credentials->sitesAvailable[0];
+        $customerResponse = $this->getUser($customer->externalId);
+        $customer->site   = $this->credentials->sitesAvailable[0];
         
         if ($customerResponse !== null
             && $customerResponse->success
             && isset($customerResponse->customer->id)
         ) {
-            $customersEditRequest           = new CustomersEditRequest();
-            $customersEditRequest->customer = $customer;
-            $customersEditRequest->site     = $credentials->sitesAvailable[0];
-            $customersEditRequest->by       = 'externalId';
-
-            return $this->client->customersEdit($customersEditRequest);
+            return $this->editUser($customer);
         }
         
-        $customersUploadRequest               = new CustomersUploadRequest();
-        $customersUploadRequest->site         = $credentials->sitesAvailable[0];
-        $customersUploadRequest->customers[0] = $customer;
+        return $this->createUser($customer);
+    }
+    
+    /**
+     * @param \Intaro\RetailCrm\Model\Api\Customer $customer
+     *
+     * @return \Intaro\RetailCrm\Model\Api\Response\CustomerChangeResponse|null
+     */
+    public function editUser(Customer $customer)
+    {
+        $customersEditRequest           = new CustomersEditRequest();
+        $customersEditRequest->customer = $customer;
+        $customersEditRequest->site     = $this->credentials->sitesAvailable[0];
+        $customersEditRequest->by       = 'externalId';
         
+        return $this->client->customersEdit($customersEditRequest);
+    }
+    
+    /**
+     * @param \Intaro\RetailCrm\Model\Api\Customer $customer
+     *
+     * @return \Intaro\RetailCrm\Model\Api\Response\CustomersUploadResponse|null
+     */
+    public function createUser(Customer $customer)
+    {
+        $customersUploadRequest               = new CustomersUploadRequest();
+        $customersUploadRequest->site         = $this->credentials->sitesAvailable[0];
+        $customersUploadRequest->customers[0] = $customer;
+    
         return $this->client->customersUpload($customersUploadRequest);
+    }
+    
+    /**
+     * @param int $externalId
+     *
+     * @return \Intaro\RetailCrm\Model\Api\Response\CustomerResponse|null
+     */
+    public function getUser(int $externalId)
+    {
+        $customersGetRequest       = new CustomersGetRequest();
+        $customersGetRequest->id   = $externalId;
+        $customersGetRequest->by   = 'externalId';
+        $customersGetRequest->site = $this->credentials->sitesAvailable[0];
+        
+        return $this->client->customersGet($customersGetRequest);
     }
 }
