@@ -88,7 +88,7 @@ class CustomerService
     
         $response = $this->client->customersEdit($customersEditRequest);
     
-        if ($response!==null && $response->success && $response->id > 0) {
+        if ($response !== null && $response->success && $response->id > 0) {
             return $response->id;
         }
         
@@ -108,8 +108,8 @@ class CustomerService
         $customersUploadRequest->site     = $this->credentials->sitesAvailable[0];
         $customersUploadRequest->customer = $customer;
         $response                         = $this->client->customersCreate($customersUploadRequest);
-        
-        if ($response!==null && $response->success && $response->id > 0) {
+    
+        if ($response !== null && $response->success && $response->id > 0) {
             return $response->id;
         }
     
@@ -126,7 +126,7 @@ class CustomerService
     public function getCustomer(string $externalId)
     {
         $customersGetRequest       = new CustomersGetRequest();
-        $customersGetRequest->id   = (int) $externalId;
+        $customersGetRequest->id   = $externalId;
         $customersGetRequest->by   = 'externalId';
         $customersGetRequest->site = $this->credentials->sitesAvailable[0];
 
