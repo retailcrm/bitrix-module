@@ -699,7 +699,7 @@ class RetailCrmHistory
                                 $somePropValue = $propertyCollection
                                     ->getItemByOrderPropertyId($propsKey[$orderProp]['ID']);
 
-                                if ($key == 'fio') {
+                                if ($key == 'fio' && '' !== trim($order['fio'])) {
                                     self::setProp($somePropValue, $order[$key]);
                                 } else {
                                     self::setProp($somePropValue, RCrmActions::fromJSON($order[$key]));
