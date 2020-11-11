@@ -139,4 +139,24 @@ class Utils
         
         return $errorDetails;
     }
+    
+    
+    /**
+     * @param \Intaro\RetailCrm\Model\Api\Response\AbstractApiResponseModel $response
+     * @param string                                                        $errorMsg
+     */
+    public static function handleErrors(AbstractApiResponseModel $response, $errorMsg = 'ERROR')
+    {
+        if (isset($response->errorMsg) && !empty($response->errorMsg)) {
+            $errorDetails = '';
+        
+            if (isset($response->errors) && is_array($response->errors)) {
+                $errorDetails = self::getResponseErrors($response);
+            }
+        
+            $msg = sprintf('%s (%s %s)', $errorMsg, $response->errorMsg, $errorDetails);
+        
+            AddMessage2Log($msg);
+        }
+    }
 }

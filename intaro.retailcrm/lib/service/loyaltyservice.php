@@ -26,6 +26,8 @@ use Bitrix\Sale\PaySystem\Manager;
 use CUser;
 use Exception;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
+use Intaro\RetailCrm\Component\Json\Deserializer;
+use Intaro\RetailCrm\Component\Json\Serializer;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Model\Api\PriceType;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountActivateRequest;
@@ -37,7 +39,9 @@ use Intaro\RetailCrm\Model\Api\SerializedOrderProduct;
 use Intaro\RetailCrm\Model\Api\SerializedOrderProductOffer;
 use Intaro\RetailCrm\Model\Api\SerializedOrderReference;
 use Intaro\RetailCrm\Model\Api\SerializedRelationCustomer;
+use Intaro\RetailCrm\Model\Bitrix\UserLoyaltyData;
 use Intaro\RetailCrm\Repository\PaySystemActionRepository;
+use Intaro\RetailCrm\Repository\UserRepository;
 
 /**
  * Class LoyaltyService
@@ -61,11 +65,13 @@ class LoyaltyService
     
     /**
      * LoyaltyService constructor.
+     * @throws \Bitrix\Main\LoaderException
      */
     public function __construct()
     {
         IncludeModuleLangFile(__FILE__);
         $this->client = ClientFactory::createClientAdapter();
+        Loader::includeModule('Catalog');
     }
     
     /*
@@ -182,28 +188,24 @@ class LoyaltyService
     /**
      * @return array
      */
-    public function checkRegInLp(): array
+    public function checkRegInLp(): ?array
     {
         global $USER;
-        $rsUser     = CUser::GetByID($USER->GetID());
-        $userFields = $rsUser->Fetch();
         
-        if (!$userFields) {
+        $customer = UserRepository::getById($USER->GetID());
+       
+        if (!$customer) {
             return [];
         }
         
+        $loyalty = $customer->getLoyalty();
+        
         //Изъявлял ли ранее пользователь желание участвовать в ПЛ?
-        if (isset($userFields['UF_REG_IN_PL_INTARO'])
-            && $userFields['UF_REG_IN_PL_INTARO'] === '1'
-        ) {
+        if ($loyalty->getIsAgreeRegisterInLoyaltyProgram() === 1) {
             //ДА. Существует ли у него аккаунт?
-            if (isset($userFields['UF_LP_ID_INTARO'])
-                && !empty($userFields['UF_LP_ID_INTARO'])
-            ) {
+            if (!empty($loyalty->getIdInLoyalty())) {
                 //ДА. Активен ли его аккаунт?
-                if (isset($userFields['UF_EXT_REG_PL_INTARO'])
-                    && $userFields['UF_EXT_REG_PL_INTARO'] === '1'
-                ) {
+                if ($loyalty->getIsUserLoyaltyAccountActive() === 1) {
                     //ДА. Отображаем сообщение "Вы зарегистрированы в Программе лояльности"
                     return ['msg' => GetMessage('REG_COMPLETE')];
                 }
@@ -211,7 +213,7 @@ class LoyaltyService
                 //НЕТ. Аккаунт не активен
                 /** @var \Intaro\RetailCrm\Service\LpUserAccountService $userService */
                 $userService = ServiceLocator::get(LpUserAccountService::class);
-                $extFields   = $userService->getExtFields($userFields['UF_EXT_REG_PL_INTARO']);
+                $extFields   = $userService->getExtFields($loyalty->getIdInLoyalty());
     
                 //Есть ли обязательные поля, которые нужно заполнить для завершения активации?
                 if (!empty($extFields)) {
@@ -228,16 +230,16 @@ class LoyaltyService
                     ];
                 }
     
-                return $this->tryActivate($userFields);
+                return $this->tryActivate($loyalty->getIdInLoyalty());
             }
     
             //Аккаунт не существует. Выясняем, каких полей не хватает для СОЗДАНИЯ аккаунта, выводим форму
-            $fields = $this->getFields($userFields);
+            $fields = $this->getFields($loyalty);
     
             //Если все необходимые поля заполнены, то пытаемся его еще раз зарегистрировать
             if (empty($fields)) {
-                $createResponse = $this->registerAndActivateUser($userFields);
-
+                $customFields = $this->getExternalFields();
+                $createResponse = $this->registerAndActivateUser($customer->getId(), $customer->getPersonalPhone(), $customFields, $loyalty);
                 if ($createResponse === false) {
                     header('Refresh 0');
                 }
@@ -252,7 +254,7 @@ class LoyaltyService
                         'name'   => GetMessage('CREATE'),
                         'action' => 'createAccount',
                     ],
-                    'fields' => $this->getFields($userFields),
+                    'fields' => $this->getFields($loyalty),
                 ],
             ];
         }
@@ -265,7 +267,7 @@ class LoyaltyService
                     'name'   => GetMessage('CREATE'),
                     'action' => 'createAccount',
                 ],
-                'fields' => $this->getFields($userFields),
+                'fields' => $this->getFields($loyalty),
             ],
         ];
     }
@@ -324,12 +326,13 @@ class LoyaltyService
     }
     
     /**
-     * @param array $userFields
+     * @param \Intaro\RetailCrm\Model\Bitrix\UserLoyaltyData $loyalty
      * @return array
      */
-    private function getStandardFields(array $userFields): array
+    private function getStandardFields(UserLoyaltyData $loyalty): array
     {
         $resultFields = [];
+        $userFields = Serializer::serializeArray($loyalty);
         
         foreach (self::STANDARD_FIELDS as $key => $value) {
             if ($value === 'text' && empty($userFields[$key])) {
@@ -349,12 +352,12 @@ class LoyaltyService
     }
     
     /**
-     * @param array $userFields
+     * @param \Intaro\RetailCrm\Model\Bitrix\UserLoyaltyData $loyalty
      * @return array
      */
-    private function getFields(array $userFields): array
+    private function getFields(UserLoyaltyData $loyalty): array
     {
-        $standardFields = $this->getStandardFields($userFields);
+        $standardFields = $this->getStandardFields($loyalty);
         $externalFields = $this->getExternalFields();
         
         return array_merge($standardFields, $externalFields);
@@ -369,22 +372,18 @@ class LoyaltyService
         return [];
     }
     
-    /**
-     * @param array $userFields
-     * @return string[]|false
-     */
-    private function registerAndActivateUser(array $userFields)
+
+    private function registerAndActivateUser(int $userId, string $userPhone, array $customFields, Loyalty $loyalty)
     {
         /* @var \Intaro\RetailCrm\Service\LpUserAccountService $service */
         $service      = ServiceLocator::get(LpUserAccountService::class);
-        $phone        = $userFields['PERSONAL_PHONE'] ?? '';
-        $card         = $userFields['UF_CARD_NUM_INTARO'] ?? '';
-        $customerId   = (string)$userFields['ID'];
-        $customFields = $userFields['UF_CSTM_FLDS_INTARO'] ?? [];
+        $phone        = $userPhone ?? '';
+        $card         = $loyalty->getBonusCardNumber() ?? '';
+        $customerId   = (string) $userId;
         
         $createResponse = $service->createLoyaltyAccount($phone, $card, $customerId, $customFields);
         
-        $service->activateLpUserInBitrix($createResponse, $userFields['ID']);
+        $service->activateLpUserInBitrix($createResponse, $userId);
     
         if ($createResponse !== null
             && $createResponse->success === false
@@ -411,16 +410,16 @@ class LoyaltyService
     }
     
     /**
-     * @param $userFields
-     * @return array
+     * @param $idInLoyalty
+     * @return array|null
      */
-    private function tryActivate($userFields): ?array
+    private function tryActivate($idInLoyalty): ?array
     {
         /** @var \Intaro\RetailCrm\Service\LpUserAccountService $userService */
         $userService = ServiceLocator::get(LpUserAccountService::class);
         
         //НЕТ. Обязательных незаполненных полей нет. Тогда пробуем активировать аккаунт
-        $activateResponse = $userService->activateLoyaltyAccount($userFields['UF_EXT_REG_PL_INTARO']);
+        $activateResponse = $userService->activateLoyaltyAccount($idInLoyalty());
     
         if ($activateResponse !== null
             && isset($activateResponse->loyaltyAccount->active)
