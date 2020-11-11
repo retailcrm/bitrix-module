@@ -122,7 +122,10 @@ if ($arResult["SHOW_SMS_FIELD"] == true) {
                     <input type="button" onclick="<?=$arResult['LP_REGISTER']['form']['button']['action']?>()" value="<?=GetMessage('SEND')?>">
                 </div>
             <?php } ?>
-    
+        <?php else: ?>
+            <?=GetMessage('LP_NOT_ACTIVE')?>
         <?php endif; ?>
+    <?php else: ?>
+        <?=GetMessage('NOT_AUTHORIZED')?>
     <?php endif; ?>
 </div>

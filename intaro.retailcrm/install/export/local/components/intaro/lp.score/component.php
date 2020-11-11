@@ -32,14 +32,14 @@ if ($arResult['LOYALTY_STATUS'] === 'Y'
     $response = $service->getLoyaltyAccounts($customer->getLoyalty()->getIdInLoyalty());
     
     if ($response !== null) {
-        $arResult['BONUS_COUNT']   = $response->any;
-        $arResult['ACTIVE']        = $response->any;
-        $arResult['CARD']          = $response->any;
-        $arResult['PHONE']         = $response->any;
-        $arResult['REGISTER_DATE'] = $response->any;
+        $arResult['BONUS_COUNT']   = $response->amount;
+        $arResult['ACTIVE']        = $response->active;
+        $arResult['CARD']          = $response->cardNumber;
+        $arResult['PHONE']         = $response->phoneNumber;
+        $arResult['REGISTER_DATE'] = $response->createdAt;
     }
     
     $this->IncludeComponentTemplate();
 } else {
-    include_once __DIR__ . 'register.php';
+    require_once __DIR__ . '/register.php';
 }

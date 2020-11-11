@@ -12,14 +12,14 @@
 namespace Intaro\RetailCrm\Model\Api\Request\Loyalty\Account;
 
 use Intaro\RetailCrm\Component\Json\Mapping;
-use Intaro\RetailCrm\Model\Api\AbstractApiModel;
+use Intaro\RetailCrm\Model\Api\Response\AbstractApiResponseModel;
 
 /**
  * Class LoyaltyAccountRequest
  *
  * @package Intaro\RetailCrm\Model\Api\Request\Loyalty\Account
  */
-class LoyaltyAccountResponse extends AbstractApiModel
+class LoyaltyAccountResponse extends AbstractApiResponseModel
 {
     /**
      * Результат запроса (успешный/неуспешный)

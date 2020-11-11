@@ -27,6 +27,15 @@ use Intaro\RetailCrm\Model\Bitrix\User;
  */
 class UserRepository extends AbstractRepository
 {
+    public const STANDART_LOYALTY_VALUES = [
+        'UF_CARD_NUM_INTARO'   => null,
+        'UF_LP_ID_INTARO'      => null,
+        'UF_AGREE_PL_INTARO'   => null,
+        'UF_PD_PROC_PL_INTARO' => null,
+        'UF_EXT_REG_PL_INTARO' => null,
+        'UF_REG_IN_PL_INTARO'  => null,
+    ];
+    
     /**
      * @param int $id
      *
@@ -41,11 +50,17 @@ class UserRepository extends AbstractRepository
         }
     
         try {
-            $fields['loyalty'] = UserLoyaltyDataRepository::getLoyaltyFields($fields['ID']);
+            $loyaltyFields = UserLoyaltyDataRepository::getLoyaltyFields($fields['ID']);
         } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
             AddMessage2Log($exception->getMessage());
         }
     
+        if (isset($loyaltyFields)) {
+            $fields['loyalty'] = $loyaltyFields;
+        }else{
+            $fields['loyalty'] = self::STANDART_LOYALTY_VALUES;
+        }
+        
         return Deserializer::deserializeArray($fields, User::class);
     }
     

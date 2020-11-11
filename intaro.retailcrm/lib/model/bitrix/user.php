@@ -1713,7 +1713,7 @@ class User extends AbstractSerializableModel
     }
     
     /**
-     * @return UserLoyaltyData
+     * @return \Intaro\RetailCrm\Model\Bitrix\UserLoyaltyData|null
      */
     public function getLoyalty(): UserLoyaltyData
     {

@@ -25,17 +25,17 @@ class UserLoyaltyDataRepository extends AbstractRepository
 {
     /**
      * @param int $userId
-     * @return \Intaro\RetailCrm\Model\Bitrix\UserLoyaltyData
+     * @return \Intaro\RetailCrm\Model\Bitrix\UserLoyaltyData|null
      * @throws \Bitrix\Main\ArgumentException
      * @throws \Bitrix\Main\ObjectPropertyException
      * @throws \Bitrix\Main\SystemException
      */
-    public static function getLoyaltyFields(int $userId): UserLoyaltyData
+    public static function getLoyaltyFields(int $userId): ?UserLoyaltyData
     {
         $loyaltyFields = UtsUserTable::query()
             ->setSelect([
                 'UF_CARD_NUM_INTARO',
-                'UF_REG_IN_PL_INTARO',
+                'UF_LP_ID_INTARO',
                 'UF_AGREE_PL_INTARO',
                 'UF_PD_PROC_PL_INTARO',
                 'UF_EXT_REG_PL_INTARO',
@@ -43,6 +43,10 @@ class UserLoyaltyDataRepository extends AbstractRepository
             ])
             ->where([['VALUE_ID', '=', $userId]])
             ->fetch();
+    
+        if (!$loyaltyFields) {
+            return null;
+        }
         
         /** @var UserLoyaltyData $loyalty */
         $loyalty = Deserializer::deserializeArray($loyaltyFields, UserLoyaltyData::class);
