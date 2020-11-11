@@ -15,27 +15,21 @@ namespace Intaro\RetailCrm\Service;
 
 use Bitrix\Catalog\GroupTable;
 use Bitrix\Main\ArgumentException;
-use Bitrix\Main\ArgumentNullException;
 use Bitrix\Main\Event;
 use Bitrix\Main\Loader;
-use Bitrix\Main\LoaderException;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
-use Bitrix\Sale\Order;
 use Bitrix\Sale\PaySystem\Manager;
 use CUser;
 use Exception;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
-use Intaro\RetailCrm\Component\Json\Deserializer;
 use Intaro\RetailCrm\Component\Json\Serializer;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Model\Api\LoyaltyAccount;
 use Intaro\RetailCrm\Model\Api\PriceType;
-use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountActivateRequest;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountRequest;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\LoyaltyCalculateRequest;
 use Intaro\RetailCrm\Model\Api\Request\Order\Loyalty\OrderLoyaltyApplyRequest;
-use Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountCreateResponse;
 use Intaro\RetailCrm\Model\Api\SerializedOrder;
 use Intaro\RetailCrm\Model\Api\SerializedOrderProduct;
 use Intaro\RetailCrm\Model\Api\SerializedOrderProductOffer;
@@ -53,10 +47,8 @@ use Intaro\RetailCrm\Repository\UserRepository;
 class LoyaltyService
 {
     public const STANDARD_FIELDS = [
-        'UF_REG_IN_PL_INTARO'  => 'checkbox',
         'UF_AGREE_PL_INTARO'   => 'checkbox',
         'UF_PD_PROC_PL_INTARO' => 'checkbox',
-        'UF_CARD_NUM_INTARO'   => 'text',
         'PERSONAL_PHONE'       => 'text',
     ];
     
@@ -66,13 +58,25 @@ class LoyaltyService
     private $client;
     
     /**
+     * @var \Intaro\RetailCrm\Model\Bitrix\User|null
+     */
+    private $user;
+    
+    
+    /**
      * LoyaltyService constructor.
      * @throws \Bitrix\Main\LoaderException
      */
     public function __construct()
     {
+        global $USER;
         IncludeModuleLangFile(__FILE__);
+    
         $this->client = ClientFactory::createClientAdapter();
+        if ($USER->IsAuthorized()) {
+            $this->user   = UserRepository::getById($USER->GetID());
+        }
+        
         Loader::includeModule('Catalog');
     }
     
@@ -194,14 +198,12 @@ class LoyaltyService
     {
         global $USER;
         
-        $customer = UserRepository::getById($USER->GetID());
-        
-        if (!$customer) {
+        if (!$this->user) {
             return [];
         }
         
-        $loyalty = $customer->getLoyalty();
-        
+        $loyalty = $this->user->getLoyalty();
+
         //Изъявлял ли ранее пользователь желание участвовать в ПЛ?
         if ($loyalty->getIsAgreeRegisterInLoyaltyProgram() === 1) {
             //ДА. Существует ли у него аккаунт?
@@ -241,7 +243,8 @@ class LoyaltyService
             //Если все необходимые поля заполнены, то пытаемся его еще раз зарегистрировать
             if (empty($fields)) {
                 $customFields   = $this->getExternalFields();
-                $createResponse = $this->registerAndActivateUser($customer->getId(), $customer->getPersonalPhone(), $customFields, $loyalty);
+                $createResponse = $this->registerAndActivateUser($this->user->getId(), $this->user->getPersonalPhone(), $customFields, $loyalty);
+                
                 if ($createResponse === false) {
                     header('Refresh 0');
                 }
@@ -351,14 +354,14 @@ class LoyaltyService
     }
     
     /**
-     * @param \Intaro\RetailCrm\Model\Bitrix\UserLoyaltyData $loyalty
      * @return array
      */
-    private function getStandardFields(UserLoyaltyData $loyalty): array
+    private function getStandardFields(): array
     {
-        $resultFields = [];
-        $userFields   = Serializer::serializeArray($loyalty);
-        
+        $resultFields                 = [];
+        $userFields                   = Serializer::serializeArray($this->user->getLoyalty());
+        $userFields['PERSONAL_PHONE'] = $this->user->getPersonalPhone();
+
         foreach (self::STANDARD_FIELDS as $key => $value) {
             if ($value === 'text' && empty($userFields[$key])) {
                 $resultFields[$key] = [
@@ -366,7 +369,7 @@ class LoyaltyService
                 ];
             }
             
-            if ($value === 'checkbox' && $userFields[$key] !== '1') {
+            if ($value === 'checkbox' && $userFields[$key] !== 1) {
                 $resultFields[$key] = [
                     'type' => $value,
                 ];
@@ -398,7 +401,7 @@ class LoyaltyService
     }
     
     
-    private function registerAndActivateUser(int $userId, string $userPhone, array $customFields, Loyalty $loyalty)
+    private function registerAndActivateUser(int $userId, string $userPhone, array $customFields, UserLoyaltyData $loyalty)
     {
         /* @var \Intaro\RetailCrm\Service\LpUserAccountService $service */
         $service    = ServiceLocator::get(LpUserAccountService::class);

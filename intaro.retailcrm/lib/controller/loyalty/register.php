@@ -2,12 +2,14 @@
 
 namespace Intaro\RetailCrm\Controller\Loyalty;
 
+use Bitrix\Main\Engine\ActionFilter\Authentication;
 use Bitrix\Main\Engine\Controller;
 use Bitrix\Main\Request;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
 use Intaro\RetailCrm\Model\Api\Request\SmsVerification\SmsVerificationConfirmRequest;
 use Intaro\RetailCrm\Model\Api\SmsVerificationConfirm;
 use Intaro\RetailCrm\Model\Bitrix\User;
+use Intaro\RetailCrm\Repository\UserRepository;
 use Intaro\RetailCrm\Service\LpUserAccountService;
 
 class Register extends Controller
@@ -26,13 +28,88 @@ class Register extends Controller
     }
     
     /**
+     * @return \array[][]
+     */
+    public function sendVerificationCode(): array
+    {
+        return [
+            'saveUserLpFields' => [
+                '-prefilters' => [
+                    new Authentication,
+                ],
+            ],
+        ];
+    }
+    
+    /**
+     * @param $loyaltyAccount
+     * @return array
+     */
+    public function saveUserLpFieldsAction($loyaltyAccount)
+    {
+        global $USER;
+        global $USER_FIELD_MANAGER;
+
+        $msg         = '';
+        $cardNumber  = htmlspecialchars(trim($loyaltyAccount['UF_CARD_NUM_INTARO']));
+        
+        if (!isset($loyaltyAccount['UF_AGREE_PL_INTARO']) || $loyaltyAccount['UF_AGREE_PL_INTARO'] !== "on") {
+            return [
+                'result' => false,
+                'msg'    => GetMessage('NOT_AGREE_LP_RULES'),
+            ];
+        }
+        
+        if (!isset($loyaltyAccount['UF_PD_PROC_PL_INTARO']) || $loyaltyAccount['UF_AGREE_PL_INTARO'] !== "on") {
+            return [
+                'result' => false,
+                'msg'    => GetMessage('NOT_AGREE_PERSONAL_DATA_RULES'),
+            ];
+        }
+        
+        if (!isset($loyaltyAccount['PERSONAL_PHONE'])) {
+            
+            return [
+                'result' => false,
+                'msg'    => GetMessage('PHONE_EMPTY'),
+            ];
+        }
+    
+        $userId = $USER->GetID();
+    
+        $result = $USER_FIELD_MANAGER->Update('USER', $userId,
+            [
+                'UF_CARD_NUM_INTARO'   => $cardNumber ?? '',
+                'UF_AGREE_PL_INTARO'   => isset($loyaltyAccount['UF_AGREE_PL_INTARO']),
+                'UF_PD_PROC_PL_INTARO' => isset($loyaltyAccount['UF_PD_PROC_PL_INTARO']),
+                'UF_REG_IN_PL_INTARO'  => true,
+            ]
+        );
+    
+        $phoneNumber = $this->phoneValidate($loyaltyAccount['PERSONAL_PHONE']);
+        
+       $iUser = UserRepository::getById($userId);
+       
+       if ($iUser !== null) {
+           $iUser->setPersonalPhone($phoneNumber);
+           $iUser->save();
+       }
+        
+        return [
+            'result' => $result,
+            'msg'    => $msg,
+        ];
+    }
+    
+    
+    /**
      * @param array $loyaltyAccount
      * @return array|string[]
      */
     public function accountCreateAction(array $loyaltyAccount): array
     {
         $phoneNumber = $this->phoneValidate($loyaltyAccount['phone']);
-    
+        
         if (!is_numeric($phoneNumber)) {
             return [
                 'status'   => 'error',
@@ -42,13 +119,13 @@ class Register extends Controller
         }
         
         $user = User::getEntityByPrimary($loyaltyAccount['customerId']);
-    
+        
         global $USER_FIELD_MANAGER;
-    
+        
         $USER_FIELD_MANAGER->Update('USER', $loyaltyAccount['customerId'], [
             'UF_CARD_NUM_INTARO' => $loyaltyAccount['card'],
         ]);
-    
+        
         if (empty($user->getPersonalPhone())) {
             $user->setPersonalPhone($loyaltyAccount['phone']);
             $user->save();
@@ -56,28 +133,28 @@ class Register extends Controller
         
         //TODO когда станет известен формат карты ПЛ, то добавить валидацию ввода
         
-        $service = new LpUserAccountService();
-        $createResponse = $service->createLoyaltyAccount($loyaltyAccount['phone'], $loyaltyAccount['card'], (string) $loyaltyAccount['customerId'], $loyaltyAccount['customFields']);
+        $service        = new LpUserAccountService();
+        $createResponse = $service->createLoyaltyAccount($loyaltyAccount['phone'], $loyaltyAccount['card'], (string)$loyaltyAccount['customerId'], $loyaltyAccount['customFields']);
         //TODO добавить провеку на кастомные поля, когда будет готов метод запроса
         if ($createResponse !== null) {
             if ($createResponse->success === false) {
                 return [
                     'status'   => 'error',
-                    'msg' => $createResponse->errorMsg,
-                    'msgColor' => 'brown'
+                    'msg'      => $createResponse->errorMsg,
+                    'msgColor' => 'brown',
                 ];
             }
             
             //если участник ПЛ создан и активирован
             if ($createResponse->loyaltyAccount->active) {
                 return [
-                    'status' => 'activate',
-                    'msg' =>  GetMessage('SUCCESS_REGISTER'),
-                    'msgColor' => 'green'
+                    'status'   => 'activate',
+                    'msg'      => GetMessage('SUCCESS_REGISTER'),
+                    'msgColor' => 'green',
                 ];
             }
-    
-           $activateResponse = $service->activateLoyaltyAccount($createResponse->loyaltyAccount->id);
+            
+            $activateResponse = $service->activateLoyaltyAccount($createResponse->loyaltyAccount->id);
             
             if (isset($activateResponse->verification)) {
                 return ['status' => 'smsVerification'];
@@ -86,8 +163,8 @@ class Register extends Controller
         
         return [
             'status'   => 'error',
-            'msg' => GetMessage('REQUEST_ERROR'),
-            'msgColor' => 'brown'
+            'msg'      => GetMessage('REQUEST_ERROR'),
+            'msgColor' => 'brown',
         ];
     }
     
@@ -97,7 +174,8 @@ class Register extends Controller
      * @param string $phoneNumber
      * @return string|string[]|null
      */
-    private function phoneValidate(string $phoneNumber){
+    private function phoneValidate(string $phoneNumber)
+    {
         $phoneNumber = preg_replace('/\s|\+|-|\(|\)/', '', $phoneNumber);
         
         return $phoneNumber;
@@ -115,8 +193,8 @@ class Register extends Controller
         if (empty($code) && $lengthCode > self::MIN_CODE_LENGTH && $lengthCode < self::MAX_CODE_LENGTH) {
             return [
                 'status'   => 'error',
-                'msg' => GetMessage('EMPTY_CODE'),
-                'msgColor' => 'brown'
+                'msg'      => GetMessage('EMPTY_CODE'),
+                'msgColor' => 'brown',
             ];
         }
         
@@ -131,8 +209,8 @@ class Register extends Controller
         if ($verificationResult === null) {
             return [
                 'status'   => 'error',
-                'msg' => GetMessage('CONFIRMATION_ERROR'),
-                'msgColor' => 'brown'
+                'msg'      => GetMessage('CONFIRMATION_ERROR'),
+                'msgColor' => 'brown',
             ];
         }
         
@@ -141,8 +219,8 @@ class Register extends Controller
             
             return [
                 'status'   => 'error',
-                'msg' => GetMessage('ERROR') . $errMsg,
-                'msgColor' => 'brown'
+                'msg'      => GetMessage('ERROR') . $errMsg,
+                'msgColor' => 'brown',
             ];
         }
         
@@ -150,33 +228,33 @@ class Register extends Controller
             && isset($verificationResult->verification->verifiedAt)
             && !empty($verificationResult->verification->verifiedAt)
         ) {
-    
+            
             global $USER_FIELD_MANAGER;
             global $USER;
-    
-           $isUpdate =  $USER_FIELD_MANAGER->Update('USER', $USER->GetID(), [
+            
+            $isUpdate = $USER_FIELD_MANAGER->Update('USER', $USER->GetID(), [
                 'UF_EXT_REG_PL_INTARO' => 'Y',
             ]);
             
-           if ($isUpdate) {
-               return [
-                   'status' => 'activate',
-                   'msg' => GetMessage('SUCCESS_REGISTER'),
-                   'msgColor' => 'green'
-               ];
-           }
-    
+            if ($isUpdate) {
+                return [
+                    'status'   => 'activate',
+                    'msg'      => GetMessage('SUCCESS_REGISTER'),
+                    'msgColor' => 'green',
+                ];
+            }
+            
             return [
                 'status'   => 'error',
-                'msg' => GetMessage('STATUS_ADD_ERROR'),
-                'msgColor' => 'brown'
+                'msg'      => GetMessage('STATUS_ADD_ERROR'),
+                'msgColor' => 'brown',
             ];
         }
-    
+        
         return [
             'status'   => 'error',
-            'msg' => GetMessage('ERROR'),
-            'msgColor' => 'brown'
+            'msg'      => GetMessage('ERROR'),
+            'msgColor' => 'brown',
         ];
     }
 }

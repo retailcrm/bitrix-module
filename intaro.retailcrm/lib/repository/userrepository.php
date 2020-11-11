@@ -18,7 +18,9 @@ use Bitrix\Main\SystemException;
 use Bitrix\Main\UserTable;
 use CUser;
 use Intaro\RetailCrm\Component\Json\Deserializer;
+use Intaro\RetailCrm\Component\Json\Serializer;
 use Intaro\RetailCrm\Model\Bitrix\User;
+use Intaro\RetailCrm\Model\Bitrix\UserLoyaltyData;
 
 /**
  * Class UserRepository
@@ -56,7 +58,7 @@ class UserRepository extends AbstractRepository
         }
     
         if (isset($loyaltyFields)) {
-            $fields['loyalty'] = $loyaltyFields;
+            $fields['loyalty'] = Serializer::serializeArray($loyaltyFields, UserLoyaltyData::class);
         }else{
             $fields['loyalty'] = self::STANDART_LOYALTY_VALUES;
         }

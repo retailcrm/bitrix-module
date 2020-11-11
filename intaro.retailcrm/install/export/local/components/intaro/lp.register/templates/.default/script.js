@@ -1,3 +1,20 @@
+function createAccount() {
+    const formValues = $('#lpRegFormInputs').serializeArray();
+
+    BX.ajax.runAction('intaro:retailcrm.api.loyalty.register.registerInLoyalty',
+        {
+            data: {
+                sessid:         BX.bitrix_sessid(),
+                loyaltyAccount: formValues
+            }
+        }
+    ).then(
+        function(response) {
+
+        }
+    );
+}
+
 function addTelNumber(customerId) {
     const phone = $('#loyaltyRegPhone').val();
     const card  = $('#loyaltyRegCard').val();
