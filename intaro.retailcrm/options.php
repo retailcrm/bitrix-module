@@ -460,6 +460,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         RegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmOnlineConsultant", "add");
     } else {
         $onlineConsultant = 'N';
+        $onlineConsultantScript = RetailcrmConfigProvider::getOnlineConsultantScript();
         UnRegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmOnlineConsultant", "add");
     }
 
@@ -1459,7 +1460,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             </tr>
 
             <tr class="r-consultant" <?php if (!$optionOnlineConsultant) echo 'style="display: none;"'; ?>> 
-                <td class="adm-detail-content-cell-l" width="45%"></td>
+                <td class="adm-detail-content-cell-l" width="45%"> Cкрипт онлайн-консультанта</td>
                 <td class="adm-detail-content-cell-r" width="55%">
                     <textarea name="online_consultant_script"><?php echo $optionOnlineConsultantScript; ?></textarea>
                 </td>
