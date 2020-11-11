@@ -27,12 +27,8 @@ use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Repository\UserRepository;
 use Intaro\RetailCrm\Service\LoyaltyService;
 use Intaro\RetailCrm\Service\LpUserAccountService;
-use Intaro\RetailCrm\Service\UserService;
-use RetailCrm\ApiClient;
-use RetailCrm\Http\Client;
-use RetailcrmConfigProvider;
+use Intaro\RetailCrm\Service\CustomerService;
 use RetailCrmEvent;
-use RetailCrmUser;
 
 /**
  * Class EventsHandlers
@@ -156,7 +152,7 @@ class EventsHandlers
      */
     public function OnSaleOrderSavedHandler(Event $event): void
     {
-        /* @var LoyaltyService $service*/
+        /* @var LoyaltyService $loyaltyService*/
         $loyaltyService = ServiceLocator::get(LoyaltyService::class);
         $retailCrmEvent = new RetailCrmEvent();
         
@@ -182,6 +178,7 @@ class EventsHandlers
      *
      * @param array $arFields
      * @return mixed
+     * @throws \Intaro\RetailCrm\Component\Builder\Exception\BuilderException
      */
     public function OnAfterUserRegisterHandler(array $arFields): void
     {
@@ -198,13 +195,21 @@ class EventsHandlers
                 
                 $arFields['PERSONAL_PHONE'] = $phone;
             }
-
-        $builder = new CustomerBuilder();
-        $customer = $builder->setUser(UserRepository::getById($arFields['USER_ID']))->getResult();
     
-        /* @var UserService $userService */
-        $userService = ServiceLocator::get(UserService::class);
-        $userService->addNewUser($customer);
+            $contragentsTypes = ConfigProvider::getContragentTypes();
+            $key = array_search('individual', $contragentsTypes, true);
+            $builder = new CustomerBuilder();
+            $customer = $builder
+                ->reset()
+                ->setAttachDaemonCollectorId(true)
+                ->setPersonTypeId($key)
+                ->setUser(UserRepository::getById($arFields['USER_ID']))
+                ->build()
+                ->getResult();
+            
+        /* @var CustomerService $customerService */
+        $customerService = ServiceLocator::get(CustomerService::class);
+        $customerService->createOrUpdateCustomer($customer);
 
             //Если пользователь выразил желание зарегистрироваться в ПЛ и согласился со всеми правилами
             if ((int)$arFields['UF_REG_IN_PL_INTARO'] === 1
