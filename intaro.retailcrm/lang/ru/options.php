@@ -93,6 +93,7 @@ $MESS ['DEMON_COLLECTOR'] = 'Активировать Демон Collector';
 $MESS ['DEMON_KEY'] = 'Ключ для';
 
 $MESS ['ONLINE_CONSULTANT'] = 'Добавить онлайн-консультанта';
+$MESS ['ONLINE_CONSULTANT_LABEL'] = 'Скрипт для онлайн-консультанта';
 
 $MESS ['UNIVERSAL_ANALYTICS'] = 'Включить интеграцию с UA';
 $MESS ['ID_UA'] = 'Идентификатор отслеживания:';
