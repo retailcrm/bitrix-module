@@ -20,6 +20,7 @@ use Bitrix\Main\HttpRequest;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
 use Bitrix\Sale\Order;
+use Intaro\RetailCrm\Component\Builder\Api\CustomerBuilder;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Repository\UserRepository;
@@ -113,7 +114,6 @@ class EventsHandlers
      *
      * @param array $arFields
      * @return mixed
-     * @throws \ReflectionException
      */
     public function OnAfterUserRegisterHandler(array $arFields): void
     {
@@ -131,10 +131,19 @@ class EventsHandlers
                 $arFields['PERSONAL_PHONE'] = $phone;
             }
 
+            $contragentsTypes = ConfigProvider::getContragentTypes();
+            $key = array_search('individual', $contragentsTypes, true);
+            $builder = new CustomerBuilder();
+            $customer = $builder
+                ->reset()
+                ->setAttachDaemonCollectorId(true)
+                ->setPersonTypeId($key)
+                ->setUser(UserRepository::getById($arFields['USER_ID']))
+                ->build()
+                ->getResult();
+
             /* @var CustomerService $customerService */
             $customerService = ServiceLocator::get(CustomerService::class);
-            $customer        = $customerService->createModel($arFields['USER_ID']);
-
             $customerService->createOrUpdateCustomer($customer);
 
             //Если пользователь выразил желание зарегистрироваться в ПЛ и согласился со всеми правилами

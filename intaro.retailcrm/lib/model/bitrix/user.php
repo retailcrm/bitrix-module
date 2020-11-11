@@ -512,6 +512,14 @@ class User extends AbstractSerializableModel
      * @Mapping\SerializedName("INDEX_SELECTOR")
      */
     private $indexSelector;
+    
+    /**
+     * @var \Intaro\RetailCrm\Model\Bitrix\UserLoyaltyData $loyalty
+     *
+     * @Mapping\Type("\Intaro\RetailCrm\Model\Bitrix\UserLoyaltyData")
+     * @Mapping\SerializedName("loyalty")
+     */
+    private $loyalty;
 
     /**
      * @return int
@@ -1702,5 +1710,21 @@ class User extends AbstractSerializableModel
     public static function getEntityByPrimary($primary)
     {
         return UserRepository::getById((int) $primary);
+    }
+    
+    /**
+     * @return UserLoyaltyData
+     */
+    public function getLoyalty(): UserLoyaltyData
+    {
+        return $this->loyalty;
+    }
+    
+    /**
+     * @param UserLoyaltyData $loyalty
+     */
+    public function setLoyalty(UserLoyaltyData $loyalty): void
+    {
+        $this->loyalty = $loyalty;
     }
 }
