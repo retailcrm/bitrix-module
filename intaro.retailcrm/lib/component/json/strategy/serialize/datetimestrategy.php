@@ -11,6 +11,8 @@
  */
 namespace Intaro\RetailCrm\Component\Json\Strategy\Serialize;
 
+use Intaro\RetailCrm\Component\Json\PropertyAnnotations;
+
 /**
  * Class DateTimeStrategy
  *
@@ -23,7 +25,7 @@ class DateTimeStrategy implements SerializeStrategyInterface
     /**
      * @inheritDoc
      */
-    public function serialize($value)
+    public function serialize($value, $annotations)
     {
         if ($value instanceof \DateTime) {
             return $value->format($this->innerType);
