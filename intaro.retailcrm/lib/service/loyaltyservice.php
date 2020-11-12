@@ -61,6 +61,10 @@ class LoyaltyService
      * @var \Intaro\RetailCrm\Model\Bitrix\User|null
      */
     private $user;
+    /**
+     * @var mixed
+     */
+    private $site;
     
     
     /**
@@ -76,6 +80,9 @@ class LoyaltyService
         if ($USER->IsAuthorized()) {
             $this->user   = UserRepository::getById($USER->GetID());
         }
+    
+        $credentials   = $this->client->getCredentials();
+        $this->site = $credentials->sitesAvailable[0];
         
         Loader::includeModule('Catalog');
     }
@@ -102,10 +109,7 @@ class LoyaltyService
         $request->order             = new SerializedOrderReference();
         $request->order->externalId = $orderId;
         $request->bonuses           = $bonusCount;
-        /** @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter $client */
-        $client        = ClientFactory::createClientAdapter();
-        $credentials   = $client->getCredentials();
-        $request->site = $credentials->sitesAvailable[0];
+        $request->site              = $this->site;
         
         $result = $this->client->loyaltyOrderApply($request);
         
@@ -119,10 +123,10 @@ class LoyaltyService
     /**
      * @param array $basketItems
      * @param int   $discountPrice
-     * @param int   $discountPercent
+     * @param float   $discountPercent
      * @return \Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse|mixed|null
      */
-    public function calculateBonus(array $basketItems, int $discountPrice, int $discountPercent)
+    public function calculateBonus(array $basketItems, int $discountPrice, float $discountPercent)
     {
         global $USER;
         
@@ -140,10 +144,7 @@ class LoyaltyService
             $request->order->discountManualPercent = $discountPercent;
         }
         
-        /** @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter $client */
-        $client        = ClientFactory::createClientAdapter();
-        $credentials   = $client->getCredentials();
-        $request->site = $credentials->sitesAvailable[0];
+        $request->site = $this->site;
         
         foreach ($basketItems as $item) {
             $product = new SerializedOrderProduct();
@@ -337,14 +338,15 @@ class LoyaltyService
     public function getLoyaltyAccounts(int $idInLoyalty): ?LoyaltyAccount
     {
         $request  = new LoyaltyAccountRequest();
-        $request->filter->customerExternalId = $idInLoyalty;
+        $request->filter->id = $idInLoyalty;
+        $request->filter->sites = $this->site;
         
         $response = $this->client->getLoyaltyAccounts($request);
         
         if ($response !== null && $response->success && isset($response->loyaltyAccounts[0])) {
             /** @var \Intaro\RetailCrm\Model\Api\LoyaltyAccount $result */
             $result = $response->loyaltyAccounts[0];
-            
+
             return $result;
         }
         

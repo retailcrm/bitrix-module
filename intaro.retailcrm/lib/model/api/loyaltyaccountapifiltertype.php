@@ -159,4 +159,24 @@ class LoyaltyAccountApiFilterType extends AbstractApiModel
      * @Mapping\SerializedName("loyalties")
      */
     public $loyalties;
+    
+    /**
+     * Магазины (array of strings)
+     *
+     * @var array $sites
+     *
+     * @Mapping\Type("array")
+     * @Mapping\SerializedName("sites")
+     */
+    public $sites;
+    
+    /**
+     * ID участия
+     *
+     * @var string $id
+     *
+     * @Mapping\Type("string")
+     * @Mapping\SerializedName("id")
+     */
+    public $id;
 }

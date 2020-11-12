@@ -1,6 +1,7 @@
 <?php
 
 use Bitrix\Main\LoaderException;
+use Bitrix\Main\Localization\Loc;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Repository\UserRepository;
@@ -9,8 +10,10 @@ use Bitrix\Main\Loader;
 
 global $USER;
 
+Loc::loadMessages(__FILE__);
+
 if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true || !$USER->IsAuthorized()) {
-    die();
+    die(GetMessage('NOT_AUTHORIZED'));
 }
 
 try {
@@ -33,10 +36,10 @@ if ($arResult['LOYALTY_STATUS'] === 'Y'
     
     if ($response !== null) {
         $arResult['BONUS_COUNT']   = $response->amount;
-        $arResult['ACTIVE']        = $response->active;
-        $arResult['CARD']          = $response->cardNumber;
+        $arResult['ACTIVE']        = $response->active ? GetMessage('YES') : GetMessage('NO');
+        $arResult['CARD']          = $response->cardNumber !== '' ? $response->cardNumber : GetMessage('CARD_NOT_LINKED');
         $arResult['PHONE']         = $response->phoneNumber;
-        $arResult['REGISTER_DATE'] = $response->createdAt;
+        $arResult['REGISTER_DATE'] = $response->createdAt->format('Y-m-d');
     }
     
     $this->IncludeComponentTemplate();
