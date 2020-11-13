@@ -7,6 +7,7 @@ use Bitrix\Main\Engine\Controller;
 use Bitrix\Main\Loader;
 use Bitrix\Main\Request;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
+use Intaro\RetailCrm\DataProvider\CurrentUserProvider;
 use Intaro\RetailCrm\Model\Api\Request\SmsVerification\SmsVerificationConfirmRequest;
 use Intaro\RetailCrm\Model\Api\SmsVerificationConfirm;
 use Intaro\RetailCrm\Model\Bitrix\User;
@@ -43,59 +44,69 @@ class Register extends Controller
     }
     
     /**
-     * @param $loyaltyAccount
+     * @param $request
      * @return array
+     * @throws \ReflectionException
      */
-    public function saveUserLpFieldsAction($loyaltyAccount)
+    public function saveUserLpFieldsAction($request): array
     {
-        global $USER;
         global $USER_FIELD_MANAGER;
-
-        $msg         = '';
-        $cardNumber  = htmlspecialchars(trim($loyaltyAccount['UF_CARD_NUM_INTARO']));
+    
+        $msg          = '';
+        $cardNumber   = htmlspecialchars(trim($request['UF_CARD_NUM_INTARO'] ?? ''));
+        $userProvider = new CurrentUserProvider();
+        $customer     = $userProvider->get();
+        $phoneNumber  = $this->phoneValidate($request['PERSONAL_PHONE'] ?? '');
+        $updateFields = [
+            'UF_CARD_NUM_INTARO'  => $cardNumber ?? '',
+            'UF_REG_IN_PL_INTARO' => true,
+            'UF_AGREE_PL_INTARO' => true,
+            'UF_PD_PROC_PL_INTARO' => true,
+        ];
         
-        if (!isset($loyaltyAccount['UF_AGREE_PL_INTARO']) || $loyaltyAccount['UF_AGREE_PL_INTARO'] !== "on") {
+        if ($customer === null) {
+           return [
+                'result' => false,
+                'msg'    => GetMessage('NOT_REGISTER'),
+            ];
+        }
+
+        if ((!isset($request['UF_AGREE_PL_INTARO'])
+                || $request['UF_AGREE_PL_INTARO'] !== "on")
+            && $customer->getLoyalty()->getIsAgreeLoyaltyProgramRules() !== 1
+        ) {
             return [
                 'result' => false,
                 'msg'    => GetMessage('NOT_AGREE_LP_RULES'),
             ];
         }
         
-        if (!isset($loyaltyAccount['UF_PD_PROC_PL_INTARO']) || $loyaltyAccount['UF_AGREE_PL_INTARO'] !== "on") {
+        if ((!isset($request['UF_PD_PROC_PL_INTARO'])
+            || $request['UF_PD_PROC_PL_INTARO'] !== "on")
+        && $customer->getLoyalty()->getIsAgreePersonalDataRules() !== 1
+        ) {
             return [
                 'result' => false,
                 'msg'    => GetMessage('NOT_AGREE_PERSONAL_DATA_RULES'),
             ];
         }
-        
-        if (!isset($loyaltyAccount['PERSONAL_PHONE'])) {
-            
+    
+        if (!isset($request['PERSONAL_PHONE'])
+            && empty($customer->getPersonalPhone())
+        ) {
             return [
                 'result' => false,
                 'msg'    => GetMessage('PHONE_EMPTY'),
             ];
         }
     
-        $userId = $USER->GetID();
+        if (!empty($phoneNumber)) {
+            $customer->setPersonalPhone($phoneNumber);
+            $customer->save();
+        }
+
+        $result = $USER_FIELD_MANAGER->Update('USER', $customer->getId(), $updateFields);
     
-        $result = $USER_FIELD_MANAGER->Update('USER', $userId,
-            [
-                'UF_CARD_NUM_INTARO'   => $cardNumber ?? '',
-                'UF_AGREE_PL_INTARO'   => isset($loyaltyAccount['UF_AGREE_PL_INTARO']),
-                'UF_PD_PROC_PL_INTARO' => isset($loyaltyAccount['UF_PD_PROC_PL_INTARO']),
-                'UF_REG_IN_PL_INTARO'  => true,
-            ]
-        );
-    
-        $phoneNumber = $this->phoneValidate($loyaltyAccount['PERSONAL_PHONE']);
-        
-       $iUser = UserRepository::getById($userId);
-       
-       if ($iUser !== null) {
-           $iUser->setPersonalPhone($phoneNumber);
-           $iUser->save();
-       }
-        
         return [
             'result' => $result,
             'msg'    => $msg,
@@ -104,12 +115,13 @@ class Register extends Controller
     
     
     /**
-     * @param array $loyaltyAccount
+     * @param array $request
      * @return array|string[]
+     * @throws \ReflectionException
      */
-    public function accountCreateAction(array $loyaltyAccount): array
+    public function accountCreateAction(array $request): array
     {
-        $phoneNumber = $this->phoneValidate($loyaltyAccount['phone']);
+        $phoneNumber = $this->phoneValidate($request['phone']);
         
         if (!is_numeric($phoneNumber)) {
             return [
@@ -119,23 +131,23 @@ class Register extends Controller
             ];
         }
         
-        $user = User::getEntityByPrimary($loyaltyAccount['customerId']);
+        $user = User::getEntityByPrimary($request['customerId']);
         
         global $USER_FIELD_MANAGER;
         
-        $USER_FIELD_MANAGER->Update('USER', $loyaltyAccount['customerId'], [
-            'UF_CARD_NUM_INTARO' => $loyaltyAccount['card'],
+        $USER_FIELD_MANAGER->Update('USER', $request['customerId'], [
+            'UF_CARD_NUM_INTARO' => $request['card'],
         ]);
         
         if (empty($user->getPersonalPhone())) {
-            $user->setPersonalPhone($loyaltyAccount['phone']);
+            $user->setPersonalPhone($request['phone']);
             $user->save();
         }
         
         //TODO когда станет известен формат карты ПЛ, то добавить валидацию ввода
         
         $service        = new LpUserAccountService();
-        $createResponse = $service->createLoyaltyAccount($loyaltyAccount['phone'], $loyaltyAccount['card'], (string)$loyaltyAccount['customerId'], $loyaltyAccount['customFields']);
+        $createResponse = $service->createLoyaltyAccount($request['phone'], $request['card'], (string)$request['customerId'], $request['customFields']);
         //TODO добавить провеку на кастомные поля, когда будет готов метод запроса
         if ($createResponse !== null) {
             if ($createResponse->success === false) {

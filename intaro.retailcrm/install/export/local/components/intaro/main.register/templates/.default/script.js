@@ -21,7 +21,7 @@ function createAccount() {
         {
             data: {
                 sessid:         BX.bitrix_sessid(),
-                loyaltyAccount: formObject
+                request: formObject
             }
         }
     ).then(
@@ -44,7 +44,7 @@ function addTelNumber(customerId) {
         {
             data: {
                 sessid:         BX.bitrix_sessid(),
-                loyaltyAccount: {
+                request: {
                     phone:      phone,
                     card:       card,
                     customerId: customerId
@@ -102,7 +102,7 @@ function lpFieldToggle() {
         $('.lp_toggled_block').css('display', 'table-row');
         $('.lp_agree_checkbox').prop('checked', true);
     } else {
+        $('.lp_agree_checkbox').prop('checked', false);
         $('.lp_toggled_block').css('display', 'none');
-        $('.lp_agree_checkbox').prop('checked', true);
     }
 }

@@ -27,6 +27,7 @@ use Intaro\RetailCrm\Model\Api\Response\Order\Loyalty\OrderLoyaltyApplyResponse;
 use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationConfirmResponse;
 use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusRequest;
 use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusResponse;
+use RetailCrm\Response\ApiResponse;
 
 /**
  * Trait LoyaltyTrait
@@ -89,8 +90,9 @@ trait LoyaltyTrait
     public function createLoyaltyAccount(LoyaltyAccountCreateRequest $request): ?LoyaltyAccountCreateResponse
     {
         $serialized = Serializer::serializeArray($request);
+        /** @var ApiResponse $response */
         $response   = $this->client->createLoyaltyAccount($serialized);
-    
+
         return Deserializer::deserializeArray($response->getResponseBody(), LoyaltyAccountCreateResponse::class);
     }
     
@@ -101,8 +103,8 @@ trait LoyaltyTrait
     public function activateLoyaltyAccount(LoyaltyAccountActivateRequest $request): ?LoyaltyAccountActivateResponse
     {
         $serialized = Serializer::serializeArray($request);
-        $response   = $this->client->activateLoyaltyAccount($serialized['loyaltyId']);
-    
+        $response   = $this->client->activateLoyaltyAccount($serialized['id']);
+
         return Deserializer::deserializeArray($response->getResponseBody(), LoyaltyAccountActivateResponse::class);
     }
     

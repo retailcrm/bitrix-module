@@ -19,6 +19,7 @@ use Bitrix\Main\Event;
 use Bitrix\Main\Loader;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
+use Bitrix\Main\UserTable;
 use Bitrix\Sale\PaySystem\Manager;
 use CUser;
 use Exception;
@@ -35,6 +36,7 @@ use Intaro\RetailCrm\Model\Api\SerializedOrderProduct;
 use Intaro\RetailCrm\Model\Api\SerializedOrderProductOffer;
 use Intaro\RetailCrm\Model\Api\SerializedOrderReference;
 use Intaro\RetailCrm\Model\Api\SerializedRelationCustomer;
+use Intaro\RetailCrm\Model\Bitrix\User;
 use Intaro\RetailCrm\Model\Bitrix\UserLoyaltyData;
 use Intaro\RetailCrm\Repository\PaySystemActionRepository;
 use Intaro\RetailCrm\Repository\UserRepository;
@@ -73,16 +75,12 @@ class LoyaltyService
      */
     public function __construct()
     {
-        global $USER;
         IncludeModuleLangFile(__FILE__);
     
         $this->client = ClientFactory::createClientAdapter();
-        if ($USER->IsAuthorized()) {
-            $this->user   = UserRepository::getById($USER->GetID());
-        }
     
-        $credentials   = $this->client->getCredentials();
-        $this->site = $credentials->sitesAvailable[0];
+        $credentials = $this->client->getCredentials();
+        $this->site  = $credentials->sitesAvailable[0];
         
         Loader::includeModule('Catalog');
     }
@@ -193,11 +191,14 @@ class LoyaltyService
     //TODO доделать метод проверки регистрации в ПЛ
     
     /**
-     * @return array
+     * @return array|null
      */
     public function checkRegInLp(): ?array
     {
         global $USER;
+        if ($USER->IsAuthorized()) {
+            $this->user = UserRepository::getById($USER->GetID());
+        }
         
         if (!$this->user) {
             return [];
@@ -239,7 +240,7 @@ class LoyaltyService
             }
             
             //Аккаунт не существует. Выясняем, каких полей не хватает для СОЗДАНИЯ аккаунта, выводим форму
-            $fields = $this->getFields($loyalty);
+            $fields = $this->getFields($this->user);
             
             //Если все необходимые поля заполнены, то пытаемся его еще раз зарегистрировать
             if (empty($fields)) {
@@ -249,8 +250,8 @@ class LoyaltyService
                 if ($createResponse === false) {
                     header('Refresh 0');
                 }
-                
-                return $createResponse;
+    
+                return ['msg' => $createResponse];
             }
             
             return [
@@ -260,7 +261,7 @@ class LoyaltyService
                         'name'   => GetMessage('CREATE'),
                         'action' => 'createAccount',
                     ],
-                    'fields' => $this->getFields($loyalty),
+                    'fields' => $this->getFields($this->user),
                 ],
             ];
         }
@@ -273,7 +274,7 @@ class LoyaltyService
                     'name'   => GetMessage('CREATE'),
                     'action' => 'createAccount',
                 ],
-                'fields' => $this->getFields($loyalty),
+                'fields' => $this->getFields($this->user),
             ],
         ];
     }
@@ -356,13 +357,15 @@ class LoyaltyService
     }
     
     /**
+     * @param \Intaro\RetailCrm\Model\Bitrix\User $user
      * @return array
      */
-    private function getStandardFields(): array
+    private function getStandardFields(User $user): array
     {
+        
         $resultFields                 = [];
-        $userFields                   = Serializer::serializeArray($this->user->getLoyalty());
-        $userFields['PERSONAL_PHONE'] = $this->user->getPersonalPhone();
+        $userFields                   = Serializer::serializeArray($user->getLoyalty());
+        $userFields['PERSONAL_PHONE'] = $user->getPersonalPhone();
 
         foreach (self::STANDARD_FIELDS as $key => $value) {
             if ($value === 'text' && empty($userFields[$key])) {
@@ -382,12 +385,12 @@ class LoyaltyService
     }
     
     /**
-     * @param \Intaro\RetailCrm\Model\Bitrix\UserLoyaltyData $loyalty
+     * @param \Intaro\RetailCrm\Model\Bitrix\User $user
      * @return array
      */
-    private function getFields(UserLoyaltyData $loyalty): array
+    private function getFields(User $user): array
     {
-        $standardFields = $this->getStandardFields($loyalty);
+        $standardFields = $this->getStandardFields($user);
         $externalFields = $this->getExternalFields();
         
         return array_merge($standardFields, $externalFields);
@@ -402,7 +405,13 @@ class LoyaltyService
         return [];
     }
     
-    
+    /**
+     * @param int                                            $userId
+     * @param string                                         $userPhone
+     * @param array                                          $customFields
+     * @param \Intaro\RetailCrm\Model\Bitrix\UserLoyaltyData $loyalty
+     * @return mixed|string|string[]
+     */
     private function registerAndActivateUser(int $userId, string $userPhone, array $customFields, UserLoyaltyData $loyalty)
     {
         /* @var \Intaro\RetailCrm\Service\LpUserAccountService $service */
@@ -430,27 +439,27 @@ class LoyaltyService
             
             AddMessage2Log($msg);
             
-            return ['msg' => $msg];
+            return $msg;
         }
         
         if ($createResponse->success === true) {
             //Повторная регистрация оказалась удачной
-            return false;
+            return GetMessage('REG_COMPLETE');
         }
     }
     
     /**
-     * @param $idInLoyalty
+     * @param int $idInLoyalty
      * @return array|null
      */
-    private function tryActivate($idInLoyalty): ?array
+    private function tryActivate(int $idInLoyalty): ?array
     {
         /** @var \Intaro\RetailCrm\Service\LpUserAccountService $userService */
         $userService = ServiceLocator::get(LpUserAccountService::class);
         
         //НЕТ. Обязательных незаполненных полей нет. Тогда пробуем активировать аккаунт
-        $activateResponse = $userService->activateLoyaltyAccount($idInLoyalty());
-        
+        $activateResponse = $userService->activateLoyaltyAccount($idInLoyalty);
+    
         if ($activateResponse !== null
             && isset($activateResponse->loyaltyAccount->active)
             && $activateResponse->loyaltyAccount->active === true
@@ -482,5 +491,7 @@ class LoyaltyService
                 ],
             ];
         }
+    
+        return ['msg' => GetMessage('ACTIVATE_ERROR') . ' ' . $activateResponse->errorMsg ?? ''];
     }
 }
