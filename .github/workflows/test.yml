@@ -1,0 +1,58 @@
+name: test
+
+on:
+  push:
+  pull_request:
+
+env:
+  DB_BITRIX_HOST: 0.0.0.0
+  DB_BITRIX_LOGIN: root
+  DB_BITRIX_PASS: root
+  DB_BITRIX_NAME: bitrix
+  BITRIX_PATH: ${{ github.workspace }}/bitrix
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-version: ['7.1', '7.2', '7.3']
+        bitrix-edition: ['small_business_encode', 'business_encode']
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ env.DB_BITRIX_PASS }}
+          MYSQL_DATABASE: bitrix
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=5
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup PHP ${{ matrix.php-version }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          ini-values: short_open_tag=On, mbstring.func_overload=2, mbstring.internal_encoding="UTF-8"
+          coverage: xdebug
+      - name: Install Bitrix
+        env:
+          BITRIX_EDITION: ${{ matrix.bitrix-edition }}
+        run: make bitrix_install
+      - name: Enable debug mode for tests
+        run: php bin/enable_debugging "${{ env.BITRIX_PATH }}"
+      - name: Validate composer.json and composer.lock
+        run: composer validate
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@v2
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-
+      - name: Install dependencies
+        if: steps.composer-cache.outputs.cache-hit != 'true'
+        run: make deps
+      - name: Run tests
+        run: make test

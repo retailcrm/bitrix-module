@@ -1,13 +1,9 @@
 ROOT_DIR=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
 test: prepare_module
-ifeq ($(NOT_USE_VENDOR),1)
-	composer tests7
-else
 	composer tests
-endif
 
-prepare_module: deps
+prepare_module:
 	composer pre-module-install
 
 deps:
@@ -35,10 +31,6 @@ ifeq ("$(wildcard $(BITRIX_PATH)/bitrix/php_interface/dbconn.php)","")
 	tar -xf /tmp/$(BITRIX_EDITION).tar.gz -C $(BITRIX_PATH)
 	rm /tmp/$(BITRIX_EDITION).tar.gz
 endif
-
-create_db:
-	echo "USE mysql;\nUPDATE user SET password=PASSWORD('root') WHERE user='root';\nFLUSH PRIVILEGES;\n" | mysql -u root
-	mysqladmin create $(DB_BITRIX_NAME) --user=$(DB_BITRIX_LOGIN) --password=$(DB_BITRIX_PASS)
 
 build_release:
 ifneq ($(LAST_TAG),$(CURRENT_VERSION))
