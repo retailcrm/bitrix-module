@@ -1,6 +1,8 @@
 <?php
 
+ob_start();
 require_once $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/main/install/wizard/wizard.php';
+ob_clean();
 
 /**
  * Class Installer

@@ -2,6 +2,10 @@ name: test
 
 on:
   push:
+    branches:
+      - '**'
+    tags-ignore:
+      - '*.*'
   pull_request:
 
 env:
@@ -56,3 +60,56 @@ jobs:
         run: make deps
       - name: Run tests
         run: make test
+      - name: Coverage
+        run: bash <(curl -s https://codecov.io/bash)
+  deploy:
+    needs: ['test']
+    if: success() && github.event_name == 'push' && github.repository_owner == 'retailcrm' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup PHP 7.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 7.2
+          ini-values: short_open_tag=On, mbstring.func_overload=2, mbstring.internal_encoding="UTF-8"
+      - name: Build release
+        run: |
+          git fetch origin --unshallow --tags
+          export VERSION=`php bin/bitrix-version`
+          export CURRENT_VERSION=`php bin/bitrix-version`
+          export ARCHIVE_PATH="${{ github.workspace }}/release/$VERSION.tar.gz"
+          export LAST_TAG=`git describe --abbrev=0 --tags || true`
+          echo VERSION=$VERSION >> $GITHUB_ENV
+          echo LAST_TAG=$LAST_TAG >> $GITHUB_ENV
+          echo ARCHIVE_NAME="$VERSION.tar.gz" >> $GITHUB_ENV
+          echo ARCHIVE_PATH=$ARCHIVE_PATH >> $GITHUB_ENV
+          make build_release
+          git config --local user.name "retailCRM"
+          git config --local user.email "support@retailcrm.ru"
+          echo RELEASE_TAG=v$VERSION >> $GITHUB_ENV
+          echo Built $ARCHIVE_PATH
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        if: ${{ env.LAST_TAG }} != ${{ env.RELEASE_TAG }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.RELEASE_TAG }}
+          release_name: ${{ env.RELEASE_TAG }}
+          body_path: ${{ github.workspace }}/intaro.retailcrm/description.ru
+          draft: false
+          prerelease: false
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ env.ARCHIVE_PATH }}
+          asset_name: ${{ env.ARCHIVE_NAME }}
+          asset_content_type: application/gzip
+      - name: Cleanup
+        run: make cleanup

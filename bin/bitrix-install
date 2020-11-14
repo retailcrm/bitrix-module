@@ -16,6 +16,7 @@ if (!file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/main/install/wizar
     throw new \RuntimeException('Bitrix`s install files is not exists');
 }
 
+ob_start();
 require_once $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/main/install/wizard/wizard.php';
 require_once __DIR__ . '/../helpers/installation/ExtendedCreateModulesStep.php';
 require_once __DIR__ . '/../helpers/installation/Installer.php';
@@ -23,6 +24,8 @@ require_once __DIR__ . '/../helpers/installation/Installer.php';
 $installer = new Installer();
 
 $step = $argv[1];
+
+ob_clean();
 
 switch ($step) {
     case 'db_type':
