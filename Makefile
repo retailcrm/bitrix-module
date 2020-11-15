@@ -36,14 +36,14 @@ build_release:
 ifneq ($(LAST_TAG),$(CURRENT_VERSION))
 	git diff --name-status $(LAST_TAG) HEAD > $(ROOT_DIR)/release/diff
 	php bin/build-release
-	bash bin/build $(VERSION) $(ROOT_DIR)/release/
+	bash bin/build $(CURRENT_VERSION) $(ROOT_DIR)/release/
 else
 	@exit 0
 endif
 
 cleanup:
-	@rm -rf $(ROOT_DIR)/release/$(VERSION)
-	@rm $(ROOT_DIR)/release/$(VERSION).tar.gz
+	@rm -rf $(ROOT_DIR)/release/$(CURRENT_VERSION)
+	@rm $(ROOT_DIR)/release/$(CURRENT_VERSION).tar.gz
 
 # docker commands
 install:
