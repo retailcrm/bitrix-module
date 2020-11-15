@@ -85,9 +85,6 @@ jobs:
           echo ARCHIVE_PATH=$ARCHIVE_PATH >> $GITHUB_ENV
           echo RELEASE_TAG=v$CURRENT_VERSION >> $GITHUB_ENV
           make build_release
-          git config --local user.name "retailCRM"
-          git config --local user.email "support@retailcrm.ru"
-          echo Built $ARCHIVE_PATH
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1

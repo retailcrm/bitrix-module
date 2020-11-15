@@ -33,7 +33,7 @@ ifeq ("$(wildcard $(BITRIX_PATH)/bitrix/php_interface/dbconn.php)","")
 endif
 
 build_release:
-ifneq ($(LAST_TAG),$(CURRENT_VERSION))
+ifneq ($(LAST_TAG),$(RELEASE_TAG))
 	git diff --name-status $(LAST_TAG) HEAD > $(ROOT_DIR)/release/diff
 	php bin/build-release
 	bash bin/build $(CURRENT_VERSION) $(ROOT_DIR)/release/
