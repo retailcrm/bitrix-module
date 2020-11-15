@@ -103,6 +103,7 @@ jobs:
           prerelease: false
       - name: Upload Release Asset
         id: upload-release-asset
+        if: ${{ env.LAST_TAG }} != ${{ env.RELEASE_TAG }}
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -112,4 +113,5 @@ jobs:
           asset_name: ${{ env.ARCHIVE_NAME }}
           asset_content_type: application/gzip
       - name: Cleanup
+        if: ${{ env.LAST_TAG }} != ${{ env.RELEASE_TAG }}
         run: make cleanup
