@@ -63,6 +63,7 @@ class LoyaltyService
      * @var \Intaro\RetailCrm\Model\Bitrix\User|null
      */
     private $user;
+    
     /**
      * @var mixed
      */

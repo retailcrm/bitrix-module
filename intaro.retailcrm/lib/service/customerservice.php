@@ -152,10 +152,10 @@ class CustomerService
     }
     
     /**
-     * @param $userId
+     * @param int $userId
      * @return \Intaro\RetailCrm\Model\Api\Customer|mixed
      */
-    public function createModel($userId)
+    public function createModel(int $userId)
     {
         $contragentsTypes = ConfigProvider::getContragentTypes();
         $key = array_search('individual', $contragentsTypes, true);

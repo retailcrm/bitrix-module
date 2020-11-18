@@ -2920,7 +2920,7 @@ class ApiClient
      *
      * @return array
      */
-    protected function fillSite(string $site, array $params): array
+    protected function fillSite($site, array $params)
     {
         if ($site) {
             $params['site'] = $site;
