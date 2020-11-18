@@ -2911,7 +2911,7 @@ class ApiClient
 
         return true;
     }
-
+    
     /**
      * Fill params by site value
      *
@@ -2920,7 +2920,7 @@ class ApiClient
      *
      * @return array
      */
-    protected function fillSite($site, array $params)
+    protected function fillSite(string $site, array $params): array
     {
         if ($site) {
             $params['site'] = $site;
@@ -3047,7 +3047,7 @@ class ApiClient
      * @param array $request
      * @return \RetailCrm\Response\ApiResponse
      */
-    public function sendVerificationCode(array  $request): ApiResponse
+    public function sendVerificationCode(array $request): ApiResponse
     {
         return $this->client->makeRequest(
             "/verification/sms/confirm",
@@ -3060,7 +3060,7 @@ class ApiClient
      * @param array $request
      * @return \RetailCrm\Response\ApiResponse
      */
-    public function getLoyaltyAccounts(array  $request): ApiResponse
+    public function getLoyaltyAccounts(array $request): ApiResponse
     {
         return $this->client->makeRequest(
             "/loyalty/accounts",

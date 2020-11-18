@@ -196,6 +196,7 @@ class LoyaltyService
     public function checkRegInLp(): ?array
     {
         global $USER;
+        
         if ($USER->IsAuthorized()) {
             $this->user = UserRepository::getById($USER->GetID());
         }
@@ -287,14 +288,14 @@ class LoyaltyService
         /**@var \Bitrix\Sale\Order $order */
         $order      = $event->getParameter("ENTITY");
         $orderId    = $order->getId();
-        $bonusCount = (int)$_POST['bonus-input'];
+        $bonusCount = (int) $_POST['bonus-input'];
         $response   = $this->sendBonusPayment($orderId, $bonusCount);
         
         if ($response->success) {
             try {
                 $bonusPaySystem    = PaySystemActionRepository::getFirstByWhere(['ID'], [['ACTION_FILE', '=', 'retailcrmbonus']]);
                 $paymentCollection = $order->getPaymentCollection();
-                
+
                 if ($bonusPaySystem !== null) {
                     if (count($paymentCollection) === 1) {
                         /** @var \Bitrix\Sale\Payment $payment */
@@ -412,13 +413,17 @@ class LoyaltyService
      * @param \Intaro\RetailCrm\Model\Bitrix\UserLoyaltyData $loyalty
      * @return mixed|string|string[]
      */
-    private function registerAndActivateUser(int $userId, string $userPhone, array $customFields, UserLoyaltyData $loyalty)
-    {
+    private function registerAndActivateUser(
+        int $userId,
+        string $userPhone,
+        array $customFields,
+        UserLoyaltyData $loyalty
+    ) {
         /* @var \Intaro\RetailCrm\Service\LpUserAccountService $service */
         $service    = ServiceLocator::get(LpUserAccountService::class);
         $phone      = $userPhone ?? '';
         $card       = $loyalty->getBonusCardNumber() ?? '';
-        $customerId = (string)$userId;
+        $customerId = (string) $userId;
         
         $createResponse = $service->createLoyaltyAccount($phone, $card, $customerId, $customFields);
         

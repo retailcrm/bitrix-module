@@ -196,7 +196,6 @@ class EventsHandlers
                 $arFields['PERSONAL_PHONE'] = $phone;
             }
     
-    
             /* @var CustomerService $customerService */
             $customerService = ServiceLocator::get(CustomerService::class);
             $customer        = $customerService->createModel($arFields['USER_ID']);

@@ -20,7 +20,7 @@ function createAccount() {
     BX.ajax.runAction('intaro:retailcrm.api.loyalty.register.saveUserLpFields',
         {
             data: {
-                sessid:         BX.bitrix_sessid(),
+                sessid:  BX.bitrix_sessid(),
                 request: formObject
             }
         }
@@ -43,7 +43,7 @@ function addTelNumber(customerId) {
     BX.ajax.runAction('intaro:retailcrm.api.loyalty.register.accountCreate',
         {
             data: {
-                sessid:         BX.bitrix_sessid(),
+                sessid:  BX.bitrix_sessid(),
                 request: {
                     phone:      phone,
                     card:       card,

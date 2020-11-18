@@ -22,8 +22,8 @@ $arResult['LOYALTY_STATUS'] = ConfigProvider::getLoyaltyProgramStatus();
 global $USER;
 
 if ($arResult['LOYALTY_STATUS'] === 'Y' && $USER->IsAuthorized()) {
-
-    $customerService = new CustomerService();
+    /** @var CustomerService $customerService */
+    $customerService = ServiceLocator::get(CustomerService::class);
     $customer        = $customerService->createModel($USER->GetID());
 
     $customerService->createCustomer($customer);

@@ -157,11 +157,11 @@ class CustomerService
      */
     public function createModel($userId)
     {
-
         $contragentsTypes = ConfigProvider::getContragentTypes();
         $key = array_search('individual', $contragentsTypes, true);
 
         $builder = new CustomerBuilder();
+        
         try {
             return $builder
                 ->reset()
