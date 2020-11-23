@@ -25,7 +25,7 @@ class DateTimeStrategy implements SerializeStrategyInterface
     /**
      * @inheritDoc
      */
-    public function serialize($value)
+    public function serialize($value, $annotations)
     {
         if ($value instanceof \DateTime) {
             return $value->format($this->innerType);

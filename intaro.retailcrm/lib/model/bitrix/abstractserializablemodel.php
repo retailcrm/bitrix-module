@@ -113,8 +113,12 @@ abstract class AbstractSerializableModel
     {
         $result = null;
         $instance = null;
-        $data = $this->serialize();
+        $data = $this->clearUnchangedOrEmptyFields($this->serialize());
         $baseClass = $this->getBaseClass();
+
+        if (empty($data)) {
+            return new Result();
+        }
 
         if ($this->isSaveStatic()) {
             if (method_exists($baseClass, 'Add')) {
@@ -157,8 +161,12 @@ abstract class AbstractSerializableModel
 
         $result = null;
         $instance = null;
-        $data = $this->serialize();
+        $data = $this->clearUnchangedOrEmptyFields($this->serialize());
         $baseClass = $this->getBaseClass();
+
+        if (empty($data)) {
+            return new Result();
+        }
 
         if ($this->isSaveStatic()) {
             if (method_exists($baseClass, 'Update')) {
@@ -253,14 +261,13 @@ abstract class AbstractSerializableModel
      * In other words, empty and unchanged fields will be removed, but fields which are empty now, but has been changed,
      * will stay in the result array.
      *
-     * @Mapping\PostSerialize()
-     *
      * @param array $fields
      *
-     * @return array
      * @throws \ReflectionException
+     *
+     * @return array
      */
-    public function postSerialize(array $fields): array
+    private function clearUnchangedOrEmptyFields(array $fields): array
     {
         $reflection = new \ReflectionClass($this);
 
@@ -277,7 +284,9 @@ abstract class AbstractSerializableModel
             $property->setAccessible(true);
             $value = $property->getValue($this);
 
-            if (empty($value) && $this->originalFields[$property->getName()] === crc32(serialize($value))) {
+            if ((empty($value) && $this->originalFields[$property->getName()] === crc32(serialize($value)))
+                || $this->originalFields[$property->getName()] === crc32(serialize($value))
+            ) {
                 unset($fields[$name->name]);
             }
         }

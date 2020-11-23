@@ -27,7 +27,7 @@ interface DeserializeStrategyInterface
      *
      * @return mixed
      */
-    public function deserialize(string $type, $value);
+    public function deserialize(string $type, $value, $annotations);
 
     /**
      * Sets inner type for types like array<key, value> and \DateTime<format>
