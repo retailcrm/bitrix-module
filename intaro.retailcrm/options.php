@@ -998,17 +998,26 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             <tr class="heading">
                 <td colspan="2"><b><?php echo GetMessage('PAYMENT_STATUS_LIST'); ?></b></td>
             </tr>
-            <tr>
-                <td width="50%"></td>
-                <td width="50%">
-                    <table width="100%">
-                        <tr>
-                            <td width="50%"></td>
-                            <td width="50%"><?php echo GetMessage('CANCELED'); ?></td>
-                        </tr>
-                    </table>
+            <? if (empty($arResult['bitrixPaymentStatusesList'])) :?>
+                <td colspan="2" class="option-head option-other-top option-other-bottom">
+                    <b><label><?echo GetMessage('STATUS_NOT_SETTINGS');?></label></b>
                 </td>
-            </tr>
+            <?else:?>
+                <tr>
+                    <td width="50%"></td>
+                    <td width="50%">
+                        <table width="100%">
+                            <tr>
+                                <td width="50%"></td>
+                                <td width="50%" style="text-align: center;">
+                                    <?php echo GetMessage('CANCELED'); ?>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            <?endif;?>
+
             <?php foreach($arResult['bitrixPaymentStatusesList'] as $bitrixPaymentStatus): ?>
                 <tr>
                     <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $bitrixPaymentStatus['ID']; ?>">

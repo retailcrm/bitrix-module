@@ -1,0 +1,13 @@
+<?php
+
+$MESS["ROOT_CATEGORY_FOR_CATALOG"] = "Root category for catalog \"%s\"";
+$MESS["PROPERTY_ARTICLE_HEADER_NAME"] = "Article";
+$MESS["PROPERTY_MANUFACTURER_HEADER_NAME"] = "Manufacturer";
+$MESS["PROPERTY_COLOR_HEADER_NAME"] = "Color";
+$MESS["PROPERTY_WEIGHT_HEADER_NAME"] = "Weight (dimensions)";
+$MESS["PROPERTY_LENGTH_HEADER_NAME"] = "Length (dimensions)";
+$MESS["PROPERTY_WIDTH_HEADER_NAME"] = "Width (dimensions)";
+$MESS["PROPERTY_HEIGHT_HEADER_NAME"] = "Height (dimensions)";
+$MESS["PROPERTY_PICTURE_HEADER_NAME"] = "Photo";
+$MESS["PROPERTY_SIZE_HEADER_NAME"] = "Size";
+
