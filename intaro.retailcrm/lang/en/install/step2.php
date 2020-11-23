@@ -19,3 +19,4 @@ $MESS ['UPDATE_CATS'] = 'Update data books';
 $MESS ['MESS_5'] = 'A server error occurred, please contact Intaro Software.';
 $MESS ['DELIV_TYPES_EXPORT'] = 'Export a list of delivery types from 1C-Bitrix';
 $MESS ['DELIV_TYPES_EXPORT_F'] = 'Set the correspondence between 1C-Bitrix and retailCRM delivery types';
+$MESS ['STATUS_NOT_SETTINGS'] ='Cannot find suitable statuses in Bitrix';
