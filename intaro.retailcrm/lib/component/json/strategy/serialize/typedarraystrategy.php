@@ -12,6 +12,7 @@
 namespace Intaro\RetailCrm\Component\Json\Strategy\Serialize;
 
 use Intaro\RetailCrm\Component\Json\Exception\InvalidAnnotationException;
+use Intaro\RetailCrm\Component\Json\PropertyAnnotations;
 use Intaro\RetailCrm\Component\Json\Strategy\StrategyFactory;
 use Intaro\RetailCrm\Component\Json\Strategy\TypedArrayTrait;
 
@@ -28,7 +29,7 @@ class TypedArrayStrategy implements SerializeStrategyInterface
     /**
      * @inheritDoc
      */
-    public function serialize($value)
+    public function serialize($value, $annotations = null)
     {
         $valueType = '';
         $result = [];
@@ -46,8 +47,9 @@ class TypedArrayStrategy implements SerializeStrategyInterface
         $simpleStrategy = new SimpleTypeStrategy();
 
         foreach (array_keys($value) as $key) {
-            $result[$simpleStrategy->serialize($key)]
-                = StrategyFactory::serializeStrategyByType($valueType)->serialize($value[$key]);
+            $result[$simpleStrategy->serialize($key, new PropertyAnnotations())]
+                = StrategyFactory::serializeStrategyByType($valueType)
+                ->serialize($value[$key],new PropertyAnnotations());
         }
 
         return $result;

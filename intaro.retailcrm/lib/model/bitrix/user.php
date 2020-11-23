@@ -59,6 +59,7 @@ class User extends AbstractSerializableModel
      *
      * @Mapping\Type("bool")
      * @Mapping\SerializedName("ACTIVE")
+     * @Mapping\BitrixBoolean
      */
     private $active;
 
@@ -512,7 +513,7 @@ class User extends AbstractSerializableModel
      * @Mapping\SerializedName("INDEX_SELECTOR")
      */
     private $indexSelector;
-    
+
     /**
      * @var \Intaro\RetailCrm\Model\Bitrix\UserLoyaltyData $loyalty
      *
@@ -1711,15 +1712,15 @@ class User extends AbstractSerializableModel
     {
         return UserRepository::getById((int) $primary);
     }
-    
+
     /**
-     * @return UserLoyaltyData
+     * @return \Intaro\RetailCrm\Model\Bitrix\UserLoyaltyData
      */
     public function getLoyalty(): UserLoyaltyData
     {
         return $this->loyalty;
     }
-    
+
     /**
      * @param UserLoyaltyData $loyalty
      */
