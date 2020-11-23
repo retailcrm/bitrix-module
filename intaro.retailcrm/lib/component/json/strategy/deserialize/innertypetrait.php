@@ -26,7 +26,7 @@ trait InnerTypeTrait
      *
      * @param string $type
      *
-     * @return \Intaro\RetailCrm\Component\Json\Strategy\Serialize\DeserializeStrategyInterface
+     * @return \Intaro\RetailCrm\Component\Json\Strategy\Deserialize\DeserializeStrategyInterface
      */
     public function setInnerType(string $type): DeserializeStrategyInterface
     {

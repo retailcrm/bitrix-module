@@ -178,7 +178,7 @@ class EventsHandlers
      *
      * @param array $arFields
      * @return mixed
-     * @throws \Intaro\RetailCrm\Component\Builder\Exception\BuilderException
+     * @throws \ReflectionException
      */
     public function OnAfterUserRegisterHandler(array $arFields): void
     {
@@ -196,20 +196,11 @@ class EventsHandlers
                 $arFields['PERSONAL_PHONE'] = $phone;
             }
     
-            $contragentsTypes = ConfigProvider::getContragentTypes();
-            $key = array_search('individual', $contragentsTypes, true);
-            $builder = new CustomerBuilder();
-            $customer = $builder
-                ->reset()
-                ->setAttachDaemonCollectorId(true)
-                ->setPersonTypeId($key)
-                ->setUser(UserRepository::getById($arFields['USER_ID']))
-                ->build()
-                ->getResult();
+            /* @var CustomerService $customerService */
+            $customerService = ServiceLocator::get(CustomerService::class);
+            $customer        = $customerService->createModel($arFields['USER_ID']);
             
-        /* @var CustomerService $customerService */
-        $customerService = ServiceLocator::get(CustomerService::class);
-        $customerService->createOrUpdateCustomer($customer);
+            $customerService->createOrUpdateCustomer($customer);
 
             //Если пользователь выразил желание зарегистрироваться в ПЛ и согласился со всеми правилами
             if ((int)$arFields['UF_REG_IN_PL_INTARO'] === 1

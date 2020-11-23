@@ -11,6 +11,8 @@
  */
 namespace Intaro\RetailCrm\Component\Json\Strategy\Deserialize;
 
+use Intaro\RetailCrm\Component\Json\Mapping\BitrixBoolean;
+
 /**
  * Class SimpleTypeStrategy
  *
@@ -23,11 +25,15 @@ class SimpleTypeStrategy implements DeserializeStrategyInterface
     /**
      * @inheritDoc
      */
-    public function deserialize(string $type, $value)
+    public function deserialize(string $type, $value, $annotations)
     {
         switch ($type) {
             case 'bool':
             case 'boolean':
+                if ($annotations->bitrixBoolean instanceof BitrixBoolean) {
+                    return 'Y' === $value;
+                }
+
                 return (bool) $value;
             case 'int':
             case 'integer':

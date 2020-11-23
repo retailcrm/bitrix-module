@@ -94,7 +94,8 @@ if ($arResult["SHOW_SMS_FIELD"] == true) {
         <?php
     if (isset($arResult['LP_REGISTER']['form']['fields'])) { ?>
         <div id="lpRegForm">
-            <div id="lpRegFormInputs">
+            <div id="errMsg"></div>
+            <form id="lpRegFormInputs">
                 <?php
                 foreach ($arResult['LP_REGISTER']['form']['fields'] as $key => $field) {
                     ?>
@@ -121,7 +122,7 @@ if ($arResult["SHOW_SMS_FIELD"] == true) {
                     </label>
                     <br>
                 <?php } ?>
-            </div>
+            </form>
             <input type="button" onclick="<?=$arResult['LP_REGISTER']['form']['button']['action']?>()" value="<?=GetMessage('SEND')?>">
         </div>
     <?php } ?>
