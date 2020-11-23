@@ -18,7 +18,9 @@ use Bitrix\Main\SystemException;
 use Bitrix\Main\UserTable;
 use CUser;
 use Intaro\RetailCrm\Component\Json\Deserializer;
+use Intaro\RetailCrm\Component\Json\Serializer;
 use Intaro\RetailCrm\Model\Bitrix\User;
+use Intaro\RetailCrm\Model\Bitrix\UserLoyaltyData;
 
 /**
  * Class UserRepository
@@ -27,6 +29,15 @@ use Intaro\RetailCrm\Model\Bitrix\User;
  */
 class UserRepository extends AbstractRepository
 {
+    public const STANDART_LOYALTY_VALUES = [
+        'UF_CARD_NUM_INTARO'   => null,
+        'UF_LP_ID_INTARO'      => null,
+        'UF_AGREE_PL_INTARO'   => null,
+        'UF_PD_PROC_PL_INTARO' => null,
+        'UF_EXT_REG_PL_INTARO' => null,
+        'UF_REG_IN_PL_INTARO'  => null,
+    ];
+    
     /**
      * @param int $id
      *
@@ -41,11 +52,17 @@ class UserRepository extends AbstractRepository
         }
     
         try {
-            $fields['loyalty'] = UserLoyaltyDataRepository::getLoyaltyFields($fields['ID']);
+            $loyaltyFields = UserLoyaltyDataRepository::getLoyaltyFields($fields['ID']);
         } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
             AddMessage2Log($exception->getMessage());
         }
     
+        if (isset($loyaltyFields)) {
+            $fields['loyalty'] = Serializer::serializeArray($loyaltyFields, UserLoyaltyData::class);
+        }else{
+            $fields['loyalty'] = self::STANDART_LOYALTY_VALUES;
+        }
+        
         return Deserializer::deserializeArray($fields, User::class);
     }
     
