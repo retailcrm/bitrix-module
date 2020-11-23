@@ -1,0 +1,6 @@
+#!/usr/bin/env php
+<?php
+$file = $argv[1] . '/bitrix/.settings.php';
+$params = include $file;
+$params['exception_handling']['value']['debug'] = true;
+file_put_contents($file, "<?php\nreturn " . var_export($params, true) . ';', LOCK_EX);

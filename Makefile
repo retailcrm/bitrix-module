@@ -1,13 +1,9 @@
 ROOT_DIR=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
 test: prepare_module
-ifeq ($(NOT_USE_VENDOR),1)
-	composer tests7
-else
 	composer tests
-endif
 
-prepare_module: deps
+prepare_module:
 	composer pre-module-install
 
 deps:
@@ -29,29 +25,25 @@ bitrix_install: download_bitrix
 
 download_bitrix:
 ifeq ("$(wildcard $(BITRIX_PATH)/bitrix/php_interface/dbconn.php)","")
-	wget -O /tmp/$(BITRIX_EDITION).tar.gz https://www.1c-bitrix.ru/download/$(BITRIX_EDITION).tar.gz
+	wget --progress=dot -e dotbytes=10M -O /tmp/$(BITRIX_EDITION).tar.gz https://www.1c-bitrix.ru/download/$(BITRIX_EDITION).tar.gz
 	mkdir -p $(BITRIX_PATH)
 	chmod -R 777 $(BITRIX_PATH)
 	tar -xf /tmp/$(BITRIX_EDITION).tar.gz -C $(BITRIX_PATH)
 	rm /tmp/$(BITRIX_EDITION).tar.gz
 endif
 
-create_db:
-	echo "USE mysql;\nUPDATE user SET password=PASSWORD('root') WHERE user='root';\nFLUSH PRIVILEGES;\n" | mysql -u root
-	mysqladmin create $(DB_BITRIX_NAME) --user=$(DB_BITRIX_LOGIN) --password=$(DB_BITRIX_PASS)
-
 build_release:
-ifneq ($(LAST_TAG),$(CURRENT_VERSION))
+ifneq ($(LAST_TAG),$(RELEASE_TAG))
 	git diff --name-status $(LAST_TAG) HEAD > $(ROOT_DIR)/release/diff
 	php bin/build-release
-	bash bin/build $(VERSION) $(ROOT_DIR)/release/
+	bash bin/build $(CURRENT_VERSION) $(ROOT_DIR)/release/
 else
 	@exit 0
 endif
 
 cleanup:
-	@rm -rf $(ROOT_DIR)/release/$(VERSION)
-	@rm $(ROOT_DIR)/release/$(VERSION).tar.gz
+	@rm -rf $(ROOT_DIR)/release/$(CURRENT_VERSION)
+	@rm $(ROOT_DIR)/release/$(CURRENT_VERSION).tar.gz
 
 # docker commands
 install:

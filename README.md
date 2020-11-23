@@ -1,4 +1,4 @@
-[![Build Status](https://img.shields.io/travis/retailcrm/bitrix-module/master.svg?style=flat-square)](https://travis-ci.org/retailcrm/bitrix-module)
+[![Build Status](https://github.com/retailcrm/bitrix-module/workflows/ci/badge.svg)](https://github.com/retailcrm/bitrix-module/actions)
 [![Coverage](https://img.shields.io/codecov/c/gh/retailcrm/bitrix-module/master.svg?style=flat-square)](https://codecov.io/gh/retailcrm/bitrix-module)
 [![GitHub release](https://img.shields.io/github/release/retailcrm/bitrix-module.svg?style=flat-square)](https://github.com/retailcrm/bitrix-module/releases)
 [![PHP version](https://img.shields.io/badge/PHP->=5.3-blue.svg?style=flat-square)](https://php.net/)

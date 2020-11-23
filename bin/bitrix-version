@@ -3,7 +3,7 @@
 
 set_time_limit(0);
 
-if (ini_get('memory_limit') > 0 && (int)ini_get('memory_limit') < 784) {
+if (ini_get('memory_limit') > 0 && (int) ini_get('memory_limit') < 784) {
     ini_set('memory_limit', '784M');
 }
 

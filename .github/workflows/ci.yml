@@ -1,0 +1,113 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - '**'
+    tags-ignore:
+      - '*.*'
+  pull_request:
+
+env:
+  DB_BITRIX_HOST: 0.0.0.0
+  DB_BITRIX_LOGIN: root
+  DB_BITRIX_PASS: root
+  DB_BITRIX_NAME: bitrix
+  BITRIX_PATH: ${{ github.workspace }}/bitrix
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-version: ['7.1', '7.2', '7.3']
+        bitrix-edition: ['small_business_encode', 'business_encode']
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ env.DB_BITRIX_PASS }}
+          MYSQL_DATABASE: bitrix
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=5
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup PHP ${{ matrix.php-version }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          ini-values: short_open_tag=On, mbstring.func_overload=2, mbstring.internal_encoding="UTF-8"
+          coverage: xdebug
+      - name: Install Bitrix
+        env:
+          BITRIX_EDITION: ${{ matrix.bitrix-edition }}
+        run: make bitrix_install
+      - name: Enable debug mode for tests
+        run: php bin/enable_debugging "${{ env.BITRIX_PATH }}"
+      - name: Validate composer.json and composer.lock
+        run: composer validate
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@v2
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-
+      - name: Install dependencies
+        if: steps.composer-cache.outputs.cache-hit != 'true'
+        run: make deps
+      - name: Run tests
+        run: make test
+      - name: Coverage
+        run: bash <(curl -s https://codecov.io/bash)
+  deploy:
+    needs: ['test']
+    if: success() && github.event_name == 'push' && github.repository_owner == 'retailcrm' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup PHP 7.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 7.2
+          ini-values: short_open_tag=On, mbstring.func_overload=2, mbstring.internal_encoding="UTF-8"
+      - name: Build release
+        run: |
+          git fetch origin --unshallow --tags
+          export CURRENT_VERSION=`php bin/bitrix-version`
+          export ARCHIVE_PATH="${{ github.workspace }}/release/$CURRENT_VERSION.tar.gz"
+          export LAST_TAG=`git describe --tags $(git rev-list --tags --max-count=1) || true`
+          echo CURRENT_VERSION=$CURRENT_VERSION >> $GITHUB_ENV
+          echo LAST_TAG=$LAST_TAG >> $GITHUB_ENV
+          echo ARCHIVE_NAME="$CURRENT_VERSION.tar.gz" >> $GITHUB_ENV
+          echo ARCHIVE_PATH=$ARCHIVE_PATH >> $GITHUB_ENV
+          echo RELEASE_TAG=v$CURRENT_VERSION >> $GITHUB_ENV
+          make build_release
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        if: env.LAST_TAG != env.RELEASE_TAG
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.RELEASE_TAG }}
+          release_name: ${{ env.RELEASE_TAG }}
+          body_path: ${{ github.workspace }}/intaro.retailcrm/description.ru
+          draft: false
+          prerelease: false
+      - name: Upload Release Asset
+        id: upload-release-asset
+        if: env.LAST_TAG != env.RELEASE_TAG
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ env.ARCHIVE_PATH }}
+          asset_name: ${{ env.ARCHIVE_NAME }}
+          asset_content_type: application/gzip
+      - name: Cleanup
+        if: env.LAST_TAG != env.RELEASE_TAG
+        run: make cleanup
