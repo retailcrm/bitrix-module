@@ -11,6 +11,8 @@
  */
 namespace Intaro\RetailCrm\Component\Json\Strategy\Serialize;
 
+use Intaro\RetailCrm\Component\Json\PropertyAnnotations;
+
 /**
  * Interface SerializeStrategyInterface
  *
@@ -21,11 +23,12 @@ interface SerializeStrategyInterface
     /**
      * Serialize value
      *
-     * @param mixed $value
+     * @param mixed                                                $value
+     * @param \Intaro\RetailCrm\Component\Json\PropertyAnnotations|null $annotations
      *
      * @return mixed
      */
-    public function serialize($value);
+    public function serialize($value, $annotations);
 
     /**
      * Sets inner type for types like array<key, value> and \DateTime<format>

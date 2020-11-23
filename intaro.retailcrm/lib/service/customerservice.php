@@ -13,6 +13,9 @@
 namespace Intaro\RetailCrm\Service;
 
 use Exception;
+use Intaro\RetailCrm\Component\Builder\Api\CustomerBuilder;
+use Intaro\RetailCrm\Component\Builder\Exception\BuilderException;
+use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
 use Intaro\RetailCrm\Model\Api\Customer;
 use Intaro\RetailCrm\Model\Api\Request\Customers\CustomersCreateRequest;
@@ -30,6 +33,7 @@ use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusReq
 use Intaro\RetailCrm\Model\Api\SerializedCreateLoyaltyAccount;
 use Intaro\RetailCrm\Model\Api\SmsVerificationConfirm;
 use Intaro\RetailCrm\Model\Api\User;
+use Intaro\RetailCrm\Repository\UserRepository;
 use RuntimeException;
 
 /**
@@ -104,6 +108,12 @@ class CustomerService
      */
     public function createCustomer(Customer $customer)
     {
+        $crmCustomer = $this->getCustomer($customer->externalId);
+
+        if ($crmCustomer instanceof Customer) {
+            return false;
+        }
+        
         $customersUploadRequest           = new CustomersCreateRequest();
         $customersUploadRequest->site     = $this->credentials->sitesAvailable[0];
         $customersUploadRequest->customer = $customer;
@@ -123,7 +133,7 @@ class CustomerService
      *
      * @return \Intaro\RetailCrm\Model\Api\Customer|null
      */
-    public function getCustomer(string $externalId)
+    public function getCustomer(string $externalId): ?Customer
     {
         $customersGetRequest       = new CustomersGetRequest();
         $customersGetRequest->id   = $externalId;
@@ -132,12 +142,36 @@ class CustomerService
 
         $response = $this->client->customersGet($customersGetRequest);
         
-        if (isset($response->customer) && $response->customer->id > 0) {
+        if ($response !== null && isset($response->customer) && $response->customer->id > 0) {
             return $response->customer;
         }
     
         Utils::handleErrors($response);
         
         return null;
+    }
+    
+    /**
+     * @param int $userId
+     * @return \Intaro\RetailCrm\Model\Api\Customer|mixed
+     */
+    public function createModel(int $userId)
+    {
+        $contragentsTypes = ConfigProvider::getContragentTypes();
+        $key = array_search('individual', $contragentsTypes, true);
+
+        $builder = new CustomerBuilder();
+        
+        try {
+            return $builder
+                ->reset()
+                ->setAttachDaemonCollectorId(true)
+                ->setPersonTypeId($key)
+                ->setUser(UserRepository::getById($userId))
+                ->build()
+                ->getResult();
+        }catch (BuilderException $exception){
+            AddMessage2Log($exception->getMessage());
+        }
     }
 }

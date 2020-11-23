@@ -23,7 +23,7 @@ class DateTimeStrategy implements DeserializeStrategyInterface
     /**
      * @inheritDoc
      */
-    public function deserialize(string $type, $value)
+    public function deserialize(string $type, $value, $annotations = null)
     {
         if (!empty($value)) {
             $result = \DateTime::createFromFormat($this->innerType, $value);

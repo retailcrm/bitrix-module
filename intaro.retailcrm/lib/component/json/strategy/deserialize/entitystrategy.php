@@ -14,6 +14,7 @@ namespace Intaro\RetailCrm\Component\Json\Strategy\Deserialize;
 use Intaro\RetailCrm\Component\Json\Mapping\Accessor;
 use Intaro\RetailCrm\Component\Json\Mapping\SerializedName;
 use Intaro\RetailCrm\Component\Json\Mapping\Type;
+use Intaro\RetailCrm\Component\Json\PropertyAnnotations;
 use Intaro\RetailCrm\Component\Json\Strategy\AnnotationReaderTrait;
 use Intaro\RetailCrm\Component\Json\Strategy\IsNoTransformTrait;
 use Intaro\RetailCrm\Component\Json\Strategy\StrategyFactory;
@@ -31,11 +32,12 @@ class EntityStrategy implements DeserializeStrategyInterface
     /**
      * @param string $type
      * @param mixed  $value
+     * @param null   $annotations
      *
      * @return mixed
      * @throws \ReflectionException
      */
-    public function deserialize(string $type, $value)
+    public function deserialize(string $type, $value, $annotations = null)
     {
         if (empty($value)) {
             return null;
@@ -68,29 +70,27 @@ class EntityStrategy implements DeserializeStrategyInterface
      */
     protected static function deserializeProperty($object, \ReflectionProperty $property, array $data): void
     {
-        $nameData = static::annotationReader()->getPropertyAnnotation($property, SerializedName::class);
+        $annotations = new PropertyAnnotations(static::annotationReader()->getPropertyAnnotations($property));
 
-        if (!($nameData instanceof SerializedName)) {
+        if (!($annotations->serializedName instanceof SerializedName)) {
             return;
         }
 
-        $accessorData = static::annotationReader()->getPropertyAnnotation($property, Accessor::class);
-        $typeData = static::annotationReader()->getPropertyAnnotation($property, Type::class);
-
-        if ($typeData instanceof Type) {
-            $type = $typeData->type;
+        if ($annotations->type instanceof Type) {
+            $type = $annotations->type->type;
         } else {
-            $type = gettype($data[$nameData->name]);
+            $type = gettype($data[$annotations->serializedName->name]);
         }
 
         if (static::isNoTransform($property)) {
-            $value = $data[$nameData->name];
+            $value = $data[$annotations->serializedName->name];
         } else {
-            $value = StrategyFactory::deserializeStrategyByType($type)->deserialize($type, $data[$nameData->name]);
+            $value = StrategyFactory::deserializeStrategyByType($type)
+                ->deserialize($type, $data[$annotations->serializedName->name], $annotations);
         }
 
-        if ($accessorData instanceof Accessor && !empty($accessorData->setter)) {
-            $object->{$accessorData->setter}($value);
+        if ($annotations->accessor instanceof Accessor && !empty($annotations->accessor->setter)) {
+            $object->{$annotations->accessor->setter}($value);
         } else {
             $property->setAccessible(true);
             $property->setValue($object, $value);
