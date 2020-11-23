@@ -12,6 +12,7 @@
 namespace Intaro\RetailCrm\Component\Json\Strategy\Deserialize;
 
 use Intaro\RetailCrm\Component\Json\Exception\InvalidAnnotationException;
+use Intaro\RetailCrm\Component\Json\PropertyAnnotations;
 use Intaro\RetailCrm\Component\Json\Strategy\StrategyFactory;
 use Intaro\RetailCrm\Component\Json\Strategy\TypedArrayTrait;
 
@@ -28,7 +29,7 @@ class TypedArrayStrategy implements DeserializeStrategyInterface
     /**
      * @inheritDoc
      */
-    public function deserialize(string $type, $value)
+    public function deserialize(string $type, $value, $annotations)
     {
         $keyType = '';
         $valueType = '';
@@ -50,11 +51,14 @@ class TypedArrayStrategy implements DeserializeStrategyInterface
             $deserializedKey = $key;
 
             if ('' !== $keyType) {
-                $deserializedKey = $simpleStrategy->deserialize($keyType, $key);
+                $deserializedKey = $simpleStrategy->deserialize($keyType, $key, new PropertyAnnotations());
             }
 
-            $result[$deserializedKey]
-                = StrategyFactory::deserializeStrategyByType($valueType)->deserialize($valueType, $value[$key]);
+            $result[$deserializedKey] = StrategyFactory::deserializeStrategyByType($valueType)->deserialize(
+                $valueType,
+                $value[$key],
+                new PropertyAnnotations()
+            );
         }
 
         return $result;

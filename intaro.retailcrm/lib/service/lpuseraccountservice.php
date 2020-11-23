@@ -13,6 +13,7 @@
 namespace Intaro\RetailCrm\Service;
 
 use CUser;
+use DateTime;
 use Exception;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountActivateRequest;
@@ -80,8 +81,20 @@ class LpUserAccountService
     {
         $activateRequest            = new LoyaltyAccountActivateRequest();
         $activateRequest->loyaltyId = $loyaltyId;
+    
+        $response = $this->client->activateLoyaltyAccount($activateRequest);
         
-        return $this->client->activateLoyaltyAccount($activateRequest);
+        if ($response === null) {
+            return null;
+        }
+    
+        if ($response->success && $response->loyaltyAccount->activatedAt instanceof DateTime) {
+            return $response;
+        }
+        
+        Utils::handleErrors($response);
+        
+        return $response;
     }
     
     /**
