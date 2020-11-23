@@ -2912,7 +2912,7 @@ class ApiClient
 
         return true;
     }
-
+    
     /**
      * Fill params by site value
      *
@@ -3048,11 +3048,24 @@ class ApiClient
      * @param array $request
      * @return \RetailCrm\Response\ApiResponse
      */
-    public function sendVerificationCode(array  $request): ApiResponse
+    public function sendVerificationCode(array $request): ApiResponse
     {
         return $this->client->makeRequest(
             "/verification/sms/confirm",
             Client::METHOD_POST,
+            $request
+        );
+    }
+    
+    /**
+     * @param array $request
+     * @return \RetailCrm\Response\ApiResponse
+     */
+    public function getLoyaltyAccounts(array $request): ApiResponse
+    {
+        return $this->client->makeRequest(
+            "/loyalty/accounts",
+            Client::METHOD_GET,
             $request
         );
     }

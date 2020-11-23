@@ -11,6 +11,7 @@
  */
 namespace Intaro\RetailCrm\Component\Json\Strategy\Serialize;
 
+use Intaro\RetailCrm\Component\Json\PropertyAnnotations;
 use Intaro\RetailCrm\Component\Json\Strategy\IsNoTransformTrait;
 use Intaro\RetailCrm\Component\Json\Mapping\Accessor;
 use Intaro\RetailCrm\Component\Json\Mapping\SerializedName;
@@ -31,7 +32,7 @@ class EntityStrategy implements SerializeStrategyInterface
      * @inheritDoc
      * @throws \ReflectionException
      */
-    public function serialize($value)
+    public function serialize($value, $annotations = null)
     {
         if (empty($value)) {
             return null;
@@ -58,30 +59,28 @@ class EntityStrategy implements SerializeStrategyInterface
      */
     protected static function serializeProperty($object, \ReflectionProperty $property, array &$result): void
     {
-        $nameData = static::annotationReader()->getPropertyAnnotation($property, SerializedName::class);
+        $annotations = new PropertyAnnotations(static::annotationReader()->getPropertyAnnotations($property));
 
-        if (!($nameData instanceof SerializedName)) {
+        if (!($annotations->serializedName instanceof SerializedName)) {
             return;
         }
 
-        $accessorData = static::annotationReader()->getPropertyAnnotation($property, Accessor::class);
-
-        if ($accessorData instanceof Accessor && !empty($accessorData->getter)) {
-            $value = $object->{$accessorData->getter}();
+        if ($annotations->accessor instanceof Accessor && !empty($annotations->accessor->getter)) {
+            $value = $object->{$annotations->accessor->getter}();
         } else {
             $property->setAccessible(true);
             $value = $property->getValue($object);
         }
 
         if (static::isNoTransform($property)) {
-            $result[$nameData->name] = $value;
+            $result[$annotations->serializedName->name] = $value;
         } else {
-            $typeData = static::annotationReader()->getPropertyAnnotation($property, Type::class);
-
-            if ($typeData instanceof Type) {
-                $result[$nameData->name] = StrategyFactory::serializeStrategyByType($typeData->type)->serialize($value);
+            if ($annotations->type instanceof Type) {
+                $result[$annotations->serializedName->name] =
+                    StrategyFactory::serializeStrategyByType($annotations->type->type)->serialize($value, $annotations);
             } else {
-                $result[$nameData->name] = StrategyFactory::serializeStrategyByType(gettype($value))->serialize($value);
+                $result[$annotations->serializedName->name] =
+                    StrategyFactory::serializeStrategyByType(gettype($value))->serialize($value, $annotations);
             }
         }
     }

@@ -12,6 +12,8 @@
  */
 namespace Intaro\RetailCrm\Model\Bitrix;
 
+use Intaro\RetailCrm\Component\Json\Mapping;
+
 /**
  * Class UserLoyaltyData
  *

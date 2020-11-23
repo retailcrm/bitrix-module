@@ -11,6 +11,8 @@
  */
 namespace Intaro\RetailCrm\Component\Json\Strategy\Serialize;
 
+use Intaro\RetailCrm\Component\Json\Mapping\BitrixBoolean;
+use Intaro\RetailCrm\Component\Json\PropertyAnnotations;
 use Intaro\RetailCrm\Component\Json\Strategy\StrategyFactory;
 
 /**
@@ -25,11 +27,15 @@ class SimpleTypeStrategy implements SerializeStrategyInterface
     /**
      * @inheritDoc
      */
-    public function serialize($value)
+    public function serialize($value, $annotations)
     {
         switch (gettype($value)) {
             case 'bool':
             case 'boolean':
+                if ($annotations->bitrixBoolean instanceof BitrixBoolean) {
+                    return ((bool) $value) ? 'Y' : 'N';
+                }
+
                 return (bool) $value;
             case 'int':
             case 'integer':
@@ -45,7 +51,8 @@ class SimpleTypeStrategy implements SerializeStrategyInterface
                     $result = [];
 
                     foreach ($value as $key => $item) {
-                        $result[$key] = StrategyFactory::serializeStrategyByType(gettype($item))->serialize($item);
+                        $result[$key] = StrategyFactory::serializeStrategyByType(gettype($item))
+                            ->serialize($item, new PropertyAnnotations());
                     }
 
                     return $result;
