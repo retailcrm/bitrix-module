@@ -1136,7 +1136,7 @@
 	<country>
 		<name>Кюрасао</name>
 		<fullname> </fullname>
-		<english>Curaçao</english>
+		<english>Curacao</english>
 		<alpha>CW</alpha>
 		<alpha3>CUW</alpha3>
 		<iso>531</iso>
@@ -1974,7 +1974,7 @@
 	<country>
 		<name>Святая Елена, Остров вознесения, Тристан-да-Кунья</name>
 		<fullname> </fullname>
-		<english>Saint Helena, Ascension And Tristan Da Cunha</english>
+		<english>Saint Helena, Ascension And Tristan Da Cunha</english>
 		<alpha>SH</alpha>
 		<alpha3>SHN</alpha3>
 		<iso>654</iso>
@@ -1996,7 +1996,7 @@
 	<country>
 		<name>Сен-Бартельми</name>
 		<fullname> </fullname>
-		<english>Saint Barthélemy</english>
+		<english>Saint Barthelemy</english>
 		<alpha>BL</alpha>
 		<alpha3>BLM</alpha3>
 		<iso>652</iso>
@@ -2664,7 +2664,7 @@
 	<country>
 		<name>Эландские острова</name>
 		<fullname> </fullname>
-		<english>Åland Islands</english>
+		<english>Aland Islands</english>
 		<alpha>AX</alpha>
 		<alpha3>ALA</alpha3>
 		<iso>248</iso>
