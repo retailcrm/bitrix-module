@@ -199,6 +199,47 @@ class RetailcrmConfigProvider
     }
 
     /**
+     * isOnlineConsultantEnabled
+     * 
+     * @return bool
+     */
+    public static function isOnlineConsultantEnabled()
+    {
+        return static::getOption(RetailcrmConstants::CRM_ONLINE_CONSULTANT) === 'Y';
+    }
+
+    /**
+     * getOnlineConsultantScript
+     * 
+     * @return string
+     */
+    public static function getOnlineConsultantScript()
+    {
+        return trim(static::getOption(RetailcrmConstants::CRM_ONLINE_CONSULTANT_SCRIPT, ""));
+    }
+
+    /**
+     * setOnlineConsultant
+     * 
+     * @param string $value
+     */
+    public static function setOnlineConsultant($value)
+    {
+        static::setOption(RetailcrmConstants::CRM_ONLINE_CONSULTANT, $value);
+    }
+
+    /**
+     * setOnlineConsultantScript
+     * 
+     * @param string $value
+     */
+    public function setOnlineConsultantScript($value)
+    {
+        static::setOption(RetailcrmConstants::CRM_ONLINE_CONSULTANT_SCRIPT, $value);
+    }
+
+
+    /**
      * getOrderTypes
      *
      * @return array

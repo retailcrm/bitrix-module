@@ -453,6 +453,17 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         UnRegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmUa", "add");
     }
 
+    //online_consultant
+    if (htmlspecialchars(trim($_POST['online_consultant'] == 'Y'))) {
+        $onlineConsultant = 'Y';
+        $onlineConsultantScript = trim($_POST['online_consultant_script']);
+        RegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmOnlineConsultant", "add");
+    } else {
+        $onlineConsultant = 'N';
+        $onlineConsultantScript = RetailcrmConfigProvider::getOnlineConsultantScript();
+        UnRegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmOnlineConsultant", "add");
+    }
+
     //discount_round
     if (htmlspecialchars(trim($_POST['discount_round'])) == 'Y') {
         $discount_round = 'Y';
@@ -563,6 +574,9 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
 
     COption::SetOptionString($mid, $CRM_COLLECTOR, $collector);
     COption::SetOptionString($mid, $CRM_COLL_KEY, serialize(RCrmActions::clearArr($collectorKeys)));
+
+    RetailCrmConfigProvider::setOnlineConsultant($onlineConsultant);
+    RetailCrmConfigProvider::setOnlineConsultantScript($onlineConsultantScript);
 
     COption::SetOptionString($mid, $CRM_UA, $ua);
     COption::SetOptionString($mid, $CRM_UA_KEYS, serialize(RCrmActions::clearArr($uaKeys)));
@@ -685,6 +699,9 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
 
     $optionCollector = COption::GetOptionString($mid, $CRM_COLLECTOR, 0);
     $optionCollectorKeys = unserialize(COption::GetOptionString($mid, $CRM_COLL_KEY));
+    
+    $optionOnlineConsultant = RetailcrmConfigProvider::isOnlineConsultantEnabled();
+    $optionOnlineConsultantScript = RetailcrmConfigProvider::getOnlineConsultantScript();
 
     $optionUa = COption::GetOptionString($mid, $CRM_UA, 0);
     $optionUaKeys = unserialize(COption::GetOptionString($mid, $CRM_UA_KEYS));
@@ -828,6 +845,16 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                     $('tr.r-coll').show('slow');
                 } else if($(this).find('input').is(':checked') === false){
                     $('tr.r-coll').hide('slow');
+                }
+
+                return true;
+            });
+
+            $('.r-consultant-button label').change(function(){
+                if($(this).find('input').is(':checked') === true){
+                    $('tr.r-consultant').show('slow');
+                } else if($(this).find('input').is(':checked') === false){
+                    $('tr.r-consultant').hide('slow');
                 }
 
                 return true;
@@ -1423,6 +1450,21 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                     </td>
                 </tr>
             <?php endforeach;?>
+            
+            <tr class="heading r-consultant-button">
+                <td colspan="2" class="option-other-heading">
+                    <b>
+                        <label><input class="addr" type="checkbox" name="online_consultant" value="Y" <?php if ($optionOnlineConsultant) echo "checked"; ?>><?php echo GetMessage('ONLINE_CONSULTANT'); ?></label>
+                    </b>
+                </td>
+            </tr>
+
+            <tr class="r-consultant" <?php if (!$optionOnlineConsultant) echo 'style="display: none;"'; ?>> 
+                <td class="adm-detail-content-cell-l" width="45%"><?php echo GetMessage('ONLINE_CONSULTANT_LABEL')?></td>
+                <td class="adm-detail-content-cell-r" width="55%">
+                    <textarea name="online_consultant_script"><?php echo $optionOnlineConsultantScript; ?></textarea>
+                </td>
+            </tr>
 
             <tr class="heading r-dc-button">
                 <td colspan="2" class="option-other-heading">

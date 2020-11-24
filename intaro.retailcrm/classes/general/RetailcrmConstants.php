@@ -78,4 +78,6 @@ class RetailcrmConstants
     const CRM_INTEGRATION_DELIVERY = 'integration_delivery';
     const CRM_SHIPMENT_DEDUCTED = 'shipment_deducted';
     const SEND_PAYMENT_AMOUNT = 'send_payment_amount';
+    const CRM_ONLINE_CONSULTANT = 'online_consultant';
+    const CRM_ONLINE_CONSULTANT_SCRIPT = 'online_consultant_script';
 }
