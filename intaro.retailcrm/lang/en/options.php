@@ -92,3 +92,5 @@ $MESS['PURCHASE_ICML'] = "If enabled, ICML generation will reset the purchase pr
 $MESS['PURCHASE_HEADER'] = "Reset purchase price in ICML";
 $MESS['PHONE_REQUIRED'] = "In the main module settings «Phone Number is required» option was enabled, so it may cause problems with reverse synchronization. For proper work you must disable this option.";
 $MESS['CHANGE_SHIPMENT_STATUS_FROM_CRM'] = "Change the shipment status when corresponding flag is received from retailCRM";
+$MESS ['ONLINE_CONSULTANT'] = 'Activate Online Consultant';
+$MESS ['ONLINE_CONSULTANT_LABEL'] = 'Online Consultant script';
