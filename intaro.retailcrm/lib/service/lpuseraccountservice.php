@@ -115,8 +115,14 @@ class LpUserAccountService
         $createRequest->loyaltyAccount->cardNumber           = $card ?? '';
         $createRequest->loyaltyAccount->customer->externalId = $externalId;
         $createRequest->loyaltyAccount->customFields         = $customFields ?? [];
+    
+        $createResponse = $this->client->createLoyaltyAccount($createRequest);
         
-        return $this->client->createLoyaltyAccount($createRequest);
+        if ($createResponse instanceof LoyaltyAccountCreateResponse) {
+            Utils::handleErrors($createResponse, GetMessage('REGISTER_ERROR'));
+        }
+        
+        return $createResponse;
     }
     
     /**
@@ -135,15 +141,14 @@ class LpUserAccountService
      */
     public function activateLpUserInBitrix(?LoyaltyAccountCreateResponse $createResponse, int $userId): void
     {
-        //если участник ПЛ создан и активирован
+        //если участник ПЛ создан
         if (($createResponse !== null)
             && $createResponse->success === true
-            && $createResponse->loyaltyAccount->active === true
         ) {
             global $USER_FIELD_MANAGER;
-            
+
             $USER_FIELD_MANAGER->Update('USER', $userId, [
-                'UF_EXT_REG_PL_INTARO' => 'Y',
+                'UF_EXT_REG_PL_INTARO' => $createResponse->loyaltyAccount->active === true ? 'Y' : '',
                 'UF_LP_ID_INTARO'      => $createResponse->loyaltyAccount->id,
             ]);
         }

@@ -66,19 +66,4 @@ class Basket extends Controller
         
         return $response;
     }
-    
-    /**
-     * @return \array[][]
-     */
-    public function sendVerificationCode(): array
-    {
-        return [
-            'calculateBasketBonuses' => [
-                '-prefilters' => [
-                    new Authentication,
-                    new HttpMethod(['POST']),
-                ],
-            ],
-        ];
-    }
 }

@@ -14,12 +14,16 @@
 namespace Intaro\RetailCrm\Service;
 
 use Bitrix\Catalog\GroupTable;
+use Bitrix\Main\Application;
 use Bitrix\Main\ArgumentException;
+use Bitrix\Main\Context;
 use Bitrix\Main\Event;
 use Bitrix\Main\Loader;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
+use Bitrix\Main\Type\DateTime;
 use Bitrix\Main\UserTable;
+use Bitrix\Main\Web\Cookie;
 use Bitrix\Sale\PaySystem\Manager;
 use CUser;
 use Exception;
@@ -31,6 +35,7 @@ use Intaro\RetailCrm\Model\Api\PriceType;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountRequest;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\LoyaltyCalculateRequest;
 use Intaro\RetailCrm\Model\Api\Request\Order\Loyalty\OrderLoyaltyApplyRequest;
+use Intaro\RetailCrm\Model\Api\Response\AbstractApiResponseModel;
 use Intaro\RetailCrm\Model\Api\SerializedOrder;
 use Intaro\RetailCrm\Model\Api\SerializedOrderProduct;
 use Intaro\RetailCrm\Model\Api\SerializedOrderProductOffer;
@@ -245,7 +250,7 @@ class LoyaltyService
             $fields = $this->getFields($this->user);
             
             //Если все необходимые поля заполнены, то пытаемся его еще раз зарегистрировать
-            if (empty($fields)) {
+            if (count($fields) === 0) {
                 $customFields   = $this->getExternalFields();
                 $createResponse = $this->registerAndActivateUser($this->user->getId(), $this->user->getPersonalPhone(), $customFields, $loyalty);
                 
@@ -253,7 +258,7 @@ class LoyaltyService
                     header('Refresh 0');
                 }
     
-                return ['msg' => $createResponse];
+                return $createResponse;
             }
             
             return [
@@ -412,14 +417,14 @@ class LoyaltyService
      * @param string                                         $userPhone
      * @param array                                          $customFields
      * @param \Intaro\RetailCrm\Model\Bitrix\UserLoyaltyData $loyalty
-     * @return mixed|string|string[]
+     * @return array|string[]|null
      */
     private function registerAndActivateUser(
         int $userId,
         string $userPhone,
         array $customFields,
         UserLoyaltyData $loyalty
-    ) {
+    ): ?array {
         /* @var \Intaro\RetailCrm\Service\LpUserAccountService $service */
         $service    = ServiceLocator::get(LpUserAccountService::class);
         $phone      = $userPhone ?? '';
@@ -430,74 +435,131 @@ class LoyaltyService
         
         $service->activateLpUserInBitrix($createResponse, $userId);
         
-        if ($createResponse !== null
-            && $createResponse->success === false
-            && isset($createResponse->errorMsg)
-            && !empty($createResponse->errorMsg)
-        ) {
-            $errorDetails = '';
-            
-            if (isset($createResponse->errors) && is_array($createResponse->errors)) {
-                $errorDetails = Utils::getResponseErrors($createResponse);
-            }
-            
-            $msg = sprintf('%s (%s %s)', GetMessage('REGISTER_ERROR'), $createResponse->errorMsg, $errorDetails);
-            
-            AddMessage2Log($msg);
-            
-            return $msg;
+        $errorMsg = Utils::getErrorMsg($createResponse);
+    
+        if ($errorMsg !== null) {
+            return ['msg' => $errorMsg];
         }
-        
-        if ($createResponse->success === true) {
+    
+        /**
+         * создать получилось, но аккаунт не активен
+         */
+        if ($createResponse !== null
+            && $createResponse->success === true
+            && $createResponse->loyaltyAccount->active=== false
+            && $createResponse->loyaltyAccount->activatedAt === null
+            && isset($createResponse->loyaltyAccount->id)
+        ) {
+            return $this->tryActivate($createResponse->loyaltyAccount->id);
+        }
+    
+        if ($createResponse !== null && $createResponse->success === true) {
             //Повторная регистрация оказалась удачной
-            return GetMessage('REG_COMPLETE');
+            return ['msg' => GetMessage('REG_COMPLETE')];
         }
     }
     
     /**
      * @param int $idInLoyalty
-     * @return array|null
+     * @return array|string[]|null
+     * @throws \Bitrix\Main\ObjectException
      */
     private function tryActivate(int $idInLoyalty): ?array
     {
         /** @var \Intaro\RetailCrm\Service\LpUserAccountService $userService */
         $userService = ServiceLocator::get(LpUserAccountService::class);
         
-        //НЕТ. Обязательных незаполненных полей нет. Тогда пробуем активировать аккаунт
-        $activateResponse = $userService->activateLoyaltyAccount($idInLoyalty);
+        try {
+            $application = Application::getInstance();
+            
+            if ($application === null) {
+                return ['msg' => GetMessage('ACTIVATE_ERROR')];
+            }
     
-        if ($activateResponse !== null
-            && isset($activateResponse->loyaltyAccount->active)
-            && $activateResponse->loyaltyAccount->active === true
-        ) {
-            return ['msg' => GetMessage('REG_COMPLETE')];
+            $lpRegister = $application->getContext()->getRequest()->getCookie("lpRegister");
+            
+        }catch (\Bitrix\Main\SystemException $exception){
+           return ['msg' => GetMessage('ACTIVATE_ERROR')];
+        }
+    
+        if ($lpRegister !== null) {
+            $decodeLpRegister = json_decode($lpRegister, true);
+            $expiredAtTime    = new DateTime($decodeLpRegister['expiredAt'], "Y-m-d H:i:s");
+            $nowTime          = new DateTime();
+    
+            if($expiredAtTime->format('Y-m-d H:i:s') > $nowTime->format('Y-m-d H:i:s')) {
+    
+                return [
+                    'msg'       => GetMessage('SMS_VERIFICATION'),
+                    'form'      => [
+                        'button' => [
+                            'name'   => GetMessage('SEND'),
+                            'action' => 'sendVerificationCode',
+                        ],
+                        'fields' => [
+                            'smsVerificationCode' => [
+                                'type' => 'text',
+                            ],
+                            'checkId'             => [
+                                'type'  => 'hidden',
+                                'value' => $decodeLpRegister['checkId'],
+                            ],
+                        ],
+                    ],
+                    'expiredAt' => $decodeLpRegister['expiredAt']
+                ];
+        
+            }
         }
         
-        //нужна смс верификация
-        if (isset($activateResponse->verification, $activateResponse->verification->checkId)
-            && $activateResponse !== null
-            && !isset($activateResponse->verification->verifiedAt)
-        ) {
-            return [
-                'msg'  => GetMessage('SMS_VERIFICATION'),
-                'form' => [
-                    'button' => [
-                        'name'   => GetMessage('SEND'),
-                        'action' => 'sendSmsCode',
-                    ],
-                    'fields' => [
-                        'smsVerificationCode' => [
-                            'type' => 'text',
-                        ],
-                        'checkId'             => [
-                            'type'  => 'hidden',
-                            'value' => $activateResponse->verification->checkId,
-                        ],
-                    ],
-                ],
-            ];
-        }
+        if ($lpRegister === null) {
+            //Пробуем активировать аккаунт
+            $activateResponse = $userService->activateLoyaltyAccount($idInLoyalty);
     
-        return ['msg' => GetMessage('ACTIVATE_ERROR') . ' ' . $activateResponse->errorMsg ?? ''];
+            if ($activateResponse !== null
+                && isset($activateResponse->loyaltyAccount->active)
+                && $activateResponse->loyaltyAccount->active === true
+            ) {
+                return ['msg' => GetMessage('REG_COMPLETE')];
+            }
+    
+            //нужна смс верификация
+            if (isset($activateResponse->verification, $activateResponse->verification->checkId)
+                && $activateResponse !== null
+                && !isset($activateResponse->verification->verifiedAt)
+            ) {
+                $lpRegister = new Cookie(
+                    'lpRegister',
+                    json_encode([
+                        'checkId'   => $activateResponse->verification->checkId,
+                        'expiredAt' => $activateResponse->verification->expiredAt,
+                    ])
+                );
+        
+                Context::getCurrent()->getResponse()->addCookie($lpRegister);
+        
+                return [
+                    'msg'       => GetMessage('SMS_VERIFICATION'),
+                    'form'      => [
+                        'button' => [
+                            'name'   => GetMessage('SEND'),
+                            'action' => 'sendVerificationCode',
+                        ],
+                        'fields' => [
+                            'smsVerificationCode' => [
+                                'type' => 'text',
+                            ],
+                            'checkId'             => [
+                                'type'  => 'hidden',
+                                'value' => $activateResponse->verification->checkId,
+                            ],
+                        ],
+                    ],
+                    'expiredAt' => "2020-11-26 14:18:00"//$activateResponse->verification->expiredAt
+                ];
+            }
+    
+            return ['msg' => GetMessage('ACTIVATE_ERROR') . ' ' . $activateResponse->errorMsg ?? ''];
+        }
     }
 }

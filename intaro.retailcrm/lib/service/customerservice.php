@@ -21,20 +21,7 @@ use Intaro\RetailCrm\Model\Api\Customer;
 use Intaro\RetailCrm\Model\Api\Request\Customers\CustomersCreateRequest;
 use Intaro\RetailCrm\Model\Api\Request\Customers\CustomersEditRequest;
 use Intaro\RetailCrm\Model\Api\Request\Customers\CustomersGetRequest;
-use Intaro\RetailCrm\Model\Api\Request\Customers\CustomersUploadRequest;
-use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountActivateRequest;
-use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountCreateRequest;
-use Intaro\RetailCrm\Model\Api\Request\SmsVerification\SmsVerificationConfirmRequest;
-use Intaro\RetailCrm\Model\Api\Response\CustomersUploadResponse;
-use Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountActivateResponse;
-use Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountCreateResponse;
-use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationConfirmResponse;
-use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusRequest;
-use Intaro\RetailCrm\Model\Api\SerializedCreateLoyaltyAccount;
-use Intaro\RetailCrm\Model\Api\SmsVerificationConfirm;
-use Intaro\RetailCrm\Model\Api\User;
 use Intaro\RetailCrm\Repository\UserRepository;
-use RuntimeException;
 
 /**
  * Class CustomerService

@@ -3052,7 +3052,9 @@ class ApiClient
         return $this->client->makeRequest(
             "/verification/sms/confirm",
             Client::METHOD_POST,
-            $request
+            [
+                'verification'=> json_encode($request['verification'])
+            ]
         );
     }
     

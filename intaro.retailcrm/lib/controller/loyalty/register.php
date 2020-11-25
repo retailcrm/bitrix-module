@@ -181,6 +181,11 @@ class Register extends Controller
         ];
     }
     
+    public function resendSmsAction()
+    {
+    
+    }
+    
     /**
      * Валидирует телефон
      *
@@ -196,9 +201,10 @@ class Register extends Controller
     
     /**
      * @param string $code
-     * @return array
+     * @param string $checkId
+     * @return array|string[]
      */
-    public function sendVerificationCodeAction(string $code): array
+    public function sendVerificationCodeAction(string $code, string $checkId): array
     {
         $code       = trim($code);
         $lengthCode = strlen($code);
@@ -210,10 +216,11 @@ class Register extends Controller
                 'msgColor' => 'brown',
             ];
         }
-        
-        $smsVerification                     = new SmsVerificationConfirmRequest();
-        $smsVerification->verification       = new SmsVerificationConfirm();
-        $smsVerification->verification->code = $code;
+    
+        $smsVerification                        = new SmsVerificationConfirmRequest();
+        $smsVerification->verification          = new SmsVerificationConfirm();
+        $smsVerification->verification->code    = $code;
+        $smsVerification->verification->checkId = $checkId;
         
         /** @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter $client */
         $client             = ClientFactory::createClientAdapter();

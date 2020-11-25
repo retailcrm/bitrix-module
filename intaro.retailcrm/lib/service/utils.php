@@ -140,6 +140,31 @@ class Utils
         return $errorDetails;
     }
     
+    /**
+     * @param \Intaro\RetailCrm\Model\Api\Response\AbstractApiResponseModel|null $response
+     * @return string|null
+     */
+    public static function getErrorMsg(?AbstractApiResponseModel $response): ?string
+    {
+        if ($response !== null
+            && isset($response->errorMsg)
+            && !empty($response->errorMsg)
+        ) {
+            $errorDetails = '';
+            
+            if (isset($response->errors) && is_array($response->errors)) {
+                $errorDetails = self::getResponseErrors($response);
+            }
+            
+            $msg = sprintf('%s (%s %s)', GetMessage('REGISTER_ERROR'), $response->errorMsg, $errorDetails);
+            
+            AddMessage2Log($msg);
+            
+            return $msg;
+        }
+        
+        return null;
+    }
     
     /**
      * @param \Intaro\RetailCrm\Model\Api\Response\AbstractApiResponseModel $response

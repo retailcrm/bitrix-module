@@ -72,24 +72,26 @@ function addTelNumber(customerId) {
 }
 
 function sendVerificationCode() {
-    const verificationCode = $('#verificationCode').val();
+    const verificationCode = $('#smsVerificationCodeField').val();
+    const checkId          = $('#checkIdField').val();
 
     BX.ajax.runAction('intaro:retailcrm.api.loyalty.register.sendVerificationCode',
         {
             data: {
-                sessid: BX.bitrix_sessid(),
-                code:   verificationCode
+                sessid:  BX.bitrix_sessid(),
+                code:    verificationCode,
+                checkId: checkId
             }
         }
     ).then(
         function(response) {
             if (response.data.status === 'error' && response.data.msg !== undefined) {
                 const msg = response.data.msg;
-                $('#msg').text(msg);
+                $('#errMsg').text(msg);
             }
 
             if (response.data.status === 'activate') {
-                const msgBlock = $('#regbody');
+                const msgBlock = $('#regBody');
                 msgBlock.text(response.data.msg);
                 msgBlock.css('color', response.data.msgColor);
             }
