@@ -120,16 +120,19 @@ if ($arResult["SHOW_SMS_FIELD"] == true) {
                                         <?php
                                         if ($key === 'UF_PD_PROC_PL_INTARO' || $key === 'UF_AGREE_PL_INTARO') { ?></a><?php } ?>
                             </label>
-                        
+                        <?php
+                        if ($field['type'] === 'checkbox') { ?>
+                            <br>
+                            <?php } ?>
                         <?php } ?>
                     </form>
                     <?php
-                    if (isset($arResult['LP_REGISTER']['expiredAt']) && !empty($arResult['LP_REGISTER']['expiredAt'])) {
+                    if (isset($arResult['LP_REGISTER']['createdAt']) && !empty($arResult['LP_REGISTER']['createdAt'])) {
                         CUtil::InitJSCore(['intaro_countdown']);
                         ?>
                         <script>
                             $(function() {
-                                const deadline = new Date('<?= $arResult['LP_REGISTER']['expiredAt'] ?>'); // for endless timer
+                                const deadline = new Date('<?= $arResult['LP_REGISTER']['expiredTime'] ?>');
                                 initializeClock("countdown", deadline);
                             });
                         </script>

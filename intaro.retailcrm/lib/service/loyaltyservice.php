@@ -19,6 +19,7 @@ use Bitrix\Main\ArgumentException;
 use Bitrix\Main\Context;
 use Bitrix\Main\Event;
 use Bitrix\Main\Loader;
+use Bitrix\Main\ObjectException;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
 use Bitrix\Main\Type\DateTime;
@@ -45,6 +46,7 @@ use Intaro\RetailCrm\Model\Bitrix\User;
 use Intaro\RetailCrm\Model\Bitrix\UserLoyaltyData;
 use Intaro\RetailCrm\Repository\PaySystemActionRepository;
 use Intaro\RetailCrm\Repository\UserRepository;
+use function Sodium\add;
 
 /**
  * Class LoyaltyService
@@ -198,6 +200,7 @@ class LoyaltyService
     
     /**
      * @return array|null
+     * @throws \Bitrix\Main\ObjectException
      */
     public function checkRegInLp(): ?array
     {
@@ -462,7 +465,6 @@ class LoyaltyService
     /**
      * @param int $idInLoyalty
      * @return array|string[]|null
-     * @throws \Bitrix\Main\ObjectException
      */
     private function tryActivate(int $idInLoyalty): ?array
     {
@@ -478,20 +480,31 @@ class LoyaltyService
     
             $lpRegister = $application->getContext()->getRequest()->getCookie("lpRegister");
             
-        }catch (\Bitrix\Main\SystemException $exception){
+        }catch (SystemException $exception){
            return ['msg' => GetMessage('ACTIVATE_ERROR')];
         }
-    
+        
         if ($lpRegister !== null) {
             $decodeLpRegister = json_decode($lpRegister, true);
-            $expiredAtTime    = new DateTime($decodeLpRegister['expiredAt'], "Y-m-d H:i:s");
-            $nowTime          = new DateTime();
     
-            if($expiredAtTime->format('Y-m-d H:i:s') > $nowTime->format('Y-m-d H:i:s')) {
+            try {
+                $createdAtTime = new DateTime($decodeLpRegister['createdAt']);
+                $expiredTime   = $createdAtTime->add("1 minutes");
+            } catch (ObjectException $exception) {
+                AddMessage2Log($exception->getMessage());
+            }
     
+            $nowTime = new DateTime();
+    
+    
+            if (isset($expiredTime)
+                && $expiredTime->format('Y-m-d H:i:s') > $nowTime->format('Y-m-d H:i:s')
+            ) {
+                $decodeLpRegister = json_decode($lpRegister, true);
+        
                 return [
-                    'msg'       => GetMessage('SMS_VERIFICATION'),
-                    'form'      => [
+                    'msg'         => GetMessage('SMS_VERIFICATION'),
+                    'form'        => [
                         'button' => [
                             'name'   => GetMessage('SEND'),
                             'action' => 'sendVerificationCode',
@@ -506,13 +519,12 @@ class LoyaltyService
                             ],
                         ],
                     ],
-                    'expiredAt' => $decodeLpRegister['expiredAt']
+                    'createdAt'   => $decodeLpRegister['createdAt'],
+                    'expiredTime' => $expiredTime->format('Y-m-d H:i:s')
                 ];
-        
             }
         }
         
-        if ($lpRegister === null) {
             //Пробуем активировать аккаунт
             $activateResponse = $userService->activateLoyaltyAccount($idInLoyalty);
     
@@ -528,12 +540,17 @@ class LoyaltyService
                 && $activateResponse !== null
                 && !isset($activateResponse->verification->verifiedAt)
             ) {
+                $createdAt = $activateResponse->verification->createdAt->format('Y-m-d H:i:s');
                 $lpRegister = new Cookie(
                     'lpRegister',
                     json_encode([
                         'checkId'   => $activateResponse->verification->checkId,
-                        'expiredAt' => $activateResponse->verification->expiredAt,
-                    ])
+                        'createAt' => $createdAt,
+                    ]),
+                    MakeTimeStamp(
+                        $activateResponse->verification->expiredAt->format('Y-m-d H:i:s'),
+                        "YYYY.MM.DD HH:MI:SS"
+                    )
                 );
         
                 Context::getCurrent()->getResponse()->addCookie($lpRegister);
@@ -555,11 +572,15 @@ class LoyaltyService
                             ],
                         ],
                     ],
-                    'expiredAt' => "2020-11-26 14:18:00"//$activateResponse->verification->expiredAt
+                    'createdAt' => $activateResponse->verification->createdAt,
+                    'expiredTime' => $activateResponse
+                        ->verification
+                        ->createdAt
+                        ->modify('+1 minutes')
+                        ->format('Y-m-d H:i:s')
                 ];
             }
     
             return ['msg' => GetMessage('ACTIVATE_ERROR') . ' ' . $activateResponse->errorMsg ?? ''];
         }
-    }
 }
