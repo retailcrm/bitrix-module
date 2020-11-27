@@ -25,18 +25,19 @@ function initializeClock(id, endtime) {
     updateClock();
 }
 
-function resendSms(checkId) {
-    BX.ajax.runAction('intaro:retailcrm.api.loyalty.smsverification.resendSms',
+function resendSms(idInLoyalty) {
+    BX.ajax.runAction('intaro:retailcrm.api.loyalty.register.resendSms',
         {
             data: {
                 sessid:  BX.bitrix_sessid(),
-                request: checkId
+                idInLoyalty: idInLoyalty
             }
         }
     ).then(
         function(response) {
-            $('#checkIdField').val(response.data.checkId);
-            initializeClock(id, response.data.endtime)
+            $('#lpRegMsg').text(response.data.msg);
+            $('#checkIdField').val(response.data.form.fields.checkId.value);
+            initializeClock("countdown", response.data.expiredTime);
             console.log(response);
         }
     );

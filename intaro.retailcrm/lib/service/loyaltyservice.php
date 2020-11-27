@@ -464,9 +464,9 @@ class LoyaltyService
     
     /**
      * @param int $idInLoyalty
-     * @return array|string[]|null
+     * @return array|string[]
      */
-    private function tryActivate(int $idInLoyalty): ?array
+    public function tryActivate(int $idInLoyalty): ?array
     {
         /** @var \Intaro\RetailCrm\Service\LpUserAccountService $userService */
         $userService = ServiceLocator::get(LpUserAccountService::class);
@@ -519,8 +519,8 @@ class LoyaltyService
                             ],
                         ],
                     ],
-                    'createdAt'   => $decodeLpRegister['createdAt'],
-                    'expiredTime' => $expiredTime->format('Y-m-d H:i:s')
+                    'expiredTime' => $expiredTime->format('Y-m-d H:i:s'),
+                    'idInLoyalty' => $idInLoyalty
                 ];
             }
         }
@@ -572,12 +572,12 @@ class LoyaltyService
                             ],
                         ],
                     ],
-                    'createdAt' => $activateResponse->verification->createdAt,
                     'expiredTime' => $activateResponse
                         ->verification
                         ->createdAt
                         ->modify('+1 minutes')
-                        ->format('Y-m-d H:i:s')
+                        ->format('Y-m-d H:i:s'),
+                    'idInLoyalty' => $idInLoyalty
                 ];
             }
     

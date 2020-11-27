@@ -7,11 +7,13 @@ use Bitrix\Main\Engine\Controller;
 use Bitrix\Main\Loader;
 use Bitrix\Main\Request;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
+use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\DataProvider\CurrentUserProvider;
 use Intaro\RetailCrm\Model\Api\Request\SmsVerification\SmsVerificationConfirmRequest;
 use Intaro\RetailCrm\Model\Api\SmsVerificationConfirm;
 use Intaro\RetailCrm\Model\Bitrix\User;
 use Intaro\RetailCrm\Repository\UserRepository;
+use Intaro\RetailCrm\Service\LoyaltyService;
 use Intaro\RetailCrm\Service\LpUserAccountService;
 
 class Register extends Controller
@@ -181,9 +183,16 @@ class Register extends Controller
         ];
     }
     
-    public function resendSmsAction()
+    /**
+     * @param string $idInLoyalty
+     * @return string[]|null
+     */
+    public function resendSmsAction(string $idInLoyalty): ?array
     {
-    
+        /** @var LoyaltyService $service */
+        $service = ServiceLocator::get(LoyaltyService::class);
+        
+        return $service->tryActivate((int) $idInLoyalty);
     }
     
     /**
