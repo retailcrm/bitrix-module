@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * Bitrix Framework
  * @package    bitrix
@@ -79,7 +79,6 @@ if ($arResult["SHOW_SMS_FIELD"] == true) {
 </script>
 
 <div class="bx-auth-reg">
-    
     <?php if ($USER->IsAuthorized()): ?>
 
         <p><?php echo GetMessage("MAIN_REGISTER_AUTH") ?></p>
@@ -90,7 +89,7 @@ if ($arResult["SHOW_SMS_FIELD"] == true) {
             <?php if (isset($arResult['LP_REGISTER']['msg'])) { ?>
                 <div id="lpRegMsg" class="lpRegMsg"><?=$arResult['LP_REGISTER']['msg']?></div>
             <?php } ?>
-            
+        
             <?php
             if (isset($arResult['LP_REGISTER']['form']['fields'])) { ?>
                 <div id="lpRegForm">

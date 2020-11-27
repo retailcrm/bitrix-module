@@ -2,6 +2,7 @@
 
 use Bitrix\Main\ArgumentException;
 use Bitrix\Main\Loader;
+use Bitrix\Main\LoaderException;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
 use Intaro\RetailCrm\Component\ConfigProvider;
@@ -10,7 +11,11 @@ use Intaro\RetailCrm\Repository\AgreementRepository;
 use Intaro\RetailCrm\Service\CustomerService;
 use Intaro\RetailCrm\Service\LoyaltyService;
 
-Loader::includeModule('intaro.retailcrm');
+try {
+    Loader::includeModule('intaro.retailcrm');
+} catch (LoaderException $exception) {
+    AddMessage2Log($exception->getMessage());
+}
 
 $arResult['LOYALTY_STATUS'] = ConfigProvider::getLoyaltyProgramStatus();
 
@@ -20,9 +25,9 @@ if ($arResult['LOYALTY_STATUS'] === 'Y' && $USER->IsAuthorized()) {
     /** @var CustomerService $customerService */
     $customerService = ServiceLocator::get(CustomerService::class);
     $customer        = $customerService->createModel($USER->GetID());
-    
+
     $customerService->createCustomer($customer);
-    
+
     /* @var LoyaltyService $service*/
     $service                 = ServiceLocator::get(LoyaltyService::class);
     $arResult['LP_REGISTER'] = $service->checkRegInLp();

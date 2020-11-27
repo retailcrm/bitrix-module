@@ -71,26 +71,39 @@ function addTelNumber(customerId) {
 }
 
 function sendVerificationCode() {
-    const verificationCode = $('#verificationCode').val();
+    const verificationCode = $('#smsVerificationCodeField').val();
+    const checkId          = $('#checkIdField').val();
 
     BX.ajax.runAction('intaro:retailcrm.api.loyalty.register.sendVerificationCode',
         {
             data: {
-                sessid: BX.bitrix_sessid(),
-                code:   verificationCode
+                sessid:  BX.bitrix_sessid(),
+                code:    verificationCode,
+                checkId: checkId
             }
         }
     ).then(
         function(response) {
             if (response.data.status === 'error' && response.data.msg !== undefined) {
-                $('#msg').text(response.data.msg);
+                const msg = response.data.msg;
+                $('#errMsg').text(msg);
             }
 
             if (response.data.status === 'activate') {
-                const msgBlock = $('#regbody');
+                const msgBlock = $('#regBody');
                 msgBlock.text(response.data.msg);
                 msgBlock.css('color', response.data.msgColor);
             }
         }
     )
+}
+
+function lpFieldToggle() {
+    if ($('#checkbox_UF_REG_IN_PL_INTARO').is(':checked')) {
+        $('.lp_toggled_block').css('display', 'table-row');
+        $('.lp_agree_checkbox').prop('checked', true);
+    } else {
+        $('.lp_agree_checkbox').prop('checked', false);
+        $('.lp_toggled_block').css('display', 'none');
+    }
 }
