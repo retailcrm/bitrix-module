@@ -33,12 +33,9 @@ function resendSms(idInLoyalty) {
                 idInLoyalty: idInLoyalty
             }
         }
-    ).then(
-        function(response) {
+    ).then(function(response) {
             $('#lpRegMsg').text(response.data.msg);
             $('#checkIdField').val(response.data.form.fields.checkId.value);
             initializeClock("countdown", response.data.expiredTime);
-            console.log(response);
-        }
-    );
+        });
 }

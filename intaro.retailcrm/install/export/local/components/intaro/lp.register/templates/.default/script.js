@@ -98,6 +98,7 @@ function sendVerificationCode() {
     )
 }
 
+/** Управляет отображением блока с полями программы лояльности на странице регистрации. */
 function lpFieldToggle() {
     if ($('#checkbox_UF_REG_IN_PL_INTARO').is(':checked')) {
         $('.lp_toggled_block').css('display', 'table-row');

@@ -189,6 +189,10 @@ class Register extends Controller
      */
     public function resendSmsAction(string $idInLoyalty): ?array
     {
+        if (!is_numeric($idInLoyalty)) {
+            return ['msg' => GetMessage('ARGUMENT_ERROR')];
+        }
+        
         /** @var LoyaltyService $service */
         $service = ServiceLocator::get(LoyaltyService::class);
         

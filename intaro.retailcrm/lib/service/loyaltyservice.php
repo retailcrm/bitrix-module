@@ -23,7 +23,6 @@ use Bitrix\Main\ObjectException;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
 use Bitrix\Main\Type\DateTime;
-use Bitrix\Main\UserTable;
 use Bitrix\Main\Web\Cookie;
 use Bitrix\Sale\PaySystem\Manager;
 use CUser;
@@ -36,7 +35,6 @@ use Intaro\RetailCrm\Model\Api\PriceType;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountRequest;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\LoyaltyCalculateRequest;
 use Intaro\RetailCrm\Model\Api\Request\Order\Loyalty\OrderLoyaltyApplyRequest;
-use Intaro\RetailCrm\Model\Api\Response\AbstractApiResponseModel;
 use Intaro\RetailCrm\Model\Api\SerializedOrder;
 use Intaro\RetailCrm\Model\Api\SerializedOrderProduct;
 use Intaro\RetailCrm\Model\Api\SerializedOrderProductOffer;
@@ -46,7 +44,6 @@ use Intaro\RetailCrm\Model\Bitrix\User;
 use Intaro\RetailCrm\Model\Bitrix\UserLoyaltyData;
 use Intaro\RetailCrm\Repository\PaySystemActionRepository;
 use Intaro\RetailCrm\Repository\UserRepository;
-use function Sodium\add;
 
 /**
  * Class LoyaltyService
@@ -479,9 +476,9 @@ class LoyaltyService
             }
     
             $lpRegister = $application->getContext()->getRequest()->getCookie("lpRegister");
-            
-        }catch (SystemException $exception){
-           return ['msg' => GetMessage('ACTIVATE_ERROR')];
+    
+        } catch (SystemException $exception) {
+            return ['msg' => GetMessage('ACTIVATE_ERROR')];
         }
         
         if ($lpRegister !== null) {
@@ -496,10 +493,7 @@ class LoyaltyService
     
             $nowTime = new DateTime();
     
-    
-            if (isset($expiredTime)
-                && $expiredTime->format('Y-m-d H:i:s') > $nowTime->format('Y-m-d H:i:s')
-            ) {
+            if (isset($expiredTime) && $expiredTime > $nowTime) {
                 $decodeLpRegister = json_decode($lpRegister, true);
         
                 return [
