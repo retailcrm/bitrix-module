@@ -128,7 +128,8 @@ class EventsHandlers
         if (ConfigProvider::getLoyaltyProgramStatus() === 'Y') {
             $bonusInput       = (int)$request->get('bonus-input');
             $availableBonuses = (int)$request->get('available-bonuses');
-    
+            $chargeRate       = (int)$request->get('charge-rate');
+
             if ($bonusInput > $availableBonuses) {
                 $arResult['LOYALTY']['ERROR'] = GetMessage('BONUS_ERROR_MSG');
                 return;
@@ -140,7 +141,7 @@ class EventsHandlers
             ) {
                 $arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE']          -= $bonusInput;
                 $arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE_FORMATED'] = number_format($arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE'], 0, ',', ' ');
-                $arResult['JS_DATA']['TOTAL']['BONUS_PAYMENT']              = $bonusInput;
+                $arResult['JS_DATA']['TOTAL']['BONUS_PAYMENT']              = $bonusInput * $chargeRate;
             }
         }
     }
@@ -166,7 +167,10 @@ class EventsHandlers
                 && $isNew
                 && (int)$_POST['available-bonuses'] >= (int)$_POST['bonus-input']
             ) {
-                $loyaltyService->applyBonusesInOrder($event);
+                $rate       = isset($_POST['charge-rate']) ? htmlspecialchars(trim($_POST['charge-rate'])) : 1;
+                $bonusCount = (int)$_POST['bonus-input'] * $rate;
+
+                $loyaltyService->applyBonusesInOrder($event, $bonusCount);
             }
         } catch (ObjectPropertyException | ArgumentException | SystemException $e) {
             AddMessage2Log(GetMessage('CAN_NOT_SAVE_ORDER') . $e->getMessage());

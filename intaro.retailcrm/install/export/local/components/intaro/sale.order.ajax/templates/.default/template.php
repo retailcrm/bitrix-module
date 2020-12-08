@@ -441,11 +441,21 @@ if (strlen($request->get('ORDER_ID')) > 0) {
                                     <div class="bx-input">
                                         <input name='bonus-input' class="form-control" type="number" max="<?=$arResult['AVAILABLE_BONUSES']?>" id='bonus-input'>
                                         <input name="available-bonuses" class="form-control" type="hidden" id='available-bonus-input' value="<?=$arResult['AVAILABLE_BONUSES']?>">
+                                        <input name="charge-rate" class="form-control" type="hidden" id='charge-rate-input' value="<?=$arResult['CHARGERATE']?>">
                                         <div id="bonus-input-error"></div>
                                     </div>
                                 </div>
                                 <div><?= Loc::getMessage('BONUS_TOTAL') ?> <label id="total-bonuses-count"><?=$arResult['TOTAL_BONUSES_COUNT']?></label></div>
                                 <div><?= Loc::getMessage('YOU_CAN_SPEND') ?> <label id="available-bonuses"><?=$arResult['AVAILABLE_BONUSES']?></label></div>
+                                <div>
+                                    <?=sprintf(
+                                        Loc::getMessage('CHARGE_RATE'),
+                                        $arResult['BONUS_CURRENCY']
+                                            ? $arResult['BONUS_CURRENCY']
+                                            : Loc::getMessage('RUB'),
+                                        $arResult['CHARGERATE']
+                                    )?>
+                                </div>
                             </div>
                             <? else: ?>
                                 <?= Loc::getMessage('CALCULATION_ERROR') ?>

@@ -56,4 +56,14 @@ class LoyaltyCalculateResponse extends AbstractApiResponseModel
      * @Mapping\SerializedName("calculations")
      */
     public $calculations;
+    
+    /**
+     * Программа лояльности
+     *
+     * @var \Intaro\RetailCrm\Model\Api\SerializedLoyalty
+     *
+     * @Mapping\Type("\Intaro\RetailCrm\Model\Api\SerializedLoyalty")
+     * @Mapping\SerializedName("loyalty")
+     */
+    public $loyalty;
 }

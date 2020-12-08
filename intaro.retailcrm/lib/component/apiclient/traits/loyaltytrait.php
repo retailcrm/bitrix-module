@@ -79,7 +79,7 @@ trait LoyaltyTrait
     {
         $serialized = Serializer::serializeArray($request);
         $response   = $this->client->loyaltyOrderCalculate($serialized);
-        
+    
         return Deserializer::deserializeArray($response->getResponseBody(), LoyaltyCalculateResponse::class);
     }
     

@@ -37,6 +37,7 @@ if ($arResult['LOYALTY_STATUS'] === 'Y' && $arResult['PERSONAL_LOYALTY_STATUS'] 
 
     if ($calculate->success) {
         $arResult['AVAILABLE_BONUSES']    = $calculate->order->bonusesChargeTotal;
+        $arResult['CHARGERATE']           = $calculate->loyalty->chargeRate;
         $arResult['TOTAL_BONUSES_COUNT']  = $calculate->order->loyaltyAccount->amount;
         $arResult['LP_CALCULATE_SUCCESS'] = $calculate->success;
         $arResult['WILL_BE_CREDITED']     = $calculate->order->bonusesCreditTotal;

@@ -287,14 +287,16 @@ class LoyaltyService
     }
     
     /**
+     * Добавляет оплату бонусами в заказ Битрикс
+     *
      * @param \Bitrix\Main\Event $event
+     * @param                    $bonusCount
      */
-    public function applyBonusesInOrder(Event $event): void
+    public function applyBonusesInOrder(Event $event, $bonusCount): void
     {
         /**@var \Bitrix\Sale\Order $order */
         $order      = $event->getParameter("ENTITY");
         $orderId    = $order->getId();
-        $bonusCount = (int)$_POST['bonus-input'];
         $response   = $this->sendBonusPayment($orderId, $bonusCount);
         
         if ($response->success) {

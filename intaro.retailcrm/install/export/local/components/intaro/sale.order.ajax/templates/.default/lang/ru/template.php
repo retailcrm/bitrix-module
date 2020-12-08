@@ -141,6 +141,8 @@ $MESS["BONUS_PAYMENT"] = 'Оплата бонусами';
 $MESS["HOW_MANY_BONUSES_TO_SPEND"] = 'Сколько бонусов потратить';
 $MESS["BONUS_TOTAL"] = 'Всего бонусов:';
 $MESS["YOU_CAN_SPEND"] = 'Можно потратить:';
+$MESS["CHARGE_RATE"] = "Курс бонуса: 1 %s = %s бонусов(а)";
+$MESS["RUB"] = "руб.";
 $MESS["CALCULATION_ERROR"] = 'Не удалось рассчитать количество доступных бонусов.';
 $MESS["CONFIRM_MESSAGE"] = 'Для завершения процедуры списания бонусов, введите код верификации';
 $MESS["SEND"] = 'Отправить';
