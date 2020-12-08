@@ -3,11 +3,11 @@
 /**
  * PHP version 5.3
  *
- * Response from retailCRM API
+ * Response from RetailCRM API
  *
- * @category RetailCrm
- * @package  RetailCrm
- * @author   RetailCrm <integration@retailcrm.ru>
+ * @category RetailCRM
+ * @package  RetailCRM
+ * @author   RetailCRM <integration@retailcrm.ru>
  * @license  https://opensource.org/licenses/MIT MIT License
  * @link     http://www.retailcrm.ru/docs/Developers/ApiVersion3
  */
@@ -19,11 +19,11 @@ use RetailCrm\Exception\InvalidJsonException;
 /**
  * PHP version 5.3
  *
- * Response from retailCRM API
+ * Response from RetailCRM API
  *
- * @category RetailCrm
- * @package  RetailCrm
- * @author   RetailCrm <integration@retailcrm.ru>
+ * @category RetailCRM
+ * @package  RetailCRM
+ * @author   RetailCRM <integration@retailcrm.ru>
  * @license  https://opensource.org/licenses/MIT MIT License
  * @link     http://www.retailcrm.ru/docs/Developers/ApiVersion3
  */

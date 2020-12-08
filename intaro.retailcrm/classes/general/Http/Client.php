@@ -5,9 +5,9 @@
  *
  * HTTP client
  *
- * @category RetailCrm
- * @package  RetailCrm
- * @author   RetailCrm <integration@retailcrm.ru>
+ * @category RetailCRM
+ * @package  RetailCRM
+ * @author   RetailCRM <integration@retailcrm.ru>
  * @license  https://opensource.org/licenses/MIT MIT License
  * @link     http://www.retailcrm.ru/docs/Developers/ApiVersion3
  */
@@ -23,9 +23,9 @@ use RetailCrm\Response\ApiResponse;
  *
  * HTTP client
  *
- * @category RetailCrm
- * @package  RetailCrm
- * @author   RetailCrm <integration@retailcrm.ru>
+ * @category RetailCRM
+ * @package  RetailCRM
+ * @author   RetailCRM <integration@retailcrm.ru>
  * @license  https://opensource.org/licenses/MIT MIT License
  * @link     http://www.retailcrm.ru/docs/Developers/ApiVersion3
  */

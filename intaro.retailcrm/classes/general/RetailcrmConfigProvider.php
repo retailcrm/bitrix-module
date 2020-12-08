@@ -5,9 +5,9 @@
  *
  * RetailcrmConfigProvider class
  *
- * @category RetailCrm
- * @package  RetailCrm
- * @author   RetailCrm <integration@retailcrm.ru>
+ * @category RetailCRM
+ * @package  RetailCRM
+ * @author   RetailCRM <integration@retailcrm.ru>
  * @license  https://opensource.org/licenses/MIT MIT License
  * @link     http://www.retailcrm.ru/docs/Developers/ApiVersion4
  */
@@ -19,9 +19,9 @@ IncludeModuleLangFile(__FILE__);
  *
  * RetailcrmConfigProvider class
  *
- * @category RetailCrm
- * @package  RetailCrm
- * @author   RetailCrm <integration@retailcrm.ru>
+ * @category RetailCRM
+ * @package  RetailCRM
+ * @author   RetailCRM <integration@retailcrm.ru>
  * @license  https://opensource.org/licenses/MIT MIT License
  * @link     http://www.retailcrm.ru/docs/Developers/ApiVersion4
  */
@@ -462,7 +462,7 @@ class RetailcrmConfigProvider
     }
 
     /**
-     * Returns true if payment amount should be sent from CMS to retailCRM.
+     * Returns true if payment amount should be sent from CMS to RetailCRM.
      *
      * @return bool|string|null
      */
