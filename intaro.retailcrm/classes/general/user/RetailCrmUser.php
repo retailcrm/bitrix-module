@@ -49,6 +49,10 @@ class RetailCrmUser
             $customer['address']['index'] = $arFields['PERSONAL_ZIP'];
         }
 
+        if (mb_strlen($arFields['EMAIL']) > 100 ) {
+            unset($customer['email']);
+        }
+
         if ($send && isset($_COOKIE['_rc']) && $_COOKIE['_rc'] != '') {
             $customer['browserId'] = $_COOKIE['_rc'];
         }
@@ -97,6 +101,10 @@ class RetailCrmUser
         }
         if (!empty($arFields['SECOND_NAME'])) {
             $customer['patronymic'] = $arFields['SECOND_NAME'];
+        }
+
+        if ( mb_strlen($arFields['EMAIL']) > 100) {
+            unset($customer['email']);
         }
 
         if (!empty($arFields['PERSONAL_PHONE'])) {
