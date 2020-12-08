@@ -4,7 +4,6 @@ namespace Intaro\RetailCrm\Controller;
 
 use Bitrix\Main\Engine\ActionFilter\Authentication;
 use Bitrix\Main\Engine\Controller;
-use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Constants;
 
 class AdminPanel extends Controller

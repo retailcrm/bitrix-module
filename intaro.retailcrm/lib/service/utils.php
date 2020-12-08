@@ -184,4 +184,17 @@ class Utils
             AddMessage2Log($msg);
         }
     }
+    
+    /**
+     * Валидирует телефон
+     *
+     * @param string $phoneNumber
+     * @return string|string[]|null
+     */
+    public static function phoneValidate(string $phoneNumber)
+    {
+        $phoneNumber = preg_replace('/\s|\+|-|\(|\)/', '', $phoneNumber);
+        
+        return $phoneNumber;
+    }
 }

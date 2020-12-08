@@ -123,7 +123,7 @@ class Order extends Controller
     /**
      * @return \array[][]
      */
-    public function sendVerificationCode(): array
+    public function configureActions(): array
     {
         return [
             'sendSms' => [

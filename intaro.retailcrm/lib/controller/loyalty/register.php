@@ -15,6 +15,7 @@ use Intaro\RetailCrm\Model\Bitrix\User;
 use Intaro\RetailCrm\Repository\UserRepository;
 use Intaro\RetailCrm\Service\LoyaltyService;
 use Intaro\RetailCrm\Service\LpUserAccountService;
+use Intaro\RetailCrm\Service\Utils;
 
 class Register extends Controller
 {
@@ -34,7 +35,7 @@ class Register extends Controller
     /**
      * @return \array[][]
      */
-    public function sendVerificationCode(): array
+    public function configureActions(): array
     {
         return [
             'saveUserLpFields' => [
@@ -58,7 +59,7 @@ class Register extends Controller
         $cardNumber   = htmlspecialchars(trim($request['UF_CARD_NUM_INTARO'] ?? ''));
         $userProvider = new CurrentUserProvider();
         $customer     = $userProvider->get();
-        $phoneNumber  = $this->phoneValidate($request['PERSONAL_PHONE'] ?? '');
+        $phoneNumber  = Utils::phoneValidate($request['PERSONAL_PHONE'] ?? '');
         $updateFields = [
             'UF_CARD_NUM_INTARO'  => $cardNumber ?? '',
             'UF_REG_IN_PL_INTARO' => true,
@@ -123,7 +124,7 @@ class Register extends Controller
      */
     public function accountCreateAction(array $request): array
     {
-        $phoneNumber = $this->phoneValidate($request['phone']);
+        $phoneNumber = Utils::phoneValidate($request['phone']);
         
         if (!is_numeric($phoneNumber)) {
             return [
@@ -197,19 +198,6 @@ class Register extends Controller
         $service = ServiceLocator::get(LoyaltyService::class);
         
         return $service->tryActivate((int) $idInLoyalty);
-    }
-    
-    /**
-     * Валидирует телефон
-     *
-     * @param string $phoneNumber
-     * @return string|string[]|null
-     */
-    private function phoneValidate(string $phoneNumber)
-    {
-        $phoneNumber = preg_replace('/\s|\+|-|\(|\)/', '', $phoneNumber);
-        
-        return $phoneNumber;
     }
     
     /**

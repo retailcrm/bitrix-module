@@ -12,9 +12,7 @@
 
 namespace Intaro\RetailCrm\Service;
 
-use CUser;
 use DateTime;
-use Exception;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountActivateRequest;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountCreateRequest;
@@ -25,7 +23,6 @@ use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationConfirmRe
 use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusRequest;
 use Intaro\RetailCrm\Model\Api\SerializedCreateLoyaltyAccount;
 use Intaro\RetailCrm\Model\Api\SmsVerificationConfirm;
-use RuntimeException;
 
 /**
  * Class UserAccountService
