@@ -6,15 +6,17 @@
 Bitrix module
 =============
 
-Bitrix module for interaction with [retailCRM](http://www.retailcrm.ru) through [REST API](http://www.retailcrm.ru/docs/Developers/Index).
+Bitrix module for interaction with [RetailCRM](http://www.retailcrm.ru)
 
 Module allows:
 
-* Exchange the orders with retailCRM
-* Configure relations between dictionaries of retailCRM and Bitrix (statuses, payments, delivery types and etc)
-* Generate [ICML](http://www.retailcrm.ru/docs/Developers/ICML) (Intaro Markup Language) for catalog loading by retailCRM
+* Exchange the orders with RetailCRM
+* Configure relations between dictionaries of RetailCRM and Bitrix (statuses, payments, delivery types and etc)
+* Generate [ICML](https://docs.retailcrm.ru/ru/Developers/modules/ICML) (Intaro Markup Language) for catalog loading by RetailCRM
 
 Installation
 -------------
 
 You should install module through [Bitrix.Marketplace](http://marketplace.1c-bitrix.ru/solutions/intaro.retailcrm/).
+
+[Setup guide](https://docs.retailcrm.ru/ru/Users/Integration/SiteModules/1CBitrix)
