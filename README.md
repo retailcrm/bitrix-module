@@ -6,7 +6,7 @@
 Bitrix module
 =============
 
-Bitrix module for interaction with [RetailCRM](http://www.retailcrm.ru) through [REST API](http://www.retailcrm.ru/docs/Developers/Index).
+Bitrix module for interaction with [RetailCRM](http://www.retailcrm.ru) through [REST API](https://docs.retailcrm.ru/ru/Developers).
 
 Module allows:
 

@@ -4,9 +4,9 @@
  *
  * @category Integration
  * @author   RetailCRM <integration@retailcrm.ru>
- * @license  http://retailcrm.ru Proprietary
- * @link     http://retailcrm.ru
- * @see      http://help.retailcrm.ru
+ * @license  https://retailcrm.ru Proprietary
+ * @link     https://retailcrm.ru
+ * @see      https://docs.retailcrm.ru
  */
 
 if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
