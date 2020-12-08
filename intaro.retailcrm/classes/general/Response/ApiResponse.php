@@ -7,9 +7,6 @@
  *
  * @category RetailCRM
  * @package  RetailCRM
- * @author   RetailCRM <integration@retailcrm.ru>
- * @license  https://opensource.org/licenses/MIT MIT License
- * @link     http://www.retailcrm.ru/docs/Developers/ApiVersion3
  */
 
 namespace RetailCrm\Response;
@@ -23,9 +20,6 @@ use RetailCrm\Exception\InvalidJsonException;
  *
  * @category RetailCRM
  * @package  RetailCRM
- * @author   RetailCRM <integration@retailcrm.ru>
- * @license  https://opensource.org/licenses/MIT MIT License
- * @link     http://www.retailcrm.ru/docs/Developers/ApiVersion3
  */
 class ApiResponse implements \ArrayAccess
 {

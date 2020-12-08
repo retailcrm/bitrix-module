@@ -5,7 +5,7 @@
  *
  * @author  pavel
  * @license https://opensource.org/licenses/MIT MIT License
- * @link    https://docs.retailcrm.ru/ru/Developers
+ * @link    http://help.retailcrm.pro/docs/Developers
  */
 class Logger
 {

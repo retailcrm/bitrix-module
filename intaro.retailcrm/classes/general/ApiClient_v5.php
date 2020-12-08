@@ -7,9 +7,6 @@
  *
  * @category RetailCRM
  * @package  RetailCRM
- * @author   RetailCRM <integration@retailcrm.ru>
- * @license  https://opensource.org/licenses/MIT MIT License
- * @link     http://www.retailcrm.ru/docs/Developers/ApiVersion5
  */
 
 namespace RetailCrm;
@@ -24,9 +21,6 @@ use RetailCrm\Response\ApiResponse;
  *
  * @category RetailCRM
  * @package  RetailCRM
- * @author   RetailCRM <integration@retailcrm.ru>
- * @license  https://opensource.org/licenses/MIT MIT License
- * @link     http://www.retailcrm.ru/docs/Developers/ApiVersion5
  */
 class ApiClient
 {

@@ -7,9 +7,6 @@
  *
  * @category RetailCRM
  * @package  RetailCRM
- * @author   RetailCRM <integration@retailcrm.ru>
- * @license  https://opensource.org/licenses/MIT MIT License
- * @link     http://www.retailcrm.ru/docs/Developers/ApiVersion4
  */
 
 IncludeModuleLangFile(__FILE__);
@@ -21,9 +18,6 @@ IncludeModuleLangFile(__FILE__);
  *
  * @category RetailCRM
  * @package  RetailCRM
- * @author   RetailCRM <integration@retailcrm.ru>
- * @license  https://opensource.org/licenses/MIT MIT License
- * @link     http://www.retailcrm.ru/docs/Developers/ApiVersion4
  */
 class RetailcrmDependencyLoader
 {
