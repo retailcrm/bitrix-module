@@ -188,7 +188,7 @@ class Register extends Controller
      * @param string $idInLoyalty
      * @return string[]|null
      */
-    public function resendSmsAction(string $idInLoyalty): ?array
+    public function resendRegisterSmsAction(string $idInLoyalty): ?array
     {
         if (!is_numeric($idInLoyalty)) {
             return ['msg' => GetMessage('ARGUMENT_ERROR')];

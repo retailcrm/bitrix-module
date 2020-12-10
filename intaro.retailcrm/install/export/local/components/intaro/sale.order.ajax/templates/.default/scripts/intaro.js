@@ -21,8 +21,10 @@ $(document).ready(function() {
     $('#bonus-input').on('keydown', _.debounce(makeAjaxRequest, 1000));
 });
 
-function sendVerificationCode(orderId, checkId) {
+function sendOrderVerificationCode() {
     const verificationCode = $('#orderVerificationCode').val();
+    const orderId          = $('#orderIdVerify').val();
+    const checkId          = $('#checkIdVerify').val();
 
     BX.ajax.runAction('intaro:retailcrm.api.loyalty.order.sendVerificationCode',
         {

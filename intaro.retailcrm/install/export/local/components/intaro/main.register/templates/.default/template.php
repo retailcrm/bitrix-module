@@ -137,7 +137,7 @@ if ($arResult["SHOW_SMS_FIELD"] == true) {
                         </script>
                         <div id="countdownDiv"> <?=GetMessage('RESEND_POSSIBLE')?> <span id="countdown"></span> <?=GetMessage('SEC')?></div>
                         <div id="deadlineMessage" style="display: none;">
-                            <input type="button" onclick="resendSms(<?=$arResult['LP_REGISTER']['idInLoyalty']?>)" value="<?=GetMessage('RESEND_SMS')?>">
+                            <input type="button" onclick="resendRegisterSms(<?=$arResult['LP_REGISTER']['idInLoyalty']?>)" value="<?=GetMessage('RESEND_SMS')?>">
                         </div>
                     <?php } ?>
                     <input type="button" onclick="<?=$arResult['LP_REGISTER']['form']['button']['action']?>()" value="<?=GetMessage('SEND')?>">

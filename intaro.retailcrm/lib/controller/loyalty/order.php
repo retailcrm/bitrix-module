@@ -25,6 +25,7 @@ use Exception;
 use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Repository\PaySystemActionRepository;
+use Intaro\RetailCrm\Service\LoyaltyService;
 use Intaro\RetailCrm\Service\LpUserAccountService;
 use Bitrix\Sale\Order as BitrixOrder;
 
@@ -121,6 +122,21 @@ class Order extends Controller
     }
     
     /**
+     * Повторно отправляет смс с кодом верификации
+     *
+     * @param $orderId
+     * @return  \Intaro\RetailCrm\Model\Api\SmsVerification|null
+     */
+    public function resendOrderSmsAction($orderId): ?\Intaro\RetailCrm\Model\Api\SmsVerification
+    {
+        /** @var LoyaltyService $service */
+        $service = ServiceLocator::get(LoyaltyService::class);
+        
+        return $service->resendBonusPayment((int)$orderId);
+    }
+    
+    
+    /**
      * @return \array[][]
      */
     public function configureActions(): array
@@ -130,6 +146,12 @@ class Order extends Controller
                 '-prefilters' => [
                     new Authentication,
                     new HttpMethod(['GET']),
+                ],
+            ],
+            'resendOrderSms' => [
+                '-prefilters' => [
+                    new Authentication,
+                    new HttpMethod(['POST']),
                 ],
             ],
         ];

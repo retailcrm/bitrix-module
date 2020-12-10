@@ -135,13 +135,15 @@ class EventsHandlers
                 return;
             }
             
+            $bonusDiscount = $bonusInput * $chargeRate;
+            
             if ($bonusInput > 0
                 && $availableBonuses > 0
-                && $arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE'] >= $bonusInput
+                && $arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE'] >= $bonusDiscount
             ) {
-                $arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE']          -= $bonusInput;
+                $arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE']          -= $bonusDiscount;
                 $arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE_FORMATED'] = number_format($arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE'], 0, ',', ' ');
-                $arResult['JS_DATA']['TOTAL']['BONUS_PAYMENT']              = $bonusInput * $chargeRate;
+                $arResult['JS_DATA']['TOTAL']['BONUS_PAYMENT']              = $bonusDiscount;
             }
         }
     }
@@ -169,8 +171,9 @@ class EventsHandlers
             ) {
                 $rate       = isset($_POST['charge-rate']) ? htmlspecialchars(trim($_POST['charge-rate'])) : 1;
                 $bonusCount = (int)$_POST['bonus-input'] * $rate;
-
-                $loyaltyService->applyBonusesInOrder($event, $bonusCount);
+                $order      = $event->getParameter("ENTITY");
+                
+                $loyaltyService->applyBonusesInOrder($order, $bonusCount);
             }
         } catch (ObjectPropertyException | ArgumentException | SystemException $e) {
             AddMessage2Log(GetMessage('CAN_NOT_SAVE_ORDER') . $e->getMessage());

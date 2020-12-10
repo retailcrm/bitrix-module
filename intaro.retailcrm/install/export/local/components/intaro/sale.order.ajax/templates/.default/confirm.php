@@ -2,12 +2,15 @@
     die();
 }
 
+use Bitrix\Main\Application;
 use Bitrix\Main\ArgumentException;
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
 use Intaro\RetailCrm\Component\Constants;
+use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Repository\PaySystemActionRepository;
+use Intaro\RetailCrm\Service\LoyaltyService;
 
 /**
  * @var array $arParams
@@ -21,37 +24,29 @@ if ($arParams["SET_TITLE"] == "Y") {
 ?>
 <?php if (!empty($arResult["ORDER"])): ?>
     <?php
-    $order             = Bitrix\Sale\Order::load($arResult["ORDER"]['ID']);
-    $paymentCollection = $order->getPaymentCollection();
     
-    /** @var \Bitrix\Sale\Payment $payment */
-    foreach ($paymentCollection as $payment) {
-        $isPaid  = $payment->isPaid();
-        $checkId = $payment->getField('COMMENTS');
+    /** @var LoyaltyService $service */
+    $service      = ServiceLocator::get(LoyaltyService::class);
+    $bonusPayment = $service->getBonusPayment($arResult["ORDER"]['ID']);
+    $isPaid       = $bonusPayment->isPaid();
+
+    //если есть бонусная оплата и она не оплачена, то отрисовываем форму введения кода верификации
+    if ($bonusPayment !== false && !$isPaid) {
         
-        try {
-            $paySystemAction = PaySystemActionRepository::getFirstByWhere(
-                ['*'],
-                [
-                    [
-                        'ID',
-                        '=',
-                        $payment->getField('PAY_SYSTEM_ID'),
-                    ],
-                ]
-            );
-        } catch (ObjectPropertyException | ArgumentException | SystemException $e) {
-            AddMessage2Log($e->getMessage());
+        $smsCookie = $service->getSmsCookie('lpOrderBonusConfirm');
+
+        //если куки пустые (страница обновляется после длительного перерыва), то пробуем снова отправить бонусы
+        if (empty($smsCookie->checkId)) {
+            $service->resendBonusPayment($arResult["ORDER"]['ID']);
+            $smsCookie = $service->getSmsCookie('lpOrderBonusConfirm');
         }
         
-        //если есть бонусная оплата и она не оплачена, то отрисовываем форму введения кода верификации
-        $isPaid = false;//TODO заглушка - убрать после теста
-        
-        if (isset($paySystemAction)
-            && !$isPaid
-            && !empty($checkId)
-            && $paySystemAction->get('CODE') === Constants::BONUS_PAYMENT_CODE
-        ) {
+        if ($smsCookie === null) { ?>
+            <div><?=GetMessage('BONUS_ERROR')?></div>
+        <?php } elseif ($smsCookie->isVerified) { ?>
+            <div><?=GetMessage('BONUS_SUCCESS')?></div>
+        <?php } else {
+            CUtil::InitJSCore(['intaro_countdown']);
             ?>
             <div id="orderConfirm">
                 <b><?=GetMessage('CONFIRM_MESSAGE')?></b><br>
@@ -59,16 +54,28 @@ if ($arParams["SET_TITLE"] == "Y") {
                     <b><?=GetMessage('SEND_VERIFICATION_CODE')?></b><br>
                     <label for="orderVerificationCode"></label>
                     <input type="text" id="orderVerificationCode" placeholder="<?=GetMessage('VERIFICATION_CODE')?>">
-                    <input type="button" onclick="sendVerificationCode(<?=$arResult["ORDER"]['ID']?>, '<?=$checkId?>')" value="<?=GetMessage('SEND')?>"/>
+                    <input type="hidden" id="orderIdVerify" value="<?=$arResult["ORDER"]['ID']?>">
+                    <input type="hidden" id="checkIdVerify" value="<?=$smsCookie->checkId?>">
+                    <input type="button" onclick="sendOrderVerificationCode()" value="<?=GetMessage('SEND')?>"/>
+                </div>
+                <div>
+                    <script>
+                        $(function() {
+                            const deadline = new Date('<?= $smsCookie->expiredAt->format('Y-m-d H:i:s') ?>');
+                            initializeClock("countdown", deadline);
+                        });
+                    </script>
+                    <div id="countdownDiv"> <?=GetMessage('RESEND_POSSIBLE')?> <span id="countdown"></span> <?=GetMessage('SEC')?></div>
+                    <div id="deadlineMessage" style="display: none;">
+                        <input type="button" onclick="resendOrderSms(<?=$arResult["ORDER"]['ID']?>)" value="<?=GetMessage('RESEND_SMS')?>">
+                    </div>
                 </div>
                 <div id="msg"></div>
             </div>
             <br><br>
             <?php
         }
-    }
-    ?>
-
+    } ?>
 	<table class="sale_order_full_table">
 		<tr>
 			<td>

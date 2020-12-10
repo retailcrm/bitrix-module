@@ -33,10 +33,11 @@ $arResult['PERSONAL_LOYALTY_STATUS'] = LoyaltyService::getLoyaltyPersonalStatus(
 if ($arResult['LOYALTY_STATUS'] === 'Y' && $arResult['PERSONAL_LOYALTY_STATUS'] === true) {
     /* @var LoyaltyService $service*/
     $service   = ServiceLocator::get(LoyaltyService::class);
+    /** @var \Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse $calculate */
     $calculate = $service->calculateBonus($arResult['BASKET_ITEMS'], $arResult['DISCOUNT_PRICE'], $arResult['DISCOUNT_PERCENT']);
 
     if ($calculate->success) {
-        $arResult['AVAILABLE_BONUSES']    = $calculate->order->bonusesChargeTotal;
+        $arResult['AVAILABLE_BONUSES']    = 100;//TODO - временно закоммичено из-за право Веста. Не нужно лить это на гит $calculate->order->bonusesChargeTotal;
         $arResult['CHARGERATE']           = $calculate->loyalty->chargeRate;
         $arResult['TOTAL_BONUSES_COUNT']  = $calculate->order->loyaltyAccount->amount;
         $arResult['LP_CALCULATE_SUCCESS'] = $calculate->success;

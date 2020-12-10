@@ -39,4 +39,4 @@ $MESS["SBB_GOODS"] = "товаров";
 $MESS["SBB_EMPTY_BASKET_TITLE"] = "Ваша корзина пуста";
 $MESS["SBB_EMPTY_BASKET_HINT"] = "#A1#Нажмите здесь#A2#, чтобы продолжить покупки";
 $MESS["SBB_GIFTS_BLOCK_TITLE"] = "Выберите один из подарков";
-$MESS["BONUSES_TOTAL"] = "Будет начислено бонусов (не менее)";
+$MESS["BONUSES_TOTAL"] = "Будет начислено бонусов";
