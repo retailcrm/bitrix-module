@@ -31,32 +31,42 @@ class LoyaltyCalculation
     public $privilegeType;
     
     /**
-     * Суммарная скидка на заказ
+     * Денежная скидка на заказ с учетом списанных бонусов по курсу, заданному в настройках
      *
-     * @var float $amount
+     * @var float $discount
      *
      * @Mapping\Type("float")
-     * @Mapping\SerializedName("amount")
+     * @Mapping\SerializedName("discount")
      */
-    public $amount;
+    public $discount;
    
     /**
-     * Будет начислено бонусов
+     * Бонусы к начислению
      *
-     * @var float $bonuses
+     * @var float $creditBonuses
      *
      * @Mapping\Type("float")
-     * @Mapping\SerializedName("bonuses")
+     * @Mapping\SerializedName("creditBonuses")
      */
-    public $bonuses;
+    public $creditBonuses;
     
     /**
-     * Итоговая сумма выгоды
+     * Бонусы, доступные для списания
      *
-     * @var float $total
+     * @var float $maxChargeBonuses
      *
      * @Mapping\Type("float")
-     * @Mapping\SerializedName("total")
+     * @Mapping\SerializedName("maxChargeBonuses")
      */
-    public $total;
+    public $maxChargeBonuses;
+    
+    /**
+     * Привилегия с максимальной выгодой
+     *
+     * @var boolean $maximum
+     *
+     * @Mapping\Type("boolean")
+     * @Mapping\SerializedName("maximum")
+     */
+    public $maximum;
 }
