@@ -35,18 +35,7 @@ use RetailCrm\Response\ApiResponse;
  */
 trait LoyaltyTrait
 {
-    /**
-     * @param \Intaro\RetailCrm\Model\Api\Request\SmsVerification\SmsVerificationConfirmRequest $request
-     * @return \Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationConfirmResponse|null
-     */
-    protected function confirmLpVerificationBySMS(SmsVerificationConfirmRequest $request): ?SmsVerificationConfirmResponse
-    {
-        $serialized = Serializer::serializeArray($request);
-        $response   = $this->client->confirmLpVerificationBySMS($serialized);
-        
-        return Deserializer::deserializeArray($response->getResponseBody(), SmsVerificationConfirmResponse::class);
-    }
-    
+ 
     /**
      * @param \Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusRequest $request
      * @return \Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusResponse|null
@@ -116,7 +105,7 @@ trait LoyaltyTrait
     {
         $serialized = Serializer::serializeArray($request);
         $response   = $this->client->sendVerificationCode($serialized);
-    
+
         return Deserializer::deserializeArray($response->getResponseBody(), SmsVerificationConfirmResponse::class);
     }
     

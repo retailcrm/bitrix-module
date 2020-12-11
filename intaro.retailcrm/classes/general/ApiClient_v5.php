@@ -2933,32 +2933,6 @@ class ApiClient
     
     /**
      * @param array $request
-     * @return \RetailCrm\Response\ApiResponse
-     */
-    protected function confirmLpVerificationBySMS(array $request): ApiResponse
-    {
-        return $this->client->makeRequest(
-            '/verification/sms/confirm',
-            Client::METHOD_POST,
-            $request
-        );
-    }
-    
-    /**
-     * @param array $request
-     * @return \RetailCrm\Response\ApiResponse
-     */
-    protected function sendSmsForLpVerification(array $request): ApiResponse
-    {
-        return $this->client->makeRequest(
-            '/verification/sms/send',
-            Client::METHOD_POST,
-            $request
-        );
-    }
-    
-    /**
-     * @param array $request
      * @param int   $checkId
      * @return \RetailCrm\Response\ApiResponse
      */

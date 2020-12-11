@@ -29,15 +29,15 @@ function resendRegisterSms(idInLoyalty) {
     BX.ajax.runAction('intaro:retailcrm.api.loyalty.register.resendRegisterSms',
         {
             data: {
-                sessid:  BX.bitrix_sessid(),
+                sessid:      BX.bitrix_sessid(),
                 idInLoyalty: idInLoyalty
             }
         }
     ).then(function(response) {
-            $('#lpRegMsg').text(response.data.msg);
-            $('#checkIdField').val(response.data.form.fields.checkId.value);
-            initializeClock("countdown", response.data.expiredTime);
-        });
+        $('#lpRegMsg').text(response.data.msg);
+        $('#checkIdField').val(response.data.form.fields.checkId.value);
+        initializeClock("countdown", response.data.expiredTime);
+    });
 }
 
 function resendOrderSms(orderId) {
@@ -45,37 +45,15 @@ function resendOrderSms(orderId) {
         {
             data: {
                 sessid:  BX.bitrix_sessid(),
-                orderId: orderId,
+                orderId: orderId
             }
         }
     ).then(function(response) {
-        /**
- {
-  "status": "success",
-  "data": {
-    "createdAt": {
-      "date": "2020-12-10 17:44:44.000000",
-      "timezone_type": 3,
-      "timezone": "Europe\/Moscow"
-    },
-    "expiredAt": {
-      "date": "2020-12-10 17:49:44.000000",
-      "timezone_type": 3,
-      "timezone": "Europe\/Moscow"
-    },
-    "verifiedAt": null,
-    "checkId": "a28ffa8d-268e-4f38-89f3-32c35e34a61a",
-    "actionType": "confirm_loyalty_charge"
-  },
-  "errors": []
-}
-         */
-
-        let resendAvailable = response.data.createdAt.setMinutes(response.data.createdAt.getMinutes() + 1)
-
-        if (response.data !== undefined) {
+        if (response.data.msg !== undefined) {
+            $('#msg').text(response.data.msg);
+        } else if (response.data.resendAvailable !== undefined) {
             $('#checkIdVerify').val(response.data.checkId);
-            initializeClock("countdown", resendAvailable.date);
+            initializeClock("countdown", new Date(response.data.resendAvailable.date));
         }
     });
 }

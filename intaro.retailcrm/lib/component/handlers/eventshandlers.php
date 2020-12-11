@@ -173,7 +173,7 @@ class EventsHandlers
                 $bonusCount = (int)$_POST['bonus-input'] * $rate;
                 $order      = $event->getParameter("ENTITY");
                 
-                $loyaltyService->applyBonusesInOrder($order, $bonusCount);
+                $loyaltyService->applyBonusesInOrder($order, $bonusCount, $rate);
             }
         } catch (ObjectPropertyException | ArgumentException | SystemException $e) {
             AddMessage2Log(GetMessage('CAN_NOT_SAVE_ORDER') . $e->getMessage());

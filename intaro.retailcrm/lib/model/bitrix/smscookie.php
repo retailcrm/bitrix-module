@@ -20,14 +20,14 @@ class SmsCookie
     /**
      * Дата создания кода верификации. (Y-m-d H:i:s)
      *
-     * @var \Bitrix\Main\Type\DateTime
+     * @var \DateTime $createdAt
      */
     public $createdAt;
     
     /**
-     * Дата устаревания. (Y-m-d H:i:s)
+     * Дата устаревания.
      *
-     * @var \Bitrix\Main\Type\DateTime
+     * @var \DateTime $expiredAt
      */
     public $expiredAt;
     
@@ -39,9 +39,16 @@ class SmsCookie
     public $checkId;
     
     /**
-     * Проверочный код.
+     * Код подтвержден
      *
      * @var boolean $isVerified
      */
     public $isVerified;
+    
+    /**
+     * Повторная отправка доступна (Y-m-d H:i:s)
+     *
+     * @var \DateTime $resendAvailabl
+     */
+    public $resendAvailable;
 }

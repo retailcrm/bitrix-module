@@ -25,24 +25,11 @@ use Intaro\RetailCrm\Model\Api\SerializedCreateLoyaltyAccount;
 use Intaro\RetailCrm\Model\Api\SmsVerificationConfirm;
 
 /**
- * Class UserAccountService
+ * Class LpUserAccountService
  */
 class LpUserAccountService
 {
     public const NOT_AUTHORIZE = 'Пользователь на авторизован';
-    
-    /**
-     * @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter
-     */
-    private $client;
-    
-    /**
-     * LpUserAccountService constructor.
-     */
-    public function __construct()
-    {
-        $this->client = ClientFactory::createClientAdapter();
-    }
     
     /**
      * Получает статус текущего состояния верификации
@@ -52,10 +39,12 @@ class LpUserAccountService
      */
     public function getSmsStatus(string $checkId)
     {
+        /** @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter $client */
+        $client           = ClientFactory::createClientAdapter();
         $request          = new SmsVerificationStatusRequest();
         $request->checkId = $checkId;
         
-        return $this->client->checkStatusPlVerification($request);
+        return $client->checkStatusPlVerification($request);
     }
     
     /**
@@ -76,10 +65,13 @@ class LpUserAccountService
      */
     public function activateLoyaltyAccount(int $loyaltyId): ?LoyaltyAccountActivateResponse
     {
+        /** @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter $client */
+        $client = ClientFactory::createClientAdapter();
+        
         $activateRequest            = new LoyaltyAccountActivateRequest();
         $activateRequest->loyaltyId = $loyaltyId;
     
-        $response = $this->client->activateLoyaltyAccount($activateRequest);
+        $response = $client->activateLoyaltyAccount($activateRequest);
         
         if ($response === null) {
             return null;
@@ -103,7 +95,10 @@ class LpUserAccountService
      */
     public function createLoyaltyAccount(string $phone, string $card, string $externalId, array $customFields = []): ?LoyaltyAccountCreateResponse
     {
-        $credentials = $this->client->getCredentials();
+        /** @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter $client */
+        $client = ClientFactory::createClientAdapter();
+        
+        $credentials = $client->getCredentials();
         
         $createRequest                                       = new LoyaltyAccountCreateRequest();
         $createRequest->site                                 = $credentials->sitesAvailable[0];
@@ -113,7 +108,7 @@ class LpUserAccountService
         $createRequest->loyaltyAccount->customer->externalId = $externalId;
         $createRequest->loyaltyAccount->customFields         = $customFields ?? [];
     
-        $createResponse = $this->client->createLoyaltyAccount($createRequest);
+        $createResponse = $client->createLoyaltyAccount($createRequest);
         
         if ($createResponse instanceof LoyaltyAccountCreateResponse) {
             Utils::handleErrors($createResponse, GetMessage('REGISTER_ERROR'));
@@ -162,12 +157,21 @@ class LpUserAccountService
      */
     public function confirmVerification(string $code, string $checkId): ?SmsVerificationConfirmResponse
     {
+        /** @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter $client */
+        $client = ClientFactory::createClientAdapter();
+        
         $request                        = new SmsVerificationConfirmRequest();
         $request->verification          = new SmsVerificationConfirm();
         $request->verification->code    = $code;
         $request->verification->checkId = $checkId;
         
-        return $this->client->confirmLpVerificationBySMS($request);
+        $response = $client->sendVerificationCode($request);
+    
+        if ($response !== null) {
+            Utils::handleErrors($response, GetMessage('DEBITING_BONUSES_ERROR'));
+        }
+    
+        return $response;
     }
 }
 
