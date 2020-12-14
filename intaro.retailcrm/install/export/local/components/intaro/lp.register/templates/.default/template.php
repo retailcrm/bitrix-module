@@ -117,12 +117,12 @@ if ($arResult["SHOW_SMS_FIELD"] == true) {
                         <?php } ?>
                     </form>
                     <?php
-                    if (isset($arResult['LP_REGISTER']['expiredTime']) && !empty($arResult['LP_REGISTER']['expiredTime'])) {
+                    if (isset($arResult['LP_REGISTER']['resendAvailable']) && !empty($arResult['LP_REGISTER']['resendAvailable'])) {
                         CUtil::InitJSCore(['intaro_countdown']);
                         ?>
                         <script>
                             $(function() {
-                                const deadline = new Date('<?= $arResult['LP_REGISTER']['expiredTime'] ?>');
+                                const deadline = new Date('<?= $arResult['LP_REGISTER']['resendAvailable'] ?>');
                                 initializeClock("countdown", deadline);
                             });
                         </script>

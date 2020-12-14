@@ -36,7 +36,7 @@ function resendRegisterSms(idInLoyalty) {
     ).then(function(response) {
         $('#lpRegMsg').text(response.data.msg);
         $('#checkIdField').val(response.data.form.fields.checkId.value);
-        initializeClock("countdown", response.data.expiredTime);
+        initializeClock("countdown", response.data.resendAvailable);
     });
 }
 

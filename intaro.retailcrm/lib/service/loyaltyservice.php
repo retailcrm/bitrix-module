@@ -203,7 +203,6 @@ class LoyaltyService
     
     /**
      * @return array|null
-     * @throws \Exception
      */
     public function checkRegInLp(): ?array
     {
@@ -375,7 +374,6 @@ class LoyaltyService
     /**
      * @param int $idInLoyalty
      * @return array|string[]
-     * @throws \Exception
      */
     public function tryActivate(int $idInLoyalty): ?array
     {
@@ -405,7 +403,7 @@ class LoyaltyService
                         ],
                     ],
                 ],
-                'expiredTime' => $smsCookie->resendAvailable->format('Y-m-d H:i:s'),
+                'resendAvailable' => $smsCookie->resendAvailable->format('Y-m-d H:i:s'),
                 'idInLoyalty' => $idInLoyalty,
             ];
         }
@@ -425,7 +423,7 @@ class LoyaltyService
             && $activateResponse !== null
             && !isset($activateResponse->verification->verifiedAt)
         ) {
-            $this->setSmsCookie('lpRegister', $activateResponse->verification);
+            $smsCookie = $this->setSmsCookie('lpRegister', $activateResponse->verification);
             
             return [
                 'msg'         => GetMessage('SMS_VERIFICATION'),
@@ -440,14 +438,11 @@ class LoyaltyService
                         ],
                         'checkId'             => [
                             'type'  => 'hidden',
-                            'value' => $activateResponse->verification->checkId,
+                            'value' => $smsCookie->checkId,
                         ],
                     ],
                 ],
-                'expiredTime' => $activateResponse
-                    ->verification
-                    ->createdAt
-                    ->format('Y-m-d H:i:s'),
+                'resendAvailable' => $smsCookie->resendAvailable->format('Y-m-d H:i:s'),
                 'idInLoyalty' => $idInLoyalty,
             ];
         }
@@ -460,7 +455,6 @@ class LoyaltyService
      *
      * @param string $cookieName
      * @return \Intaro\RetailCrm\Model\Bitrix\SmsCookie
-     * @throws \Exception
      */
     public function getSmsCookie(string $cookieName): ?SmsCookie
     {
@@ -475,18 +469,17 @@ class LoyaltyService
 
             if ($cookieJson !== null) {
                 $cookieArray = json_decode($cookieJson, true);
-
-                $createAt                   = new DateTime($cookieArray['createdAt']);
+    
                 $smsCookie                  = new SmsCookie();
                 $smsCookie->expiredAt       = new DateTime($cookieArray['expiredAt']);
-                $smsCookie->createdAt       = $createAt;
+                $smsCookie->createdAt       = new DateTime($cookieArray['createdAt']);
+                $smsCookie->resendAvailable = new DateTime($cookieArray['resendAvailable']);
                 $smsCookie->checkId         = $cookieArray['checkId'];
                 $smsCookie->isVerified      = $cookieArray['isVerified'];
-                $smsCookie->resendAvailable = $createAt->modify('+1 minutes');
 
                 return $smsCookie;
             }
-        } catch (SystemException $exception) {
+        } catch (SystemException | Exception $exception) {
             AddMessage2Log($exception);
         }
         
@@ -498,10 +491,6 @@ class LoyaltyService
      *
      * Используется при необходимости еще раз отправить смс
      *
-     * @param $orderId
-     * @return \Intaro\RetailCrm\Model\Bitrix\SmsCookie
-     */
-    /**
      * @param $orderId
      * @return \Intaro\RetailCrm\Model\Bitrix\SmsCookie|bool
      */
@@ -587,7 +576,6 @@ class LoyaltyService
      * @param array                                          $customFields
      * @param \Intaro\RetailCrm\Model\Bitrix\UserLoyaltyData $loyalty
      * @return array|string[]|null
-     * @throws \Exception
      */
     private function registerAndActivateUser(
         int $userId,
@@ -636,13 +624,15 @@ class LoyaltyService
      */
     private function setSmsCookie(string $cookieName, SmsVerification $smsVerification): SmsCookie
     {
+        $resendAvailable = $smsVerification->createdAt->modify('+1 minutes');
         $cookie = new Cookie(
             $cookieName,
             json_encode([
-                'checkId'     => $smsVerification->checkId,
-                'createAt'    => $smsVerification->createdAt->format('Y-m-d H:i:s'),
-                'expiredTime' => $smsVerification->expiredAt->format('Y-m-d H:i:s'),
-                'isVerified'  => !empty($smsVerification->verifiedAt),
+                'checkId'         => $smsVerification->checkId,
+                'createAt'        => $smsVerification->createdAt->format('Y-m-d H:i:s'),
+                'expiredAt'       => $smsVerification->expiredAt->format('Y-m-d H:i:s'),
+                'resendAvailable' => $resendAvailable->format('Y-m-d H:i:s'),
+                'isVerified'      => !empty($smsVerification->verifiedAt),
             ]),
             MakeTimeStamp(
                 $smsVerification->expiredAt->format('Y-m-d H:i:s'),
@@ -654,7 +644,7 @@ class LoyaltyService
     
         $smsCookie                  = new SmsCookie();
         $smsCookie->createdAt       = $smsVerification->createdAt;
-        $smsCookie->resendAvailable = $smsVerification->createdAt->modify('+1 minutes');
+        $smsCookie->resendAvailable = $resendAvailable;
         $smsCookie->isVerified      = !empty($smsVerification->verifiedAt);
         $smsCookie->expiredAt       = $smsVerification->expiredAt;
         $smsCookie->checkId         = $smsVerification->checkId;
