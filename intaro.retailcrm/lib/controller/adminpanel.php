@@ -82,7 +82,7 @@ class AdminPanel extends Controller
         }
         
         return [
-            'status' => isset($status) ? $status : false,
+            'status' => $status ?? false,
         ];
     }
 }

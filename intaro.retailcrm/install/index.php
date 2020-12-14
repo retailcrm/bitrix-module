@@ -44,15 +44,7 @@ class intaro_retailcrm extends CModule
      * @var string[][]
      */
     private const SUBSCRIBE_LP_EVENTS = [
-        ['EVENT_NAME' => 'OnBeforeSalePaymentSetField', 'FROM_MODULE' => 'sale'],
-        ['EVENT_NAME' => 'OnBeforeEndBufferContent', 'FROM_MODULE' => 'main'],
-        ['EVENT_NAME' => 'OnSaleOrderBeforeSaved', 'FROM_MODULE' => 'sale'],
-        ['EVENT_NAME' => 'OnSaleOrderPaid', 'FROM_MODULE' => 'sale'],
-        ['EVENT_NAME' => 'OnSaleStatusOrderChange', 'FROM_MODULE' => 'sale'],
         ['EVENT_NAME' => 'OnSaleOrderSaved', 'FROM_MODULE' => 'sale'],
-        ['EVENT_NAME' => 'OnSaleOrderCanceled', 'FROM_MODULE' => 'sale'],
-        ['EVENT_NAME' => 'OnSaleOrderDeleted', 'FROM_MODULE' => 'sale'],
-        ['EVENT_NAME' => 'OnSaleComponentOrderOneStepProcess', 'FROM_MODULE' => 'sale'],
         ['EVENT_NAME' => 'OnSaleComponentOrderResultPrepared', 'FROM_MODULE' => 'sale'],
         ['EVENT_NAME' => 'OnAfterUserRegister', 'FROM_MODULE' => 'main'],
     ];
