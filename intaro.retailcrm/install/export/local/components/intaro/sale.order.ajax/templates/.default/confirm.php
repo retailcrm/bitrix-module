@@ -12,7 +12,7 @@ use Intaro\RetailCrm\Service\LoyaltyService;
  * @var       $APPLICATION CMain
  */
 
-if ($arParams["SET_TITLE"] == "Y") {
+if ($arParams["SET_TITLE"] === "Y") {
     $APPLICATION->SetTitle(Loc::getMessage("SOA_ORDER_COMPLETE"));
 }
 ?>
@@ -22,10 +22,9 @@ if ($arParams["SET_TITLE"] == "Y") {
         /** @var LoyaltyService $service */
         $service      = ServiceLocator::get(LoyaltyService::class);
         $bonusPayment = $service->getBonusPayment($arResult["ORDER"]['ID']);
-        $isPaid       = $bonusPayment->isPaid();
         
         //если есть бонусная оплата и она не оплачена, то отрисовываем форму введения кода верификации
-        if ($bonusPayment !== false && !$isPaid) {
+        if ($bonusPayment !== false && !$bonusPayment->isPaid()) {
             
             $smsCookie = $service->getSmsCookie('lpOrderBonusConfirm');
 
@@ -78,19 +77,19 @@ if ($arParams["SET_TITLE"] == "Y") {
                     "#ORDER_DATE#" => $arResult["ORDER"]["DATE_INSERT"]->toUserTime()->format('d.m.Y H:i'),
                     "#ORDER_ID#"   => $arResult["ORDER"]["ACCOUNT_NUMBER"],
                 ])?>
-                <? if ($arParams['NO_PERSONAL'] !== 'Y'): ?>
+                <?php if ($arParams['NO_PERSONAL'] !== 'Y'): ?>
                     <br/><br/>
                     <?=Loc::getMessage('SOA_ORDER_SUC1', ['#LINK#' => $arParams['PATH_TO_PERSONAL']])?>
-                <? endif; ?>
+                <?php endif; ?>
             </td>
         </tr>
     </table>
     
-    <?
+    <?php
     if ($arResult["ORDER"]["IS_ALLOW_PAY"] === 'Y') {
         if (!empty($arResult["PAYMENT"])) {
             foreach ($arResult["PAYMENT"] as $payment) {
-                if ($payment["PAID"] != 'Y') {
+                if ($payment["PAID"] !== 'Y') {
                     if (!empty($arResult['PAY_SYSTEM_LIST'])
                         && array_key_exists($payment["PAY_SYSTEM_ID"], $arResult['PAY_SYSTEM_LIST'])
                     ) {
@@ -111,8 +110,8 @@ if ($arParams["SET_TITLE"] == "Y") {
                                 </tr>
                                 <tr>
                                     <td>
-                                        <? if (strlen($arPaySystem["ACTION_FILE"]) > 0 && $arPaySystem["NEW_WINDOW"] == "Y" && $arPaySystem["IS_CASH"] != "Y"): ?>
-                                            <?
+                                        <?php if (strlen($arPaySystem["ACTION_FILE"]) > 0 && $arPaySystem["NEW_WINDOW"] === "Y" && $arPaySystem["IS_CASH"] != "Y"): ?>
+                                            <?php
                                             $orderAccountNumber   = urlencode(urlencode($arResult["ORDER"]["ACCOUNT_NUMBER"]));
                                             $paymentAccountNumber = $payment["ACCOUNT_NUMBER"];
                                             ?>
@@ -120,27 +119,27 @@ if ($arParams["SET_TITLE"] == "Y") {
                                                 window.open('<?=$arParams["PATH_TO_PAYMENT"]?>?ORDER_ID=<?=$orderAccountNumber?>&PAYMENT_ID=<?=$paymentAccountNumber?>');
                                             </script>
                                         <?=Loc::getMessage("SOA_PAY_LINK", ["#LINK#" => $arParams["PATH_TO_PAYMENT"] . "?ORDER_ID=" . $orderAccountNumber . "&PAYMENT_ID=" . $paymentAccountNumber])?>
-                                        <? if (CSalePdf::isPdfAvailable() && $arPaySystem['IS_AFFORD_PDF']): ?>
+                                        <?php if (CSalePdf::isPdfAvailable() && $arPaySystem['IS_AFFORD_PDF']): ?>
                                         <br/>
                                             <?=Loc::getMessage("SOA_PAY_PDF", ["#LINK#" => $arParams["PATH_TO_PAYMENT"] . "?ORDER_ID=" . $orderAccountNumber . "&pdf=1&DOWNLOAD=Y"])?>
-                                        <? endif ?>
-                                        <? else: ?>
+                                        <?php endif ?>
+                                        <?php else: ?>
                                             <?=$arPaySystem["BUFFERED_OUTPUT"]?>
-                                        <? endif ?>
+                                        <?php endif ?>
                                     </td>
                                 </tr>
                             </table>
-                            
-                            <?
+    
+                            <?php
                         } else {
                             ?>
                             <span style="color:red;"><?=Loc::getMessage("SOA_ORDER_PS_ERROR")?></span>
-                            <?
+                            <?php
                         }
                     } else {
                         ?>
                         <span style="color:red;"><?=Loc::getMessage("SOA_ORDER_PS_ERROR")?></span>
-                        <?
+                        <?php
                     }
                 }
             }
@@ -148,11 +147,11 @@ if ($arParams["SET_TITLE"] == "Y") {
     } else {
         ?>
         <br/><strong><?=$arParams['MESS_PAY_SYSTEM_PAYABLE_ERROR']?></strong>
-        <?
+        <?php
     }
     ?>
 
-<? else: ?>
+<?php else: ?>
 
     <b><?=Loc::getMessage("SOA_ERROR_ORDER")?></b>
     <br/><br/>
@@ -166,4 +165,4 @@ if ($arParams["SET_TITLE"] == "Y") {
         </tr>
     </table>
 
-<? endif ?>
+<?php endif ?>

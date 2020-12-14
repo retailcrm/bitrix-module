@@ -15,6 +15,7 @@ namespace Intaro\RetailCrm\Component\Handlers;
 IncludeModuleLangFile(__FILE__);
 
 use Bitrix\Main\ArgumentException;
+use Bitrix\Main\Diag\Debug;
 use Bitrix\Main\Event;
 use Bitrix\Main\HttpRequest;
 use Bitrix\Main\ObjectPropertyException;
@@ -158,7 +159,6 @@ class EventsHandlers
         /* @var LoyaltyService $loyaltyService*/
         $loyaltyService = ServiceLocator::get(LoyaltyService::class);
         $retailCrmEvent = new RetailCrmEvent();
-        
         try {
             // TODO: Replace old call with a new one.
             $retailCrmEvent->orderSave($event);

@@ -19,10 +19,8 @@ use Bitrix\Main\ArgumentException;
 use Bitrix\Main\ArgumentNullException;
 use Bitrix\Main\ArgumentOutOfRangeException;
 use Bitrix\Main\Context;
-use Bitrix\Main\Event;
+use Bitrix\Main\Diag\Debug;
 use Bitrix\Main\Loader;
-use Bitrix\Main\NotImplementedException;
-use Bitrix\Main\ObjectException;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
 use \DateTime;
@@ -40,7 +38,6 @@ use Intaro\RetailCrm\Model\Api\PriceType;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountRequest;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\LoyaltyCalculateRequest;
 use Intaro\RetailCrm\Model\Api\Request\Order\Loyalty\OrderLoyaltyApplyRequest;
-use Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse;
 use Intaro\RetailCrm\Model\Api\Response\Order\Loyalty\OrderLoyaltyApplyResponse;
 use Intaro\RetailCrm\Model\Api\SerializedOrder;
 use Intaro\RetailCrm\Model\Api\SerializedOrderProduct;
@@ -206,6 +203,7 @@ class LoyaltyService
     
     /**
      * @return array|null
+     * @throws \Exception
      */
     public function checkRegInLp(): ?array
     {
@@ -377,22 +375,18 @@ class LoyaltyService
     /**
      * @param int $idInLoyalty
      * @return array|string[]
+     * @throws \Exception
      */
     public function tryActivate(int $idInLoyalty): ?array
     {
         /** @var \Intaro\RetailCrm\Service\LpUserAccountService $userService */
         $userService = ServiceLocator::get(LpUserAccountService::class);
-    
-        $smsCookie = $this->getSmsCookie('lpRegister');
-
-        if ($smsCookie === null) {
-            return ['msg' => GetMessage('ACTIVATE_ERROR')];
-        }
-    
-        $expiredTime = $smsCookie->resendAvailable;
+        $smsCookie   = $this->getSmsCookie('lpRegister');
         $nowTime     = new DateTime();
     
-        if (isset($expiredTime) && $expiredTime > $nowTime) {
+        if ($smsCookie !== null
+            && isset($smsCookie->resendAvailable)
+            && $smsCookie->resendAvailable > $nowTime) {
         
             return [
                 'msg'         => GetMessage('SMS_VERIFICATION'),
@@ -411,7 +405,7 @@ class LoyaltyService
                         ],
                     ],
                 ],
-                'expiredTime' => $expiredTime->format('Y-m-d H:i:s'),
+                'expiredTime' => $smsCookie->resendAvailable->format('Y-m-d H:i:s'),
                 'idInLoyalty' => $idInLoyalty,
             ];
         }
@@ -431,7 +425,6 @@ class LoyaltyService
             && $activateResponse !== null
             && !isset($activateResponse->verification->verifiedAt)
         ) {
-            
             $this->setSmsCookie('lpRegister', $activateResponse->verification);
             
             return [
@@ -454,7 +447,6 @@ class LoyaltyService
                 'expiredTime' => $activateResponse
                     ->verification
                     ->createdAt
-                    ->modify('+1 minutes')
                     ->format('Y-m-d H:i:s'),
                 'idInLoyalty' => $idInLoyalty,
             ];
@@ -468,6 +460,7 @@ class LoyaltyService
      *
      * @param string $cookieName
      * @return \Intaro\RetailCrm\Model\Bitrix\SmsCookie
+     * @throws \Exception
      */
     public function getSmsCookie(string $cookieName): ?SmsCookie
     {
@@ -594,6 +587,7 @@ class LoyaltyService
      * @param array                                          $customFields
      * @param \Intaro\RetailCrm\Model\Bitrix\UserLoyaltyData $loyalty
      * @return array|string[]|null
+     * @throws \Exception
      */
     private function registerAndActivateUser(
         int $userId,

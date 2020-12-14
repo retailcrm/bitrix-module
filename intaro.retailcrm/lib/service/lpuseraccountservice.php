@@ -48,18 +48,6 @@ class LpUserAccountService
     }
     
     /**
-     * Проверяем статус регистрации пользователя в ПЛ
-     *
-     * @param int $userId
-     * @return bool
-     */
-    public function checkPlRegistrationStatus(int $userId)
-    {
-        //TODO когда метод будет реализован в АПИ, нужно будет написать реализацию
-        return true;
-    }
-    
-    /**
      * @param int $loyaltyId
      * @return \Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountActivateResponse|null
      */

@@ -20,7 +20,6 @@ use Bitrix\Main\Engine\ActionFilter\HttpMethod;
 use Bitrix\Main\Engine\Controller;
 use Bitrix\Main\Loader;
 use Bitrix\Main\ObjectPropertyException;
-use Bitrix\Main\Request;
 use Bitrix\Main\SystemException;
 use Exception;
 use Intaro\RetailCrm\Component\Constants;
@@ -48,6 +47,14 @@ class Order extends Controller
         /** @var LpUserAccountService $service */
         $service  = ServiceLocator::get(LpUserAccountService::class);
         $response = $service->confirmVerification($verificationCode, $checkId);
+
+        if ($response !== null && isset($response->errorMsg) && !empty($response->errorMsg)) {
+            return [
+                'status'   => 'error',
+                'msg'      => 'Ошибка. ' . $response->errorMsg,
+                'msgColor' => 'brown',
+            ];
+        }
 
         if ($response !== null
             && $response->success
@@ -131,8 +138,8 @@ class Order extends Controller
         if ($result === false) {
             return ['msg' => GetMessage('BONUS_ERROR')];
         }
-        
-        return $service->resendBonusPayment((int)$orderId);
+        Debug::writeToFile(json_encode($result), '', 'log.txt');
+        return $result;
     }
     
     
