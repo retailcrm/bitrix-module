@@ -35,7 +35,6 @@ use RetailCrm\Response\ApiResponse;
  */
 trait LoyaltyTrait
 {
- 
     /**
      * @param \Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusRequest $request
      * @return \Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusResponse|null

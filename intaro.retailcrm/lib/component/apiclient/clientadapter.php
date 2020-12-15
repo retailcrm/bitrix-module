@@ -104,7 +104,6 @@ use RetailCrm\Response\ApiResponse;
  */
 class ClientAdapter
 {
-    
     use BaseClientTrait;
     use CustomersTrait;
     use CustomersCorporateTrait;

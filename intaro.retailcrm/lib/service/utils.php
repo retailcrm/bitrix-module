@@ -12,14 +12,12 @@
 namespace Intaro\RetailCrm\Service;
 
 use Bitrix\Main\Text\Encoding;
-use Intaro\RetailCrm\Model\Api\AbstractApiModel;
-use Intaro\RetailCrm\Model\Api\ApiModelInterface;
 use Intaro\RetailCrm\Model\Api\Response\AbstractApiResponseModel;
 
 /**
  * Class Utils
  *
- * @package Intaro\RetailCrm\Component
+ * @package Intaro\RetailCrm\Service
  */
 class Utils
 {
@@ -191,7 +189,7 @@ class Utils
      * @param string $phoneNumber
      * @return string|string[]|null
      */
-    public static function phoneValidate(string $phoneNumber)
+    public static function filterPhone(string $phoneNumber)
     {
         $phoneNumber = preg_replace('/\s|\+|-|\(|\)/', '', $phoneNumber);
         

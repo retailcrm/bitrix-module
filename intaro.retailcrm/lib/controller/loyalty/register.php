@@ -59,7 +59,7 @@ class Register extends Controller
         $cardNumber   = htmlspecialchars(trim($request['UF_CARD_NUM_INTARO'] ?? ''));
         $userProvider = new CurrentUserProvider();
         $customer     = $userProvider->get();
-        $phoneNumber  = Utils::phoneValidate($request['PERSONAL_PHONE'] ?? '');
+        $phoneNumber  = Utils::filterPhone($request['PERSONAL_PHONE'] ?? '');
         $updateFields = [
             'UF_CARD_NUM_INTARO'  => $cardNumber ?? '',
             'UF_REG_IN_PL_INTARO' => true,
@@ -124,7 +124,7 @@ class Register extends Controller
      */
     public function accountCreateAction(array $request): array
     {
-        $phoneNumber = Utils::phoneValidate($request['phone']);
+        $phoneNumber = Utils::filterPhone($request['phone']);
         
         if (!is_numeric($phoneNumber)) {
             return [

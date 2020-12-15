@@ -505,17 +505,17 @@ class LoyaltyService
         /** @var  OrderLoyaltyApplyResponse $response */
         $response = $this->sendBonusPayment($orderId, $bonusCount);
         
-        if ($response === null || !$response instanceof OrderLoyaltyApplyResponse) {
+        if ($response === null || !($response instanceof OrderLoyaltyApplyResponse)) {
             return false;
         }
         
         if (isset($response->verification, $response->verification->checkId)
-            && empty($response->verification->verifiedAt)) {
+            && empty($response->verification->verifiedAt)
+        ) {
             return $this->setSmsCookie('lpOrderBonusConfirm', $response->verification);
         }
         
-        if (!empty($response->verification->verifiedAt)
-        ) {
+        if (!empty($response->verification->verifiedAt)) {
             $this->setBonusPaymentStatus($orderId, 'Y');
             return true;
         }
@@ -587,7 +587,7 @@ class LoyaltyService
         $service    = ServiceLocator::get(LpUserAccountService::class);
         $phone      = $userPhone ?? '';
         $card       = $loyalty->getBonusCardNumber() ?? '';
-        $customerId = (string)$userId;
+        $customerId = (string) $userId;
         
         $createResponse = $service->createLoyaltyAccount($phone, $card, $customerId, $customFields);
         
@@ -669,6 +669,7 @@ class LoyaltyService
             if (!Loader::includeModule('sale')) {
                 return false;
             }
+            
             $order = Order::load($orderId);
             
             if ($order !== null) {
@@ -705,7 +706,7 @@ class LoyaltyService
 
         $rate = (int) $bonusPayment->getField('COMMENTS') > 0 ? $bonusPayment->getField('COMMENTS') : 1;
         
-        return (int)$bonusPayment->getField('SUM') / $rate;
+        return (int) $bonusPayment->getField('SUM') / $rate;
     }
     
     /**
@@ -714,9 +715,9 @@ class LoyaltyService
      * @param $orderId
      * @return \Bitrix\Sale\Payment|false
      */
-    public function getBonusPayment($orderId){
+    public function getBonusPayment($orderId)
+    {
         try {
-            
             if (!Loader::includeModule('sale')) {
                 return false;
             }
@@ -724,7 +725,6 @@ class LoyaltyService
             $order = Order::load($orderId);
         
             if ($order !== null) {
-    
                 try {
                     $paySystemAction = PaySystemActionRepository::getFirstByWhere(
                         ['ID'],
