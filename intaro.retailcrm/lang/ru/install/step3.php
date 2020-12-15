@@ -4,13 +4,13 @@ $MESS ['STEP_NAME'] = 'Шаг 3';
 $MESS ['STOP'] = 'Приостановить выгрузку';
 $MESS ['MOD_NEXT_STEP'] = 'Следующий шаг';
 $MESS ['MOD_PREV_STEP'] = 'Предыдущий шаг';
-$MESS ['INFO_2'] = ' Задайте соответствие между полями заказа 1C-Битрикс и retailCRM.';
+$MESS ['INFO_2'] = ' Задайте соответствие между полями заказа 1C-Битрикс и RetailCRM.';
 $MESS ['ORDER_TYPE_INFO'] = 'Тип заказа:';
 $MESS ['CONTRAGENT_TYPE'] = 'Тип контрагента';
 $MESS ['ORDER_LEGAL_INFO'] = 'Юридические и банковские реквизиты';
 $MESS ['ORDER_CUSTOM'] = 'Кастомные поля';
 
-$MESS ['ORDER_PROPS'] = 'Настройки соответствия полей заказа retailCRM свойствам заказа 1С-Битрикс';
+$MESS ['ORDER_PROPS'] = 'Настройки соответствия полей заказа RetailCRM свойствам заказа 1С-Битрикс';
 $MESS ['FIO'] = 'Ф.И.О.';
 $MESS ['ZIP'] = 'Индекс';
 $MESS ['ADDRESS'] = 'Адрес (строкой)';

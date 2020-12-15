@@ -3,13 +3,10 @@
 /**
  * PHP version 5.3
  *
- * Response from retailCRM API
+ * Response from RetailCRM API
  *
- * @category RetailCrm
- * @package  RetailCrm
- * @author   RetailCrm <integration@retailcrm.ru>
- * @license  https://opensource.org/licenses/MIT MIT License
- * @link     http://www.retailcrm.ru/docs/Developers/ApiVersion3
+ * @category RetailCRM
+ * @package  RetailCRM
  */
 
 namespace RetailCrm\Response;
@@ -19,13 +16,10 @@ use RetailCrm\Exception\InvalidJsonException;
 /**
  * PHP version 5.3
  *
- * Response from retailCRM API
+ * Response from RetailCRM API
  *
- * @category RetailCrm
- * @package  RetailCrm
- * @author   RetailCrm <integration@retailcrm.ru>
- * @license  https://opensource.org/licenses/MIT MIT License
- * @link     http://www.retailcrm.ru/docs/Developers/ApiVersion3
+ * @category RetailCRM
+ * @package  RetailCRM
  */
 class ApiResponse implements \ArrayAccess
 {

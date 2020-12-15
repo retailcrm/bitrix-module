@@ -198,7 +198,7 @@ else{
                 <td colspan="2"><b><?php echo GetMessage('INFO_1'); ?></b></td>
             </tr>
             <tr align="center">
-                <td colspan="2"><?php echo GetMessage('INFO_2') . " " . "<a href='". $api_host ."/admin/statuses' target=_blank>" . GetMessage('URL_1') . "</a>" . " " . 'retailCRM.'; ?></td>
+                <td colspan="2"><?php echo GetMessage('INFO_2') . " " . "<a href='". $api_host ."/admin/statuses' target=_blank>" . GetMessage('URL_1') . "</a>" . " " . 'RetailCRM.'; ?></td>
             </tr>
             <tr align="center">
                 <td colspan="2"><?php echo GetMessage('INFO_3'); ?></td>

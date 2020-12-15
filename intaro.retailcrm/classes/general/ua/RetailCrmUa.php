@@ -20,13 +20,13 @@ class RetailCrmUa
                 m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
                 })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
                 ga('create', '" . $uaKeys[SITE_ID]['ID'] . "', 'auto');
-                function getRetailCrmCookie(name) {
+                function getRetailCRMCookie(name) {
                       var matches = document.cookie.match(new RegExp(
                           '(?:^|; )' + name + '=([^;]*)'
                       ));
                       return matches ? decodeURIComponent(matches[1]) : '';
                 }
-                ga('set', 'dimension" . $uaKeys[SITE_ID]['INDEX'] . "', getRetailCrmCookie('_ga'));
+                ga('set', 'dimension" . $uaKeys[SITE_ID]['INDEX'] . "', getRetailCRMCookie('_ga'));
                 ga('send', 'pageview');
             </script>";
             if (isset($_GET['ORDER_ID'])) {
