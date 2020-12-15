@@ -1,4 +1,4 @@
 <?php
 
 $MESS["NO_DELIVERY"] = "No delivery";
-$MESS["PRICE_TYPE"] = "retailCRM price";
+$MESS["PRICE_TYPE"] = "RetailCRM price";

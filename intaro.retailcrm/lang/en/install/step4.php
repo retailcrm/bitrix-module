@@ -1,7 +1,7 @@
 <?php
 
 $MESS ['STEP_NAME'] = 'Step 4';
-$MESS ['MESS_1'] = ' At this step you can upload previously placed orders to retailCRM. Click the «Start export» button to start uploading.';
+$MESS ['MESS_1'] = ' At this step you can upload previously placed orders to RetailCRM. Click the «Start export» button to start uploading.';
 $MESS ['MESS_2'] = 'Export...';
 $MESS ['MESS_3'] = 'Export of orders is completed successfully.';
 $MESS ['MESS_4'] = 'Export of orders is suspended.';
