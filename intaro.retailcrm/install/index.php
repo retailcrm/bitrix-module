@@ -34,12 +34,8 @@ if (class_exists('intaro_retailcrm')) {
 
 class intaro_retailcrm extends CModule
 {
-    public const LP_ORDER_GROUP_NAME          = 'Программа лояльности';
-    public const BONUS_COUNT                  = 'Количество бонусов';
-    public const BONUS_PAY_SYSTEM_NAME        = 'Оплата бонусами';
     public const BONUS_PAY_SYSTEM_CODE        = 'retailcrmbonus';
-    public const BONUS_PAY_SYSTEM_DESCRIPTION = 'Оплата бонусами программы лояльности retailCRM';
-
+    
     /**
      * @var string[][]
      */
@@ -1583,7 +1579,7 @@ class intaro_retailcrm extends CModule
             ->where(
                 [
                     ['PERSON_TYPE_ID', '=', $personId],
-                    ['NAME', '=', self::LP_ORDER_GROUP_NAME],
+                    ['NAME', '=', GetMessage('LP_ORDER_GROUP_NAME')],
                 ]
             )
             ->fetch();
@@ -1595,7 +1591,7 @@ class intaro_retailcrm extends CModule
         if ($LPGroup === false) {
             return OrderPropsGroupTable::add([
                 'PERSON_TYPE_ID' => $personId,
-                'NAME' => self::LP_ORDER_GROUP_NAME,
+                'NAME' => GetMessage('LP_ORDER_GROUP_NAME'),
             ])->getId();
         }
     }
@@ -1653,11 +1649,11 @@ class intaro_retailcrm extends CModule
         if (count($arrPaySystemAction) === 0) {
             $result     = PaySystemActionTable::add(
                 [
-                    'NAME'                 => self::BONUS_PAY_SYSTEM_NAME,
-                    'PSA_NAME'             => self::BONUS_PAY_SYSTEM_NAME,
+                    'NAME'                 => GetMessage('BONUS_PAY_SYSTEM_NAME'),
+                    'PSA_NAME'             => GetMessage('BONUS_PAY_SYSTEM_NAME'),
                     'CODE'                 => self::INTARO_BONUS,
                     'ACTION_FILE'          => self::BONUS_PAY_SYSTEM_CODE,
-                    'DESCRIPTION'          => self::BONUS_PAY_SYSTEM_DESCRIPTION,
+                    'DESCRIPTION'          => GetMessage('BONUS_PAY_SYSTEM_DESCRIPTION'),
                     'RESULT_FILE'          => '',
                     'NEW_WINDOW'           => 'N',
                     'ENCODING'             => 'utf-8',

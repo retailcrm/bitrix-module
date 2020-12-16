@@ -31,6 +31,7 @@ use CUser;
 use Exception;
 use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
+use Intaro\RetailCrm\Component\Json\Deserializer;
 use Intaro\RetailCrm\Component\Json\Serializer;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Model\Api\LoyaltyAccount;
@@ -384,7 +385,8 @@ class LoyaltyService
     
         if ($smsCookie !== null
             && isset($smsCookie->resendAvailable)
-            && $smsCookie->resendAvailable > $nowTime) {
+            && $smsCookie->resendAvailable > $nowTime
+        ) {
         
             return [
                 'msg'         => GetMessage('SMS_VERIFICATION'),
@@ -454,7 +456,7 @@ class LoyaltyService
      * Получает десерализованное содержимое куки
      *
      * @param string $cookieName
-     * @return \Intaro\RetailCrm\Model\Bitrix\SmsCookie
+     * @return \Intaro\RetailCrm\Model\Bitrix\SmsCookie|null
      */
     public function getSmsCookie(string $cookieName): ?SmsCookie
     {
@@ -470,14 +472,7 @@ class LoyaltyService
             if ($cookieJson !== null) {
                 $cookieArray = json_decode($cookieJson, true);
     
-                $smsCookie                  = new SmsCookie();
-                $smsCookie->expiredAt       = new DateTime($cookieArray['expiredAt']);
-                $smsCookie->createdAt       = new DateTime($cookieArray['createdAt']);
-                $smsCookie->resendAvailable = new DateTime($cookieArray['resendAvailable']);
-                $smsCookie->checkId         = $cookieArray['checkId'];
-                $smsCookie->isVerified      = $cookieArray['isVerified'];
-
-                return $smsCookie;
+                return Deserializer::deserialize($cookieArray,SmsCookie::class);
             }
         } catch (SystemException | Exception $exception) {
             AddMessage2Log($exception);
@@ -625,15 +620,19 @@ class LoyaltyService
     private function setSmsCookie(string $cookieName, SmsVerification $smsVerification): SmsCookie
     {
         $resendAvailable = $smsVerification->createdAt->modify('+1 minutes');
+        
+        $smsCookie                  = new SmsCookie();
+        $smsCookie->createdAt       = $smsVerification->createdAt;
+        $smsCookie->resendAvailable = $resendAvailable;
+        $smsCookie->isVerified      = !empty($smsVerification->verifiedAt);
+        $smsCookie->expiredAt       = $smsVerification->expiredAt;
+        $smsCookie->checkId         = $smsVerification->checkId;
+    
+        $serializedArray = Serializer::serializeArray($smsCookie);
+        
         $cookie = new Cookie(
             $cookieName,
-            json_encode([
-                'checkId'         => $smsVerification->checkId,
-                'createAt'        => $smsVerification->createdAt->format('Y-m-d H:i:s'),
-                'expiredAt'       => $smsVerification->expiredAt->format('Y-m-d H:i:s'),
-                'resendAvailable' => $resendAvailable->format('Y-m-d H:i:s'),
-                'isVerified'      => !empty($smsVerification->verifiedAt),
-            ]),
+            json_encode($serializedArray),
             MakeTimeStamp(
                 $smsVerification->expiredAt->format('Y-m-d H:i:s'),
                 "YYYY.MM.DD HH:MI:SS"
@@ -641,13 +640,6 @@ class LoyaltyService
         );
         
         Context::getCurrent()->getResponse()->addCookie($cookie);
-    
-        $smsCookie                  = new SmsCookie();
-        $smsCookie->createdAt       = $smsVerification->createdAt;
-        $smsCookie->resendAvailable = $resendAvailable;
-        $smsCookie->isVerified      = !empty($smsVerification->verifiedAt);
-        $smsCookie->expiredAt       = $smsVerification->expiredAt;
-        $smsCookie->checkId         = $smsVerification->checkId;
         
         return $smsCookie;
     }
