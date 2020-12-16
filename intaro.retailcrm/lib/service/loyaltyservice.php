@@ -387,7 +387,6 @@ class LoyaltyService
             && isset($smsCookie->resendAvailable)
             && $smsCookie->resendAvailable > $nowTime
         ) {
-        
             return [
                 'msg'         => GetMessage('SMS_VERIFICATION'),
                 'form'        => [
@@ -470,9 +469,7 @@ class LoyaltyService
             $cookieJson = $application->getContext()->getRequest()->getCookie($cookieName);
 
             if ($cookieJson !== null) {
-                $cookieArray = json_decode($cookieJson, true);
-    
-                return Deserializer::deserialize($cookieArray,SmsCookie::class);
+                return Deserializer::deserialize($cookieJson, SmsCookie::class);
             }
         } catch (SystemException | Exception $exception) {
             AddMessage2Log($exception);
@@ -628,11 +625,11 @@ class LoyaltyService
         $smsCookie->expiredAt       = $smsVerification->expiredAt;
         $smsCookie->checkId         = $smsVerification->checkId;
     
-        $serializedArray = Serializer::serializeArray($smsCookie);
+        $serializedArray = Serializer::serialize($smsCookie);
         
         $cookie = new Cookie(
             $cookieName,
-            json_encode($serializedArray),
+            $serializedArray,
             MakeTimeStamp(
                 $smsVerification->expiredAt->format('Y-m-d H:i:s'),
                 "YYYY.MM.DD HH:MI:SS"

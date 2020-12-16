@@ -11,6 +11,8 @@
  */
 namespace Intaro\RetailCrm\Model\Bitrix;
 
+use Intaro\RetailCrm\Component\Json\Mapping;
+
 /**
  * Class SmsCookie
  * @package Intaro\RetailCrm\Model\Bitrix
@@ -21,6 +23,9 @@ class SmsCookie
      * Дата создания кода верификации. (Y-m-d H:i:s)
      *
      * @var \DateTime $createdAt
+     *
+     * @Mapping\Type("DateTime<'Y-m-d H:i:s'>")
+     * @Mapping\SerializedName("createdAt")
      */
     public $createdAt;
     
@@ -28,6 +33,9 @@ class SmsCookie
      * Дата устаревания.
      *
      * @var \DateTime $expiredAt
+     *
+     * @Mapping\Type("DateTime<'Y-m-d H:i:s'>")
+     * @Mapping\SerializedName("expiredAt")
      */
     public $expiredAt;
     
@@ -35,6 +43,9 @@ class SmsCookie
      * Проверочный код.
      *
      * @var string $checkId
+     *
+     * @Mapping\Type("string")
+     * @Mapping\SerializedName("checkId")
      */
     public $checkId;
     
@@ -42,6 +53,9 @@ class SmsCookie
      * Код подтвержден
      *
      * @var boolean $isVerified
+     *
+     * @Mapping\Type("boolean")
+     * @Mapping\SerializedName("isVerified")
      */
     public $isVerified;
     
@@ -49,6 +63,9 @@ class SmsCookie
      * Повторная отправка доступна (Y-m-d H:i:s)
      *
      * @var \DateTime $resendAvailabl
+     *
+     * @Mapping\Type("DateTime<'Y-m-d H:i:s'>")
+     * @Mapping\SerializedName("resendAvailable")
      */
     public $resendAvailable;
 }
