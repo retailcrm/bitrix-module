@@ -15,7 +15,6 @@ namespace Intaro\RetailCrm\Model\Api;
 use Intaro\RetailCrm\Component\Json\Mapping;
 
 /**
- * Метод применения бонусов по программе лояльности
  * Class SerializedLoyaltyOrder
  *
  * @package Intaro\RetailCrm\Model\Api

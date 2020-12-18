@@ -14,16 +14,24 @@
 namespace Intaro\RetailCrm\Service;
 
 use Bitrix\Catalog\GroupTable;
+use Bitrix\Main\Application;
 use Bitrix\Main\ArgumentException;
-use Bitrix\Main\Event;
+use Bitrix\Main\ArgumentNullException;
+use Bitrix\Main\ArgumentOutOfRangeException;
+use Bitrix\Main\Context;
+use Bitrix\Main\Diag\Debug;
 use Bitrix\Main\Loader;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
-use Bitrix\Main\UserTable;
+use \DateTime;
+use Bitrix\Main\Web\Cookie;
+use Bitrix\Sale\Order;
 use Bitrix\Sale\PaySystem\Manager;
 use CUser;
 use Exception;
+use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
+use Intaro\RetailCrm\Component\Json\Deserializer;
 use Intaro\RetailCrm\Component\Json\Serializer;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Model\Api\LoyaltyAccount;
@@ -31,11 +39,14 @@ use Intaro\RetailCrm\Model\Api\PriceType;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountRequest;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\LoyaltyCalculateRequest;
 use Intaro\RetailCrm\Model\Api\Request\Order\Loyalty\OrderLoyaltyApplyRequest;
+use Intaro\RetailCrm\Model\Api\Response\Order\Loyalty\OrderLoyaltyApplyResponse;
 use Intaro\RetailCrm\Model\Api\SerializedOrder;
 use Intaro\RetailCrm\Model\Api\SerializedOrderProduct;
 use Intaro\RetailCrm\Model\Api\SerializedOrderProductOffer;
 use Intaro\RetailCrm\Model\Api\SerializedOrderReference;
 use Intaro\RetailCrm\Model\Api\SerializedRelationCustomer;
+use Intaro\RetailCrm\Model\Api\SmsVerification;
+use Intaro\RetailCrm\Model\Bitrix\SmsCookie;
 use Intaro\RetailCrm\Model\Bitrix\User;
 use Intaro\RetailCrm\Model\Bitrix\UserLoyaltyData;
 use Intaro\RetailCrm\Repository\PaySystemActionRepository;
@@ -77,9 +88,9 @@ class LoyaltyService
     public function __construct()
     {
         IncludeModuleLangFile(__FILE__);
-    
+        
         $this->client = ClientFactory::createClientAdapter();
-    
+        
         $credentials = $this->client->getCredentials();
         $this->site  = $credentials->sitesAvailable[0];
         
@@ -122,7 +133,7 @@ class LoyaltyService
     /**
      * @param array $basketItems
      * @param int   $discountPrice
-     * @param float   $discountPercent
+     * @param float $discountPercent
      * @return \Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse|mixed|null
      */
     public function calculateBonus(array $basketItems, int $discountPrice, float $discountPercent)
@@ -207,7 +218,7 @@ class LoyaltyService
         }
         
         $loyalty = $this->user->getLoyalty();
-
+        
         //Изъявлял ли ранее пользователь желание участвовать в ПЛ?
         if ($loyalty->getIsAgreeRegisterInLoyaltyProgram() === 1) {
             //ДА. Существует ли у него аккаунт?
@@ -245,15 +256,15 @@ class LoyaltyService
             $fields = $this->getFields($this->user);
             
             //Если все необходимые поля заполнены, то пытаемся его еще раз зарегистрировать
-            if (empty($fields)) {
+            if (count($fields) === 0) {
                 $customFields   = $this->getExternalFields();
                 $createResponse = $this->registerAndActivateUser($this->user->getId(), $this->user->getPersonalPhone(), $customFields, $loyalty);
                 
                 if ($createResponse === false) {
                     header('Refresh 0');
                 }
-    
-                return ['msg' => $createResponse];
+                
+                return $createResponse;
             }
             
             return [
@@ -282,30 +293,33 @@ class LoyaltyService
     }
     
     /**
-     * @param \Bitrix\Main\Event $event
+     * Добавляет оплату бонусами в заказ Битрикс
+     *
+     * @param \Bitrix\Sale\Order $order
+     * @param                    $bonusCount /скидка в рублях
+     * @param                    $rate       /курс бонуса к валюте
      */
-    public function applyBonusesInOrder(Event $event): void
+    public function applyBonusesInOrder(Order $order, $bonusCount, $rate): void
     {
-        /**@var \Bitrix\Sale\Order $order */
-        $order      = $event->getParameter("ENTITY");
         $orderId    = $order->getId();
-        $bonusCount = (int) $_POST['bonus-input'];
         $response   = $this->sendBonusPayment($orderId, $bonusCount);
         
         if ($response->success) {
             try {
-                $bonusPaySystem    = PaySystemActionRepository::getFirstByWhere(['ID'], [['ACTION_FILE', '=', 'retailcrmbonus']]);
+                $bonusPaySystem    = PaySystemActionRepository::getFirstByWhere(
+                    ['ID'],
+                    [['ACTION_FILE', '=', 'retailcrmbonus']]
+                );
                 $paymentCollection = $order->getPaymentCollection();
-
+                
                 if ($bonusPaySystem !== null) {
                     if (count($paymentCollection) === 1) {
-                        /** @var \Bitrix\Sale\Payment $payment */
-                        foreach ($paymentCollection as $payment) {
-                            $oldSum = $payment->getField('SUM');
-                            
-                            $payment->setField('SUM', $oldSum - $bonusCount);
-                            break;
-                        }
+                        /** @var \Bitrix\Sale\Payment $current */
+                        $current = $paymentCollection->current();
+                        $oldSum  = $current->getField('SUM');
+    
+                        $current->setField('SUM', $oldSum - $bonusCount);
+                        $current->setField('COMMENTS', $rate);
                     }
                     
                     $service    = Manager::getObjectById($bonusPaySystem->getId());
@@ -318,7 +332,7 @@ class LoyaltyService
                         && !isset($response->verification->verifiedAt)
                     ) {
                         $newPayment->setPaid('N');
-                        $newPayment->setField('COMMENTS', $response->verification->checkId);
+                        $this->setSmsCookie('lpOrderBonusConfirm', $response->verification);
                     }
                     
                     //если верификация не нужна
@@ -340,8 +354,8 @@ class LoyaltyService
      */
     public function getLoyaltyAccounts(int $idInLoyalty): ?LoyaltyAccount
     {
-        $request  = new LoyaltyAccountRequest();
-        $request->filter->id = $idInLoyalty;
+        $request                = new LoyaltyAccountRequest();
+        $request->filter->id    = $idInLoyalty;
         $request->filter->sites = $this->site;
         
         $response = $this->client->getLoyaltyAccounts($request);
@@ -349,13 +363,154 @@ class LoyaltyService
         if ($response !== null && $response->success && isset($response->loyaltyAccounts[0])) {
             /** @var \Intaro\RetailCrm\Model\Api\LoyaltyAccount $result */
             $result = $response->loyaltyAccounts[0];
-
+            
             return $result;
         }
         
         Utils::handleErrors($response);
         
         return null;
+    }
+    
+    /**
+     * @param int $idInLoyalty
+     * @return array|string[]
+     */
+    public function tryActivate(int $idInLoyalty): ?array
+    {
+        /** @var \Intaro\RetailCrm\Service\LpUserAccountService $userService */
+        $userService = ServiceLocator::get(LpUserAccountService::class);
+        $smsCookie   = $this->getSmsCookie('lpRegister');
+        $nowTime     = new DateTime();
+    
+        if ($smsCookie !== null
+            && isset($smsCookie->resendAvailable)
+            && $smsCookie->resendAvailable > $nowTime
+        ) {
+            return [
+                'msg'         => GetMessage('SMS_VERIFICATION'),
+                'form'        => [
+                    'button' => [
+                        'name'   => GetMessage('SEND'),
+                        'action' => 'sendVerificationCode',
+                    ],
+                    'fields' => [
+                        'smsVerificationCode' => [
+                            'type' => 'text',
+                        ],
+                        'checkId'             => [
+                            'type'  => 'hidden',
+                            'value' => $smsCookie->checkId,
+                        ],
+                    ],
+                ],
+                'resendAvailable' => $smsCookie->resendAvailable->format('Y-m-d H:i:s'),
+                'idInLoyalty' => $idInLoyalty,
+            ];
+        }
+        
+        //Пробуем активировать аккаунт
+        $activateResponse = $userService->activateLoyaltyAccount($idInLoyalty);
+        
+        if ($activateResponse !== null
+            && isset($activateResponse->loyaltyAccount->active)
+            && $activateResponse->loyaltyAccount->active === true
+        ) {
+            return ['msg' => GetMessage('REG_COMPLETE')];
+        }
+        
+        //нужна смс верификация
+        if (isset($activateResponse->verification, $activateResponse->verification->checkId)
+            && $activateResponse !== null
+            && !isset($activateResponse->verification->verifiedAt)
+        ) {
+            $smsCookie = $this->setSmsCookie('lpRegister', $activateResponse->verification);
+            
+            return [
+                'msg'         => GetMessage('SMS_VERIFICATION'),
+                'form'        => [
+                    'button' => [
+                        'name'   => GetMessage('SEND'),
+                        'action' => 'sendVerificationCode',
+                    ],
+                    'fields' => [
+                        'smsVerificationCode' => [
+                            'type' => 'text',
+                        ],
+                        'checkId'             => [
+                            'type'  => 'hidden',
+                            'value' => $smsCookie->checkId,
+                        ],
+                    ],
+                ],
+                'resendAvailable' => $smsCookie->resendAvailable->format('Y-m-d H:i:s'),
+                'idInLoyalty' => $idInLoyalty,
+            ];
+        }
+        
+        return ['msg' => GetMessage('ACTIVATE_ERROR') . ' ' . $activateResponse->errorMsg ?? ''];
+    }
+    
+    /**
+     * Получает десерализованное содержимое куки
+     *
+     * @param string $cookieName
+     * @return \Intaro\RetailCrm\Model\Bitrix\SmsCookie|null
+     */
+    public function getSmsCookie(string $cookieName): ?SmsCookie
+    {
+        try {
+            $application = Application::getInstance();
+            
+            if ($application === null) {
+                return null;
+            }
+            
+            $cookieJson = $application->getContext()->getRequest()->getCookie($cookieName);
+
+            if ($cookieJson !== null) {
+                return Deserializer::deserialize($cookieJson, SmsCookie::class);
+            }
+        } catch (SystemException | Exception $exception) {
+            AddMessage2Log($exception);
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Повторно отправляет бонусную оплату
+     *
+     * Используется при необходимости еще раз отправить смс
+     *
+     * @param $orderId
+     * @return \Intaro\RetailCrm\Model\Bitrix\SmsCookie|bool
+     */
+    public function resendBonusPayment($orderId)
+    {
+        $bonusCount = $this->getBonusCount($orderId);
+        
+        if ($bonusCount === false || $bonusCount === 0) {
+            return false;
+        }
+        
+        /** @var  OrderLoyaltyApplyResponse $response */
+        $response = $this->sendBonusPayment($orderId, $bonusCount);
+        
+        if ($response === null || !($response instanceof OrderLoyaltyApplyResponse)) {
+            return false;
+        }
+        
+        if (isset($response->verification, $response->verification->checkId)
+            && empty($response->verification->verifiedAt)
+        ) {
+            return $this->setSmsCookie('lpOrderBonusConfirm', $response->verification);
+        }
+        
+        if (!empty($response->verification->verifiedAt)) {
+            $this->setBonusPaymentStatus($orderId, 'Y');
+            return true;
+        }
     }
     
     /**
@@ -368,7 +523,7 @@ class LoyaltyService
         $resultFields                 = [];
         $userFields                   = Serializer::serializeArray($user->getLoyalty());
         $userFields['PERSONAL_PHONE'] = $user->getPersonalPhone();
-
+        
         foreach (self::STANDARD_FIELDS as $key => $value) {
             if ($value === 'text' && empty($userFields[$key])) {
                 $resultFields[$key] = [
@@ -399,7 +554,7 @@ class LoyaltyService
     }
     
     /**
-     * TODO реализовать получение кастомных полей из CRM
+     * TODO реализовать получение кастомных полей из CRM (когда это появится в API)
      * @return array
      */
     private function getExternalFields(): array
@@ -412,14 +567,14 @@ class LoyaltyService
      * @param string                                         $userPhone
      * @param array                                          $customFields
      * @param \Intaro\RetailCrm\Model\Bitrix\UserLoyaltyData $loyalty
-     * @return mixed|string|string[]
+     * @return array|string[]|null
      */
     private function registerAndActivateUser(
         int $userId,
         string $userPhone,
         array $customFields,
         UserLoyaltyData $loyalty
-    ) {
+    ): ?array {
         /* @var \Intaro\RetailCrm\Service\LpUserAccountService $service */
         $service    = ServiceLocator::get(LpUserAccountService::class);
         $phone      = $userPhone ?? '';
@@ -430,74 +585,162 @@ class LoyaltyService
         
         $service->activateLpUserInBitrix($createResponse, $userId);
         
-        if ($createResponse !== null
-            && $createResponse->success === false
-            && isset($createResponse->errorMsg)
-            && !empty($createResponse->errorMsg)
-        ) {
-            $errorDetails = '';
-            
-            if (isset($createResponse->errors) && is_array($createResponse->errors)) {
-                $errorDetails = Utils::getResponseErrors($createResponse);
-            }
-            
-            $msg = sprintf('%s (%s %s)', GetMessage('REGISTER_ERROR'), $createResponse->errorMsg, $errorDetails);
-            
-            AddMessage2Log($msg);
-            
-            return $msg;
+        $errorMsg = Utils::getErrorMsg($createResponse);
+        
+        if ($errorMsg !== null) {
+            return ['msg' => $errorMsg];
         }
         
-        if ($createResponse->success === true) {
+        /**
+         * создать получилось, но аккаунт не активен
+         */
+        if ($createResponse !== null
+            && $createResponse->success === true
+            && $createResponse->loyaltyAccount->active === false
+            && $createResponse->loyaltyAccount->activatedAt === null
+            && isset($createResponse->loyaltyAccount->id)
+        ) {
+            return $this->tryActivate($createResponse->loyaltyAccount->id);
+        }
+        
+        if ($createResponse !== null && $createResponse->success === true) {
             //Повторная регистрация оказалась удачной
-            return GetMessage('REG_COMPLETE');
+            return ['msg' => GetMessage('REG_COMPLETE')];
         }
     }
     
     /**
-     * @param int $idInLoyalty
-     * @return array|null
+     * @param string                                      $cookieName
+     * @param \Intaro\RetailCrm\Model\Api\SmsVerification $smsVerification
+     * @return \Intaro\RetailCrm\Model\Bitrix\SmsCookie
      */
-    private function tryActivate(int $idInLoyalty): ?array
+    private function setSmsCookie(string $cookieName, SmsVerification $smsVerification): SmsCookie
     {
-        /** @var \Intaro\RetailCrm\Service\LpUserAccountService $userService */
-        $userService = ServiceLocator::get(LpUserAccountService::class);
+        $resendAvailable = $smsVerification->createdAt->modify('+1 minutes');
         
-        //НЕТ. Обязательных незаполненных полей нет. Тогда пробуем активировать аккаунт
-        $activateResponse = $userService->activateLoyaltyAccount($idInLoyalty);
+        $smsCookie                  = new SmsCookie();
+        $smsCookie->createdAt       = $smsVerification->createdAt;
+        $smsCookie->resendAvailable = $resendAvailable;
+        $smsCookie->isVerified      = !empty($smsVerification->verifiedAt);
+        $smsCookie->expiredAt       = $smsVerification->expiredAt;
+        $smsCookie->checkId         = $smsVerification->checkId;
     
-        if ($activateResponse !== null
-            && isset($activateResponse->loyaltyAccount->active)
-            && $activateResponse->loyaltyAccount->active === true
-        ) {
-            return ['msg' => GetMessage('REG_COMPLETE')];
+        $serializedArray = Serializer::serialize($smsCookie);
+        
+        $cookie = new Cookie(
+            $cookieName,
+            $serializedArray,
+            MakeTimeStamp(
+                $smsVerification->expiredAt->format('Y-m-d H:i:s'),
+                "YYYY.MM.DD HH:MI:SS"
+            )
+        );
+        
+        Context::getCurrent()->getResponse()->addCookie($cookie);
+        
+        return $smsCookie;
+    }
+    
+    /**
+     * устанавливает новый статут для бонусной оплаты
+     *
+     * @param int    $orderId
+     * @param string $newStatus
+     * @return false
+     */
+    private function setBonusPaymentStatus(int $orderId, string $newStatus): bool
+    {
+        if ($newStatus !== 'Y' || $newStatus !== 'N') {
+            return false;
         }
         
-        //нужна смс верификация
-        if (isset($activateResponse->verification, $activateResponse->verification->checkId)
-            && $activateResponse !== null
-            && !isset($activateResponse->verification->verifiedAt)
-        ) {
-            return [
-                'msg'  => GetMessage('SMS_VERIFICATION'),
-                'form' => [
-                    'button' => [
-                        'name'   => GetMessage('SEND'),
-                        'action' => 'sendSmsCode',
-                    ],
-                    'fields' => [
-                        'smsVerificationCode' => [
-                            'type' => 'text',
-                        ],
-                        'checkId'             => [
-                            'type'  => 'hidden',
-                            'value' => $activateResponse->verification->checkId,
-                        ],
-                    ],
-                ],
-            ];
+        try {
+            if (!Loader::includeModule('sale')) {
+                return false;
+            }
+            
+            $order = Order::load($orderId);
+            
+            if ($order !== null) {
+                $paymentCollection = $order->getPaymentCollection();
+                
+                /** @var \Bitrix\Sale\Payment $payment */
+                foreach ($paymentCollection as $payment) {
+                    if ($payment->getPaymentSystemName() === Constants::BONUS_PAYMENT_CODE) {
+                        $payment->setPaid($newStatus);
+                        $order->save();
+                        
+                        return true;
+                    }
+                }
+            }
+        } catch (ArgumentNullException | ArgumentOutOfRangeException | Exception $exception) {
+            AddMessage2Log($exception->getMessage());
+            
+            return false;
         }
+    }
     
-        return ['msg' => GetMessage('ACTIVATE_ERROR') . ' ' . $activateResponse->errorMsg ?? ''];
+    /**
+     * @param $orderId
+     * @return false|float
+     */
+    private function getBonusCount($orderId)
+    {
+        $bonusPayment = $this->getBonusPayment($orderId);
+        
+        if ($bonusPayment === false) {
+            return false;
+        }
+
+        $rate = (int) $bonusPayment->getField('COMMENTS') > 0 ? $bonusPayment->getField('COMMENTS') : 1;
+        
+        return (int) $bonusPayment->getField('SUM') / $rate;
+    }
+    
+    /**
+     * Возвращает бонусную оплату
+     *
+     * @param $orderId
+     * @return \Bitrix\Sale\Payment|false
+     */
+    public function getBonusPayment($orderId)
+    {
+        try {
+            if (!Loader::includeModule('sale')) {
+                return false;
+            }
+            
+            $order = Order::load($orderId);
+        
+            if ($order !== null) {
+                try {
+                    $paySystemAction = PaySystemActionRepository::getFirstByWhere(
+                        ['ID'],
+                        [[ 'CODE', '=', Constants::BONUS_PAYMENT_CODE]]
+                    );
+                } catch (ObjectPropertyException | ArgumentException | SystemException $e) {
+                    AddMessage2Log($e->getMessage());
+                    return false;
+                }
+                
+                if ($paySystemAction === null) {
+                    return false;
+                }
+                
+                $paymentCollection = $order->getPaymentCollection();
+            
+                /** @var \Bitrix\Sale\Payment $payment */
+                foreach ($paymentCollection as $payment) {
+                    if ($payment->getPaymentSystemId() === $paySystemAction->getId()) {
+                        return $payment;
+                    }
+                }
+            }
+        } catch (ArgumentNullException | Exception $exception) {
+            AddMessage2Log($exception->getMessage());
+        }
+        
+        return false;
     }
 }

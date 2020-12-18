@@ -42,7 +42,7 @@ class OrderLoyaltyApplyResponse extends AbstractApiResponseModel
     /**
      * @var \Intaro\RetailCrm\Model\Api\SmsVerification
      *
-     * @Mapping\Type("\Intaro\RetailCrm\Model\Api\SerializedLoyaltyOrder")
+     * @Mapping\Type("\Intaro\RetailCrm\Model\Api\SmsVerification")
      * @Mapping\SerializedName("verification")
      */
     public $verification;

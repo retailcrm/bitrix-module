@@ -62,23 +62,10 @@ class Basket extends Controller
             $item['WILL_BE_CREDITED_BONUS'] = $calculate->order->items[$key]->bonusesCreditTotal;
         }
         
+        unset($item);
+        
         $response['BASKET_ITEM_RENDER_DATA'] = $basketData['BASKET_ITEM_RENDER_DATA'];
         
         return $response;
-    }
-    
-    /**
-     * @return \array[][]
-     */
-    public function sendVerificationCode(): array
-    {
-        return [
-            'calculateBasketBonuses' => [
-                '-prefilters' => [
-                    new Authentication,
-                    new HttpMethod(['POST']),
-                ],
-            ],
-        ];
     }
 }
