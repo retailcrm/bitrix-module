@@ -7,12 +7,15 @@ use Bitrix\Main\Engine\Controller;
 use Bitrix\Main\Loader;
 use Bitrix\Main\Request;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
+use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\DataProvider\CurrentUserProvider;
 use Intaro\RetailCrm\Model\Api\Request\SmsVerification\SmsVerificationConfirmRequest;
 use Intaro\RetailCrm\Model\Api\SmsVerificationConfirm;
 use Intaro\RetailCrm\Model\Bitrix\User;
 use Intaro\RetailCrm\Repository\UserRepository;
+use Intaro\RetailCrm\Service\LoyaltyService;
 use Intaro\RetailCrm\Service\LpUserAccountService;
+use Intaro\RetailCrm\Service\Utils;
 
 class Register extends Controller
 {
@@ -32,7 +35,7 @@ class Register extends Controller
     /**
      * @return \array[][]
      */
-    public function sendVerificationCode(): array
+    public function configureActions(): array
     {
         return [
             'saveUserLpFields' => [
@@ -56,7 +59,7 @@ class Register extends Controller
         $cardNumber   = htmlspecialchars(trim($request['UF_CARD_NUM_INTARO'] ?? ''));
         $userProvider = new CurrentUserProvider();
         $customer     = $userProvider->get();
-        $phoneNumber  = $this->phoneValidate($request['PERSONAL_PHONE'] ?? '');
+        $phoneNumber  = Utils::filterPhone($request['PERSONAL_PHONE'] ?? '');
         $updateFields = [
             'UF_CARD_NUM_INTARO'  => $cardNumber ?? '',
             'UF_REG_IN_PL_INTARO' => true,
@@ -121,7 +124,7 @@ class Register extends Controller
      */
     public function accountCreateAction(array $request): array
     {
-        $phoneNumber = $this->phoneValidate($request['phone']);
+        $phoneNumber = Utils::filterPhone($request['phone']);
         
         if (!is_numeric($phoneNumber)) {
             return [
@@ -182,23 +185,27 @@ class Register extends Controller
     }
     
     /**
-     * Валидирует телефон
-     *
-     * @param string $phoneNumber
-     * @return string|string[]|null
+     * @param string $idInLoyalty
+     * @return string[]|null
      */
-    private function phoneValidate(string $phoneNumber)
+    public function resendRegisterSmsAction(string $idInLoyalty): ?array
     {
-        $phoneNumber = preg_replace('/\s|\+|-|\(|\)/', '', $phoneNumber);
+        if (!is_numeric($idInLoyalty)) {
+            return ['msg' => GetMessage('ARGUMENT_ERROR')];
+        }
         
-        return $phoneNumber;
+        /** @var LoyaltyService $service */
+        $service = ServiceLocator::get(LoyaltyService::class);
+        
+        return $service->tryActivate((int) $idInLoyalty);
     }
     
     /**
      * @param string $code
-     * @return array
+     * @param string $checkId
+     * @return array|string[]
      */
-    public function sendVerificationCodeAction(string $code): array
+    public function sendVerificationCodeAction(string $code, string $checkId): array
     {
         $code       = trim($code);
         $lengthCode = strlen($code);
@@ -210,10 +217,11 @@ class Register extends Controller
                 'msgColor' => 'brown',
             ];
         }
-        
-        $smsVerification                     = new SmsVerificationConfirmRequest();
-        $smsVerification->verification       = new SmsVerificationConfirm();
-        $smsVerification->verification->code = $code;
+    
+        $smsVerification                        = new SmsVerificationConfirmRequest();
+        $smsVerification->verification          = new SmsVerificationConfirm();
+        $smsVerification->verification->code    = $code;
+        $smsVerification->verification->checkId = $checkId;
         
         /** @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter $client */
         $client             = ClientFactory::createClientAdapter();
