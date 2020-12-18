@@ -40,14 +40,6 @@ class LoyaltyCalculateResponse extends AbstractApiResponseModel
     public $order;
     
     /**
-     * @var \Intaro\RetailCrm\Model\Api\CalculateMaximum
-     *
-     * @Mapping\Type("\Intaro\RetailCrm\Model\Api\CalculateMaximum")
-     * @Mapping\SerializedName("maximum")
-     */
-    public $maximum;
-    
-    /**
      * Позиция в заказе
      *
      * @var array $calculations
@@ -56,4 +48,14 @@ class LoyaltyCalculateResponse extends AbstractApiResponseModel
      * @Mapping\SerializedName("calculations")
      */
     public $calculations;
+    
+    /**
+     * Программа лояльности
+     *
+     * @var \Intaro\RetailCrm\Model\Api\SerializedLoyalty
+     *
+     * @Mapping\Type("\Intaro\RetailCrm\Model\Api\SerializedLoyalty")
+     * @Mapping\SerializedName("loyalty")
+     */
+    public $loyalty;
 }

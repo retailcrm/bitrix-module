@@ -4,7 +4,6 @@ namespace Intaro\RetailCrm\Controller;
 
 use Bitrix\Main\Engine\ActionFilter\Authentication;
 use Bitrix\Main\Engine\Controller;
-use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Constants;
 
 class AdminPanel extends Controller
@@ -100,7 +99,7 @@ class AdminPanel extends Controller
         }
 
         return [
-            'status' => isset($status) ? $status : false,
+            'status' => $status ?? false,
         ];
     }
 

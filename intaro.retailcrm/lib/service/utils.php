@@ -12,14 +12,12 @@
 namespace Intaro\RetailCrm\Service;
 
 use Bitrix\Main\Text\Encoding;
-use Intaro\RetailCrm\Model\Api\AbstractApiModel;
-use Intaro\RetailCrm\Model\Api\ApiModelInterface;
 use Intaro\RetailCrm\Model\Api\Response\AbstractApiResponseModel;
 
 /**
  * Class Utils
  *
- * @package Intaro\RetailCrm\Component
+ * @package Intaro\RetailCrm\Service
  */
 class Utils
 {
@@ -140,6 +138,31 @@ class Utils
         return $errorDetails;
     }
     
+    /**
+     * @param \Intaro\RetailCrm\Model\Api\Response\AbstractApiResponseModel|null $response
+     * @return string|null
+     */
+    public static function getErrorMsg(?AbstractApiResponseModel $response): ?string
+    {
+        if ($response !== null
+            && isset($response->errorMsg)
+            && !empty($response->errorMsg)
+        ) {
+            $errorDetails = '';
+            
+            if (isset($response->errors) && is_array($response->errors)) {
+                $errorDetails = self::getResponseErrors($response);
+            }
+            
+            $msg = sprintf('%s (%s %s)', GetMessage('REGISTER_ERROR'), $response->errorMsg, $errorDetails);
+            
+            AddMessage2Log($msg);
+            
+            return $msg;
+        }
+        
+        return null;
+    }
     
     /**
      * @param \Intaro\RetailCrm\Model\Api\Response\AbstractApiResponseModel $response
@@ -158,5 +181,18 @@ class Utils
         
             AddMessage2Log($msg);
         }
+    }
+    
+    /**
+     * Валидирует телефон
+     *
+     * @param string $phoneNumber
+     * @return string|string[]|null
+     */
+    public static function filterPhone(string $phoneNumber)
+    {
+        $phoneNumber = preg_replace('/\s|\+|-|\(|\)/', '', $phoneNumber);
+        
+        return $phoneNumber;
     }
 }
