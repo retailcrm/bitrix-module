@@ -4,7 +4,7 @@
  *
  * @category Integration
  * @package  Intaro\RetailCrm\Service
- * @author   retailCRM <integration@retailcrm.ru>
+ * @author   RetailCRM <integration@retailcrm.ru>
  * @license  MIT
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
@@ -30,7 +30,7 @@ use Intaro\RetailCrm\Model\Api\SmsVerificationConfirm;
 class LpUserAccountService
 {
     public const NOT_AUTHORIZE = 'Пользователь на авторизован';
-    
+
     /**
      * Получает статус текущего состояния верификации
      *
@@ -43,10 +43,10 @@ class LpUserAccountService
         $client           = ClientFactory::createClientAdapter();
         $request          = new SmsVerificationStatusRequest();
         $request->checkId = $checkId;
-        
+
         return $client->checkStatusPlVerification($request);
     }
-    
+
     /**
      * @param int $loyaltyId
      * @return \Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountActivateResponse|null
@@ -55,25 +55,25 @@ class LpUserAccountService
     {
         /** @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter $client */
         $client = ClientFactory::createClientAdapter();
-        
+
         $activateRequest            = new LoyaltyAccountActivateRequest();
         $activateRequest->loyaltyId = $loyaltyId;
-    
+
         $response = $client->activateLoyaltyAccount($activateRequest);
-        
+
         if ($response === null) {
             return null;
         }
-    
+
         if ($response->success && $response->loyaltyAccount->activatedAt instanceof DateTime) {
             return $response;
         }
-        
+
         Utils::handleErrors($response);
-        
+
         return $response;
     }
-    
+
     /**
      * @param string $phone
      * @param string $card
@@ -85,9 +85,9 @@ class LpUserAccountService
     {
         /** @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter $client */
         $client = ClientFactory::createClientAdapter();
-        
+
         $credentials = $client->getCredentials();
-        
+
         $createRequest                                       = new LoyaltyAccountCreateRequest();
         $createRequest->site                                 = $credentials->sitesAvailable[0];
         $createRequest->loyaltyAccount                       = new SerializedCreateLoyaltyAccount();
@@ -95,16 +95,16 @@ class LpUserAccountService
         $createRequest->loyaltyAccount->cardNumber           = $card ?? '';
         $createRequest->loyaltyAccount->customer->externalId = $externalId;
         $createRequest->loyaltyAccount->customFields         = $customFields ?? [];
-    
+
         $createResponse = $client->createLoyaltyAccount($createRequest);
-        
+
         if ($createResponse instanceof LoyaltyAccountCreateResponse) {
             Utils::handleErrors($createResponse, GetMessage('REGISTER_ERROR'));
         }
-        
+
         return $createResponse;
     }
-    
+
     /**
      * @param $isExternalRegister
      * @return array
@@ -114,7 +114,7 @@ class LpUserAccountService
         //TODO Реализовать метод, когда появится возможность получить обязательные поля
         return [];
     }
-    
+
     /**
      * @param \Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountCreateResponse|null $createResponse
      * @param int                                                                                    $userId
@@ -132,10 +132,10 @@ class LpUserAccountService
                 'UF_LP_ID_INTARO'      => $createResponse->loyaltyAccount->id,
             ]);
         }
-    
+
         Utils::handleErrors($createResponse, GetMessage('REGISTER_ERROR'));
     }
-    
+
     /**
      * Подтверждает верификацию
      *
@@ -147,18 +147,18 @@ class LpUserAccountService
     {
         /** @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter $client */
         $client = ClientFactory::createClientAdapter();
-        
+
         $request                        = new SmsVerificationConfirmRequest();
         $request->verification          = new SmsVerificationConfirm();
         $request->verification->code    = $code;
         $request->verification->checkId = $checkId;
-        
+
         $response = $client->sendVerificationCode($request);
-    
+
         if ($response !== null) {
             Utils::handleErrors($response, GetMessage('DEBITING_BONUSES_ERROR'));
         }
-    
+
         return $response;
     }
 }

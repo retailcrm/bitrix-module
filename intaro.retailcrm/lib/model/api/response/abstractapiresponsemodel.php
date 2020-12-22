@@ -4,7 +4,7 @@
  *
  * @category Integration
  * @package  Intaro\RetailCrm\Model\Api
- * @author   retailCRM <integration@retailcrm.ru>
+ * @author   RetailCRM <integration@retailcrm.ru>
  * @license  MIT
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
@@ -28,7 +28,7 @@ class AbstractApiResponseModel extends AbstractApiModel
      * @Mapping\SerializedName("errorMsg")
      */
     public $errorMsg;
-    
+
     /**
      * @var array
      *
