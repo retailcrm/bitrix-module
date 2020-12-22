@@ -4,7 +4,7 @@
  *
  * @category Integration
  * @package  Intaro\RetailCrm\Component\ApiClient
- * @author   retailCRM <integration@retailcrm.ru>
+ * @author   RetailCRM <integration@retailcrm.ru>
  * @license  MIT
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
@@ -105,9 +105,9 @@ use RetailCrm\Response\ApiResponse;
 class ClientAdapter
 {
     use BaseClientTrait;
-    use LoyaltyTrait;
     use CustomersTrait;
     use CustomersCorporateTrait;
+    use LoyaltyTrait;
 
     /** @var string */
     public const ID = 'id';
@@ -131,7 +131,7 @@ class ClientAdapter
 
         throw new \RuntimeException(sprintf("Method '%s' doesn't exist.", $name));
     }
-    
+
     /**
      * @return \Intaro\RetailCrm\Model\Api\Response\Settings\CredentialsResponse
      */

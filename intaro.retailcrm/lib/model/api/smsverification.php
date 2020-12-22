@@ -4,7 +4,7 @@
  *
  * @category Integration
  * @package  Intaro\RetailCrm\Model\Api
- * @author   retailCRM <integration@retailcrm.ru>
+ * @author   RetailCRM <integration@retailcrm.ru>
  * @license  MIT
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
@@ -29,7 +29,7 @@ class SmsVerification extends AbstractApiModel
      * @Mapping\SerializedName("createdAt")
      */
     public $createdAt;
-    
+
     /**
      * Дата окончания срока жизни. (Y-m-d H:i:s)
      *
@@ -39,7 +39,7 @@ class SmsVerification extends AbstractApiModel
      * @Mapping\SerializedName("expiredAt")
      */
     public $expiredAt;
-    
+
     /**
      * Дата успешной верификации. (Y-m-d H:i:s)
      *
@@ -49,7 +49,7 @@ class SmsVerification extends AbstractApiModel
      * @Mapping\SerializedName("verifiedAt")
      */
     public $verifiedAt;
-    
+
     /**
      * Идентификатор для проверки кода
      *
@@ -59,7 +59,7 @@ class SmsVerification extends AbstractApiModel
      * @Mapping\SerializedName("checkId")
      */
     public $checkId;
-    
+
     /**
      * Тип действия
      *

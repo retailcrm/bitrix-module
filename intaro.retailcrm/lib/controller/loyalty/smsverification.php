@@ -4,7 +4,7 @@
  *
  * @category Integration
  * @package  Intaro\RetailCrm\Controller\Loyalty
- * @author   retailCRM <integration@retailcrm.ru>
+ * @author   RetailCRM <integration@retailcrm.ru>
  * @license  MIT
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
@@ -26,10 +26,10 @@ class SmsVerification extends Controller
 {
     /** @var int  */
     const DEFAULT_CODE_LENGHT = 4;
-    
+
     /** @var LpUserAccountService */
     private $service;
-    
+
     /**
      * AdminPanel constructor.
      *
@@ -40,7 +40,7 @@ class SmsVerification extends Controller
         $this->service = ServiceLocator::get(LpUserAccountService::class);
         parent::__construct($request);
     }
-    
+
     /**
      * Контроллер получает статус текущего состояния верификации
      *
@@ -51,7 +51,7 @@ class SmsVerification extends Controller
     {
         return $this->service->getSmsStatus($checkId);
     }
-    
+
     /**
      * Контроллер подтверждает верификацию
      *
@@ -63,7 +63,7 @@ class SmsVerification extends Controller
     {
         return $this->service->confirmVerification($code, $checkId);
     }
-    
+
     /**
      * Контроллер проверяет, зарегистрирован ли пользователь в программе лояльности
      *
@@ -74,7 +74,7 @@ class SmsVerification extends Controller
     {
         return $this->service->checkPlRegistrationStatus($userId);
     }
-    
+
     /**
      * @return \array[][]
      */

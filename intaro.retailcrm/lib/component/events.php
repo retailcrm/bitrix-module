@@ -4,7 +4,7 @@
  *
  * @category Integration
  * @package  Intaro\RetailCrm\Component
- * @author   retailCRM <integration@retailcrm.ru>
+ * @author   RetailCRM <integration@retailcrm.ru>
  * @license  MIT
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
@@ -21,17 +21,17 @@ use Bitrix\Main\Event;
 class Events
 {
     /**
-     * Fired before returning result from retailCRM customer builder (customer for retailCRM API)
+     * Fired before returning result from RetailCRM customer builder (customer for RetailCRM API)
      */
     public const API_CUSTOMER_BUILDER_GET_RESULT = 'OnRetailcrmApiCustomerBuilderGetResult';
 
     /**
-     * Fired before returning result from retailCRM corporate customer builder (customer for retailCRM API)
+     * Fired before returning result from RetailCRM corporate customer builder (customer for RetailCRM API)
      */
     public const API_CORPORATE_CUSTOMER_BUILDER_GET_RESULT = 'OnRetailcrmApiCorporateCustomerBuilderGetResult';
 
     /**
-     * Fired before returning result from retailCRM customer builder (builds user data for Bitrix)
+     * Fired before returning result from RetailCRM customer builder (builds user data for Bitrix)
      */
     public const BITRIX_CUSTOMER_BUILDER_GET_RESULT = 'OnRetailcrmBitrixCustomerBuilderGetResult';
 
