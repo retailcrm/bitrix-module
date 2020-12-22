@@ -4,7 +4,7 @@
  *
  * @category Integration
  * @package  Intaro\RetailCrm\Component\Builder\API
- * @author   retailCRM <integration@retailcrm.ru>
+ * @author   RetailCRM <integration@retailcrm.ru>
  * @license  MIT
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
@@ -295,7 +295,7 @@ class CorporateCustomerBuilder implements BuilderInterface
 
         if (null === $site) {
             throw new BuilderException(sprintf(
-                'Site `%s` is not connected to any sites in the retailCRM',
+                'Site `%s` is not connected to any sites in the RetailCRM',
                 $shop
             ));
         }

@@ -4,7 +4,7 @@
  *
  * @category Integration
  * @package  Intaro\RetailCrm\Component
- * @author   retailCRM <integration@retailcrm.ru>
+ * @author   RetailCRM <integration@retailcrm.ru>
  * @license  MIT
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
@@ -85,7 +85,7 @@ class ServiceLocator
     {
         return static::$services[$name] ?? null;
     }
-
+    
     /**
      * Get or create service (instantiates service if it wasn't created earlier; $name must be FQN).
      *

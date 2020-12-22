@@ -4,7 +4,7 @@
  *
  * @category Integration
  * @package  Intaro\RetailCrm\Component\Builder\Bitrix
- * @author   retailCRM <integration@retailcrm.ru>
+ * @author   RetailCRM <integration@retailcrm.ru>
  * @license  MIT
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
@@ -31,7 +31,7 @@ class CustomerBuilder implements BuilderInterface
 
     /** @var \Intaro\RetailCrm\Model\Api\Customer */
     protected $customer;
-    
+
     /** @var Utils */
     protected $utils;
 

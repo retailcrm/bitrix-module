@@ -5,7 +5,7 @@
  *
  * @category Integration
  * @package  Intaro\RetailCrm\Repository
- * @author   retailCRM <integration@retailcrm.ru>
+ * @author   RetailCRM <integration@retailcrm.ru>
  * @license  MIT
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
@@ -43,14 +43,14 @@ class UserLoyaltyDataRepository extends AbstractRepository
             ])
             ->where([['VALUE_ID', '=', $userId]])
             ->fetch();
-    
+
         if (!$loyaltyFields) {
             return null;
         }
-        
+
         /** @var UserLoyaltyData $loyalty */
         $loyalty = Deserializer::deserializeArray($loyaltyFields, UserLoyaltyData::class);
-        
+
         return $loyalty;
     }
 }

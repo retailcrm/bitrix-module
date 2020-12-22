@@ -4,7 +4,7 @@
  *
  * @category Integration
  * @package  Intaro\RetailCrm\Model\Api\Response\Loyalty\Account
- * @author   retailCRM <integration@retailcrm.ru>
+ * @author   RetailCRM <integration@retailcrm.ru>
  * @license  MIT
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
@@ -30,7 +30,7 @@ class LoyaltyAccountResponse extends AbstractApiResponseModel
      * @Mapping\SerializedName("success")
      */
     public $success;
-    
+
     /**
      * @var \Intaro\RetailCrm\Model\Api\PaginationResponse
      *
@@ -38,7 +38,7 @@ class LoyaltyAccountResponse extends AbstractApiResponseModel
      * @Mapping\SerializedName("pagination")
      */
     public $pagination;
-    
+
     /**
      * @var array $loyaltyAccounts
      *

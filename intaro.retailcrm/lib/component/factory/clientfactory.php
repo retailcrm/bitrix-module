@@ -4,7 +4,7 @@
  *
  * @category Integration
  * @package  Intaro\RetailCrm\Component\Factory
- * @author   retailCRM <integration@retailcrm.ru>
+ * @author   RetailCRM <integration@retailcrm.ru>
  * @license  MIT
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
@@ -33,7 +33,7 @@ class ClientFactory
         if (empty($apiHost) || empty($apiKey)) {
             return null;
         }
-    
+
         return new ClientAdapter($apiHost, $apiKey);
     }
 }
