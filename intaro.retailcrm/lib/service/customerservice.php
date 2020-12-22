@@ -4,7 +4,7 @@
  *
  * @category Integration
  * @package  Intaro\RetailCrm\Service
- * @author   retailCRM <integration@retailcrm.ru>
+ * @author   RetailCRM <integration@retailcrm.ru>
  * @license  MIT
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
@@ -32,12 +32,12 @@ class CustomerService
      * @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter
      */
     private $client;
-    
+
     /**
      * @var \Intaro\RetailCrm\Model\Api\Response\Settings\CredentialsResponse
      */
     private $credentials;
-    
+
     /**
      * LoyaltyService constructor.
      */
@@ -47,7 +47,7 @@ class CustomerService
         $this->client      = ClientFactory::createClientAdapter();
         $this->credentials = $this->client->getCredentials();
     }
-    
+
     /**
      * @param \Intaro\RetailCrm\Model\Api\Customer $customer
      *
@@ -57,14 +57,14 @@ class CustomerService
     {
         $extCustomer = $this->getCustomer($customer->externalId);
         $customer->site   = $this->credentials->sitesAvailable[0];
-        
+
         if ($extCustomer !== null) {
             return $this->editCustomer($customer);
         }
-        
+
         return $this->createCustomer($customer);
     }
-    
+
     /**
      * @param \Intaro\RetailCrm\Model\Api\Customer $customer
      *
@@ -76,18 +76,18 @@ class CustomerService
         $customersEditRequest->customer = $customer;
         $customersEditRequest->site     = $this->credentials->sitesAvailable[0];
         $customersEditRequest->by       = 'externalId';
-    
+
         $response = $this->client->customersEdit($customersEditRequest);
-    
+
         if ($response !== null && $response->success && $response->id > 0) {
             return $response->id;
         }
-        
+
         Utils::handleErrors($response);
-    
+
         return false;
     }
-    
+
     /**
      * @param \Intaro\RetailCrm\Model\Api\Customer $customer
      *
@@ -100,21 +100,21 @@ class CustomerService
         if ($crmCustomer instanceof Customer) {
             return false;
         }
-        
+
         $customersUploadRequest           = new CustomersCreateRequest();
         $customersUploadRequest->site     = $this->credentials->sitesAvailable[0];
         $customersUploadRequest->customer = $customer;
         $response                         = $this->client->customersCreate($customersUploadRequest);
-    
+
         if ($response !== null && $response->success && $response->id > 0) {
             return $response->id;
         }
-    
+
         Utils::handleErrors($response);
-        
+
         return false;
     }
-    
+
     /**
      * @param string $externalId
      *
@@ -128,16 +128,16 @@ class CustomerService
         $customersGetRequest->site = $this->credentials->sitesAvailable[0];
 
         $response = $this->client->customersGet($customersGetRequest);
-        
+
         if ($response !== null && isset($response->customer) && $response->customer->id > 0) {
             return $response->customer;
         }
-    
+
         Utils::handleErrors($response);
-        
+
         return null;
     }
-    
+
     /**
      * @param int $userId
      * @return \Intaro\RetailCrm\Model\Api\Customer|mixed
@@ -148,7 +148,7 @@ class CustomerService
         $key = array_search('individual', $contragentsTypes, true);
 
         $builder = new CustomerBuilder();
-        
+
         try {
             return $builder
                 ->reset()
