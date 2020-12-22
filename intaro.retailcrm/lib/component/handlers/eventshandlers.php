@@ -5,7 +5,7 @@
  *
  * @category Integration
  * @package  Intaro\RetailCrm\Component\Loyalty
- * @author   retailCRM <integration@retailcrm.ru>
+ * @author   RetailCRM <integration@retailcrm.ru>
  * @license  MIT
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
@@ -20,7 +20,6 @@ use Bitrix\Main\HttpRequest;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
 use Bitrix\Sale\Order;
-use Intaro\RetailCrm\Component\Builder\Api\CustomerBuilder;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Repository\UserRepository;
@@ -43,7 +42,7 @@ class EventsHandlers
     {
         IncludeModuleLangFile(__FILE__);
     }
-
+    
     /**
      * Обработчик события, вызываемого при обновлении еще не сохраненного заказа
      *
@@ -64,9 +63,9 @@ class EventsHandlers
                 $arResult['LOYALTY']['ERROR'] = GetMessage('BONUS_ERROR_MSG');
                 return;
             }
-
+            
             $bonusDiscount = $bonusInput * $chargeRate;
-
+            
             if ($bonusInput > 0
                 && $availableBonuses > 0
                 && $arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE'] >= $bonusDiscount
@@ -77,7 +76,7 @@ class EventsHandlers
             }
         }
     }
-
+    
     /**
      * Обработчик события, вызываемого ПОСЛЕ сохранения заказа (OnSaleOrderSaved)
      *
@@ -91,9 +90,9 @@ class EventsHandlers
         try {
             // TODO: Replace old call with a new one.
             $retailCrmEvent->orderSave($event);
-
+    
             $isNew = $event->getParameter("IS_NEW");
-
+    
             if (isset($_POST['bonus-input'], $_POST['available-bonuses'])
                 && $isNew
                 && (int)$_POST['available-bonuses'] >= (int)$_POST['bonus-input']
@@ -101,14 +100,14 @@ class EventsHandlers
                 $rate       = isset($_POST['charge-rate']) ? htmlspecialchars(trim($_POST['charge-rate'])) : 1;
                 $bonusCount = (int)$_POST['bonus-input'] * $rate;
                 $order      = $event->getParameter("ENTITY");
-
+                
                 $loyaltyService->applyBonusesInOrder($order, $bonusCount, $rate);
             }
         } catch (ObjectPropertyException | ArgumentException | SystemException $e) {
             AddMessage2Log(GetMessage('CAN_NOT_SAVE_ORDER') . $e->getMessage());
         }
     }
-
+    
     /**
      * Регистрирует пользователя в CRM системе после регистрации на сайте
      *
@@ -120,22 +119,22 @@ class EventsHandlers
     {
         if (isset($arFields['USER_ID']) && $arFields['USER_ID'] > 0) {
             $user = UserRepository::getById($arFields['USER_ID']);
-
+            
             if (isset($_POST['REGISTER']['PERSONAL_PHONE'])) {
                 $phone = htmlspecialchars($_POST['REGISTER']['PERSONAL_PHONE']);
-
+                
                 if ($user !== null) {
                     $user->setPersonalPhone($phone);
                     $user->save();
                 }
-
+                
                 $arFields['PERSONAL_PHONE'] = $phone;
             }
-
+    
             /* @var CustomerService $customerService */
             $customerService = ServiceLocator::get(CustomerService::class);
             $customer        = $customerService->createModel($arFields['USER_ID']);
-
+            
             $customerService->createOrUpdateCustomer($customer);
 
             //Если пользователь выразил желание зарегистрироваться в ПЛ и согласился со всеми правилами
@@ -147,7 +146,7 @@ class EventsHandlers
                 $card           = $arFields['UF_CARD_NUM_INTARO'] ?? '';
                 $customerId     = (string) $arFields['USER_ID'];
                 $customFields   = $arFields['UF_CSTM_FLDS_INTARO'] ?? [];
-
+                
                 /** @var LpUserAccountService $service */
                 $service        = ServiceLocator::get(LpUserAccountService::class);
                 $createResponse = $service->createLoyaltyAccount($phone, $card, $customerId, $customFields);

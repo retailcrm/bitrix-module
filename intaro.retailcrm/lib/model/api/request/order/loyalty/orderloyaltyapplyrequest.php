@@ -4,7 +4,7 @@
  *
  * @category Integration
  * @package  Intaro\RetailCrm\Model\Api\Request\Order\Loyalty
- * @author   retailCRM <integration@retailcrm.ru>
+ * @author   RetailCRM <integration@retailcrm.ru>
  * @license  MIT
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
@@ -30,7 +30,7 @@ class OrderLoyaltyApplyRequest extends AbstractApiModel
      * @Mapping\SerializedName("site")
      */
     public $site;
-    
+
     /**
      * @var \Intaro\RetailCrm\Model\Api\SerializedOrderReference
      *
@@ -38,7 +38,7 @@ class OrderLoyaltyApplyRequest extends AbstractApiModel
      * @Mapping\SerializedName("order")
      */
     public $order;
-    
+
     /**
      * Количество бонусов для списания
      *
