@@ -91,6 +91,8 @@ class RetailCrmOrder
                 if (in_array($search, array('fio', 'phone', 'email'))) {//fio, phone, email
                     if ($search == 'fio') {
                         $order = array_merge($order, RCrmActions::explodeFIO($prop['VALUE'][0]));//add fio fields
+                    } elseif ($search == 'email' && mb_strlen($prop['VALUE'][0]) > 100) {
+                        continue;
                     } else {
                         // ignoring a property with a non-set group if the field value is already set
                         if (!empty($order[$search]) && $prop['PROPS_GROUP_ID'] == 0) {
