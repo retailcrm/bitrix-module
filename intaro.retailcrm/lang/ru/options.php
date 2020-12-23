@@ -70,7 +70,8 @@ $MESS ['ORDER_TYPES_LIST_CUSTOM'] = 'Внимание! Используется 
 $MESS ['ORDER_UPL_START'] = 'Начать выгрузку';
 
 $MESS ['UPLOAD_ORDERS_OPTIONS'] = 'Ручная выгрузка';
-
+$MESS ['LOYALTY_PROGRAM_TITLE'] = 'Программа лояльности';
+$MESS ['LOYALTY_PROGRAM_TOGGLE_MSG'] = 'Включить программу лояльности';
 $MESS ['OTHER_OPTIONS'] = 'Прочие настройки';
 $MESS ['ORDERS_OPTIONS'] = 'Настройки заказов';
 $MESS ['ORDER_NUMBERS'] = 'Транслировать номера заказов созданных в црм в магазин';
@@ -115,3 +116,33 @@ $MESS['PURCHASE_ICML'] = "При включенной опции в генера
 $MESS['PURCHASE_HEADER'] = "Сброс закупочной цены в icml";
 $MESS['PHONE_REQUIRED'] = "В настройках главного модуля была включена опция «Номер телефона является обязательным», что может вызвать проблемы с обратной синхронизацией. Для корректной работы необходимо отключить данную опцию.";
 $MESS['CHANGE_SHIPMENT_STATUS_FROM_CRM'] = "Изменять статус отгрузки при получении соответствующего флага из RetailCRM";
+$MESS ['LOYALTY_PROGRAM_TITLE'] = 'Программа лояльности';
+$MESS ['LOYALTY_PROGRAM_TOGGLE_MSG'] = 'Активность программы лояльности';
+$MESS ['LP_CUSTOM_TEMP_CREATE_MSG'] = 'Создать шаблон intaro.RetailCRM для компонента оформления заказа sale.order.ajax c функциями Программы лояльности. <br> <b>Внимение:</b> если шаблон уже существует, то он будет перезаписан';
+$MESS ['LP_DEF_TEMP_CREATE_MSG'] = 'Заменить шаблон .default компонента sale.order.ajax шаблоном с функциями Программы лояльности. <br> Если в папке .local уже есть шаблон .default для sale.order.ajax, то он будет скопирован в папку .default_backup';
+
+$MESS ['LOYALTY_PROGRAM_TITLE'] = 'Программа лояльности';
+$MESS ['LOYALTY_PROGRAM_TOGGLE_MSG'] = 'Активность программы лояльности';
+$MESS ['LP_CUSTOM_TEMP_CREATE_MSG'] = 'Создать шаблон intaro_retailCRM для компонента оформления заказа sale.order.ajax c функциями Программы лояльности';
+$MESS ['LP_DEF_TEMP_CREATE_MSG'] = 'Заменить шаблон .default компонента sale.order.ajax шаблоном с функциями Программы лояльности. <br> Если в папке .local уже есть шаблон .default для sale.order.ajax, то он будет скопирован в папку .default_bak_#';
+$MESS ['LP_CUSTOM_TEMP_CREATE_MSG'] = 'Создать шаблон intaro.RetailCRM для компонента оформления заказа sale.order.ajax c функциями Программы лояльности. <br> <b>Внимание:</b> если шаблон уже существует, то он будет перезаписан';
+$MESS ['LP_CUSTOM_REG_TEMP_CREATE_MSG'] = 'Создать шаблон intaro.RetailCRM для компонента регистрации main.register c функциями Программы лояльности. <br> <b>Внимание:</b> если шаблон уже существует, то он будет перезаписан';
+$MESS ['LP_DEF_TEMP_CREATE_MSG'] = 'Заменить шаблон .default компонента sale.order.ajax шаблоном с функциями Программы лояльности. <br>  Если в папке шаблонов компонента уже будет .default, то он будет скопирован в папку .default_backup';
+$MESS ['LP_CUSTOM_TEMP_CREATE_MSG'] = 'Создать шаблон intaro.RetailCRM для компонента регистрации %s c функциями Программы лояльности. <br> <b>Внимание:</b> если шаблон уже существует, то он будет перезаписан';
+$MESS ['LP_DEF_TEMP_CREATE_MSG'] = 'Заменить шаблон .default компонента %s шаблоном с функциями Программы лояльности. <br>  Если в папке шаблонов компонента уже будет .default, то он будет скопирован в папку .default_backup';
+$MESS ['LP_CREATE_TEMPLATE'] = 'Создать шаблон';
+$MESS ['LP_REPLACE_TEMPLATE'] = 'Заменить шаблон';
+$MESS ['LP_SALE_ORDER_AJAX_HEAD'] = ' Управление компонентом Оформление заказа (sale.order.ajax)';
+$MESS ['LP_TEMP_CHOICE_MSG'] = 'Выберите, в каких шаблонах сайта будет доступен шаблон компонента с функциями Программы лояльности:';
+$MESS ['CREATING_AN_ADDITIONAL_TEMPLATE'] = 'Создание дополнительного шаблона';
+$MESS ['REPLACING_THE_STANDARD_TEMPLATE'] = 'Замена стандартного шаблона .default';
+
+$MESS ['LP_MAIN_REGISTER_HEAD'] = 'Управление компонентом регистрации (main.register)';
+$MESS ['LP_MAIN_BASKET_HEAD'] = 'Управление компонентом корзины (sale.basket.basket)';
+
+$MESS ['AGREEMENT_PROCESSING_PERSONAL_DATA'] = 'Соглашение на обработку персональных данных';
+$MESS ['ACCEPTANCE_TERMS_LOYALTY_PROGRAM'] = 'Согласие с условиями программы лояльности';
+$MESS ['EDITING_AGREEMENTS'] = 'Редактирование соглашений';
+$MESS ['LOYALTY_PROGRAM_ACTIVATED'] = 'Программа лояльности активирована';
+$MESS ['LOYALTY_PROGRAM_DEACTIVATED'] = 'Программа лояльности деактивирована';
+

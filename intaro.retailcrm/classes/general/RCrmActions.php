@@ -1,5 +1,12 @@
 <?php
+
+use Intaro\RetailCrm\Component\ServiceLocator;
+
 IncludeModuleLangFile(__FILE__);
+
+require_once __DIR__ . '/../../lib/component/servicelocator.php';
+require_once __DIR__ . '/../../lib/service/utils.php';
+
 class RCrmActions
 {
     public static $MODULE_ID = 'intaro.retailcrm';
@@ -226,19 +233,9 @@ class RCrmActions
      */
     public static function clearArr($arr)
     {
-        if (is_array($arr) === false) {
-            return $arr;
-        }
-
-        $result = array();
-        foreach ($arr as $index => $node ) {
-            $result[ $index ] = is_array($node) === true ? self::clearArr($node) : trim($node);
-            if ($result[ $index ] == '' || $result[ $index ] === null || count($result[ $index ]) < 1) {
-                unset($result[ $index ]);
-            }
-        }
-
-        return $result;
+        /** @var \Intaro\RetailCrm\Service\Utils $utils */
+        $utils = ServiceLocator::getOrCreate(\Intaro\RetailCrm\Service\Utils::class);
+        return $utils->clearArray($arr);
     }
 
     /**
@@ -246,13 +243,12 @@ class RCrmActions
      * @param array|bool|\SplFixedArray|string $str in SITE_CHARSET
      *
      * @return array|bool|\SplFixedArray|string $str in utf-8
-     * @global                                 $APPLICATION
      */
     public static function toJSON($str)
     {
-        global $APPLICATION;
-
-        return $APPLICATION->ConvertCharset($str, SITE_CHARSET, 'utf-8');
+        /** @var \Intaro\RetailCrm\Service\Utils $utils */
+        $utils = ServiceLocator::getOrCreate(\Intaro\RetailCrm\Service\Utils::class);
+        return $utils->toUTF8($str);
     }
 
     /**
@@ -260,13 +256,12 @@ class RCrmActions
      * @param string|array|\SplFixedArray $str in utf-8
      *
      * @return array|bool|\SplFixedArray|string $str in SITE_CHARSET
-     * @global                            $APPLICATION
      */
     public static function fromJSON($str)
     {
-        global $APPLICATION;
-
-        return $APPLICATION->ConvertCharset($str, 'utf-8', SITE_CHARSET);
+        /** @var \Intaro\RetailCrm\Service\Utils $utils */
+        $utils = ServiceLocator::getOrCreate(\Intaro\RetailCrm\Service\Utils::class);
+        return $utils->fromUTF8($str);
     }
 
     /**

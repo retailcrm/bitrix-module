@@ -28,6 +28,7 @@ class ApiClient
     const VERSION = 'v5';
 
     protected $client;
+    protected $unversionedClient;
 
     /**
      * Site code
@@ -49,10 +50,13 @@ class ApiClient
             $url .= '/';
         }
 
-        $url = $url . 'api/' . self::VERSION;
-
-        $this->client = new Client($url, array('apiKey' => $apiKey));
+        $versionedUrl = $url . 'api/' . self::VERSION;
+        $unversionedUrl = $url . 'api';
+        
+        $this->client = new Client($versionedUrl, array('apiKey' => $apiKey));
         $this->siteCode = $site;
+        
+        $this->unversionedClient = new Client($unversionedUrl, ['apiKey' => $apiKey]);
     }
 
     /**
@@ -243,11 +247,11 @@ class ApiClient
         return $this->client->makeRequest(
             '/customers-corporate/fix-external-ids',
             Client::METHOD_POST,
-            array('customerCorporate' => json_encode($ids))
+            array('customersCorporate' => json_encode($ids))
         );
     }
 
-    /*
+    /**
      * Upload array of the customers corporate
      *
      * @param array  $customers array of customers
@@ -607,24 +611,19 @@ class ApiClient
             $this->fillSite($site, $parameters)
         );
     }
-
+    
     /**
      * Create corporate customer address
      *
-     * @param string $id       corporate customer identifier
-     * @param array  $address  (default: array())
-     * @param string $by       (default: 'externalId')
-     * @param string $site     (default: null)
-     *
-     * @throws \InvalidArgumentException
-     * @throws \RetailCrm\Exception\CurlException
-     * @throws \RetailCrm\Exception\InvalidJsonException
+     * @param string $id      corporate customer identifier
+     * @param array  $address (default: array())
+     * @param string $by      (default: 'externalId')
+     * @param null   $site    (default: null)
      *
      * @return \RetailCrm\Response\ApiResponse
      */
-    public function customersCorporateAddressesCreate($id, array $address = [], $by = 'externalId', $site = null)
+    public function customersCorporateAddressesCreate($id, array $address = [], $by = 'externalId', $site = null): ApiResponse
     {
-        /* @noinspection PhpUndefinedMethodInspection */
         return $this->client->makeRequest(
             "/customers-corporate/$id/addresses/create",
             Client::METHOD_POST,
@@ -2906,7 +2905,7 @@ class ApiClient
 
         return true;
     }
-
+    
     /**
      * Fill params by site value
      *
@@ -2924,5 +2923,119 @@ class ApiClient
         }
 
         return $params;
+    }
+    
+    /**
+     * @param array $request
+     * @param int   $checkId
+     * @return \RetailCrm\Response\ApiResponse
+     */
+    public function checkStatusPlVerification(array $request, int $checkId): ApiResponse
+    {
+        return $this->client->makeRequest(
+            "/verification/sms/$checkId/status",
+            Client::METHOD_GET,
+            $request
+        );
+    }
+    
+    /**
+     * @param array $request
+     * @return \RetailCrm\Response\ApiResponse
+     */
+    public function loyaltyOrderApply(array $request): ApiResponse
+    {
+        return $this->client->makeRequest(
+            "/orders/loyalty/apply",
+            Client::METHOD_POST,
+            [
+                'site'    => $request['site'],
+                'order'   => json_encode($request['order']),
+                'bonuses' => $request['bonuses'],
+            ]
+        );
+    }
+    
+    /**
+     * @param array $request
+     * @return \RetailCrm\Response\ApiResponse
+     */
+    public function loyaltyOrderCalculate(array $request): ApiResponse
+    {
+        return $this->client->makeRequest(
+            "/loyalty/calculate",
+            Client::METHOD_POST,
+            [
+                'site'  => json_encode($request['site']),
+                'order' => json_encode($request['order']),
+            ]
+        );
+    }
+    
+    /**
+     * @return \RetailCrm\Response\ApiResponse
+     */
+    public function getCredentials(): ApiResponse
+    {
+        return $this->unversionedClient->makeRequest(
+            "/credentials",
+            Client::METHOD_GET
+        );
+    }
+    
+    /**
+     * @param array $request
+     * @return \RetailCrm\Response\ApiResponse
+     */
+    public function createLoyaltyAccount(array $request): ApiResponse
+    {
+        return $this->client->makeRequest(
+            "/loyalty/account/create",
+            Client::METHOD_POST,
+            [
+                'loyaltyAccount' => json_encode($request['loyaltyAccount']),
+                'site'           => $request['site'],
+            ]
+        );
+    }
+    
+    /**
+     * @param int $loyaltyId
+     * @return \RetailCrm\Response\ApiResponse
+     */
+    public function activateLoyaltyAccount(int $loyaltyId): ApiResponse
+    {
+        return $this->client->makeRequest(
+            "/loyalty/account/".$loyaltyId."/activate",
+            Client::METHOD_POST
+        );
+    }
+    
+    /**
+     * @param array $request
+     * @return \RetailCrm\Response\ApiResponse
+     */
+    public function sendVerificationCode(array $request): ApiResponse
+    {
+        return $this->client->makeRequest(
+            "/verification/sms/confirm",
+            Client::METHOD_POST,
+            [
+                'verification'=> json_encode($request['verification'])
+            ]
+        );
+    }
+    
+    /**
+     * @param array $request
+     * @return \RetailCrm\Response\ApiResponse
+     */
+    public function getLoyaltyAccounts(array $request): ApiResponse
+    {
+        return $this->client->makeRequest(
+            "/loyalty/accounts",
+            Client::METHOD_GET,
+            $request
+        );
     }
 }

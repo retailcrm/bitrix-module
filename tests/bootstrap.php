@@ -5,8 +5,8 @@
  * @category Integration
  */
 
-if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
-    require_once __DIR__ . '/../vendor/autoload.php';
+if (file_exists(__DIR__ . '/../vendor/RetailcrmClasspathBuilder.php')) {
+    require_once __DIR__ . '/../vendor/RetailcrmClasspathBuilder.php';
 }
 
 if (file_exists(__DIR__ . '/../.env')) {
@@ -31,4 +31,5 @@ if (!IsModuleInstalled('intaro.retailcrm')) {
 COption::SetOptionString('intaro.retailcrm', 'api_version', 'v5');
 CModule::IncludeModule('intaro.retailcrm');
 
-require_once 'BitrixTestCase.php';
+require_once __DIR__ . 'BitrixTestCase.php';
+require_once __DIR__ . '/helpers/Helpers.php';
