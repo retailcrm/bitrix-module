@@ -41,6 +41,15 @@
         "street": {
             "type": "string"
         },
+        "regionId":{
+            "type": "int"
+        },
+        "cityId":{
+            "type": "int"
+        },
+        "streetId":{
+            "type": "int"
+        },
         "building": {
             "type": "string"
         },
@@ -489,6 +498,15 @@
         },
         "street": {
             "type": "string"
+        },
+        "regionId":{
+            "type": "int"
+        },
+        "cityId":{
+            "type": "int"
+        },
+        "streetId":{
+            "type": "int"
         },
         "building": {
             "type": "string"
