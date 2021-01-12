@@ -1356,11 +1356,12 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                         </td>
                     </tr>
                     <?php $countProps++; endforeach; ?>
+
                 <? if (isset($arResult['customFields']) && count($arResult['customFields']) > 0): ?>
                     <tr class="heading custom-detail-title">
                         <td colspan="2" style="background-color: transparent;">
                             <b>
-                                <?=GetMessage("ORDER_CUSTOM");?>
+                               <?=GetMessage("ORDER_CUSTOM");?>
                             </b>
                         </td>
                     </tr>
