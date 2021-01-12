@@ -29,6 +29,7 @@ use Intaro\RetailCrm\Service\LoyaltyService;
 use Bitrix\Sale\Order as BitrixOrder;
 use Intaro\RetailCrm\Service\LpUserAccountService;
 
+
 /**
  * Class Order
  *
@@ -103,7 +104,7 @@ class Order extends Controller
             } catch (Exception | ArgumentNullException $exception) {
                 AddMessage2Log($exception->getMessage());
             }
-            
+            //TODO вынести все в lang файлы
             return [
                 'status'   => 'success',
                 'msg'      => 'Бонусы успешно списаны',
