@@ -11,8 +11,11 @@
  */
 namespace Intaro\RetailCrm\Service;
 
+use Bitrix\Main\Entity\DataManager;
+use Bitrix\Main\Loader;
 use Bitrix\Main\Text\Encoding;
 use Intaro\RetailCrm\Model\Api\Response\AbstractApiResponseModel;
+use Bitrix\Highloadblock as Highloadblock;
 
 /**
  * Class Utils
@@ -194,5 +197,57 @@ class Utils
         $phoneNumber = preg_replace('/\s|\+|-|\(|\)/', '', $phoneNumber);
         
         return $phoneNumber;
+    }
+    
+    /**
+     * Получение DataManager класса управления HLBlock
+     *
+     * @param $HlBlockId
+     * @return \Bitrix\Main\Entity\DataManager|null
+     * @throws \Bitrix\Main\ArgumentException
+     * @throws \Bitrix\Main\LoaderException
+     * @throws \Bitrix\Main\ObjectPropertyException
+     * @throws \Bitrix\Main\SystemException
+     */
+    public static function getHlClassById($HlBlockId): ?DataManager
+    {
+        Loader::includeModule('highloadblock');
+        
+        $hlblock = Highloadblock\HighloadBlockTable::getById($HlBlockId)->fetch();
+        
+        if (!$hlblock) {
+            return null;
+        }
+        
+        $entity = Highloadblock\HighloadBlockTable::compileEntity($hlblock);
+    
+        return $entity->getDataClass();
+    }
+    
+    /**
+     * Получение DataManager класса управления HLBlock
+     *
+     * @param $name
+     * @return \Bitrix\Main\Entity\DataManager|string|null
+     * @throws \Bitrix\Main\SystemException
+     * @throws \Bitrix\Main\LoaderException
+     */
+    public static function getHlClassByName(string $name)
+    {
+        Loader::includeModule('highloadblock');
+        
+        $hlblock = Highloadblock\HighloadBlockTable::query()
+            ->addSelect('*')
+            ->addFilter('NAME', $name)
+            ->exec()
+            ->fetch();
+        
+        if (!$hlblock) {
+            return null;
+        }
+
+        $entity = Highloadblock\HighloadBlockTable::compileEntity($hlblock);
+
+        return $entity->getDataClass();
     }
 }
