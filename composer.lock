@@ -2019,7 +2019,8 @@
     "prefer-lowest": false,
     "platform": {
         "ext-json": "*",
-        "ext-mbstring": "*"
+        "ext-mbstring": "*",
+        "ext-tokenizer": "*"
     },
     "platform-dev": [],
     "plugin-api-version": "2.0.0"
