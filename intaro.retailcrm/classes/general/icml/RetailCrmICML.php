@@ -257,11 +257,11 @@ class RetailCrmICML
             . "<name>" . $this->PrepareValue($arCategory["NAME"]) . "</name>\n";
 
         if (CFile::GetPath($arCategory["DETAIL_PICTURE"])) {
-            $category .= "\t<picture>" . $arCategory['SITE'] . CFile::GetPath($arCategory["DETAIL_PICTURE"]) . "</picture>\n";
+            $category .= "\t<picture>" . $this->getImageUrl($arCategory["DETAIL_PICTURE"]) . "</picture>\n";
         }
 
         if (CFile::GetPath($arCategory["PICTURE"])) {
-            $category .= "\t<picture>" . $arCategory['SITE'] . CFile::GetPath($arCategory["PICTURE"]) . "</picture>\n";
+            $category .= "\t<picture>" .  $this->getImageUrl($arCategory["PICTURE"]) . "</picture>\n";
         }
 
         $category .= "</category>\n";
@@ -421,16 +421,15 @@ class RetailCrmICML
                     $offer['DETAIL_PAGE_URL'] = $product["DETAIL_PAGE_URL"];
 
                     if (CFile::GetPath($offer["DETAIL_PICTURE"])) {
-                        $offer['PICTURE'] = $this->protocol . $this->serverName . CFile::GetPath($offer["DETAIL_PICTURE"]);
-                    } elseif (CFile::GetPath($offer["PREVIEW_PICTURE"])){
-                        $offer['PICTURE'] = $this->protocol . $this->serverName . CFile::GetPath($offer["PREVIEW_PICTURE"]);
+                        $offer['PICTURE'] = $this->getImageUrl($offer["DETAIL_PICTURE"]);
+                    } elseif (CFile::GetPath($offer["PREVIEW_PICTURE"])) {
+                        $offer['PICTURE'] = $this->getImageUrl($offer["PREVIEW_PICTURE"]);
                     } elseif (
                         $this->skuPictures
                         && isset($this->skuPictures[$iblockId])
                         && CFile::GetPath($offer["PROPERTY_" . $this->skuPictures[$iblockId]['picture'] . "_VALUE"])
                     ) {
-                        $picture = CFile::GetPath($offer["PROPERTY_" . $this->skuPictures[$iblockId]['picture'] . "_VALUE"]);
-                        $offer['PICTURE'] = $this->protocol . $this->serverName . $picture;
+                        $offer['PICTURE'] = $this->getImageUrl($offer["PROPERTY_" . $this->skuPictures[$iblockId]['picture'] . "_VALUE"]);
                     } else {
                         $offer['PICTURE'] = $product['PICTURE'];
                     }
@@ -502,16 +501,15 @@ class RetailCrmICML
         $picture = '';
 
         if (CFile::GetPath($product["DETAIL_PICTURE"])) {
-            $picture = $this->protocol . $this->serverName . CFile::GetPath($product["DETAIL_PICTURE"]);
+            $picture = $this->getImageUrl($product["DETAIL_PICTURE"]);
         } elseif (CFile::GetPath($product["PREVIEW_PICTURE"])){
-            $picture= $this->protocol . $this->serverName . CFile::GetPath($product["PREVIEW_PICTURE"]);
+            $picture = $this->getImageUrl($product["PREVIEW_PICTURE"]);
         } elseif (
             $this->productPictures
             && isset($this->productPictures[$iblockId])
             && CFile::GetPath($product["PROPERTY_" . $this->productPictures[$iblockId]['picture'] . "_VALUE"])
         ) {
-            $file = CFile::GetPath($product["PROPERTY_" . $this->productPictures[$iblockId]['picture'] . "_VALUE"]);
-            $picture = $this->protocol . $this->serverName . $file;
+            $picture = $this->getImageUrl($product["PROPERTY_" . $this->productPictures[$iblockId]['picture'] . "_VALUE"]);
         }
 
         return $picture;
@@ -893,5 +891,21 @@ class RetailCrmICML
             "height" => GetMessage("PROPERTY_HEIGHT_HEADER_NAME"),
             "picture" => GetMessage("PROPERTY_PICTURE_HEADER_NAME")
         );
+    }
+
+    /**
+     * @param $fileId
+     * @return string
+     */
+    public function getImageUrl($fileId)
+    {
+        $pathImage = CFile::GetPath($fileId);
+        $validation = "/^(http|https):\/\/([A-Z0-9][A-Z0-9_-]*(?:\.[A-Z0-9][A-Z0-9_-]*)+):?(\d+)?\/?/i";
+
+        if ((bool)preg_match($validation, $pathImage) === false) {
+            return $this->protocol . $this->serverName . $pathImage;
+        } else {
+            return $pathImage;
+        }
     }
 }
