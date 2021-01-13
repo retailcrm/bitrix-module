@@ -2,13 +2,17 @@
 
 use Bitrix\Currency\CurrencyManager;
 use Bitrix\Main\Application;
+use Bitrix\Main\LoaderException;
+use Bitrix\Main\SystemException;
 use Bitrix\Main\UI\Extension;
 use Bitrix\Sale\Delivery\Services\Manager;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Repository\AgreementRepository;
 use Intaro\RetailCrm\Repository\TemplateRepository;
+use Intaro\RetailCrm\Service\HlBlockService;
 use RetailCrm\Exception\CurlException;
+use \Intaro\RetailCrm\Service\Utils as Utilyty;
 
 IncludeModuleLangFile(__FILE__);
 $mid = 'intaro.retailcrm';
@@ -572,6 +576,17 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     }
 
     if (isset($_POST['loyalty_toggle']) && $_POST['loyalty_toggle'] === 'on') {
+    
+        try {
+            $hlName = Utilyty::getHlClassByName(Constants::HL_LOYALTY_CODE);
+        } catch (LoaderException | SystemException $e) {
+            AddMessage2Log($e->getMessage());
+        }
+    
+        if (empty($hlName)) {
+          HlBlockService::createLoyaltyHlBlock();
+       }
+        
         ConfigProvider::setLoyaltyProgramStatus('Y');
     } else {
         ConfigProvider::setLoyaltyProgramStatus('N');

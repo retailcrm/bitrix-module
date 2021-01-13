@@ -19,7 +19,9 @@ use Bitrix\Main\ArgumentException;
 use Bitrix\Main\ArgumentNullException;
 use Bitrix\Main\ArgumentOutOfRangeException;
 use Bitrix\Main\Context;
+use Bitrix\Main\Diag\Debug;
 use Bitrix\Main\Loader;
+use Bitrix\Main\LoaderException;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
 use \DateTime;
@@ -52,6 +54,7 @@ use Intaro\RetailCrm\Repository\PaySystemActionRepository;
 use Intaro\RetailCrm\Repository\UserRepository;
 use Bitrix\Highloadblock as HL;
 use Bitrix\Main\Entity;
+use RetailCrmHistory;
 
 /**
  * Class LoyaltyService
@@ -302,58 +305,36 @@ class LoyaltyService
      */
     public function applyBonusesInOrder(Order $order, $bonusCount, $rate): void
     {
-        $orderId    = $order->getId();
-        $response   = $this->sendBonusPayment($orderId, $bonusCount);
+        $orderId  = $order->getId();
+        $response = $this->sendBonusPayment($orderId, $bonusCount);
         
         if ($response->success) {
-            /*try {
-                $bonusPaySystem    = PaySystemActionRepository::getFirstByWhere(
-                    ['ID'],
-                    [['ACTION_FILE', '=', 'retailcrmbonus']]
-                );
-                $paymentCollection = $order->getPaymentCollection();
-                
-                if ($bonusPaySystem !== null) {
-                    if (count($paymentCollection) === 1) {
-                        /** @var \Bitrix\Sale\Payment $current */
-                       /* $current = $paymentCollection->current();
-                        $oldSum  = $current->getField('SUM');
-    
-                        $current->setField('SUM', $oldSum - $bonusCount);
-                        $current->setField('COMMENTS', $rate);
-                    }
-                    
-                    $service    = Manager::getObjectById($bonusPaySystem->getId());
-                    $newPayment = $paymentCollection->createItem($service);
-                    
-                    $newPayment->setField('SUM', $bonusCount); */
-    
-          
+            $isDebited = false;
+            $checkId   = '';
             
-                    $isDebited = false;
-                    $checkId = '';
-                    //если верификация необходима, но не пройдена
-                    if (isset($response->verification, $response->verification->checkId)
-                        && !isset($response->verification->verifiedAt)
-                    ) {
-                        $isDebited = false;
-                        /*$newPayment->setPaid('N');*/
-                        $this->setSmsCookie('lpOrderBonusConfirm', $response->verification);
-                        $checkId = $response->verification->checkId;
-                    }
-                    
-                    //если верификация не нужна
-                    if (!isset($response->verification)) {
-                        $isDebited = true;
-                        /*$newPayment->setPaid('Y');*/
-                    }
-                    
-                    HlBlockService::addDataInLoyaltyHl($order->getId(), $bonusCount, $rate, $isDebited, $checkId);
-                    $order->save();
-                /*}
-            } catch (ObjectPropertyException | ArgumentException | SystemException | Exception $e) {
-                AddMessage2Log('ERROR PaySystemActionRepository: ' . $e->getMessage());
-            }*/
+            //если верификация необходима, но не пройдена
+            if (isset($response->verification, $response->verification->checkId)
+                && !isset($response->verification->verifiedAt)
+            ) {
+                $isDebited = false;
+                $this->setSmsCookie('lpOrderBonusConfirm', $response->verification);
+                $checkId = $response->verification->checkId;
+            }
+            
+            //если верификация не нужна
+            if (!isset($response->verification)) {
+                $isDebited = true;
+            }
+            
+            try {
+                /** @var HlBlockService $hlService */
+                $hlService = ServiceLocator::get(HlBlockService::class);
+                $hlService->addDataInLoyaltyHl($orderId, $bonusCount, $rate, $isDebited, $checkId);
+            } catch (Exception $e) {
+                AddMessage2Log($e->getMessage());
+            }
+        } else {
+            Utils::handleErrors($response);
         }
     }
     
