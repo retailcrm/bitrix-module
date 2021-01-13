@@ -15,7 +15,6 @@ namespace Intaro\RetailCrm\Component\Handlers;
 IncludeModuleLangFile(__FILE__);
 
 use Bitrix\Main\ArgumentException;
-use Bitrix\Main\Diag\Debug;
 use Bitrix\Main\Event;
 use Bitrix\Main\HttpRequest;
 use Bitrix\Main\ObjectPropertyException;

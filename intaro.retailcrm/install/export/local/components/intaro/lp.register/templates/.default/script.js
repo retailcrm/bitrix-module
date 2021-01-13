@@ -14,7 +14,7 @@ function serializeObject(array) {
 }
 
 
-//переименовать в saveUserLpFields
+//TODO переименовать в saveUserLpFields
 function createAccount() {
     const formArray  = $('#lpRegFormInputs').serializeArray();
     const formObject = serializeObject(formArray);
