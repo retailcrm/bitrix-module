@@ -19,15 +19,12 @@ use Bitrix\Main\ArgumentException;
 use Bitrix\Main\ArgumentNullException;
 use Bitrix\Main\ArgumentOutOfRangeException;
 use Bitrix\Main\Context;
-use Bitrix\Main\Diag\Debug;
 use Bitrix\Main\Loader;
-use Bitrix\Main\LoaderException;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
 use \DateTime;
 use Bitrix\Main\Web\Cookie;
 use Bitrix\Sale\Order;
-use Bitrix\Sale\PaySystem\Manager;
 use CUser;
 use Exception;
 use Intaro\RetailCrm\Component\Constants;
@@ -40,6 +37,7 @@ use Intaro\RetailCrm\Model\Api\PriceType;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountRequest;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\LoyaltyCalculateRequest;
 use Intaro\RetailCrm\Model\Api\Request\Order\Loyalty\OrderLoyaltyApplyRequest;
+use Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse;
 use Intaro\RetailCrm\Model\Api\Response\Order\Loyalty\OrderLoyaltyApplyResponse;
 use Intaro\RetailCrm\Model\Api\SerializedOrder;
 use Intaro\RetailCrm\Model\Api\SerializedOrderProduct;
@@ -52,9 +50,6 @@ use Intaro\RetailCrm\Model\Bitrix\User;
 use Intaro\RetailCrm\Model\Bitrix\UserLoyaltyData;
 use Intaro\RetailCrm\Repository\PaySystemActionRepository;
 use Intaro\RetailCrm\Repository\UserRepository;
-use Bitrix\Highloadblock as HL;
-use Bitrix\Main\Entity;
-use RetailCrmHistory;
 
 /**
  * Class LoyaltyService
@@ -117,7 +112,7 @@ class LoyaltyService
      * @param int $bonusCount
      * @return \Intaro\RetailCrm\Model\Api\Response\Order\Loyalty\OrderLoyaltyApplyResponse|mixed|null
      */
-    public function sendBonusPayment(int $orderId, int $bonusCount)
+    public function sendBonusPayment(int $orderId, int $bonusCount): ?OrderLoyaltyApplyResponse
     {
         $request                    = new OrderLoyaltyApplyRequest();
         $request->order             = new SerializedOrderReference();
@@ -140,7 +135,7 @@ class LoyaltyService
      * @param float $discountPercent
      * @return \Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse|mixed|null
      */
-    public function calculateBonus(array $basketItems, int $discountPrice, float $discountPercent)
+    public function calculateBonus(array $basketItems, int $discountPrice, float $discountPercent): ?LoyaltyCalculateResponse
     {
         global $USER;
         

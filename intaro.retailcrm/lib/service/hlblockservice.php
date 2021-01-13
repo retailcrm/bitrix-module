@@ -12,13 +12,9 @@
 
 namespace Intaro\RetailCrm\Service;
 
-use Bitrix\Main\LoaderException;
-use Bitrix\Main\SystemException;
 use CUserTypeEntity;
 use Exception;
-use Intaro\RetailCrm\Component\Constants;
 use Bitrix\Highloadblock as HL;
-use Intaro\RetailCrm\Component\Json\Serializer;
 use Intaro\RetailCrm\Model\Bitrix\LoyaltyHlBlock;
 use Intaro\RetailCrm\Repository\LoyaltyHlBlockRepository;
 
@@ -53,7 +49,12 @@ class HlBlockService {
         $repository->add($loyaltyHl);
     }
     
-    public static function createLoyaltyHlBlock()
+    /**
+     * Создает HL блок для хранения информации о бонусах и скидках
+     *
+     * @throws \Bitrix\Main\SystemException
+     */
+    public static function createLoyaltyHlBlock(): void
     {
         $result = HL\HighloadBlockTable::add([
             'NAME'       => 'LoyaltyProgramRetailCRM',
@@ -67,6 +68,7 @@ class HlBlockService {
     
         if ($result->isSuccess()) {
             $hlId = $result->getId();
+            
             foreach ($arLangs as $langKey => $langVal) {
                 HL\HighloadBlockLangTable::add([
                     'ID'   => $hlId,
@@ -75,15 +77,12 @@ class HlBlockService {
                 ]);
             }
         } else {
-            $errors = $result->getErrorMessages();
-        
-            foreach ($errors as $error){
+            foreach ($result->getErrorMessages() as $error) {
                 AddMessage2Log($error);
             }
         }
     
         $ufObject = 'HLBLOCK_' . $hlId;
-    
         $arCartFields = [
             'UF_ORDER_ID'       => [
                 'ENTITY_ID'    => $ufObject,
@@ -142,8 +141,7 @@ class HlBlockService {
         ];
     
         foreach ($arCartFields as $arCartField) {
-            $obUserField = new CUserTypeEntity;
-        
+            $obUserField = new CUserTypeEntity();
             $obUserField->Add($arCartField);
         }
     }

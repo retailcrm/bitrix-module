@@ -45,7 +45,7 @@ $MESS ['LP_ORDER_GROUP_NAME']             = 'Программа лояльнос
 $MESS ['LP_ORDER_GROUP_NAME_EN']          = 'Loyalty program';
 $MESS ['BONUS_COUNT']                     = 'Количество бонусов';
 $MESS ['BONUS_PAY_SYSTEM_NAME']           = 'Оплата бонусами';
-$MESS ['BONUS_PAY_SYSTEM_DESCRIPTION']    = 'Оплата бонусами программы лояльности retailCRM';
+$MESS ['BONUS_PAY_SYSTEM_DESCRIPTION']    = 'Оплата бонусами программы лояльности RetailCRM';
 
 $MESS ['UF_REG_IN_PL_INTARO_TITLE']   = 'Зарегистрироваться в программе лояльности';
 $MESS ['UF_AGREE_PL_INTARO_TITLE']    = 'Я согласен с условиями программы лояльности';
