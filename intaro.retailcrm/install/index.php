@@ -11,7 +11,6 @@ use Bitrix\Highloadblock\HighloadBlockTable;
 use Bitrix\Main\Application;
 use Bitrix\Main\ArgumentException;
 use Bitrix\Main\Context;
-use Bitrix\Main\Diag\Debug;
 use Bitrix\Main\EventManager;
 use Bitrix\Main\Loader;
 use Bitrix\Main\ObjectPropertyException;
