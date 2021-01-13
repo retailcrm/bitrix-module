@@ -46,13 +46,6 @@ $MESS ['LP_ORDER_GROUP_NAME_EN']          = 'Loyalty program';
 $MESS ['BONUS_COUNT']                     = 'Количество бонусов';
 $MESS ['BONUS_PAY_SYSTEM_NAME']           = 'Оплата бонусами';
 $MESS ['BONUS_PAY_SYSTEM_DESCRIPTION']    = 'Оплата бонусами программы лояльности retailCRM';
-$MESS ['UF_ORDER_ID']                     = 'ID заказа';
-$MESS ['UF_CASH_DISCOUNT']                = 'Скидка в денежном выражении';
-$MESS ['UF_PRIVILEGE_TYPE']               = 'Тип привилегии';
-$MESS ['UF_BONUS_RATE']                   = 'Курс бонуса';
-$MESS ['UF_BONUS_COUNT']                  = 'Количество списываемых бонусов';
-$MESS ['UF_CHECK_ID']                     = 'ID проверочного кода';
-$MESS ['UF_IS_DEBITED']                   = 'Списаны ли бонусы';
 
 $MESS ['UF_REG_IN_PL_INTARO_TITLE']   = 'Зарегистрироваться в программе лояльности';
 $MESS ['UF_AGREE_PL_INTARO_TITLE']    = 'Я согласен с условиями программы лояльности';
