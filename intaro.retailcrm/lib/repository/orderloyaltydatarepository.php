@@ -11,26 +11,27 @@
  */
 namespace Intaro\RetailCrm\Repository;
 
+use Bitrix\Main\Diag\Debug;
 use Bitrix\Main\LoaderException;
 use Bitrix\Main\SystemException;
 use Exception;
 use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\Json\Serializer;
-use Intaro\RetailCrm\Model\Bitrix\LoyaltyHlBlock;
+use Intaro\RetailCrm\Model\Bitrix\OrderLoyaltyData;
 use Intaro\RetailCrm\Service\Utils;
 
 /**
- * Class LoyaltyHlBlockRepository
+ * Class OrderLoyaltyDataRepository
  *
  * @package Intaro\RetailCrm\Repository
  */
-class LoyaltyHlBlockRepository extends AbstractRepository
+class OrderLoyaltyDataRepository extends AbstractRepository
 {
     /**
-     * @param \Intaro\RetailCrm\Model\Bitrix\LoyaltyHlBlock $loyaltyHl
+     * @param \Intaro\RetailCrm\Model\Bitrix\OrderLoyaltyData $loyaltyHl
      * @return int|null
      */
-    public function add(LoyaltyHlBlock $loyaltyHl): ?int
+    public function add(OrderLoyaltyData $loyaltyHl): ?int
     {
         try {
             $dataManager = Utils::getHlClassByName(Constants::HL_LOYALTY_CODE);
@@ -39,16 +40,17 @@ class LoyaltyHlBlockRepository extends AbstractRepository
                 return null;
             }
         
-           $result = $dataManager::add(Serializer::serializeArray($loyaltyHl, LoyaltyHlBlock::class));
+           $result = $dataManager::add(Serializer::serializeArray($loyaltyHl, OrderLoyaltyData::class));
             
             if ($result->isSuccess()) {
                 return $result->getId();
             }
 
             return null;
-            
-        }catch (LoaderException | SystemException | Exception $e){
+        } catch (LoaderException | SystemException | Exception $e) {
             AddMessage2Log($e->getMessage());
         }
+        
+        return null;
     }
 }

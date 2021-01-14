@@ -4,7 +4,7 @@ use Bitrix\Main\Context;
 use Bitrix\Main\Loader;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Service\CollectorCookieExtractor;
-use Intaro\RetailCrm\Service\HlBlockService;
+use Intaro\RetailCrm\Service\OrderLoyaltyDataService;
 use Intaro\RetailCrm\Service\LoyaltyService;
 use Intaro\RetailCrm\Service\LpUserAccountService;
 use Intaro\RetailCrm\Service\CustomerService;
@@ -37,7 +37,7 @@ ServiceLocator::registerServices([
     LpUserAccountService::class,
     LoyaltyService::class,
     CustomerService::class,
-    HlBlockService::class
+    OrderLoyaltyDataService::class
 ]);
 
 $arJsConfig = [

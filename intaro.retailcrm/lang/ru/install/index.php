@@ -42,7 +42,6 @@ $MESS ['UF_EXT_REG_PL_INTARO_TITLE']      = 'Активность в прогр�
 $MESS ['UF_CARD_NUMBER_INTARO_TITLE']     = 'Номер карты программы лояльности';
 $MESS ['UF_LP_ID_INTARO_TITLE']           = 'Номер аккаунта в программе лояльности';
 $MESS ['LP_ORDER_GROUP_NAME']             = 'Программа лояльности';
-$MESS ['LP_ORDER_GROUP_NAME_EN']          = 'Loyalty program';
 $MESS ['BONUS_COUNT']                     = 'Количество бонусов';
 $MESS ['BONUS_PAY_SYSTEM_NAME']           = 'Оплата бонусами';
 $MESS ['BONUS_PAY_SYSTEM_DESCRIPTION']    = 'Оплата бонусами программы лояльности RetailCRM';

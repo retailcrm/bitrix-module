@@ -22,7 +22,7 @@ use Bitrix\Sale\Internals\OrderTable;
 use Intaro\RetailCrm\Component\Handlers\EventsHandlers;
 use Intaro\RetailCrm\Model\Bitrix\Agreement;
 use Intaro\RetailCrm\Repository\AgreementRepository;
-use Intaro\RetailCrm\Service\HlBlockService;
+use Intaro\RetailCrm\Service\OrderLoyaltyDataService;
 use \RetailCrm\ApiClient;
 use RetailCrm\Exception\CurlException;
 use Intaro\RetailCrm\Repository\ToModuleRepository;
@@ -233,14 +233,14 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../lib/component/configprovider.php');
         include($this->INSTALL_PATH . '/../lib/component/constants.php');
         include($this->INSTALL_PATH . '/../lib/repository/agreementrepository.php');
-        include($this->INSTALL_PATH . '/../lib/service/hlblockservice.php');
+        include($this->INSTALL_PATH . '/../lib/service/orderloyaltydataservice.php');
 
         $this->CopyFiles();
         $this->addBonusPaySystem();
         $this->addLPUserFields();
         $this->addLPEvents();
         $this->addAgreement();
-        HlBlockService::createLoyaltyHlBlock();
+        OrderLoyaltyDataService::createLoyaltyHlBlock();
 
         if ($step == 11) {
             $arResult['arSites'] = RCrmActions::SitesList();

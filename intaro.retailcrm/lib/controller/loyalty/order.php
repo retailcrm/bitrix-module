@@ -29,7 +29,6 @@ use Intaro\RetailCrm\Service\LoyaltyService;
 use Bitrix\Sale\Order as BitrixOrder;
 use Intaro\RetailCrm\Service\LpUserAccountService;
 
-
 /**
  * Class Order
  *

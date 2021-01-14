@@ -15,22 +15,14 @@ namespace Intaro\RetailCrm\Model\Bitrix;
 use Intaro\RetailCrm\Component\Json\Mapping;
 
 /**
- * Class LoyaltyHlBlock
+ * Class OrderLoyaltyData
  *
  * описывает HL-блок loyalty_program
  *
  * @package Intaro\RetailCrm\Model\Bitrix
  */
-class LoyaltyHlBlock
+class OrderLoyaltyData
 {
-    /**
-     * @var integer
-     *
-     * @Mapping\Type("integer")
-     * @Mapping\SerializedName("ID")
-     */
-    public $id;
-    
     /**
      * ID заказа
      *
