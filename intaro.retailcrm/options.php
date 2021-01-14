@@ -12,7 +12,7 @@ use Intaro\RetailCrm\Repository\AgreementRepository;
 use Intaro\RetailCrm\Repository\TemplateRepository;
 use Intaro\RetailCrm\Service\OrderLoyaltyDataService;
 use RetailCrm\Exception\CurlException;
-use \Intaro\RetailCrm\Service\Utils as Utilyty;
+use \Intaro\RetailCrm\Service\Utils as RetailcrmUtils;
 
 IncludeModuleLangFile(__FILE__);
 $mid = 'intaro.retailcrm';
@@ -576,9 +576,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     }
     
     if (isset($_POST['loyalty_toggle']) && $_POST['loyalty_toggle'] === 'on') {
-        
         try {
-            $hlName = Utilyty::getHlClassByName(Constants::HL_LOYALTY_CODE);
+            $hlName = RetailcrmUtils::getHlClassByName(Constants::HL_LOYALTY_CODE);
             
             if (empty($hlName)) {
                 OrderLoyaltyDataService::createLoyaltyHlBlock();
