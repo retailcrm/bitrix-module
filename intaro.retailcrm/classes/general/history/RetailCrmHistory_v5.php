@@ -690,7 +690,9 @@ class RetailCrmHistory
                         }
                     }
 
-                    $order['fio'] = str_replace("clear", "", $order['fio']);
+                    if (array_key_exists('fio', $order)) {
+                        $order['fio'] = str_replace("clear", "", $order['fio']);
+                    }
 
                     //optionsOrderProps
                     if ($optionsOrderProps[$personType]) {
