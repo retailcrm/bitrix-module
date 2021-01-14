@@ -7,4 +7,3 @@ $MESS ['UF_BONUS_COUNT']                  = 'Количество списыва
 $MESS ['UF_CHECK_ID']                     = 'ID проверочного кода';
 $MESS ['UF_IS_DEBITED']                   = 'Списаны ли бонусы';
 $MESS ['LP_ORDER_GROUP_NAME']             = 'Программа лояльности';
-$MESS ['LP_ORDER_GROUP_NAME_EN']          = 'Loyalty program';
