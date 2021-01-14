@@ -35,7 +35,7 @@ function createAccount() {
     );
 }
 
-
+//TODO проверить - возможно мертвый метод
 function addTelNumber(customerId) {
     const phone = $('#loyaltyRegPhone').val();
     const card  = $('#loyaltyRegCard').val();

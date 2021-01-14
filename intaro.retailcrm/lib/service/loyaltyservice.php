@@ -45,6 +45,7 @@ use Intaro\RetailCrm\Model\Api\SerializedOrderProductOffer;
 use Intaro\RetailCrm\Model\Api\SerializedOrderReference;
 use Intaro\RetailCrm\Model\Api\SerializedRelationCustomer;
 use Intaro\RetailCrm\Model\Api\SmsVerification;
+use Intaro\RetailCrm\Model\Bitrix\OrderLoyaltyData;
 use Intaro\RetailCrm\Model\Bitrix\SmsCookie;
 use Intaro\RetailCrm\Model\Bitrix\User;
 use Intaro\RetailCrm\Model\Bitrix\UserLoyaltyData;
@@ -302,7 +303,7 @@ class LoyaltyService
     {
         $orderId  = $order->getId();
         $response = $this->sendBonusPayment($orderId, $bonusCount);
-        
+
         if ($response->success) {
             $isDebited = false;
             $checkId   = '';
@@ -322,9 +323,18 @@ class LoyaltyService
             }
             
             try {
-                /** @var HlBlockService $hlService */
-                $hlService = ServiceLocator::get(HlBlockService::class);
-                $hlService->addDataInLoyaltyHl($orderId, $bonusCount, $rate, $isDebited, $checkId);
+                /** @var OrderLoyaltyDataService $hlService */
+                $hlService = ServiceLocator::get(OrderLoyaltyDataService::class);
+    
+                $loyaltyHl               = new OrderLoyaltyData();
+                $loyaltyHl->orderId      = $orderId;
+                $loyaltyHl->cashDiscount = $rate * $bonusCount;
+                $loyaltyHl->bonusRate    = $rate;
+                $loyaltyHl->bonusCount   = $bonusCount;
+                $loyaltyHl->isDebited    = $isDebited;
+                $loyaltyHl->checkId      = $checkId;
+                
+                $hlService->addDataInLoyaltyHl($loyaltyHl);
             } catch (Exception $e) {
                 AddMessage2Log($e->getMessage());
             }

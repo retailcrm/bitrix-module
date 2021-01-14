@@ -119,6 +119,8 @@ class Register extends Controller
      * @param array $request
      * @return array|string[]
      * @throws \ReflectionException
+     *
+     * TODO - возможно это мертвый метод. проверить
      */
     public function accountCreateAction(array $request): array
     {
