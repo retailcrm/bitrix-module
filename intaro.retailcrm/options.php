@@ -10,7 +10,7 @@ use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Repository\AgreementRepository;
 use Intaro\RetailCrm\Repository\TemplateRepository;
-use Intaro\RetailCrm\Service\HlBlockService;
+use Intaro\RetailCrm\Service\OrderLoyaltyDataService;
 use RetailCrm\Exception\CurlException;
 use \Intaro\RetailCrm\Service\Utils as Utilyty;
 
@@ -575,18 +575,18 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     if ($_POST[$CRM_CURRENCY]) {
         COption::SetOptionString($mid, $CRM_CURRENCY, $_POST['currency']);
     }
-
-    if (isset($_POST['loyalty_toggle']) && $_POST['loyalty_toggle'] === 'on') {
     
+    if (isset($_POST['loyalty_toggle']) && $_POST['loyalty_toggle'] === 'on') {
+        
         try {
             $hlName = Utilyty::getHlClassByName(Constants::HL_LOYALTY_CODE);
+            
+            if (empty($hlName)) {
+                OrderLoyaltyDataService::createLoyaltyHlBlock();
+            }
         } catch (LoaderException | SystemException $e) {
             AddMessage2Log($e->getMessage());
         }
-    
-        if (empty($hlName)) {
-          HlBlockService::createLoyaltyHlBlock();
-       }
         
         ConfigProvider::setLoyaltyProgramStatus('Y');
     } else {

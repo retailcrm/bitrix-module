@@ -15,36 +15,23 @@ namespace Intaro\RetailCrm\Service;
 use CUserTypeEntity;
 use Exception;
 use Bitrix\Highloadblock as HL;
-use Intaro\RetailCrm\Model\Bitrix\LoyaltyHlBlock;
-use Intaro\RetailCrm\Repository\LoyaltyHlBlockRepository;
+use Intaro\RetailCrm\Model\Bitrix\OrderLoyaltyData;
+use Intaro\RetailCrm\Repository\OrderLoyaltyDataRepository;
 
 /**
- * Class HlBlockService
+ * Class OrderLoyaltyDataService
  * @package Intaro\RetailCrm\Service
  */
-class HlBlockService {
-    
+class OrderLoyaltyDataService
+{
     /**
      * Записывает информацию о скидках по программе лояльности в HL блок
      *
-     * @param int    $orderId
-     * @param int    $bonusCount
-     * @param int    $rate
-     * @param bool   $isDebited
-     * @param string $checkId
-     * @throws \Exception
+     * @param \Intaro\RetailCrm\Model\Bitrix\OrderLoyaltyData $loyaltyHl
      */
-    public function addDataInLoyaltyHl(int $orderId, int $bonusCount, int $rate, bool $isDebited = false, string $checkId = ''): void
+    public function addDataInLoyaltyHl(OrderLoyaltyData $loyaltyHl): void
     {
-        $loyaltyHl               = new LoyaltyHlBlock();
-        $loyaltyHl->orderId      = $orderId;
-        $loyaltyHl->cashDiscount = $rate * $bonusCount;
-        $loyaltyHl->bonusRate    = $rate;
-        $loyaltyHl->bonusCount   = $bonusCount;
-        $loyaltyHl->isDebited    = $isDebited;
-        $loyaltyHl->checkId      = $checkId;
-
-        $repository = new LoyaltyHlBlockRepository();
+        $repository = new OrderLoyaltyDataRepository();
         
         $repository->add($loyaltyHl);
     }
@@ -63,7 +50,7 @@ class HlBlockService {
     
         $arLangs = Array(
             'ru' => GetMessage('LP_ORDER_GROUP_NAME'),
-            'en' => GetMessage('LP_ORDER_GROUP_NAME_EN')
+            'en' => GetMessage('LP_ORDER_GROUP_NAME', null, 'en')
         );
     
         if ($result->isSuccess()) {
