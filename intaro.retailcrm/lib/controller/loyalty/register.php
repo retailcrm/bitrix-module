@@ -4,7 +4,6 @@ namespace Intaro\RetailCrm\Controller\Loyalty;
 
 use Bitrix\Main\Engine\ActionFilter\Authentication;
 use Bitrix\Main\Engine\Controller;
-use Bitrix\Main\Loader;
 use Bitrix\Main\Request;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
 use Intaro\RetailCrm\Component\ServiceLocator;
@@ -12,7 +11,6 @@ use Intaro\RetailCrm\DataProvider\CurrentUserProvider;
 use Intaro\RetailCrm\Model\Api\Request\SmsVerification\SmsVerificationConfirmRequest;
 use Intaro\RetailCrm\Model\Api\SmsVerificationConfirm;
 use Intaro\RetailCrm\Model\Bitrix\User;
-use Intaro\RetailCrm\Repository\UserRepository;
 use Intaro\RetailCrm\Service\LoyaltyService;
 use Intaro\RetailCrm\Service\LpUserAccountService;
 use Intaro\RetailCrm\Service\Utils;
@@ -121,6 +119,8 @@ class Register extends Controller
      * @param array $request
      * @return array|string[]
      * @throws \ReflectionException
+     *
+     * TODO - возможно это мертвый метод. проверить
      */
     public function accountCreateAction(array $request): array
     {

@@ -13,6 +13,8 @@ function serializeObject(array) {
     return object;
 }
 
+
+//TODO переименовать в saveUserLpFields
 function createAccount() {
     const formArray  = $('#lpRegFormInputs').serializeArray();
     const formObject = serializeObject(formArray);
@@ -35,6 +37,7 @@ function createAccount() {
     );
 }
 
+//TODO проверить - возможно, это мертвый метод
 function addTelNumber(customerId) {
     const phone = $('#loyaltyRegPhone').val();
     const card  = $('#loyaltyRegCard').val();

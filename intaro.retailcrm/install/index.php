@@ -18,14 +18,17 @@ use Bitrix\Main\SystemException;
 use Bitrix\Sale\Internals\OrderPropsGroupTable;
 use Bitrix\Sale\Internals\PaySystemActionTable;
 use Bitrix\Sale\Delivery\Services\Manager;
-use Bitrix\sale\EventActions;
 use Bitrix\Sale\Internals\OrderTable;
 use Intaro\RetailCrm\Component\Handlers\EventsHandlers;
 use Intaro\RetailCrm\Model\Bitrix\Agreement;
 use Intaro\RetailCrm\Repository\AgreementRepository;
+use Intaro\RetailCrm\Service\OrderLoyaltyDataService;
 use \RetailCrm\ApiClient;
 use RetailCrm\Exception\CurlException;
 use Intaro\RetailCrm\Repository\ToModuleRepository;
+use Bitrix\Highloadblock as HL;
+
+Loader::IncludeModule('highloadblock');
 
 IncludeModuleLangFile(__FILE__);
 if (class_exists('intaro_retailcrm')) {
@@ -230,12 +233,14 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../lib/component/configprovider.php');
         include($this->INSTALL_PATH . '/../lib/component/constants.php');
         include($this->INSTALL_PATH . '/../lib/repository/agreementrepository.php');
+        include($this->INSTALL_PATH . '/../lib/service/orderloyaltydataservice.php');
 
         $this->CopyFiles();
         $this->addBonusPaySystem();
         $this->addLPUserFields();
         $this->addLPEvents();
         $this->addAgreement();
+        OrderLoyaltyDataService::createLoyaltyHlBlock();
 
         if ($step == 11) {
             $arResult['arSites'] = RCrmActions::SitesList();

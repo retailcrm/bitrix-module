@@ -63,6 +63,7 @@ $service = ServiceLocator::get(LoyaltyService::class);
 if ($arResult['LOYALTY_STATUS'] === 'Y'
     && $arResult['PERSONAL_LOYALTY_STATUS'] === true
 ) {
+    //TODO есть проблемы с округлением. нужно изучить, можно ли не передавать $discountPercent
     $discountPercent = round($arResult['DISCOUNT_PRICE_ALL'] / ($arResult['allSum'] / 100), 0);
     $calculate       = $service->calculateBonus(
         $arResult['BASKET_ITEM_RENDER_DATA'],
