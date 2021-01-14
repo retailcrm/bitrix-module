@@ -1178,20 +1178,16 @@ class RetailCrmHistory
                                     continue;
                                 }
 
-                                $paymentExternalId = $orderPayment->getId();
+                                $newHistoryPayments[$orderPayment->getField('XML_ID')]['externalId'] = $paymentExternalId;
+                                RCrmActions::apiMethod(
+                                    $api,
+                                    'paymentEditById',
+                                    __METHOD__,
+                                    $newHistoryPayments[$orderPayment->getField('XML_ID')]
+                                );
 
-                                if ($paymentExternalId) {
-                                    $newHistoryPayments[$orderPayment->getField('XML_ID')]['externalId'] = $paymentExternalId;
-                                    RCrmActions::apiMethod(
-                                        $api,
-                                        'paymentEditById',
-                                        __METHOD__,
-                                        $newHistoryPayments[$orderPayment->getField('XML_ID')]
-                                    );
-
-                                    if ($paymentId) {
-                                        \Bitrix\Sale\Internals\PaymentTable::update($paymentId, array('XML_ID' => ''));
-                                    }
+                                if ($paymentId) {
+                                    \Bitrix\Sale\Internals\PaymentTable::update($paymentId, array('XML_ID' => ''));
                                 }
                             }
                         }

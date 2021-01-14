@@ -198,7 +198,7 @@ class Utils
         
         return $phoneNumber;
     }
-    
+
     /**
      * Получение DataManager класса управления HLBlock
      *

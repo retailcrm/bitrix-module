@@ -591,6 +591,12 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         ConfigProvider::setLoyaltyProgramStatus('N');
     }
 
+    if (isset($_POST['loyalty_toggle']) && $_POST['loyalty_toggle'] === 'on') {
+        ConfigProvider::setLoyaltyProgramStatus('Y');
+    } else {
+        ConfigProvider::setLoyaltyProgramStatus('N');
+    }
+
     COption::SetOptionString($mid, $CRM_ADDRESS_OPTIONS, serialize($addressDatailOptions));
     COption::SetOptionString($mid, $CRM_SITES_LIST, serialize($siteListArr));
     COption::SetOptionString($mid, $CRM_ORDER_TYPES_ARR, serialize(RCrmActions::clearArr($orderTypesArr)));
@@ -1370,7 +1376,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                         </td>
                     </tr>
                     <?php $countProps++; endforeach; ?>
-
                 <? if (isset($arResult['customFields']) && count($arResult['customFields']) > 0): ?>
                     <tr class="heading custom-detail-title">
                         <td colspan="2" style="background-color: transparent;">
