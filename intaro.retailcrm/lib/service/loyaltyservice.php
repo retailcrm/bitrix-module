@@ -26,7 +26,6 @@ use Bitrix\Main\SystemException;
 use \DateTime;
 use Bitrix\Main\Web\Cookie;
 use Bitrix\Sale\Order;
-use Bitrix\Sale\PaySystem\Manager;
 use CUser;
 use Exception;
 use Intaro\RetailCrm\Component\Constants;
@@ -39,6 +38,7 @@ use Intaro\RetailCrm\Model\Api\PriceType;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountRequest;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\LoyaltyCalculateRequest;
 use Intaro\RetailCrm\Model\Api\Request\Order\Loyalty\OrderLoyaltyApplyRequest;
+use Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse;
 use Intaro\RetailCrm\Model\Api\Response\Order\Loyalty\OrderLoyaltyApplyResponse;
 use Intaro\RetailCrm\Model\Api\SerializedOrder;
 use Intaro\RetailCrm\Model\Api\SerializedOrderProduct;
@@ -46,6 +46,7 @@ use Intaro\RetailCrm\Model\Api\SerializedOrderProductOffer;
 use Intaro\RetailCrm\Model\Api\SerializedOrderReference;
 use Intaro\RetailCrm\Model\Api\SerializedRelationCustomer;
 use Intaro\RetailCrm\Model\Api\SmsVerification;
+use Intaro\RetailCrm\Model\Bitrix\OrderLoyaltyData;
 use Intaro\RetailCrm\Model\Bitrix\SmsCookie;
 use Intaro\RetailCrm\Model\Bitrix\User;
 use Intaro\RetailCrm\Model\Bitrix\UserLoyaltyData;
@@ -113,7 +114,7 @@ class LoyaltyService
      * @param int $bonusCount
      * @return \Intaro\RetailCrm\Model\Api\Response\Order\Loyalty\OrderLoyaltyApplyResponse|mixed|null
      */
-    public function sendBonusPayment(int $orderId, int $bonusCount)
+    public function sendBonusPayment(int $orderId, int $bonusCount): ?OrderLoyaltyApplyResponse
     {
         $request                    = new OrderLoyaltyApplyRequest();
         $request->order             = new SerializedOrderReference();
@@ -136,7 +137,7 @@ class LoyaltyService
      * @param float $discountPercent
      * @return \Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse|mixed|null
      */
-    public function calculateBonus(array $basketItems, int $discountPrice, float $discountPercent)
+    public function calculateBonus(array $basketItems, int $discountPrice, float $discountPercent): ?LoyaltyCalculateResponse
     {
         global $USER;
         
@@ -301,50 +302,45 @@ class LoyaltyService
      */
     public function applyBonusesInOrder(Order $order, $bonusCount, $rate): void
     {
-        $orderId    = $order->getId();
-        $response   = $this->sendBonusPayment($orderId, $bonusCount);
-        
+        $orderId  = $order->getId();
+        $response = $this->sendBonusPayment($orderId, $bonusCount);
+
         if ($response->success) {
-            try {
-                $bonusPaySystem    = PaySystemActionRepository::getFirstByWhere(
-                    ['ID'],
-                    [['ACTION_FILE', '=', 'retailcrmbonus']]
-                );
-                $paymentCollection = $order->getPaymentCollection();
-                
-                if ($bonusPaySystem !== null) {
-                    if (count($paymentCollection) === 1) {
-                        /** @var \Bitrix\Sale\Payment $current */
-                        $current = $paymentCollection->current();
-                        $oldSum  = $current->getField('SUM');
-    
-                        $current->setField('SUM', $oldSum - $bonusCount);
-                        $current->setField('COMMENTS', $rate);
-                    }
-                    
-                    $service    = Manager::getObjectById($bonusPaySystem->getId());
-                    $newPayment = $paymentCollection->createItem($service);
-                    
-                    $newPayment->setField('SUM', $bonusCount);
-                    
-                    //если верификация необходима, но не пройдена
-                    if (isset($response->verification, $response->verification->checkId)
-                        && !isset($response->verification->verifiedAt)
-                    ) {
-                        $newPayment->setPaid('N');
-                        $this->setSmsCookie('lpOrderBonusConfirm', $response->verification);
-                    }
-                    
-                    //если верификация не нужна
-                    if (!isset($response->verification)) {
-                        $newPayment->setPaid('Y');
-                    }
-                    
-                    $order->save();
-                }
-            } catch (ObjectPropertyException | ArgumentException | SystemException | Exception $e) {
-                AddMessage2Log('ERROR PaySystemActionRepository: ' . $e->getMessage());
+            $isDebited = false;
+            $checkId   = '';
+            
+            //если верификация необходима, но не пройдена
+            if (isset($response->verification, $response->verification->checkId)
+                && !isset($response->verification->verifiedAt)
+            ) {
+                $isDebited = false;
+                $this->setSmsCookie('lpOrderBonusConfirm', $response->verification);
+                $checkId = $response->verification->checkId;
             }
+            
+            //если верификация не нужна
+            if (!isset($response->verification)) {
+                $isDebited = true;
+            }
+            
+            try {
+                /** @var OrderLoyaltyDataService $hlService */
+                $hlService = ServiceLocator::get(OrderLoyaltyDataService::class);
+    
+                $loyaltyHl               = new OrderLoyaltyData();
+                $loyaltyHl->orderId      = $orderId;
+                $loyaltyHl->cashDiscount = $rate * $bonusCount;
+                $loyaltyHl->bonusRate    = $rate;
+                $loyaltyHl->bonusCount   = $bonusCount;
+                $loyaltyHl->isDebited    = $isDebited;
+                $loyaltyHl->checkId      = $checkId;
+                
+                $hlService->addDataInLoyaltyHl($loyaltyHl);
+            } catch (Exception $e) {
+                AddMessage2Log($e->getMessage());
+            }
+        } else {
+            Utils::handleErrors($response);
         }
     }
     

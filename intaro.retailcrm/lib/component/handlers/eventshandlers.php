@@ -98,7 +98,7 @@ class EventsHandlers
                 && (int)$_POST['available-bonuses'] >= (int)$_POST['bonus-input']
             ) {
                 $rate       = isset($_POST['charge-rate']) ? htmlspecialchars(trim($_POST['charge-rate'])) : 1;
-                $bonusCount = (int)$_POST['bonus-input'] * $rate;
+                $bonusCount = (int)$_POST['bonus-input'];
                 $order      = $event->getParameter("ENTITY");
                 
                 $loyaltyService->applyBonusesInOrder($order, $bonusCount, $rate);

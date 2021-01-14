@@ -2,13 +2,17 @@
 
 use Bitrix\Currency\CurrencyManager;
 use Bitrix\Main\Application;
+use Bitrix\Main\LoaderException;
+use Bitrix\Main\SystemException;
 use Bitrix\Main\UI\Extension;
 use Bitrix\Sale\Delivery\Services\Manager;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Repository\AgreementRepository;
 use Intaro\RetailCrm\Repository\TemplateRepository;
+use Intaro\RetailCrm\Service\OrderLoyaltyDataService;
 use RetailCrm\Exception\CurlException;
+use \Intaro\RetailCrm\Service\Utils as RetailcrmUtils;
 
 IncludeModuleLangFile(__FILE__);
 $mid = 'intaro.retailcrm';
@@ -569,6 +573,22 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
     if ($_POST[$CRM_CURRENCY]) {
         COption::SetOptionString($mid, $CRM_CURRENCY, $_POST['currency']);
+    }
+    
+    if (isset($_POST['loyalty_toggle']) && $_POST['loyalty_toggle'] === 'on') {
+        try {
+            $hlName = RetailcrmUtils::getHlClassByName(Constants::HL_LOYALTY_CODE);
+            
+            if (empty($hlName)) {
+                OrderLoyaltyDataService::createLoyaltyHlBlock();
+            }
+        } catch (LoaderException | SystemException $e) {
+            AddMessage2Log($e->getMessage());
+        }
+        
+        ConfigProvider::setLoyaltyProgramStatus('Y');
+    } else {
+        ConfigProvider::setLoyaltyProgramStatus('N');
     }
 
     if (isset($_POST['loyalty_toggle']) && $_POST['loyalty_toggle'] === 'on') {
@@ -1360,7 +1380,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                     <tr class="heading custom-detail-title">
                         <td colspan="2" style="background-color: transparent;">
                             <b>
-                                <?=GetMessage("ORDER_CUSTOM");?>
+                               <?=GetMessage("ORDER_CUSTOM");?>
                             </b>
                         </td>
                     </tr>
