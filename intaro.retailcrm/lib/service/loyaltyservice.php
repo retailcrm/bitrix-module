@@ -23,11 +23,13 @@ use Bitrix\Main\Diag\Debug;
 use Bitrix\Main\Loader;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
+use Bitrix\Sale\BasketItemBase;
 use \DateTime;
 use Bitrix\Main\Web\Cookie;
 use Bitrix\Sale\Order;
 use CUser;
 use Exception;
+use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
 use Intaro\RetailCrm\Component\Json\Deserializer;
@@ -304,7 +306,7 @@ class LoyaltyService
     {
         $orderId  = $order->getId();
         $response = $this->sendBonusPayment($orderId, $bonusCount);
-
+        
         if ($response->success) {
             $isDebited = false;
             $checkId   = '';
@@ -326,16 +328,50 @@ class LoyaltyService
             try {
                 /** @var OrderLoyaltyDataService $hlService */
                 $hlService = ServiceLocator::get(OrderLoyaltyDataService::class);
-    
+                
+                $totalLoyaltyDiscount = $rate * $bonusCount;
+                
                 $loyaltyHl               = new OrderLoyaltyData();
                 $loyaltyHl->orderId      = $orderId;
-                $loyaltyHl->cashDiscount = $rate * $bonusCount;
+                $loyaltyHl->cashDiscount = $totalLoyaltyDiscount;
                 $loyaltyHl->bonusRate    = $rate;
                 $loyaltyHl->bonusCount   = $bonusCount;
                 $loyaltyHl->isDebited    = $isDebited;
                 $loyaltyHl->checkId      = $checkId;
                 
                 $hlService->addDataInLoyaltyHl($loyaltyHl);
+                
+                $basketItems = $order->getBasket();
+                
+                if ($basketItems === null) {
+                    return;
+                }
+                
+                $totalPrice  = $basketItems->getBasePrice();
+                $bitrixDiscount = $basketItems->getBasePrice() - $basketItems->getPrice();
+                
+                /** формула расчета скидки битрикса: y - (x*y)/z
+                 * x общая сумма скидки на заказ
+                 * y базовая стоимость товара
+                 * z  общая стоимость заказа без учета скидки
+                 *
+                 * формула расчета скидки программы лояльности: y - (m*y)/z
+                 * m - скидка по программе лояльности
+                 *
+                 * общая формула наложения скидок y - (x*y)/z - (m*y)/z или (y*(z-x-m))/z
+                */
+                /** @var BasketItemBase $basketItem */
+                foreach ($basketItems as $basketItem) {
+                    $basePrice       = $basketItem->getField('BASE_PRICE');
+                    $loyaltyDiscount = ($basePrice * ($totalPrice - $bitrixDiscount - $totalLoyaltyDiscount)) / $totalPrice;
+
+                    $basketItem->setField('CUSTOM_PRICE', 'Y');
+                    $basketItem->setField('DISCOUNT_PRICE', $basePrice - $loyaltyDiscount);
+                    $basketItem->setField('PRICE', $loyaltyDiscount);
+                }
+                
+                $order->save();
+                
             } catch (Exception $e) {
                 AddMessage2Log($e->getMessage());
             }
@@ -378,14 +414,14 @@ class LoyaltyService
         $userService = ServiceLocator::get(LpUserAccountService::class);
         $smsCookie   = $this->getSmsCookie('lpRegister');
         $nowTime     = new DateTime();
-    
+        
         if ($smsCookie !== null
             && isset($smsCookie->resendAvailable)
             && $smsCookie->resendAvailable > $nowTime
         ) {
             return [
-                'msg'         => GetMessage('SMS_VERIFICATION'),
-                'form'        => [
+                'msg'             => GetMessage('SMS_VERIFICATION'),
+                'form'            => [
                     'button' => [
                         'name'   => GetMessage('SEND'),
                         'action' => 'sendVerificationCode',
@@ -401,7 +437,7 @@ class LoyaltyService
                     ],
                 ],
                 'resendAvailable' => $smsCookie->resendAvailable->format('Y-m-d H:i:s'),
-                'idInLoyalty' => $idInLoyalty,
+                'idInLoyalty'     => $idInLoyalty,
             ];
         }
         
@@ -423,8 +459,8 @@ class LoyaltyService
             $smsCookie = $this->setSmsCookie('lpRegister', $activateResponse->verification);
             
             return [
-                'msg'         => GetMessage('SMS_VERIFICATION'),
-                'form'        => [
+                'msg'             => GetMessage('SMS_VERIFICATION'),
+                'form'            => [
                     'button' => [
                         'name'   => GetMessage('SEND'),
                         'action' => 'sendVerificationCode',
@@ -440,7 +476,7 @@ class LoyaltyService
                     ],
                 ],
                 'resendAvailable' => $smsCookie->resendAvailable->format('Y-m-d H:i:s'),
-                'idInLoyalty' => $idInLoyalty,
+                'idInLoyalty'     => $idInLoyalty,
             ];
         }
         
@@ -463,7 +499,7 @@ class LoyaltyService
             }
             
             $cookieJson = $application->getContext()->getRequest()->getCookie($cookieName);
-
+            
             if ($cookieJson !== null) {
                 return Deserializer::deserialize($cookieJson, SmsCookie::class);
             }
@@ -575,7 +611,7 @@ class LoyaltyService
         $service    = ServiceLocator::get(LpUserAccountService::class);
         $phone      = $userPhone ?? '';
         $card       = $loyalty->getBonusCardNumber() ?? '';
-        $customerId = (string) $userId;
+        $customerId = (string)$userId;
         
         $createResponse = $service->createLoyaltyAccount($phone, $card, $customerId, $customFields);
         
@@ -620,7 +656,7 @@ class LoyaltyService
         $smsCookie->isVerified      = !empty($smsVerification->verifiedAt);
         $smsCookie->expiredAt       = $smsVerification->expiredAt;
         $smsCookie->checkId         = $smsVerification->checkId;
-    
+        
         $serializedArray = Serializer::serialize($smsCookie);
         
         $cookie = new Cookie(
@@ -688,10 +724,10 @@ class LoyaltyService
         if ($bonusPayment === false) {
             return false;
         }
-
-        $rate = (int) $bonusPayment->getField('COMMENTS') > 0 ? $bonusPayment->getField('COMMENTS') : 1;
         
-        return (int) $bonusPayment->getField('SUM') / $rate;
+        $rate = (int)$bonusPayment->getField('COMMENTS') > 0 ? $bonusPayment->getField('COMMENTS') : 1;
+        
+        return (int)$bonusPayment->getField('SUM') / $rate;
     }
     
     /**
@@ -708,12 +744,12 @@ class LoyaltyService
             }
             
             $order = Order::load($orderId);
-        
+            
             if ($order !== null) {
                 try {
                     $paySystemAction = PaySystemActionRepository::getFirstByWhere(
                         ['ID'],
-                        [[ 'CODE', '=', Constants::BONUS_PAYMENT_CODE]]
+                        [['CODE', '=', Constants::BONUS_PAYMENT_CODE]]
                     );
                 } catch (ObjectPropertyException | ArgumentException | SystemException $e) {
                     AddMessage2Log($e->getMessage());
@@ -725,7 +761,7 @@ class LoyaltyService
                 }
                 
                 $paymentCollection = $order->getPaymentCollection();
-            
+                
                 /** @var \Bitrix\Sale\Payment $payment */
                 foreach ($paymentCollection as $payment) {
                     if ($payment->getPaymentSystemId() === $paySystemAction->getId()) {
