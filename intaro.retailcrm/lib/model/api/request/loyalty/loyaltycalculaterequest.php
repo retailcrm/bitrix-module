@@ -36,4 +36,14 @@ class LoyaltyCalculateRequest extends AbstractApiModel
      * @Mapping\SerializedName("order")
      */
     public $order;
+    
+    /**
+     * Количество бонусов для списания
+     *
+     * @var float $bonuses
+     *
+     * @Mapping\Type("float")
+     * @Mapping\SerializedName("bonuses")
+     */
+    public $bonuses;
 }

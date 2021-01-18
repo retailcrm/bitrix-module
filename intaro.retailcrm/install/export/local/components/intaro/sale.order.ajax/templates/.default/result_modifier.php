@@ -35,7 +35,7 @@ if ($arResult['LOYALTY_STATUS'] === 'Y' && $arResult['PERSONAL_LOYALTY_STATUS'] 
     /* @var LoyaltyService $service */
     $service = ServiceLocator::get(LoyaltyService::class);
     /** @var \Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse $calculate */
-    $calculate = $service->calculateBonus($arResult['BASKET_ITEMS'], $arResult['DISCOUNT_PRICE'], $arResult['DISCOUNT_PERCENT']);
+    $calculate = $service->calculateBonus($arResult['BASKET_ITEMS']);
 
     if ($calculate instanceof LoyaltyCalculateResponse && $calculate->success) {
         /** @var \Intaro\RetailCrm\Model\Api\LoyaltyCalculation $privilege */

@@ -65,11 +65,7 @@ if ($arResult['LOYALTY_STATUS'] === 'Y'
 ) {
     //TODO есть проблемы с округлением. нужно изучить, можно ли не передавать $discountPercent
     $discountPercent = round($arResult['DISCOUNT_PRICE_ALL'] / ($arResult['allSum'] / 100), 0);
-    $calculate       = $service->calculateBonus(
-        $arResult['BASKET_ITEM_RENDER_DATA'],
-        $arResult['DISCOUNT_PRICE_ALL'],
-        $discountPercent
-    );
+    $calculate       = $service->calculateBonus( $arResult['BASKET_ITEM_RENDER_DATA']);
     
     if ($calculate->success) {
         $arResult['LP_CALCULATE_SUCCESS']                  = $calculate->success;

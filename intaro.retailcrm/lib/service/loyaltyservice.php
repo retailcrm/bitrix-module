@@ -24,6 +24,7 @@ use Bitrix\Main\Loader;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
 use Bitrix\Sale\BasketItemBase;
+use COption;
 use \DateTime;
 use Bitrix\Main\Web\Cookie;
 use Bitrix\Sale\Order;
@@ -137,60 +138,44 @@ class LoyaltyService
      * @param array $basketItems
      * @param int   $discountPrice
      * @param float $discountPercent
+     * @param float $bonuses количество бонусов для списания
      * @return \Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse|mixed|null
      */
-    public function calculateBonus(array $basketItems, int $discountPrice, float $discountPercent): ?LoyaltyCalculateResponse
+    public function calculateBonus(array $basketItems, float $bonuses = 0): ?LoyaltyCalculateResponse
     {
         global $USER;
-        
+       
         $request                              = new LoyaltyCalculateRequest();
         $request->order                       = new SerializedOrder();
         $request->order->customer             = new SerializedRelationCustomer();
         $request->order->customer->id         = $USER->GetID();
         $request->order->customer->externalId = $USER->GetID();
         
-        if ($discountPrice > 0) {
-            $request->order->discountManualAmount = $discountPrice;
-        }
-        
-        if ($discountPercent > 0) {
-            $request->order->discountManualPercent = $discountPercent;
-        }
-        
         $request->site = $this->site;
+        $request->bonuses = $bonuses;
         
         foreach ($basketItems as $item) {
             $product = new SerializedOrderProduct();
-            
-            if ($item['DISCOUNT_PRICE_PERCENT'] > 0) {
-                $product->discountManualPercent = $item['DISCOUNT_PRICE_PERCENT'];
-            }
-            
-            if ($item['DISCOUNT_PRICE_PERCENT'] > 0) {
-                $product->discountManualAmount = $item['DISCOUNT_PRICE'];
-            }
-            
-            $product->initialPrice      = $item['PRICE'];
+    
+            $product->initialPrice      = $item['BASE_PRICE']; //цена без скидки
             $product->offer             = new SerializedOrderProductOffer();
             $product->offer->externalId = $item['ID'];
             $product->offer->id         = $item['ID'];
             $product->offer->xmlId      = $item['XML_ID'];
             $product->quantity          = $item['QUANTITY'];
             
-            try {
-                $price                    = GroupTable::query()
-                    ->setSelect(['NAME'])
-                    ->where(
-                        [
-                            ['ID', '=', $item['PRICE_TYPE_ID']],
-                        ]
-                    )
-                    ->fetch();
-                $product->priceType       = new PriceType();
-                $product->priceType->code = $price['NAME'];
-            } catch (ObjectPropertyException | ArgumentException | SystemException $e) {
-                AddMessage2Log('GroupTable query error: ' . $e->getMessage());
+            $prices = COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_PRICES, 0);
+            
+            //TODO проверить передачу этого параметра (пока непонятно как)
+            if (isset($prices) && is_string($prices)) {
+                $product->priceType = new PriceType();
+                $serializePrice     = unserialize($prices);
+        
+                if (!empty($serializePrice) && isset($serializePrice[$item['PRICE_TYPE_ID']])) {
+                    $product->priceType->code = $serializePrice[$item['PRICE_TYPE_ID']];
+                }
             }
+            
             $request->order->items[] = $product;
         }
         
