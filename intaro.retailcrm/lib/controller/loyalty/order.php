@@ -24,10 +24,12 @@ use Bitrix\Main\SystemException;
 use Exception;
 use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\ServiceLocator;
+use Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse;
 use Intaro\RetailCrm\Repository\PaySystemActionRepository;
 use Intaro\RetailCrm\Service\LoyaltyService;
 use Bitrix\Sale\Order as BitrixOrder;
 use Intaro\RetailCrm\Service\LpUserAccountService;
+use Intaro\RetailCrm\Service\Utils;
 
 /**
  * Class Order
@@ -36,6 +38,40 @@ use Intaro\RetailCrm\Service\LpUserAccountService;
  */
 class Order extends Controller
 {
+    
+    /**
+     * Контроллер для пересчета бонусов
+     *
+     * @param string    $basketItemsHidden
+     * @param float|int $inputBonuses
+     *
+     * @return \Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse|null
+     */
+    public function calculateBonusAction(string $basketItemsHidden, float $inputBonuses = 0): ?LoyaltyCalculateResponse
+    {
+        $basketItems = json_decode(htmlspecialchars_decode($basketItemsHidden), true);
+
+        /** @var LoyaltyService $service */
+        $service = ServiceLocator::get(LoyaltyService::class);
+        
+        $response = $service->calculateBonus($basketItems,
+            $inputBonuses);
+        
+        if ($response instanceof LoyaltyCalculateResponse) {
+            
+            if ($response->success
+                && !empty($response->order->bonusesCreditTotal)
+                && count($response->order->items) > 0
+            ) {
+                return $response;
+            }
+            
+            Utils::handleErrors($response);
+        }
+        
+        return null;
+    }
+    
     /**
      * @param string $verificationCode
      * @param int    $orderId

@@ -157,12 +157,13 @@ class LoyaltyService
         foreach ($basketItems as $item) {
             $product = new SerializedOrderProduct();
     
-            $product->initialPrice      = $item['BASE_PRICE']; //цена без скидки
-            $product->offer             = new SerializedOrderProductOffer();
-            $product->offer->externalId = $item['ID'];
-            $product->offer->id         = $item['ID'];
-            $product->offer->xmlId      = $item['XML_ID'];
-            $product->quantity          = $item['QUANTITY'];
+            $product->initialPrice         = $item['BASE_PRICE']; //цена без скидки
+            $product->discountManualAmount = $item['BASE_PRICE'] - $item['PRICE'];
+            $product->offer                = new SerializedOrderProductOffer();
+            $product->offer->externalId    = $item['ID'];
+            $product->offer->id            = $item['ID'];
+            $product->offer->xmlId         = $item['XML_ID'];
+            $product->quantity             = $item['QUANTITY'];
             
             $prices = COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_PRICES, 0);
             
@@ -339,20 +340,21 @@ class LoyaltyService
                  * x общая сумма скидки на заказ
                  * y базовая стоимость товара
                  * z  общая стоимость заказа без учета скидки
+                 * m - скидка по программе лояльности
                  *
                  * формула расчета скидки программы лояльности: y - (m*y)/z
-                 * m - скидка по программе лояльности
                  *
                  * общая формула наложения скидок y - (x*y)/z - (m*y)/z или (y*(z-x-m))/z
                 */
                 /** @var BasketItemBase $basketItem */
-                foreach ($basketItems as $basketItem) {
+                foreach ($basketItems as $key=>$basketItem) {
                     $basePrice       = $basketItem->getField('BASE_PRICE');
                     $loyaltyDiscount = ($basePrice * ($totalPrice - $bitrixDiscount - $totalLoyaltyDiscount)) / $totalPrice;
 
                     $basketItem->setField('CUSTOM_PRICE', 'Y');
                     $basketItem->setField('DISCOUNT_PRICE', $basePrice - $loyaltyDiscount);
-                    $basketItem->setField('PRICE', $loyaltyDiscount);
+                    $basketItem->setField('PRICE', $basePrice-$response->order->items[$key]->discountTotal);
+                    /*$basketItem->setField('PRICE', $loyaltyDiscount);*/
                 }
                 
                 $order->save();
