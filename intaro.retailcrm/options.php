@@ -1003,7 +1003,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                 </td>
             </tr>
             <tr class="heading">
-                <td colspan="2"><b><?php echo GetMessage('PAYMENT_TYPES_LIST'); ?></b></td>
+                <td colspan="2"><b><?php echo GetMessage('PAYMENT_TYPES_LIST'); ?></b>
+                    <p><small>Для интеграционных оплат, статус не передается</small></p></td>
             </tr>
             <?php foreach($arResult['bitrixPaymentTypesList'] as $bitrixPaymentType): ?>
                 <tr>
@@ -1015,7 +1016,9 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                             <option value="" selected=""></option>
                             <?php foreach($arResult['paymentTypesList'] as $paymentType): ?>
                                 <option value="<?php echo $paymentType['code']; ?>" <?php if ($optionsPayTypes[$bitrixPaymentType['ID']] == $paymentType['code']) echo 'selected'; ?>>
-                                    <?php echo $APPLICATION->ConvertCharset($paymentType['name'], 'utf-8', SITE_CHARSET); ?>
+                                    <?php
+                                    $nameType = isset($paymentType['integrationModule']) ? $APPLICATION->ConvertCharset($paymentType['name'] . '(интеграционная)', 'utf-8', SITE_CHARSET) : $APPLICATION->ConvertCharset($paymentType['name'], 'utf-8', SITE_CHARSET);
+                                    echo $nameType;?>
                                 </option>
                             <?php endforeach; ?>
                         </select>

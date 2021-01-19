@@ -252,6 +252,14 @@ class RetailCrmOrder
             $order['weight'] = $weight;
         }
 
+        $paymentTypes = RCrmActions::apiMethod($api, 'paymentTypesGet', __METHOD__, array());
+        $integrationPayment = [];
+
+        foreach ($paymentTypes['paymentTypes'] as $typePayment) {
+            if (isset($typePayment['integrationModule']) && $typePayment['active'] === true) {
+                $integrationPayment[$typePayment['code']] = $typePayment;
+            }
+        }
         //payments
         $payments = array();
         foreach ($arFields['PAYMENTS'] as $payment) {
@@ -269,7 +277,9 @@ class RetailCrmOrder
                 }
 
                 if (!empty($arParams['optionsPayment'][$payment['PAID']])) {
-                    $pm['status'] = $arParams['optionsPayment'][$payment['PAID']];
+                    if (!array_key_exists($arParams['optionsPayTypes'][$payment['PAY_SYSTEM_ID']], $integrationPayment)) {
+                        $pm['status'] = $arParams['optionsPayment'][$payment['PAID']];
+                    }
                 }
 
                 if (RetailcrmConfigProvider::shouldSendPaymentAmount()) {
