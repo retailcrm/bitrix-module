@@ -248,7 +248,7 @@ class intaro_retailcrm extends CModule
             if (!$api_host || !$api_key) {
                 $arResult['errCode'] = 'ERR_FIELDS_API_HOST';
                 $APPLICATION->IncludeAdminFile(
-                        GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step1.php'
+                    GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step1.php'
                 );
 
                 return;
@@ -289,7 +289,7 @@ class intaro_retailcrm extends CModule
 
             if (isset($arResult['errCode']) && $arResult['errCode']) {
                 $APPLICATION->IncludeAdminFile(
-                        GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step1.php'
+                    GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step1.php'
                 );
 
                 return;
@@ -418,7 +418,7 @@ class intaro_retailcrm extends CModule
             }
 
             $APPLICATION->IncludeAdminFile(
-                    GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step2.php'
+                GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step2.php'
             );
         } elseif ($step == 3) {
             if (!CModule::IncludeModule("sale")) {
@@ -427,7 +427,7 @@ class intaro_retailcrm extends CModule
 
             if (isset($_POST['back']) && $_POST['back']) {
                 $APPLICATION->IncludeAdminFile(
-                        GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step1.php'
+                    GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step1.php'
                 );
             }
 
@@ -656,7 +656,7 @@ class intaro_retailcrm extends CModule
             //contragents type list
             $contragentTypeArr = array();
             foreach ($orderTypesList as $orderType) {
-                $contragentTypeArr[$orderType['ID']] = htmlspecialchars(trim($_POST['contragent-type-' . $orderType['ID']]));
+                $contragentTypeArr[$orderType['LID']][$orderType['ID']] = htmlspecialchars(trim($_POST['contragent-type-' . $orderType['ID']]));
             }
 
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_PROPS, serialize(RCrmActions::clearArr($orderPropsArr)));
@@ -740,9 +740,9 @@ class intaro_retailcrm extends CModule
                 COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_LAST_ID, $orderLastId);
             } else {
                 $dbOrder = \Bitrix\Sale\Internals\OrderTable::GetList(array(
-                        'order'   => array("ID" => "DESC"),
-                        'limit'   => 1,
-                        'select'  => array('ID')
+                    'order'   => array("ID" => "DESC"),
+                    'limit'   => 1,
+                    'select'  => array('ID')
                 ));
                 $arOrder = $dbOrder->fetch();
                 if (!empty($arOrder['ID'])) {
@@ -1017,7 +1017,7 @@ class intaro_retailcrm extends CModule
                     "IN_CRON"         => "N",
                     "NEED_EDIT"       => "N",
                     "SETUP_VARS"      => $ar
-                    ));
+                ));
                 if (intval($PROFILE_ID) <= 0) {
                     $arResult['errCode'] = 'ERR_IBLOCK';
 
@@ -1035,10 +1035,10 @@ class intaro_retailcrm extends CModule
                     $intAgent = new DateInterval('PT60S'); // PT60S - 60 sec;
                     $dateAgent->add($intAgent);
                     CAgent::AddAgent(
-                            "CCatalogExport::PreGenerateExport(" . $PROFILE_ID . ");", "catalog", "N", 86400, $dateAgent->format('d.m.Y H:i:s'), // date of first check
-                            "Y", // agent is active
-                            $dateAgent->format('d.m.Y H:i:s'), // date of first start
-                            30
+                        "CCatalogExport::PreGenerateExport(" . $PROFILE_ID . ");", "catalog", "N", 86400, $dateAgent->format('d.m.Y H:i:s'), // date of first check
+                        "Y", // agent is active
+                        $dateAgent->format('d.m.Y H:i:s'), // date of first start
+                        30
                     );
 
                     CCatalogExport::Update($PROFILE_ID, array(
