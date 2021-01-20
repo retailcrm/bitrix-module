@@ -195,7 +195,7 @@ class RetailCrmEvent
 
         $orderCompany = null;
 
-        if ("Y" === $optionCorpClient && $optionsContragentType[$arOrder['PERSON_TYPE_ID']] == 'legal-entity') {
+        if ("Y" === $optionCorpClient && $optionsContragentType[$arOrder['LID']][$arOrder['PERSON_TYPE_ID']] == 'legal-entity') {
             //corparate cliente
             $nickName = '';
             $address = '';
@@ -296,7 +296,7 @@ class RetailCrmEvent
                 $resultUserCorp = RetailCrmCorporateClient::clientSend(
                     $arOrder,
                     $api,
-                    $optionsContragentType[$arOrder['PERSON_TYPE_ID']],
+                    $optionsContragentType[$arOrder['LID']][$arOrder['PERSON_TYPE_ID']],
                     true,
                     false,
                     $site
@@ -396,7 +396,7 @@ class RetailCrmEvent
             $userCrm = RCrmActions::apiMethod($api, 'customersGet', __METHOD__, $arOrder['USER_ID'], $site);
             if (!isset($userCrm['customer'])) {
                 $arUser = Bitrix\Main\UserTable::getById($arOrder['USER_ID'])->fetch();
-                $resultUser = RetailCrmUser::customerSend($arUser, $api, $optionsContragentType[$arOrder['PERSON_TYPE_ID']], true, $site);
+                $resultUser = RetailCrmUser::customerSend($arUser, $api, $optionsContragentType[$arOrder['LID']][$arOrder['PERSON_TYPE_ID']], true, $site);
                 if (!$resultUser) {
                     RCrmActions::eventLog('RetailCrmEvent::orderSave', 'RetailCrmUser::customerSend', 'error during creating customer');
 

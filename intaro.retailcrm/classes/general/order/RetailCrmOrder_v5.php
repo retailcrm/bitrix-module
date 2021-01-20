@@ -424,7 +424,7 @@ class RetailCrmOrder
             }
 
             if ("Y" == RetailcrmConfigProvider::getCorporateClientStatus()
-                && $optionsContragentType[$order['PERSON_TYPE_ID']] == 'legal-entity'
+                && $optionsContragentType[$order['LID']][$order['PERSON_TYPE_ID']] == 'legal-entity'
             ) {
                 // TODO check if order is corporate, and if it IS - make corporate order
                 $arCustomer = RetailCrmUser::customerSend(
@@ -452,7 +452,7 @@ class RetailCrmOrder
                 $arCustomer = RetailCrmUser::customerSend(
                     $user,
                     $api,
-                    $optionsContragentType[$order['PERSON_TYPE_ID']],
+                    $optionsContragentType[$order['LID']][$order['PERSON_TYPE_ID']],
                     false,
                     $site
                 );

@@ -213,7 +213,7 @@ class RetailCrmHistory
         $optionsOrderNumbers = RetailcrmConfigProvider::getOrderNumbers();
         $optionsCanselOrder = RetailcrmConfigProvider::getCancellableOrderPaymentStatuses();
         $currency = RetailcrmConfigProvider::getCurrencyOrDefault();
-        $contragentTypes = array_flip(RetailcrmConfigProvider::getContragentTypes());
+        $contragentTypes = RetailcrmConfigProvider::getContragentTypes();
         $shipmentDeducted = RetailcrmConfigProvider::getShipmentDeducted();
 
         $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
@@ -308,6 +308,8 @@ class RetailCrmHistory
                     );
 
                     continue;
+                } else {
+                    $contragentTypes = array_flip($contragentTypes[$site]);
                 }
 
                 if (isset($order['customer']['externalId']) && !is_numeric($order['customer']['externalId'])) {
