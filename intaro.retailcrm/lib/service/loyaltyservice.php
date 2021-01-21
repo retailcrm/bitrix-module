@@ -37,6 +37,7 @@ use Intaro\RetailCrm\Component\Json\Deserializer;
 use Intaro\RetailCrm\Component\Json\Serializer;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Model\Api\LoyaltyAccount;
+use Intaro\RetailCrm\Model\Api\OrderProduct;
 use Intaro\RetailCrm\Model\Api\PriceType;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountRequest;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\LoyaltyCalculateRequest;
@@ -136,8 +137,6 @@ class LoyaltyService
     
     /**
      * @param array $basketItems
-     * @param int   $discountPrice
-     * @param float $discountPercent
      * @param float $bonuses количество бонусов для списания
      * @return \Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse|mixed|null
      */
@@ -157,8 +156,13 @@ class LoyaltyService
         foreach ($basketItems as $item) {
             $product = new SerializedOrderProduct();
     
-            $product->initialPrice         = $item['BASE_PRICE']; //цена без скидки
-            $product->discountManualAmount = $item['BASE_PRICE'] - $item['PRICE'];
+            $fullPrice             = $item['BASE_PRICE'] ?? $item['FULL_PRICE'];
+            $product->initialPrice = $fullPrice; //цена без скидки
+
+            if ($fullPrice>0) {
+                $product->discountManualAmount = $fullPrice - $item['PRICE'];
+            }
+            
             $product->offer                = new SerializedOrderProductOffer();
             $product->offer->externalId    = $item['ID'];
             $product->offer->id            = $item['ID'];
@@ -179,7 +183,7 @@ class LoyaltyService
             
             $request->order->items[] = $product;
         }
-        
+
         $result = $this->client->loyaltyCalculate($request);
         
         if (isset($result->errorMsg) && !empty($result->errorMsg)) {
@@ -313,52 +317,39 @@ class LoyaltyService
             
             try {
                 /** @var OrderLoyaltyDataService $hlService */
-                $hlService = ServiceLocator::get(OrderLoyaltyDataService::class);
-                
-                $totalLoyaltyDiscount = $rate * $bonusCount;
-                
-                $loyaltyHl               = new OrderLoyaltyData();
-                $loyaltyHl->orderId      = $orderId;
-                $loyaltyHl->cashDiscount = $totalLoyaltyDiscount;
-                $loyaltyHl->bonusRate    = $rate;
-                $loyaltyHl->bonusCount   = $bonusCount;
-                $loyaltyHl->isDebited    = $isDebited;
-                $loyaltyHl->checkId      = $checkId;
-                
-                $hlService->addDataInLoyaltyHl($loyaltyHl);
+                $hlService            = ServiceLocator::get(OrderLoyaltyDataService::class);
                 
                 $basketItems = $order->getBasket();
                 
                 if ($basketItems === null) {
                     return;
                 }
-                
-                $totalPrice  = $basketItems->getBasePrice();
-                $bitrixDiscount = $basketItems->getBasePrice() - $basketItems->getPrice();
-                
-                /** формула расчета скидки битрикса: y - (x*y)/z
-                 * x общая сумма скидки на заказ
-                 * y базовая стоимость товара
-                 * z  общая стоимость заказа без учета скидки
-                 * m - скидка по программе лояльности
-                 *
-                 * формула расчета скидки программы лояльности: y - (m*y)/z
-                 *
-                 * общая формула наложения скидок y - (x*y)/z - (m*y)/z или (y*(z-x-m))/z
-                */
+
                 /** @var BasketItemBase $basketItem */
                 foreach ($basketItems as $key=>$basketItem) {
-                    $basePrice       = $basketItem->getField('BASE_PRICE');
-                    $loyaltyDiscount = ($basePrice * ($totalPrice - $bitrixDiscount - $totalLoyaltyDiscount)) / $totalPrice;
+                    $loyaltyHl               = new OrderLoyaltyData();
+    
+                    /** @var OrderProduct $item */
+                    $item                    = $response->order->items[$key];
+                    $totalLoyaltyDiscount    = $rate * $item->bonusesChargeTotal / $basketItem->getQuantity();
+                    $loyaltyHl->orderId      = $orderId;
+                    $loyaltyHl->itemId       = $basketItem->getId();
+                    $loyaltyHl->cashDiscount = $totalLoyaltyDiscount;
+                    $loyaltyHl->bonusRate    = $rate;
+                    $loyaltyHl->bonusCount   = $item->bonusesChargeTotal;
+                    $loyaltyHl->isDebited    = $isDebited;
+                    $loyaltyHl->checkId      = $checkId;
+
+                    $hlService->addDataInLoyaltyHl($loyaltyHl);
+    
+                    $basePrice = $basketItem->getField('BASE_PRICE');
 
                     $basketItem->setField('CUSTOM_PRICE', 'Y');
-                    $basketItem->setField('DISCOUNT_PRICE', $basePrice - $loyaltyDiscount);
-                    $basketItem->setField('PRICE', $basePrice-$response->order->items[$key]->discountTotal);
-                    /*$basketItem->setField('PRICE', $loyaltyDiscount);*/
+                    $basketItem->setField('DISCOUNT_PRICE', $item->discountTotal);
+                    $basketItem->setField('PRICE', $basePrice - $item->discountTotal);
                 }
                 
                 $order->save();
-                
             } catch (Exception $e) {
                 AddMessage2Log($e->getMessage());
             }

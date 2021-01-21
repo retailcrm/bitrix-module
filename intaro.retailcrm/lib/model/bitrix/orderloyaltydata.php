@@ -32,6 +32,16 @@ class OrderLoyaltyData
      * @Mapping\SerializedName("UF_ORDER_ID")
      */
     public $orderId;
+   
+    /**
+     * ID товара
+     *
+     * @var integer
+     *
+     * @Mapping\Type("integer")
+     * @Mapping\SerializedName("UF_ITEM_ID")
+     */
+    public $itemId;
     
     /**
      * Скидка в денежном выражении

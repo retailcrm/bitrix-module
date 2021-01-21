@@ -48,10 +48,10 @@ class OrderLoyaltyDataService
             'TABLE_NAME' => 'loyalty_program',
         ]);
     
-        $arLangs = Array(
+        $arLangs = [
             'ru' => GetMessage('LP_ORDER_GROUP_NAME'),
-            'en' => GetMessage('LP_ORDER_GROUP_NAME', null, 'en')
-        );
+            'en' => GetMessage('LP_ORDER_GROUP_NAME', null, 'en'),
+        ];
     
         if ($result->isSuccess()) {
             $hlId = $result->getId();
@@ -79,6 +79,15 @@ class OrderLoyaltyDataService
                 "EDIT_FORM_LABEL"   => ['ru' => GetMessage('UF_ORDER_ID')],
                 "LIST_COLUMN_LABEL" => ['ru' => GetMessage('UF_ORDER_ID')],
                 "LIST_FILTER_LABEL" => ['ru' => GetMessage('UF_ORDER_ID')],
+            ],
+            'UF_ITEM_ID'       => [
+                'ENTITY_ID'    => $ufObject,
+                'FIELD_NAME'   => 'UF_ITEM_ID',
+                'USER_TYPE_ID' => 'integer',
+                'MANDATORY'    => 'Y',
+                "EDIT_FORM_LABEL"   => ['ru' => GetMessage('UF_ITEM_ID')],
+                "LIST_COLUMN_LABEL" => ['ru' => GetMessage('UF_ITEM_ID')],
+                "LIST_FILTER_LABEL" => ['ru' => GetMessage('UF_ITEM_ID')],
             ],
             'UF_CASH_DISCOUNT'  => [
                 'ENTITY_ID'    => $ufObject,
