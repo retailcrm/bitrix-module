@@ -21,10 +21,10 @@ if ($arParams["SET_TITLE"] === "Y") {
     if ($arResult['LOYALTY_STATUS'] === 'Y' && $arResult['PERSONAL_LOYALTY_STATUS'] === true) {
         /** @var LoyaltyService $service */
         $service      = ServiceLocator::get(LoyaltyService::class);
-        $bonusPayment = $service->getBonusPayment($arResult["ORDER"]['ID']);
+        $isDebited = $service->isBonusDebited($arResult["ORDER"]['ID']);
         
         //если есть бонусная оплата и она не оплачена, то отрисовываем форму введения кода верификации
-        if ($bonusPayment !== false && !$bonusPayment->isPaid()) {
+        if ($isDebited !== null && $isDebited === false) {
             
             $smsCookie = $service->getSmsCookie('lpOrderBonusConfirm');
 

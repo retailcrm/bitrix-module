@@ -97,59 +97,20 @@ class Order extends Controller
             && isset($response->verification->verifiedAt)
             && !empty($response->verification->verifiedAt)
         ) {
-            try {
-                Loader::includeModule('sale');
-                
-                $order = BitrixOrder::load($orderId);
-                
-                if (!$order) {
-                    AddMessage2Log('Ошибка списания бонусов (не удалось получить объект Order) по заказу №' . $orderId);
-                    return [
-                        'status'   => 'error',
-                        'msg'      => 'Ошибка',
-                        'msgColor' => 'brown',
-                    ];
-                }
-                
-                $paymentCollection = $order->getPaymentCollection();
-                
-                /** @var \Bitrix\Sale\Payment $payment */
-                foreach ($paymentCollection as $payment) {
-                    $isPaid = $payment->isPaid();
-    
-                    try {
-                        $paySystemAction = PaySystemActionRepository::getFirstByWhere(
-                            ['*'],
-                            [
-                                ['ID', '=', $payment->getField('PAY_SYSTEM_ID')],
-                            ]
-                        );
-                    } catch (ObjectPropertyException | ArgumentException | SystemException $e) {
-                        AddMessage2Log($e->getMessage());
-                    }
-                    
-                    if (isset($paySystemAction)
-                        && !$isPaid
-                        && $paySystemAction->get('CODE') === Constants::BONUS_PAYMENT_CODE
-                    ) {
-                        $payment->setPaid('Y');
-                        $order->save();
-                    }
-                }
-            } catch (Exception | ArgumentNullException $exception) {
-                AddMessage2Log($exception->getMessage());
-            }
-            //TODO вынести все в lang файлы
+            $loyaltyService = new LoyaltyService();
+            
+            $loyaltyService->setDebitedStatus($orderId, true);
+            
             return [
                 'status'   => 'success',
-                'msg'      => 'Бонусы успешно списаны',
+                'msg'      => GetMessage('BONUS_SUCCESS'),
                 'msgColor' => 'green',
             ];
         }
         
         return [
             'status'   => 'error',
-            'msg'      => 'Ошибка',
+            'msg'      => GetMessage('BONUS_ERROR'),
             'msgColor' => 'brown',
         ];
     }

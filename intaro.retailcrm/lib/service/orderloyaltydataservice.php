@@ -133,6 +133,15 @@ class OrderLoyaltyDataService
                 "EDIT_FORM_LABEL"   => ['ru' => GetMessage('UF_IS_DEBITED')],
                 "LIST_COLUMN_LABEL" => ['ru' => GetMessage('UF_IS_DEBITED')],
                 "LIST_FILTER_LABEL" => ['ru' => GetMessage('UF_IS_DEBITED')],
+                ],
+            'UF_QUANTITY'      => [
+                'ENTITY_ID'         => $ufObject,
+                'FIELD_NAME'        => 'UF_QUANTITY',
+                'USER_TYPE_ID'      => 'integer',
+                'MANDATORY'         => 'Y',
+                "EDIT_FORM_LABEL"   => ['ru' => GetMessage('UF_QUANTITY')],
+                "LIST_COLUMN_LABEL" => ['ru' => GetMessage('UF_QUANTITY')],
+                "LIST_FILTER_LABEL" => ['ru' => GetMessage('UF_QUANTITY')],
             ],
         ];
     

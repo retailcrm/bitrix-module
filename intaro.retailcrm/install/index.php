@@ -37,8 +37,6 @@ if (class_exists('intaro_retailcrm')) {
 
 class intaro_retailcrm extends CModule
 {
-    public const BONUS_PAY_SYSTEM_CODE        = 'retailcrmbonus';
-
     /**
      * @var string[][]
      */
@@ -49,7 +47,6 @@ class intaro_retailcrm extends CModule
     ];
 
     public const V5                             = 'v5';
-    public const INTARO_BONUS                   = 'INTARO_BONUS';
     public const AGREEMENT_LOYALTY_PROGRAM_CODE = 'AGREEMENT_LOYALTY_PROGRAM_CODE';
     public const AGREEMENT_PERSONAL_DATA_CODE   = 'AGREEMENT_PERSONAL_DATA_CODE';
 
@@ -236,7 +233,6 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../lib/service/orderloyaltydataservice.php');
 
         $this->CopyFiles();
-        $this->addBonusPaySystem();
         $this->addLPUserFields();
         $this->addLPEvents();
         $this->addAgreement();
@@ -1290,15 +1286,6 @@ class intaro_retailcrm extends CModule
             true,
             false
         );
-        CopyDirFiles(
-            $pathFrom
-            . '/export_sale_payment',
-            $_SERVER['DOCUMENT_ROOT']
-            . COption::GetOptionString('sale', 'path2user_ps_files'),
-            true,
-            true,
-            false
-        );
 
         $lpTemplateNames = [
             'sale.order.ajax',
@@ -1632,57 +1619,6 @@ class intaro_retailcrm extends CModule
             } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
                 AddMessage2Log($exception->getMessage(), $this->MODULE_ID);
             }
-        }
-    }
-
-    /**
-     * add bonus pay system
-     */
-    private function addBonusPaySystem(): void
-    {
-        try {
-            $arrPaySystemAction = PaySystemActionTable::query()
-                ->setSelect(['ID'])
-                ->where([
-                    ['ACTION_FILE', '=', self::BONUS_PAY_SYSTEM_CODE],
-                ])
-                ->fetchCollection();
-        } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
-            AddMessage2Log($exception->getMessage());
-        }
-
-        if (count($arrPaySystemAction) === 0) {
-            $result     = PaySystemActionTable::add(
-                [
-                    'NAME'                 => GetMessage('BONUS_PAY_SYSTEM_NAME'),
-                    'PSA_NAME'             => GetMessage('BONUS_PAY_SYSTEM_NAME'),
-                    'CODE'                 => self::INTARO_BONUS,
-                    'ACTION_FILE'          => self::BONUS_PAY_SYSTEM_CODE,
-                    'DESCRIPTION'          => GetMessage('BONUS_PAY_SYSTEM_DESCRIPTION'),
-                    'RESULT_FILE'          => '',
-                    'NEW_WINDOW'           => 'N',
-                    'ENCODING'             => 'utf-8',
-                    'ACTIVE'               => 'Y',
-                    'HAVE_PAYMENT'         => 'Y',
-                    'HAVE_ACTION'          => 'N',
-                    'AUTO_CHANGE_1C'       => 'N',
-                    'HAVE_RESULT'          => 'N',
-                    'HAVE_PRICE'           => 'N',
-                    'HAVE_PREPAY'          => 'N',
-                    'HAVE_RESULT_RECEIVE'  => 'N',
-                    'ALLOW_EDIT_PAYMENT'   => 'Y',
-                    'IS_CASH'              => 'N',
-                    'CAN_PRINT_CHECK'      => 'N',
-                    'ENTITY_REGISTRY_TYPE' => 'ORDER',
-                    'XML_ID'               => 'intaro_' . randString(15),
-                ]
-            );
-            $updateData = [
-                'PAY_SYSTEM_ID' => $result->getId(),
-                'PARAMS'        => serialize(['BX_PAY_SYSTEM_ID' => $result->getId()]),
-            ];
-
-            PaySystemActionTable::update($result->getId(), $updateData);
         }
     }
 

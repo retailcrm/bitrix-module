@@ -76,7 +76,6 @@ class Constants
     public const CLIENT_ID              = 'client_id';
     public const AGREEMENT_LOYALTY_PROGRAM      = 'agreement_loyalty_program';
     public const AGREEMENT_PERSONAL_DATA        = 'agreement_personal_data';
-    public const BONUS_PAYMENT_CODE             = 'INTARO_BONUS';
     public const HL_LOYALTY_CODE                = 'LoyaltyProgramRetailCRM';
     public const HL_LOYALTY_TABLE_NAME          = 'loyalty_program';
 }

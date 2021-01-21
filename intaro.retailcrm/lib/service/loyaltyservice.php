@@ -54,6 +54,7 @@ use Intaro\RetailCrm\Model\Bitrix\OrderLoyaltyData;
 use Intaro\RetailCrm\Model\Bitrix\SmsCookie;
 use Intaro\RetailCrm\Model\Bitrix\User;
 use Intaro\RetailCrm\Model\Bitrix\UserLoyaltyData;
+use Intaro\RetailCrm\Repository\OrderLoyaltyDataRepository;
 use Intaro\RetailCrm\Repository\PaySystemActionRepository;
 use Intaro\RetailCrm\Repository\UserRepository;
 
@@ -339,6 +340,7 @@ class LoyaltyService
                     $loyaltyHl->bonusCount   = $item->bonusesChargeTotal;
                     $loyaltyHl->isDebited    = $isDebited;
                     $loyaltyHl->checkId      = $checkId;
+                    $loyaltyHl->quantity     = $basketItem->getQuantity();
 
                     $hlService->addDataInLoyaltyHl($loyaltyHl);
     
@@ -518,9 +520,28 @@ class LoyaltyService
         }
         
         if (!empty($response->verification->verifiedAt)) {
-            $this->setBonusPaymentStatus($orderId, 'Y');
+            $this->setDebitedStatus($orderId, true);
             return true;
         }
+    }
+    
+    /**
+     * @param int  $orderId
+     * @param bool $newStatus
+     */
+    public function setDebitedStatus(int $orderId, bool $newStatus): void
+    {
+        $repository = new OrderLoyaltyDataRepository();
+        $products = $repository->getProductsByOrderId($orderId);
+        
+        if (is_array($products)) {
+            /** @var OrderLoyaltyData $product */
+            foreach ($products as $product){
+                $product->isDebited = $newStatus;
+                $repository->edit($product);
+            }
+        }
+        
     }
     
     /**
@@ -652,105 +673,44 @@ class LoyaltyService
     }
     
     /**
-     * устанавливает новый статут для бонусной оплаты
-     *
-     * @param int    $orderId
-     * @param string $newStatus
-     * @return false
-     */
-    private function setBonusPaymentStatus(int $orderId, string $newStatus): bool
-    {
-        if ($newStatus !== 'Y' || $newStatus !== 'N') {
-            return false;
-        }
-        
-        try {
-            if (!Loader::includeModule('sale')) {
-                return false;
-            }
-            
-            $order = Order::load($orderId);
-            
-            if ($order !== null) {
-                $paymentCollection = $order->getPaymentCollection();
-                
-                /** @var \Bitrix\Sale\Payment $payment */
-                foreach ($paymentCollection as $payment) {
-                    if ($payment->getPaymentSystemName() === Constants::BONUS_PAYMENT_CODE) {
-                        $payment->setPaid($newStatus);
-                        $order->save();
-                        
-                        return true;
-                    }
-                }
-            }
-        } catch (ArgumentNullException | ArgumentOutOfRangeException | Exception $exception) {
-            AddMessage2Log($exception->getMessage());
-            
-            return false;
-        }
-    }
-    
-    /**
      * @param $orderId
      * @return false|float
      */
     private function getBonusCount($orderId)
     {
-        $bonusPayment = $this->getBonusPayment($orderId);
+        $repository = new OrderLoyaltyDataRepository();
+        $products = $repository->getProductsByOrderId($orderId);
         
-        if ($bonusPayment === false) {
+        if ($products === null || count($products) === 0) {
             return false;
         }
         
-        $rate = (int)$bonusPayment->getField('COMMENTS') > 0 ? $bonusPayment->getField('COMMENTS') : 1;
+        $bonusCount = 0;
         
-        return (int)$bonusPayment->getField('SUM') / $rate;
+        /** @var OrderLoyaltyData  $product */
+        foreach ($products as $product){
+            
+            $bonusCount += $product->bonusCount*$product->quantity;
+        }
+        
+        return round($bonusCount);
     }
     
     /**
-     * Возвращает бонусную оплату
+     * Списаны ли бонусы в заказе
      *
      * @param $orderId
      * @return \Bitrix\Sale\Payment|false
      */
-    public function getBonusPayment($orderId)
+    public function isBonusDebited($orderId)
     {
-        try {
-            if (!Loader::includeModule('sale')) {
-                return false;
-            }
-            
-            $order = Order::load($orderId);
-            
-            if ($order !== null) {
-                try {
-                    $paySystemAction = PaySystemActionRepository::getFirstByWhere(
-                        ['ID'],
-                        [['CODE', '=', Constants::BONUS_PAYMENT_CODE]]
-                    );
-                } catch (ObjectPropertyException | ArgumentException | SystemException $e) {
-                    AddMessage2Log($e->getMessage());
-                    return false;
-                }
-                
-                if ($paySystemAction === null) {
-                    return false;
-                }
-                
-                $paymentCollection = $order->getPaymentCollection();
-                
-                /** @var \Bitrix\Sale\Payment $payment */
-                foreach ($paymentCollection as $payment) {
-                    if ($payment->getPaymentSystemId() === $paySystemAction->getId()) {
-                        return $payment;
-                    }
-                }
-            }
-        } catch (ArgumentNullException | Exception $exception) {
-            AddMessage2Log($exception->getMessage());
+        $repository = new OrderLoyaltyDataRepository();
+        $products   = $repository->getProductsByOrderId($orderId);
+    
+        if ($products === null || count($products) === 0) {
+            return null;
         }
-        
-        return false;
+    
+        return $products[0]->isDebited;
     }
 }

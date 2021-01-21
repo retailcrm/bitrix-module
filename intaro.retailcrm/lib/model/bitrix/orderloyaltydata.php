@@ -24,6 +24,16 @@ use Intaro\RetailCrm\Component\Json\Mapping;
 class OrderLoyaltyData
 {
     /**
+     * ID
+     *
+     * @var integer
+     *
+     * @Mapping\Type("integer")
+     * @Mapping\SerializedName("ID")
+     */
+    public $id;
+    
+    /**
      * ID заказа
      *
      * @var integer
@@ -93,4 +103,14 @@ class OrderLoyaltyData
      * @Mapping\BitrixBoolean
      */
     public $isDebited;
+    
+    /**
+     * Количество в корзине
+     *
+     * @var float
+     *
+     * @Mapping\Type("integer")
+     * @Mapping\SerializedName("UF_QUANTITY")
+     */
+    public $quantity;
 }

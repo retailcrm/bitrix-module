@@ -8199,12 +8199,6 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
             paySystemItemNode, i;
 
         for (i = 0; i < this.paySystemPagination.currentPage.length; i++) {
-
-            //скрываем бонусный способ оплаты
-            if (this.paySystemPagination.currentPage[i].CODE === 'INTARO_BONUS') {
-               continue;
-            }
-
             paySystemItemNode = this.createPaySystemItem(this.paySystemPagination.currentPage[i]);
             paySystemItemsContainer.appendChild(paySystemItemNode);
         }
