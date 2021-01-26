@@ -551,11 +551,11 @@ class LoyaltyService
      */
     public  function calculateBasket(array $basketData, LoyaltyCalculateResponse $calculate): array
     {
-        $basketData['LP_CALCULATE_SUCCESS'] = $calculate->success;
-        $basketData['WILL_BE_CREDITED']     = $calculate->order->bonusesCreditTotal;
-    
+        $basketData['LP_CALCULATE_SUCCESS']                  = $calculate->success;
+        $basketData['TOTAL_RENDER_DATA']['WILL_BE_CREDITED'] = $calculate->order->bonusesCreditTotal;
+
         foreach ($calculate->calculations as $privilege) {
-            if ($privilege->maximum && $privilege->discount > 0) {
+            if ($privilege->maximum && $privilege->creditBonuses === 0.0) {
                 $basketData['TOTAL_RENDER_DATA']['PRICE']                     -= $privilege->discount;//общая сумма со скидкой
                 $basketData['TOTAL_RENDER_DATA']['PRICE_FORMATED']            = $basketData['TOTAL_RENDER_DATA']['PRICE']
                     . ' ' . GetMessage($basketData['TOTAL_RENDER_DATA']['CURRENCY']); //отформатированная сумма со скидкой
@@ -576,17 +576,16 @@ class LoyaltyService
         foreach ($basketData['BASKET_ITEM_RENDER_DATA'] as $key => &$item) {
             $item['WILL_BE_CREDITED_BONUS'] = $calculate->order->items[$key]->bonusesCreditTotal;
         
-            if ($calculate->order->items[$key]->discountTotal > 0) {
+            if ($calculate->order->items[$key]->bonusesCreditTotal === 0.0) {
                 $item['PRICE']                  -= $calculate->order->items[$key]->discountTotal;
                 $item['SUM_PRICE']              = $item['PRICE'] * $item['QUANTITY'];
-    
                 $item['PRICE_FORMATED']     = $item['PRICE'] . ' ' . GetMessage($item['CURRENCY']);
                 $item['SUM_PRICE_FORMATED'] = $item['SUM_PRICE'] . ' ' . GetMessage($item['CURRENCY']);
-                
                 $item['SHOW_DISCOUNT_PRICE'] = true;
                 $item['SUM_DISCOUNT_PRICE'] += $calculate->order->items[$key]->discountTotal * $item['QUANTITY'];
                 $item['SUM_DISCOUNT_PRICE_FORMATED'] = $item['SUM_DISCOUNT_PRICE'] . ' ' . GetMessage($item['CURRENCY']);
-                $item['DISCOUNT_PRICE_PERCENT'] = round($item['SUM_DISCOUNT_PRICE']/(($item['FULL_PRICE']*$item['QUANTITY'])/100), 0);
+                $item['DISCOUNT_PRICE_PERCENT'] = round($item['SUM_DISCOUNT_PRICE']
+                    /(($item['FULL_PRICE']*$item['QUANTITY'])/100), 0);
                 $item['DISCOUNT_PRICE_PERCENT_FORMATED'] = $item['DISCOUNT_PRICE_PERCENT'] . '%';
                 
                 if (isset($item['COLUMN_LIST'])) {
@@ -599,7 +598,7 @@ class LoyaltyService
                 }
             }
         }
-    
+        
         unset($item);
         
         return $basketData;
