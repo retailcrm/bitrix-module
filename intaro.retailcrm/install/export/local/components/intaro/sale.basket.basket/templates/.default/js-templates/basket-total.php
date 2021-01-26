@@ -44,11 +44,26 @@ use Bitrix\Main\Localization\Loc;
 							{{/SHOW_VAT}}
 						</div>
                         <?php
-                        if ($arResult['LOYALTY_STATUS'] === 'Y' && $arResult['PERSONAL_LOYALTY_STATUS'] === true) {
+                        if ($arResult['LOYALTY_STATUS'] === 'Y'
+                            && $arResult['PERSONAL_LOYALTY_STATUS'] === true
+                        ) {
                         ?>
-                        <div>
-                            <?=Loc::getMessage('BONUSES_TOTAL')?>: <span id="BONUSES_TOTAL">{{{WILL_BE_CREDITED}}}</span>
-                        </div>
+                            <?php
+                            if ($arResult['TOTAL_RENDER_DATA']['LOYALTY_DISCOUNT'] > 0) { ?>
+                                <div>
+                                    <?=Loc::getMessage('LOYALTY_DISCOUNT')?> <span id="LOYALTY_DISCOUNT_TOTAL">{{{LOYALTY_DISCOUNT_FORMATED}}}</span>
+                                </div>
+                                <div>
+                                    <?=Loc::getMessage('LOYALTY_DISCOUNT_DEFAULT')?> <span id="LOYALTY_DISCOUNT_DEFAULT">{{{LOYALTY_DISCOUNT_DEFAULT}}}</span>
+                                </div>
+                            <?php } ?>
+    
+                            <?php
+                            if ($arResult['TOTAL_RENDER_DATA']['WILL_BE_CREDITED'] > 0) { ?>
+                                <div>
+                                    <?=Loc::getMessage('BONUSES_TOTAL')?>: <span id="BONUSES_TOTAL">{{{WILL_BE_CREDITED}}}</span>
+                                </div>
+                            <?php } ?>
                         <?php
                         }
                         ?>

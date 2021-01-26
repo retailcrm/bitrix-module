@@ -545,6 +545,68 @@ class LoyaltyService
     }
     
     /**
+     * @param array                                                                 $basketData
+     * @param \Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse $calculate
+     * @return array
+     */
+    public  function calculateBasket(array $basketData, LoyaltyCalculateResponse $calculate): array
+    {
+        $basketData['LP_CALCULATE_SUCCESS'] = $calculate->success;
+        $basketData['WILL_BE_CREDITED']     = $calculate->order->bonusesCreditTotal;
+    
+        foreach ($calculate->calculations as $privilege) {
+            if ($privilege->maximum && $privilege->discount > 0) {
+                $basketData['TOTAL_RENDER_DATA']['PRICE']                     -= $privilege->discount;//общая сумма со скидкой
+                $basketData['TOTAL_RENDER_DATA']['PRICE_FORMATED']            = $basketData['TOTAL_RENDER_DATA']['PRICE']
+                    . ' ' . GetMessage($basketData['TOTAL_RENDER_DATA']['CURRENCY']); //отформатированная сумма со скидкой
+                $basketData['TOTAL_RENDER_DATA']['SUM_WITHOUT_VAT_FORMATED']  = $basketData['TOTAL_RENDER_DATA']['PRICE_FORMATED'];
+                $basketData['allSum_FORMATED']                                = $basketData['TOTAL_RENDER_DATA']['PRICE_FORMATED'];
+                $basketData['allSum_wVAT_FORMATED']                           = $basketData['TOTAL_RENDER_DATA']['PRICE_FORMATED'];
+                $basketData['allSum']                                         = $basketData['TOTAL_RENDER_DATA']['PRICE'];
+                $basketData['TOTAL_RENDER_DATA']['DISCOUNT_PRICE_FORMATED']   = $privilege->discount + $basketData['DISCOUNT_PRICE_ALL']
+                    . ' ' . GetMessage($basketData['TOTAL_RENDER_DATA']['CURRENCY']);
+                $basketData['TOTAL_RENDER_DATA']['LOYALTY_DISCOUNT_DEFAULT']  = $basketData['DISCOUNT_PRICE_ALL']
+                    . ' ' . GetMessage($basketData['TOTAL_RENDER_DATA']['CURRENCY']);
+                $basketData['TOTAL_RENDER_DATA']['LOYALTY_DISCOUNT']          = $privilege->discount;
+                $basketData['TOTAL_RENDER_DATA']['LOYALTY_DISCOUNT_FORMATED'] = $privilege->discount
+                    . ' ' . GetMessage($basketData['TOTAL_RENDER_DATA']['CURRENCY']);
+            }
+        }
+    
+        foreach ($basketData['BASKET_ITEM_RENDER_DATA'] as $key => &$item) {
+            $item['WILL_BE_CREDITED_BONUS'] = $calculate->order->items[$key]->bonusesCreditTotal;
+        
+            if ($calculate->order->items[$key]->discountTotal > 0) {
+                $item['PRICE']                  -= $calculate->order->items[$key]->discountTotal;
+                $item['SUM_PRICE']              = $item['PRICE'] * $item['QUANTITY'];
+    
+                $item['PRICE_FORMATED']     = $item['PRICE'] . ' ' . GetMessage($item['CURRENCY']);
+                $item['SUM_PRICE_FORMATED'] = $item['SUM_PRICE'] . ' ' . GetMessage($item['CURRENCY']);
+                
+                $item['SHOW_DISCOUNT_PRICE'] = true;
+                $item['SUM_DISCOUNT_PRICE'] += $calculate->order->items[$key]->discountTotal * $item['QUANTITY'];
+                $item['SUM_DISCOUNT_PRICE_FORMATED'] = $item['SUM_DISCOUNT_PRICE'] . ' ' . GetMessage($item['CURRENCY']);
+                $item['DISCOUNT_PRICE_PERCENT'] = round($item['SUM_DISCOUNT_PRICE']/(($item['FULL_PRICE']*$item['QUANTITY'])/100), 0);
+                $item['DISCOUNT_PRICE_PERCENT_FORMATED'] = $item['DISCOUNT_PRICE_PERCENT'] . '%';
+                
+                if (isset($item['COLUMN_LIST'])) {
+                    foreach ($item['COLUMN_LIST'] as &$column) {
+                        $column['VALUE'] = $column['CODE'] === 'DISCOUNT'
+                            ? $item['DISCOUNT_PRICE_PERCENT_FORMATED'] : $column['VALUE'];
+                    }
+                    
+                    unset($column);
+                }
+            }
+        }
+    
+        unset($item);
+        
+        return $basketData;
+    }
+    
+    
+    /**
      * @param \Intaro\RetailCrm\Model\Bitrix\User $user
      * @return array
      */

@@ -854,6 +854,10 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             if (donor === 'main.register') {
                 node = $('#lp-reg-templates input:checkbox:checked');
             }
+            
+            if (donor === 'sale.basket.basket') {
+                node = $('#lp-basket-templates input:checkbox:checked');
+            }
 
             node.each(
                     function(index, checkbox){
@@ -1617,7 +1621,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                     <input type="button" onclick="replaceDefaultTemplates('sale.basket.basket')" class="adm-btn-save" value="<?php echo GetMessage('LP_REPLACE_TEMPLATE'); ?>" />
                                 </td>
                                 <td width="50%" >
-                                    <div id="lp-reg-templates">
+                                    <div id="lp-basket-templates">
                                         <?php
                                         $templates = TemplateRepository::getAllIds();
                                         foreach ($templates as $template) {

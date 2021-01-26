@@ -10,4 +10,4 @@ $MESS["INVITATION_TO_REGISTER"]     = 'Для регистрации в Прог
 $MESS["REGISTER_ERROR"]             = 'Ошибка регистрации в Программе лояльности';
 $MESS["ACTIVATE_ERROR"]             = 'Ошибка активации аккаунта в программе лояльности.';
 $MESS["DEBITING_BONUSES_ERROR"]     = 'Ошибка списания бонусов.';
-
+$MESS["RUB"] = "руб.";
