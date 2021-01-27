@@ -14,6 +14,7 @@
 namespace Intaro\RetailCrm\Service;
 
 use Bitrix\Catalog\GroupTable;
+use Bitrix\Currency\CurrencyLangTable;
 use Bitrix\Main\Application;
 use Bitrix\Main\ArgumentException;
 use Bitrix\Main\ArgumentNullException;
@@ -603,6 +604,90 @@ class LoyaltyService
         
         return $basketData;
     }
+    
+    
+    /**
+     * @param array                                                                 $orderArResult
+     * @param \Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse $calculate
+     * @return array
+     */
+    public  function calculateOrderBasket(array $orderArResult, LoyaltyCalculateResponse $calculate): array
+    {
+        
+       
+        /** @var \Intaro\RetailCrm\Model\Api\LoyaltyCalculation $privilege */
+        foreach ($calculate->calculations as $privilege) {
+            if ($privilege->maximum) {
+                $orderArResult['AVAILABLE_BONUSES'] = $privilege->maxChargeBonuses;
+            
+                //если уровень скидочный
+                if ($privilege->maximum && $privilege->creditBonuses === 0.0) {
+                    $orderArResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE'] -= $privilege->discount;
+    
+                    $orderArResult['JS_DATA']['TOTAL']['LOYALTY_DISCOUNT'] = $privilege->discount;
+                    
+                    $orderArResult['JS_DATA']['TOTAL']['DEFAULT_DISCOUNT']
+                        = $orderArResult['JS_DATA']['TOTAL']['DISCOUNT_PRICE'];
+                    
+                    $orderArResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE_FORMATED']
+                        = $orderArResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE']
+                        . ' ' . GetMessage($orderArResult['BASE_LANG_CURRENCY']);
+                    
+                    $orderArResult['JS_DATA']['TOTAL']['DISCOUNT_PRICE'] += $privilege->discount;
+                    
+                    $orderArResult['JS_DATA']['TOTAL']['DISCOUNT_PRICE_FORMATED']
+                        = $orderArResult['JS_DATA']['TOTAL']['DISCOUNT_PRICE']
+                        . ' ' . GetMessage($orderArResult['BASE_LANG_CURRENCY']);
+                    
+                    $orderArResult['JS_DATA']['TOTAL']['ORDER_PRICE'] -= $privilege->discount;
+                    
+                    $orderArResult['JS_DATA']['TOTAL']['ORDER_PRICE_FORMATED']
+                        = $orderArResult['JS_DATA']['TOTAL']['ORDER_PRICE']
+                        . ' ' . GetMessage($orderArResult['BASE_LANG_CURRENCY']);
+                     
+                    $i = 0;
+                    foreach ($orderArResult['JS_DATA']['GRID']['ROWS'] as $key => &$item) {
+                        $orderArResult['JS_DATA']['GRID']['ROWS'][$key]['data']['SUM_NUM']
+                            -= $calculate->order->items[$i]->discountTotal
+                            * $orderArResult['JS_DATA']['GRID']['ROWS'][$key]['data']['QUANTITY'];
+                        
+                        $orderArResult['JS_DATA']['GRID']['ROWS'][$key]['data']['SUM']
+                            = $orderArResult['JS_DATA']['GRID']['ROWS'][$key]['data']['SUM_NUM']
+                            . ' ' . GetMessage($orderArResult['BASE_LANG_CURRENCY']);
+    
+                        $orderArResult['JS_DATA']['GRID']['ROWS'][$key]['data']['DISCOUNT_PRICE']
+                            += $calculate->order->items[$i]->discountTotal;
+                        
+                        $i++;
+                    }
+                
+                    unset($item);
+                }
+            }
+        }
+    
+        $orderArResult['CHARGERATE']           = $calculate->loyalty->chargeRate;
+        $orderArResult['TOTAL_BONUSES_COUNT']  = $calculate->order->loyaltyAccount->amount;
+        $orderArResult['LP_CALCULATE_SUCCESS'] = $calculate->success;
+        $orderArResult['WILL_BE_CREDITED']     = $calculate->order->bonusesCreditTotal;
+    
+        try {
+            $currency = CurrencyLangTable::query()
+                ->setSelect(['FORMAT_STRING'])
+                ->where([
+                    ['CURRENCY', '=', ConfigProvider::getCurrencyOrDefault()],
+                    ['LID', '=', 'LANGUAGE_ID'],
+                ])
+                ->fetch();
+        } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
+            AddMessage2Log($exception->getMessage());
+        }
+    
+        $orderArResult['BONUS_CURRENCY'] = $currency['FORMAT_STRING'];
+        
+        return $orderArResult;
+    }
+    
     
     
     /**

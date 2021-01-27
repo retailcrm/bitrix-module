@@ -8199,6 +8199,12 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
             paySystemItemNode, i;
 
         for (i = 0; i < this.paySystemPagination.currentPage.length; i++) {
+
+            //скрываем бонусный способ оплаты
+            if (this.paySystemPagination.currentPage[i].CODE === 'INTARO_BONUS') {
+               continue;
+            }
+
             paySystemItemNode = this.createPaySystemItem(this.paySystemPagination.currentPage[i]);
             paySystemItemsContainer.appendChild(paySystemItemNode);
         }
@@ -8314,7 +8320,27 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
                 this.totalInfoBlockNode.appendChild(this.createTotalUnit('Бонусная скидка:', bonusPayment));
             }
 
-            this.totalInfoBlockNode.appendChild(this.createTotalUnit('Будет начислено бонусов:', this.willBeCredited, {highlighted: true}));
+            if (this.result.TOTAL.LOYALTY_DISCOUNT !== undefined && this.result.TOTAL.LOYALTY_DISCOUNT > 0) {
+               let loyaltyDiscount     = this.bonusCurrency
+                    .replace('&#8381;', '₽')
+                    .replace('&euro;', '€')
+                    .replace('&#8372;', '¥')
+                    .replace('#', this.result.TOTAL.LOYALTY_DISCOUNT.toString());
+                this.totalInfoBlockNode.appendChild(this.createTotalUnit("Персональная скидка: ", loyaltyDiscount));
+            }
+
+            if (this.result.TOTAL.DEFAULT_DISCOUNT !== undefined && this.result.TOTAL.DEFAULT_DISCOUNT > 0) {
+                let defaultDiscount = this.bonusCurrency
+                    .replace('&#8381;', '₽')
+                    .replace('&euro;', '€')
+                    .replace('&#8372;', '¥')
+                    .replace('#', this.result.TOTAL.DEFAULT_DISCOUNT.toString());
+                this.totalInfoBlockNode.appendChild(this.createTotalUnit("Обычная скидка: ", defaultDiscount));
+            }
+
+            if (this.willBeCredited > 0) {
+                this.totalInfoBlockNode.appendChild(this.createTotalUnit('Будет начислено бонусов:', this.willBeCredited, {highlighted: true}));
+            }
         }
 
         if (this.options.showPayedFromInnerBudget)
