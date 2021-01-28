@@ -8308,6 +8308,14 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
             this.totalInfoBlockNode.appendChild(this.createTotalUnit(discText + ':', total.DISCOUNT_PRICE_FORMATED, {highlighted: true}));
         }
 
+        if (this.LOYALTY_DISCOUNT !== undefined) {
+            this.result.TOTAL.LOYALTY_DISCOUNT = this.LOYALTY_DISCOUNT;
+        }
+
+        if (this.bitrixDiscount !== undefined) {
+            this.result.TOTAL.DEFAULT_DISCOUNT = this.bitrixDiscount;
+        }
+
         //проверяем включена ли ПЛ и участвует ли в ней данный пользователь
         if (this.personalLoyaltyStatus === '1' && this.loyaltyStatus === 'Y') {
             //добавление строки с бонусами
@@ -8326,7 +8334,7 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
                     .replace('&euro;', '€')
                     .replace('&#8372;', '¥')
                     .replace('#', this.result.TOTAL.LOYALTY_DISCOUNT.toString());
-                this.totalInfoBlockNode.appendChild(this.createTotalUnit("Персональная скидка: ", loyaltyDiscount));
+                this.totalInfoBlockNode.appendChild(this.createTotalUnit("Персональная скидка: ", this.result.TOTAL.LOYALTY_DISCOUNT.toString()));
             }
 
             if (this.result.TOTAL.DEFAULT_DISCOUNT !== undefined && this.result.TOTAL.DEFAULT_DISCOUNT > 0) {
@@ -8335,7 +8343,7 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
                     .replace('&euro;', '€')
                     .replace('&#8372;', '¥')
                     .replace('#', this.result.TOTAL.DEFAULT_DISCOUNT.toString());
-                this.totalInfoBlockNode.appendChild(this.createTotalUnit("Обычная скидка: ", defaultDiscount));
+                this.totalInfoBlockNode.appendChild(this.createTotalUnit("Обычная скидка: ", this.result.TOTAL.DEFAULT_DISCOUNT.toString()));
             }
 
             if (this.willBeCredited > 0) {

@@ -56,13 +56,9 @@ class Order extends Controller
         
         $response = $service->calculateBonus($basketItems,
             $inputBonuses);
-        
+
         if ($response instanceof LoyaltyCalculateResponse) {
-            
-            if ($response->success
-                && !empty($response->order->bonusesCreditTotal)
-                && count($response->order->items) > 0
-            ) {
+            if ($response->success && count($response->order->items) > 0) {
                 return $response;
             }
             

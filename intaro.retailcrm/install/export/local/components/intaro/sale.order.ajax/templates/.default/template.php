@@ -425,7 +425,7 @@ if (strlen($request->get('ORDER_ID')) > 0) {
                 <? endif ?>
 
                 <!--	INTARO BONUS BLOCK	-->
-                <? if ($arResult['LOYALTY_STATUS'] === 'Y' && $arResult['PERSONAL_LOYALTY_STATUS'] === true): ?>
+                <?php if ($arResult['LOYALTY_STATUS'] === 'Y' && $arResult['PERSONAL_LOYALTY_STATUS'] === true): ?>
                     <div id="bx-soa-intaro" data-visited="true" class="bx-soa-section bx-selected">
                         <div class="bx-soa-section-title-container">
                             <h2 class="bx-soa-section-title col-sm-9">
@@ -434,14 +434,16 @@ if (strlen($request->get('ORDER_ID')) > 0) {
                             <div class="col-xs-12 col-sm-3 text-right"><a href="javascript:void(0)" class="bx-soa-editstep"><?=$arParams['MESS_EDIT']?></a></div>
                         </div>
                         <div class="bx-soa-section-content container-fluid" id="bx-soa-intaro-content">
-                            <? if ($arResult['LP_CALCULATE_SUCCESS'] === true ): ?>
+                            <?php if ($arResult['LP_CALCULATE_SUCCESS'] === true ): ?>
                             <div class="bx-soa-coupon">
                                <div id="bonus-msg"><?= Loc::getMessage('HOW_MANY_BONUSES_TO_SPEND') ?></div>
                                 <div class="bx-soa-coupon-block">
                                     <div class="bx-input">
                                         <input name='bonus-input' class="form-control" type="number" max="<?=$arResult['AVAILABLE_BONUSES']?>" id='bonus-input'>
                                         <input name="available-bonuses" class="form-control" type="hidden" id='available-bonus-input' value="<?=$arResult['AVAILABLE_BONUSES']?>">
+                                        <input name="bitrix-discount" class="form-control" type="hidden" id='bitrix-discount' value="<?=$arResult['JS_DATA']['TOTAL']['DEFAULT_DISCOUNT']?>">
                                         <input name="charge-rate" class="form-control" type="hidden" id='charge-rate-input' value="<?=$arResult['CHARGERATE']?>">
+                                        <input name="loyalty-discount-input" class="form-control" type="hidden" id='loyalty-discount-input' value="<?=$arResult['LOYALTY_DISCOUNT_INPUT']?>">
                                         <input name="basket-items-hidden" class="form-control" type="hidden"
                                                id='basket-items-hidden' value="<?= htmlspecialchars(
                                                    json_encode($arResult['BASKET_ITEMS'])

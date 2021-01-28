@@ -2,7 +2,8 @@ $(document).ready(function() {
     function makeAjaxRequest() {
         $('#bonus-msg').html('Сколько бонусов потратить?');
         let basketItemsHidden = $('#basket-items-hidden').val();
-        let inputBonuses     = Number.parseInt($('#bonus-input').val());
+        let inputBonuses      = Number.parseInt($('#bonus-input').val());
+        let bitrixDiscount    = Number.parseFloat($('#bitrix-discount').val());
 
         BX.ajax.runAction('intaro:retailcrm.api.loyalty.order.calculateBonus',
             {
@@ -15,8 +16,14 @@ $(document).ready(function() {
         ).then(
             function(response) {
                 if (response.data !== null) {
-                    BX.Sale.OrderAjaxComponent.willBeCredited = String(response.data.order.bonusesCreditTotal);
-                    BX.Sale.OrderAjaxComponent.bonusCurrency = String(inputBonuses);
+                    BX.Sale.OrderAjaxComponent.bitrixDiscount = bitrixDiscount;
+                    response.data.calculations.forEach(function(value, key) {
+                        if (value.maximum) {
+                            BX.Sale.OrderAjaxComponent.LOYALTY_DISCOUNT = value.discount
+                                - bitrixDiscount
+                                - (response.data.order.bonusesChargeTotal * response.data.loyalty.chargeRate);
+                        }
+                    });
                 }
             }
         )

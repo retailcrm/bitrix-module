@@ -2968,6 +2968,7 @@ class ApiClient
             [
                 'site'  => json_encode($request['site']),
                 'order' => json_encode($request['order']),
+                'bonuses' => $request['bonuses']
             ]
         );
     }
