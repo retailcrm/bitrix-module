@@ -425,7 +425,9 @@ if (strlen($request->get('ORDER_ID')) > 0) {
                 <? endif ?>
 
                 <!--	INTARO BONUS BLOCK	-->
-                <?php if ($arResult['LOYALTY_STATUS'] === 'Y' && $arResult['PERSONAL_LOYALTY_STATUS'] === true): ?>
+                <?php if ($arResult['LOYALTY_STATUS'] === 'Y'
+                    && $arResult['PERSONAL_LOYALTY_STATUS'] === true
+                    && $arResult['AVAILABLE_BONUSES'] > 0): ?>
                     <div id="bx-soa-intaro" data-visited="true" class="bx-soa-section bx-selected">
                         <div class="bx-soa-section-title-container">
                             <h2 class="bx-soa-section-title col-sm-9">
@@ -444,6 +446,7 @@ if (strlen($request->get('ORDER_ID')) > 0) {
                                         <input name="bitrix-discount" class="form-control" type="hidden" id='bitrix-discount' value="<?=$arResult['JS_DATA']['TOTAL']['DEFAULT_DISCOUNT']?>">
                                         <input name="charge-rate" class="form-control" type="hidden" id='charge-rate-input' value="<?=$arResult['CHARGERATE']?>">
                                         <input name="loyalty-discount-input" class="form-control" type="hidden" id='loyalty-discount-input' value="<?=$arResult['LOYALTY_DISCOUNT_INPUT']?>">
+                                        <input name="calculate-items-input" class="form-control" type="hidden" id='calculate-items-input' value="<?=$arResult['CALCULATE_ITEMS_INPUT']?>">
                                         <input name="basket-items-hidden" class="form-control" type="hidden"
                                                id='basket-items-hidden' value="<?= htmlspecialchars(
                                                    json_encode($arResult['BASKET_ITEMS'])

@@ -55,12 +55,15 @@ class EventsHandlers
     public function OnSaleComponentOrderResultPreparedHandler(Order $order, array $arUserResult, HttpRequest $request, array $arParams, array &$arResult): void
     {
         if (ConfigProvider::getLoyaltyProgramStatus() === 'Y') {
-            $bonusInput       = (int)$request->get('bonus-input');
-            $availableBonuses = (int)$request->get('available-bonuses');
-            $chargeRate       = (int)$request->get('charge-rate');
+            $bonusInput           = (int)$request->get('bonus-input');
+            $availableBonuses     = (int)$request->get('available-bonuses');
+            $chargeRate           = (int)$request->get('charge-rate');
+            $loyaltyDiscountInput = (float)$request->get('loyalty-discount-input');
+            $calculateItemsInput  = $request->get('calculate-items-input');
 
             if ($bonusInput > $availableBonuses) {
                 $arResult['LOYALTY']['ERROR'] = GetMessage('BONUS_ERROR_MSG');
+                
                 return;
             }
             
@@ -68,11 +71,30 @@ class EventsHandlers
             
             if ($bonusInput > 0
                 && $availableBonuses > 0
-                && $arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE'] >= $bonusDiscount
+                && $arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE'] >= $bonusDiscount + $loyaltyDiscountInput
             ) {
-                $arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE']          -= $bonusDiscount;
-                $arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE_FORMATED'] = number_format($arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE'], 0, ',', ' ');
+                $arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE']          -= round($bonusDiscount + $loyaltyDiscountInput, 2);
+                $arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE_FORMATED']
+                    = number_format($arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE'], 0, ',', ' ')
+                    . ' ' . GetMessage('RUB');
                 $arResult['JS_DATA']['TOTAL']['BONUS_PAYMENT']              = $bonusDiscount;
+                $arResult['JS_DATA']['TOTAL']['DISCOUNT_PRICE'] += $bonusDiscount + $loyaltyDiscountInput;
+                $arResult['JS_DATA']['TOTAL']['DISCOUNT_PRICE_FORMATED']
+                    = $arResult['JS_DATA']['TOTAL']['DISCOUNT_PRICE'] . ' ' . GetMessage('RUB');
+                $arResult['JS_DATA']['TOTAL']['ORDER_PRICE_FORMATED']
+                    = $arResult['JS_DATA']['TOTAL']['ORDER_PRICE'] - $loyaltyDiscountInput . ' ' . GetMessage('RUB');
+    
+                $oldItems = json_decode(htmlspecialchars_decode($calculateItemsInput), true);
+                
+                foreach ($arResult['JS_DATA']['GRID']['ROWS'] as $key => &$item) {
+                    $arResult['JS_DATA']['GRID']['ROWS'][$key]['data']['SUM_NUM']
+                        = $oldItems[$key]['SUM_NUM'];
+            
+                    $arResult['JS_DATA']['GRID']['ROWS'][$key]['data']['SUM']
+                        = $arResult['JS_DATA']['GRID']['ROWS'][$key]['data']['SUM_NUM'] . GetMessage('RUB');
+                }
+                
+                unset($item);
             }
         }
     }

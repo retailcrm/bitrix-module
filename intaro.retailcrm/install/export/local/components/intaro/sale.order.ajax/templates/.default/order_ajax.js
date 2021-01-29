@@ -8319,22 +8319,13 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
         //проверяем включена ли ПЛ и участвует ли в ней данный пользователь
         if (this.personalLoyaltyStatus === '1' && this.loyaltyStatus === 'Y') {
             //добавление строки с бонусами
-            if (this.result.TOTAL.BONUS_PAYMENT !== undefined && this.result.TOTAL.BONUS_PAYMENT > 0) {
-               let bonusPayment     = this.bonusCurrency
-                    .replace('&#8381;', '₽')
-                    .replace('&euro;', '€')
-                    .replace('&#8372;', '¥')
-                    .replace('#', this.result.TOTAL.BONUS_PAYMENT.toString());
-                this.totalInfoBlockNode.appendChild(this.createTotalUnit('Бонусная скидка:', bonusPayment));
-            }
-
             if (this.result.TOTAL.LOYALTY_DISCOUNT !== undefined && this.result.TOTAL.LOYALTY_DISCOUNT > 0) {
                let loyaltyDiscount     = this.bonusCurrency
                     .replace('&#8381;', '₽')
                     .replace('&euro;', '€')
                     .replace('&#8372;', '¥')
                     .replace('#', this.result.TOTAL.LOYALTY_DISCOUNT.toString());
-                this.totalInfoBlockNode.appendChild(this.createTotalUnit("Персональная скидка: ", this.result.TOTAL.LOYALTY_DISCOUNT.toString()));
+                this.totalInfoBlockNode.appendChild(this.createTotalUnit("Персональная скидка: ", loyaltyDiscount));
             }
 
             if (this.result.TOTAL.DEFAULT_DISCOUNT !== undefined && this.result.TOTAL.DEFAULT_DISCOUNT > 0) {
@@ -8343,7 +8334,16 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
                     .replace('&euro;', '€')
                     .replace('&#8372;', '¥')
                     .replace('#', this.result.TOTAL.DEFAULT_DISCOUNT.toString());
-                this.totalInfoBlockNode.appendChild(this.createTotalUnit("Обычная скидка: ", this.result.TOTAL.DEFAULT_DISCOUNT.toString()));
+                this.totalInfoBlockNode.appendChild(this.createTotalUnit("Обычная скидка: ", defaultDiscount));
+            }
+
+            if (this.result.TOTAL.BONUS_PAYMENT !== undefined && this.result.TOTAL.BONUS_PAYMENT > 0) {
+                let bonusPayment     = this.bonusCurrency
+                    .replace('&#8381;', '₽')
+                    .replace('&euro;', '€')
+                    .replace('&#8372;', '¥')
+                    .replace('#', this.result.TOTAL.BONUS_PAYMENT.toString());
+                this.totalInfoBlockNode.appendChild(this.createTotalUnit('Оплата бонусами:', bonusPayment));
             }
 
             if (this.willBeCredited > 0) {

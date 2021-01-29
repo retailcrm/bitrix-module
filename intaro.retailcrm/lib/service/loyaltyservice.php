@@ -557,19 +557,20 @@ class LoyaltyService
 
         foreach ($calculate->calculations as $privilege) {
             if ($privilege->maximum && $privilege->creditBonuses === 0.0) {
-                $basketData['TOTAL_RENDER_DATA']['PRICE']                     -= $privilege->discount;//общая сумма со скидкой
+                $basketData['TOTAL_RENDER_DATA']['LOYALTY_DISCOUNT']          = round($privilege->discount - $basketData['DISCOUNT_PRICE_ALL'], 2);
+                $basketData['TOTAL_RENDER_DATA']['LOYALTY_DISCOUNT_FORMATED'] = $basketData['TOTAL_RENDER_DATA']['LOYALTY_DISCOUNT']
+                    . ' ' . GetMessage($basketData['TOTAL_RENDER_DATA']['CURRENCY']);
+                
+                $basketData['TOTAL_RENDER_DATA']['PRICE']                     -= $basketData['TOTAL_RENDER_DATA']['LOYALTY_DISCOUNT'];//общая сумма со скидкой
                 $basketData['TOTAL_RENDER_DATA']['PRICE_FORMATED']            = $basketData['TOTAL_RENDER_DATA']['PRICE']
                     . ' ' . GetMessage($basketData['TOTAL_RENDER_DATA']['CURRENCY']); //отформатированная сумма со скидкой
                 $basketData['TOTAL_RENDER_DATA']['SUM_WITHOUT_VAT_FORMATED']  = $basketData['TOTAL_RENDER_DATA']['PRICE_FORMATED'];
                 $basketData['allSum_FORMATED']                                = $basketData['TOTAL_RENDER_DATA']['PRICE_FORMATED'];
                 $basketData['allSum_wVAT_FORMATED']                           = $basketData['TOTAL_RENDER_DATA']['PRICE_FORMATED'];
                 $basketData['allSum']                                         = $basketData['TOTAL_RENDER_DATA']['PRICE'];
-                $basketData['TOTAL_RENDER_DATA']['DISCOUNT_PRICE_FORMATED']   = $privilege->discount + $basketData['DISCOUNT_PRICE_ALL']
+                $basketData['TOTAL_RENDER_DATA']['DISCOUNT_PRICE_FORMATED']   = $privilege->discount
                     . ' ' . GetMessage($basketData['TOTAL_RENDER_DATA']['CURRENCY']);
                 $basketData['TOTAL_RENDER_DATA']['LOYALTY_DISCOUNT_DEFAULT']  = $basketData['DISCOUNT_PRICE_ALL']
-                    . ' ' . GetMessage($basketData['TOTAL_RENDER_DATA']['CURRENCY']);
-                $basketData['TOTAL_RENDER_DATA']['LOYALTY_DISCOUNT']          = $privilege->discount;
-                $basketData['TOTAL_RENDER_DATA']['LOYALTY_DISCOUNT_FORMATED'] = $privilege->discount
                     . ' ' . GetMessage($basketData['TOTAL_RENDER_DATA']['CURRENCY']);
             }
         }
@@ -578,12 +579,12 @@ class LoyaltyService
             $item['WILL_BE_CREDITED_BONUS'] = $calculate->order->items[$key]->bonusesCreditTotal;
         
             if ($calculate->order->items[$key]->bonusesCreditTotal === 0.0) {
-                $item['PRICE']                  -= $calculate->order->items[$key]->discountTotal;
+                $item['PRICE']                  -= $calculate->order->items[$key]->discountTotal - ($item['SUM_DISCOUNT_PRICE']/$item['QUANTITY']);
                 $item['SUM_PRICE']              = $item['PRICE'] * $item['QUANTITY'];
                 $item['PRICE_FORMATED']     = $item['PRICE'] . ' ' . GetMessage($item['CURRENCY']);
                 $item['SUM_PRICE_FORMATED'] = $item['SUM_PRICE'] . ' ' . GetMessage($item['CURRENCY']);
                 $item['SHOW_DISCOUNT_PRICE'] = true;
-                $item['SUM_DISCOUNT_PRICE'] += $calculate->order->items[$key]->discountTotal * $item['QUANTITY'];
+                $item['SUM_DISCOUNT_PRICE'] = $calculate->order->items[$key]->discountTotal * $item['QUANTITY'];
                 $item['SUM_DISCOUNT_PRICE_FORMATED'] = $item['SUM_DISCOUNT_PRICE'] . ' ' . GetMessage($item['CURRENCY']);
                 $item['DISCOUNT_PRICE_PERCENT'] = round($item['SUM_DISCOUNT_PRICE']
                     /(($item['FULL_PRICE']*$item['QUANTITY'])/100), 0);
@@ -620,9 +621,11 @@ class LoyaltyService
             
                 //если уровень скидочный
                 if ($privilege->maximum && $privilege->creditBonuses === 0.0) {
+                    
                     //Персональная скидка
                     $orderArResult['JS_DATA']['TOTAL']['LOYALTY_DISCOUNT']
-                        = $privilege->discount - $orderArResult['JS_DATA']['TOTAL']['DISCOUNT_PRICE'];
+                        = $orderArResult['LOYALTY_DISCOUNT_INPUT']
+                        = round($privilege->discount - $orderArResult['JS_DATA']['TOTAL']['DISCOUNT_PRICE'], 2);
                     
                     //общая стоимость
                     $orderArResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE']
@@ -633,7 +636,7 @@ class LoyaltyService
                         = $orderArResult['JS_DATA']['TOTAL']['DISCOUNT_PRICE'];
                     
                     $orderArResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE_FORMATED']
-                        = $orderArResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE']
+                        = round($orderArResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE'], 2)
                         . ' ' . GetMessage($orderArResult['BASE_LANG_CURRENCY']);
                     
                     $orderArResult['JS_DATA']['TOTAL']['DISCOUNT_PRICE']
@@ -651,21 +654,31 @@ class LoyaltyService
                         . ' ' . GetMessage($orderArResult['BASE_LANG_CURRENCY']);
                      
                     $i = 0;
+                    
                     foreach ($orderArResult['JS_DATA']['GRID']['ROWS'] as $key => &$item) {
                         $orderArResult['JS_DATA']['GRID']['ROWS'][$key]['data']['SUM_NUM']
-                            = $orderArResult['JS_DATA']['GRID']['ROWS'][$key]['data']['SUM_BASE'] - ($calculate->order->items[$i]->discountTotal
+                            = $orderArResult['CALCULATE_ITEMS_INPUT'][$key]['SUM_NUM']
+                            = $orderArResult['JS_DATA']['GRID']['ROWS'][$key]['data']['SUM_BASE']
+                            - ($calculate->order->items[$i]->discountTotal
                             * $orderArResult['JS_DATA']['GRID']['ROWS'][$key]['data']['QUANTITY']);
-    
+                        
+                        $orderArResult['CALCULATE_ITEMS_INPUT'][$key]['QUANTITY']
+                            = $orderArResult['JS_DATA']['GRID']['ROWS'][$key]['data']['QUANTITY'];
+                        
                         $orderArResult['JS_DATA']['GRID']['ROWS'][$key]['data']['SUM']
                             = $orderArResult['JS_DATA']['GRID']['ROWS'][$key]['data']['SUM_NUM']
                             . ' ' . GetMessage($orderArResult['BASE_LANG_CURRENCY']);
     
-                        $orderArResult['JS_DATA']['GRID']['ROWS'][$key]['data']['DISCOUNT_PRICE'] = $calculate->order->items[$i]->discountTotal;
+                        $orderArResult['JS_DATA']['GRID']['ROWS'][$key]['data']['DISCOUNT_PRICE']
+                            = $calculate->order->items[$i]->discountTotal;
                         
                         $i++;
                     }
                 
                     unset($item);
+    
+                    $orderArResult['CALCULATE_ITEMS_INPUT']
+                        = htmlspecialchars(json_encode($orderArResult['CALCULATE_ITEMS_INPUT']));
                 }
             }
         }

@@ -17,11 +17,13 @@ $(document).ready(function() {
             function(response) {
                 if (response.data !== null) {
                     BX.Sale.OrderAjaxComponent.bitrixDiscount = bitrixDiscount;
+
                     response.data.calculations.forEach(function(value, key) {
                         if (value.maximum) {
-                            BX.Sale.OrderAjaxComponent.LOYALTY_DISCOUNT = value.discount
+                            BX.Sale.OrderAjaxComponent.LOYALTY_DISCOUNT = (value.discount
                                 - bitrixDiscount
-                                - (response.data.order.bonusesChargeTotal * response.data.loyalty.chargeRate);
+                                - (response.data.order.bonusesChargeTotal * response.data.loyalty.chargeRate))
+                                .toFixed(2);
                         }
                     });
                 }
