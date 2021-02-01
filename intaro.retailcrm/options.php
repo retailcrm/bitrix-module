@@ -822,6 +822,12 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     ?>
     <?php
     CJSCore::Init(array("jquery"));
+    
+    try {
+        Extension::load("ui.notification");
+    } catch (LoaderException $e) {
+        AddMessage2Log($e->getMessage());
+    }
     ?>
     <script type="text/javascript">
         function createTemplates(donor) {
@@ -838,7 +844,18 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                         donor:     donor
                     }
                 }
-            );
+            ).then(result => {
+                if (result.data.status !== undefined && result.data.status === true) {
+                    BX.UI.Notification.Center.notify({
+                        content: "<?= GetMessage('TEMPLATE_SUCCESS_COPING') ?>"
+                    });
+                }else {
+                    BX.UI.Notification.Center.notify({
+                        content: "<?= GetMessage('TEMPLATE_COPING_ERROR') ?>"
+                    });
+                }
+                
+            });
         }
 
         function replaceDefaultTemplates(donor) {
@@ -878,7 +895,18 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                         replaceDefaultTemplate: 'Y'
                     }
                 }
-            );
+            ).then(result => {
+                if (result.data.status !== undefined && result.data.status === true) {
+                    BX.UI.Notification.Center.notify({
+                        content: "<?= GetMessage('TEMPLATES_SUCCESS_COPING') ?>"
+                    });
+                }else {
+                    BX.UI.Notification.Center.notify({
+                        content: "<?= GetMessage('TEMPLATES_COPING_ERROR') ?>"
+                    });
+                }
+
+            });;
         }
 
         function editSaleTemplates(method) {
