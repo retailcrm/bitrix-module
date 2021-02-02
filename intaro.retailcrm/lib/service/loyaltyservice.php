@@ -187,7 +187,7 @@ class LoyaltyService
         }
 
         $result = $this->client->loyaltyCalculate($request);
-        
+
         if (isset($result->errorMsg) && !empty($result->errorMsg)) {
             AddMessage2Log($result->errorMsg);
         }
@@ -291,7 +291,7 @@ class LoyaltyService
      * Добавляет оплату бонусами в заказ Битрикс
      *
      * @param \Bitrix\Sale\Order $order
-     * @param                    $bonusCount /скидка в рублях
+     * @param                    $bonusCount /бонусная скидка в рублях
      * @param                    $rate       /курс бонуса к валюте
      */
     public function applyBonusesInOrder(Order $order, $bonusCount, $rate): void
@@ -319,8 +319,7 @@ class LoyaltyService
             
             try {
                 /** @var OrderLoyaltyDataService $hlService */
-                $hlService            = ServiceLocator::get(OrderLoyaltyDataService::class);
-                
+                $hlService   = ServiceLocator::get(OrderLoyaltyDataService::class);
                 $basketItems = $order->getBasket();
                 
                 if ($basketItems === null) {
@@ -618,59 +617,49 @@ class LoyaltyService
         foreach ($calculate->calculations as $privilege) {
             if ($privilege->maximum) {
                 $orderArResult['AVAILABLE_BONUSES'] = $privilege->maxChargeBonuses;
-            
+    
+                $jsDataTotal  = &$orderArResult['JS_DATA']['TOTAL'];
+
                 //если уровень скидочный
-                if ($privilege->maximum && $privilege->creditBonuses === 0.0) {
+                if ($privilege->maximum && $privilege->discount > 0) {
                     
                     //Персональная скидка
-                    $orderArResult['JS_DATA']['TOTAL']['LOYALTY_DISCOUNT']
-                        = $orderArResult['LOYALTY_DISCOUNT_INPUT']
-                        = round($privilege->discount - $orderArResult['JS_DATA']['TOTAL']['DISCOUNT_PRICE'], 2);
+                    $jsDataTotal['LOYALTY_DISCOUNT'] = $orderArResult['LOYALTY_DISCOUNT_INPUT']
+                        = round($privilege->discount - $jsDataTotal['DISCOUNT_PRICE'], 2);
                     
                     //общая стоимость
-                    $orderArResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE']
-                        -= $orderArResult['JS_DATA']['TOTAL']['LOYALTY_DISCOUNT'];
+                    $jsDataTotal['ORDER_TOTAL_PRICE'] -= $jsDataTotal['LOYALTY_DISCOUNT'];
     
                     //обычная скидка
-                    $orderArResult['JS_DATA']['TOTAL']['DEFAULT_DISCOUNT']
-                        = $orderArResult['JS_DATA']['TOTAL']['DISCOUNT_PRICE'];
+                    $jsDataTotal['DEFAULT_DISCOUNT'] = $jsDataTotal['DISCOUNT_PRICE'];
                     
-                    $orderArResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE_FORMATED']
-                        = round($orderArResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE'], 2)
+                    $jsDataTotal['ORDER_TOTAL_PRICE_FORMATED'] = round($jsDataTotal['ORDER_TOTAL_PRICE'], 2)
                         . ' ' . GetMessage($orderArResult['BASE_LANG_CURRENCY']);
                     
-                    $orderArResult['JS_DATA']['TOTAL']['DISCOUNT_PRICE']
-                        += $orderArResult['JS_DATA']['TOTAL']['LOYALTY_DISCOUNT'];
+                    $jsDataTotal['DISCOUNT_PRICE'] += $jsDataTotal['LOYALTY_DISCOUNT'];
                     
-                    $orderArResult['JS_DATA']['TOTAL']['DISCOUNT_PRICE_FORMATED']
-                        = $orderArResult['JS_DATA']['TOTAL']['DISCOUNT_PRICE']
+                    $jsDataTotal['DISCOUNT_PRICE_FORMATED'] = $jsDataTotal['DISCOUNT_PRICE']
                         . ' ' . GetMessage($orderArResult['BASE_LANG_CURRENCY']);
                     
-                    $orderArResult['JS_DATA']['TOTAL']['ORDER_PRICE']
-                        -= $orderArResult['JS_DATA']['TOTAL']['LOYALTY_DISCOUNT'];
+                    $jsDataTotal['ORDER_PRICE']-= $jsDataTotal['LOYALTY_DISCOUNT'];
                     
-                    $orderArResult['JS_DATA']['TOTAL']['ORDER_PRICE_FORMATED']
-                        = $orderArResult['JS_DATA']['TOTAL']['ORDER_PRICE']
+                    $jsDataTotal['ORDER_PRICE_FORMATED'] = $jsDataTotal['ORDER_PRICE']
                         . ' ' . GetMessage($orderArResult['BASE_LANG_CURRENCY']);
                      
                     $i = 0;
                     
                     foreach ($orderArResult['JS_DATA']['GRID']['ROWS'] as $key => &$item) {
-                        $orderArResult['JS_DATA']['GRID']['ROWS'][$key]['data']['SUM_NUM']
-                            = $orderArResult['CALCULATE_ITEMS_INPUT'][$key]['SUM_NUM']
-                            = $orderArResult['JS_DATA']['GRID']['ROWS'][$key]['data']['SUM_BASE']
+                        $item['data']['SUM_NUM'] = $orderArResult['CALCULATE_ITEMS_INPUT'][$key]['SUM_NUM']
+                            = $item['data']['SUM_BASE']
                             - ($calculate->order->items[$i]->discountTotal
-                            * $orderArResult['JS_DATA']['GRID']['ROWS'][$key]['data']['QUANTITY']);
+                            * $item['data']['QUANTITY']);
                         
-                        $orderArResult['CALCULATE_ITEMS_INPUT'][$key]['QUANTITY']
-                            = $orderArResult['JS_DATA']['GRID']['ROWS'][$key]['data']['QUANTITY'];
+                        $orderArResult['CALCULATE_ITEMS_INPUT'][$key]['QUANTITY'] = $item['data']['QUANTITY'];
                         
-                        $orderArResult['JS_DATA']['GRID']['ROWS'][$key]['data']['SUM']
-                            = $orderArResult['JS_DATA']['GRID']['ROWS'][$key]['data']['SUM_NUM']
+                        $item['data']['SUM'] = $item['data']['SUM_NUM']
                             . ' ' . GetMessage($orderArResult['BASE_LANG_CURRENCY']);
     
-                        $orderArResult['JS_DATA']['GRID']['ROWS'][$key]['data']['DISCOUNT_PRICE']
-                            = $calculate->order->items[$i]->discountTotal;
+                        $item['data']['DISCOUNT_PRICE'] = $calculate->order->items[$i]->discountTotal;
                         
                         $i++;
                     }

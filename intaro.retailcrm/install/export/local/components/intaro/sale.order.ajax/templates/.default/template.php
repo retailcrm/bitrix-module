@@ -425,53 +425,82 @@ if (strlen($request->get('ORDER_ID')) > 0) {
                 <? endif ?>
 
                 <!--	INTARO BONUS BLOCK	-->
-                <?php if ($arResult['LOYALTY_STATUS'] === 'Y'
-                    && $arResult['PERSONAL_LOYALTY_STATUS'] === true
-                    && $arResult['AVAILABLE_BONUSES'] > 0): ?>
-                    <div id="bx-soa-intaro" data-visited="true" class="bx-soa-section bx-selected">
-                        <div class="bx-soa-section-title-container">
-                            <h2 class="bx-soa-section-title col-sm-9">
-                                <span class="bx-soa-section-title-count"></span><?= Loc::getMessage('BONUS_PAYMENT') ?>
-                            </h2>
-                            <div class="col-xs-12 col-sm-3 text-right"><a href="javascript:void(0)" class="bx-soa-editstep"><?=$arParams['MESS_EDIT']?></a></div>
-                        </div>
-                        <div class="bx-soa-section-content container-fluid" id="bx-soa-intaro-content">
-                            <?php if ($arResult['LP_CALCULATE_SUCCESS'] === true ): ?>
-                            <div class="bx-soa-coupon">
-                               <div id="bonus-msg"><?= Loc::getMessage('HOW_MANY_BONUSES_TO_SPEND') ?></div>
-                                <div class="bx-soa-coupon-block">
-                                    <div class="bx-input">
-                                        <input name='bonus-input' class="form-control" type="number" max="<?=$arResult['AVAILABLE_BONUSES']?>" id='bonus-input'>
-                                        <input name="available-bonuses" class="form-control" type="hidden" id='available-bonus-input' value="<?=$arResult['AVAILABLE_BONUSES']?>">
-                                        <input name="bitrix-discount" class="form-control" type="hidden" id='bitrix-discount' value="<?=$arResult['JS_DATA']['TOTAL']['DEFAULT_DISCOUNT']?>">
-                                        <input name="charge-rate" class="form-control" type="hidden" id='charge-rate-input' value="<?=$arResult['CHARGERATE']?>">
-                                        <input name="loyalty-discount-input" class="form-control" type="hidden" id='loyalty-discount-input' value="<?=$arResult['LOYALTY_DISCOUNT_INPUT']?>">
-                                        <input name="calculate-items-input" class="form-control" type="hidden" id='calculate-items-input' value="<?=$arResult['CALCULATE_ITEMS_INPUT']?>">
-                                        <input name="basket-items-hidden" class="form-control" type="hidden"
-                                               id='basket-items-hidden' value="<?= htmlspecialchars(
-                                                   json_encode($arResult['BASKET_ITEMS'])
-                                        )?>">
-                                        <div id="bonus-input-error"></div>
-                                    </div>
-                                </div>
-                                <div><?= Loc::getMessage('BONUS_TOTAL') ?> <label id="total-bonuses-count"><?=$arResult['TOTAL_BONUSES_COUNT']?></label></div>
-                                <div><?= Loc::getMessage('YOU_CAN_SPEND') ?> <label id="available-bonuses"><?=$arResult['AVAILABLE_BONUSES']?></label></div>
-                                <div>
-                                    <?=sprintf(
-                                        Loc::getMessage('CHARGE_RATE'),
-                                        $arResult['BONUS_CURRENCY']
-                                            ? $arResult['BONUS_CURRENCY']
-                                            : Loc::getMessage('RUB'),
-                                        $arResult['CHARGERATE']
-                                    )?>
-                                </div>
+                <?php
+                if ($arResult['LOYALTY_STATUS'] === 'Y'
+                    && $arResult['PERSONAL_LOYALTY_STATUS'] === true): ?>
+                    <?php
+                    if ($arResult['AVAILABLE_BONUSES'] > 0):
+                        ?>
+                        <div id="bx-soa-intaro" data-visited="true" class="bx-soa-section bx-selected">
+                            <div class="bx-soa-section-title-container">
+                                <h2 class="bx-soa-section-title col-sm-9">
+                                    <span class="bx-soa-section-title-count"></span><?=Loc::getMessage('BONUS_PAYMENT')?>
+                                </h2>
+                                <div class="col-xs-12 col-sm-3 text-right"><a href="javascript:void(0)" class="bx-soa-editstep"><?=$arParams['MESS_EDIT']?></a></div>
                             </div>
-                            <? else: ?>
-                                <?= Loc::getMessage('CALCULATION_ERROR') ?>
-                            <? endif ?>
+                            <div class="bx-soa-section-content container-fluid" id="bx-soa-intaro-content">
+                                <?php if ($arResult['LP_CALCULATE_SUCCESS'] === true): ?>
+                                    <div class="bx-soa-coupon">
+                                        <div id="bonus-msg"><?=Loc::getMessage('HOW_MANY_BONUSES_TO_SPEND')?></div>
+                                        <div class="bx-soa-coupon-block">
+                                            <div class="bx-input">
+                                                <input name='bonus-input' class="form-control" type="number" max="<?=$arResult['AVAILABLE_BONUSES']?>" id='bonus-input'>
+                                                <input name="available-bonuses" class="form-control" type="hidden" id='available-bonus-input' value="<?=$arResult['AVAILABLE_BONUSES']?>">
+                                                <input name="charge-rate" class="form-control" type="hidden" id='charge-rate-input' value="<?=$arResult['CHARGERATE']?>">
+                                                <input name="basket-items-hidden" class="form-control" type="hidden"
+                                                       id='basket-items-hidden' value="<?=htmlspecialchars(
+                                                    json_encode($arResult['BASKET_ITEMS'])
+                                                )?>">
+                                                <div id="bonus-input-error"></div>
+                                            </div>
+                                        </div>
+                                        <div><?=Loc::getMessage('BONUS_TOTAL')?> <label id="total-bonuses-count">
+                                                <?=$arResult['TOTAL_BONUSES_COUNT']?></label>
+                                        </div>
+                                        <div><?=Loc::getMessage('YOU_CAN_SPEND')?>
+                                            <label id="available-bonuses">
+                                                <?=$arResult['AVAILABLE_BONUSES']?>
+                                            </label>
+                                        </div>
+                                        <div>
+                                            <?=sprintf(
+                                                Loc::getMessage('CHARGE_RATE'),
+                                                $arResult['BONUS_CURRENCY'] ?: Loc::getMessage('RUB'),
+                                                $arResult['CHARGERATE']
+                                            )?>
+                                        </div>
+                                    </div>
+                                <?php else: ?>
+                                    <?=Loc::getMessage('CALCULATION_ERROR')?>
+                                <?php endif ?>
+                            </div>
                         </div>
-                    </div>
-                <? endif ?>
+                    <?php endif ?>
+                    <?php if ($arResult['LOYALTY_DISCOUNT_INPUT'] > 0): ?>
+                        <input
+                            name="loyalty-discount-input"
+                            class="form-control"
+                            type="hidden"
+                            id='loyalty-discount-input'
+                            value="<?=$arResult['LOYALTY_DISCOUNT_INPUT']?>">
+                    <?php endif ?>
+                    <?php if (is_string($arResult['CALCULATE_ITEMS_INPUT'])): ?>
+                        <input
+                            name="calculate-items-input"
+                            class="form-control"
+                            type="hidden"
+                            id='calculate-items-input'
+                            value="<?=$arResult['CALCULATE_ITEMS_INPUT']?>">
+                    <?php endif ?>
+                    <?php if (is_string($arResult['JS_DATA']['TOTAL']['DEFAULT_DISCOUNT'])): ?>
+                        <input
+                            name="bitrix-discount"
+                            class="form-control"
+                            type="hidden"
+                            id='bitrix-discount'
+                            value="<?=$arResult['JS_DATA']['TOTAL']['DEFAULT_DISCOUNT']?>">
+                    <?php endif ?>
+                <?php endif ?>
 
                 <!--	ORDER SAVE BLOCK	-->
                 <div id="bx-soa-orderSave">
@@ -592,7 +621,10 @@ if (strlen($request->get('ORDER_ID')) > 0) {
             ajaxUrl:            '<?=CUtil::JSEscape($component->getPath() . '/ajax.php')?>',
             templateFolder:     '<?=CUtil::JSEscape($templateFolder)?>',
             willBeCredited:     '<?=$arResult['WILL_BE_CREDITED']?>',
-            bonusCurrency:     '<?=$arResult['BONUS_CURRENCY']?>',
+            bonusCurrency:      '<?=$arResult['BONUS_CURRENCY']?>',
+            loyaltyDiscount:    '<?=$arResult['LOYALTY_DISCOUNT_INPUT']?>',
+            bitrixDiscount:     '<?=$arResult['JS_DATA']['TOTAL']['DEFAULT_DISCOUNT']?>',
+            calculateItemsInput: '<?=$arResult['CALCULATE_ITEMS_INPUT']?>',
             propertyValidation: true,
             showWarnings:       true,
             pickUpMap:          {

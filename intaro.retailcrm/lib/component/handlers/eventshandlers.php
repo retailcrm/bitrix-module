@@ -19,6 +19,7 @@ use Bitrix\Main\Event;
 use Bitrix\Main\HttpRequest;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
+use Bitrix\Sale\BasketItemBase;
 use Bitrix\Sale\Order;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\ServiceLocator;
@@ -65,38 +66,41 @@ class EventsHandlers
             $chargeRate           = (int)$request->get('charge-rate');
             $loyaltyDiscountInput = (float)$request->get('loyalty-discount-input');
             $calculateItemsInput  = $request->get('calculate-items-input');
-
+            $bonusDiscount        = $bonusInput * $chargeRate;
+            
             if ($bonusInput > $availableBonuses) {
                 $arResult['LOYALTY']['ERROR'] = GetMessage('BONUS_ERROR_MSG');
                 
                 return;
             }
+
+            $jsDataTotal = &$arResult['JS_DATA']['TOTAL'];
             
-            $bonusDiscount = $bonusInput * $chargeRate;
-            
-            if ($bonusInput > 0
+            if (($bonusInput > 0
                 && $availableBonuses > 0
-                && $arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE'] >= $bonusDiscount + $loyaltyDiscountInput
+                && $jsDataTotal['ORDER_TOTAL_PRICE'] >= $bonusDiscount + $loyaltyDiscountInput)
+            || $loyaltyDiscountInput > 0
             ) {
-                $arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE']
+                $jsDataTotal['ORDER_TOTAL_PRICE']
                     -= round($bonusDiscount + $loyaltyDiscountInput, 2);
-                $arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE_FORMATED']
-                    = number_format($arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE'], 0, ',', ' ')
-                    . ' ' . GetMessage('RUB');
-                $arResult['JS_DATA']['TOTAL']['BONUS_PAYMENT']              = $bonusDiscount;
-                $arResult['JS_DATA']['TOTAL']['DISCOUNT_PRICE'] += $bonusDiscount + $loyaltyDiscountInput;
-                $arResult['JS_DATA']['TOTAL']['DISCOUNT_PRICE_FORMATED']
-                    = $arResult['JS_DATA']['TOTAL']['DISCOUNT_PRICE'] . ' ' . GetMessage('RUB');
-                $arResult['JS_DATA']['TOTAL']['ORDER_PRICE_FORMATED']
-                    = $arResult['JS_DATA']['TOTAL']['ORDER_PRICE'] - $loyaltyDiscountInput . ' ' . GetMessage('RUB');
-                $oldItems = json_decode(htmlspecialchars_decode($calculateItemsInput), true);
                 
+                $jsDataTotal['ORDER_TOTAL_PRICE_FORMATED']
+                    = number_format($jsDataTotal['ORDER_TOTAL_PRICE'], 0, ',', ' ')
+                    . ' ' . GetMessage('RUB');
+                
+                $jsDataTotal['BONUS_PAYMENT']           = $bonusDiscount;
+                $jsDataTotal['DISCOUNT_PRICE']          += $bonusDiscount + $loyaltyDiscountInput;
+                $jsDataTotal['DISCOUNT_PRICE_FORMATED'] = $jsDataTotal['DISCOUNT_PRICE'] . ' ' . GetMessage('RUB');
+                
+                $jsDataTotal['ORDER_PRICE_FORMATED']
+                    = $jsDataTotal['ORDER_PRICE'] - $loyaltyDiscountInput . ' ' . GetMessage('RUB');
+                
+                $oldItems = json_decode(htmlspecialchars_decode($calculateItemsInput), true);
+    
+    
                 foreach ($arResult['JS_DATA']['GRID']['ROWS'] as $key => &$item) {
-                    $arResult['JS_DATA']['GRID']['ROWS'][$key]['data']['SUM_NUM']
-                        = $oldItems[$key]['SUM_NUM'];
-            
-                    $arResult['JS_DATA']['GRID']['ROWS'][$key]['data']['SUM']
-                        = $arResult['JS_DATA']['GRID']['ROWS'][$key]['data']['SUM_NUM'] . GetMessage('RUB');
+                    $item['data']['SUM_NUM'] = $oldItems[$key]['SUM_NUM'];
+                    $item['data']['SUM'] = $item ['data']['SUM_NUM'] . GetMessage('RUB');
                 }
                 
                 unset($item);
@@ -111,26 +115,56 @@ class EventsHandlers
      */
     public function OnSaleOrderSavedHandler(Event $event): void
     {
-        /* @var LoyaltyService $loyaltyService*/
+        /* @var LoyaltyService $loyaltyService */
         $loyaltyService = ServiceLocator::get(LoyaltyService::class);
         $retailCrmEvent = new RetailCrmEvent();
+        
+        /** @var Order $order */
+        $order = $event->getParameter("ENTITY");
+        
         try {
-            // TODO: Replace old call with a new one.
-            $retailCrmEvent->orderSave($event);
-    
-            $isNew = $event->getParameter("IS_NEW");
-    
-            if (isset($_POST['bonus-input'], $_POST['available-bonuses'])
-                && $isNew
-                && (int)$_POST['available-bonuses'] >= (int)$_POST['bonus-input']
+            if (isset($_POST['calculate-items-input'])
+                && !isset($_POST['bonus-input'], $_POST['available-bonuses'])
+                && $event->getParameter("IS_NEW")
             ) {
-                $rate       = isset($_POST['charge-rate']) ? htmlspecialchars(trim($_POST['charge-rate'])) : 1;
-                $bonusCount = (int)$_POST['bonus-input'];
-                $order      = $event->getParameter("ENTITY");
+                $retailCrmEvent->orderSave($order);
                 
-                $loyaltyService->applyBonusesInOrder($order, $bonusCount, $rate);
+                $basketItems = $order->getBasket();
+                
+                /** @var BasketItemBase $basketItem */
+                foreach ($basketItems as $key => $basketItem) {
+                    
+                    $calculateItemsInput = json_decode(htmlspecialchars_decode($_POST['calculate-items-input']), true);
+                    
+                    $basketItem->setField('CUSTOM_PRICE', 'Y');
+                    $basketItem->setField('DISCOUNT_PRICE',
+                        $basketItem->getBasePrice() - $calculateItemsInput[$basketItem->getId()]['SUM_NUM']);
+                    $basketItem->setField('PRICE', $calculateItemsInput[$basketItem->getId()]['SUM_NUM']);
+                }
+                
+                $order->save();
             }
-        } catch (ObjectPropertyException | ArgumentException | SystemException $e) {
+            
+            if (isset($_POST['bonus-input'], $_POST['available-bonuses'])
+                && (int)$_POST['available-bonuses'] >= (int)$_POST['bonus-input']
+                && $event->getParameter("IS_NEW")
+            ) {
+                // TODO: Replace old call with a new one.
+                $retailCrmEvent->orderSave($order);
+                
+                $loyaltyService->applyBonusesInOrder($order,
+                    (int)$_POST['bonus-input'],
+                    isset($_POST['charge-rate']) ? htmlspecialchars(trim($_POST['charge-rate'])) : 1
+                );
+            }
+            
+            //Если пл выключена, просто отправляет заказ в CRM
+            if (ConfigProvider::getLoyaltyProgramStatus() !== 'Y'
+                || LoyaltyService::getLoyaltyPersonalStatus() !== true) {
+                // TODO: Replace old call with a new one.
+                $retailCrmEvent->orderSave($order);
+            }
+        } catch (ObjectPropertyException | ArgumentException | SystemException | \Exception $e) {
             AddMessage2Log(GetMessage('CAN_NOT_SAVE_ORDER') . $e->getMessage());
         }
     }

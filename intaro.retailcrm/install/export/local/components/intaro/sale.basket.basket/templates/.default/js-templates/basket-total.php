@@ -53,10 +53,13 @@ use Bitrix\Main\Localization\Loc;
                                 <div>
                                     <?=Loc::getMessage('LOYALTY_DISCOUNT')?> <span id="LOYALTY_DISCOUNT_TOTAL">{{{LOYALTY_DISCOUNT_FORMATED}}}</span>
                                 </div>
+                            <?php } ?>
+                        <?php
+                            if ($arResult['TOTAL_RENDER_DATA']['LOYALTY_DISCOUNT_DEFAULT'] > 0) { ?>
                                 <div>
                                     <?=Loc::getMessage('LOYALTY_DISCOUNT_DEFAULT')?> <span id="LOYALTY_DISCOUNT_DEFAULT">{{{LOYALTY_DISCOUNT_DEFAULT}}}</span>
                                 </div>
-                            <?php } ?>
+                        <?php } ?>
     
                             <?php
                             if ($arResult['TOTAL_RENDER_DATA']['WILL_BE_CREDITED'] > 0) { ?>
