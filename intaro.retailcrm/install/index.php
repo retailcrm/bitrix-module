@@ -236,7 +236,11 @@ class intaro_retailcrm extends CModule
         $this->addLPUserFields();
         $this->addLPEvents();
         $this->addAgreement();
+        
         OrderLoyaltyDataService::createLoyaltyHlBlock();
+        
+        $service = new OrderLoyaltyDataService();
+        $service->addCustomersLoyaltyFields();
 
         if ($step == 11) {
             $arResult['arSites'] = RCrmActions::SitesList();
@@ -1553,38 +1557,6 @@ class intaro_retailcrm extends CModule
             if (!$dbRes['ID']) {
                 $obUserField->Add($props);
             }
-        }
-    }
-
-    /**
-     * @param $personId
-     *
-     * @return \Bitrix\Main\ORM\Data\AddResult|mixed
-     * @throws \Bitrix\Main\ArgumentException
-     * @throws \Bitrix\Main\ObjectPropertyException
-     * @throws \Bitrix\Main\SystemException
-     */
-    private function getGroupID($personId)
-    {
-        $LPGroup = OrderPropsGroupTable::query()
-            ->setSelect(['ID'])
-            ->where(
-                [
-                    ['PERSON_TYPE_ID', '=', $personId],
-                    ['NAME', '=', GetMessage('LP_ORDER_GROUP_NAME')],
-                ]
-            )
-            ->fetch();
-
-        if (is_array($LPGroup)) {
-            return $LPGroup['ID'];
-        }
-
-        if ($LPGroup === false) {
-            return OrderPropsGroupTable::add([
-                'PERSON_TYPE_ID' => $personId,
-                'NAME' => GetMessage('LP_ORDER_GROUP_NAME'),
-            ])->getId();
         }
     }
 

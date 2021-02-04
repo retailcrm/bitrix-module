@@ -293,18 +293,23 @@ class LoyaltyService
      * @param \Bitrix\Sale\Order $order
      * @param                    $bonusCount /бонусная скидка в рублях
      * @param                    $rate       /курс бонуса к валюте
+     * @return string
      */
-    public function applyBonusesInOrder(Order $order, $bonusCount, $rate): void
+    public function applyBonusesInOrder(Order $order, $bonusCount, $rate): string
     {
-        $orderId  = $order->getId();
-        $response = $this->sendBonusPayment($orderId, $bonusCount);
+        $bonusInfo = "";
+        $orderId   = $order->getId();
+        $response  = $this->sendBonusPayment($orderId, $bonusCount);
         
+        Utils::handleErrors($response);
+    
         if ($response->success) {
             $isDebited = false;
             $checkId   = '';
             
             //если верификация необходима, но не пройдена
-            if (isset($response->verification, $response->verification->checkId)
+            if (
+                isset($response->verification, $response->verification->checkId)
                 && !isset($response->verification->verifiedAt)
             ) {
                 $isDebited = false;
@@ -323,16 +328,16 @@ class LoyaltyService
                 $basketItems = $order->getBasket();
                 
                 if ($basketItems === null) {
-                    return;
+                    return $bonusInfo;
                 }
-
+                
                 /** @var BasketItemBase $basketItem */
                 foreach ($basketItems as $key=>$basketItem) {
                     $loyaltyHl               = new OrderLoyaltyData();
     
                     /** @var OrderProduct $item */
                     $item                    = $response->order->items[$key];
-                    $totalLoyaltyDiscount    = $rate * $item->bonusesChargeTotal / $basketItem->getQuantity();
+                    $totalLoyaltyDiscount    = ($rate * $item->bonusesChargeTotal) / $basketItem->getQuantity();
                     $loyaltyHl->orderId      = $orderId;
                     $loyaltyHl->itemId       = $basketItem->getId();
                     $loyaltyHl->cashDiscount = $totalLoyaltyDiscount;
@@ -342,6 +347,13 @@ class LoyaltyService
                     $loyaltyHl->checkId      = $checkId;
                     $loyaltyHl->quantity     = $basketItem->getQuantity();
 
+                    $bonusInfo .= "id "
+                        . $basketItem->getId()
+                        . " " . $basketItem->getField('NAME')
+                        . GetMessage('BONUS_MESSAGE')
+                        . ($rate * $item->bonusesChargeTotal)
+                        . GetMessage('RUB_BR');
+                    
                     $hlService->addDataInLoyaltyHl($loyaltyHl);
     
                     $basePrice = $basketItem->getField('BASE_PRICE');
@@ -350,8 +362,10 @@ class LoyaltyService
                     $basketItem->setField('DISCOUNT_PRICE', $item->discountTotal);
                     $basketItem->setField('PRICE', $basePrice - $item->discountTotal);
                 }
-                
+
                 $order->save();
+                
+                return $bonusInfo;
             } catch (Exception $e) {
                 AddMessage2Log($e->getMessage());
             }
@@ -551,26 +565,26 @@ class LoyaltyService
      */
     public  function calculateBasket(array $basketData, LoyaltyCalculateResponse $calculate): array
     {
-        $basketData['LP_CALCULATE_SUCCESS']                  = $calculate->success;
-        $basketData['TOTAL_RENDER_DATA']['WILL_BE_CREDITED'] = $calculate->order->bonusesCreditTotal;
+        $totalRenderData                     = &$basketData['TOTAL_RENDER_DATA'];
+        $basketData['LP_CALCULATE_SUCCESS']  = $calculate->success;
+        $totalRenderData['WILL_BE_CREDITED'] = $calculate->order->bonusesCreditTotal;
 
         foreach ($calculate->calculations as $privilege) {
             if ($privilege->maximum && $privilege->creditBonuses === 0.0) {
-                $basketData['TOTAL_RENDER_DATA']['LOYALTY_DISCOUNT']          = round($privilege->discount - $basketData['DISCOUNT_PRICE_ALL'], 2);
-                $basketData['TOTAL_RENDER_DATA']['LOYALTY_DISCOUNT_FORMATED'] = $basketData['TOTAL_RENDER_DATA']['LOYALTY_DISCOUNT']
-                    . ' ' . GetMessage($basketData['TOTAL_RENDER_DATA']['CURRENCY']);
-                
-                $basketData['TOTAL_RENDER_DATA']['PRICE']                     -= $basketData['TOTAL_RENDER_DATA']['LOYALTY_DISCOUNT'];//общая сумма со скидкой
-                $basketData['TOTAL_RENDER_DATA']['PRICE_FORMATED']            = $basketData['TOTAL_RENDER_DATA']['PRICE']
-                    . ' ' . GetMessage($basketData['TOTAL_RENDER_DATA']['CURRENCY']); //отформатированная сумма со скидкой
-                $basketData['TOTAL_RENDER_DATA']['SUM_WITHOUT_VAT_FORMATED']  = $basketData['TOTAL_RENDER_DATA']['PRICE_FORMATED'];
-                $basketData['allSum_FORMATED']                                = $basketData['TOTAL_RENDER_DATA']['PRICE_FORMATED'];
-                $basketData['allSum_wVAT_FORMATED']                           = $basketData['TOTAL_RENDER_DATA']['PRICE_FORMATED'];
-                $basketData['allSum']                                         = $basketData['TOTAL_RENDER_DATA']['PRICE'];
-                $basketData['TOTAL_RENDER_DATA']['DISCOUNT_PRICE_FORMATED']   = $privilege->discount
-                    . ' ' . GetMessage($basketData['TOTAL_RENDER_DATA']['CURRENCY']);
-                $basketData['TOTAL_RENDER_DATA']['LOYALTY_DISCOUNT_DEFAULT']  = $basketData['DISCOUNT_PRICE_ALL']
-                    . ' ' . GetMessage($basketData['TOTAL_RENDER_DATA']['CURRENCY']);
+                $totalRenderData['LOYALTY_DISCOUNT']          = round($privilege->discount - $basketData['DISCOUNT_PRICE_ALL'], 2);
+                $totalRenderData['LOYALTY_DISCOUNT_FORMATED'] = $totalRenderData['LOYALTY_DISCOUNT']
+                    . ' ' . GetMessage($totalRenderData['CURRENCY']);
+                $totalRenderData['PRICE']                     -= $totalRenderData['LOYALTY_DISCOUNT'];//общая сумма со скидкой
+                $totalRenderData['PRICE_FORMATED']            = $totalRenderData['PRICE']
+                    . ' ' . GetMessage($totalRenderData['CURRENCY']); //отформатированная сумма со скидкой
+                $totalRenderData['SUM_WITHOUT_VAT_FORMATED']  = $totalRenderData['PRICE_FORMATED'];
+                $basketData['allSum_FORMATED']                                = $totalRenderData['PRICE_FORMATED'];
+                $basketData['allSum_wVAT_FORMATED']                           = $totalRenderData['PRICE_FORMATED'];
+                $basketData['allSum']                                         = $totalRenderData['PRICE'];
+                $totalRenderData['DISCOUNT_PRICE_FORMATED']   = $privilege->discount
+                    . ' ' . GetMessage($totalRenderData['CURRENCY']);
+                $totalRenderData['LOYALTY_DISCOUNT_DEFAULT']  = $basketData['DISCOUNT_PRICE_ALL']
+                    . ' ' . GetMessage($totalRenderData['CURRENCY']);
             }
         }
     
@@ -694,6 +708,43 @@ class LoyaltyService
         return $orderArResult;
     }
     
+    /**
+     * @param \Bitrix\Sale\Order $order
+     * @param float              $loyaltyDiscountInput
+     * @param string             $loyaltyBonusMsg
+     * @throws \Bitrix\Main\ArgumentException
+     * @throws \Bitrix\Main\ArgumentOutOfRangeException
+     * @throws \Bitrix\Main\NotImplementedException
+     * @throws \Bitrix\Main\ObjectPropertyException
+     * @throws \Bitrix\Main\SystemException
+     */
+    public function saveBonusAndDiscountValue(
+        Order $order,
+        float $loyaltyDiscountInput = 0,
+        string $loyaltyBonusMsg = '-'): void
+    {
+        $props = $order->getPropertyCollection();
+    
+        /** @var \Bitrix\Sale\PropertyValue $prop */
+        foreach ($props as $prop) {
+            if ($prop->getField('CODE') === 'LP_DISCOUNT_INFO') {
+                $result = $prop->setField('VALUE', $loyaltyDiscountInput .' '. GetMessage('RUB'));
+            
+                if (!$result->isSuccess())
+                {
+                    AddMessage2Log($result->getErrorMessages());
+                }
+            }
+            if ($prop->getField('CODE') === 'LP_BONUS_INFO') {
+                $result = $prop->setField('VALUE', $loyaltyBonusMsg);
+        
+                if (!$result->isSuccess())
+                {
+                    AddMessage2Log($result->getErrorMessages());
+                }
+            }
+        }
+    }
     
     
     /**

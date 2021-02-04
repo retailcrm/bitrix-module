@@ -123,17 +123,20 @@ class EventsHandlers
         $order = $event->getParameter("ENTITY");
         
         try {
-            if (isset($_POST['calculate-items-input'])
+            if (
+                isset($_POST['calculate-items-input'], $_POST['loyalty-discount-input'])
                 && !isset($_POST['bonus-input'], $_POST['available-bonuses'])
                 && $event->getParameter("IS_NEW")
+                && ConfigProvider::getLoyaltyProgramStatus() === 'Y'
             ) {
                 $retailCrmEvent->orderSave($order);
+    
+                $loyaltyService->saveBonusAndDiscountValue($order, (float) $_POST['loyalty-discount-input']);
                 
                 $basketItems = $order->getBasket();
                 
                 /** @var BasketItemBase $basketItem */
                 foreach ($basketItems as $key => $basketItem) {
-                    
                     $calculateItemsInput = json_decode(htmlspecialchars_decode($_POST['calculate-items-input']), true);
                     
                     $basketItem->setField('CUSTOM_PRICE', 'Y');
@@ -144,23 +147,32 @@ class EventsHandlers
                 
                 $order->save();
             }
-            
-            if (isset($_POST['bonus-input'], $_POST['available-bonuses'])
+    
+            if (
+                isset($_POST['bonus-input'], $_POST['available-bonuses'])
                 && (int)$_POST['available-bonuses'] >= (int)$_POST['bonus-input']
                 && $event->getParameter("IS_NEW")
+                && ConfigProvider::getLoyaltyProgramStatus() === 'Y'
             ) {
                 // TODO: Replace old call with a new one.
                 $retailCrmEvent->orderSave($order);
-                
-                $loyaltyService->applyBonusesInOrder($order,
+    
+                $loyaltyBonusMsg = $loyaltyService->applyBonusesInOrder($order,
                     (int)$_POST['bonus-input'],
                     isset($_POST['charge-rate']) ? htmlspecialchars(trim($_POST['charge-rate'])) : 1
                 );
+                
+                if (isset($_POST['loyalty-discount-input'])) {
+                    $loyaltyService->saveBonusAndDiscountValue($order, (float) $_POST['loyalty-discount-input'], $loyaltyBonusMsg);
+                }
             }
             
             //Если пл выключена, просто отправляет заказ в CRM
-            if (ConfigProvider::getLoyaltyProgramStatus() !== 'Y'
-                || LoyaltyService::getLoyaltyPersonalStatus() !== true) {
+            if (
+                ConfigProvider::getLoyaltyProgramStatus() !== 'Y'
+                || LoyaltyService::getLoyaltyPersonalStatus() !== true
+            ) {
+                $loyaltyService->saveBonusAndDiscountValue($order);
                 // TODO: Replace old call with a new one.
                 $retailCrmEvent->orderSave($order);
             }

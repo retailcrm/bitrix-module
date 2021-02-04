@@ -131,7 +131,7 @@ class Order extends Controller
         if ($result === false) {
             return ['msg' => GetMessage('BONUS_ERROR')];
         }
-        Debug::writeToFile(json_encode($result), '', 'log.txt');
+ 
         return $result;
     }
     
