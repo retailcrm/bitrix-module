@@ -247,7 +247,7 @@ else{
                         <option value="<?php echo $paymentType['code']; ?>"
                             <?php if($defaultPayTypes[$bitrixPaymentType['ID']] == $paymentType['code']) echo 'selected'; ?>>
                             <?php
-                            $nameType = isset($paymentType['integrationModule']) ? $APPLICATION->ConvertCharset($paymentType['name'] . '(интеграционная)', 'utf-8', SITE_CHARSET) : $APPLICATION->ConvertCharset($paymentType['name'], 'utf-8', SITE_CHARSET);
+                            $nameType = isset($paymentType['integrationModule']) ? $APPLICATION->ConvertCharset($paymentType['name'] . GetMessage('INTEGRATIONS'), 'utf-8', SITE_CHARSET) : $APPLICATION->ConvertCharset($paymentType['name'], 'utf-8', SITE_CHARSET);
                             echo $nameType;?>
                         </option>
                         <?php endforeach; ?>

@@ -547,17 +547,27 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         COption::SetOptionString($mid, $CRM_CURRENCY, $_POST['currency']);
     }
 
-    $arResult['paymentTypesList'] = $api->paymentTypesList()->paymentTypes;
+    try {
+        $arResult['paymentTypesList'] = $api->paymentTypesList()->paymentTypes;
+        $arResult['deliveryTypesList'] = $api->deliveryTypesList()->deliveryTypes;
+    } catch (\RetailCrm\Exception\CurlException $e) {
+        RCrmActions::eventLog(
+            'intaro.retailcrm/options.php', 'RetailCrm\ApiClient::*List::CurlException',
+            $e->getCode() . ': ' . $e->getMessage()
+        );
+
+        echo CAdminMessage::ShowMessage(GetMessage('ERR_' . $e->getCode()));
+    }
+
     $integrationPayment = [];
 
-    foreach ($arResult['paymentTypesList']as $typePayment) {
+    foreach ($arResult['paymentTypesList'] as $typePayment) {
         if (isset($typePayment['integrationModule']) && $typePayment['active'] === true) {
             $integrationPayment[$typePayment['code']] = $typePayment['code'];
         }
     }
 
-    $arResult['deliveryTypesList'] = $api->deliveryTypesList()->deliveryTypes;
-    $deliveryIntegrationCode = array();
+    $deliveryIntegrationCode = [];
 
     foreach ($arResult['deliveryTypesList'] as $deliveryType) {
         if ($deliveryType['active'] === true) {
@@ -1012,7 +1022,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             </tr>
             <tr class="heading">
                 <td colspan="2"><b><?php echo GetMessage('PAYMENT_TYPES_LIST'); ?></b>
-                    <p><small>Для интеграционных оплат, статус не передается</small></p></td>
+                    <p><small><?php echo GetMessage('INTEGRATION_PAYMENT_LIST');?></small></p></td>
             </tr>
             <?php foreach($arResult['bitrixPaymentTypesList'] as $bitrixPaymentType): ?>
                 <tr>
@@ -1025,7 +1035,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                             <?php foreach($arResult['paymentTypesList'] as $paymentType): ?>
                                 <option value="<?php echo $paymentType['code']; ?>" <?php if ($optionsPayTypes[$bitrixPaymentType['ID']] == $paymentType['code']) echo 'selected'; ?>>
                                     <?php
-                                    $nameType = isset($paymentType['integrationModule']) ? $APPLICATION->ConvertCharset($paymentType['name'] . '(интеграционная)', 'utf-8', SITE_CHARSET) : $APPLICATION->ConvertCharset($paymentType['name'], 'utf-8', SITE_CHARSET);
+                                    $nameType = isset($paymentType['integrationModule']) ? $APPLICATION->ConvertCharset($paymentType['name'] . GetMessage('INTEGRATIONS'), 'utf-8', SITE_CHARSET) : $APPLICATION->ConvertCharset($paymentType['name'], 'utf-8', SITE_CHARSET);
                                     echo $nameType;?>
                                 </option>
                             <?php endforeach; ?>

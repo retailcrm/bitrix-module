@@ -252,8 +252,7 @@ class RetailCrmOrder
             $order['weight'] = $weight;
         }
 
-        $integrationPayment = unserialize(COption::GetOptionString(RetailcrmConstants::MODULE_ID, RetailcrmConstants::CRM_INTEGRATION_PAYMENT, 0));
-
+        $integrationPayment = RetailcrmConfigProvider::getIntegrationPaymentTypes();
         //payments
         $payments = array();
         foreach ($arFields['PAYMENTS'] as $payment) {
