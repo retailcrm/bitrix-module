@@ -549,12 +549,23 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
 
     $arResult['paymentTypesList'] = $api->paymentTypesList()->paymentTypes;
     $integrationPayment = [];
+
     foreach ($arResult['paymentTypesList']as $typePayment) {
         if (isset($typePayment['integrationModule']) && $typePayment['active'] === true) {
             $integrationPayment[$typePayment['code']] = $typePayment['code'];
         }
     }
 
+    $arResult['deliveryTypesList'] = $api->deliveryTypesList()->deliveryTypes;
+    $deliveryIntegrationCode = array();
+
+    foreach ($arResult['deliveryTypesList'] as $deliveryType) {
+        if ($deliveryType['active'] === true) {
+            $deliveryIntegrationCode[$deliveryType['code']] = $deliveryType['integrationCode'];
+        }
+    }
+
+    COption::SetOptionString($mid, RetailcrmConstants::CRM_INTEGRATION_DELIVERY, serialize(RCrmActions::clearArr($deliveryIntegrationCode)));
     COption::SetOptionString($mid, RetailcrmConstants::CRM_INTEGRATION_PAYMENT, serialize(RCrmActions::clearArr($integrationPayment)));
     COption::SetOptionString($mid, $CRM_ADDRESS_OPTIONS, serialize($addressDatailOptions));
     COption::SetOptionString($mid, $CRM_SITES_LIST, serialize($siteListArr));
@@ -642,18 +653,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         $badJson = true;
         echo CAdminMessage::ShowMessage(GetMessage('ERR_JSON'));
     }
-
-    $deliveryTypes = array();
-    $deliveryIntegrationCode = array();
-    foreach ($arResult['deliveryTypesList'] as $deliveryType) {
-        if ($deliveryType['active'] === true) {
-            $deliveryTypes[$deliveryType['code']] = $deliveryType;
-            $deliveryIntegrationCode[$deliveryType['code']] = $deliveryType['integrationCode'];
-        }
-    }
-
-    $arResult['deliveryTypesList'] = $deliveryTypes;
-    COption::SetOptionString($mid, RetailcrmConstants::CRM_INTEGRATION_DELIVERY, serialize(RCrmActions::clearArr($deliveryIntegrationCode)));
 
     //bitrix orderTypesList -- personTypes
     $arResult['bitrixOrderTypesList'] = RCrmActions::OrderTypesList($arResult['arSites']);
