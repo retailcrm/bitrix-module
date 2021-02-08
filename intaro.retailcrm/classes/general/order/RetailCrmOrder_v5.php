@@ -252,14 +252,8 @@ class RetailCrmOrder
             $order['weight'] = $weight;
         }
 
-        $paymentTypes = RCrmActions::apiMethod($api, 'paymentTypesGet', __METHOD__, array());
-        $integrationPayment = [];
+        $integrationPayment = unserialize(COption::GetOptionString(RetailcrmConstants::MODULE_ID, RetailcrmConstants::CRM_INTEGRATION_PAYMENT, 0));
 
-        foreach ($paymentTypes['paymentTypes'] as $typePayment) {
-            if (isset($typePayment['integrationModule']) && $typePayment['active'] === true) {
-                $integrationPayment[$typePayment['code']] = $typePayment;
-            }
-        }
         //payments
         $payments = array();
         foreach ($arFields['PAYMENTS'] as $payment) {

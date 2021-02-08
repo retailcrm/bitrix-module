@@ -947,23 +947,6 @@ class ApiClient
     }
 
     /**
-     * Returns payment-types
-     *
-     * @throws \InvalidArgumentException
-     * @throws \RetailCrm\Exception\CurlException
-     * @throws \RetailCrm\Exception\InvalidJsonException
-     *
-     * @return ApiResponse
-     */
-    public function paymentTypesGet()
-    {
-        return $this->client->makeRequest(
-            "/reference/payment-types",
-            Client::METHOD_GET
-        );
-    }
-
-    /**
      * Edit a order
      *
      * @param array  $order order data

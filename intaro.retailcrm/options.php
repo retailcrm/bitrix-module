@@ -547,6 +547,15 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         COption::SetOptionString($mid, $CRM_CURRENCY, $_POST['currency']);
     }
 
+    $arResult['paymentTypesList'] = $api->paymentTypesList()->paymentTypes;
+    $integrationPayment = [];
+    foreach ($arResult['paymentTypesList']as $typePayment) {
+        if (isset($typePayment['integrationModule']) && $typePayment['active'] === true) {
+            $integrationPayment[$typePayment['code']] = $typePayment['code'];
+        }
+    }
+
+    COption::SetOptionString($mid, RetailcrmConstants::CRM_INTEGRATION_PAYMENT, serialize(RCrmActions::clearArr($integrationPayment)));
     COption::SetOptionString($mid, $CRM_ADDRESS_OPTIONS, serialize($addressDatailOptions));
     COption::SetOptionString($mid, $CRM_SITES_LIST, serialize($siteListArr));
     COption::SetOptionString($mid, $CRM_ORDER_TYPES_ARR, serialize(RCrmActions::clearArr($orderTypesArr)));

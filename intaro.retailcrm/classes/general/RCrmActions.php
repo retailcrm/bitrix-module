@@ -464,8 +464,8 @@ class RCrmActions
 
             case 'paymentEditByExternalId':
                 return self::proxy($api, 'ordersPaymentEdit', $method, array($params, 'externalId', $site));
-            case 'paymentTypesGet':
-                return self::proxy($api, 'paymentTypesGet', $method, array());
+            case 'paymentTypesList':
+                return self::proxy($api, 'paymentTypesList', $method, array());
             default:
                 return self::proxy($api, $methodApi, $method, array($params, $site));
         }
