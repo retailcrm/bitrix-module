@@ -82,6 +82,11 @@ class IblockCatalogTable extends Main\Entity\DataManager
                     'Bitrix\Iblock\IblockSection',
                     ['=this.IBLOCK_ID' => 'ref.IBLOCK_ID']
                 ),
+                new ReferenceField(
+                    'OFFERS_IBLOCK',
+                    'Bitrix\Iblock\IblockSection',
+                    ['=this.IBLOCK_ID' => 'this.ID']
+                ),
             ];
         } catch (Main\ArgumentException | Main\SystemException $e) {
             return null;

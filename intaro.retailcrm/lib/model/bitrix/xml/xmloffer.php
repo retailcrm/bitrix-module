@@ -17,8 +17,6 @@ namespace Intaro\RetailCrm\Model\Bitrix\Xml;
  */
 class XmlOffer
 {
-    
-    
     /**
      * @var int
      */

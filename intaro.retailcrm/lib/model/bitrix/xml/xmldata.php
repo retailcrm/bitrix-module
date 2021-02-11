@@ -17,22 +17,19 @@ namespace Intaro\RetailCrm\Model\Bitrix\Xml;
  */
 class XmlData
 {
-    
     /**
      * @var string
      */
     public $shopName;
+    
     /**
      * @var string
      */
     public $company;
+    
     /**
-     * @var array
+     * @var \Intaro\RetailCrm\Model\Bitrix\Xml\XmlCategory[]
      */
     public $categories;
-    /**
-     * @var array
-     */
-    public $offers;
 }
 

@@ -141,11 +141,11 @@ class RetailCrmICML
     /**
      * @param        $propProduct
      * @param        $arOffer
-     * @param int    $key
+     * @param string $key
      * @param string $offer
      * @return array
      */
-    protected function addManufacturer($propProduct, $arOffer, int $key, string $offer): array
+    protected function addManufacturer($propProduct, $arOffer, string $key, string $offer): array
     {
         if ($propProduct !== "" && $arOffer['_PROP_' . $key] !== null) {
             if ($key === "manufacturer") {
@@ -200,11 +200,7 @@ class RetailCrmICML
         return $newText;
     }
     
-    /**
-     * @param $filename
-     * @return bool
-     */
-    protected function PrepareFile($filename): bool
+    protected function PrepareFile($filename)
     {
         $fullFilename = $_SERVER["DOCUMENT_ROOT"] . $filename;
         CheckDirPath($fullFilename);
