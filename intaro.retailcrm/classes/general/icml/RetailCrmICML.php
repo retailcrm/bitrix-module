@@ -339,7 +339,7 @@ class RetailCrmICML
             
             $arSelect      = $this->buildProductQuery($id);
             $arSelectOffer = $this->buildOfferQuery($id, $iblockOffer['SKU_PROPERTY_ID']);
-            
+
             // Set filter
             $order           = ["id"];
             $filter          = [
@@ -437,7 +437,7 @@ class RetailCrmICML
         }
         
         unset($product);
-        
+
         if (!empty($iblockOffer['IBLOCK_ID'])) {
             $arFilterOffer = [
                 'IBLOCK_ID'                                   => $iblockOffer['IBLOCK_ID'],
@@ -452,7 +452,7 @@ class RetailCrmICML
                 ['nTopCount' => $this->pageSize * $this->offerPageSize],
                 $arSelectOffer
             );
-            
+
             while ($offer = $dbResOffers->GetNext()) {
                 // Link offers to products
                 $products[$offer['PROPERTY_' . $iblockOffer['SKU_PROPERTY_ID'] . '_VALUE']]['offers'][$offer['ID']] = $offer;
