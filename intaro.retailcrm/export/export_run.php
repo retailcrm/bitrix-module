@@ -2,13 +2,6 @@
 
 use Bitrix\Highloadblock\HighloadBlockTable;
 
-use Intaro\RetailCrm\Icml\RetailCrmlXml;
-use Intaro\RetailCrm\Icml\RetailCrmXml;
-use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup;
-use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupProps;
-use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupPropsCategories;
-
-
 if (file_exists($_SERVER["DOCUMENT_ROOT"] . "/bitrix/php_interface/retailcrm/export_run.php")) {
     require_once($_SERVER["DOCUMENT_ROOT"] . "/bitrix/php_interface/retailcrm/export_run.php");
 } else {
@@ -58,9 +51,6 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"] . "/bitrix/php_interface/retailcrm/exp
     $IBLOCK_PROPERTY_SKU               = [];
     $IBLOCK_PROPERTY_SKU_HIGHLOADBLOCK = [];
     $IBLOCK_PROPERTY_UNIT_SKU          = [];
-    $IBLOCK_PROPERTY_PRODUCT               = [];
-    $IBLOCK_PROPERTY_PRODUCT_HIGHLOADBLOCK = [];
-    $IBLOCK_PROPERTY_UNIT_PRODUCT          = [];
     
     foreach ($iblockProperties as $prop) {
         $skuUnitProps = ('IBLOCK_PROPERTY_UNIT_SKU' . "_" . $prop);
@@ -92,7 +82,13 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"] . "/bitrix/php_interface/retailcrm/exp
                 }
             }
         }
-
+    }
+    
+    $IBLOCK_PROPERTY_PRODUCT               = [];
+    $IBLOCK_PROPERTY_PRODUCT_HIGHLOADBLOCK = [];
+    $IBLOCK_PROPERTY_UNIT_PRODUCT          = [];
+    
+    foreach ($iblockProperties as $prop) {
         $productUnitProps = "IBLOCK_PROPERTY_UNIT_PRODUCT" . "_" . $prop;
         $productUnitProps = $$productUnitProps;
         if (is_array($productUnitProps)) {
@@ -139,36 +135,28 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"] . "/bitrix/php_interface/retailcrm/exp
         }
     }
     
-    $fileSetup = new XmlSetup();
-    $fileSetup->properties = new XmlSetupPropsCategories();
-    $fileSetup->properties->sku = new XmlSetupProps();
-    $fileSetup->properties->products = new XmlSetupProps();
-    
-    $fileSetup->profileID = $profile_id;
-    $fileSetup->iblocksForExport = $IBLOCK_EXPORT;
-
-    $fileSetup->properties->sku->names = $IBLOCK_PROPERTY_SKU;
-    $fileSetup->properties->sku->units = $IBLOCK_PROPERTY_UNIT_SKU;
-    $fileSetup->properties->sku->pictures = $skuPictures;
-
-    $fileSetup->properties->products->names = $IBLOCK_PROPERTY_PRODUCT;
-    $fileSetup->properties->products->units = $IBLOCK_PROPERTY_UNIT_PRODUCT;
-    $fileSetup->properties->products->pictures = $productPictures;
+    $loader                        = new RetailCrmICML();
+    $loader->profileID             = $profile_id;
+    $loader->iblocks               = $IBLOCK_EXPORT;
+    $loader->propertiesSKU         = $IBLOCK_PROPERTY_SKU;
+    $loader->propertiesUnitSKU     = $IBLOCK_PROPERTY_UNIT_SKU;
+    $loader->propertiesProduct     = $IBLOCK_PROPERTY_PRODUCT;
+    $loader->propertiesUnitProduct = $IBLOCK_PROPERTY_UNIT_PRODUCT;
+    $loader->productPictures       = $productPictures;
+    $loader->skuPictures           = $skuPictures;
     
     if ($hlblockModule === true) {
-        $fileSetup->properties->highloadblockSku    = $IBLOCK_PROPERTY_SKU_HIGHLOADBLOCK;
-        $fileSetup->properties->highloadblockProduct = $IBLOCK_PROPERTY_PRODUCT_HIGHLOADBLOCK;
+        $loader->highloadblockSkuProperties     = $IBLOCK_PROPERTY_SKU_HIGHLOADBLOCK;
+        $loader->highloadblockProductProperties = $IBLOCK_PROPERTY_PRODUCT_HIGHLOADBLOCK;
     }
     
     if ($MAX_OFFERS_VALUE) {
-        $fileSetup->maxOffersValue = $MAX_OFFERS_VALUE;
+        $loader->offerPageSize = $MAX_OFFERS_VALUE;
     }
     
-    $fileSetup->filePath = $SETUP_FILE_NAME;
-    $fileSetup->defaultServerName
-        = COption::GetOptionString('intaro.retailcrm', 'protocol') . $SERVER_NAME;
-    $fileSetup->loadPurchasePrice = $LOAD_PURCHASE_PRICE === 'Y';
-    
-    $loader = new RetailCrmXml($fileSetup);
-    $loader->generateXml();
+    $loader->filename          = $SETUP_FILE_NAME;
+    $loader->defaultServerName = $SERVER_NAME;
+    $loader->application       = $APPLICATION;
+    $loader->loadPurchasePrice = $LOAD_PURCHASE_PRICE == 'Y';
+    $loader->Load();
 }

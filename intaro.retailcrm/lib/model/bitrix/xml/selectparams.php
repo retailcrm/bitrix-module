@@ -12,29 +12,21 @@
 namespace Intaro\RetailCrm\Model\Bitrix\Xml;
 
 /**
- * Class XmlData
- * @package Intaro\RetailCrm\Model\Bitrix
+ * Class SelectParams
+ * @package Intaro\RetailCrm\Model\Bitrix\Xml
  */
-class XmlData
+class SelectParams
 {
     /**
-     * @var string
+     * @var array
      */
-    public $shopName;
-    
+    public $configurable;
     /**
-     * @var string
+     * @var array
      */
-    public $company;
-    
+    public $main;
     /**
-     * @var \Intaro\RetailCrm\Model\Bitrix\Xml\XmlCategory[]
+     * @var array
      */
-    public  $categories;
-    
-    /**
-     * @var string
-     */
-    public $filePath;
+    public $default;
 }
-

@@ -7,6 +7,7 @@ use Intaro\RetailCrm\Model\Bitrix\Xml\OfferParam;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlCategory;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlData;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlOffer;
+use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup;
 
 class IcmlWriter
 {
@@ -17,8 +18,12 @@ class IcmlWriter
      * @var \XMLWriter
      */
     private $writer;
+    
+    /**
+     * @var \CAllMain|\CMain
+     */
     private $application;
-
+    
     public function __construct()
     {
         global $APPLICATION;
@@ -31,7 +36,7 @@ class IcmlWriter
     public function writeToXmlHeaderAndCategories(XmlData $data): void
     {
         $this->writer = $writer = new XMLWriter();
-        $writer->openURI($_SERVER["DOCUMENT_ROOT"] . $this->setup->filePath);
+        $writer->openURI($_SERVER["DOCUMENT_ROOT"] . $data->filePath);
         $writer->setIndent(true);
         
         $writer->startElement('yml_catalog');
@@ -97,7 +102,19 @@ class IcmlWriter
         $this->writeSimpleElement('xmlId', $offer->xmlId);
         $this->writeSimpleElement('productName', $offer->productName);
         $this->writeSimpleElement('vendor', $offer->vendor);
-        $this->writeSimpleElement('vatRate', $offer->vatRate);
+        
+        if (!empty($offer->barcode)) {
+            $this->writeSimpleElement('barcode', $offer->barcode);
+        }
+    
+        if (!empty($offer->vatRate)) {
+            $this->writeSimpleElement('vatRate', $offer->vatRate);
+        }
+    
+        if ($offer->purchasePrice !== null) {
+            $this->writeSimpleElement('purchasePrice', $offer->vatRate);
+        }
+        
         $this->writer->startElement('unit');
         $this->writeSimpleAttribute('code', $offer->unitCode);
         $this->writer->endElement();

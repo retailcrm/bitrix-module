@@ -45,6 +45,6 @@ class RetailCrmXml
             . ': End writing offers in XML', self::INFO);
         $this->icmlWriter->writeToXmlBottom();
         IcmlLogger::writeToToLog(Date("Y:m:d H:i:s")
-            . ': Loading complete', self::INFO);
+            . ': Loading complete (peek memory usage: ' . memory_get_peak_usage() . ')', self::INFO);
     }
 }
