@@ -313,6 +313,24 @@ class RetailcrmConfigProvider
     }
 
     /**
+     * setIntegrationPaymentTypes
+     * @param $integrationPayment
+     */
+    public static function setIntegrationPaymentTypes($integrationPayment)
+    {
+        static::SetOption(RetailcrmConstants::CRM_INTEGRATION_PAYMENT, serialize(RCrmActions::clearArr($integrationPayment)));
+    }
+
+    /**
+     * setIntegrationDelivery
+     * @param $deliveryIntegrationCode
+     */
+    public static function setIntegrationDelivery($deliveryIntegrationCode)
+    {
+        static::SetOption(RetailcrmConstants::CRM_INTEGRATION_DELIVERY, serialize(RCrmActions::clearArr($deliveryIntegrationCode)));
+    }
+
+    /**
      * setPaymentTypes
      *
      * @param array $paymentTypesArr

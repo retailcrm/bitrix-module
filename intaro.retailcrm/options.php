@@ -573,10 +573,11 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         if ($deliveryType['active'] === true) {
             $deliveryIntegrationCode[$deliveryType['code']] = $deliveryType['integrationCode'];
         }
-    }
+    };
 
-    COption::SetOptionString($mid, RetailcrmConstants::CRM_INTEGRATION_DELIVERY, serialize(RCrmActions::clearArr($deliveryIntegrationCode)));
-    COption::SetOptionString($mid, RetailcrmConstants::CRM_INTEGRATION_PAYMENT, serialize(RCrmActions::clearArr($integrationPayment)));
+    RetailcrmConfigProvider::setIntegrationPaymentTypes($integrationPayment);
+    RetailcrmConfigProvider::setIntegrationDelivery($deliveryIntegrationCode);
+
     COption::SetOptionString($mid, $CRM_ADDRESS_OPTIONS, serialize($addressDatailOptions));
     COption::SetOptionString($mid, $CRM_SITES_LIST, serialize($siteListArr));
     COption::SetOptionString($mid, $CRM_ORDER_TYPES_ARR, serialize(RCrmActions::clearArr($orderTypesArr)));
