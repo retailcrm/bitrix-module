@@ -20,6 +20,9 @@ class RetailCrmOrderTest extends BitrixTestCase
         $this->retailCrmOrder = \Mockery::mock('RetailCrmOrder');
         COption::SetOptionString('intaro.retailcrm', 'api_version', 'v5');
         CModule::IncludeModule('intaro.retailcrm');
+
+        RetailcrmConfigProvider::setPaymentTypes(['bitrixPayment' => 'crmPayment']);
+        RetailcrmConfigProvider::setIntegrationPaymentTypes(['crmPayment']);
     }
 
     public function testModuleInstalled()
@@ -168,5 +171,77 @@ class RetailCrmOrderTest extends BitrixTestCase
                 'optionsSitesList'=>[]
             ]
         ];
+    }
+
+    /**
+     * @param array  $arFields
+     * @param array  $arParams
+     * @param string $methodApi
+     * @param array  $expected
+     *
+     * @dataProvider orderSendProvider
+     */
+    public function testOrderSend($arFields, $arParams, $methodApi, $expected)
+    {
+        $orderSend = RetailCrmOrder::orderSend(
+            $arFields,
+            new stdClass(),
+            $arParams,
+            false,
+            null,
+            $methodApi
+        );
+
+        $this->assertEquals($expected['payments'][0], $orderSend['payments'][0]);
+    }
+
+    /**
+     * @return array[]
+     */
+    public function orderSendProvider()
+    {
+        $arFields = [
+            'ID' => 1,
+            'NUMBER' => 1,
+            'USER_ID' => 1,
+            'STATUS_ID' => 1,
+            'PERSON_TYPE_ID' => 'individual',
+            'DATE_INSERT' => '2015-02-22 00:00:00',
+            'USER_DESCRIPTION' => 'userComment',
+            'COMMENTS' => 'managerComment',
+            'PRICE_DELIVERY' => '100',
+            'PROPS' => ['properties' => []],
+            'DELIVERYS' => [[
+                'id' => 'test',
+                'service' => 'service'
+            ]],
+            'BASKET' => [],
+            'PAYMENTS' => [[
+                'ID' => 1,
+                'PAY_SYSTEM_ID' => 'bitrixPayment',
+                'SUM' => 1000,
+                'DATE_PAID' => '2021-02-08 10:36:16',
+                'PAID' => 'paid'
+            ]]
+        ];
+        $arParams = [
+            'optionsPayTypes' => RetailcrmConfigProvider::getPaymentTypes(),
+            'optionsPayment' => ['paid' => 'Y']
+        ];
+
+        return [[
+            'arFields' => $arFields,
+            'arParams' => $arParams,
+            'methodApi' => 'ordersCreate',
+            'expected' => [
+                'number'          => strval($arFields['NUMBER']),
+                'externalId'      => strval($arFields['ID']),
+                'payments' => [[
+                    'type' => $arParams['optionsPayTypes'][$arFields['PAYMENTS'][0]['PAY_SYSTEM_ID']],
+                    'externalId' => RCrmActions::generatePaymentExternalId($arFields['PAYMENTS'][0]['ID']),
+                    'paidAt' => '2021-02-08 10:36:16'
+                ]]
+            ],
+        ]];
     }
 }

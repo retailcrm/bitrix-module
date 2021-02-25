@@ -270,7 +270,7 @@ class RetailCrmOrder
                 }
 
                 if (!empty($arParams['optionsPayment'][$payment['PAID']])) {
-                    if (!array_key_exists($arParams['optionsPayTypes'][$payment['PAY_SYSTEM_ID']], $integrationPayment)) {
+                    if (array_search($arParams['optionsPayTypes'][$payment['PAY_SYSTEM_ID']], $integrationPayment) === false) {
                         $pm['status'] = $arParams['optionsPayment'][$payment['PAID']];
                     }
                 }

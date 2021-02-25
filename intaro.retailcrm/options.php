@@ -562,8 +562,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     $integrationPayment = [];
 
     foreach ($arResult['paymentTypesList'] as $typePayment) {
-        if (isset($typePayment['integrationModule']) && $typePayment['active'] === true) {
-            $integrationPayment[$typePayment['code']] = $typePayment['code'];
+        if (isset($typePayment['integrationModule'])) {
+            $integrationPayment[] = $typePayment['code'];
         }
     }
 
@@ -573,7 +573,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         if ($deliveryType['active'] === true) {
             $deliveryIntegrationCode[$deliveryType['code']] = $deliveryType['integrationCode'];
         }
-    };
+    }
 
     RetailcrmConfigProvider::setIntegrationPaymentTypes($integrationPayment);
     RetailcrmConfigProvider::setIntegrationDelivery($deliveryIntegrationCode);
