@@ -39,8 +39,8 @@ class RetailCrmOrder
             'customer'        => isset($arParams['customerCorporate'])
                 ? array('id' => $arParams['customerCorporate']['id'])
                 : array('externalId' => $arFields['USER_ID']),
-            'orderType'       => isset($arParams['optionsOrderTypes'][$arFields['PERSON_TYPE_ID']]) ?
-                $arParams['optionsOrderTypes'][$arFields['PERSON_TYPE_ID']] : '',
+            'orderType'       => isset($arParams['optionsOrderTypes'][$arFields['LID']][$arFields['PERSON_TYPE_ID']]) ?
+                $arParams['optionsOrderTypes'][$arFields['LID']][$arFields['PERSON_TYPE_ID']] : '',
             'status'          => isset($arParams['optionsPayStatuses'][$arFields['STATUS_ID']]) ?
                 $arParams['optionsPayStatuses'][$arFields['STATUS_ID']] : '',
             'customerComment' => $arFields['USER_DESCRIPTION'],
@@ -80,14 +80,14 @@ class RetailCrmOrder
         //fields
         foreach ($arFields['PROPS']['properties'] as $prop) {
             if (!empty($arParams['optionsLegalDetails'])
-                && $search = array_search($prop['CODE'], $arParams['optionsLegalDetails'][$arFields['PERSON_TYPE_ID']])
+                && $search = array_search($prop['CODE'], $arParams['optionsLegalDetails'][$arFields['LID']][$arFields['PERSON_TYPE_ID']])
             ) {
                 $order['contragent'][$search] = $prop['VALUE'][0];//legal order data
             } elseif (!empty($arParams['optionsCustomFields'])
-                && $search = array_search($prop['CODE'], $arParams['optionsCustomFields'][$arFields['PERSON_TYPE_ID']])
+                && $search = array_search($prop['CODE'], $arParams['optionsCustomFields'][$arFields['LID']][$arFields['PERSON_TYPE_ID']])
             ) {
                 $order['customFields'][$search] = $prop['VALUE'][0];//custom properties
-            } elseif ($search = array_search($prop['CODE'], $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']])) {//other
+            } elseif ($search = array_search($prop['CODE'], $arParams['optionsOrderProps'][$arFields['LID']][$arFields['PERSON_TYPE_ID']])) {//other
                 if (in_array($search, array('fio', 'phone', 'email'))) {//fio, phone, email
                     if ($search == 'fio') {
                         $order = array_merge($order, RCrmActions::explodeFIO($prop['VALUE'][0]));//add fio fields

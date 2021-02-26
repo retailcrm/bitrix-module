@@ -41,7 +41,7 @@ if (!isset($arResult['bitrixStatusesList'])) {
 }
 
 if (!isset($arResult['orderTypesList'])) {
-    $arResult['bitrixOrderTypesList'] = RCrmActions::OrderTypesList($arResult['arSites']);
+    $arResult['bitrixOrderTypesList'] = RCrmActions::getOrderTypesListSite($arResult['arSites']);
     $arResult['orderTypesList'] = $RETAIL_CRM_API->orderTypesList()->orderTypes;
 }
 
@@ -335,26 +335,29 @@ else{
                     </td>
                 </tr>
             <?php endforeach; ?>
-                <tr class="heading">
-                    <td colspan="2"><b><?php echo GetMessage('ORDER_TYPES_LIST'); ?></b></td>
-                </tr>
-            <?php foreach($arResult['bitrixOrderTypesList'] as $bitrixOrderType): ?>
-                <tr>
-                    <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $bitrixOrderType['ID']; ?>">
-                        <?php echo $bitrixOrderType['NAME']. ' ('.$bitrixOrderType['LID'].')'; ?>
-                    </td>
-                    <td width="50%" class="adm-detail-content-cell-r">
-                        <select name="order-type-<?php echo $bitrixOrderType['ID']; ?>" class="typeselect">
-                            <option value=""></option>
-                            <?php foreach($arResult['orderTypesList'] as $orderType): ?>
-                            <option value="<?php echo $orderType['code']; ?>"
-                                <?php if($defaultOrderTypes[$bitrixOrderType['ID']] == $orderType['code']) echo 'selected'; ?>>
-                                <?php echo $APPLICATION->ConvertCharset($orderType['name'], 'utf-8', SITE_CHARSET); ?>
-                            </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </td>
-                </tr>
+            <tr class="heading">
+                <td colspan="2"><b><?php echo GetMessage('ORDER_TYPES_LIST'); ?></b></td>
+            </tr>
+
+            <?php foreach($arResult['bitrixOrderTypesList'] as $siteCode => $site): ?>
+                <?php foreach($site as $bitrixOrderType): ?>
+                    <tr>
+                        <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $bitrixOrderType['ID']; ?>">
+                            <?php echo $bitrixOrderType['NAME']. ' ('.$siteCode.')'; ?>
+                        </td>
+                        <td width="50%" class="adm-detail-content-cell-r">
+                            <select name="order-type-<?php echo $siteCode.'-'.$bitrixOrderType['ID']; ?>" class="typeselect">
+                                <option value=""></option>
+                                <?php foreach($arResult['orderTypesList'] as $orderType): ?>
+                                    <option value="<?php echo $orderType['code']; ?>"
+                                        <?php if($defaultOrderTypes[$siteCode][$bitrixOrderType['ID']] == $orderType['code']) echo 'selected'; ?>>
+                                        <?php echo $APPLICATION->ConvertCharset($orderType['name'], 'utf-8', SITE_CHARSET); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
             <?php endforeach; ?>
             </tbody>
         </table>

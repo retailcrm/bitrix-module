@@ -37,6 +37,24 @@ class RCrmActions
         return $orderTypesList;
     }
 
+    public static function getOrderTypesListSite($arSites)
+    {
+        $orderTypesList = [];
+
+        foreach ($arSites as $site) {
+            $personTypes = \Bitrix\Sale\PersonType::load($site['LID']);
+            $bitrixOrderTypesList = [];
+
+            foreach ($personTypes as $personType) {
+                $bitrixOrderTypesList[$site['LID']][$personType['ID']] = $personType;
+            }
+
+            $orderTypesList = array_merge($orderTypesList, $bitrixOrderTypesList);
+        }
+
+        return $orderTypesList;
+    }
+
     public static function DeliveryList()
     {
         $bitrixDeliveryTypesList = array();
