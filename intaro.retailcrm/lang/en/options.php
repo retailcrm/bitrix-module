@@ -94,3 +94,4 @@ $MESS['PHONE_REQUIRED'] = "In the main module settings «Phone Number is require
 $MESS['CHANGE_SHIPMENT_STATUS_FROM_CRM'] = "Change the shipment status when corresponding flag is received from RetailCRM";
 $MESS ['ONLINE_CONSULTANT'] = 'Activate Online Consultant';
 $MESS ['ONLINE_CONSULTANT_LABEL'] = 'Online Consultant script';
+$MESS['COUNTERPATY_SETTINGS'] = "Counterparty matches must be configured 1 to 1 for";

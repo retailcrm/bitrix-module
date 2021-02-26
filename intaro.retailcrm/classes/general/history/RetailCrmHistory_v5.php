@@ -568,8 +568,8 @@ class RetailCrmHistory
                             $tList = RCrmActions::OrderTypesList(array(array('LID' => $site)));
 
                             foreach ($tList as $type) {
-                                if (isset($optionsOrderTypes[$type['ID']])) {
-                                    $nType[$optionsOrderTypes[$type['ID']]] = $type['ID'];
+                                if (isset($optionsOrderTypes[$site][$type['ID']])) {
+                                    $nType[$optionsOrderTypes[$site][$type['ID']]] = $type['ID'];
                                 }
                             }
 
@@ -662,7 +662,7 @@ class RetailCrmHistory
                     if ($order['firstName'] || $order['lastName'] || $order['patronymic']) {
                         $fio = '';
                         foreach ($propertyCollectionArr['properties'] as $prop) {
-                            if (in_array($optionsOrderProps[$personType]['fio'], $prop)) {
+                            if (in_array($optionsOrderProps[$site][$personType]['fio'], $prop)) {
                                 $getFio = $newOrder->getPropertyCollection()->getItemByOrderPropertyId($prop['ID']);
                                 if (method_exists($getFio, 'getValue')) {
                                     $fio = $getFio->getValue();
@@ -697,8 +697,8 @@ class RetailCrmHistory
                     }
 
                     //optionsOrderProps
-                    if ($optionsOrderProps[$personType]) {
-                        foreach ($optionsOrderProps[$personType] as $key => $orderProp) {
+                    if ($optionsOrderProps[$site][$personType]) {
+                        foreach ($optionsOrderProps[$site][$personType] as $key => $orderProp) {
                             if (array_key_exists($key, $order)) {
                                 $somePropValue = $propertyCollection
                                     ->getItemByOrderPropertyId($propsKey[$orderProp]['ID']);

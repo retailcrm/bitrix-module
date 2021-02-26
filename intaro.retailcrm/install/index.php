@@ -390,7 +390,7 @@ class intaro_retailcrm extends CModule
             $arResult['deliveryTypesList'] = $delivTypes;
 
             //bitrix personTypes
-            $arResult['bitrixOrderTypesList'] = RCrmActions::OrderTypesList($arResult['arSites']);
+            $arResult['bitrixOrderTypesList'] = RCrmActions::getOrderTypesListSite($arResult['arSites']);
 
             //bitrix deliveryList
             $arResult['bitrixDeliveryTypesList'] = RCrmActions::DeliveryList();
@@ -438,11 +438,13 @@ class intaro_retailcrm extends CModule
 
             //bitrix orderTypesList
             $arResult['arSites'] = RCrmActions::SitesList();
-            $arResult['bitrixOrderTypesList'] = RCrmActions::OrderTypesList($arResult['arSites']);
+            $arResult['bitrixOrderTypesList'] = RCrmActions::getOrderTypesListSite($arResult['arSites']);
 
             $orderTypesArr = array();
-            foreach ($arResult['bitrixOrderTypesList'] as $orderType) {
-                $orderTypesArr[$orderType['ID']] = htmlspecialchars(trim($_POST['order-type-' . $orderType['ID']]));
+            foreach ($arResult['bitrixOrderTypesList'] as $siteCode => $site) {
+                foreach ($site as $orderType) {
+                    $orderTypesArr[$siteCode][$orderType['ID']] = htmlspecialchars(trim($_POST['order-type-' .$siteCode.'-'. $orderType['ID']]));
+                }
             }
 
             //bitrix deliveryTypesList
@@ -613,50 +615,60 @@ class intaro_retailcrm extends CModule
             }
 
             //bitrix orderTypesList
-            $orderTypesList = RCrmActions::OrderTypesList(RCrmActions::SitesList());
+            $orderTypesList = RCrmActions::getOrderTypesListSite(RCrmActions::SitesList());
 
             $orderTypesArr = array();
-            foreach ($orderTypesList as $orderType) {
-                $orderTypesArr[$orderType['ID']] = htmlspecialchars(trim($_POST['order-type-' . $orderType['ID']]));
+            foreach ($orderTypesList as $siteCode => $site) {
+                foreach ($site as $orderType) {
+                    $orderTypesArr[$siteCode][$orderType['ID']] = htmlspecialchars(trim($_POST['order-type-' . $siteCode . '-' . $orderType['ID']]));
+                }
             }
 
             $orderPropsArr = array();
-            foreach ($orderTypesList as $orderType) {
-                $propsCount = 0;
-                $_orderPropsArr = array();
-                foreach ($arResult['orderProps'] as $orderProp) {
-                    if ((!(int) htmlspecialchars(trim($_POST['address-detail-' . $orderType['ID']]))) && $propsCount > 4){
-                        break;
+            foreach ($orderTypesList as $siteCode => $site) {
+                foreach ($site as $orderType) {
+                    $propsCount = 0;
+                    $_orderPropsArr = array();
+                    foreach ($arResult['orderProps'] as $orderProp) {
+                        if ((!(int) htmlspecialchars(trim($_POST['address-detail-' .$siteCode.'_'. $orderType['ID']]))) && $propsCount > 4){
+                            break;
+                        }
+                        $_orderPropsArr[$orderProp['ID']] = htmlspecialchars(trim($_POST['order-prop-' . $orderProp['ID'] . '-' . $siteCode.'_'. $orderType['ID']]));
+                        $propsCount++;
                     }
-                    $_orderPropsArr[$orderProp['ID']] = htmlspecialchars(trim($_POST['order-prop-' . $orderProp['ID'] . '-' . $orderType['ID']]));
-                    $propsCount++;
+                    $orderPropsArr[$siteCode][$orderType['ID']] = $_orderPropsArr;
                 }
-                $orderPropsArr[$orderType['ID']] = $_orderPropsArr;
             }
 
             //legal details props
             $legalDetailsArr = array();
-            foreach ($orderTypesList as $orderType) {
-                $_legalDetailsArr = array();
-                foreach ($arResult['legalDetails'] as $legalDetails) {
-                    $_legalDetailsArr[$legalDetails['ID']] = htmlspecialchars(trim($_POST['legal-detail-' . $legalDetails['ID'] . '-' . $orderType['ID']]));
+            foreach ($orderTypesList as $siteCode => $site) {
+                foreach ($site as $orderType) {
+                    $_legalDetailsArr = array();
+                    foreach ($arResult['legalDetails'] as $legalDetails) {
+                        $_legalDetailsArr[$legalDetails['ID']] = htmlspecialchars(trim($_POST['legal-detail-' . $legalDetails['ID'] . '-' . $siteCode.'_'. $orderType['ID']]));
+                    }
+                    $legalDetailsArr[$siteCode][$orderType['ID']] = $_legalDetailsArr;
                 }
-                $legalDetailsArr[$orderType['ID']] = $_legalDetailsArr;
             }
 
             $customFieldsArr = array();
-            foreach ($orderTypesList as $orderType) {
-                $_customFieldsArr = array();
-                foreach ($arResult['customFields'] as $custom) {
-                    $_customFieldsArr[$custom['ID']] = htmlspecialchars(trim($_POST['custom-fields-' . $custom['ID'] . '-' . $orderType['ID']]));
+            foreach ($orderTypesList as $siteCode => $site) {
+                foreach ($site as $orderType) {
+                    $_customFieldsArr = array();
+                    foreach ($arResult['customFields'] as $custom) {
+                        $_customFieldsArr[$custom['ID']] = htmlspecialchars(trim($_POST['custom-fields-' . $custom['ID'] . '-' . $siteCode.'_'. $orderType['ID']]));
+                    }
+                    $customFieldsArr[$siteCode][$orderType['ID']] = $_customFieldsArr;
                 }
-                $customFieldsArr[$orderType['ID']] = $_customFieldsArr;
             }
 
             //contragents type list
             $contragentTypeArr = array();
-            foreach ($orderTypesList as $orderType) {
-                $contragentTypeArr[$orderType['LID']][$orderType['ID']] = htmlspecialchars(trim($_POST['contragent-type-' . $orderType['ID']]));
+            foreach ($orderTypesList as $siteCode => $site) {
+                foreach ($site as $orderType) {
+                     $contragentTypeArr[$siteCode][$orderType['ID']] = htmlspecialchars(trim($_POST['contragent-type-' . $siteCode.'_'. $orderType['ID']]));
+                }
             }
 
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_PROPS, serialize(RCrmActions::clearArr($orderPropsArr)));
