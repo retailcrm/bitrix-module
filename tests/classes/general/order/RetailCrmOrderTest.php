@@ -4,6 +4,7 @@
  * Class RetailCrmOrderTest
  */
 use \Bitrix\Main\Loader;
+use \Bitrix\Main\Application;
 
 class RetailCrmOrderTest extends BitrixTestCase
 {
@@ -16,6 +17,9 @@ class RetailCrmOrderTest extends BitrixTestCase
     public function setUp()
     {
         parent::setUp();
+
+        $cache = Application::getInstance()->getManagedCache();
+        $cache->clean('b_option:intaro.retailcrm');
 
         $this->retailCrmOrder = \Mockery::mock('RetailCrmOrder');
         COption::SetOptionString('intaro.retailcrm', 'api_version', 'v5');
@@ -225,7 +229,7 @@ class RetailCrmOrderTest extends BitrixTestCase
             ]]
         ];
         $arParams = [
-            'optionsPayTypes' => RetailcrmConfigProvider::getPaymentTypes(),
+            'optionsPayTypes' => ['bitrixPayment' => 'crmPayment'],
             'optionsPayment' => ['paid' => 'Y']
         ];
 
