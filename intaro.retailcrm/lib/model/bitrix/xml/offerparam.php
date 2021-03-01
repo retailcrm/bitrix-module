@@ -17,8 +17,6 @@ namespace Intaro\RetailCrm\Model\Bitrix\Xml;
  */
 class OfferParam
 {
-    
-    
     /**
      * @var int
      */

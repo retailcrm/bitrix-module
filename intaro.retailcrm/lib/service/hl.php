@@ -2,9 +2,13 @@
 
 namespace Intaro\RetailCrm\Service;
 
+use Bitrix\Main\ArgumentException;
 use Bitrix\Main\Entity\DataManager;
 use Bitrix\Main\Loader;
 use Bitrix\Highloadblock as Highloadblock;
+use Bitrix\Main\LoaderException;
+use Bitrix\Main\ObjectPropertyException;
+use Bitrix\Main\SystemException;
 
 
 /**
@@ -41,29 +45,33 @@ class Hl {
     }
     
     /**
-     * Получение DataManager класса управления HLBlock
+     * Получение DataManager класса управления HLBlock по названию таблицы
      *
      * @param $name
      * @return \Bitrix\Main\Entity\DataManager|string|null
-     * @throws \Bitrix\Main\SystemException
-     * @throws \Bitrix\Main\LoaderException
      */
-    public static function getHlClassByName(string $name)
+    public static function getHlClassByTableName(string $name)
     {
-        Loader::includeModule('highloadblock');
+        try {
+            Loader::includeModule('highloadblock');
         
-        $hlblock = Highloadblock\HighloadBlockTable::query()
-            ->addSelect('*')
-            ->addFilter('NAME', $name)
-            ->exec()
-            ->fetch();
+            $hlblock = Highloadblock\HighloadBlockTable::query()
+                ->addSelect('*')
+                ->where('TABLE_NAME', '=', $name)
+                ->exec()
+                ->fetch();
         
-        if (!$hlblock) {
+        
+            if (!$hlblock) {
+                return null;
+            }
+        
+            $entity = Highloadblock\HighloadBlockTable::compileEntity($hlblock);
+        
+            return $entity->getDataClass();
+        } catch (ObjectPropertyException | ArgumentException | SystemException | LoaderException $exception) {
+            AddMessage2Log($exception->getMessage());
             return null;
         }
-        
-        $entity = Highloadblock\HighloadBlockTable::compileEntity($hlblock);
-        
-        return $entity->getDataClass();
     }
 }

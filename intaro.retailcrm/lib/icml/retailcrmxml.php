@@ -1,8 +1,9 @@
 <?php
 
- namespace Intaro\RetailCrm\Icml;
+namespace Intaro\RetailCrm\Icml;
 
-use IcmlWriter;
+
+use Intaro\RetailCrm\Icml\IcmlWriter;
 use Intaro\RetailCrm\Icml\Utils\IcmlLogger;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup;
 
@@ -13,7 +14,7 @@ class RetailCrmXml
 {
     public const INFO = 'INFO';
     /**
-     * @var \IcmlWriter
+     * @var IcmlWriter
      */
     private $icmlWriter;
     
