@@ -13,7 +13,6 @@ use CCatalogStoreBarCode;
 use CFile;
 use CIBlockElement;
 use COption;
-use IcmlWriter;
 use Intaro\RetailCrm\Icml\Utils\IcmlLogger;
 use Intaro\RetailCrm\Model\Bitrix\Xml\OfferParam;
 use Intaro\RetailCrm\Model\Bitrix\Xml\SelectParams;
@@ -45,7 +44,7 @@ class IcmlDataManager
     private $shopName;
     
     /**
-     * @var \IcmlWriter
+     * @var  \Intaro\RetailCrm\Icml\IcmlWriter
      */
     private $icmlWriter;
     
@@ -62,7 +61,7 @@ class IcmlDataManager
     /**
      * IcmlDataManager constructor.
      * @param \Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup $setup
-     * @param \IcmlWriter                                 $icmlWriter
+     * @param \Intaro\RetailCrm\Icml\IcmlWriter           $icmlWriter
      */
     public function __construct(XmlSetup $setup, IcmlWriter $icmlWriter)
     {
@@ -147,6 +146,8 @@ class IcmlDataManager
     }
     
     /**
+     * Собирает значения настраиваемых параметров
+     *
      * @param array $productProps
      * @param array $configurableParams
      * @param int   $iblockId
@@ -154,46 +155,34 @@ class IcmlDataManager
      */
     private function getOfferParamsAndVendor(array $productProps, array $configurableParams, int $iblockId): array
     {
-        $offerParams = [];
-        $vendor=[];
-        
-        $hlSku = $this->setup->properties->highloadblockSku[$iblockId];
-        
-        
-        if (isset($hlSku) && ! empty($hlSku)) {
-            foreach ($this->setup->properties->highloadblockSku[$iblockId] as $hlName => $hlBlockSku){
-                $hl = Hl::getHlClassByName($hlName);
-                $hl::query()
-                    ->where()
-            }
-        }
-        
-        
+        //достаем значения из HL блоков товаров
+        $resultParams = $this->getHlParams($iblockId,
+            $productProps,
+            $configurableParams,
+            $this->setup->properties->highloadblockProduct
+        );
     
-        foreach ($this->setup->properties->highloadblockProduct[$iblockId] as $key => $hlBlockProduct){
+        //достаем значения из HL блоков торговых предложений
+        $resultParams = array_merge($resultParams, $this->getHlParams($iblockId,
+            $productProps,
+            $configurableParams,
+            $this->setup->properties->highloadblockSku
+        ));
+    
+        //достаем значения из обычных свойств
+        $resultParams = array_merge($resultParams, $this->getSimpleParams($resultParams,
+            $configurableParams,
+            $productProps
+        ));
+    
+        $resultParams = $this->dropEmptyParams($resultParams);
+        [$cleanParams, $vendor] = $this->separateVendorAndParams($resultParams);
         
-        }
-        
-        foreach ($configurableParams as $key => $paramCode) {
-            
-            if ($key === 'manufacturer' && isset($productProps[$paramCode])) {
-                $vendor = $productProps[$paramCode];
-                continue;
-            }
-            
-            
-            $offerParam        = new OfferParam();
-            $offerParam->name  = GetMessage('PARAM_NAME_'.$key);
-            $offerParam->code  = 12;
-            $offerParam->value = "188-16-xx";
-            $offerParams[$key] = $offerParam;
-        }
-        
-        return [$offerParams, $vendor];
+        return [$this->createParamObject($cleanParams), $vendor];
     }
     
     /**
-     * запрашивает свойства офферов из БД и записывает их в xml
+     * запрашивает свойства оферов из БД и записывает их в xml
      */
     public function writeOffersHandler(): void
     {
@@ -221,6 +210,8 @@ class IcmlDataManager
     }
     
     /**
+     * Собираем свойства, указанные в настройках
+     *
      * @param array $userProps
      * @param bool  $fullStack
      * @return \Intaro\RetailCrm\Model\Bitrix\Xml\SelectParams
@@ -232,15 +223,19 @@ class IcmlDataManager
         $params = new SelectParams();
         
         foreach ($userProps as $key => $name) {
+            if ($name === '') {
+                unset($userProps[$key]);
+                continue;
+            }
+           
             if (in_array($name, $catalogFields, true)) {
                 $userProps[$key] = strtoupper($userProps[$key]);
             } else {
                 $userProps[$key] = 'PROPERTY_' . $userProps[$key];
             }
         }
-    
+        
         $params->configurable = $userProps;
-    
     
         if ($fullStack) {
             $params->main = [
@@ -262,7 +257,7 @@ class IcmlDataManager
             "ID",
             "LID"
         ];
-        
+    
         return $params;
     }
     
@@ -279,6 +274,7 @@ class IcmlDataManager
         $pageNumber = 1;
         do {
             [$xmlOffers, $pageNumber] = $this->getXmlOffersFromProduct($arSelect, $iblockId, $pageNumber);
+
             $pageNumber++;
             $this->icmlWriter->writeOffers($xmlOffers);
             
@@ -321,9 +317,7 @@ class IcmlDataManager
             ['nPageSize' => self::OFFERS_PART, 'iNumPage'=>$pageNumber, 'checkOutOfRange' => true],
             array_merge($arSelect->default, $arSelect->configurable, $arSelect->main)
         );
-        
         $products = [];
-        
         $barcodes = $this->getProductBarcodesByIblock($iblockId);//получение штрих-кодов товаров
     
         while ($product = $ciBlockResult->GetNext()) {
@@ -491,5 +485,128 @@ class IcmlDataManager
         }else{
             return null;
         }
+    }
+    
+    /**
+     * @param int   $iblockId
+     * @param       $productProps
+     * @param       $configurableParams
+     * @param array $hls
+     * @return array
+     */
+    private function getHlParams(int $iblockId, $productProps, $configurableParams, array $hls): array
+    {
+        $params = [];
+        
+        foreach ($hls as $hlName => $hlBlockProduct) {
+            if (isset($hlBlockProduct[$iblockId])) {
+            
+                reset($hlBlockProduct[$iblockId]);
+                $firstKey = key($hlBlockProduct[$iblockId]);
+            
+                $hl = Hl::getHlClassByTableName($hlName);
+            
+                if (!$hl) {
+                    continue;
+                }
+    
+                try {
+                    $result = $hl::query()
+                        ->setSelect(['*'])
+                        ->where('UF_XML_ID', '=', $productProps[$configurableParams[$firstKey] . '_VALUE'])
+                        ->fetch();
+        
+        
+                    foreach ($hlBlockProduct[$iblockId] as $hlPropCodeKey => $hlPropCode) {
+                        $params[$hlPropCodeKey] = $result[$hlPropCode];
+                    }
+                } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
+                    AddMessage2Log($exception->getMessage());
+                }
+            }
+        }
+        
+        return $params;
+    }
+    
+    /**
+     * Получение обычных свойств
+     *
+     * @param array $resultParams
+     * @param array $configurableParams
+     * @param array $productProps
+     * @return array
+     */
+    private function getSimpleParams(array $resultParams, array $configurableParams, array $productProps): array
+    {
+        foreach ($configurableParams as $key => $params) {
+            if (isset($resultParams[$key])) {
+                continue;
+            }
+            
+            $codeWithValue = $params . '_VALUE';
+            
+            if (isset($productProps[$codeWithValue])) {
+                $resultParams[$key] = $productProps[$codeWithValue];
+            }
+            
+            if (isset($productProps[$params])) {
+                $resultParams[$key] = $productProps[$params];
+            }
+        }
+        
+        return $resultParams;
+    }
+    
+    /**
+     * Разделяем вендора и остальные параметры
+     *
+     * @param array $resultParams
+     * @return array
+     */
+    private function separateVendorAndParams(array $resultParams): array
+    {
+        $vendor = null;
+        
+        if (isset($resultParams['manufacturer'])) {
+            $vendor = $resultParams['manufacturer'];
+            unset($resultParams['manufacturer']);
+        }
+        
+        return [$resultParams, $vendor];
+    }
+    
+    /**
+     * Собираем объект параметре заказа
+     *
+     * @param $params
+     * @return OfferParam[]
+     */
+    private function createParamObject($params): array
+    {
+        /** @var OfferParam[] $offerParams */
+        $offerParams = [];
+        
+        foreach ($params as $code => $value) {
+            $offerParam        = new OfferParam();
+            $offerParam->name  = GetMessage("PARAM_NAME_$code");
+            $offerParam->code  = $code;
+            $offerParam->value = $value;
+    
+            $offerParams[] = $offerParam;
+        }
+        
+        return $offerParams;
+    }
+    
+    /**
+     * удаляет параметры с пустыми значениями
+     *
+     * @param array $params
+     * @return array
+     */
+    private function dropEmptyParams(array $params): array
+    {
+        return array_diff($params, ['']);
     }
 }

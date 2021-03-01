@@ -1,5 +1,6 @@
 <?php
 
+namespace Intaro\RetailCrm\Icml;
 
 use Bitrix\Main\Diag\Debug;
 use Intaro\RetailCrm\Icml\Utils\IcmlLogger;
@@ -8,6 +9,7 @@ use Intaro\RetailCrm\Model\Bitrix\Xml\XmlCategory;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlData;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlOffer;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup;
+use XMLWriter;
 
 class IcmlWriter
 {
@@ -36,11 +38,11 @@ class IcmlWriter
     public function writeToXmlHeaderAndCategories(XmlData $data): void
     {
         $this->writer = $writer = new XMLWriter();
-        $writer->openURI($_SERVER["DOCUMENT_ROOT"] . $data->filePath);
+        $writer->openURI($_SERVER['DOCUMENT_ROOT'] . $data->filePath);
         $writer->setIndent(true);
         
         $writer->startElement('yml_catalog');
-        $this->writeSimpleAttribute('date', Date("Y-m-d H:i:s"));
+        $this->writeSimpleAttribute('date', Date('Y-m-d H:i:s'));
         $writer->startElement('shop');
         $this->writeSimpleElement('name', $data->shopName);
         $this->writeSimpleElement('company', $data->company);
@@ -65,7 +67,7 @@ class IcmlWriter
     }
     
     /**
-     * @param array $offers
+     * @param XmlOffer[] $offers
      */
     public function writeOffers(array $offers): void
     {
@@ -118,8 +120,7 @@ class IcmlWriter
         $this->writer->startElement('unit');
         $this->writeSimpleAttribute('code', $offer->unitCode);
         $this->writer->endElement();
-        
-        /** @var OfferParam $param */
+    
         foreach ($offer->params as $key => $param) {
             $this->writeParam($param);
         }

@@ -68,7 +68,7 @@ class XmlOffer
     public $productName;
     
     /**
-     * @var array
+     * @var OfferParam[]
      */
     public $params;
     
