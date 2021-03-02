@@ -117,9 +117,13 @@ class IcmlWriter
             $this->writeSimpleElement('purchasePrice', $offer->vatRate);
         }
         
-        $this->writer->startElement('unit');
-        $this->writeSimpleAttribute('code', $offer->unitCode);
-        $this->writer->endElement();
+        if (!empty($offer->unitCode->code)) {
+            $this->writer->startElement('unit');
+            $this->writeSimpleAttribute('code', $offer->unitCode->code);
+            $this->writeSimpleAttribute('name', $offer->unitCode->name);
+            $this->writeSimpleAttribute('sym', $offer->unitCode->sym);
+            $this->writer->endElement();
+        }
     
         foreach ($offer->params as $key => $param) {
             $this->writeParam($param);

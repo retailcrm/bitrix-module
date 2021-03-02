@@ -8,6 +8,7 @@ use Bitrix\Main\ArgumentException;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
 use CCatalogGroup;
+use CCatalogMeasure;
 use CCatalogSku;
 use CCatalogStoreBarCode;
 use CFile;
@@ -16,6 +17,7 @@ use COption;
 use Intaro\RetailCrm\Icml\Utils\IcmlLogger;
 use Intaro\RetailCrm\Model\Bitrix\Xml\OfferParam;
 use Intaro\RetailCrm\Model\Bitrix\Xml\SelectParams;
+use Intaro\RetailCrm\Model\Bitrix\Xml\Unit;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlCategory;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlData;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlOffer;
@@ -59,6 +61,13 @@ class IcmlDataManager
     private $purchasePriceNull;
     
     /**
+     * доступные единицы измерений в битриксе
+     *
+     * @var array
+     */
+    private $measures;
+    
+    /**
      * IcmlDataManager constructor.
      * @param \Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup $setup
      * @param \Intaro\RetailCrm\Icml\IcmlWriter           $icmlWriter
@@ -72,6 +81,8 @@ class IcmlDataManager
         $this->purchasePriceNull = COption::GetOptionString(RetailcrmConstants::MODULE_ID,
             RetailcrmConstants::CRM_PURCHASE_PRICE_NULL
         );
+        
+        $this->measures = $this->getMeasures();
     }
    
     /**
@@ -406,7 +417,11 @@ class IcmlDataManager
         $xmlOffer->params        = $product['PARAMS'];
         $xmlOffer->vendor        = $product['VENDOR'];
         $xmlOffer->barcode       = $product['BARCODE'];
-        $xmlOffer->unitCode      = "12.00";
+        
+        if (isset($product['CATALOG_MEASURE'])) {
+            $xmlOffer->unitCode      = $this->createUnit($product['CATALOG_MEASURE']);
+        }
+        
         $xmlOffer->vatRate       = $product['CATALOG_VAT'] ?? 'none'; //Получение НДС
         
         return $xmlOffer;
@@ -600,13 +615,45 @@ class IcmlDataManager
     }
     
     /**
-     * удаляет параметры с пустыми значениями
+     * удаляет параметры с пустыми и нулевыми значениями
      *
      * @param array $params
      * @return array
      */
     private function dropEmptyParams(array $params): array
     {
-        return array_diff($params, ['']);
+        return array_diff($params, ['', 0, '0']);
+    }
+    
+    /**
+     * получает доступные в Битриксе единицы измерения для товаров
+     */
+    private function getMeasures(): array
+    {
+        $measures = [];
+        
+        $res_measure = CCatalogMeasure::getList();
+        
+        while ($measure = $res_measure->Fetch()) {
+            $measures[] = $measure;
+        }
+        
+        return $measures;
+    }
+    
+    /**
+     * Собираем объект единицы измерения для товара
+     *
+     * @param int $measureIndex
+     * @return \Intaro\RetailCrm\Model\Bitrix\Xml\Unit
+     */
+    private function createUnit(int $measureIndex): Unit
+    {
+        $unit       = new Unit();
+        $unit->name = $this->measures[$measureIndex]['MEASURE_TITLE'];
+        $unit->code = $this->measures[$measureIndex]['SYMBOL_INTL'];
+        $unit->sym  = $this->measures[$measureIndex]['SYMBOL_RUS'];
+        
+        return $unit;
     }
 }

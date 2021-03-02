@@ -12,10 +12,12 @@
 namespace Intaro\RetailCrm\Model\Bitrix\Xml;
 
 /**
- * Class OfferParam
+ * единица измерения для товара, элемент не является обязательным в icml
+ *
+ * Class Unit
  * @package Intaro\RetailCrm\Model\Bitrix\Xml
  */
-class OfferParam
+class Unit
 {
     /**
      * @var string
@@ -28,7 +30,9 @@ class OfferParam
     public $code;
     
     /**
+     * единица измерения товара
+     *
      * @var string
      */
-    public $value;
+    public $sym;
 }
