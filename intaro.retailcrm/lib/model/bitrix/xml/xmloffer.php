@@ -78,7 +78,7 @@ class XmlOffer
     public $vendor;
     
     /**
-     * @var string
+     * @var Unit
      */
     public $unitCode;
     
