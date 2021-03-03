@@ -33,19 +33,19 @@ class RetailCrmXml
     
     public function generateXml(): void
     {
-        IcmlLogger::writeToToLog(Date("Y:m:d H:i:s")
+        IcmlLogger::writeToToLog(Date('Y:m:d H:i:s')
             . ': Start getting data for XML', self::INFO);
         $data = $this->icmlDataManager->getXmlData();
-        IcmlLogger::writeToToLog(Date("Y:m:d H:i:s")
+        IcmlLogger::writeToToLog(Date('Y:m:d H:i:s')
             . ': End getting data for XML and Start writing categories and header', self::INFO);
         $this->icmlWriter->writeToXmlHeaderAndCategories($data);
-        IcmlLogger::writeToToLog(Date("Y:m:d H:i:s")
+        IcmlLogger::writeToToLog(Date('Y:m:d H:i:s')
             . ': End writing categories in XML and Start writing offers', self::INFO);
         $this->icmlDataManager->writeOffersHandler();
-        IcmlLogger::writeToToLog(Date("Y:m:d H:i:s")
+        IcmlLogger::writeToToLog(Date('Y:m:d H:i:s')
             . ': End writing offers in XML', self::INFO);
         $this->icmlWriter->writeToXmlBottom();
-        IcmlLogger::writeToToLog(Date("Y:m:d H:i:s")
+        IcmlLogger::writeToToLog(Date('Y:m:d H:i:s')
             . ': Loading complete (peek memory usage: ' . memory_get_peak_usage() . ')', self::INFO);
     }
 }
