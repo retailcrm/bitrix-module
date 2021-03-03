@@ -48,9 +48,11 @@ class XmlOffer
     public $price;
     
     /**
-     * @var int
+     * Категории, к которым относится товар
+     *
+     * @var array
      */
-    public $categoryId;
+    public $categoryIds;
     
     /**
      * @var string
@@ -102,4 +104,14 @@ class XmlOffer
      * @var mixed|null
      */
     public $purchasePrice;
+    
+    /**
+     * @param $productValue
+     * @param $offerValue
+     * @return mixed
+     */
+    public function mergeValues($productValue, $offerValue)
+    {
+        return empty($offerValue) ? $productValue : $offerValue;
+    }
 }

@@ -9,8 +9,8 @@ use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupProps;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupPropsCategories;
 
 
-if (file_exists($_SERVER["DOCUMENT_ROOT"] . "/bitrix/php_interface/retailcrm/export_run.php")) {
-    require_once($_SERVER["DOCUMENT_ROOT"] . "/bitrix/php_interface/retailcrm/export_run.php");
+if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/export_run.php')) {
+    require_once($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/export_run.php');
 } else {
     ignore_user_abort(true);
     set_time_limit(0);
@@ -18,9 +18,9 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"] . "/bitrix/php_interface/retailcrm/exp
     global $APPLICATION;
     
     if (
-        !CModule::IncludeModule("iblock")
-        || !CModule::IncludeModule("catalog")
-        || !CModule::IncludeModule("intaro.retailcrm")
+        !CModule::IncludeModule('iblock')
+        || !CModule::IncludeModule('catalog')
+        || !CModule::IncludeModule('intaro.retailcrm')
     ) {
         return;
     }
@@ -46,14 +46,14 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"] . "/bitrix/php_interface/retailcrm/exp
     }
     
     $iblockProperties                  = [
-        "article"      => "article",
-        "manufacturer" => "manufacturer",
-        "color"        => "color",
-        "weight"       => "weight",
-        "size"         => "size",
-        "length"       => "length",
-        "width"        => "width",
-        "height"       => "height",
+        'article'      => 'article',
+        'manufacturer' => 'manufacturer',
+        'color'        => 'color',
+        'weight'       => 'weight',
+        'size'         => 'size',
+        'length'       => 'length',
+        'width'        => 'width',
+        'height'       => 'height',
     ];
     $IBLOCK_PROPERTY_SKU               = [];
     $IBLOCK_PROPERTY_SKU_HIGHLOADBLOCK = [];
@@ -127,7 +127,7 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"] . "/bitrix/php_interface/retailcrm/exp
     
     if (is_array($IBLOCK_PROPERTY_PRODUCT_picture)) {
         foreach ($IBLOCK_PROPERTY_PRODUCT_picture as $key => $value) {
-            $productPictures[$key]['picture'] = $value;
+            $productPictures[$key] = $value;
         }
     }
     
@@ -135,7 +135,7 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"] . "/bitrix/php_interface/retailcrm/exp
     
     if (is_array($IBLOCK_PROPERTY_SKU_picture)) {
         foreach ($IBLOCK_PROPERTY_SKU_picture as $key => $value) {
-            $skuPictures[$key]['picture'] = $value;
+            $skuPictures[$key] = $value;
         }
     }
     
