@@ -11,6 +11,12 @@ use Intaro\RetailCrm\Model\Bitrix\Xml\XmlOffer;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup;
 use XMLWriter;
 
+/**
+ * Отвечает за запись данных каталога в файл
+ *
+ * Class IcmlWriter
+ * @package Intaro\RetailCrm\Icml
+ */
 class IcmlWriter
 {
     public const INFO          = 'INFO';
@@ -99,7 +105,11 @@ class IcmlWriter
         $this->writeSimpleElement('picture', $offer->picture);
         $this->writeSimpleElement('url', $offer->url);
         $this->writeSimpleElement('price', $offer->price);
-        $this->writeSimpleElement('categoryId', $offer->categoryId);
+        
+        foreach ($offer->categoryIds as $categoryId){
+            $this->writeSimpleElement('categoryId', $categoryId);
+        }
+        
         $this->writeSimpleElement('name', $offer->name);
         $this->writeSimpleElement('xmlId', $offer->xmlId);
         $this->writeSimpleElement('productName', $offer->productName);
@@ -139,7 +149,7 @@ class IcmlWriter
     private function writeSimpleElement(string $name, $value): void
     {
         $this->writer->startElement($name);
-        $this->writer->text($this->PrepareValue($value));
+        $this->writer->text($this->prepareValue($value));
         $this->writer->endElement();
     }
     
@@ -150,7 +160,7 @@ class IcmlWriter
     private function writeSimpleAttribute(string $name, $value): void
     {
         $this->writer->startAttribute($name);
-        $this->writer->text($this->PrepareValue($value));
+        $this->writer->text($this->prepareValue($value));
         $this->writer->endAttribute();
     }
     
@@ -158,7 +168,7 @@ class IcmlWriter
      * @param $text
      * @return string|string[]
      */
-    protected function PrepareValue($text)
+    protected function prepareValue($text)
     {
         $newText = $this->application->ConvertCharset($text, 'utf-8', 'utf-8');
         $newText = strip_tags($newText);
@@ -187,7 +197,7 @@ class IcmlWriter
         $this->writer->startElement('param');
         $this->writeSimpleAttribute('name', $param->name);
         $this->writeSimpleAttribute('code', $param->code);
-        $this->writer->text($this->PrepareValue($param->value));
+        $this->writer->text($this->prepareValue($param->value));
         $this->writer->endElement();
     }
 }
