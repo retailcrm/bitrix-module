@@ -20,3 +20,5 @@ $MESS ['MESS_5'] = 'Произошла ошибка сервера, обрати
 $MESS ['DELIV_TYPES_EXPORT'] = 'Выгрузить список доставок из 1С-Битрикс';
 $MESS ['DELIV_TYPES_EXPORT_F'] = 'Настроить соответствие доставок 1С-Битрикс и RetailCRM';
 $MESS ['STATUS_NOT_SETTINGS'] ='Не найдены подходящие статусы в Битрикс';
+$MESS ['INTEGRATIONS'] = ' (интеграционная)';
+$MESS ['INTEGRATION_PAYMENT_LIST'] = 'Для интеграционных оплат статус не передаётся';

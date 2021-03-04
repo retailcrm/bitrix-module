@@ -233,7 +233,8 @@ else{
             </tr>
             <?php endforeach; ?>
             <tr class="heading">
-                <td colspan="2"><b><?php echo GetMessage('PAYMENT_TYPES_LIST'); ?></b></td>
+                <td colspan="2"><b><?php echo GetMessage('PAYMENT_TYPES_LIST'); ?></b>
+                    <p><small><?php echo GetMessage('INTEGRATION_PAYMENT_LIST');?></small></p></td>
             </tr>
             <?php foreach($arResult['bitrixPaymentTypesList'] as $bitrixPaymentType): ?>
             <tr>
