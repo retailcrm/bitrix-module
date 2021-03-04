@@ -18,15 +18,39 @@ namespace Intaro\RetailCrm\Model\Bitrix\Xml;
 class SelectParams
 {
     /**
+     * конфигурируемые свойства
+     *
      * @var array
      */
     public $configurable;
+    
     /**
+     * обязательные свойства
+     *
      * @var array
      */
     public $main;
+    
     /**
-     * @var array
+     * номер запрашиваемой страницы
+     *
+     * @var int
      */
-    public $default;
+    public $pageNumber;
+
+    /**
+     * количество товаров на странице
+     *
+     * @var int
+     */
+    public $nPageSize;
+    
+    /**
+     * id товара у торогового предложения, если запрашивается SKU
+     *
+     * @var int
+     */
+    public $parentId;
+    
+    
 }

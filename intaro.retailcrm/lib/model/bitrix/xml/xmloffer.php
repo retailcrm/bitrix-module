@@ -106,6 +106,20 @@ class XmlOffer
     public $purchasePrice;
     
     /**
+     * Вес товара
+     *
+     * @var int
+     */
+    public $weight;
+    
+    /**
+     * Габариты товара
+     *
+     * @var string
+     */
+    public $dimensions;
+    
+    /**
      * @param $productValue
      * @param $offerValue
      * @return mixed
