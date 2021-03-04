@@ -101,32 +101,15 @@ class IcmlWriter
         $this->writeSimpleAttribute('id', $offer->id);
         $this->writeSimpleAttribute('productId', $offer->productId);
         $this->writeSimpleAttribute('quantity', $offer->quantity);
-        
-        $this->writeSimpleElement('picture', $offer->picture);
-        $this->writeSimpleElement('url', $offer->url);
-        $this->writeSimpleElement('price', $offer->price);
-        
+       
         foreach ($offer->categoryIds as $categoryId){
             $this->writeSimpleElement('categoryId', $categoryId);
         }
         
-        $this->writeSimpleElement('name', $offer->name);
-        $this->writeSimpleElement('xmlId', $offer->xmlId);
-        $this->writeSimpleElement('productName', $offer->productName);
-        $this->writeSimpleElement('vendor', $offer->vendor);
-        
-        if (!empty($offer->barcode)) {
-            $this->writeSimpleElement('barcode', $offer->barcode);
+        if (!empty($offer->picture)) {
+            $this->writeSimpleElement('picture', $offer->picture);
         }
     
-        if (!empty($offer->vatRate)) {
-            $this->writeSimpleElement('vatRate', $offer->vatRate);
-        }
-    
-        if ($offer->purchasePrice !== null) {
-            $this->writeSimpleElement('purchasePrice', $offer->vatRate);
-        }
-        
         if (!empty($offer->unitCode->code)) {
             $this->writer->startElement('unit');
             $this->writeSimpleAttribute('code', $offer->unitCode->code);
@@ -139,7 +122,30 @@ class IcmlWriter
             $this->writeParam($param);
         }
         
+        $this->writeSimpleElement('url', $offer->url);
+        $this->writeSimpleElement('price', $offer->price);
+        $this->writeSimpleElement('name', $offer->name);
+        $this->writeSimpleElement('productName', $offer->productName);
+        $this->writeSimpleElement('xmlId', $offer->xmlId);
+        $this->writeOptionalSimpleElement('vendor', $offer->vendor);
+        $this->writeOptionalSimpleElement('barcode', $offer->barcode);
+        $this->writeOptionalSimpleElement('vatRate', $offer->vatRate);
+        $this->writeOptionalSimpleElement('weight', $offer->weight);
+        $this->writeOptionalSimpleElement('dimensions', $offer->dimensions);
+        $this->writeOptionalSimpleElement('purchasePrice', $offer->purchasePrice);
         $this->writer->endElement();
+    }
+    
+    /**
+     * Создает ноду, если значение не пустое
+     *
+     * @param string $name
+     * @param        $value
+     */
+    private function writeOptionalSimpleElement(string $name, $value){
+        if (!empty($value)) {
+            $this->writeSimpleElement($name, $value);
+        }
     }
     
     /**

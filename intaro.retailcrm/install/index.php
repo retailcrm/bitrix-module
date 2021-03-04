@@ -6,6 +6,8 @@
  * Class name:  intaro_retailcrm
  */
 global $MESS;
+use Bitrix\Main\Context;
+
 IncludeModuleLangFile(__FILE__);
 if (class_exists('intaro_retailcrm'))
     return;
@@ -136,7 +138,23 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../classes/general/RCrmActions.php');
         include($this->INSTALL_PATH . '/../classes/general/user/RetailCrmUser.php');
         include($this->INSTALL_PATH . '/../classes/general/events/RetailCrmEvent.php');
-        include($this->INSTALL_PATH . '/../classes/general/icml/RetailCrmICML.php');
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/offerparam.php');
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/selectparams.php');
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/unit.php');
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/xmlcategory.php');
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/xmldata.php');
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/xmloffer.php');
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/xmlsetup.php');
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/xmlsetupprops.php');
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/xmlsetuppropscategories.php');
+        include($this->INSTALL_PATH . '/../lib/icml/retailcrmxml.php');
+        include($this->INSTALL_PATH . '/../lib/icml/icmlwriter.php');
+        include($this->INSTALL_PATH . '/../lib/icml/icmldatamanager.php');
+        include($this->INSTALL_PATH . '/../lib/icml/utils/icmllogger.php');
+        include($this->INSTALL_PATH . '/../lib/service/hl.php');
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/orm/catalogiblockinfo.php');
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/orm/iblockcatalog.php');
+        include($this->INSTALL_PATH . '/../classes/general/RetailcrmConstants.php');
         include($this->INSTALL_PATH . '/../classes/general/Exception/InvalidJsonException.php');
         include($this->INSTALL_PATH . '/../classes/general/Exception/CurlException.php');
         include($this->INSTALL_PATH . '/../classes/general/RestNormalizer.php');
@@ -960,26 +978,30 @@ class intaro_retailcrm extends CModule
 
             $this->CopyFiles();
             if (isset($_POST['LOAD_NOW'])) {
-                $loader = new RetailCrmICML();
-                $loader->iblocks = $iblocks;
-                $loader->propertiesUnitProduct = $propertiesUnitProduct;
-                $loader->propertiesProduct = $propertiesProduct;
-                $loader->propertiesUnitSKU = $propertiesUnitSKU;
-                $loader->propertiesSKU = $propertiesSKU;
-
+                $fileSetup = new \Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup();
+                $fileSetup->properties = new \Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupPropsCategories();
+                $fileSetup->properties->sku = new \Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupProps();
+                $fileSetup->properties->products = new \Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupProps();
+                $fileSetup->iblocksForExport = $iblocks;
+                $fileSetup->properties->products->units = $propertiesUnitProduct;
+                $fileSetup->properties->products->names = $propertiesProduct;
+                $fileSetup->properties->sku->units = $propertiesUnitSKU;
+                $fileSetup->properties->sku->names = $propertiesSKU;
+                
                 if ($hlblockModule === true) {
-                    $loader->highloadblockSkuProperties = $propertiesHbSKU;
-                    $loader->highloadblockProductProperties = $propertiesHbProduct;
+                    $fileSetup->properties->highloadblockSku = $propertiesHbSKU;
+                    $fileSetup->properties->highloadblockProduct = $propertiesHbProduct;
                 }
-
+    
                 if ($maxOffers) {
-                    $loader->offerPageSize = $maxOffers;
+                    $fileSetup->maxOffersValue = $maxOffers;
                 }
-
-                $loader->filename = $filename;
-                $loader->serverName = \Bitrix\Main\Context::getCurrent()->getServer()->getHttpHost();
-                $loader->application = $APPLICATION;
-                $loader->Load();
+    
+                $fileSetup->filePath = $filename;
+                $fileSetup->defaultServerName = Context::getCurrent()->getServer()->getHttpHost();
+                
+                $loader = new Intaro\RetailCrm\Icml\RetailCrmXml($fileSetup);
+                $loader->generateXml();
             }
 
             COption::RemoveOption($this->MODULE_ID, $this->CRM_CATALOG_BASE_PRICE);

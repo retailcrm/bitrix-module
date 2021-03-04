@@ -53,7 +53,7 @@ class XmlSetup
     public $maxOffersValue;
     
     /**
-     * название сервера
+     * адрес сайта
      *
      * @var string
      */
