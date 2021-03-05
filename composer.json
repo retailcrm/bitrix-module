@@ -15,7 +15,7 @@
     "require": {
         "ext-json": "*",
         "ext-mbstring": "*",
-      "ext-xmlwriter": "*"
+        "ext-xmlwriter": "*"
     },
     "require-dev": {
         "phpunit/phpunit": "^7",
