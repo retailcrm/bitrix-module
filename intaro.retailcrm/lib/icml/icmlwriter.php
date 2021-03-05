@@ -2,13 +2,10 @@
 
 namespace Intaro\RetailCrm\Icml;
 
-use Bitrix\Main\Diag\Debug;
-use Intaro\RetailCrm\Icml\Utils\IcmlLogger;
 use Intaro\RetailCrm\Model\Bitrix\Xml\OfferParam;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlCategory;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlData;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlOffer;
-use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup;
 use XMLWriter;
 
 /**
@@ -26,17 +23,6 @@ class IcmlWriter
      * @var \XMLWriter
      */
     private $writer;
-    
-    /**
-     * @var \CAllMain|\CMain
-     */
-    private $application;
-    
-    public function __construct()
-    {
-        global $APPLICATION;
-        $this->application = $APPLICATION;
-    }
     
     /**
      * @param \Intaro\RetailCrm\Model\Bitrix\Xml\XmlData $data
@@ -59,8 +45,8 @@ class IcmlWriter
             $this->writeCategory($category);
             
             if (
-                count($data->categories) === $key+1
-                || is_int(count($data->categories)/self::CATEGORY_PART)
+                count($data->categories) === $key + 1
+                || is_int(count($data->categories) / self::CATEGORY_PART)
             ) {
                 $writer->flush();
             }
@@ -101,15 +87,15 @@ class IcmlWriter
         $this->writeSimpleAttribute('id', $offer->id);
         $this->writeSimpleAttribute('productId', $offer->productId);
         $this->writeSimpleAttribute('quantity', $offer->quantity);
-       
-        foreach ($offer->categoryIds as $categoryId){
+        
+        foreach ($offer->categoryIds as $categoryId) {
             $this->writeSimpleElement('categoryId', $categoryId);
         }
         
         if (!empty($offer->picture)) {
             $this->writeSimpleElement('picture', $offer->picture);
         }
-    
+        
         if (!empty($offer->unitCode->code)) {
             $this->writer->startElement('unit');
             $this->writeSimpleAttribute('code', $offer->unitCode->code);
@@ -117,7 +103,7 @@ class IcmlWriter
             $this->writeSimpleAttribute('sym', $offer->unitCode->sym);
             $this->writer->endElement();
         }
-    
+        
         foreach ($offer->params as $key => $param) {
             $this->writeParam($param);
         }
@@ -142,7 +128,8 @@ class IcmlWriter
      * @param string $name
      * @param        $value
      */
-    private function writeOptionalSimpleElement(string $name, $value){
+    private function writeOptionalSimpleElement(string $name, $value): void
+    {
         if (!empty($value)) {
             $this->writeSimpleElement($name, $value);
         }
@@ -176,9 +163,10 @@ class IcmlWriter
      */
     protected function prepareValue($text)
     {
-        $newText = $this->application->ConvertCharset($text, 'utf-8', 'utf-8');
+        global $APPLICATION;
+        $newText = $APPLICATION->ConvertCharset($text, 'utf-8', 'utf-8');
         $newText = strip_tags($newText);
-        $newText = str_replace("&", "&#x26;", $newText);
+        $newText = str_replace('&', '&#x26;', $newText);
         
         return $newText;
     }
@@ -194,7 +182,7 @@ class IcmlWriter
         $this->writeSimpleElement('picture', $category->picture);
         $this->writer->endElement();
     }
-
+    
     /**
      * @param \Intaro\RetailCrm\Model\Bitrix\Xml\OfferParam $param
      */

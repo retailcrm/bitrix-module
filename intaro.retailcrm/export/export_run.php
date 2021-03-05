@@ -2,8 +2,7 @@
 
 use Bitrix\Highloadblock\HighloadBlockTable;
 
-use Intaro\RetailCrm\Icml\RetailCrmlXml;
-use Intaro\RetailCrm\Icml\RetailCrmXml;
+use Intaro\RetailCrm\Icml\RetailCrmXmlBuilder;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupProps;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupPropsCategories;
@@ -169,6 +168,6 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/exp
         = COption::GetOptionString('intaro.retailcrm', 'protocol') . $SERVER_NAME;
     $fileSetup->loadPurchasePrice = $LOAD_PURCHASE_PRICE === 'Y';
 
-    $loader = new RetailCrmXml($fileSetup);
+    $loader = new RetailCrmXmlBuilder($fileSetup);
     $loader->generateXml();
 }
