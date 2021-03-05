@@ -89,8 +89,10 @@ class RetailCrmXmlBuilder
                 = $this->getSelectParams($this->setup->properties->products->names[$productIblockId]);
             
             $selectParams->pageNumber = 1;
+            $selectParams->nPageSize  = self::OFFERS_PART;
+            $selectParams->parentId   = null;
             
-            while ($xmlOffers = $this->icmlDataManager->getXmlOffersByProducts($catalogIblockInfo, $selectParams)) {
+            while ($xmlOffers = $this->icmlDataManager->getXmlOffersPart( $selectParams, $catalogIblockInfo)) {
                 $this->icmlWriter->writeOffers($xmlOffers);
                 
                 $selectParams->pageNumber++;
