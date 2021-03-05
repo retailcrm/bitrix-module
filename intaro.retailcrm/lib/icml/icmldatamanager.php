@@ -7,14 +7,11 @@ use Bitrix\Iblock\SectionTable;
 use Bitrix\Main\ArgumentException;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
-use CCatalogGroup;
 use CCatalogMeasure;
-use CCatalogSku;
 use CCatalogStoreBarCode;
 use CFile;
 use CIBlockElement;
 use COption;
-use Intaro\RetailCrm\Icml\Utils\IcmlLogger;
 use Intaro\RetailCrm\Model\Bitrix\Orm\CatalogIblockInfo;
 use Intaro\RetailCrm\Model\Bitrix\Xml\OfferParam;
 use Intaro\RetailCrm\Model\Bitrix\Xml\SelectParams;
@@ -32,7 +29,6 @@ use RetailcrmConstants;
  */
 class IcmlDataManager
 {
-    private const INFO        = 'INFO';
     private const OFFERS_PART = 500;
     private const MILLION     = 1000000;
     
@@ -45,16 +41,6 @@ class IcmlDataManager
      * @var false|string|null
      */
     private $shopName;
-    
-    /**
-     * @var  \Intaro\RetailCrm\Icml\IcmlWriter
-     */
-    private $icmlWriter;
-    
-    /**
-     * @var string
-     */
-    private $basePriceId;
     
     /**
      * @var false|string|null
@@ -72,12 +58,9 @@ class IcmlDataManager
      * IcmlDataManager constructor.
      *
      * @param \Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup $setup
-     * @param \Intaro\RetailCrm\Icml\IcmlWriter           $icmlWriter
      */
-    public function __construct(XmlSetup $setup, IcmlWriter $icmlWriter)
+    public function __construct(XmlSetup $setup)
     {
-        $this->basePriceId       = $this->getBasePriceId();
-        $this->icmlWriter        = &$icmlWriter;
         $this->setup             = $setup;
         $this->shopName          = COption::GetOptionString('main', 'site_name');
         $this->purchasePriceNull = COption::GetOptionString(RetailcrmConstants::MODULE_ID,
@@ -99,29 +82,7 @@ class IcmlDataManager
         
         return $xmlData;
     }
-    
-    /**
-     * запрашивает свойства оферов из БД и записывает их в xml
-     */
-    public function writeOffersHandler(): void
-    {
-        foreach ($this->setup->iblocksForExport as $iblockId) {
-            $catalogIblockInfo = $this->getCatalogIblockInfo($iblockId);
-            
-            //null - значит нет торговых предложений - работаем только с товарами
-            if ($catalogIblockInfo->skuIblockId === null) {
-                $arSelectForProduct = $this->getSelectParams($this->setup->properties->products->names[$iblockId]);
-                
-                $this->writeProductsAsOffersInXml($catalogIblockInfo, $arSelectForProduct);
-            } else {
-                $paramsForProduct = $this->getSelectParams($this->setup->properties->products->names[$iblockId]);
-                $paramsForOffer   = $this->getSelectParams($this->setup->properties->sku->names[$iblockId]);
-                
-                $this->writeOffersAsOffersInXml($paramsForProduct, $paramsForOffer, $catalogIblockInfo);
-            }
-        }
-    }
-    
+   
     /**
      * Добавляет в XmlOffer значения настраиваемых параметров, производителя, вес и габариты
      *
@@ -221,104 +182,23 @@ class IcmlDataManager
     }
     
     /**
-     * Собираем свойства, указанные в настройках
-     *
-     * @param array|null $userProps
-     * @return \Intaro\RetailCrm\Model\Bitrix\Xml\SelectParams
-     */
-    private function getSelectParams(?array $userProps): SelectParams
-    {
-        $catalogFields = ['catalog_length', 'catalog_width', 'catalog_height', 'catalog_weight'];
-        
-        $params = new SelectParams();
-        
-        foreach ($userProps as $key => $name) {
-            if ($name === '') {
-                unset($userProps[$key]);
-                continue;
-            }
-            
-            if (in_array($name, $catalogFields, true)) {
-                $userProps[$key] = strtoupper($userProps[$key]);
-            } else {
-                $userProps[$key] = 'PROPERTY_' . $userProps[$key];
-            }
-        }
-        
-        $params->configurable = $userProps;
-        $params->main         = [
-            'IBLOCK_ID',
-            'IBLOCK_SECTION_ID',
-            'NAME',
-            'DETAIL_PICTURE',
-            'PREVIEW_PICTURE',
-            'DETAIL_PAGE_URL',
-            'CATALOG_QUANTITY',
-            'CATALOG_PRICE_' . $this->basePriceId,
-            'CATALOG_PURCHASING_PRICE',
-            'EXTERNAL_ID',
-            'CATALOG_GROUP_' . $this->basePriceId,
-            'ID',
-            'LID',
-        ];
-        
-        return $params;
-    }
-    
-    /**
-     * Эта стратегия записи используется,
-     * когда в каталоге нет торговых предложений
-     * только товары
+     * Создает объекты XmlOffers из простых товаров (не содержащих ТП)
+     * и возвращает массив таких объектов
      *
      * @param \Intaro\RetailCrm\Model\Bitrix\Orm\CatalogIblockInfo $catalogIblockInfo
      * @param \Intaro\RetailCrm\Model\Bitrix\Xml\SelectParams      $selectParams
+     *
+     * @return XmlOffer[]
      */
-    private function writeProductsAsOffersInXml(CatalogIblockInfo $catalogIblockInfo, SelectParams $selectParams): void
+    public function getXmlOffersByProducts(CatalogIblockInfo $catalogIblockInfo, SelectParams $selectParams): array
     {
-        $selectParams->pageNumber = 1;
         $selectParams->nPageSize  = self::OFFERS_PART;
         $selectParams->parentId   = null;
-        
-        do {
-            $xmlOffers = $this->getXmlOffersPart($selectParams, $catalogIblockInfo);
-            
-            $selectParams->pageNumber++;
-            $this->icmlWriter->writeOffers($xmlOffers);
-            
-            IcmlLogger::writeToToLog(count($xmlOffers)
-                . ' product(s) has been loaded from '
-                . $catalogIblockInfo->productIblockId
-                . ' IB (memory usage: '
-                . memory_get_usage()
-                . ')',
-                self::INFO
-            );
-        } while (!empty($xmlOffers));
+
+        return $this->getXmlOffersPart($selectParams, $catalogIblockInfo);
     }
     
-    /**
-     * Эта стратегия записи используется,
-     * когда в каталоге есть торговые предложения
-     *
-     * @param \Intaro\RetailCrm\Model\Bitrix\Xml\SelectParams      $paramsForProduct
-     * @param \Intaro\RetailCrm\Model\Bitrix\Xml\SelectParams      $paramsForOffer
-     * @param \Intaro\RetailCrm\Model\Bitrix\Orm\CatalogIblockInfo $catalogIblockInfo
-     */
-    private function writeOffersAsOffersInXml(
-        SelectParams $paramsForProduct,
-        SelectParams $paramsForOffer,
-        CatalogIblockInfo $catalogIblockInfo
-    ): void {
-        $paramsForProduct->pageNumber = 1;
-        $paramsForProduct->nPageSize  = ceil(self::OFFERS_PART / $this->setup->maxOffersValue);
-        
-        do {
-            $products = $this->getXmlOffersPart($paramsForProduct, $catalogIblockInfo);
-            
-            $paramsForProduct->pageNumber++;
-            $this->writeProductsOffers($products, $paramsForOffer, $catalogIblockInfo);
-        } while (!empty($products));
-    }
+    
     
     /**
      * Возвращает страницу (массив) с товарами или торговыми предложениями (в зависимости от $param)
@@ -327,7 +207,7 @@ class IcmlDataManager
      * @param \Intaro\RetailCrm\Model\Bitrix\Orm\CatalogIblockInfo $catalogIblockInfo
      * @return XmlOffer[]
      */
-    private function getXmlOffersPart(SelectParams $param, CatalogIblockInfo $catalogIblockInfo): array
+    public function getXmlOffersPart(SelectParams $param, CatalogIblockInfo $catalogIblockInfo): array
     {
         if ($param->parentId === null) {
             $where = [
@@ -444,7 +324,7 @@ class IcmlDataManager
         $xmlOffer->url           = $item['DETAIL_PAGE_URL']
             ? $this->setup->defaultServerName . $item['DETAIL_PAGE_URL']
             : '';
-        $xmlOffer->price         = $item['CATALOG_PRICE_' . $this->basePriceId];
+        $xmlOffer->price         = $item['CATALOG_PRICE_' . $this->setup->basePriceId];
         $xmlOffer->purchasePrice = $this->getPurchasePrice($item);
         $xmlOffer->categoryIds   = $this->getProductCategoriesIds($item['ID']);
         $xmlOffer->name          = $item['NAME'];
@@ -466,7 +346,7 @@ class IcmlDataManager
      *
      * @return array
      */
-    private function getProductBarcodesByIblock($iblockId): array
+    private function getProductBarcodesByIblock(int $iblockId): array
     {
         $barcodes  = [];
         $dbBarCode = CCatalogStoreBarCode::getList(
@@ -484,35 +364,6 @@ class IcmlDataManager
         }
         
         return $barcodes;
-    }
-    
-    /**
-     * Returns base price id
-     *
-     * @return string
-     */
-    private function getBasePriceId(): string
-    {
-        $basePriceId = COption::GetOptionString(
-            RetailcrmConstants::MODULE_ID,
-            RetailcrmConstants::CRM_CATALOG_BASE_PRICE . '_' . $this->setup->profileID,
-            0
-        );
-        
-        if (!$basePriceId) {
-            $dbPriceType = CCatalogGroup::GetList(
-                [],
-                ['BASE' => 'Y'],
-                false,
-                false,
-                ['ID']
-            );
-            
-            $result      = $dbPriceType->GetNext();
-            $basePriceId = $result['ID'];
-        }
-        
-        return $basePriceId;
     }
     
     /**
@@ -690,89 +541,23 @@ class IcmlDataManager
     }
     
     /**
-     * Получает оферы  по товару и записывает их в файл
-     *
-     * @param XmlOffer[]                                           $products
-     * @param \Intaro\RetailCrm\Model\Bitrix\Xml\SelectParams      $paramsForOffer
-     * @param \Intaro\RetailCrm\Model\Bitrix\Orm\CatalogIblockInfo $catalogIblockInfo
-     */
-    private function writeProductsOffers(
-        array $products,
-        SelectParams $paramsForOffer,
-        CatalogIblockInfo $catalogIblockInfo
-    ): void {
-        $paramsForOffer->nPageSize
-            = $this->setup->maxOffersValue < self::OFFERS_PART ? $this->setup->maxOffersValue : self::OFFERS_PART;
-        
-        foreach ($products as $product) {
-            $this->writeOffersBySingleProduct($paramsForOffer, $catalogIblockInfo, $product);
-        }
-    }
-    
-    /**
      * записывает оферы одного товара
      *
      * @param \Intaro\RetailCrm\Model\Bitrix\Xml\SelectParams      $paramsForOffer
      * @param \Intaro\RetailCrm\Model\Bitrix\Orm\CatalogIblockInfo $catalogIblockInfo
      * @param \Intaro\RetailCrm\Model\Bitrix\Xml\XmlOffer          $product
+     * @return XmlOffer[]
      */
-    private function writeOffersBySingleProduct(
+    public function getXmlOffersBySingleProduct(
         SelectParams $paramsForOffer,
         CatalogIblockInfo $catalogIblockInfo,
         XmlOffer $product
-    ): void {
-        $paramsForOffer->pageNumber = 1;
-        $paramsForOffer->parentId   = $product->id;
-        $writingOffers              = 0; //счетчик уже записанных оферов товара
-        
-        do {
+    ): array {
             $xmlOffers = $this->getXmlOffersPart($paramsForOffer, $catalogIblockInfo);
             
-            if ($paramsForOffer->pageNumber === 1 && count($xmlOffers) === 0) {
-                $this->icmlWriter->writeOffers([$product]);
-                break;
-            }
-            
-            if ($writingOffers + count($xmlOffers) > $this->setup->maxOffersValue) {
-                $sliceIndex
-                           = count($xmlOffers) - ($writingOffers + count($xmlOffers) - $this->setup->maxOffersValue);
-                $xmlOffers = array_slice($xmlOffers, 0, $sliceIndex);
-            }
-            
-            $paramsForOffer->pageNumber++;
-            
-            $xmlOffers = $this->addProductInfo($xmlOffers, $product);
-            
-            $this->icmlWriter->writeOffers($xmlOffers);
-            
-            $writingOffers += count($xmlOffers);
-        } while (!empty($xmlOffers) || $writingOffers < $this->setup->maxOffersValue);
+            return $this->addProductInfo($xmlOffers, $product);
     }
-    
-    /**
-     * Возвращает информацию об инфоблоке торговых предложений по ID инфоблока товаров
-     *
-     * @param int $productIblockId
-     * @return \Intaro\RetailCrm\Model\Bitrix\Orm\CatalogIblockInfo
-     */
-    private function getCatalogIblockInfo(int $productIblockId): CatalogIblockInfo
-    {
-        $catalogIblockInfo = new CatalogIblockInfo();
-        $info              = CCatalogSKU::GetInfoByProductIBlock($productIblockId);
-        
-        if ($info === false) {
-            $catalogIblockInfo->productIblockId = $productIblockId;
-            
-            return $catalogIblockInfo;
-        }
-        
-        $catalogIblockInfo->skuIblockId     = $info['IBLOCK_ID'];
-        $catalogIblockInfo->productIblockId = $info['PRODUCT_IBLOCK_ID'];
-        $catalogIblockInfo->skuPropertyId   = $info['SKU_PROPERTY_ID'];
-        
-        return $catalogIblockInfo;
-    }
-    
+
     /**
      * Декорирует оферы информацией из товаров
      *

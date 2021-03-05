@@ -65,5 +65,10 @@ class XmlSetup
      * @var bool
      */
     public $loadPurchasePrice;
-
+    
+    /**
+     * @var int|null
+     */
+    public $basePriceId;
+    
 }
