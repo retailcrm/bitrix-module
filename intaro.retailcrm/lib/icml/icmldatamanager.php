@@ -129,7 +129,7 @@ class IcmlDataManager
             array_merge($param->configurable, $param->main)
         );
         $products      = [];
-        $barcodes      = $this->getProductBarcodesByIblock($catalogIblockInfo->skuIblockId);
+        $barcodes      = $this->getProductBarcodesByIblock($catalogIblockInfo->productIblockId);
         
         while ($product = $ciBlockResult->GetNext()) {
             $xmlOffer          = new XmlOffer();
