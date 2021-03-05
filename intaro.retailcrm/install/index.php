@@ -147,10 +147,12 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/xmlsetup.php');
         include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/xmlsetupprops.php');
         include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/xmlsetuppropscategories.php');
-        include($this->INSTALL_PATH . '/../lib/icml/retailcrmxml.php');
+        include($this->INSTALL_PATH . '/../lib/icml/retailcrmxmlbuilder.php');
         include($this->INSTALL_PATH . '/../lib/icml/icmlwriter.php');
         include($this->INSTALL_PATH . '/../lib/icml/icmldatamanager.php');
         include($this->INSTALL_PATH . '/../lib/icml/utils/icmllogger.php');
+        include($this->INSTALL_PATH . '/../lib/icml/utils/baseprice.php');
+        include($this->INSTALL_PATH . '/../lib/icml/utils/iblockutils.php');
         include($this->INSTALL_PATH . '/../lib/service/hl.php');
         include($this->INSTALL_PATH . '/../lib/model/bitrix/orm/catalogiblockinfo.php');
         include($this->INSTALL_PATH . '/../lib/model/bitrix/orm/iblockcatalog.php');
@@ -1000,7 +1002,7 @@ class intaro_retailcrm extends CModule
                 $fileSetup->filePath = $filename;
                 $fileSetup->defaultServerName = Context::getCurrent()->getServer()->getHttpHost();
                 
-                $loader = new Intaro\RetailCrm\Icml\RetailCrmXml($fileSetup);
+                $loader = new Intaro\RetailCrm\Icml\RetailCrmXmlBuilder($fileSetup);
                 $loader->generateXml();
             }
 
