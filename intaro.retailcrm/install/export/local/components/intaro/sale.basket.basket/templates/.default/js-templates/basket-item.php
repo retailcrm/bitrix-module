@@ -420,13 +420,14 @@ if (!empty($arParams['LABEL_PROP_POSITION']))
 							</span>
 						</div>
                         <?php
-                        if ($arResult['LOYALTY_STATUS'] === 'Y'
+                        if (
+                            $arResult['LOYALTY_STATUS'] === 'Y'
                             && $arResult['PERSONAL_LOYALTY_STATUS'] === true
                             && $arResult['TOTAL_RENDER_DATA']['WILL_BE_CREDITED'] > 0
                         ) {
                         ?>
                                 <div>
-                                    <?=Loc::getMessage('BONUS_PLUS')?>
+                                    <?=Loc::getMessage('BONUS_PLUS')?> +
                                     <span class="basket-item-property-custom-value" data-column-property-code="TYPE" data-entity="basket-item-property-column-value" id="basket-bonus-item-sum-price-{{ID}}">
                                         {{{WILL_BE_CREDITED_BONUS}}}
                                     </span>

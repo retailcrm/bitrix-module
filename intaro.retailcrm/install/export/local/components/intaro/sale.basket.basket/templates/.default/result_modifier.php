@@ -62,7 +62,7 @@ $arResult['PERSONAL_LOYALTY_STATUS'] = LoyaltyService::getLoyaltyPersonalStatus(
 $service = ServiceLocator::get(LoyaltyService::class);
 
 if ($arResult['LOYALTY_STATUS'] === 'Y' && $arResult['PERSONAL_LOYALTY_STATUS'] === true) {
-    $calculate       = $service->calculateBonus($arResult['BASKET_ITEM_RENDER_DATA']);
+    $calculate = $service->calculateBonus($arResult['BASKET_ITEM_RENDER_DATA']);
     
     if ($calculate instanceof LoyaltyCalculateResponse && $calculate->success) {
         $arResult = $service->calculateBasket($arResult, $calculate);

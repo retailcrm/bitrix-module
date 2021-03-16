@@ -46,7 +46,7 @@ class Basket extends Controller
      */
     public function calculateBasketBonusesAction(array $basketData): ?array
     {
-        $calculate       = $this->service->calculateBonus($basketData['BASKET_ITEM_RENDER_DATA']);
+        $calculate = $this->service->calculateBonus($basketData['BASKET_ITEM_RENDER_DATA']);
         
         if ($calculate->success) {
             return $this->service->calculateBasket($basketData, $calculate);

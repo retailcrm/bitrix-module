@@ -648,8 +648,7 @@
 								basketData: result.BASKET_DATA
 							},
 						}
-						).then( (response) => {
-
+						).then((response) => {
 						//если это бонусы
 						if (response.data.WILL_BE_CREDITED !== undefined) {
 							$('#BONUSES_TOTAL').text(response.data.WILL_BE_CREDITED);

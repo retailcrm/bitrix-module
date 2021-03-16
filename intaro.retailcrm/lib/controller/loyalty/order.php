@@ -42,20 +42,16 @@ class Order extends Controller
     /**
      * Контроллер для пересчета бонусов
      *
-     * @param string    $basketItemsHidden
+     * @param array     $basketItems
      * @param float|int $inputBonuses
      *
      * @return \Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse|null
      */
-    public function calculateBonusAction(string $basketItemsHidden, float $inputBonuses = 0): ?LoyaltyCalculateResponse
+    public function calculateBonusAction(array $basketItems, float $inputBonuses = 0): ?LoyaltyCalculateResponse
     {
-        $basketItems = json_decode(htmlspecialchars_decode($basketItemsHidden), true);
-
         /** @var LoyaltyService $service */
-        $service = ServiceLocator::get(LoyaltyService::class);
-        
-        $response = $service->calculateBonus($basketItems,
-            $inputBonuses);
+        $service  = ServiceLocator::get(LoyaltyService::class);
+        $response = $service->calculateBonus($basketItems, $inputBonuses);
 
         if ($response instanceof LoyaltyCalculateResponse) {
             if ($response->success && count($response->order->items) > 0) {

@@ -66,25 +66,25 @@ class OrderLoyaltyDataRepository extends AbstractRepository
     public function getProductsByOrderId($orderId): ?array
     {
         try {
-        $dataManager = Utils::getHlClassByName(Constants::HL_LOYALTY_CODE);
-    
-        if ($dataManager === null) {
-            return null;
-        }
-    
-        $products = $dataManager::query()->setSelect(['*'])->where('UF_ORDER_ID', '=', $orderId)->fetch();
-    
-        if ($products === false || count($products)) {
-            return null;
-        }
+            $dataManager = Utils::getHlClassByName(Constants::HL_LOYALTY_CODE);
         
-        $productsAr = [];
+            if ($dataManager === null) {
+                return null;
+            }
         
-        foreach ($products as $product) {
-            $productsAr[] = Deserializer::deserializeArray($product, OrderLoyaltyData::class);
-        }
-      
-        return $productsAr;
+            $products = $dataManager::query()->setSelect(['*'])->where('UF_ORDER_ID', '=', $orderId)->fetch();
+        
+            if ($products === false || count($products)) {
+                return null;
+            }
+        
+            $productsAr = [];
+        
+            foreach ($products as $product) {
+                $productsAr[] = Deserializer::deserializeArray($product, OrderLoyaltyData::class);
+            }
+        
+            return $productsAr;
         } catch (LoaderException | SystemException | Exception $e) {
             AddMessage2Log($e->getMessage());
         }
@@ -113,8 +113,8 @@ class OrderLoyaltyDataRepository extends AbstractRepository
                 return true;
             }
             
-        }catch (LoaderException | SystemException | Exception $e) {
-            AddMessage2Log($e->getMessage());
+        } catch (LoaderException | SystemException | Exception $exception) {
+            AddMessage2Log($exception->getMessage());
         }
         
         return false;

@@ -447,10 +447,10 @@ if (strlen($request->get('ORDER_ID')) > 0) {
                                                 <input name='bonus-input' class="form-control" type="number" max="<?=$arResult['AVAILABLE_BONUSES']?>" id='bonus-input'>
                                                 <input name="available-bonuses" class="form-control" type="hidden" id='available-bonus-input' value="<?=$arResult['AVAILABLE_BONUSES']?>">
                                                 <input name="charge-rate" class="form-control" type="hidden" id='charge-rate-input' value="<?=$arResult['CHARGERATE']?>">
-                                                <input name="basket-items-hidden" class="form-control" type="hidden"
-                                                       id='basket-items-hidden' value="<?=htmlspecialchars(
-                                                    json_encode($arResult['BASKET_ITEMS'])
-                                                )?>">
+                                                <script id="data-basket-items">
+                                                    window.__BASKET_ITEMS__
+                                                        = <?=json_encode($arResult['BASKET_ITEMS'])?>;
+                                                </script>
                                                 <div id="bonus-input-error"></div>
                                             </div>
                                         </div>

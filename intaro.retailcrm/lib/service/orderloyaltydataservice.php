@@ -13,6 +13,7 @@
 namespace Intaro\RetailCrm\Service;
 
 use Bitrix\Main\ArgumentException;
+use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\ORM\Data\AddResult;
 use Bitrix\Main\SystemException;
@@ -177,8 +178,8 @@ class OrderLoyaltyDataService
         ]);
         
         $arLangs = [
-            'ru' => GetMessage('LP_ORDER_GROUP_NAME'),
-            'en' => GetMessage('LP_ORDER_GROUP_NAME', null, 'en'),
+            'ru' => Loc::GetMessage('LP_ORDER_GROUP_NAME', null, 'ru'),
+            'en' => Loc::GetMessage('LP_ORDER_GROUP_NAME', null, 'en'),
         ];
         
         if ($result->isSuccess()) {
@@ -204,72 +205,144 @@ class OrderLoyaltyDataService
                 'FIELD_NAME'        => 'UF_ORDER_ID',
                 'USER_TYPE_ID'      => 'integer',
                 'MANDATORY'         => 'Y',
-                "EDIT_FORM_LABEL"   => ['ru' => GetMessage('UF_ORDER_ID')],
-                "LIST_COLUMN_LABEL" => ['ru' => GetMessage('UF_ORDER_ID')],
-                "LIST_FILTER_LABEL" => ['ru' => GetMessage('UF_ORDER_ID')],
+                'EDIT_FORM_LABEL'   => [
+                    'ru' => Loc::GetMessage('UF_ORDER_ID', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_ORDER_ID', null, 'en'),
+                ],
+                'LIST_COLUMN_LABEL' => [
+                    'ru' => Loc::GetMessage('UF_ORDER_ID', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_ORDER_ID', null, 'en'),
+                ],
+                'LIST_FILTER_LABEL' => [
+                    'ru' => Loc::GetMessage('UF_ORDER_ID', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_ORDER_ID', null, 'en'),
+                ],
             ],
             'UF_ITEM_ID'       => [
                 'ENTITY_ID'         => $ufObject,
                 'FIELD_NAME'        => 'UF_ITEM_ID',
                 'USER_TYPE_ID'      => 'integer',
                 'MANDATORY'         => 'Y',
-                "EDIT_FORM_LABEL"   => ['ru' => GetMessage('UF_ITEM_ID')],
-                "LIST_COLUMN_LABEL" => ['ru' => GetMessage('UF_ITEM_ID')],
-                "LIST_FILTER_LABEL" => ['ru' => GetMessage('UF_ITEM_ID')],
+                'EDIT_FORM_LABEL'   => [
+                    'ru' => Loc::GetMessage('UF_ITEM_ID', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_ITEM_ID', null, 'en'),
+                ],
+                'LIST_COLUMN_LABEL' => [
+                    'ru' => Loc::GetMessage('UF_ITEM_ID', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_ITEM_ID', null, 'en'),
+                ],
+                'LIST_FILTER_LABEL' => [
+                    'ru' => Loc::GetMessage('UF_ITEM_ID', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_ITEM_ID', null, 'en'),
+                ],
             ],
             'UF_CASH_DISCOUNT' => [
                 'ENTITY_ID'         => $ufObject,
                 'FIELD_NAME'        => 'UF_CASH_DISCOUNT',
                 'USER_TYPE_ID'      => 'integer',
                 'MANDATORY'         => 'N',
-                "EDIT_FORM_LABEL"   => ['ru' => GetMessage('UF_CASH_DISCOUNT')],
-                "LIST_COLUMN_LABEL" => ['ru' => GetMessage('UF_CASH_DISCOUNT')],
-                "LIST_FILTER_LABEL" => ['ru' => GetMessage('UF_CASH_DISCOUNT')],
+                'EDIT_FORM_LABEL'   => [
+                    'ru' => Loc::GetMessage('UF_CASH_DISCOUNT', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_CASH_DISCOUNT', null, 'en'),
+                ],
+                'LIST_COLUMN_LABEL' => [
+                    'ru' => Loc::GetMessage('UF_CASH_DISCOUNT', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_CASH_DISCOUNT', null, 'en'),
+                ],
+                'LIST_FILTER_LABEL' => [
+                    'ru' => Loc::GetMessage('UF_CASH_DISCOUNT', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_CASH_DISCOUNT', null, 'en'),
+                ],
             ],
             'UF_BONUS_RATE'    => [
                 'ENTITY_ID'         => $ufObject,
                 'FIELD_NAME'        => 'UF_BONUS_RATE',
                 'USER_TYPE_ID'      => 'integer',
                 'MANDATORY'         => 'N',
-                "EDIT_FORM_LABEL"   => ['ru' => GetMessage('UF_BONUS_RATE')],
-                "LIST_COLUMN_LABEL" => ['ru' => GetMessage('UF_BONUS_RATE')],
-                "LIST_FILTER_LABEL" => ['ru' => GetMessage('UF_BONUS_RATE')],
+                'EDIT_FORM_LABEL'   => [
+                    'ru' => Loc::GetMessage('UF_BONUS_RATE', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_BONUS_RATE', null, 'en'),
+                ],
+                'LIST_COLUMN_LABEL' => [
+                    'ru' => Loc::GetMessage('UF_BONUS_RATE', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_BONUS_RATE', null, 'en'),
+                ],
+                'LIST_FILTER_LABEL' => [
+                    'ru' => Loc::GetMessage('UF_BONUS_RATE', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_BONUS_RATE', null, 'en'),
+                ],
             ],
             'UF_BONUS_COUNT'   => [
                 'ENTITY_ID'         => $ufObject,
                 'FIELD_NAME'        => 'UF_BONUS_COUNT',
                 'USER_TYPE_ID'      => 'integer',
                 'MANDATORY'         => 'N',
-                "EDIT_FORM_LABEL"   => ['ru' => GetMessage('UF_BONUS_COUNT')],
-                "LIST_COLUMN_LABEL" => ['ru' => GetMessage('UF_BONUS_COUNT')],
-                "LIST_FILTER_LABEL" => ['ru' => GetMessage('UF_BONUS_COUNT')],
+                'EDIT_FORM_LABEL'   => [
+                    'ru' => Loc::GetMessage('UF_BONUS_COUNT', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_BONUS_COUNT', null, 'en'),
+                ],
+                'LIST_COLUMN_LABEL' => [
+                    'ru' => Loc::GetMessage('UF_BONUS_COUNT', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_BONUS_COUNT', null, 'en'),
+                ],
+                'LIST_FILTER_LABEL' => [
+                    'ru' => Loc::GetMessage('UF_BONUS_COUNT', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_BONUS_COUNT', null, 'en'),
+                ],
             ],
             'UF_CHECK_ID'      => [
                 'ENTITY_ID'         => $ufObject,
                 'FIELD_NAME'        => 'UF_CHECK_ID',
                 'USER_TYPE_ID'      => 'string',
                 'MANDATORY'         => 'N',
-                "EDIT_FORM_LABEL"   => ['ru' => GetMessage('UF_CHECK_ID')],
-                "LIST_COLUMN_LABEL" => ['ru' => GetMessage('UF_CHECK_ID')],
-                "LIST_FILTER_LABEL" => ['ru' => GetMessage('UF_CHECK_ID')],
+                'EDIT_FORM_LABEL'   => [
+                    'ru' => Loc::GetMessage('UF_CHECK_ID', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_CHECK_ID', null, 'en'),
+                ],
+                'LIST_COLUMN_LABEL' => [
+                    'ru' => Loc::GetMessage('UF_CHECK_ID', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_CHECK_ID', null, 'en'),
+                ],
+                'LIST_FILTER_LABEL' => [
+                    'ru' => Loc::GetMessage('UF_CHECK_ID', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_CHECK_ID', null, 'en'),
+                ],
             ],
             'UF_IS_DEBITED'    => [
                 'ENTITY_ID'         => $ufObject,
                 'FIELD_NAME'        => 'UF_IS_DEBITED',
                 'USER_TYPE_ID'      => 'boolean',
                 'MANDATORY'         => 'Y',
-                "EDIT_FORM_LABEL"   => ['ru' => GetMessage('UF_IS_DEBITED')],
-                "LIST_COLUMN_LABEL" => ['ru' => GetMessage('UF_IS_DEBITED')],
-                "LIST_FILTER_LABEL" => ['ru' => GetMessage('UF_IS_DEBITED')],
+                'EDIT_FORM_LABEL' => [
+                    'ru' => Loc::GetMessage('UF_IS_DEBITED', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_IS_DEBITED', null, 'en'),
+                ],
+                'LIST_COLUMN_LABEL' => [
+                    'ru' => Loc::GetMessage('UF_IS_DEBITED', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_IS_DEBITED', null, 'en'),
+                ],
+                'LIST_FILTER_LABEL' => [
+                    'ru' => Loc::GetMessage('UF_IS_DEBITED', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_IS_DEBITED', null, 'en'),
+                ],
             ],
             'UF_QUANTITY'      => [
                 'ENTITY_ID'         => $ufObject,
                 'FIELD_NAME'        => 'UF_QUANTITY',
                 'USER_TYPE_ID'      => 'integer',
                 'MANDATORY'         => 'Y',
-                "EDIT_FORM_LABEL"   => ['ru' => GetMessage('UF_QUANTITY')],
-                "LIST_COLUMN_LABEL" => ['ru' => GetMessage('UF_QUANTITY')],
-                "LIST_FILTER_LABEL" => ['ru' => GetMessage('UF_QUANTITY')],
+                'EDIT_FORM_LABEL'   => [
+                    'ru' => Loc::GetMessage('UF_QUANTITY', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_QUANTITY', null, 'en'),
+                ],
+                'LIST_COLUMN_LABEL' => [
+                    'ru' => Loc::GetMessage('UF_QUANTITY', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_QUANTITY', null, 'en'),
+                ],
+                'LIST_FILTER_LABEL' => [
+                    'ru' => Loc::GetMessage('UF_QUANTITY', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_QUANTITY', null, 'en'),
+                ],
             ],
         ];
         

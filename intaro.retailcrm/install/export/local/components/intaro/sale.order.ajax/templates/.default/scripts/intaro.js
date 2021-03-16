@@ -1,14 +1,14 @@
 $(document).ready(function() {
     function makeAjaxRequest() {
         $('#bonus-msg').html('Сколько бонусов потратить?');
-        let basketItemsHidden = $('#basket-items-hidden').val();
+        let basketItemsHidden = window.__BASKET_ITEMS__;
         let inputBonuses      = Number.parseInt($('#bonus-input').val());
 
         BX.ajax.runAction('intaro:retailcrm.api.loyalty.order.calculateBonus',
             {
                 data: {
-                    sessid:            BX.bitrix_sessid(),
-                    basketItemsHidden: basketItemsHidden,
+                    sessid: BX.bitrix_sessid(),
+                    basketItems: basketItemsHidden,
                     inputBonuses: inputBonuses
                 }
             }
@@ -42,10 +42,10 @@ function sendOrderVerificationCode() {
     BX.ajax.runAction('intaro:retailcrm.api.loyalty.order.sendVerificationCode',
         {
             data: {
-                sessid:           BX.bitrix_sessid(),
+                sessid: BX.bitrix_sessid(),
                 verificationCode: verificationCode,
-                orderId:          orderId,
-                checkId:          checkId
+                orderId: orderId,
+                checkId: checkId
             }
         }
     ).then(

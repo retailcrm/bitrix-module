@@ -555,7 +555,6 @@ class LoyaltyService
                 $repository->edit($product);
             }
         }
-        
     }
     
     /**
@@ -619,7 +618,6 @@ class LoyaltyService
         return $basketData;
     }
     
-    
     /**
      * @param array                                                                 $orderArResult
      * @param \Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse $calculate
@@ -636,7 +634,6 @@ class LoyaltyService
 
                 //если уровень скидочный
                 if ($privilege->maximum && $privilege->discount > 0) {
-                    
                     //Персональная скидка
                     $jsDataTotal['LOYALTY_DISCOUNT'] = $orderArResult['LOYALTY_DISCOUNT_INPUT']
                         = round($privilege->discount - $jsDataTotal['DISCOUNT_PRICE'], 2);
@@ -891,7 +888,7 @@ class LoyaltyService
         $bonusCount = 0;
         
         /** @var OrderLoyaltyData  $product */
-        foreach ($products as $product){
+        foreach ($products as $product) {
             
             $bonusCount += $product->bonusCount*$product->quantity;
         }
