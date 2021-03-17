@@ -427,7 +427,11 @@ if (strlen($request->get('ORDER_ID')) > 0) {
                 <!--	INTARO BONUS BLOCK	-->
                 <?php
                 if ($arResult['LOYALTY_STATUS'] === 'Y'
-                    && $arResult['PERSONAL_LOYALTY_STATUS'] === true): ?>
+                    && $arResult['PERSONAL_LOYALTY_STATUS'] === true):
+                    ?>
+                    <script id="data-basket-items">
+                        window.__MESS__= <?=$arResult['JS_MESS']?>;
+                    </script>
                     <?php
                     if ($arResult['AVAILABLE_BONUSES'] > 0):
                         ?>

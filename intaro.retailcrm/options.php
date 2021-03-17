@@ -905,7 +905,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                         content: "<?= GetMessage('TEMPLATES_COPING_ERROR') ?>"
                     });
                 }
-
             });;
         }
 

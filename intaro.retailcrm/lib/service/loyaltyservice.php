@@ -160,8 +160,8 @@ class LoyaltyService
     
             $fullPrice             = $item['BASE_PRICE'] ?? $item['FULL_PRICE'];
             $product->initialPrice = $fullPrice; //цена без скидки
-
-            if ($fullPrice>0) {
+    
+            if ($fullPrice > 0) {
                 $product->discountManualAmount = $fullPrice - $item['PRICE'];
             }
             
@@ -170,17 +170,13 @@ class LoyaltyService
             $product->offer->id            = $item['ID'];
             $product->offer->xmlId         = $item['XML_ID'];
             $product->quantity             = $item['QUANTITY'];
-            
-            $prices = COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_PRICES, 0);
-            
-            //TODO проверить передачу этого параметра (пока непонятно как)
-            if (isset($prices) && is_string($prices)) {
-                $product->priceType = new PriceType();
-                $serializePrice     = unserialize($prices);
-        
-                if (!empty($serializePrice) && isset($serializePrice[$item['PRICE_TYPE_ID']])) {
-                    $product->priceType->code = $serializePrice[$item['PRICE_TYPE_ID']];
-                }
+    
+            $prices             = ConfigProvider::getCrmPrices();
+            $product->priceType = new PriceType();
+            $serializePrice     = unserialize($prices);
+    
+            if (isset($serializePrice[$item['PRICE_TYPE_ID']])) {
+                $product->priceType->code = $serializePrice[$item['PRICE_TYPE_ID']];
             }
             
             $request->order->items[] = $product;
@@ -332,9 +328,9 @@ class LoyaltyService
                 }
                 
                 /** @var BasketItemBase $basketItem */
-                foreach ($basketItems as $key=>$basketItem) {
-                    $loyaltyHl               = new OrderLoyaltyData();
-    
+                foreach ($basketItems as $key => $basketItem) {
+                    $loyaltyHl = new OrderLoyaltyData();
+        
                     /** @var OrderProduct $item */
                     $item                    = $response->order->items[$key];
                     $totalLoyaltyDiscount    = ($rate * $item->bonusesChargeTotal) / $basketItem->getQuantity();
@@ -346,18 +342,19 @@ class LoyaltyService
                     $loyaltyHl->isDebited    = $isDebited;
                     $loyaltyHl->checkId      = $checkId;
                     $loyaltyHl->quantity     = $basketItem->getQuantity();
-
+        
                     $bonusInfo .= "id "
                         . $basketItem->getId()
                         . " " . $basketItem->getField('NAME')
                         . GetMessage('BONUS_MESSAGE')
                         . ($rate * $item->bonusesChargeTotal)
-                        . GetMessage('RUB_BR');
-                    
+                        . GetMessage('RUB')
+                        . "\n";
+        
                     $hlService->addDataInLoyaltyHl($loyaltyHl);
-    
+        
                     $basePrice = $basketItem->getField('BASE_PRICE');
-
+        
                     $basketItem->setField('CUSTOM_PRICE', 'Y');
                     $basketItem->setField('DISCOUNT_PRICE', $item->discountTotal);
                     $basketItem->setField('PRICE', $basePrice - $item->discountTotal);
@@ -591,23 +588,27 @@ class LoyaltyService
             $item['WILL_BE_CREDITED_BONUS'] = $calculate->order->items[$key]->bonusesCreditTotal;
         
             if ($calculate->order->items[$key]->bonusesCreditTotal === 0.0) {
-                $item['PRICE']                  -= $calculate->order->items[$key]->discountTotal - ($item['SUM_DISCOUNT_PRICE']/$item['QUANTITY']);
-                $item['SUM_PRICE']              = $item['PRICE'] * $item['QUANTITY'];
-                $item['PRICE_FORMATED']     = $item['PRICE'] . ' ' . GetMessage($item['CURRENCY']);
-                $item['SUM_PRICE_FORMATED'] = $item['SUM_PRICE'] . ' ' . GetMessage($item['CURRENCY']);
-                $item['SHOW_DISCOUNT_PRICE'] = true;
-                $item['SUM_DISCOUNT_PRICE'] = $calculate->order->items[$key]->discountTotal * $item['QUANTITY'];
-                $item['SUM_DISCOUNT_PRICE_FORMATED'] = $item['SUM_DISCOUNT_PRICE'] . ' ' . GetMessage($item['CURRENCY']);
-                $item['DISCOUNT_PRICE_PERCENT'] = round($item['SUM_DISCOUNT_PRICE']
-                    /(($item['FULL_PRICE']*$item['QUANTITY'])/100), 0);
+                $item['PRICE']                           -= $calculate->order->items[$key]->discountTotal
+                    - ($item['SUM_DISCOUNT_PRICE'] / $item['QUANTITY']);
+                $item['SUM_PRICE']                       = $item['PRICE'] * $item['QUANTITY'];
+                $item['PRICE_FORMATED']                  = $item['PRICE'] . ' ' . GetMessage($item['CURRENCY']);
+                $item['SUM_PRICE_FORMATED']              = $item['SUM_PRICE'] . ' ' . GetMessage($item['CURRENCY']);
+                $item['SHOW_DISCOUNT_PRICE']             = true;
+                $item['SUM_DISCOUNT_PRICE']              = $calculate->order->items[$key]->discountTotal
+                    * $item['QUANTITY'];
+                $item['SUM_DISCOUNT_PRICE_FORMATED']     = $item['SUM_DISCOUNT_PRICE']
+                    . ' '
+                    . GetMessage($item['CURRENCY']);
+                $item['DISCOUNT_PRICE_PERCENT']          = round($item['SUM_DISCOUNT_PRICE']
+                    / (($item['FULL_PRICE'] * $item['QUANTITY']) / 100));
                 $item['DISCOUNT_PRICE_PERCENT_FORMATED'] = $item['DISCOUNT_PRICE_PERCENT'] . '%';
-                
+            
                 if (isset($item['COLUMN_LIST'])) {
                     foreach ($item['COLUMN_LIST'] as &$column) {
                         $column['VALUE'] = $column['CODE'] === 'DISCOUNT'
                             ? $item['DISCOUNT_PRICE_PERCENT_FORMATED'] : $column['VALUE'];
                     }
-                    
+                
                     unset($column);
                 }
             }
@@ -700,7 +701,7 @@ class LoyaltyService
             AddMessage2Log($exception->getMessage());
         }
     
-        $orderArResult['BONUS_CURRENCY'] = $currency['FORMAT_STRING'];
+        $orderArResult['BONUS_CURRENCY'] = html_entity_decode($currency['FORMAT_STRING']);
         
         return $orderArResult;
     }
@@ -718,25 +719,24 @@ class LoyaltyService
     public function saveBonusAndDiscountValue(
         Order $order,
         float $loyaltyDiscountInput = 0,
-        string $loyaltyBonusMsg = '-'): void
-    {
+        string $loyaltyBonusMsg = '-'
+    ): void {
         $props = $order->getPropertyCollection();
     
         /** @var \Bitrix\Sale\PropertyValue $prop */
         foreach ($props as $prop) {
             if ($prop->getField('CODE') === 'LP_DISCOUNT_INFO') {
                 $result = $prop->setField('VALUE', $loyaltyDiscountInput .' '. GetMessage('RUB'));
-            
-                if (!$result->isSuccess())
-                {
+    
+                if (!$result->isSuccess()) {
                     AddMessage2Log($result->getErrorMessages());
                 }
             }
+            
             if ($prop->getField('CODE') === 'LP_BONUS_INFO') {
                 $result = $prop->setField('VALUE', $loyaltyBonusMsg);
-        
-                if (!$result->isSuccess())
-                {
+    
+                if (!$result->isSuccess()) {
                     AddMessage2Log($result->getErrorMessages());
                 }
             }

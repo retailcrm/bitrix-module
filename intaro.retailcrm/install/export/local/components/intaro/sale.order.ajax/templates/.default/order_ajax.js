@@ -8323,27 +8323,18 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
         if (this.personalLoyaltyStatus === '1' && this.loyaltyStatus === 'Y') {
             if (this.loyaltyDiscount !== undefined && this.loyaltyDiscount > 0) {
                let loyaltyDiscount     = this.bonusCurrency
-                    .replace('&#8381;', '₽')
-                    .replace('&euro;', '€')
-                    .replace('&#8372;', '¥')
                     .replace('#', this.loyaltyDiscount.toString());
                 this.totalInfoBlockNode.appendChild(this.createTotalUnit("Персональная скидка: ", loyaltyDiscount));
             }
 
             if (this.bitrixDiscount !== undefined && this.bitrixDiscount > 0) {
                 let defaultDiscount = this.bonusCurrency
-                    .replace('&#8381;', '₽')
-                    .replace('&euro;', '€')
-                    .replace('&#8372;', '¥')
                     .replace('#', this.bitrixDiscount.toString());
                 this.totalInfoBlockNode.appendChild(this.createTotalUnit("Обычная скидка: ", defaultDiscount));
             }
 
             if (this.result.TOTAL.BONUS_PAYMENT !== undefined && this.result.TOTAL.BONUS_PAYMENT > 0) {
                 let bonusPayment     = this.bonusCurrency
-                    .replace('&#8381;', '₽')
-                    .replace('&euro;', '€')
-                    .replace('&#8372;', '¥')
                     .replace('#', this.result.TOTAL.BONUS_PAYMENT.toString());
                 this.totalInfoBlockNode.appendChild(this.createTotalUnit('Оплата бонусами:', bonusPayment));
             }

@@ -639,7 +639,6 @@
 				url: this.ajaxUrl,
 				data: this.getData(data),
 				onsuccess: BX.delegate(function(result) {
-
 				BX.ajax.runAction('intaro:retailcrm.api.loyalty.basket.calculateBasketBonuses',
 						{
 							method:    'POST',

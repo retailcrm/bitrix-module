@@ -37,6 +37,13 @@ if ($arResult['LOYALTY_STATUS'] === 'Y' && $arResult['PERSONAL_LOYALTY_STATUS'] 
     if ($calculate instanceof LoyaltyCalculateResponse && $calculate->success) {
         $arResult = $service->calculateOrderBasket($arResult, $calculate);
     }
+    
+    $arResult['JS_MESS'] = json_encode([
+        'COUNT_FOR_WRITE_OFF' => GetMessage('COUNT_FOR_WRITE_OFF'),
+        'DATA_PROCESSING'     => GetMessage('DATA_PROCESSING'),
+        'YOU_CANT_SPEND_MORE' => GetMessage('YOU_CANT_SPEND_MORE'),
+        'BONUSES'             => GetMessage('BONUSES'),
+    ]);
 }
 
 $component = $this->__component;

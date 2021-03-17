@@ -73,29 +73,31 @@ class EventsHandlers
                 
                 return;
             }
-
+            
             $jsDataTotal = &$arResult['JS_DATA']['TOTAL'];
             
             $isWriteOffAvailable = $bonusInput > 0
                 && $availableBonuses > 0
                 && $jsDataTotal['ORDER_TOTAL_PRICE'] >= $bonusDiscount + $loyaltyDiscountInput;
-    
+            
             if ($isWriteOffAvailable || $loyaltyDiscountInput > 0) {
                 $jsDataTotal['ORDER_TOTAL_PRICE']
-                    -= round($bonusDiscount + $loyaltyDiscountInput, 2);
+                                                        -= round($bonusDiscount + $loyaltyDiscountInput, 2);
                 $jsDataTotal['ORDER_TOTAL_PRICE_FORMATED']
-                    = number_format($jsDataTotal['ORDER_TOTAL_PRICE'], 0, ',', ' ')
+                                                        = number_format($jsDataTotal['ORDER_TOTAL_PRICE'], 0, ',', ' ')
                     . ' ' . GetMessage('RUB');
                 $jsDataTotal['BONUS_PAYMENT']           = $bonusDiscount;
                 $jsDataTotal['DISCOUNT_PRICE']          += $bonusDiscount + $loyaltyDiscountInput;
                 $jsDataTotal['DISCOUNT_PRICE_FORMATED'] = $jsDataTotal['DISCOUNT_PRICE'] . ' ' . GetMessage('RUB');
                 $jsDataTotal['ORDER_PRICE_FORMATED']
-                    = $jsDataTotal['ORDER_PRICE'] - $loyaltyDiscountInput . ' ' . GetMessage('RUB');
-                $oldItems = json_decode(htmlspecialchars_decode($calculateItemsInput), true);
-    
-                foreach ($arResult['JS_DATA']['GRID']['ROWS'] as $key => &$item) {
-                    $item['data']['SUM_NUM'] = $oldItems[$key]['SUM_NUM'];
-                    $item['data']['SUM']     = $item ['data']['SUM_NUM'] . GetMessage('RUB');
+                                                        = $jsDataTotal['ORDER_PRICE'] - $loyaltyDiscountInput . ' ' . GetMessage('RUB');
+                $oldItems                               = json_decode(htmlspecialchars_decode($calculateItemsInput), true);
+                
+                if ($calculateItemsInput !== null) {
+                    foreach ($arResult['JS_DATA']['GRID']['ROWS'] as $key => &$item) {
+                        $item['data']['SUM_NUM'] = $oldItems[$key]['SUM_NUM'];
+                        $item['data']['SUM']     = $item ['data']['SUM_NUM'] . GetMessage('RUB');
+                    }
                 }
                 
                 unset($item);
@@ -172,8 +174,8 @@ class EventsHandlers
                 // TODO: Replace old call with a new one.
                 $retailCrmEvent->orderSave($order);
             }
-        } catch (ObjectPropertyException | ArgumentException | SystemException | \Exception $e) {
-            AddMessage2Log(GetMessage('CAN_NOT_SAVE_ORDER') . $e->getMessage());
+        } catch (\Throwable $exception) {
+            AddMessage2Log(GetMessage('CAN_NOT_SAVE_ORDER') . $exception->getMessage());
         }
     }
     

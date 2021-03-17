@@ -1,6 +1,6 @@
 $(document).ready(function() {
     function makeAjaxRequest() {
-        $('#bonus-msg').html('Сколько бонусов потратить?');
+        $('#bonus-msg').html(window.__MESS__.COUNT_FOR_WRITE_OFF);
         let basketItemsHidden = window.__BASKET_ITEMS__;
         let inputBonuses      = Number.parseInt($('#bonus-input').val());
 
@@ -18,14 +18,15 @@ $(document).ready(function() {
     }
 
     $('#bonus-input').on('keydown', function() {
-        $('#bonus-msg').html('Обработка информации');
+        $('#bonus-msg').html(window.__MESS__.DATA_PROCESSING);
     });
 
     $('#bonus-input').keyup(function() {
         let availableBonuses = Number.parseInt($('#available-bonus-input').val());
         let inputBonuses     = Number.parseInt($('#bonus-input').val());
         if (inputBonuses > availableBonuses) {
-            $('#bonus-input-error').text('Вы не можете потратить более ' + availableBonuses + ' бонусов');
+            $('#bonus-input-error')
+                .text(window.__MESS__.YOU_CANT_SPEND_MORE + ' ' + availableBonuses + ' ' + window.__MESS__.BONUSES);
         } else {
             $('#bonus-input-error').html(null);
         }

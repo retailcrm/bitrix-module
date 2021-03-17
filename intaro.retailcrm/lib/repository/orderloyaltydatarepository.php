@@ -78,15 +78,15 @@ class OrderLoyaltyDataRepository extends AbstractRepository
                 return null;
             }
         
-            $productsAr = [];
+            $result = [];
         
             foreach ($products as $product) {
-                $productsAr[] = Deserializer::deserializeArray($product, OrderLoyaltyData::class);
+                $result[] = Deserializer::deserializeArray($product, OrderLoyaltyData::class);
             }
         
-            return $productsAr;
-        } catch (LoaderException | SystemException | Exception $e) {
-            AddMessage2Log($e->getMessage());
+            return $result;
+        } catch (LoaderException | SystemException | Exception $exception) {
+            AddMessage2Log($exception->getMessage());
         }
     }
     

@@ -868,4 +868,12 @@ class ConfigProvider
     {
         return ServiceLocator::get(Utils::class);
     }
+    
+    /**
+     * @return string|null
+     */
+    public static function getCrmPrices(): ?string
+    {
+        return static::getOption(Constants::CRM_PRICES);
+    }
 }
