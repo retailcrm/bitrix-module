@@ -13,26 +13,21 @@
 
 namespace Intaro\RetailCrm\Service;
 
-use Bitrix\Catalog\GroupTable;
 use Bitrix\Currency\CurrencyLangTable;
 use Bitrix\Main\Application;
 use Bitrix\Main\ArgumentException;
-use Bitrix\Main\ArgumentNullException;
-use Bitrix\Main\ArgumentOutOfRangeException;
 use Bitrix\Main\Context;
-use Bitrix\Main\Diag\Debug;
 use Bitrix\Main\Loader;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
 use Bitrix\Sale\BasketItemBase;
-use COption;
+use Bitrix\Sale\PropertyValueCollectionBase;
 use \DateTime;
 use Bitrix\Main\Web\Cookie;
 use Bitrix\Sale\Order;
 use CUser;
 use Exception;
 use Intaro\RetailCrm\Component\ConfigProvider;
-use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
 use Intaro\RetailCrm\Component\Json\Deserializer;
 use Intaro\RetailCrm\Component\Json\Serializer;
@@ -56,7 +51,6 @@ use Intaro\RetailCrm\Model\Bitrix\SmsCookie;
 use Intaro\RetailCrm\Model\Bitrix\User;
 use Intaro\RetailCrm\Model\Bitrix\UserLoyaltyData;
 use Intaro\RetailCrm\Repository\OrderLoyaltyDataRepository;
-use Intaro\RetailCrm\Repository\PaySystemActionRepository;
 use Intaro\RetailCrm\Repository\UserRepository;
 
 /**
@@ -293,7 +287,7 @@ class LoyaltyService
      */
     public function applyBonusesInOrder(Order $order, $bonusCount, $rate): string
     {
-        $bonusInfo = "";
+        $bonusInfo = '';
         $orderId   = $order->getId();
         $response  = $this->sendBonusPayment($orderId, $bonusCount);
         
@@ -329,8 +323,7 @@ class LoyaltyService
                 
                 /** @var BasketItemBase $basketItem */
                 foreach ($basketItems as $key => $basketItem) {
-                    $loyaltyHl = new OrderLoyaltyData();
-        
+                    $loyaltyHl               = new OrderLoyaltyData();
                     /** @var OrderProduct $item */
                     $item                    = $response->order->items[$key];
                     $totalLoyaltyDiscount    = ($rate * $item->bonusesChargeTotal) / $basketItem->getQuantity();
@@ -343,9 +336,9 @@ class LoyaltyService
                     $loyaltyHl->checkId      = $checkId;
                     $loyaltyHl->quantity     = $basketItem->getQuantity();
         
-                    $bonusInfo .= "id "
+                    $bonusInfo .= 'id '
                         . $basketItem->getId()
-                        . " " . $basketItem->getField('NAME')
+                        . ' ' . $basketItem->getField('NAME')
                         . GetMessage('BONUS_MESSAGE')
                         . ($rate * $item->bonusesChargeTotal)
                         . GetMessage('RUB')
@@ -354,7 +347,6 @@ class LoyaltyService
                     $hlService->addDataInLoyaltyHl($loyaltyHl);
         
                     $basePrice = $basketItem->getField('BASE_PRICE');
-        
                     $basketItem->setField('CUSTOM_PRICE', 'Y');
                     $basketItem->setField('DISCOUNT_PRICE', $item->discountTotal);
                     $basketItem->setField('PRICE', $basePrice - $item->discountTotal);
@@ -363,8 +355,8 @@ class LoyaltyService
                 $order->save();
                 
                 return $bonusInfo;
-            } catch (Exception $e) {
-                AddMessage2Log($e->getMessage());
+            } catch (Exception $exception) {
+                AddMessage2Log($exception->getMessage());
             }
         } else {
             Utils::handleErrors($response);
@@ -707,22 +699,19 @@ class LoyaltyService
     }
     
     /**
-     * @param \Bitrix\Sale\Order $order
-     * @param float              $loyaltyDiscountInput
-     * @param string             $loyaltyBonusMsg
-     * @throws \Bitrix\Main\ArgumentException
+     * Добавляет информацию о списанных бонусах и предоставленных скидках в св-ва заказа
+     *
+     * @param \Bitrix\Sale\PropertyValueCollectionBase $props
+     * @param float                                    $loyaltyDiscountInput
+     * @param string                                   $loyaltyBonusMsg
      * @throws \Bitrix\Main\ArgumentOutOfRangeException
      * @throws \Bitrix\Main\NotImplementedException
-     * @throws \Bitrix\Main\ObjectPropertyException
-     * @throws \Bitrix\Main\SystemException
      */
-    public function saveBonusAndDiscountValue(
-        Order $order,
+    public function saveBonusAndDiscountInfo(
+        PropertyValueCollectionBase $props,
         float $loyaltyDiscountInput = 0,
         string $loyaltyBonusMsg = '-'
     ): void {
-        $props = $order->getPropertyCollection();
-    
         /** @var \Bitrix\Sale\PropertyValue $prop */
         foreach ($props as $prop) {
             if ($prop->getField('CODE') === 'LP_DISCOUNT_INFO') {

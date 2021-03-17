@@ -1,6 +1,7 @@
 <?php
 
 use Intaro\RetailCrm\Component\ConfigProvider;
+use Intaro\RetailCrm\Service\LoyaltyService;
 
 IncludeModuleLangFile(__FILE__);
 class RetailCrmOrder
@@ -320,7 +321,7 @@ class RetailCrmOrder
         Logger::getInstance()->write($order, 'orderSend');
     
     
-        if (ConfigProvider::getLoyaltyProgramStatus() === 'Y') {
+        if (ConfigProvider::getLoyaltyProgramStatus() === 'Y' && LoyaltyService::getLoyaltyPersonalStatus() !== true) {
             $order['privilegeType'] = 'loyalty_level';
         }
     

@@ -14,11 +14,9 @@ namespace Intaro\RetailCrm\Component\Handlers;
 
 IncludeModuleLangFile(__FILE__);
 
-use Bitrix\Main\ArgumentException;
+use Bitrix\Main\Diag\Debug;
 use Bitrix\Main\Event;
 use Bitrix\Main\HttpRequest;
-use Bitrix\Main\ObjectPropertyException;
-use Bitrix\Main\SystemException;
 use Bitrix\Sale\BasketItemBase;
 use Bitrix\Sale\Order;
 use Intaro\RetailCrm\Component\ConfigProvider;
@@ -28,6 +26,7 @@ use Intaro\RetailCrm\Service\LoyaltyService;
 use Intaro\RetailCrm\Service\LpUserAccountService;
 use Intaro\RetailCrm\Service\CustomerService;
 use RetailCrmEvent;
+use Throwable;
 
 /**
  * Class EventsHandlers
@@ -115,66 +114,57 @@ class EventsHandlers
         /* @var LoyaltyService $loyaltyService */
         $loyaltyService = ServiceLocator::get(LoyaltyService::class);
         $retailCrmEvent = new RetailCrmEvent();
-        
         /** @var Order $order */
-        $order = $event->getParameter("ENTITY");
+        $order = $event->getParameter('ENTITY');
         
         try {
-            if (
-                isset($_POST['calculate-items-input'], $_POST['loyalty-discount-input'])
-                && !isset($_POST['bonus-input'], $_POST['available-bonuses'])
-                && $event->getParameter("IS_NEW")
-                && ConfigProvider::getLoyaltyProgramStatus() === 'Y'
-            ) {
-                $retailCrmEvent->orderSave($order);
+            $isBonusInput             = isset($_POST['bonus-input'], $_POST['available-bonuses']);
+            /** @var bool $isNewOrder */
+            $isNewOrder               = $event->getParameter('IS_NEW');
+            $isLoyaltyOn              = ConfigProvider::getLoyaltyProgramStatus() === 'Y';
+            $isDataForLoyaltyDiscount = isset($_POST['calculate-items-input'], $_POST['loyalty-discount-input']);
+            $isBonusesIssetAndAvailable = $isBonusInput
+                && (int)$_POST['available-bonuses'] >= (int)$_POST['bonus-input'];
     
-                $loyaltyService->saveBonusAndDiscountValue($order, (float) $_POST['loyalty-discount-input']);
-                
-                $basketItems = $order->getBasket();
-                
-                /** @var BasketItemBase $basketItem */
-                foreach ($basketItems as $key => $basketItem) {
-                    $calculateItemsInput = json_decode(htmlspecialchars_decode($_POST['calculate-items-input']), true);
-                    
-                    $basketItem->setField('CUSTOM_PRICE', 'Y');
-                    $basketItem->setField('DISCOUNT_PRICE',
-                        $basketItem->getBasePrice() - $calculateItemsInput[$basketItem->getId()]['SUM_NUM']);
-                    $basketItem->setField('PRICE', $calculateItemsInput[$basketItem->getId()]['SUM_NUM']);
-                }
-                
-                $order->save();
-            }
-    
-            if (
-                isset($_POST['bonus-input'], $_POST['available-bonuses'])
-                && (int)$_POST['available-bonuses'] >= (int)$_POST['bonus-input']
-                && $event->getParameter("IS_NEW")
-                && ConfigProvider::getLoyaltyProgramStatus() === 'Y'
-            ) {
+            if ($isNewOrder && $isLoyaltyOn) {
                 // TODO: Replace old call with a new one.
                 $retailCrmEvent->orderSave($order);
-    
-                $loyaltyBonusMsg = $loyaltyService->applyBonusesInOrder(
-                    $order,
-                    (int)$_POST['bonus-input'],
-                    isset($_POST['charge-rate']) ? htmlspecialchars(trim($_POST['charge-rate'])) : 1
-                );
-                
-                if (isset($_POST['loyalty-discount-input'])) {
-                    $loyaltyService->saveBonusAndDiscountValue($order, (float) $_POST['loyalty-discount-input'], $loyaltyBonusMsg);
-                }
-            }
+        
+                //Если есть бонусы
+                if ($isBonusesIssetAndAvailable) {
+                    $loyaltyBonusMsg = $loyaltyService->applyBonusesInOrder(
+                        $order,
+                        (int)$_POST['bonus-input'],
+                        isset($_POST['charge-rate']) ? htmlspecialchars(trim($_POST['charge-rate'])) : 1
+                    );
             
-            //Если пл выключена, просто отправляет заказ в CRM
-            if (
-                ConfigProvider::getLoyaltyProgramStatus() !== 'Y'
-                || LoyaltyService::getLoyaltyPersonalStatus() !== true
-            ) {
-                $loyaltyService->saveBonusAndDiscountValue($order);
-                // TODO: Replace old call with a new one.
-                $retailCrmEvent->orderSave($order);
+                    $discountInput = isset($_POST['loyalty-discount-input']) ? (float)$_POST['loyalty-discount-input'] : 0;
+                    $loyaltyService->saveBonusAndDiscountInfo($order->getPropertyCollection(),
+                        $discountInput,
+                        $loyaltyBonusMsg
+                    );
+                }
+        
+                //Если бонусов нет, но скидка по ПЛ есть
+                if ($isDataForLoyaltyDiscount && !$isBonusInput) {
+                    $loyaltyService->saveBonusAndDiscountInfo($order->getPropertyCollection(),
+                        (float)$_POST['loyalty-discount-input']
+                    );
+            
+                    /** @var BasketItemBase $basketItem */
+                    foreach ($order->getBasket() as $key => $basketItem) {
+                        $calculateItemsInput = json_decode(htmlspecialchars_decode($_POST['calculate-items-input']), true);
+                
+                        $basketItem->setField('CUSTOM_PRICE', 'Y');
+                        $basketItem->setField('DISCOUNT_PRICE',
+                            $basketItem->getBasePrice() - $calculateItemsInput[$basketItem->getId()]['SUM_NUM']);
+                        $basketItem->setField('PRICE', $calculateItemsInput[$basketItem->getId()]['SUM_NUM']);
+                    }
+            
+                    $order->save();
+                }
             }
-        } catch (\Throwable $exception) {
+        } catch (Throwable $exception) {
             AddMessage2Log(GetMessage('CAN_NOT_SAVE_ORDER') . $exception->getMessage());
         }
     }
