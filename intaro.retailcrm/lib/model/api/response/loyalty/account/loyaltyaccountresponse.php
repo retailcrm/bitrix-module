@@ -13,6 +13,7 @@ namespace Intaro\RetailCrm\Model\Api\Response\Loyalty\Account;
 
 use Intaro\RetailCrm\Component\Json\Mapping;
 use Intaro\RetailCrm\Model\Api\Response\AbstractApiResponseModel;
+use Intaro\RetailCrm\Model\Api\PaginationResponse;
 
 /**
  * Class LoyaltyAccountResponse
@@ -24,7 +25,7 @@ class LoyaltyAccountResponse extends AbstractApiResponseModel
     /**
      * Результат запроса (успешный/неуспешный)
      *
-     * @var boolean $success
+     * @var bool $success
      *
      * @Mapping\Type("boolean")
      * @Mapping\SerializedName("success")
@@ -34,7 +35,7 @@ class LoyaltyAccountResponse extends AbstractApiResponseModel
     /**
      * @var \Intaro\RetailCrm\Model\Api\PaginationResponse
      *
-     * @Mapping\Type("\Intaro\RetailCrm\Model\Api\PaginationResponse")
+     * @Mapping\Type(PaginationResponse::class)
      * @Mapping\SerializedName("pagination")
      */
     public $pagination;

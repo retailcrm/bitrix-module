@@ -11,8 +11,9 @@
  */
 namespace Intaro\RetailCrm\Model\Api;
 
-use DateTime;
 use Intaro\RetailCrm\Component\Json\Mapping;
+use Intaro\RetailCrm\Model\Api\Address;
+use Intaro\RetailCrm\Model\Api\Company;
 
 /**
  * Class Customer
@@ -24,7 +25,7 @@ class Customer extends AbstractApiModel
     /**
      * ID [обычного|корпоративного] клиента
      *
-     * @var integer $id
+     * @var int $id
      *
      * @Mapping\Type("integer")
      * @Mapping\SerializedName("id")
@@ -184,7 +185,7 @@ class Customer extends AbstractApiModel
     /**
      * ID менеджера, к которому привязан клиент
      *
-     * @var integer $managerId
+     * @var int $managerId
      *
      * @Mapping\Type("integer")
      * @Mapping\SerializedName("managerId")
@@ -196,7 +197,7 @@ class Customer extends AbstractApiModel
      *
      * @var Contragent $contragent
      *
-     * @Mapping\Type("Intaro\RetailCrm\Model\Api\Contragent")
+     * @Mapping\Type(Contragent::class)
      * @Mapping\SerializedName("contragent")
      */
     public $contragent;
@@ -236,7 +237,7 @@ class Customer extends AbstractApiModel
      *
      * @var Address $address
      *
-     * @Mapping\Type("Intaro\RetailCrm\Model\Api\Address")
+     * @Mapping\Type(Address::class)
      * @Mapping\SerializedName("address")
      */
     public $address;
@@ -256,7 +257,7 @@ class Customer extends AbstractApiModel
      *
      * @var Address $mainAddress
      *
-     * @Mapping\Type("Intaro\RetailCrm\Model\Api\Address")
+     * @Mapping\Type(Address::class)
      * @Mapping\SerializedName("mainAddress")
      */
     public $mainAddress;
@@ -276,7 +277,7 @@ class Customer extends AbstractApiModel
      *
      * @var Company $mainCompany
      *
-     * @Mapping\Type("Intaro\RetailCrm\Model\Api\Company")
+     * @Mapping\Type(Company::class)
      * @Mapping\SerializedName("mainCompany")
      */
     public $mainCompany;
@@ -296,7 +297,7 @@ class Customer extends AbstractApiModel
      *
      * @var CustomerContact $mainCustomerContact
      *
-     * @Mapping\Type("Intaro\RetailCrm\Model\Api\CustomerContact")
+     * @Mapping\Type(CustomerContact::class)
      * @Mapping\SerializedName("mainCustomerContact")
      */
     public $mainCustomerContact;
