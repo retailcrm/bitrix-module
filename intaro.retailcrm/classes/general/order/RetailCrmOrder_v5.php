@@ -321,7 +321,7 @@ class RetailCrmOrder
         Logger::getInstance()->write($order, 'orderSend');
     
     
-        if (ConfigProvider::getLoyaltyProgramStatus() === 'Y' && LoyaltyService::getLoyaltyPersonalStatus() !== true) {
+        if (ConfigProvider::getLoyaltyProgramStatus() === 'Y' && LoyaltyService::getLoyaltyPersonalStatus() === true) {
             $order['privilegeType'] = 'loyalty_level';
         }
     
