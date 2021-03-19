@@ -131,7 +131,7 @@ class LoyaltyAccount
     /**
      * @var \Intaro\RetailCrm\Model\Api\LoyaltyLevel
      *
-     * @Mapping\Type(LoyaltyLevel::class)
+     * @Mapping\Type("\Intaro\RetailCrm\Model\Api\LoyaltyLevel")
      * @Mapping\SerializedName("level")
      */
     public $loyaltyLevel;
@@ -139,7 +139,7 @@ class LoyaltyAccount
     /**
      * @var \Intaro\RetailCrm\Model\Api\Customer
      *
-     * @Mapping\Type(Customer::class)
+     * @Mapping\Type("\Intaro\RetailCrm\Model\Api\Customer")
      * @Mapping\SerializedName("customer")
      */
     public $customer;

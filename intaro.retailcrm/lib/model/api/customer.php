@@ -12,8 +12,6 @@
 namespace Intaro\RetailCrm\Model\Api;
 
 use Intaro\RetailCrm\Component\Json\Mapping;
-use Intaro\RetailCrm\Model\Api\Address;
-use Intaro\RetailCrm\Model\Api\Company;
 
 /**
  * Class Customer
@@ -197,7 +195,7 @@ class Customer extends AbstractApiModel
      *
      * @var Contragent $contragent
      *
-     * @Mapping\Type(Contragent::class)
+     * @Mapping\Type("Intaro\RetailCrm\Model\Api\Contragent")
      * @Mapping\SerializedName("contragent")
      */
     public $contragent;
@@ -237,7 +235,7 @@ class Customer extends AbstractApiModel
      *
      * @var Address $address
      *
-     * @Mapping\Type(Address::class)
+     * @Mapping\Type("Intaro\RetailCrm\Model\Api\Address")
      * @Mapping\SerializedName("address")
      */
     public $address;
@@ -257,7 +255,7 @@ class Customer extends AbstractApiModel
      *
      * @var Address $mainAddress
      *
-     * @Mapping\Type(Address::class)
+     * @Mapping\Type("Intaro\RetailCrm\Model\Api\Address")
      * @Mapping\SerializedName("mainAddress")
      */
     public $mainAddress;
@@ -277,7 +275,7 @@ class Customer extends AbstractApiModel
      *
      * @var Company $mainCompany
      *
-     * @Mapping\Type(Company::class)
+     * @Mapping\Type("Intaro\RetailCrm\Model\Api\Company")
      * @Mapping\SerializedName("mainCompany")
      */
     public $mainCompany;
@@ -297,7 +295,7 @@ class Customer extends AbstractApiModel
      *
      * @var CustomerContact $mainCustomerContact
      *
-     * @Mapping\Type(CustomerContact::class)
+     * @Mapping\Type("Intaro\RetailCrm\Model\Api\CustomerContact")
      * @Mapping\SerializedName("mainCustomerContact")
      */
     public $mainCustomerContact;

@@ -35,7 +35,7 @@ class LoyaltyAccountResponse extends AbstractApiResponseModel
     /**
      * @var \Intaro\RetailCrm\Model\Api\PaginationResponse
      *
-     * @Mapping\Type(PaginationResponse::class)
+     * @Mapping\Type("\Intaro\RetailCrm\Model\Api\PaginationResponse")
      * @Mapping\SerializedName("pagination")
      */
     public $pagination;
