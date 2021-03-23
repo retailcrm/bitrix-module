@@ -80,10 +80,9 @@ class RetailCrmHistory
             $GLOBALS['RETAIL_CRM_HISTORY'] = true;
 
             $newUser = new CUser();
+            $customerBuilder = new CustomerBuilder();
 
             foreach ($customers as $customer) {
-                $customerBuilder = new CustomerBuilder();
-                
                 if (function_exists('retailCrmBeforeCustomerSave')) {
                     $newResCustomer = retailCrmBeforeCustomerSave($customer);
                     if (is_array($newResCustomer) && !empty($newResCustomer)) {
@@ -192,6 +191,8 @@ class RetailCrmHistory
                         retailCrmAfterCustomerSave($customer);
                     }
                 }
+                
+                $customerBuilder->reset();
             }
 
             $GLOBALS['RETAIL_CRM_HISTORY'] = false;

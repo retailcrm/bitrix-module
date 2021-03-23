@@ -68,4 +68,9 @@ class AddressBuilder extends AbstractBuilder implements RetailcrmBuilderInterfac
 
         return $this;
     }
+    
+    public function reset(): void
+    {
+        $this->customerAddress = new CustomerAddress();
+    }
 }
