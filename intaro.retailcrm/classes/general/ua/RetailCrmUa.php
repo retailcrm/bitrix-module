@@ -29,11 +29,17 @@ class RetailCrmUa
                 ga('set', 'dimension" . $uaKeys[SITE_ID]['INDEX'] . "', getRetailCRMCookie('_ga'));
                 ga('send', 'pageview');
             </script>";
+
+            /**
+             * В $_GET['ORDER_ID'] содержится номер заказа, а не его ID.
+             * Номер может совпадать с ID заказа, но это необязательное условие,
+             * то есть они могут отличаться.
+             */
             if (isset($_GET['ORDER_ID'])) {
                 CModule::IncludeModule("sale");
                 $order = \Bitrix\Sale\Order::loadByAccountNumber($_GET['ORDER_ID']);
 
-                if ($order !== null) {
+                if ($order instanceof \Bitrix\Sale\Order) {
                     $arOrder = array(
                         'ID' => $order->getId(),
                         'PRICE' => $order->getPrice(),
