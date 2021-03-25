@@ -142,6 +142,8 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../classes/general/RestNormalizer.php');
         include($this->INSTALL_PATH . '/../classes/general/Logger.php');
         include($this->INSTALL_PATH . '/../classes/general/services/RetailCrmService.php');
+        include($this->INSTALL_PATH . '/../classes/general/RetailcrmConfigProvider.php');
+        include($this->INSTALL_PATH . '/../classes/general/RetailcrmConstants.php');
 
         $version = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_VERSION, 0);
         if ($version == 'v4') {
@@ -387,6 +389,15 @@ class intaro_retailcrm extends CModule
                     $delivTypes[$delivType['code']] = $delivType;
                 }
             }
+
+            RetailcrmConfigProvider::setIntegrationDelivery(
+                RetailCrmService::selectIntegrationElements($arResult['deliveryTypesList'], 'delivery')
+            );
+
+            RetailcrmConfigProvider::setIntegrationPaymentTypes(
+                RetailCrmService::selectIntegrationElements($arResult['paymentTypesList'], 'payment')
+            );
+
             $arResult['deliveryTypesList'] = $delivTypes;
 
             //bitrix personTypes

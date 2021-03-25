@@ -74,4 +74,36 @@ class RetailCrmService
        
         return $order;
     }
+
+    /**
+     * @param array $data
+     * @param string $type
+     *
+     * @return array
+     */
+    public static function selectIntegrationElements(array $data, string $type): array
+    {
+        $result = [];
+
+        switch ($type) {
+            case 'payment':
+                foreach ($data as $elem) {
+                    if (!empty($elem['integrationModule'])) {
+                        $result[] = $elem['code'];
+                    }
+                }
+                break;
+            case 'delivery':
+                foreach ($data as $elem) {
+                    if (!empty($elem['integrationCode'])) {
+                        $result[$elem['code']] = $elem['integrationCode'];
+                    }
+                }
+                break;
+            default:
+                break;
+        }
+
+        return $result;
+    }
 }

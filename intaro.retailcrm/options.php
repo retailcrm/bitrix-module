@@ -559,24 +559,11 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         echo CAdminMessage::ShowMessage(GetMessage('ERR_' . $e->getCode()));
     }
 
-    $integrationPayment = [];
+    $integrationPayments = RetailCrmService::selectIntegrationElements($arResult['paymentTypesList'], 'payment');
+    $integrationDeliveries = RetailCrmService::selectIntegrationElements($arResult['deliveryTypesList'], 'delivery');
 
-    foreach ($arResult['paymentTypesList'] as $typePayment) {
-        if (isset($typePayment['integrationModule'])) {
-            $integrationPayment[] = $typePayment['code'];
-        }
-    }
-
-    $deliveryIntegrationCode = [];
-
-    foreach ($arResult['deliveryTypesList'] as $deliveryType) {
-        if ($deliveryType['active'] === true) {
-            $deliveryIntegrationCode[$deliveryType['code']] = $deliveryType['integrationCode'];
-        }
-    }
-
-    RetailcrmConfigProvider::setIntegrationPaymentTypes($integrationPayment);
-    RetailcrmConfigProvider::setIntegrationDelivery($deliveryIntegrationCode);
+    RetailcrmConfigProvider::setIntegrationPaymentTypes($integrationPayments);
+    RetailcrmConfigProvider::setIntegrationDelivery($integrationDeliveries);
 
     COption::SetOptionString($mid, $CRM_ADDRESS_OPTIONS, serialize($addressDatailOptions));
     COption::SetOptionString($mid, $CRM_SITES_LIST, serialize($siteListArr));
