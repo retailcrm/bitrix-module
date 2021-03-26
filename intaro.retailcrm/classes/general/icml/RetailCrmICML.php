@@ -380,7 +380,6 @@ class RetailCrmICML
             // Compile products to array
             $products[$product['ID']]           = $product;
             $products[$product['ID']]['offers'] = [];
-        
         }
 
         unset($product);
