@@ -116,20 +116,20 @@ class EventsHandlers
         $retailCrmEvent = new RetailCrmEvent();
         /** @var Order $order */
         $order = $event->getParameter('ENTITY');
-        
+    
         try {
-            $isBonusInput             = isset($_POST['bonus-input'], $_POST['available-bonuses']);
+            // TODO: Replace old call with a new one.
+            $retailCrmEvent->orderSave($order);
+        
+            $isBonusInput = isset($_POST['bonus-input'], $_POST['available-bonuses']);
             /** @var bool $isNewOrder */
-            $isNewOrder               = $event->getParameter('IS_NEW');
-            $isLoyaltyOn              = ConfigProvider::getLoyaltyProgramStatus() === 'Y';
-            $isDataForLoyaltyDiscount = isset($_POST['calculate-items-input'], $_POST['loyalty-discount-input']);
+            $isNewOrder                 = $event->getParameter('IS_NEW');
+            $isLoyaltyOn                = ConfigProvider::getLoyaltyProgramStatus() === 'Y';
+            $isDataForLoyaltyDiscount   = isset($_POST['calculate-items-input'], $_POST['loyalty-discount-input']);
             $isBonusesIssetAndAvailable = $isBonusInput
                 && (int)$_POST['available-bonuses'] >= (int)$_POST['bonus-input'];
-    
-            if ($isNewOrder && $isLoyaltyOn) {
-                // TODO: Replace old call with a new one.
-                $retailCrmEvent->orderSave($order);
         
+            if ($isNewOrder && $isLoyaltyOn) {
                 //Если есть бонусы
                 if ($isBonusesIssetAndAvailable) {
                     $loyaltyBonusMsg = $loyaltyService->applyBonusesInOrder(
@@ -137,30 +137,30 @@ class EventsHandlers
                         (int)$_POST['bonus-input'],
                         isset($_POST['charge-rate']) ? htmlspecialchars(trim($_POST['charge-rate'])) : 1
                     );
-            
+                
                     $discountInput = isset($_POST['loyalty-discount-input']) ? (float)$_POST['loyalty-discount-input'] : 0;
                     $loyaltyService->saveBonusAndDiscountInfo($order->getPropertyCollection(),
                         $discountInput,
                         $loyaltyBonusMsg
                     );
                 }
-        
+            
                 //Если бонусов нет, но скидка по ПЛ есть
                 if ($isDataForLoyaltyDiscount && !$isBonusInput) {
                     $loyaltyService->saveBonusAndDiscountInfo($order->getPropertyCollection(),
                         (float)$_POST['loyalty-discount-input']
                     );
-            
+                
                     /** @var BasketItemBase $basketItem */
                     foreach ($order->getBasket() as $key => $basketItem) {
                         $calculateItemsInput = json_decode(htmlspecialchars_decode($_POST['calculate-items-input']), true);
-                
+                    
                         $basketItem->setField('CUSTOM_PRICE', 'Y');
                         $basketItem->setField('DISCOUNT_PRICE',
                             $basketItem->getBasePrice() - $calculateItemsInput[$basketItem->getId()]['SUM_NUM']);
                         $basketItem->setField('PRICE', $calculateItemsInput[$basketItem->getId()]['SUM_NUM']);
                     }
-            
+                
                     $order->save();
                 }
             }
