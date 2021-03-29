@@ -154,11 +154,15 @@ class EventsHandlers
                     /** @var BasketItemBase $basketItem */
                     foreach ($order->getBasket() as $key => $basketItem) {
                         $calculateItemsInput = json_decode(htmlspecialchars_decode($_POST['calculate-items-input']), true);
-                    
+                        $calculateItemPosition = $calculateItemsInput[$basketItem->getId()];
+                        $calculateItem = $calculateItemPosition['SUM_NUM'] / $calculateItemPosition['QUANTITY'];
+                        
                         $basketItem->setField('CUSTOM_PRICE', 'Y');
                         $basketItem->setField('DISCOUNT_PRICE',
-                            $basketItem->getBasePrice() - $calculateItemsInput[$basketItem->getId()]['SUM_NUM']);
-                        $basketItem->setField('PRICE', $calculateItemsInput[$basketItem->getId()]['SUM_NUM']);
+                            $basketItem->getBasePrice() - $calculateItem
+                        );
+                        
+                        $basketItem->setField('PRICE', $calculateItem);
                     }
                 
                     $order->save();
