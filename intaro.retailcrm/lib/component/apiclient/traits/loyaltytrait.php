@@ -39,7 +39,7 @@ trait LoyaltyTrait
      * @param \Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusRequest $request
      * @return \Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusResponse|null
      */
-    protected function checkStatusPlVerification(SmsVerificationStatusRequest $request): ?SmsVerificationStatusResponse
+    public function checkStatusPlVerification(SmsVerificationStatusRequest $request): ?SmsVerificationStatusResponse
     {
         $serialized = Serializer::serializeArray($request);
         $response   = $this->client->checkStatusPlVerification($serialized, $request->checkId);

@@ -325,16 +325,18 @@ class LoyaltyService
                 foreach ($basketItems as $key => $basketItem) {
                     $loyaltyHl               = new OrderLoyaltyData();
                     /** @var OrderProduct $item */
-                    $item                    = $response->order->items[$key];
-                    $totalLoyaltyDiscount    = ($rate * $item->bonusesChargeTotal) / $basketItem->getQuantity();
-                    $loyaltyHl->orderId      = $orderId;
-                    $loyaltyHl->itemId       = $basketItem->getId();
-                    $loyaltyHl->cashDiscount = $totalLoyaltyDiscount;
-                    $loyaltyHl->bonusRate    = $rate;
-                    $loyaltyHl->bonusCount   = $item->bonusesChargeTotal;
-                    $loyaltyHl->isDebited    = $isDebited;
-                    $loyaltyHl->checkId      = $checkId;
-                    $loyaltyHl->quantity     = $basketItem->getQuantity();
+                    $item                            = $response->order->items[$key];
+                    $totalLoyaltyDiscount            = ($rate * $item->bonusesChargeTotal) / $basketItem->getQuantity();
+                    $loyaltyHl->orderId              = $orderId;
+                    $loyaltyHl->itemId               = $basketItem->getProductId();
+                    $loyaltyHl->basketItemPositionId = $basketItem->getId();
+                    $loyaltyHl->bonusCashDiscount    = $totalLoyaltyDiscount;
+                    $loyaltyHl->defaultDiscount      = '-';//TODO передавать сюда значение
+                    $loyaltyHl->bonusRate            = $rate;
+                    $loyaltyHl->bonusCount           = $item->bonusesChargeTotal;
+                    $loyaltyHl->isDebited            = $isDebited;
+                    $loyaltyHl->checkId              = $checkId;
+                    $loyaltyHl->quantity             = $basketItem->getQuantity();
         
                     $bonusInfo .= 'id '
                         . $basketItem->getId()
@@ -650,22 +652,26 @@ class LoyaltyService
                     $jsDataTotal['ORDER_PRICE_FORMATED'] = $jsDataTotal['ORDER_PRICE']
                         . ' ' . GetMessage($orderArResult['BASE_LANG_CURRENCY']);
                      
-                    $i = 0;
+                    $iterator = 0;
                     
                     foreach ($orderArResult['JS_DATA']['GRID']['ROWS'] as $key => &$item) {
                         $item['data']['SUM_NUM'] = $orderArResult['CALCULATE_ITEMS_INPUT'][$key]['SUM_NUM']
                             = $item['data']['SUM_BASE']
-                            - ($calculate->order->items[$i]->discountTotal
+                            - ($calculate->order->items[$iterator]->discountTotal
                             * $item['data']['QUANTITY']);
                         
                         $orderArResult['CALCULATE_ITEMS_INPUT'][$key]['QUANTITY'] = $item['data']['QUANTITY'];
+                        $orderArResult['CALCULATE_ITEMS_INPUT'][$key]['SHOP_ITEM_DISCOUNT']
+                            = round($item['data']['BASE_PRICE'] - $item['data']['PRICE'], 2);
+                        $orderArResult['CALCULATE_ITEMS_INPUT'][$key]['BASE_PRICE']
+                            = $item['data']['BASE_PRICE'];
                         
                         $item['data']['SUM'] = $item['data']['SUM_NUM']
                             . ' ' . GetMessage($orderArResult['BASE_LANG_CURRENCY']);
     
-                        $item['data']['DISCOUNT_PRICE'] = $calculate->order->items[$i]->discountTotal;
-                        
-                        $i++;
+                        $item['data']['DISCOUNT_PRICE'] = $calculate->order->items[$iterator]->discountTotal;
+    
+                        $iterator++;
                     }
                 
                     unset($item);

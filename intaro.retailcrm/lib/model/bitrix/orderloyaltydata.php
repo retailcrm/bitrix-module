@@ -54,14 +54,14 @@ class OrderLoyaltyData
     public $itemId;
     
     /**
-     * Скидка в денежном выражении
+     * Бонусная скидка ПЛ в денежном выражении
      *
-     * @var integer
+     * @var int $bonusCashDiscount
      *
      * @Mapping\Type("integer")
-     * @Mapping\SerializedName("UF_CASH_DISCOUNT")
+     * @Mapping\SerializedName("UF_BONUS_CASH")
      */
-    public $cashDiscount;
+    public $bonusCashDiscount;
     
     /**
      * Курс бонуса
@@ -113,4 +113,26 @@ class OrderLoyaltyData
      * @Mapping\SerializedName("UF_QUANTITY")
      */
     public $quantity;
+    
+    /**
+     * ID позиции товара в корзине
+     *
+     * @var int $basketItemPositionId
+     *
+     * @Mapping\Type("integer")
+     * @Mapping\SerializedName("UF_ITEM_POS_ID")
+     */
+    public $basketItemPositionId;
+    
+    /**
+     * Размер обычной скидки на единицу товара в позиции
+     *
+     * Эта скидка определяется в правилах работы с корзиной
+     *
+     * @var float $defaultDiscount
+     *
+     * @Mapping\Type("float")
+     * @Mapping\SerializedName("UF_DEF_DISCOUNT")
+     */
+    public $defaultDiscount;
 }

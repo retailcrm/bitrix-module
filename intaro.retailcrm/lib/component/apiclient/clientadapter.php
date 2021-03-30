@@ -15,6 +15,7 @@ use Intaro\RetailCrm\Component\ApiClient\Traits\BaseClientTrait;
 use Intaro\RetailCrm\Component\ApiClient\Traits\CustomersCorporateTrait;
 use Intaro\RetailCrm\Component\ApiClient\Traits\CustomersTrait;
 use Intaro\RetailCrm\Component\ApiClient\Traits\LoyaltyTrait;
+use Intaro\RetailCrm\Component\ApiClient\Traits\OrderTrait;
 use Intaro\RetailCrm\Component\Json\Deserializer;
 use Intaro\RetailCrm\Model\Api\Response\Settings\CredentialsResponse;
 use RetailCrm\Response\ApiResponse;
@@ -32,12 +33,10 @@ use RetailCrm\Response\ApiResponse;
  * @method ApiResponse usersGet($id)
  * @method ApiResponse ordersList(array $filter = array(), $page = null, $limit = null)
  * @method ApiResponse customersCorporateNotesDelete($id)
- * @method ApiResponse ordersCreate(array $order, $site = null)
  * @method ApiResponse ordersFixExternalIds(array $ids)
  * @method ApiResponse ordersStatuses(array $ids = array(), array $externalIds = array())
  * @method ApiResponse ordersUpload(array $orders, $site = null)
  * @method ApiResponse ordersGet($id, $by = 'externalId', $site = null)
- * @method ApiResponse ordersEdit(array $order, $by = 'externalId', $site = null)
  * @method ApiResponse ordersHistory(array $filter = array(), $page = null, $limit = null)
  * @method ApiResponse ordersCombine($order, $resultOrder, $technique = 'ours')
  * @method ApiResponse ordersPaymentCreate(array $payment, $site = null)
@@ -108,6 +107,7 @@ class ClientAdapter
     use CustomersTrait;
     use CustomersCorporateTrait;
     use LoyaltyTrait;
+    use OrderTrait;
 
     /** @var string */
     public const ID = 'id';

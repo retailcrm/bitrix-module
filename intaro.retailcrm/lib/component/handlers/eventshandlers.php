@@ -15,16 +15,20 @@ namespace Intaro\RetailCrm\Component\Handlers;
 IncludeModuleLangFile(__FILE__);
 
 use Bitrix\Main\Diag\Debug;
+use \Intaro\RetailCrm\Model\Api\Order\Order as IntaroOrder;
 use Bitrix\Main\Event;
 use Bitrix\Main\HttpRequest;
 use Bitrix\Sale\BasketItemBase;
 use Bitrix\Sale\Order;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\ServiceLocator;
+use Intaro\RetailCrm\Model\Api\Response\OrdersCreateResponse;
+use Intaro\RetailCrm\Model\Api\Response\OrdersEditResponse;
 use Intaro\RetailCrm\Repository\UserRepository;
 use Intaro\RetailCrm\Service\LoyaltyService;
 use Intaro\RetailCrm\Service\LpUserAccountService;
 use Intaro\RetailCrm\Service\CustomerService;
+use RetailCrm\Response\ApiResponse;
 use RetailCrmEvent;
 use Throwable;
 
@@ -111,6 +115,10 @@ class EventsHandlers
      */
     public function OnSaleOrderSavedHandler(Event $event): void
     {
+        if ($GLOBALS['DISABLE_SALE_HANDLER'] === true) {
+            return;
+        }
+        
         /* @var LoyaltyService $loyaltyService */
         $loyaltyService = ServiceLocator::get(LoyaltyService::class);
         $retailCrmEvent = new RetailCrmEvent();
@@ -119,7 +127,11 @@ class EventsHandlers
     
         try {
             // TODO: Replace old call with a new one.
-            $retailCrmEvent->orderSave($order);
+            $result = $retailCrmEvent->orderSave($order);
+            
+            if ($result instanceof OrdersEditResponse || $result instanceof OrdersCreateResponse) {
+                //TODO получить размеры  скидки по ПЛ (если это вообще нужно)
+            }
         
             $isBonusInput = isset($_POST['bonus-input'], $_POST['available-bonuses']);
             /** @var bool $isNewOrder */
@@ -130,6 +142,8 @@ class EventsHandlers
                 && (int)$_POST['available-bonuses'] >= (int)$_POST['bonus-input'];
         
             if ($isNewOrder && $isLoyaltyOn) {
+                $GLOBALS['DISABLE_SALE_HANDLER'] = true;
+                
                 //Если есть бонусы
                 if ($isBonusesIssetAndAvailable) {
                     $loyaltyBonusMsg = $loyaltyService->applyBonusesInOrder(
@@ -167,6 +181,8 @@ class EventsHandlers
                 
                     $order->save();
                 }
+                
+                $GLOBALS['DISABLE_SALE_HANDLER'] = false;
             }
         } catch (Throwable $exception) {
             AddMessage2Log(GetMessage('CAN_NOT_SAVE_ORDER') . $exception->getMessage());

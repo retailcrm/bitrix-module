@@ -1,13 +1,16 @@
 <?php
 
+use Bitrix\Main\Context;
+use Bitrix\Sale\Location\Name\LocationTable;
 use Intaro\RetailCrm\Component\ConfigProvider;
+use Intaro\RetailCrm\Component\Factory\ClientFactory;
+use Intaro\RetailCrm\Model\Api\Order\Order;
 use Intaro\RetailCrm\Service\LoyaltyService;
 
 IncludeModuleLangFile(__FILE__);
 class RetailCrmOrder
 {
     /**
-     *
      * Creates order or returns order for mass upload
      *
      * @param array  $arFields
@@ -17,7 +20,7 @@ class RetailCrmOrder
      * @param null   $site
      * @param string $methodApi
      *
-     * @return boolean
+     * @return array|false|\Intaro\RetailCrm\Model\Api\Response\OrdersCreateResponse|\Intaro\RetailCrm\Model\Api\Response\OrdersEditResponse|null
      * @throws \Bitrix\Main\ArgumentException
      * @throws \Bitrix\Main\ObjectPropertyException
      * @throws \Bitrix\Main\SystemException
@@ -25,35 +28,33 @@ class RetailCrmOrder
     public static function orderSend($arFields, $api, $arParams, $send = false, $site = null, $methodApi = 'ordersEdit')
     {
         if (!$api || empty($arParams)) { // add cond to check $arParams
-            return false;
+            return null;
         }
         if (empty($arFields)) {
             RCrmActions::eventLog('RetailCrmOrder::orderSend', 'empty($arFields)', 'incorrect order');
-            return false;
+            return null;
         }
 
         $dimensionsSetting = RetailcrmConfigProvider::getOrderDimensions();
         $currency = RetailcrmConfigProvider::getCurrencyOrDefault();
         $optionCorpClient = RetailcrmConfigProvider::getCorporateClientStatus();
-
-        $order = array(
+    
+        $order = [
             'number'          => $arFields['NUMBER'],
             'externalId'      => $arFields['ID'],
             'createdAt'       => $arFields['DATE_INSERT'],
             'customer'        => isset($arParams['customerCorporate'])
-                ? array('id' => $arParams['customerCorporate']['id'])
-                : array('externalId' => $arFields['USER_ID']),
-            'orderType'       => isset($arParams['optionsOrderTypes'][$arFields['PERSON_TYPE_ID']]) ?
-                $arParams['optionsOrderTypes'][$arFields['PERSON_TYPE_ID']] : '',
-            'status'          => isset($arParams['optionsPayStatuses'][$arFields['STATUS_ID']]) ?
-                $arParams['optionsPayStatuses'][$arFields['STATUS_ID']] : '',
+                ? ['id' => $arParams['customerCorporate']['id']]
+                : ['externalId' => $arFields['USER_ID']],
+            'orderType'       => $arParams['optionsOrderTypes'][$arFields['PERSON_TYPE_ID']] ?? '',
+            'status'          => $arParams['optionsPayStatuses'][$arFields['STATUS_ID']] ?? '',
             'customerComment' => $arFields['USER_DESCRIPTION'],
             'managerComment'  => $arFields['COMMENTS'],
-            'delivery' => array(
-                'cost' => $arFields['PRICE_DELIVERY']
-            ),
-        );
-
+            'delivery'        => [
+                'cost' => $arFields['PRICE_DELIVERY'],
+            ],
+        ];
+    
         if (isset($arParams['contactExId'])) {
             $order['contact']['externalId'] = $arParams['contactExId'];
         }
@@ -76,7 +77,7 @@ class RetailCrmOrder
 
         $order['contragent']['contragentType'] = $arParams['optionsContragentType'][$arFields['PERSON_TYPE_ID']];
 
-        if ($methodApi == 'ordersEdit') {
+        if ($methodApi === 'ordersEdit') {
             $order['discountManualAmount'] = 0;
             $order['discountManualPercent'] = 0;
         }
@@ -109,7 +110,7 @@ class RetailCrmOrder
                     if ($prop['TYPE'] == 'LOCATION' && isset($prop['VALUE'][0]) && $prop['VALUE'][0] != '') {
                         $arLoc = \Bitrix\Sale\Location\LocationTable::getByCode($prop['VALUE'][0])->fetch();
                         if ($arLoc) {
-                            $server = \Bitrix\Main\Context::getCurrent()->getServer()->getDocumentRoot();
+                            $server = Context::getCurrent()->getServer()->getDocumentRoot();
                             $countrys = array();
 
                             if (file_exists($server . '/bitrix/modules/intaro.retailcrm/classes/general/config/country.xml')) {
@@ -119,12 +120,12 @@ class RetailCrmOrder
                                 }
                             }
 
-                            $location = \Bitrix\Sale\Location\Name\LocationTable::getList(array(
+                            $location = LocationTable::getList(array(
                                 'filter' => array('=LOCATION_ID' => $arLoc['CITY_ID'], 'LANGUAGE_ID' => 'ru')
                             ))->fetch();
 
                             if (count($countrys) > 0) {
-                                $countryOrder = \Bitrix\Sale\Location\Name\LocationTable::getList(array(
+                                $countryOrder = LocationTable::getList(array(
                                     'filter' => array('=LOCATION_ID' => $arLoc['COUNTRY_ID'], 'LANGUAGE_ID' => 'ru')
                                 ))->fetch();
                                 if(isset($countrys[$countryOrder['NAME']])){
@@ -159,7 +160,7 @@ class RetailCrmOrder
             $response = RCrmActions::apiMethod($api, 'ordersGet', __METHOD__, $order['externalId']);
             if (isset($response['order'])) {
                 foreach ($response['order']['items'] as $k => $item) {
-                    $externalId = $k ."_". $item['offer']['externalId'];
+                    $externalId = $k . '_' . $item['offer']['externalId'];
                     $orderItems[$externalId] = $item;
                 }
             }
@@ -168,7 +169,7 @@ class RetailCrmOrder
         //basket
         foreach ($arFields['BASKET'] as $position => $product) {
             $itemId = null;
-            $externalId = $position . "_" . $product['PRODUCT_ID'];
+            $externalId = $position . '_' . $product['PRODUCT_ID'];
 
             if (isset($orderItems[$externalId])) { //update
                 $externalIds = $orderItems[$externalId]['externalIds'];
@@ -176,34 +177,34 @@ class RetailCrmOrder
 
                 $key = array_search("bitrix", array_column($externalIds, 'code'));
                 if ($externalIds[$key]['code'] == "bitrix") {
-                    $externalIds[$key] = array(
+                    $externalIds[$key] = [
                         'code' => 'bitrix',
                         'value' => $externalId,
-                    );
+                    ];
                 } else {
-                    $externalIds[] = array(
+                    $externalIds[] = [
                         'code' => 'bitrix',
                         'value' => $externalId,
-                    );
+                    ];
                 }
             } else { //create
-                $externalIds = array(
-                    array(
+                $externalIds = [
+                    [
                         'code' => 'bitrix',
                         'value' => $externalId,
-                    )
-                );
+                    ]
+                ];
             }
 
-            $item = array(
+            $item = [
                 'externalIds'      => $externalIds,
                 'quantity'        => $product['QUANTITY'],
-                'offer'           => array(
+                'offer'           => [
                     'externalId' => $product['PRODUCT_ID'],
                     'xmlId' => $product['PRODUCT_XML_ID']
-                ),
+                ],
                 'productName'     => $product['NAME']
-            );
+            ];
 
             if (isset($itemId)) {
                 $item['id'] = $itemId;
@@ -257,12 +258,12 @@ class RetailCrmOrder
         }
 
         //payments
-        $payments = array();
+        $payments = [];
         foreach ($arFields['PAYMENTS'] as $payment) {
             if (!empty($payment['PAY_SYSTEM_ID']) && isset($arParams['optionsPayTypes'][$payment['PAY_SYSTEM_ID']])) {
-                $pm = array(
+                $pm = [
                     'type' => $arParams['optionsPayTypes'][$payment['PAY_SYSTEM_ID']]
-                );
+                ];
 
                 if (!empty($payment['ID'])) {
                     $pm['externalId'] = RCrmActions::generatePaymentExternalId($payment['ID']);
@@ -307,7 +308,7 @@ class RetailCrmOrder
                     'OrderID = ' . $arFields['ID'] . '. Sending canceled after retailCrmBeforeOrderSend'
                 );
 
-                return false;
+                return null;
             }
         }
 
@@ -325,12 +326,19 @@ class RetailCrmOrder
             $order['privilegeType'] = 'loyalty_level';
         }
     
+        /** @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter $client */
+        $client = ClientFactory::createClientAdapter();
+    
         if ($send) {
-            if (!RCrmActions::apiMethod($api, $methodApi, __METHOD__, $order, $site)) {
-                return false;
+            if ($methodApi === 'ordersCreate') {
+                return $client->createOrder($order, $site);
+            }
+        
+            if ($methodApi === 'ordersEdit') {
+                return $client->editOrder($order, $site);
             }
         }
-
+        
         return $order;
     }
 

@@ -822,7 +822,7 @@ class ApiClient
      *
      * @return ApiResponse
      */
-    public function ordersCreate(array $order, $site = null)
+    public function ordersCreate(array $order, $site = null): ApiResponse
     {
         if (!count($order)) {
             throw new \InvalidArgumentException(
@@ -833,7 +833,7 @@ class ApiClient
         return $this->client->makeRequest(
             '/orders/create',
             Client::METHOD_POST,
-            $this->fillSite($site, array('order' => json_encode($order)))
+            $this->fillSite($site, ['order' => json_encode($order)])
         );
     }
 
@@ -958,7 +958,7 @@ class ApiClient
      *
      * @return ApiResponse
      */
-    public function ordersEdit(array $order, $by = 'externalId', $site = null)
+    public function ordersEdit(array $order, $by = 'externalId', $site = null): ApiResponse
     {
         if (!count($order)) {
             throw new \InvalidArgumentException(
@@ -979,7 +979,7 @@ class ApiClient
             Client::METHOD_POST,
             $this->fillSite(
                 $site,
-                array('order' => json_encode($order), 'by' => $by)
+                ['order' => json_encode($order), 'by' => $by]
             )
         );
     }

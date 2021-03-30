@@ -236,22 +236,58 @@ class OrderLoyaltyDataService
                     'en' => Loc::GetMessage('UF_ITEM_ID', null, 'en'),
                 ],
             ],
-            'UF_CASH_DISCOUNT' => [
+            'UF_ITEM_POS_ID'       => [
                 'ENTITY_ID'         => $ufObject,
-                'FIELD_NAME'        => 'UF_CASH_DISCOUNT',
+                'FIELD_NAME'        => 'UF_ITEM_POS_ID',
+                'USER_TYPE_ID'      => 'integer',
+                'MANDATORY'         => 'Y',
+                'EDIT_FORM_LABEL'   => [
+                    'ru' => Loc::GetMessage('UF_ITEM_POS_ID', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_ITEM_POS_ID', null, 'en'),
+                ],
+                'LIST_COLUMN_LABEL' => [
+                    'ru' => Loc::GetMessage('UF_ITEM_POS_ID', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_ITEM_POS_ID', null, 'en'),
+                ],
+                'LIST_FILTER_LABEL' => [
+                    'ru' => Loc::GetMessage('UF_ITEM_POS_ID', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_ITEM_POS_ID', null, 'en'),
+                ],
+            ],
+            'UF_DEF_DISCOUNT'       => [
+                'ENTITY_ID'         => $ufObject,
+                'FIELD_NAME'        => 'UF_DEF_DISCOUNT',
+                'USER_TYPE_ID'      => 'integer',
+                'MANDATORY'         => 'Y',
+                'EDIT_FORM_LABEL'   => [
+                    'ru' => Loc::GetMessage('UF_DEF_DISCOUNT', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_DEF_DISCOUNT', null, 'en'),
+                ],
+                'LIST_COLUMN_LABEL' => [
+                    'ru' => Loc::GetMessage('UF_DEF_DISCOUNT', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_DEF_DISCOUNT', null, 'en'),
+                ],
+                'LIST_FILTER_LABEL' => [
+                    'ru' => Loc::GetMessage('UF_DEF_DISCOUNT', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_DEF_DISCOUNT', null, 'en'),
+                ],
+            ],
+            'UF_BONUS_CASH' => [
+                'ENTITY_ID'         => $ufObject,
+                'FIELD_NAME'        => 'UF_BONUS_CASH',
                 'USER_TYPE_ID'      => 'integer',
                 'MANDATORY'         => 'N',
                 'EDIT_FORM_LABEL'   => [
-                    'ru' => Loc::GetMessage('UF_CASH_DISCOUNT', null, 'ru'),
-                    'en' => Loc::GetMessage('UF_CASH_DISCOUNT', null, 'en'),
+                    'ru' => Loc::GetMessage('UF_BONUS_CASH', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_BONUS_CASH', null, 'en'),
                 ],
                 'LIST_COLUMN_LABEL' => [
-                    'ru' => Loc::GetMessage('UF_CASH_DISCOUNT', null, 'ru'),
-                    'en' => Loc::GetMessage('UF_CASH_DISCOUNT', null, 'en'),
+                    'ru' => Loc::GetMessage('UF_BONUS_CASH', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_BONUS_CASH', null, 'en'),
                 ],
                 'LIST_FILTER_LABEL' => [
-                    'ru' => Loc::GetMessage('UF_CASH_DISCOUNT', null, 'ru'),
-                    'en' => Loc::GetMessage('UF_CASH_DISCOUNT', null, 'en'),
+                    'ru' => Loc::GetMessage('UF_BONUS_CASH', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_BONUS_CASH', null, 'en'),
                 ],
             ],
             'UF_BONUS_RATE'    => [

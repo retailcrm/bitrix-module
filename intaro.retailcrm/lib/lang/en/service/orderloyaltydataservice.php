@@ -2,7 +2,9 @@
 $MESS ['LP_ORDER_GROUP_NAME'] = 'Loyalty program';
 $MESS ['UF_ORDER_ID']         = 'Order ID';
 $MESS ['UF_ITEM_ID']          = 'Product ID';
-$MESS ['UF_CASH_DISCOUNT']    = 'Сash discount';
+$MESS ['UF_DEF_DISCOUNT']     = 'Shop discount';
+$MESS ['UF_ITEM_POS_ID']      = 'Basket position ID';
+$MESS ['UF_BONUS_CASH']       = 'Bonus cash discount';
 $MESS ['UF_BONUS_RATE']       = 'Bonus rate';
 $MESS ['UF_BONUS_COUNT']      = 'Bonuses for writing off';
 $MESS ['UF_CHECK_ID']         = 'Verification code ID';
