@@ -54,6 +54,16 @@ class OrderLoyaltyData
     public $itemId;
     
     /**
+     * Название товара
+     *
+     * @var string
+     *
+     * @Mapping\Type("string")
+     * @Mapping\SerializedName("UF_NAME")
+     */
+    public $name;
+    
+    /**
      * Бонусная скидка ПЛ в денежном выражении
      *
      * @var int $bonusCashDiscount

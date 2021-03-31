@@ -23,6 +23,7 @@ use CUserTypeEntity;
 use Exception;
 use Bitrix\Highloadblock as HL;
 use Intaro\RetailCrm\Component\ConfigProvider;
+use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Model\Bitrix\OrderLoyaltyData;
 use Intaro\RetailCrm\Repository\OrderLoyaltyDataRepository;
 use Intaro\RetailCrm\Repository\OrderPropsRepository;
@@ -173,8 +174,8 @@ class OrderLoyaltyDataService
     public static function createLoyaltyHlBlock(): void
     {
         $result = HL\HighloadBlockTable::add([
-            'NAME'       => 'LoyaltyProgramRetailCRM',
-            'TABLE_NAME' => 'loyalty_program',
+            'NAME'       => Constants::HL_LOYALTY_CODE,
+            'TABLE_NAME' => Constants::HL_LOYALTY_TABLE_NAME,
         ]);
         
         $arLangs = [
@@ -254,11 +255,29 @@ class OrderLoyaltyDataService
                     'en' => Loc::GetMessage('UF_ITEM_POS_ID', null, 'en'),
                 ],
             ],
+            'UF_NAME'       => [
+                'ENTITY_ID'         => $ufObject,
+                'FIELD_NAME'        => 'UF_NAME',
+                'USER_TYPE_ID'      => 'string',
+                'MANDATORY'         => 'N',
+                'EDIT_FORM_LABEL'   => [
+                    'ru' => Loc::GetMessage('UF_NAME', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_NAME', null, 'en'),
+                ],
+                'LIST_COLUMN_LABEL' => [
+                    'ru' => Loc::GetMessage('UF_NAME', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_NAME', null, 'en'),
+                ],
+                'LIST_FILTER_LABEL' => [
+                    'ru' => Loc::GetMessage('UF_NAME', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_NAME', null, 'en'),
+                ],
+            ],
             'UF_DEF_DISCOUNT'       => [
                 'ENTITY_ID'         => $ufObject,
                 'FIELD_NAME'        => 'UF_DEF_DISCOUNT',
-                'USER_TYPE_ID'      => 'integer',
-                'MANDATORY'         => 'Y',
+                'USER_TYPE_ID'      => 'double',
+                'MANDATORY'         => 'N',
                 'EDIT_FORM_LABEL'   => [
                     'ru' => Loc::GetMessage('UF_DEF_DISCOUNT', null, 'ru'),
                     'en' => Loc::GetMessage('UF_DEF_DISCOUNT', null, 'en'),
@@ -348,7 +367,7 @@ class OrderLoyaltyDataService
                 'ENTITY_ID'         => $ufObject,
                 'FIELD_NAME'        => 'UF_IS_DEBITED',
                 'USER_TYPE_ID'      => 'boolean',
-                'MANDATORY'         => 'Y',
+                'MANDATORY'         => 'N',
                 'EDIT_FORM_LABEL' => [
                     'ru' => Loc::GetMessage('UF_IS_DEBITED', null, 'ru'),
                     'en' => Loc::GetMessage('UF_IS_DEBITED', null, 'en'),

@@ -10,5 +10,6 @@ $MESS ['UF_BONUS_COUNT']      = 'Bonuses for writing off';
 $MESS ['UF_CHECK_ID']         = 'Verification code ID';
 $MESS ['UF_IS_DEBITED']       = 'Is debited';
 $MESS ['UF_QUANTITY']         = 'Quantity in the basket';
+$MESS ['UF_NAME']             = 'Product name';
 $MESS ['LP_BONUS_INFO']       = 'Bonuses info';
 $MESS ['LP_DISCOUNT_INFO']    = 'Loyalty discount';

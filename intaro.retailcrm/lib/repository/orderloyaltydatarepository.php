@@ -52,8 +52,8 @@ class OrderLoyaltyDataRepository extends AbstractRepository
             }
             
             return null;
-        } catch (LoaderException | SystemException | Exception $e) {
-            AddMessage2Log($e->getMessage());
+        } catch (LoaderException | SystemException | Exception $exception) {
+            AddMessage2Log($exception->getMessage());
         }
         
         return null;

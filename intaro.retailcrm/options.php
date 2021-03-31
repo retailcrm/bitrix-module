@@ -580,8 +580,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             if (empty($hlName)) {
                 OrderLoyaltyDataService::createLoyaltyHlBlock();
             }
-        } catch (LoaderException | SystemException $e) {
-            AddMessage2Log($e->getMessage());
+        } catch (LoaderException | SystemException $exception) {
+            AddMessage2Log($exception->getMessage());
         }
         
         ConfigProvider::setLoyaltyProgramStatus('Y');

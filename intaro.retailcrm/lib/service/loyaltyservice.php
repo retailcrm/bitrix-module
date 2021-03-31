@@ -20,7 +20,9 @@ use Bitrix\Main\Context;
 use Bitrix\Main\Loader;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
+use Bitrix\Sale\BasketBase;
 use Bitrix\Sale\BasketItemBase;
+use Bitrix\Sale\BasketItemCollection;
 use Bitrix\Sale\PropertyValueCollectionBase;
 use \DateTime;
 use Bitrix\Main\Web\Cookie;
@@ -278,76 +280,159 @@ class LoyaltyService
     }
     
     /**
-     * Добавляет оплату бонусами в заказ Битрикс
+     * Записывает данные о ПЛ в HL-блок
+     *
+     * @param OrderLoyaltyData[] $loyaltyHls
+     * @return void
+     */
+    public function saveLoyaltyInfoToHl(array $loyaltyHls): void
+    {
+        /** @var OrderLoyaltyDataService $hlService */
+        $hlService   = ServiceLocator::get(OrderLoyaltyDataService::class);
+        
+        foreach ($loyaltyHls as $loyaltyData){
+            $hlService->addDataInLoyaltyHl($loyaltyData);
+        }
+    }
+    
+    /**
+     * @param OrderLoyaltyData[] $loyaltyHls
+     * @return string
+     */
+    public function getLoyaltyMsgForOrderInfo(array $loyaltyHls): string
+    {
+        $bonusInfo = '';
+        
+        foreach ($loyaltyHls as $item) {
+            $bonusInfo .= 'id '
+                . $item->itemId
+                . ' ' . $item->name
+                . GetMessage('BONUS_MESSAGE')
+                . ($item->bonusRate * $item->bonusCount)
+                . GetMessage('RUB')
+                . "\n";
+        }
+        
+        return $bonusInfo;
+    }
+    
+    
+    /**
+     * Добавляет оплату бонусами в модель записи Hl-блока
+     *
+     * @param array              $calculateItemsInput
+     * @param OrderLoyaltyData[] $loyaltyHls
+     * @return array
+     */
+    public function addDiscountsToHl(array $calculateItemsInput, array $loyaltyHls): array
+    {
+        foreach ($loyaltyHls as $loyaltyHl){
+            $calculateItemsInput[$loyaltyHl->basketItemPositionId];
+            $loyaltyHl->defaultDiscount = $calculateItemsInput[$loyaltyHl->basketItemPositionId]['SHOP_ITEM_DISCOUNT'];
+        }
+        
+        return $loyaltyHls;
+    }
+    
+    /**
+     * Добавляет оплату бонусами в модель записи Hl-блока
+     *
+     * @param OrderLoyaltyData[]                                                           $loyaltyHls
+     * @param \Intaro\RetailCrm\Model\Api\Response\Order\Loyalty\OrderLoyaltyApplyResponse $response
+     * @param                                                                              $rate /курс бонуса к валюте
+     * @return array
+     */
+    public function addBonusesToHl(
+        array $loyaltyHls,
+        OrderLoyaltyApplyResponse $response,
+        $rate
+    ): array {
+    
+        $isDebited = false;
+        $checkId   = '';
+        
+        //если верификация необходима, но не пройдена
+        if (
+            isset($response->verification, $response->verification->checkId)
+            && !isset($response->verification->verifiedAt)
+        ) {
+            $isDebited = false;
+            $this->setSmsCookie('lpOrderBonusConfirm', $response->verification);
+            $checkId = $response->verification->checkId;
+        }
+    
+        //если верификация не нужна
+        if (!isset($response->verification)) {
+            $isDebited = true;
+        }
+        
+        foreach ($loyaltyHls as $key=>$loyaltyHl){
+            /** @var OrderProduct $item */
+            $item                            = $response->order->items[$key];
+            $loyaltyHl->bonusCashDiscount    = ($rate * $item->bonusesChargeTotal) / $loyaltyHl->quantity;
+            $loyaltyHl->bonusRate            = $rate;
+            $loyaltyHl->bonusCount           = $item->bonusesChargeTotal;
+            $loyaltyHl->isDebited            = $isDebited;
+            $loyaltyHl->checkId              = $checkId;
+        }
+        
+        return $loyaltyHls;
+    }
+    
+    /**
+     * Создает модели данных для HL и добавляет в них основные данные
+     *
+     * @param \Bitrix\Sale\Order $order
+     * @return array
+     */
+    public function addMainInfoToHl(Order $order): array
+    {
+        $loyaltyHls = [];
+        
+        try {
+            /** @var BasketItemBase $basketItem */
+            foreach ($order->getBasket() as $basketItem) {
+                $loyaltyHl = new OrderLoyaltyData();
+            
+                $loyaltyHl->orderId              = $order->getId();
+                $loyaltyHl->itemId               = $basketItem->getProductId();
+                $loyaltyHl->basketItemPositionId = $basketItem->getId();
+                $loyaltyHl->quantity             = $basketItem->getQuantity();
+                $loyaltyHl->name                 = $basketItem->getField('NAME');
+            
+                $loyaltyHls[] = $loyaltyHl;
+            }
+        } catch (Exception $exception) {
+            AddMessage2Log($exception->getMessage());
+        }
+       
+        return $loyaltyHls;
+    }
+    
+    /**
+     * Добавляет оплату бонусами в заказ Битрикс (устанавливает кастомные цены)
      *
      * @param \Bitrix\Sale\Order $order
      * @param                    $bonusCount /бонусная скидка в рублях
-     * @param                    $rate       /курс бонуса к валюте
-     * @return string
+     * @return \Intaro\RetailCrm\Model\Api\Response\Order\Loyalty\OrderLoyaltyApplyResponse|null
      */
-    public function applyBonusesInOrder(Order $order, $bonusCount, $rate): string
+    public function applyBonusesInOrder(Order $order, $bonusCount): ?OrderLoyaltyApplyResponse
     {
-        $bonusInfo = '';
         $orderId   = $order->getId();
         $response  = $this->sendBonusPayment($orderId, $bonusCount);
-        
-        Utils::handleErrors($response);
     
         if ($response->success) {
-            $isDebited = false;
-            $checkId   = '';
-            
-            //если верификация необходима, но не пройдена
-            if (
-                isset($response->verification, $response->verification->checkId)
-                && !isset($response->verification->verifiedAt)
-            ) {
-                $isDebited = false;
-                $this->setSmsCookie('lpOrderBonusConfirm', $response->verification);
-                $checkId = $response->verification->checkId;
-            }
-            
-            //если верификация не нужна
-            if (!isset($response->verification)) {
-                $isDebited = true;
-            }
-            
             try {
-                /** @var OrderLoyaltyDataService $hlService */
-                $hlService   = ServiceLocator::get(OrderLoyaltyDataService::class);
                 $basketItems = $order->getBasket();
                 
                 if ($basketItems === null) {
-                    return $bonusInfo;
+                    return null;
                 }
                 
                 /** @var BasketItemBase $basketItem */
                 foreach ($basketItems as $key => $basketItem) {
-                    $loyaltyHl               = new OrderLoyaltyData();
                     /** @var OrderProduct $item */
                     $item                            = $response->order->items[$key];
-                    $totalLoyaltyDiscount            = ($rate * $item->bonusesChargeTotal) / $basketItem->getQuantity();
-                    $loyaltyHl->orderId              = $orderId;
-                    $loyaltyHl->itemId               = $basketItem->getProductId();
-                    $loyaltyHl->basketItemPositionId = $basketItem->getId();
-                    $loyaltyHl->bonusCashDiscount    = $totalLoyaltyDiscount;
-                    $loyaltyHl->defaultDiscount      = '-';//TODO передавать сюда значение
-                    $loyaltyHl->bonusRate            = $rate;
-                    $loyaltyHl->bonusCount           = $item->bonusesChargeTotal;
-                    $loyaltyHl->isDebited            = $isDebited;
-                    $loyaltyHl->checkId              = $checkId;
-                    $loyaltyHl->quantity             = $basketItem->getQuantity();
-        
-                    $bonusInfo .= 'id '
-                        . $basketItem->getId()
-                        . ' ' . $basketItem->getField('NAME')
-                        . GetMessage('BONUS_MESSAGE')
-                        . ($rate * $item->bonusesChargeTotal)
-                        . GetMessage('RUB')
-                        . "\n";
-        
-                    $hlService->addDataInLoyaltyHl($loyaltyHl);
-        
                     $basePrice = $basketItem->getField('BASE_PRICE');
                     $basketItem->setField('CUSTOM_PRICE', 'Y');
                     $basketItem->setField('DISCOUNT_PRICE', $item->discountTotal);
@@ -356,12 +441,13 @@ class LoyaltyService
 
                 $order->save();
                 
-                return $bonusInfo;
+                return $response;
             } catch (Exception $exception) {
                 AddMessage2Log($exception->getMessage());
             }
         } else {
             Utils::handleErrors($response);
+            return null;
         }
     }
     
@@ -735,6 +821,53 @@ class LoyaltyService
                     AddMessage2Log($result->getErrorMessages());
                 }
             }
+        }
+    }
+    
+    /**
+     * Сохранение бонусов в заказе
+     *
+     * @param \Bitrix\Sale\Order $order
+     * @param OrderLoyaltyData[] $hlInfo
+     * @param int                $bonusInput
+     * @param int                $chargeRate
+     * @return \Intaro\RetailCrm\Model\Bitrix\OrderLoyaltyData[]
+     */
+    public function saveBonuses(Order $order, array $hlInfo, int $bonusInput, int $chargeRate): array
+    {
+        $bonusResponse = $this->applyBonusesInOrder($order, $bonusInput);
+        
+        if ($bonusResponse !== null) {
+            $hlInfo = $this->addBonusesToHl($hlInfo, $bonusResponse, $chargeRate);
+        }
+        
+        return $hlInfo;
+    }
+    
+    /**
+     * @param \Bitrix\Sale\Order $order
+     * @param array              $calculateItemsInput
+     */
+    public function saveDiscounts(Order $order, array $calculateItemsInput): void
+    {
+        try {
+            /** @var BasketItemBase $basketItem */
+            foreach ($order->getBasket() as $key => $basketItem) {
+                
+                $calculateItemPosition = $calculateItemsInput[$basketItem->getId()];
+                $calculateItem         = $calculateItemPosition['SUM_NUM'] / $calculateItemPosition['QUANTITY'];
+                
+                $basketItem->setField('CUSTOM_PRICE', 'Y');
+                $basketItem->setField('DISCOUNT_PRICE',
+                    $basketItem->getBasePrice() - $calculateItem
+                );
+                
+                $basketItem->setField('PRICE', $calculateItem);
+            }
+            
+            $order->save();
+        } catch (Exception $exception) {
+            AddMessage2Log($exception->getMessage());
         }
     }
     

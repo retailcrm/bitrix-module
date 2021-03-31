@@ -28,6 +28,7 @@ use Intaro\RetailCrm\Repository\UserRepository;
 use Intaro\RetailCrm\Service\LoyaltyService;
 use Intaro\RetailCrm\Service\LpUserAccountService;
 use Intaro\RetailCrm\Service\CustomerService;
+use Intaro\RetailCrm\Service\Utils;
 use RetailCrm\Response\ApiResponse;
 use RetailCrmEvent;
 use Throwable;
@@ -119,20 +120,16 @@ class EventsHandlers
             return;
         }
         
-        /* @var LoyaltyService $loyaltyService */
-        $loyaltyService = ServiceLocator::get(LoyaltyService::class);
-        $retailCrmEvent = new RetailCrmEvent();
-        /** @var Order $order */
-        $order = $event->getParameter('ENTITY');
-    
         try {
+            /* @var LoyaltyService $loyaltyService */
+            $loyaltyService = ServiceLocator::get(LoyaltyService::class);
+            $retailCrmEvent = new RetailCrmEvent();
+            /** @var Order $order */
+            $order = $event->getParameter('ENTITY');
+    
             // TODO: Replace old call with a new one.
-            $result = $retailCrmEvent->orderSave($order);
-            
-            if ($result instanceof OrdersEditResponse || $result instanceof OrdersCreateResponse) {
-                //TODO получить размеры  скидки по ПЛ (если это вообще нужно)
-            }
-        
+            $retailCrmEvent->orderSave($order);
+    
             $isBonusInput = isset($_POST['bonus-input'], $_POST['available-bonuses']);
             /** @var bool $isNewOrder */
             $isNewOrder                 = $event->getParameter('IS_NEW');
@@ -140,48 +137,46 @@ class EventsHandlers
             $isDataForLoyaltyDiscount   = isset($_POST['calculate-items-input'], $_POST['loyalty-discount-input']);
             $isBonusesIssetAndAvailable = $isBonusInput
                 && (int)$_POST['available-bonuses'] >= (int)$_POST['bonus-input'];
-        
+            
+            /** @var array $calculateItemsInput */
+            $calculateItemsInput        = $isDataForLoyaltyDiscount
+                ? json_decode(htmlspecialchars_decode($_POST['calculate-items-input']), true)
+                : [];
+    
             if ($isNewOrder && $isLoyaltyOn) {
                 $GLOBALS['DISABLE_SALE_HANDLER'] = true;
-                
+                $hlInfo                          = $loyaltyService->addMainInfoToHl($order);
+                $discountInput                   = isset($_POST['loyalty-discount-input'])
+                    ? (float)$_POST['loyalty-discount-input']
+                    : 0;
+                $loyaltyBonusMsg                 = '';
+        
                 //Если есть бонусы
                 if ($isBonusesIssetAndAvailable) {
-                    $loyaltyBonusMsg = $loyaltyService->applyBonusesInOrder(
+                    $hlInfo = $loyaltyService->saveBonuses(
                         $order,
+                        $hlInfo,
                         (int)$_POST['bonus-input'],
                         isset($_POST['charge-rate']) ? htmlspecialchars(trim($_POST['charge-rate'])) : 1
                     );
-                
-                    $discountInput = isset($_POST['loyalty-discount-input']) ? (float)$_POST['loyalty-discount-input'] : 0;
-                    $loyaltyService->saveBonusAndDiscountInfo($order->getPropertyCollection(),
-                        $discountInput,
-                        $loyaltyBonusMsg
-                    );
-                }
             
+                    $loyaltyBonusMsg = $loyaltyService->getLoyaltyMsgForOrderInfo($hlInfo);
+                }
+        
                 //Если бонусов нет, но скидка по ПЛ есть
                 if ($isDataForLoyaltyDiscount && !$isBonusInput) {
-                    $loyaltyService->saveBonusAndDiscountInfo($order->getPropertyCollection(),
-                        (float)$_POST['loyalty-discount-input']
-                    );
-                
-                    /** @var BasketItemBase $basketItem */
-                    foreach ($order->getBasket() as $key => $basketItem) {
-                        $calculateItemsInput = json_decode(htmlspecialchars_decode($_POST['calculate-items-input']), true);
-                        $calculateItemPosition = $calculateItemsInput[$basketItem->getId()];
-                        $calculateItem = $calculateItemPosition['SUM_NUM'] / $calculateItemPosition['QUANTITY'];
-                        
-                        $basketItem->setField('CUSTOM_PRICE', 'Y');
-                        $basketItem->setField('DISCOUNT_PRICE',
-                            $basketItem->getBasePrice() - $calculateItem
-                        );
-                        
-                        $basketItem->setField('PRICE', $calculateItem);
-                    }
-                
-                    $order->save();
+                    $loyaltyService->saveDiscounts($order, $calculateItemsInput);
                 }
+        
+                $loyaltyService->saveBonusAndDiscountInfo($order->getPropertyCollection(),
+                    $discountInput,
+                    $loyaltyBonusMsg
+                );
+        
+                $hlInfo = $loyaltyService->addDiscountsToHl($calculateItemsInput, $hlInfo);
                 
+                $loyaltyService->saveLoyaltyInfoToHl($hlInfo);
+        
                 $GLOBALS['DISABLE_SALE_HANDLER'] = false;
             }
         } catch (Throwable $exception) {
