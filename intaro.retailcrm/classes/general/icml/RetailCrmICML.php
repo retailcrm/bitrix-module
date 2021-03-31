@@ -761,7 +761,7 @@ class RetailCrmICML
         return $categories;
     }
 
-    private function buildProductQuery($iblockId)
+    protected function buildProductQuery($iblockId)
     {
         $arSelect = array(
             "ID",
@@ -792,7 +792,7 @@ class RetailCrmICML
         return $arSelect;
     }
 
-    private function buildOfferQuery($iblockId, $skuPropertyId)
+    protected function buildOfferQuery($iblockId, $skuPropertyId)
     {
         $arSelectOffer = array(
             'ID',
