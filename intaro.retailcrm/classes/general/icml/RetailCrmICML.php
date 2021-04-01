@@ -373,19 +373,18 @@ class RetailCrmICML
         $arFilter
     ) {
         $dbResProducts = CIBlockElement::GetList($order, $arFilter, false, false, $arSelect);
-
-        $products = array();
-
+    
+        $products = [];
+    
         while ($product = $dbResProducts->GetNext()) {
             // Compile products to array
-            $products[$product['ID']] = $product;
-            $products[$product['ID']]['offers'] = array();
-
+            $products[$product['ID']]           = $product;
+            $products[$product['ID']]['offers'] = [];
         }
 
         unset($product);
 
-        if (!empty($iblockOffer['IBLOCK_ID'])) {
+        if (!empty($iblockOffer['IBLOCK_ID']) && !empty($products)) {
             $arFilterOffer = array(
                 'IBLOCK_ID' => $iblockOffer['IBLOCK_ID'],
                 'PROPERTY_' . $iblockOffer['SKU_PROPERTY_ID'] => array_keys($products),
