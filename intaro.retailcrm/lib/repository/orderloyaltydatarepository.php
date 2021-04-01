@@ -91,10 +91,10 @@ class OrderLoyaltyDataRepository extends AbstractRepository
     }
     
     /**
-     * @param \Intaro\RetailCrm\Model\Bitrix\OrderLoyaltyData $product
+     * @param \Intaro\RetailCrm\Model\Bitrix\OrderLoyaltyData $position
      * @return bool
      */
-    public function edit(OrderLoyaltyData $product): bool
+    public function edit(OrderLoyaltyData $position): bool
     {
         try {
             $dataManager = Utils::getHlClassByName(Constants::HL_LOYALTY_CODE);
@@ -103,11 +103,11 @@ class OrderLoyaltyDataRepository extends AbstractRepository
                 return false;
             }
     
-            $productAr = Serializer::serializeArray($product, OrderLoyaltyData::class);
+            $productAr = Serializer::serializeArray($position, OrderLoyaltyData::class);
             
             unset($productAr['ID']);
             
-            $result = $dataManager::update($product->id, $productAr);
+            $result = $dataManager::update($position->id, $productAr);
             
             if ($result->isSuccess()) {
                 return true;
@@ -118,5 +118,36 @@ class OrderLoyaltyDataRepository extends AbstractRepository
         }
         
         return false;
+    }
+    
+    /**
+     * @param int $externalId
+     * @return float|null
+     */
+    public function getDefDiscountByProductPosition(int $externalId): ?float
+    {
+        try {
+            $dataManager = Utils::getHlClassByName(Constants::HL_LOYALTY_CODE);
+        
+            if ($dataManager === null) {
+                return null;
+            }
+        
+            $result = $dataManager::query()
+                ->setSelect(['UF_DEF_DISCOUNT'])
+                ->where([
+                    ['UF_ITEM_POS_ID', '=', $externalId]
+                ])
+            ->fetch();
+        
+            if ($result !== false) {
+                return (float) $result['UF_DEF_DISCOUNT'];
+            }
+        
+        } catch (LoaderException | SystemException | Exception $exception) {
+            AddMessage2Log($exception->getMessage());
+        }
+    
+        return null;
     }
 }

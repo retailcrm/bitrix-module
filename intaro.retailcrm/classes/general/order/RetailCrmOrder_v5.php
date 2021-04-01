@@ -4,6 +4,7 @@ use Bitrix\Main\Context;
 use Bitrix\Sale\Location\Name\LocationTable;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
+use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Model\Api\Order\Order;
 use Intaro\RetailCrm\Service\LoyaltyService;
 
@@ -156,27 +157,27 @@ class RetailCrmOrder
         $height = 0;
         $length = 0;
 
-        if ('ordersEdit' == $methodApi) {
+        if ('ordersEdit' === $methodApi) {
             $response = RCrmActions::apiMethod($api, 'ordersGet', __METHOD__, $order['externalId']);
             if (isset($response['order'])) {
-                foreach ($response['order']['items'] as $k => $item) {
-                    $externalId = $k . '_' . $item['offer']['externalId'];
-                    $orderItems[$externalId] = $item;
+                foreach ($response['order']['items'] as $item) {
+                    $responseExternalId = $item['externalIds'][0]['value'];
+                    $orderItems[$responseExternalId] = $item;
                 }
             }
         }
-
+    
         //basket
         foreach ($arFields['BASKET'] as $position => $product) {
             $itemId = null;
-            $externalId = $position . '_' . $product['PRODUCT_ID'];
-
+            $externalId = $product['ID'];
+            
             if (isset($orderItems[$externalId])) { //update
                 $externalIds = $orderItems[$externalId]['externalIds'];
-                $itemId = $orderItems[$externalId]['id'];
+                $itemId      = $orderItems[$externalId]['id'];
 
                 $key = array_search("bitrix", array_column($externalIds, 'code'));
-                if ($externalIds[$key]['code'] == "bitrix") {
+                if ($externalIds[$key]['code'] === 'bitrix') {
                     $externalIds[$key] = [
                         'code' => 'bitrix',
                         'value' => $externalId,
@@ -233,9 +234,16 @@ class RetailCrmOrder
             }
 
             $item['discountManualPercent'] = 0;
-            $item['discountManualAmount'] = $discount;
             $item['initialPrice'] = (double) $product['BASE_PRICE'];
-
+    
+            if ($methodApi === 'ordersEdit' && ConfigProvider::getLoyaltyProgramStatus() === 'Y') {
+                /** @var LoyaltyService $service */
+                $service                      = ServiceLocator::get(LoyaltyService::class);
+                $item['discountManualAmount'] = $service->getInitialDiscout((int)$externalId) ?? $discount;
+            } else {
+                $item['discountManualAmount'] = $discount;
+            }
+    
             $order['items'][] = $item;
 
             if ($send && $dimensionsSetting == 'Y') {

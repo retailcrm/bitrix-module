@@ -871,6 +871,17 @@ class LoyaltyService
         }
     }
     
+    /**
+     * @param int $externalId
+     * @return float|null
+     */
+    public function getInitialDiscout(int $externalId): ?float
+    {
+        $repository = new OrderLoyaltyDataRepository();
+        
+        return $repository->getDefDiscountByProductPosition($externalId);
+    }
+    
     
     /**
      * @param \Intaro\RetailCrm\Model\Bitrix\User $user
