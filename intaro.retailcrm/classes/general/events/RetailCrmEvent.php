@@ -1,7 +1,5 @@
 <?php
 
-use Bitrix\Main\Diag\Debug;
-
 /**
  * Class RetailCrmEvent
  */

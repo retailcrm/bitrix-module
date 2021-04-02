@@ -14,22 +14,15 @@ namespace Intaro\RetailCrm\Component\Handlers;
 
 IncludeModuleLangFile(__FILE__);
 
-use Bitrix\Main\Diag\Debug;
-use \Intaro\RetailCrm\Model\Api\Order\Order as IntaroOrder;
 use Bitrix\Main\Event;
 use Bitrix\Main\HttpRequest;
-use Bitrix\Sale\BasketItemBase;
 use Bitrix\Sale\Order;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\ServiceLocator;
-use Intaro\RetailCrm\Model\Api\Response\OrdersCreateResponse;
-use Intaro\RetailCrm\Model\Api\Response\OrdersEditResponse;
 use Intaro\RetailCrm\Repository\UserRepository;
 use Intaro\RetailCrm\Service\LoyaltyService;
 use Intaro\RetailCrm\Service\LpUserAccountService;
 use Intaro\RetailCrm\Service\CustomerService;
-use Intaro\RetailCrm\Service\Utils;
-use RetailCrm\Response\ApiResponse;
 use RetailCrmEvent;
 use Throwable;
 
@@ -168,7 +161,7 @@ class EventsHandlers
                     $loyaltyService->saveDiscounts($order, $calculateItemsInput);
                 }
         
-                $loyaltyService->saveBonusAndDiscountInfo($order->getPropertyCollection(),
+                $loyaltyService->saveBonusAndDiscToOrderProps($order->getPropertyCollection(),
                     $discountInput,
                     $loyaltyBonusMsg
                 );

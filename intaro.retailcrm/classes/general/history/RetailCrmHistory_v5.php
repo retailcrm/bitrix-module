@@ -10,6 +10,8 @@ use Bitrix\Sale\Internals\PaymentTable;
 use Bitrix\Sale\Location\Search\Finder;
 use Bitrix\Sale\Order;
 use Bitrix\Sale\OrderUserProperties;
+use Intaro\RetailCrm\Component\ServiceLocator;
+use Intaro\RetailCrm\Service\LoyaltyService;
 
 IncludeModuleLangFile(__FILE__);
 class RetailCrmHistory
@@ -241,8 +243,8 @@ class RetailCrmHistory
                 $orderH       = $orderHistory['history'] ?? [];
         
                 Logger::getInstance()->write($orderH, 'orderHistory');
-        
-                if (count($orderH) == 0) {
+
+                if (count($orderH) === 0) {
                     if ($orderHistory['history']['totalPageCount'] > $orderHistory['history']['currentPage']) {
                         $historyFilter['page'] = $orderHistory['history']['currentPage'] + 1;
                 
@@ -299,7 +301,9 @@ class RetailCrmHistory
                             }
                     
                             $newOrder->setField('CANCELED', 'Y');
+                            $GLOBALS['DISABLE_SALE_HANDLER'] = true;
                             $newOrder->save();
+                            $GLOBALS['DISABLE_SALE_HANDLER'] = false;
                         }
                 
                         continue;
@@ -623,7 +627,7 @@ class RetailCrmHistory
                         $nProps                = [];
                 
                         foreach ($propertyCollectionArr['properties'] as $orderProp) {
-                            if ($orderProp['ID'][0] == 'n') {
+                            if ($orderProp['ID'][0] === 'n') {
                                 $orderProp['ID'] = substr($orderProp['ID'], 1);
                                 $property        = $propertyCollection->getItemById($orderProp['ID']);
                         
@@ -1241,7 +1245,7 @@ class RetailCrmHistory
      *
      * @return array
      */
-    public static function search_array_by_value($array, $value)
+    public static function searchArrayByValue($array, $value)
     {
         $results = [];
         if (is_array($array)) {
@@ -1250,7 +1254,7 @@ class RetailCrmHistory
                 $results[] = $found;
             }
             foreach ($array as $subarray)
-                $results = array_merge($results, static::search_array_by_value($subarray, $value));
+                $results = array_merge($results, static::searchArrayByValue($subarray, $value));
         }
         return $results;
     }
@@ -1260,12 +1264,14 @@ class RetailCrmHistory
         $customerHistory = self::filterHistory($customerHistory, 'customer');
         $server = Context::getCurrent()->getServer()->getDocumentRoot();
         $fields = [];
+        
         if (file_exists($server . '/bitrix/modules/intaro.retailcrm/classes/general/config/objects.xml')) {
             $objects = simplexml_load_file($server . '/bitrix/modules/intaro.retailcrm/classes/general/config/objects.xml');
             foreach ($objects->fields->field as $object) {
                 $fields[(string)$object["group"]][(string)$object["id"]] = (string)$object;
             }
         }
+        
         $customers = [];
         foreach ($customerHistory as $change) {
             $change['customer'] = self::removeEmpty($change['customer']);
@@ -1331,16 +1337,21 @@ class RetailCrmHistory
             );
 
             foreach ($objects->fields->field as $object) {
-                $fields[(string)$object["group"]][(string)$object["id"]] = (string)$object;
+                $fields[(string)$object['group']][(string)$object['id']] = (string)$object;
             }
         }
 
-        $orders = array();
-
+        $orders = [];
+        $bonusesCharges = [];
+        
         foreach ($orderHistory as $change) {
+            if ($change['field'] === 'order_product.bonuses_charge') {
+                $bonusesCharges[$change['order']['externalId']][] = $change;
+            }
+            
             $change['order'] = self::removeEmpty($change['order']);
             if ($change['order']['items']) {
-                $items = array();
+                $items = [];
                 foreach ($change['order']['items'] as $item) {
                     if (isset($change['created'])) {
                         $item['create'] = 1;
@@ -1465,7 +1476,12 @@ class RetailCrmHistory
                 }
             }
         }
-
+    
+        /** @var LoyaltyService $service */
+        $service = ServiceLocator::get(LoyaltyService::class);
+    
+        $service->updateLoyaltyBonusHistory($bonusesCharges);
+        
         return $orders;
     }
     

@@ -67,15 +67,16 @@ class Constants
     public const CRM_ORDER_DIMENSIONS = 'order_dimensions';
     public const CANCEL_PROPERTY_CODE = 'INTAROCRM_IS_CANCELED';
     public const CRM_INTEGRATION_DELIVERY = 'integration_delivery';
-    public const CRM_SHIPMENT_DEDUCTED = 'shipment_deducted';
-    public const CORPORATE_CONTRAGENT_TYPE = 'legal-entity';
-    public const SEND_PAYMENT_AMOUNT = 'send_payment_amount';
-    public const CRM_ONLINE_CONSULTANT = 'online_consultant';
+    public const CRM_SHIPMENT_DEDUCTED        = 'shipment_deducted';
+    public const CORPORATE_CONTRAGENT_TYPE    = 'legal-entity';
+    public const SEND_PAYMENT_AMOUNT          = 'send_payment_amount';
+    public const CRM_ONLINE_CONSULTANT        = 'online_consultant';
     public const CRM_ONLINE_CONSULTANT_SCRIPT = 'online_consultant_script';
-    public const LOYALTY_PROGRAM_TOGGLE = 'loyalty_program_toggle';
-    public const CLIENT_ID              = 'client_id';
-    public const AGREEMENT_LOYALTY_PROGRAM      = 'agreement_loyalty_program';
-    public const AGREEMENT_PERSONAL_DATA        = 'agreement_personal_data';
-    public const HL_LOYALTY_CODE                = 'LoyaltyProgramRetailCRM';
-    public const HL_LOYALTY_TABLE_NAME          = 'loyalty_program';
+    public const LOYALTY_PROGRAM_TOGGLE       = 'loyalty_program_toggle';
+    public const CLIENT_ID                    = 'client_id';
+    public const AGREEMENT_LOYALTY_PROGRAM    = 'agreement_loyalty_program';
+    public const AGREEMENT_PERSONAL_DATA      = 'agreement_personal_data';
+    public const HL_LOYALTY_CODE              = 'LoyaltyProgramRetailCRM';
+    public const HL_LOYALTY_TABLE_NAME        = 'loyalty_program';
+    public const LP_BONUS_INFO                = 'LP_BONUS_INFO';
 }

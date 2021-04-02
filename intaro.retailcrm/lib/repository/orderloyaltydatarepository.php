@@ -11,8 +11,8 @@
  */
 namespace Intaro\RetailCrm\Repository;
 
-use Bitrix\Main\Diag\Debug;
-use Bitrix\Main\LoaderException;
+use Bitrix\Main\ArgumentException;
+use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
 use Exception;
 use Intaro\RetailCrm\Component\Constants;
@@ -29,15 +29,28 @@ use Intaro\RetailCrm\Service\Utils;
 class OrderLoyaltyDataRepository extends AbstractRepository
 {
     /**
+     * @var \Bitrix\Main\Entity\DataManager|string|null
+     */
+    private $dataManager;
+    
+    /**
+     * OrderLoyaltyDataRepository constructor.
+     * @throws \Bitrix\Main\LoaderException
+     * @throws \Bitrix\Main\SystemException
+     */
+    public function __construct()
+    {
+        $this->dataManager = Utils::getHlClassByName(Constants::HL_LOYALTY_CODE);
+    }
+   
+    /**
      * @param \Intaro\RetailCrm\Model\Bitrix\OrderLoyaltyData $loyaltyHl
      * @return int|null
      */
     public function add(OrderLoyaltyData $loyaltyHl): ?int
     {
         try {
-            $dataManager = Utils::getHlClassByName(Constants::HL_LOYALTY_CODE);
-            
-            if ($dataManager === null) {
+            if ($this->dataManager === null) {
                 return null;
             }
             
@@ -45,18 +58,43 @@ class OrderLoyaltyDataRepository extends AbstractRepository
             
             unset($result['ID']);
             
-            $result = $dataManager::add($result);
+            $result = $this->dataManager::add($result);
             
             if ($result->isSuccess()) {
                 return $result->getId();
             }
             
             return null;
-        } catch (LoaderException | SystemException | Exception $exception) {
+        } catch (Exception $exception) {
             AddMessage2Log($exception->getMessage());
         }
         
         return null;
+    }
+    
+    /**
+     * @param int $positionId
+     * @return \Intaro\RetailCrm\Model\Bitrix\OrderLoyaltyData|null
+     */
+    public function getOrderLpDataByPosition(int $positionId): ?OrderLoyaltyData
+    {
+        if ($this->dataManager === null) {
+            return null;
+        }
+    
+        try {
+            $product = $this->dataManager::query()
+                ->setSelect(['*'])
+                ->where('UF_ITEM_POS_ID', '=', $positionId)
+                ->fetch();
+            
+            /** @var OrderLoyaltyData $result */
+            $result = Deserializer::deserializeArray($product, OrderLoyaltyData::class);
+            
+            return $result;
+        } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
+            AddMessage2Log($exception->getMessage());
+        }
     }
     
     /**
@@ -66,13 +104,11 @@ class OrderLoyaltyDataRepository extends AbstractRepository
     public function getProductsByOrderId($orderId): ?array
     {
         try {
-            $dataManager = Utils::getHlClassByName(Constants::HL_LOYALTY_CODE);
-        
-            if ($dataManager === null) {
+            if ($this->dataManager === null) {
                 return null;
             }
         
-            $products = $dataManager::query()->setSelect(['*'])->where('UF_ORDER_ID', '=', $orderId)->fetch();
+            $products = $this->dataManager::query()->setSelect(['*'])->where('UF_ORDER_ID', '=', $orderId)->fetch();
         
             if ($products === false || count($products)) {
                 return null;
@@ -85,7 +121,7 @@ class OrderLoyaltyDataRepository extends AbstractRepository
             }
         
             return $result;
-        } catch (LoaderException | SystemException | Exception $exception) {
+        } catch (SystemException | Exception $exception) {
             AddMessage2Log($exception->getMessage());
         }
     }
@@ -97,9 +133,7 @@ class OrderLoyaltyDataRepository extends AbstractRepository
     public function edit(OrderLoyaltyData $position): bool
     {
         try {
-            $dataManager = Utils::getHlClassByName(Constants::HL_LOYALTY_CODE);
-    
-            if ($dataManager === null) {
+            if ($this->dataManager === null) {
                 return false;
             }
     
@@ -107,13 +141,13 @@ class OrderLoyaltyDataRepository extends AbstractRepository
             
             unset($productAr['ID']);
             
-            $result = $dataManager::update($position->id, $productAr);
+            $result = $this->dataManager::update($position->id, $productAr);
             
             if ($result->isSuccess()) {
                 return true;
             }
             
-        } catch (LoaderException | SystemException | Exception $exception) {
+        } catch (Exception $exception) {
             AddMessage2Log($exception->getMessage());
         }
         
@@ -127,13 +161,11 @@ class OrderLoyaltyDataRepository extends AbstractRepository
     public function getDefDiscountByProductPosition(int $externalId): ?float
     {
         try {
-            $dataManager = Utils::getHlClassByName(Constants::HL_LOYALTY_CODE);
-        
-            if ($dataManager === null) {
+            if ($this->dataManager === null) {
                 return null;
             }
         
-            $result = $dataManager::query()
+            $result = $this->dataManager::query()
                 ->setSelect(['UF_DEF_DISCOUNT'])
                 ->where([
                     ['UF_ITEM_POS_ID', '=', $externalId]
@@ -144,7 +176,7 @@ class OrderLoyaltyDataRepository extends AbstractRepository
                 return (float) $result['UF_DEF_DISCOUNT'];
             }
         
-        } catch (LoaderException | SystemException | Exception $exception) {
+        } catch (SystemException | Exception $exception) {
             AddMessage2Log($exception->getMessage());
         }
     

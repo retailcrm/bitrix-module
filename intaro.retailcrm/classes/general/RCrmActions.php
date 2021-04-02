@@ -213,7 +213,7 @@ class RCrmActions
      */
     public static function orderAgent()
     {
-        if (COption::GetOptionString('main', 'agents_use_crontab', 'N') != 'N') {
+        if (COption::GetOptionString('main', 'agents_use_crontab', 'N') !== 'N') {
             define('NO_AGENT_CHECK', true);
         }
 

@@ -20,9 +20,10 @@ use Bitrix\Main\Context;
 use Bitrix\Main\Loader;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
-use Bitrix\Sale\BasketBase;
 use Bitrix\Sale\BasketItemBase;
-use Bitrix\Sale\BasketItemCollection;
+use Bitrix\Sale\Internals\OrderPropsTable;
+use Bitrix\Sale\Internals\OrderPropsValueTable;
+use Bitrix\Sale\PropertyValue;
 use Bitrix\Sale\PropertyValueCollectionBase;
 use \DateTime;
 use Bitrix\Main\Web\Cookie;
@@ -30,6 +31,7 @@ use Bitrix\Sale\Order;
 use CUser;
 use Exception;
 use Intaro\RetailCrm\Component\ConfigProvider;
+use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
 use Intaro\RetailCrm\Component\Json\Deserializer;
 use Intaro\RetailCrm\Component\Json\Serializer;
@@ -49,6 +51,7 @@ use Intaro\RetailCrm\Model\Api\SerializedOrderReference;
 use Intaro\RetailCrm\Model\Api\SerializedRelationCustomer;
 use Intaro\RetailCrm\Model\Api\SmsVerification;
 use Intaro\RetailCrm\Model\Bitrix\OrderLoyaltyData;
+use Intaro\RetailCrm\Model\Bitrix\OrderProps;
 use Intaro\RetailCrm\Model\Bitrix\SmsCookie;
 use Intaro\RetailCrm\Model\Bitrix\User;
 use Intaro\RetailCrm\Model\Bitrix\UserLoyaltyData;
@@ -309,6 +312,7 @@ class LoyaltyService
                 . ' ' . $item->name
                 . GetMessage('BONUS_MESSAGE')
                 . ($item->bonusRate * $item->bonusCount)
+                . ' '
                 . GetMessage('RUB')
                 . "\n";
         }
@@ -791,41 +795,83 @@ class LoyaltyService
     }
     
     /**
-     * Добавляет информацию о списанных бонусах и предоставленных скидках в св-ва заказа
+     * Добавляет информацию о списанных бонусах и скидках программы лояльности в св-ва заказа
      *
      * @param \Bitrix\Sale\PropertyValueCollectionBase $props
      * @param float                                    $loyaltyDiscountInput
      * @param string                                   $loyaltyBonusMsg
-     * @throws \Bitrix\Main\ArgumentOutOfRangeException
-     * @throws \Bitrix\Main\NotImplementedException
      */
-    public function saveBonusAndDiscountInfo(
+    public function saveBonusAndDiscToOrderProps(
         PropertyValueCollectionBase $props,
         float $loyaltyDiscountInput = 0,
-        string $loyaltyBonusMsg = '-'
+        string $loyaltyBonusMsg = ''
     ): void {
         /** @var \Bitrix\Sale\PropertyValue $prop */
         foreach ($props as $prop) {
             if ($prop->getField('CODE') === 'LP_DISCOUNT_INFO') {
-                $result = $prop->setField('VALUE', $loyaltyDiscountInput .' '. GetMessage('RUB'));
-    
-                if (!$result->isSuccess()) {
-                    AddMessage2Log($result->getErrorMessages());
-                }
+                $this->saveLpDiscountToOrderProp($prop, $loyaltyDiscountInput);
             }
-            
-            if ($prop->getField('CODE') === 'LP_BONUS_INFO') {
-                $result = $prop->setField('VALUE', $loyaltyBonusMsg);
     
-                if (!$result->isSuccess()) {
-                    AddMessage2Log($result->getErrorMessages());
-                }
+            if ($prop->getField('CODE') === 'LP_BONUS_INFO') {
+                $this->saveLpBonusesToOrderProp($prop, $loyaltyBonusMsg);
             }
         }
     }
     
     /**
-     * Сохранение бонусов в заказе
+     * @param \Bitrix\Sale\PropertyValue $prop
+     * @param string                     $loyaltyBonusMsg
+     */
+    public function saveLpBonusesToOrderProp(PropertyValue $prop, string $loyaltyBonusMsg): void
+    {
+        if ($loyaltyBonusMsg === '') {
+            return;
+        }
+    
+        $oldValue = $prop->getValue();
+        $oldValue = empty($oldValue) ? '' : $oldValue . "; \n";
+    
+        try {
+            $result = $prop->setField('VALUE',
+                $oldValue . date('m.d.y H:i') . ' ' . $loyaltyBonusMsg
+            );
+            
+            if (!$result->isSuccess()) {
+                AddMessage2Log($result->getErrorMessages());
+            }
+        } catch (Exception $exception) {
+            AddMessage2Log($exception->getMessage());
+        }
+    }
+    
+    /**
+     * @param \Bitrix\Sale\PropertyValue $prop
+     * @param                            $loyaltyDiscountInput
+     */
+    public function saveLpDiscountToOrderProp(PropertyValue $prop, float $loyaltyDiscountInput): void
+    {
+        if ((int)$loyaltyDiscountInput === 0) {
+            return;
+        }
+        
+        $oldValue = $prop->getValue();
+        $oldValue = empty($oldValue) ? '' : $oldValue . "; \n";
+        
+        try {
+            $result = $prop->setField('VALUE',
+                $oldValue . date('m.d.y H:i') . $loyaltyDiscountInput . ' ' . GetMessage('RUB')
+            );
+            
+            if (!$result->isSuccess()) {
+                AddMessage2Log($result->getErrorMessages());
+            }
+        } catch (Exception $exception) {
+            AddMessage2Log($exception->getMessage());
+        }
+    }
+    
+    /**
+     * Сохранение бонусов при оформлении заказа в заказе
      *
      * @param \Bitrix\Sale\Order $order
      * @param OrderLoyaltyData[] $hlInfo
@@ -875,13 +921,91 @@ class LoyaltyService
      * @param int $externalId
      * @return float|null
      */
-    public function getInitialDiscout(int $externalId): ?float
+    public function getInitialDiscount(int $externalId): ?float
     {
         $repository = new OrderLoyaltyDataRepository();
         
         return $repository->getDefDiscountByProductPosition($externalId);
     }
     
+    /**
+     * @param array $bonusesChanges
+     */
+    public function updateLoyaltyBonusHistory(array $bonusesChanges): void
+    {
+        //TODO реализация этого функционала находится на обсуждении.
+        //TODO возможно, следует дописать обновление в HL блоке, а не только в самом заказе
+        
+        if (count($bonusesChanges) === 0) {
+            return;
+        }
+        
+        $repository = new OrderLoyaltyDataRepository();
+        
+        try {
+            foreach ($bonusesChanges as $orderId => $orderEvents) {
+                $newValue = '';
+                
+                $oldField = OrderPropsValueTable::query()
+                    ->setSelect(['ID', 'VALUE'])
+                    ->where([
+                        ['ORDER_ID', '=', $orderId],
+                        ['CODE', '=', Constants::LP_BONUS_INFO],
+                    ])
+                    ->fetch();
+                
+                foreach ($orderEvents as $event) {
+                    $loyaltyData = $repository->getOrderLpDataByPosition($event['item']['externalIds'][0]['value']);
+                    
+                    if ($loyaltyData === null) {
+                        return;
+                    }
+                    
+                    $newValue .= date('m.d.y H:i')
+                        . ' '
+                        . $loyaltyData->itemId
+                        . ' '
+                        . $loyaltyData->name
+                        . ': '
+                        . $event['newValue']
+                        . ' '
+                        . GetMessage('BONUSES')
+                        . "; \n";
+                }
+                
+                if ($oldField) {
+                    OrderPropsValueTable::update($oldField['ID'], ['fields' => ['VALUE' => $newValue]]);
+                } else {
+                    $order = Order::load($event['order']['externalId']);
+                    
+                    if ($order) {
+                        $personType = $order->getPersonTypeId();
+                        $order->setField('LP_BONUS_INFO', $newValue);
+                        /** @var OrderProps $bonusProperty */
+                        $bonusProperty = OrderPropsTable::query()
+                            ->setSelect(['ID'])
+                            ->where([
+                                ['PERSON_TYPE_ID', '=', $personType],
+                                ['CODE', '=', Constants::LP_BONUS_INFO],
+                            ])
+                            ->fetchObject();
+                        
+                        OrderPropsValueTable::add([
+                            'fields' => [
+                                'ORDER_ID'       => $event['order']['externalId'],
+                                'ORDER_PROPS_ID' => $bonusProperty->get('ID'),
+                                'NAME'           => GetMessage('LP_BONUS_INFO'),
+                                'VALUE'          => $newValue,
+                                'CODE'           => Constants::LP_BONUS_INFO,
+                            ],
+                        ]);
+                    }
+                }
+            }
+        } catch (Exception $exception) {
+            AddMessage2Log($exception->getMessage());
+        }
+    }
     
     /**
      * @param \Intaro\RetailCrm\Model\Bitrix\User $user

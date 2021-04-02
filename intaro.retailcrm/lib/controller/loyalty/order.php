@@ -12,22 +12,12 @@
 
 namespace Intaro\RetailCrm\Controller\Loyalty;
 
-use Bitrix\Main\ArgumentException;
-use Bitrix\Main\ArgumentNullException;
-use Bitrix\Main\Diag\Debug;
 use Bitrix\Main\Engine\ActionFilter\Authentication;
 use Bitrix\Main\Engine\ActionFilter\HttpMethod;
 use Bitrix\Main\Engine\Controller;
-use Bitrix\Main\Loader;
-use Bitrix\Main\ObjectPropertyException;
-use Bitrix\Main\SystemException;
-use Exception;
-use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse;
-use Intaro\RetailCrm\Repository\PaySystemActionRepository;
 use Intaro\RetailCrm\Service\LoyaltyService;
-use Bitrix\Sale\Order as BitrixOrder;
 use Intaro\RetailCrm\Service\LpUserAccountService;
 use Intaro\RetailCrm\Service\Utils;
 
