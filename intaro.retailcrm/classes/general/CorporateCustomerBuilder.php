@@ -203,6 +203,10 @@ class CorporateCustomerBuilder extends AbstractBuilder implements RetailcrmBuild
             $this->customerBuilder->setDataCrm($this->dataCrm['contact'])->build();
             $this->corporateContact = $this->customerBuilder->getCustomer();
             $this->customer = $this->customerBuilder->getCustomer();
+        } elseif (isset($this->dataCrm['customer'])) {
+            $this->customerBuilder->setDataCrm($this->dataCrm['customer'])->build();
+            $this->corporateContact = $this->customerBuilder->getCustomer();
+            $this->customer = $this->customerBuilder->getCustomer();
         } else {
             $this->corporateContact = null;
             $this->customer = null;
