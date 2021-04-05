@@ -934,7 +934,7 @@ class intaro_retailcrm extends CModule
             RegisterModule($this->MODULE_ID);
             RegisterModuleDependences("sale", "OnOrderUpdate", $this->MODULE_ID, "RetailCrmEvent", "onUpdateOrder");
             RegisterModuleDependences("main", "OnAfterUserUpdate", $this->MODULE_ID, "RetailCrmEvent", "OnAfterUserUpdate");
-            RegisterModuleDependences("sale", \Bitrix\sale\EventActions::EVENT_ON_ORDER_SAVED, $this->MODULE_ID, "RetailCrmEvent", "orderSave");
+            RegisterModuleDependences("sale", \Bitrix\Sale\EventActions::EVENT_ON_ORDER_SAVED, $this->MODULE_ID, "RetailCrmEvent", "orderSave");
             RegisterModuleDependences("sale", "OnSaleOrderDeleted", $this->MODULE_ID, "RetailCrmEvent", "orderDelete");
             RegisterModuleDependences("sale", "OnSalePaymentEntitySaved", $this->MODULE_ID, "RetailCrmEvent", "paymentSave");
             RegisterModuleDependences("sale", "OnSalePaymentEntityDeleted", $this->MODULE_ID, "RetailCrmEvent", "paymentDelete");
@@ -1192,7 +1192,7 @@ class intaro_retailcrm extends CModule
         if (CModule::IncludeModule('sale')) {
             UnRegisterModuleDependences(
                 "sale",
-                \Bitrix\sale\EventActions::EVENT_ON_ORDER_SAVED,
+                \Bitrix\Sale\EventActions::EVENT_ON_ORDER_SAVED,
                 $this->MODULE_ID,
                 "RetailCrmEvent",
                 "orderSave"
