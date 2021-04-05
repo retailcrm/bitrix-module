@@ -163,12 +163,7 @@ class IcmlWriter
      */
     protected function prepareValue($text)
     {
-        global $APPLICATION;
-        $newText = $APPLICATION->ConvertCharset($text, 'utf-8', 'utf-8');
-        $newText = strip_tags($newText);
-        $newText = str_replace('&', '&#x26;', $newText);
-        
-        return $newText;
+        return str_replace('&', '&#x26;', strip_tags($text));
     }
     
     /**

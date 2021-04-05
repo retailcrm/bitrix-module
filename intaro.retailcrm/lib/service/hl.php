@@ -10,7 +10,6 @@ use Bitrix\Main\LoaderException;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
 
-
 /**
  * Class Hl
  *

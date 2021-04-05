@@ -7,7 +7,6 @@ use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupProps;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupPropsCategories;
 
-
 if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/export_run.php')) {
     require_once($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/export_run.php');
 } else {
@@ -54,12 +53,13 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/exp
         'width'        => 'width',
         'height'       => 'height',
     ];
-    $IBLOCK_PROPERTY_SKU               = [];
-    $IBLOCK_PROPERTY_SKU_HIGHLOADBLOCK = [];
-    $IBLOCK_PROPERTY_UNIT_SKU          = [];
-    $IBLOCK_PROPERTY_PRODUCT               = [];
-    $IBLOCK_PROPERTY_PRODUCT_HIGHLOADBLOCK = [];
-    $IBLOCK_PROPERTY_UNIT_PRODUCT          = [];
+    
+    $IblockPropertySku = [];
+    $IblockPropertySkuHl = [];
+    $IblockPropertyUnitSku = [];
+    $IblockPropertyProduct = [];
+    $IblockPropertyProductHl = [];
+    $IblockPropertyUnitProduct = [];
     
     foreach ($iblockProperties as $prop) {
         $skuUnitProps = ('IBLOCK_PROPERTY_UNIT_SKU' . "_" . $prop);
@@ -67,7 +67,7 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/exp
         
         if (is_array($skuUnitProps)) {
             foreach ($skuUnitProps as $iblock => $val) {
-                $IBLOCK_PROPERTY_UNIT_SKU[$iblock][$prop] = $val;
+                $IblockPropertyUnitSku[$iblock][$prop] = $val;
             }
         }
         
@@ -75,7 +75,7 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/exp
         $skuProps = $$skuProps;
         if (is_array($skuProps)) {
             foreach ($skuProps as $iblock => $val) {
-                $IBLOCK_PROPERTY_SKU[$iblock][$prop] = $val;
+                $IblockPropertySku[$iblock][$prop] = $val;
             }
         }
         
@@ -86,7 +86,7 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/exp
                 
                 if (is_array($hbProps)) {
                     foreach ($hbProps as $iblock => $val) {
-                        $IBLOCK_PROPERTY_SKU_HIGHLOADBLOCK[$hlblockTable][$iblock][$prop] = $val;
+                        $IblockPropertySkuHl[$hlblockTable][$iblock][$prop] = $val;
                     }
                 }
             }
@@ -96,7 +96,7 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/exp
         $productUnitProps = $$productUnitProps;
         if (is_array($productUnitProps)) {
             foreach ($productUnitProps as $iblock => $val) {
-                $IBLOCK_PROPERTY_UNIT_PRODUCT[$iblock][$prop] = $val;
+                $IblockPropertyUnitProduct[$iblock][$prop] = $val;
             }
         }
         
@@ -104,7 +104,7 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/exp
         $productProps = $$productProps;
         if (is_array($productProps)) {
             foreach ($productProps as $iblock => $val) {
-                $IBLOCK_PROPERTY_PRODUCT[$iblock][$prop] = $val;
+                $IblockPropertyProduct[$iblock][$prop] = $val;
             }
         }
         
@@ -115,7 +115,7 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/exp
                 
                 if (is_array($hbProps)) {
                     foreach ($hbProps as $iblock => $val) {
-                        $IBLOCK_PROPERTY_PRODUCT_HIGHLOADBLOCK[$hlblockTable][$iblock][$prop] = $val;
+                        $IblockPropertyProductHl[$hlblockTable][$iblock][$prop] = $val;
                     }
                 }
             }
@@ -146,17 +146,17 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/exp
     $fileSetup->profileID = $profile_id;
     $fileSetup->iblocksForExport = $IBLOCK_EXPORT;
 
-    $fileSetup->properties->sku->names = $IBLOCK_PROPERTY_SKU;
-    $fileSetup->properties->sku->units = $IBLOCK_PROPERTY_UNIT_SKU;
+    $fileSetup->properties->sku->names = $IblockPropertySku;
+    $fileSetup->properties->sku->units = $IblockPropertyUnitSku;
     $fileSetup->properties->sku->pictures = $skuPictures;
 
-    $fileSetup->properties->products->names = $IBLOCK_PROPERTY_PRODUCT;
-    $fileSetup->properties->products->units = $IBLOCK_PROPERTY_UNIT_PRODUCT;
+    $fileSetup->properties->products->names = $IblockPropertyProduct;
+    $fileSetup->properties->products->units = $IblockPropertyUnitProduct;
     $fileSetup->properties->products->pictures = $productPictures;
     
     if ($hlblockModule === true) {
-        $fileSetup->properties->highloadblockSku    = $IBLOCK_PROPERTY_SKU_HIGHLOADBLOCK;
-        $fileSetup->properties->highloadblockProduct = $IBLOCK_PROPERTY_PRODUCT_HIGHLOADBLOCK;
+        $fileSetup->properties->highloadblockSku    = $IblockPropertySkuHl;
+        $fileSetup->properties->highloadblockProduct = $IblockPropertyProductHl;
     }
     
     if ($MAX_OFFERS_VALUE) {

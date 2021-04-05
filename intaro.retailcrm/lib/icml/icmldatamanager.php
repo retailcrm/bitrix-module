@@ -21,7 +21,7 @@ use Intaro\RetailCrm\Model\Bitrix\Xml\XmlData;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlOffer;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup;
 use Intaro\RetailCrm\Service\Hl;
-use RetailcrmConstants;
+use RetailcrmConfigProvider;
 
 /**
  * Class IcmlDataManager
@@ -62,10 +62,7 @@ class IcmlDataManager
     {
         $this->setup             = $setup;
         $this->shopName          = COption::GetOptionString('main', 'site_name');
-        $this->purchasePriceNull = COption::GetOptionString(RetailcrmConstants::MODULE_ID,
-            RetailcrmConstants::CRM_PURCHASE_PRICE_NULL
-        );
-        
+        $this->purchasePriceNull = RetailcrmConfigProvider::getCrmPurchasePrice();
         $this->measures = $this->getMeasures();
     }
     
@@ -92,9 +89,10 @@ class IcmlDataManager
      */
     public function getXmlData(): XmlData
     {
-        $xmlData             = new XmlData();
-        $xmlData->shopName   = $xmlData->company = $this->shopName;
-        $xmlData->filePath   = $this->setup->filePath;
+        $xmlData = new XmlData();
+        $xmlData->shopName = $this->shopName;
+        $xmlData->company = $this->shopName;
+        $xmlData->filePath = $this->setup->filePath;
         $xmlData->categories = $this->getCategories();
         
         return $xmlData;
@@ -121,8 +119,9 @@ class IcmlDataManager
                 'PROPERTY_' . $catalogIblockInfo->skuPropertyId => $param->parentId,
             ];
         }
-        
-        $ciBlockResult = CIBlockElement::GetList([],
+
+        $ciBlockResult = CIBlockElement::GetList(
+            [],
             $where,
             false,
             ['nPageSize' => $param->nPageSize, 'iNumPage' => $param->pageNumber, 'checkOutOfRange' => true],
@@ -140,15 +139,17 @@ class IcmlDataManager
             } else {
                 $pictureProperty = $this->setup->properties->sku->pictures[$catalogIblockInfo->productIblockId];
             }
-            
+    
             $xmlOffer->picture = $this->getProductPicture($product, $pictureProperty ?? '');
-            $xmlOffer          = $this->addDataFromParams(
+            
+            $this->addDataFromParams(
                 $xmlOffer,
                 $product,
                 $param->configurable,
                 $catalogIblockInfo
             );
-            $products[]        = $this->addDataFromItem($product, $xmlOffer);
+    
+            $products[] = $this->addDataFromItem($product, $xmlOffer);
         }
         
         return $products;
@@ -170,21 +171,24 @@ class IcmlDataManager
         CatalogIblockInfo $iblockInfo
     ): XmlOffer {
         //достаем значения из HL блоков товаров
-        $resultParams = $this->getHlParams($iblockInfo->productIblockId,
+        $resultParams = $this->getHlParams(
+            $iblockInfo->productIblockId,
             $productProps,
             $configurableParams,
             $this->setup->properties->highloadblockProduct
         );
         
         //достаем значения из HL блоков торговых предложений
-        $resultParams = array_merge($resultParams, $this->getHlParams($iblockInfo->productIblockId,
+        $resultParams = array_merge($resultParams, $this->getHlParams(
+            $iblockInfo->productIblockId,
             $productProps,
             $configurableParams,
             $this->setup->properties->highloadblockSku
         ));
         
         //достаем значения из обычных свойств
-        $resultParams = array_merge($resultParams, $this->getSimpleParams($resultParams,
+        $resultParams = array_merge($resultParams, $this->getSimpleParams(
+            $resultParams,
             $configurableParams,
             $productProps
         ));
@@ -242,7 +246,7 @@ class IcmlDataManager
                 return null;
             }
             
-            $xmlCategories =array_merge($xmlCategories, $this->getXmlCategories($categories));
+            $xmlCategories = array_merge($xmlCategories, $this->getXmlCategories($categories));
         }
         
         return $xmlCategories;
@@ -480,6 +484,10 @@ class IcmlDataManager
         $offerParams = [];
         
         foreach ($params as $code => $value) {
+            if (empty(GetMessage("PARAM_NAME_$code"))) {
+                continue;
+            }
+            
             $offerParam        = new OfferParam();
             $offerParam->name  = GetMessage("PARAM_NAME_$code");
             $offerParam->code  = $code;
@@ -509,9 +517,9 @@ class IcmlDataManager
     private function getMeasures(): array
     {
         $measures    = [];
-        $res_measure = CCatalogMeasure::getList();
+        $resMeasure = CCatalogMeasure::getList();
         
-        while ($measure = $res_measure->Fetch()) {
+        while ($measure = $resMeasure->Fetch()) {
             $measures[$measure['ID']] = $measure;
         }
         

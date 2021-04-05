@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PHP version 7.1
  *
@@ -32,11 +33,4 @@ class XmlCategory
      * @var int
      */
     public $id;
-    
-    /**
-     * XmlCategories constructor.
-     */
-    public function __construct()
-    {
-    }
 }

@@ -51,6 +51,4 @@ class SelectParams
      * @var int
      */
     public $parentId;
-    
-    
 }
