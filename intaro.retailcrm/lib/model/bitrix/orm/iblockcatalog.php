@@ -50,7 +50,6 @@ class IblockCatalogTable extends Main\Entity\DataManager
     {
         try {
             return [
-                
                 new IntegerField('IBLOCK_ID'),
                 new BooleanField('YANDEX_EXPORT'),
                 new BooleanField('SUBSCRIPTION'),
