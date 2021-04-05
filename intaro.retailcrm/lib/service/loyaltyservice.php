@@ -291,9 +291,9 @@ class LoyaltyService
     public function saveLoyaltyInfoToHl(array $loyaltyHls): void
     {
         /** @var OrderLoyaltyDataService $hlService */
-        $hlService   = ServiceLocator::get(OrderLoyaltyDataService::class);
+        $hlService  = ServiceLocator::get(OrderLoyaltyDataService::class);
         
-        foreach ($loyaltyHls as $loyaltyData){
+        foreach ($loyaltyHls as $loyaltyData) {
             $hlService->addDataInLoyaltyHl($loyaltyData);
         }
     }
@@ -370,7 +370,7 @@ class LoyaltyService
             $isDebited = true;
         }
         
-        foreach ($loyaltyHls as $key=>$loyaltyHl){
+        foreach ($loyaltyHls as $key=>$loyaltyHl) {
             /** @var OrderProduct $item */
             $item                            = $response->order->items[$key];
             $loyaltyHl->bonusCashDiscount    = ($rate * $item->bonusesChargeTotal) / $loyaltyHl->quantity;
@@ -417,10 +417,10 @@ class LoyaltyService
      * Добавляет оплату бонусами в заказ Битрикс (устанавливает кастомные цены)
      *
      * @param \Bitrix\Sale\Order $order
-     * @param                    $bonusCount /бонусная скидка в рублях
+     * @param  int               $bonusCount /бонусная скидка в рублях
      * @return \Intaro\RetailCrm\Model\Api\Response\Order\Loyalty\OrderLoyaltyApplyResponse|null
      */
-    public function applyBonusesInOrder(Order $order, $bonusCount): ?OrderLoyaltyApplyResponse
+    public function applyBonusesInOrder(Order $order, int $bonusCount): ?OrderLoyaltyApplyResponse
     {
         $orderId   = $order->getId();
         $response  = $this->sendBonusPayment($orderId, $bonusCount);
@@ -846,7 +846,7 @@ class LoyaltyService
     
     /**
      * @param \Bitrix\Sale\PropertyValue $prop
-     * @param                            $loyaltyDiscountInput
+     * @param float                      $loyaltyDiscountInput
      */
     public function saveLpDiscountToOrderProp(PropertyValue $prop, float $loyaltyDiscountInput): void
     {

@@ -867,7 +867,7 @@ class RetailCrmHistory
                         }
                 
                         if (isset($order['contact']['id'])) {
-                            $ExtId    = null;
+                            $extId    = null;
                             $response = RCrmActions::apiMethod(
                                 $api,
                                 'customersGetById',
@@ -877,11 +877,11 @@ class RetailCrmHistory
                             );
                     
                             if (isset($order['contact']['externalId'])) {
-                                $ExtId = $order['contact']['externalId'];
+                                $extId = $order['contact']['externalId'];
                             }
                     
-                            if (isset($ExtId)) {
-                                $newOrder->setFieldNoDemand('USER_ID', $ExtId);
+                            if (isset($extId)) {
+                                $newOrder->setFieldNoDemand('USER_ID', $extId);
                             } else {
                                 $newUser         = new CUser();
                                 $customerBuilder = new CustomerBuilder();
@@ -1017,7 +1017,6 @@ class RetailCrmHistory
                         
                                 if (!$item) {
                                     if ($product['delete']) {
-                                
                                         continue;
                                     }
                             
@@ -1233,9 +1232,10 @@ class RetailCrmHistory
                 //new filter
                 $historyFilter['sinceId'] = $end['id'];
             }
-        }catch (Throwable $exception){
+        } catch (Throwable $exception) {
             AddMessage2Log($exception->getMessage());
         }
+        
         return false;
     }
 
