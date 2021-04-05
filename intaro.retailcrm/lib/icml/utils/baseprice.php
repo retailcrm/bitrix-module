@@ -3,8 +3,7 @@
 namespace Intaro\RetailCrm\Icml\Utils;
 
 use CCatalogGroup;
-use COption;
-use RetailcrmConstants;
+use RetailcrmConfigProvider;
 
 /**
  * Class BasePrice
@@ -18,11 +17,7 @@ class BasePrice
      */
     public static function getBasePriceId($profileID): ?int
     {
-        $basePriceId = COption::GetOptionString(
-            RetailcrmConstants::MODULE_ID,
-            RetailcrmConstants::CRM_CATALOG_BASE_PRICE . '_' . $profileID,
-            0
-        );
+        $basePriceId = RetailcrmConfigProvider::getCatalogBasePriceByProfile($profileID);
         
         if (!$basePriceId) {
             $dbPriceType = CCatalogGroup::GetList(

@@ -221,7 +221,15 @@ class RetailcrmConfigProvider
     {
         static::setOption(RetailcrmConstants::CRM_ONLINE_CONSULTANT, $value);
     }
-
+    
+    /**
+     * @return bool|string|null
+     */
+    public static function getCrmPurchasePrice()
+    {
+        return static::getOption(RetailcrmConstants::CRM_PURCHASE_PRICE_NULL);
+    }
+    
     /**
      * setOnlineConsultantScript
      * 
@@ -552,6 +560,21 @@ class RetailcrmConfigProvider
 
         return static::$catalogBasePrice;
     }
+    
+    /**
+     * @param $profileID
+     *
+     * @return false|string|null
+     */
+    public static function getCatalogBasePriceByProfile($profileID)
+    {
+        return COption::GetOptionString(
+            RetailcrmConstants::MODULE_ID,
+            RetailcrmConstants::CRM_CATALOG_BASE_PRICE . '_' . $profileID,
+            0
+        );
+    }
+    
 
     /**
      * getOrderDimensions

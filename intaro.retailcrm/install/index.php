@@ -7,6 +7,10 @@
  */
 global $MESS;
 use Bitrix\Main\Context;
+use Intaro\RetailCrm\Icml\RetailCrmXmlBuilder;
+use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup;
+use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupProps;
+use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupPropsCategories;
 
 IncludeModuleLangFile(__FILE__);
 if (class_exists('intaro_retailcrm'))
@@ -980,10 +984,10 @@ class intaro_retailcrm extends CModule
 
             $this->CopyFiles();
             if (isset($_POST['LOAD_NOW'])) {
-                $fileSetup = new \Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup();
-                $fileSetup->properties = new \Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupPropsCategories();
-                $fileSetup->properties->sku = new \Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupProps();
-                $fileSetup->properties->products = new \Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupProps();
+                $fileSetup = new XmlSetup();
+                $fileSetup->properties = new XmlSetupPropsCategories();
+                $fileSetup->properties->sku = new XmlSetupProps();
+                $fileSetup->properties->products = new XmlSetupProps();
                 $fileSetup->iblocksForExport = $iblocks;
                 $fileSetup->properties->products->units = $propertiesUnitProduct;
                 $fileSetup->properties->products->names = $propertiesProduct;
@@ -1002,7 +1006,7 @@ class intaro_retailcrm extends CModule
                 $fileSetup->filePath = $filename;
                 $fileSetup->defaultServerName = Context::getCurrent()->getServer()->getHttpHost();
                 
-                $loader = new Intaro\RetailCrm\Icml\RetailCrmXmlBuilder($fileSetup);
+                $loader = new RetailCrmXmlBuilder($fileSetup);
                 $loader->generateXml();
             }
 
