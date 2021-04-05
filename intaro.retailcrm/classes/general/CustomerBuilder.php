@@ -40,7 +40,7 @@ class CustomerBuilder extends AbstractBuilder implements RetailcrmBuilderInterfa
      * @param Customer $customer
      * @return $this
      */
-    public function setCustomer(Customer $customer): CustomerBuilder
+    public function setCustomer(Customer $customer)
     {
         $this->customer = $customer;
         
@@ -50,7 +50,7 @@ class CustomerBuilder extends AbstractBuilder implements RetailcrmBuilderInterfa
     /**
      * @return Customer
      */
-    public function getCustomer(): Customer
+    public function getCustomer()
     {
         return $this->customer;
     }
@@ -68,7 +68,7 @@ class CustomerBuilder extends AbstractBuilder implements RetailcrmBuilderInterfa
     /**
      * @return CustomerAddress
      */
-    public function getCustomerAddress(): CustomerAddress
+    public function getCustomerAddress()
     {
         return  $this->customerAddress;
     }
@@ -77,7 +77,7 @@ class CustomerBuilder extends AbstractBuilder implements RetailcrmBuilderInterfa
      * @param array $dataCrm
      * @return $this
      */
-    public function setDataCrm($dataCrm): CustomerBuilder
+    public function setDataCrm($dataCrm)
     {
         $this->dataCrm = $dataCrm;
         
@@ -88,7 +88,7 @@ class CustomerBuilder extends AbstractBuilder implements RetailcrmBuilderInterfa
      * @param array $user
      * @return $this
      */
-    public function setUser($user): CustomerBuilder
+    public function setUser($user)
     {
         $this->user = $user;
         
@@ -99,7 +99,7 @@ class CustomerBuilder extends AbstractBuilder implements RetailcrmBuilderInterfa
      * @param int $registeredUserID
      * @return $this
      */
-    public function setRegisteredUserID(int $registeredUserID): CustomerBuilder
+    public function setRegisteredUserID(int $registeredUserID)
     {
         $this->registeredUserID = $registeredUserID;
         
@@ -109,7 +109,7 @@ class CustomerBuilder extends AbstractBuilder implements RetailcrmBuilderInterfa
     /**
      * @return int
      */
-    public function getRegisteredUserID(): int
+    public function getRegisteredUserID()
     {
         return $this->registeredUserID;
     }
@@ -117,7 +117,7 @@ class CustomerBuilder extends AbstractBuilder implements RetailcrmBuilderInterfa
     /**
      * @return bool
      */
-    public function getRegisterNewUser(): bool
+    public function getRegisterNewUser()
     {
         return $this->registerNewUser;
     }
@@ -138,8 +138,8 @@ class CustomerBuilder extends AbstractBuilder implements RetailcrmBuilderInterfa
 
         if (isset($this->dataCrm['phones'])) {
             foreach ($this->dataCrm['phones'] as $phone) {
-                if (isset($phone['old_number']) && in_array($phone['old_number'], $this->user, true)) {
-                    $key = array_search($phone['old_number'], $this->user, true);
+                if (isset($phone['old_number']) && in_array($phone['old_number'], $this->user)) {
+                    $key = array_search($phone['old_number'], $this->user);
 
                     if (isset($phone['number'])) {
                         $this->user[$key] = $phone['number'];
@@ -222,7 +222,7 @@ class CustomerBuilder extends AbstractBuilder implements RetailcrmBuilderInterfa
      * @param string $login
      * @return $this
      */
-    public function setLogin(string $login): CustomerBuilder
+    public function setLogin(string $login)
     {
         $this->customer->setLogin($login);
 
@@ -233,7 +233,7 @@ class CustomerBuilder extends AbstractBuilder implements RetailcrmBuilderInterfa
      * @param string $email
      * @return $this
      */
-    public function setEmail(string $email): CustomerBuilder
+    public function setEmail(string $email)
     {
         $this->customer->setEmail($email);
 
