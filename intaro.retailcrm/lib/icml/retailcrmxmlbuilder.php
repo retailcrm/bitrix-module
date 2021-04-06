@@ -119,7 +119,6 @@ class RetailCrmXmlBuilder
         CatalogIblockInfo $catalogIblockInfo
     ): void {
         $paramsForProduct->pageNumber = 1;
-        
         $paramsForProduct->nPageSize = ceil(self::OFFERS_PART / $this->setup->maxOffersValue);
         
         do {
