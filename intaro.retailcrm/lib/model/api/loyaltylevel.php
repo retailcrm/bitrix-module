@@ -21,9 +21,9 @@ use Intaro\RetailCrm\Component\Json\Mapping;
 class LoyaltyLevel
 {
     /**
-     * ID уровня
+     * ID участия
      *
-     * @var integer $id
+     * @var int $id
      *
      * @Mapping\Type("string")
      * @Mapping\SerializedName("id")
@@ -39,4 +39,39 @@ class LoyaltyLevel
      * @Mapping\SerializedName("name")
      */
     public $name;
+    
+    /**
+     * Тип уровня.
+     *
+     * Возможные значения:
+     * bonus_percent - кешбек от стоимости
+     * bonus_converting - Пример:  начисление 1 бонус за каждые 10 рублей покупки
+     * discount - скидочный уровень
+     *
+     * @var string $type
+     *
+     * @Mapping\Type("string")
+     * @Mapping\SerializedName("type")
+     */
+    public $type;
+    
+    /**
+     * Размер скидки, процент или курс начисления бонусов для товаров по обычной цене
+     *
+     * @var float $privilegeSize
+     *
+     * @Mapping\Type("float")
+     * @Mapping\SerializedName("privilegeSize")
+     */
+    public $privilegeSize;
+    
+    /**
+     * Размер скидки, процент или курс начисления бонусов для акционных товаров
+     *
+     * @var float $privilegeSizePromo
+     *
+     * @Mapping\Type("float")
+     * @Mapping\SerializedName("privilegeSizePromo")
+     */
+    public $privilegeSizePromo;
 }

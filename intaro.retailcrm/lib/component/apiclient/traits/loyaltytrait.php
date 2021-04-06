@@ -111,7 +111,7 @@ trait LoyaltyTrait
     
     /**
      * @param \Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountRequest $request
-     * @return \Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountResponse|null
+     * @return \Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountResponse|null
      */
     public function getLoyaltyAccounts(LoyaltyAccountRequest $request): ?LoyaltyAccountResponse
     {
