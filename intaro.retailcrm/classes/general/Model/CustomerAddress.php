@@ -50,7 +50,7 @@ class CustomerAddress extends BaseModel
      * @param string $index
      * @return $this
      */
-    public function setIndex(string $index)
+    public function setIndex($index)
     {
         $this->index = $index;
 
@@ -61,7 +61,7 @@ class CustomerAddress extends BaseModel
      * @param string $country
      * @return $this
      */
-    public function setCountry(string $country)
+    public function setCountry($country)
     {
         $this->country = $country;
 
@@ -72,7 +72,7 @@ class CustomerAddress extends BaseModel
      * @param string $region
      * @return $this
      */
-    public function setRegion(string $region)
+    public function setRegion($region)
     {
         $this->region = $region;
 
@@ -83,7 +83,7 @@ class CustomerAddress extends BaseModel
      * @param string $city
      * @return $this
      */
-    public function setCity(string $city)
+    public function setCity($city)
     {
         $this->city = $city;
 
@@ -94,7 +94,7 @@ class CustomerAddress extends BaseModel
      * @param string $street
      * @return $this
      */
-    public function setStreet(string $street)
+    public function setStreet($street)
     {
         $this->street = $street;
 
@@ -105,7 +105,7 @@ class CustomerAddress extends BaseModel
      * @param string $building
      * @return $this
      */
-    public function setBuilding(string $building)
+    public function setBuilding($building)
     {
         $this->building = $building;
 
@@ -116,7 +116,7 @@ class CustomerAddress extends BaseModel
      * @param string $house
      * @return $this
      */
-    public function setHouse(string $house)
+    public function setHouse($house)
     {
         $this->house = $house;
 
@@ -127,7 +127,7 @@ class CustomerAddress extends BaseModel
      * @param string $block
      * @return $this
      */
-    public function setBlock(string $block)
+    public function setBlock($block)
     {
         $this->block = $block;
 
@@ -138,7 +138,7 @@ class CustomerAddress extends BaseModel
      * @param string $flat
      * @return $this
      */
-    public function setFlat(string $flat)
+    public function setFlat($flat)
     {
         $this->flat = $flat;
 
@@ -160,7 +160,7 @@ class CustomerAddress extends BaseModel
      * @param string $intercomCode
      * @return $this
      */
-    public function setIntercomCode(string $intercomCode)
+    public function setIntercomCode($intercomCode)
     {
         $this->intercomCode = $intercomCode;
 
@@ -171,7 +171,7 @@ class CustomerAddress extends BaseModel
      * @param string $metro
      * @return $this
      */
-    public function setMetro(string $metro)
+    public function setMetro($metro)
     {
         $this->metro = $metro;
 
@@ -182,7 +182,7 @@ class CustomerAddress extends BaseModel
      * @param string $notes
      * @return $this
      */
-    public function setNotes(string $notes)
+    public function setNotes($notes)
     {
         $this->notes = $notes;
 
@@ -193,7 +193,7 @@ class CustomerAddress extends BaseModel
      * @param string $text
      * @return $this
      */
-    public function setText(string $text)
+    public function setText($text)
     {
         $this->text = $text;
 
