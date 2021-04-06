@@ -25,21 +25,28 @@ class IcmlWriter
     private $writer;
     
     /**
+     * IcmlWriter constructor.
+     * @param $filePath
+     */
+    public function __construct($filePath)
+    {
+        $this->writer = $writer = new XMLWriter();
+        $writer->openURI($_SERVER['DOCUMENT_ROOT'] . $filePath);
+        $writer->setIndent(true);
+        $writer->startElement('yml_catalog');
+        $this->writeSimpleAttribute('date', Date('Y-m-d H:i:s'));
+    }
+    
+    /**
      * @param \Intaro\RetailCrm\Model\Bitrix\Xml\XmlData $data
      */
     public function writeToXmlHeaderAndCategories(XmlData $data): void
     {
-        $this->writer = $writer = new XMLWriter();
-        $writer->openURI($_SERVER['DOCUMENT_ROOT'] . $data->filePath);
-        $writer->setIndent(true);
-        
-        $writer->startElement('yml_catalog');
-        $this->writeSimpleAttribute('date', Date('Y-m-d H:i:s'));
-        $writer->startElement('shop');
+        $this->writer->startElement('shop');
         $this->writeSimpleElement('name', $data->shopName);
         $this->writeSimpleElement('company', $data->company);
         
-        $writer->startElement('categories');
+        $this->writer->startElement('categories');
         
         foreach ($data->categories as $key => $category) {
             $this->writeCategory($category);
@@ -48,14 +55,14 @@ class IcmlWriter
                 count($data->categories) === $key + 1
                 || is_int(count($data->categories) / self::CATEGORY_PART)
             ) {
-                $writer->flush();
+                $this->writer->flush();
             }
         }
         
-        $writer->endElement();
-        $writer->flush();
+        $this->writer->endElement();
+        $this->writer->flush();
         
-        $writer->startElement('offers');
+        $this->writer->startElement('offers');
     }
     
     /**
