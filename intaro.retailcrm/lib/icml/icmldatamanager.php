@@ -290,24 +290,6 @@ class IcmlDataManager
     }
     
     /**
-     * Получение категорий, к которым относится товар
-     *
-     * @param $offerId
-     * @return array
-     */
-    private function getProductCategoriesIds(int $offerId): array
-    {
-        $query = CIBlockElement::GetElementGroups($offerId, false, ['ID']);
-        $ids   = [];
-        
-        while ($category = $query->GetNext()) {
-            $ids[] = $category['ID'];
-        }
-        
-        return $ids;
-    }
-    
-    /**
      * Добавляет в объект XmlOffer информацию из GetList
      *
      * @param array                                       $item
@@ -324,7 +306,10 @@ class IcmlDataManager
             : '';
         $xmlOffer->price         = $item['CATALOG_PRICE_' . $this->setup->basePriceId];
         $xmlOffer->purchasePrice = $this->getPurchasePrice($item);
-        $xmlOffer->categoryIds   = $this->getProductCategoriesIds($item['ID']);
+        
+        $repository = new \CategoryRepository();
+        
+        $xmlOffer->categoryIds   = $repository->getProductCategoriesIds($item['ID']);
         $xmlOffer->name          = $item['NAME'];
         $xmlOffer->xmlId         = $item['EXTERNAL_ID'] ?? '';
         $xmlOffer->productName   = $item['NAME'];
