@@ -40,7 +40,7 @@ class RetailCrmXmlBuilder
     {
         $this->setup              = $setup;
         $this->setup->basePriceId = BasePrice::getBasePriceId($this->setup->profileID);
-        $this->icmlWriter         = new IcmlWriter();
+        $this->icmlWriter         = new IcmlWriter($this->setup->filePath);
         $this->icmlDataManager    = new IcmlDataManager($this->setup);
     }
     
