@@ -7,6 +7,8 @@ use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupProps;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupPropsCategories;
 
+const DEFAULT_OFFERS_IN_ORDER = 5;
+
 if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/export_run.php')) {
     require_once($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/export_run.php');
 } else {
@@ -159,10 +161,8 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/exp
         $fileSetup->properties->highloadblockProduct = $IblockPropertyProductHl;
     }
     
-    if ($MAX_OFFERS_VALUE) {
-        $fileSetup->maxOffersValue = $MAX_OFFERS_VALUE;
-    }
-    
+    $fileSetup->maxOffersValue = empty($MAX_OFFERS_VALUE) ? DEFAULT_OFFERS_IN_ORDER : (int)$MAX_OFFERS_VALUE;
+
     $fileSetup->filePath = $SETUP_FILE_NAME;
     $fileSetup->defaultServerName
         = COption::GetOptionString('intaro.retailcrm', 'protocol') . $SERVER_NAME;
