@@ -20,6 +20,8 @@ use Intaro\RetailCrm\Model\Bitrix\Xml\XmlCategory;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlData;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlOffer;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup;
+use Intaro\RetailCrm\Repository\CatalogRepository;
+use Intaro\RetailCrm\Repository\FileRepository;
 use Intaro\RetailCrm\Service\Hl;
 use RetailcrmConfigProvider;
 
@@ -127,8 +129,11 @@ class IcmlDataManager
             ['nPageSize' => $param->nPageSize, 'iNumPage' => $param->pageNumber, 'checkOutOfRange' => true],
             array_merge($param->configurable, $param->main)
         );
+        
         $products      = [];
-        $barcodes      = $this->getProductBarcodesByIblock($catalogIblockInfo->productIblockId);
+    
+        $catalogRepository = new CatalogRepository();
+        $barcodes          = $catalogRepository->getProductBarcodesByIblock($catalogIblockInfo->productIblockId);
         
         while ($product = $ciBlockResult->GetNext()) {
             $xmlOffer          = new XmlOffer();
@@ -262,31 +267,17 @@ class IcmlDataManager
         $picture   = '';
         $pictureId = $product['PROPERTY_' . $pictureProp . '_VALUE'] ?? null;
         
+        $repository = new FileRepository();
+        
         if (isset($product['DETAIL_PICTURE'])) {
-            $picture = $this->getImageUrl($product['DETAIL_PICTURE']);
+            $picture = $repository->getImageUrl($product['DETAIL_PICTURE']);
         } elseif (isset($product['PREVIEW_PICTURE'])) {
-            $picture = $this->getImageUrl($product['PREVIEW_PICTURE']);
+            $picture = $repository->getImageUrl($product['PREVIEW_PICTURE']);
         } elseif ($pictureId !== null) {
-            $picture = $this->getImageUrl($pictureId);
+            $picture = $repository->getImageUrl($pictureId);
         }
         
         return $picture ?? '';
-    }
-    
-    /**
-     * @param $fileId
-     * @return string
-     */
-    private function getImageUrl($fileId): string
-    {
-        $pathImage  = CFile::GetPath($fileId);
-        $validation = '/^(http|https):\/\/([A-Z0-9][A-Z0-9_-]*(?:\.[A-Z0-9][A-Z0-9_-]*)+):?(\d+)?\/?/i';
-        
-        if ((bool)preg_match($validation, $pathImage) === false) {
-            return $this->setup->defaultServerName . $pathImage;
-        }
-        
-        return $pathImage;
     }
     
     /**
@@ -307,7 +298,7 @@ class IcmlDataManager
         $xmlOffer->price         = $item['CATALOG_PRICE_' . $this->setup->basePriceId];
         $xmlOffer->purchasePrice = $this->getPurchasePrice($item);
         
-        $repository = new \CategoryRepository();
+        $repository = new CatalogRepository();
         
         $xmlOffer->categoryIds   = $repository->getProductCategoriesIds($item['ID']);
         $xmlOffer->name          = $item['NAME'];
@@ -321,34 +312,7 @@ class IcmlDataManager
         
         return $xmlOffer;
     }
-    
-    /**
-     * Returns products IDs with barcodes by infoblock id
-     *
-     * @param int $iblockId
-     *
-     * @return array
-     */
-    private function getProductBarcodesByIblock(int $iblockId): array
-    {
-        $barcodes  = [];
-        $dbBarCode = CCatalogStoreBarCode::getList(
-            [],
-            ['IBLOCK_ID' => $iblockId],
-            false,
-            false,
-            ['PRODUCT_ID', 'BARCODE']
-        );
-        
-        while ($arBarCode = $dbBarCode->GetNext()) {
-            if (!empty($arBarCode)) {
-                $barcodes[$arBarCode['PRODUCT_ID']] = $arBarCode['BARCODE'];
-            }
-        }
-        
-        return $barcodes;
-    }
-    
+
     /**
      * Получение закупочной цены
      *
