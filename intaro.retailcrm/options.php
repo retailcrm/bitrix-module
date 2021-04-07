@@ -25,7 +25,7 @@ $CRM_DELIVERY_TYPES_ARR    = 'deliv_types_arr';
 $CRM_DELIVERY_SERVICES_ARR = 'deliv_services_arr';
 $CRM_PAYMENT_TYPES         = 'pay_types_arr';
 $CRM_PAYMENT_STATUSES      = 'pay_statuses_arr';
-$CRM_PAYMENT               = 'payment_arr'; //order payment Y/N
+$CRM_PAYMENT               = 'payment_arr';
 $CRM_ORDER_LAST_ID         = 'order_last_id';
 $CRM_ORDER_SITES           = 'sites_ids';
 $CRM_ORDER_DISCHARGE       = 'order_discharge';
@@ -52,8 +52,6 @@ $CRM_COLL_KEY  = 'coll_key';
 
 $CRM_UA      = 'ua';
 $CRM_UA_KEYS = 'ua_keys';
-
-$CRM_DISCOUNT_ROUND = 'discount_round';
 
 $CRM_CC         = 'cc';
 $CRM_CORP_SHOPS = 'shops-corporate';
@@ -93,13 +91,13 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"] . '/bitrix/modules/intaro.retailcrm/cl
     $options = simplexml_load_file($_SERVER["DOCUMENT_ROOT"] . '/bitrix/modules/intaro.retailcrm/classes/general/config/options.xml');
 
     foreach ($options->contragents->contragent as $contragent) {
-        $type["NAME"]                 = $APPLICATION->ConvertCharset((string)$contragent, 'utf-8', SITE_CHARSET);
-        $type["ID"]                   = (string)$contragent["id"];
+        $type["NAME"]                 = $APPLICATION->ConvertCharset((string) $contragent, 'utf-8', SITE_CHARSET);
+        $type["ID"]                   = (string) $contragent["id"];
         $arResult['contragentType'][] = $type;
         unset ($type);
     }
     foreach ($options->fields->field as $field) {
-        $type["NAME"] = $APPLICATION->ConvertCharset((string)$field, 'utf-8', SITE_CHARSET);
+        $type["NAME"] = $APPLICATION->ConvertCharset((string) $field, 'utf-8', SITE_CHARSET);
         $type["ID"]   = (string)$field["id"];
 
         if ($field["group"] === 'custom') {
@@ -107,7 +105,7 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"] . '/bitrix/modules/intaro.retailcrm/cl
         } elseif (!$field["group"]) {
             $arResult['orderProps'][] = $type;
         } else {
-            $groups = explode(",", (string)$field["group"]);
+            $groups = explode(",", (string) $field["group"]);
             foreach ($groups as $group) {
                 $type["GROUP"][] = trim($group);
             }
@@ -179,7 +177,7 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_RE
         foreach ($ordersArr as $_ordersArr) {
             $ordersList = explode('-', trim($_ordersArr));
             if (count($ordersList) > 1) {
-                for ($i = (int)trim($ordersList[0]); $i <= (int)trim($ordersList[count($ordersList) - 1]); $i++) {
+                for ($i = (int) trim($ordersList[0]); $i <= (int)trim($ordersList[count($ordersList) - 1]); $i++) {
                     $orders[] = $i;
                 }
             } else {
@@ -630,8 +628,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     COption::SetOptionString($mid, $CRM_UA_KEYS, serialize(RCrmActions::clearArr($uaKeys)));
     COption::SetOptionString($mid, $CRM_DIMENSIONS, $orderDimensions);
     RetailcrmConfigProvider::setSendPaymentAmount($sendPaymentAmount);
-
-    COption::SetOptionString($mid, $CRM_DISCOUNT_ROUND, $discount_round);
+    
+    RetailCrmConfigProvider::setDiscountRound($discount_round);
     COption::SetOptionString($mid, $CRM_PURCHASE_PRICE_NULL, $purchasePrice_null);
     COption::SetOptionString($mid, RetailcrmConstants::CRM_SHIPMENT_DEDUCTED, $shipment_deducted);
 
@@ -754,7 +752,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $optionUa = COption::GetOptionString($mid, $CRM_UA, 0);
     $optionUaKeys = unserialize(COption::GetOptionString($mid, $CRM_UA_KEYS));
 
-    $optionDiscRound        = COption::GetOptionString($mid, $CRM_DISCOUNT_ROUND, 0);
+    $optionDiscRound        = ConfigProvider::getDiscountRound();
     $optionPricePrchaseNull = COption::GetOptionString($mid, $CRM_PURCHASE_PRICE_NULL, 0);
     $optionShipmentDeducted = RetailcrmConfigProvider::getShipmentDeducted();
 
@@ -847,7 +845,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                     BX.UI.Notification.Center.notify({
                         content: "<?= GetMessage('TEMPLATE_SUCCESS_COPING') ?>"
                     });
-                }else {
+                } else {
                     BX.UI.Notification.Center.notify({
                         content: "<?= GetMessage('TEMPLATE_COPING_ERROR') ?>"
                     });
@@ -898,7 +896,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                     BX.UI.Notification.Center.notify({
                         content: "<?= GetMessage('TEMPLATES_SUCCESS_COPING') ?>"
                     });
-                }else {
+                } else {
                     BX.UI.Notification.Center.notify({
                         content: "<?= GetMessage('TEMPLATES_COPING_ERROR') ?>"
                     });

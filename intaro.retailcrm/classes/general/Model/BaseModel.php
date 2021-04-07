@@ -16,7 +16,7 @@ abstract class BaseModel
     /**
      * @param array $array
      * @param array $symbols
-     * @return array
+     * @return arrayCOption::GetOptionString('main', 'agents_use_crontab', 'N') !== 'N')
      */
     public function arrayClear(array $array, array $symbols = array('', 0, null))
     {

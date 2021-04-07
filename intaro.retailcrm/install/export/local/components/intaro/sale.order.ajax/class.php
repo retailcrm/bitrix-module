@@ -130,7 +130,7 @@ class SaleOrderAjax extends \CBitrixComponent
 		}
 		else
 		{
-			$arParams['PATH_TO_PERSONAL'] = isset($arParams['PATH_TO_PERSONAL']) ? trim((string)$arParams['PATH_TO_PERSONAL']) : '';
+			$arParams['PATH_TO_PERSONAL'] = isset($arParams['PATH_TO_PERSONAL']) ? trim((string) $arParams['PATH_TO_PERSONAL']) : '';
 
 			if ($arParams['PATH_TO_PERSONAL'] === '')
 			{
@@ -529,8 +529,8 @@ class SaleOrderAjax extends \CBitrixComponent
 
 	protected function addLastLocationPropertyValues($orderProperties)
 	{
-		$currentPersonType = (int)$this->arUserResult['PERSON_TYPE_ID'];
-		$lastPersonType = (int)$this->arUserResult['PERSON_TYPE_OLD'];
+		$currentPersonType = (int) $this->arUserResult['PERSON_TYPE_ID'];
+		$lastPersonType = (int) $this->arUserResult['PERSON_TYPE_OLD'];
 
 		if (!empty($lastPersonType) && $currentPersonType !== $lastPersonType)
 		{
@@ -728,7 +728,7 @@ class SaleOrderAjax extends \CBitrixComponent
 			|| $this->request->get('SMS_CODE');
 
 		$isProfileChanged = $this->arUserResult['PROFILE_CHANGE'] === 'Y';
-		$haveProfileId = (int)$this->arUserResult['PROFILE_ID'] > 0;
+		$haveProfileId = (int) $this->arUserResult['PROFILE_ID'] > 0;
 
 		$shouldUseProfile = ($firstLoad || $justAuthorized || $isPersonTypeChanged || $isProfileChanged);
 		$willUseProfile = $shouldUseProfile && $haveProfileId;
@@ -737,7 +737,7 @@ class SaleOrderAjax extends \CBitrixComponent
 
 		if ($haveProfileId)
 		{
-			$profileProperties = Sale\OrderUserProperties::getProfileValues((int)$this->arUserResult['PROFILE_ID']);
+			$profileProperties = Sale\OrderUserProperties::getProfileValues((int) $this->arUserResult['PROFILE_ID']);
 		}
 
 		$ipAddress = '';
@@ -1052,7 +1052,7 @@ class SaleOrderAjax extends \CBitrixComponent
 			if ($property->getType() == 'LOCATION')
 			{
 				$propertyFields = $property->getProperty();
-				if ((int)$propertyFields['INPUT_FIELD_LOCATION'] > 0)
+				if ((int) $propertyFields['INPUT_FIELD_LOCATION'] > 0)
 				{
 					if ($useProfileProperties)
 					{
@@ -1100,9 +1100,9 @@ class SaleOrderAjax extends \CBitrixComponent
 			{
 				$parameters = [
 					'filter' => [
-						'>=LEFT_MARGIN' => (int)$location['LEFT_MARGIN'],
-						'<=RIGHT_MARGIN' => (int)$location['RIGHT_MARGIN'],
-						'>=DEPTH_LEVEL' => (int)$location['DEPTH_LEVEL'],
+						'>=LEFT_MARGIN' => (int) $location['LEFT_MARGIN'],
+						'<=RIGHT_MARGIN' => (int) $location['RIGHT_MARGIN'],
+						'>=DEPTH_LEVEL' => (int) $location['DEPTH_LEVEL'],
 						'!CITY_ID' => null,
 					],
 					'count_total' => true,
@@ -1384,11 +1384,11 @@ class SaleOrderAjax extends \CBitrixComponent
 		}
 
 		$request = $this->request->get('order') ?: [];
-		$code = isset($request['SMS_CODE']) ? trim((string)$request['SMS_CODE']) : '';
+		$code = isset($request['SMS_CODE']) ? trim((string) $request['SMS_CODE']) : '';
 
 		if (!empty($code))
 		{
-			$signedData = isset($request['SIGNED_DATA']) ? trim((string)$request['SIGNED_DATA']) : '';
+			$signedData = isset($request['SIGNED_DATA']) ? trim((string) $request['SIGNED_DATA']) : '';
 			$params = PhoneAuth::extractData($signedData);
 
 			if ($params)
@@ -1640,7 +1640,7 @@ class SaleOrderAjax extends \CBitrixComponent
 	{
 		global $USER;
 
-		$userEmail = isset($userProps['EMAIL']) ? trim((string)$userProps['EMAIL']) : '';
+		$userEmail = isset($userProps['EMAIL']) ? trim((string) $userProps['EMAIL']) : '';
 		$newLogin = $userEmail;
 
 		if (empty($userEmail))
@@ -1690,7 +1690,7 @@ class SaleOrderAjax extends \CBitrixComponent
 
 		$newName = '';
 		$newLastName = '';
-		$payerName = isset($userProps['PAYER']) ? trim((string)$userProps['PAYER']) : '';
+		$payerName = isset($userProps['PAYER']) ? trim((string) $userProps['PAYER']) : '';
 
 		if (!empty($payerName))
 		{
@@ -1717,7 +1717,7 @@ class SaleOrderAjax extends \CBitrixComponent
 
 		$arPolicy = $USER->GetGroupPolicy($groupIds);
 
-		$passwordMinLength = (int)$arPolicy['PASSWORD_LENGTH'];
+		$passwordMinLength = (int) $arPolicy['PASSWORD_LENGTH'];
 		if ($passwordMinLength <= 0)
 		{
 			$passwordMinLength = 6;
@@ -1750,7 +1750,7 @@ class SaleOrderAjax extends \CBitrixComponent
 	{
 		if ($this->arParams['USE_PHONE_NORMALIZATION'] === 'Y')
 		{
-			$phone = NormalizePhone((string)$phone, 3);
+			$phone = NormalizePhone((string) $phone, 3);
 		}
 
 		return $phone;
@@ -1898,7 +1898,7 @@ class SaleOrderAjax extends \CBitrixComponent
 				]);
 				if (isset($res['ID']))
 				{
-					$existingUserId = (int)$res['ID'];
+					$existingUserId = (int) $res['ID'];
 				}
 			}
 
@@ -1923,7 +1923,7 @@ class SaleOrderAjax extends \CBitrixComponent
 					]);
 					if (isset($res['ID']))
 					{
-						$existingUserId = (int)$res['ID'];
+						$existingUserId = (int) $res['ID'];
 					}
 				}
 			}
@@ -2876,25 +2876,23 @@ class SaleOrderAjax extends \CBitrixComponent
 			$productId = $arResultItem["PRODUCT_ID"];
 			$arParent = $arParents[$productId];
 			$itemIblockId = intval($arProductData[$productId]['IBLOCK_ID']);
-			$currentProductProperties[$productId] = isset($this->arIblockProps[$itemIblockId])
-				? $this->arIblockProps[$itemIblockId]
-				: [];
+			$currentProductProperties[$productId] = $this->arIblockProps[$itemIblockId] ?? [];
 
 			if (
-				(int)$arProductData[$productId]["PREVIEW_PICTURE"] <= 0
-				&& (int)$arProductData[$productId]["DETAIL_PICTURE"] <= 0
+				(int) $arProductData[$productId]["PREVIEW_PICTURE"] <= 0
+				&& (int) $arProductData[$productId]["DETAIL_PICTURE"] <= 0
 				&& $arParent
 			)
 			{
 				$productId = $arParent["ID"];
 			}
 
-			if ((int)$arProductData[$productId]["PREVIEW_PICTURE"] > 0)
+			if ((int) $arProductData[$productId]["PREVIEW_PICTURE"] > 0)
 			{
 				$arResultItem["PREVIEW_PICTURE"] = $arProductData[$productId]["PREVIEW_PICTURE"];
 			}
 
-			if ((int)$arProductData[$productId]["DETAIL_PICTURE"] > 0)
+			if ((int) $arProductData[$productId]["DETAIL_PICTURE"] > 0)
 			{
 				$arResultItem["DETAIL_PICTURE"] = $arProductData[$productId]["DETAIL_PICTURE"];
 			}
@@ -2966,7 +2964,7 @@ class SaleOrderAjax extends \CBitrixComponent
 			if (
 				$needToResizeProductImages
 				&& isset($arResultItem["PREVIEW_PICTURE"])
-				&& (int)$arResultItem["PREVIEW_PICTURE"] > 0
+				&& (int) $arResultItem["PREVIEW_PICTURE"] > 0
 			)
 			{
 				$arImage = CFile::GetFileArray($arResultItem["PREVIEW_PICTURE"]);
@@ -2985,7 +2983,7 @@ class SaleOrderAjax extends \CBitrixComponent
 			if (
 				$needToResizeProductImages
 				&& isset($arResultItem["DETAIL_PICTURE"])
-				&& (int)$arResultItem["DETAIL_PICTURE"] > 0
+				&& (int) $arResultItem["DETAIL_PICTURE"] > 0
 			)
 			{
 				$arImage = CFile::GetFileArray($arResultItem["DETAIL_PICTURE"]);
@@ -3014,7 +3012,7 @@ class SaleOrderAjax extends \CBitrixComponent
 
 			if ($this->arParams['COMPATIBLE_MODE'] === 'Y')
 			{
-				if (isset($arBasketItem["PREVIEW_PICTURE"]) && (int)$arBasketItem["PREVIEW_PICTURE"] > 0)
+				if (isset($arBasketItem["PREVIEW_PICTURE"]) && (int) $arBasketItem["PREVIEW_PICTURE"] > 0)
 				{
 					$arCols["PREVIEW_PICTURE"] = CSaleHelper::getFileInfo(
 						$arBasketItem["PREVIEW_PICTURE"],
@@ -3022,7 +3020,7 @@ class SaleOrderAjax extends \CBitrixComponent
 					);
 				}
 
-				if (isset($arBasketItem["DETAIL_PICTURE"]) && (int)$arBasketItem["DETAIL_PICTURE"] > 0)
+				if (isset($arBasketItem["DETAIL_PICTURE"]) && (int) $arBasketItem["DETAIL_PICTURE"] > 0)
 				{
 					$arCols["DETAIL_PICTURE"] = CSaleHelper::getFileInfo(
 						$arBasketItem["DETAIL_PICTURE"],
@@ -3188,7 +3186,7 @@ class SaleOrderAjax extends \CBitrixComponent
 			{
 				$paySystem['PSA_ID'] = $paySystem['ID'];
 
-				if ((string)$paySystem['PSA_NAME'] === '')
+				if ((string) $paySystem['PSA_NAME'] === '')
 				{
 					$paySystem['PSA_NAME'] = $paySystem['NAME'];
 				}
@@ -3681,10 +3679,10 @@ class SaleOrderAjax extends \CBitrixComponent
 			if (!$bFirst && ($profileIsNotSelected || $isPersonTypeChanged || $justAuthorized))
 			{
 				$bFirst = true;
-				$this->arUserResult['PROFILE_ID'] = (int)$arUserProfiles['ID'];
+				$this->arUserResult['PROFILE_ID'] = (int) $arUserProfiles['ID'];
 			}
 
-			if ((int)$this->arUserResult['PROFILE_ID'] === (int)$arUserProfiles['ID'])
+			if ((int) $this->arUserResult['PROFILE_ID'] === (int) $arUserProfiles['ID'])
 			{
 				$arUserProfiles['CHECKED'] = 'Y';
 			}
@@ -3850,7 +3848,7 @@ class SaleOrderAjax extends \CBitrixComponent
 			}
 
 			$this->loadUserAccount($order);
-			$userBudget = (float)$arResult['USER_ACCOUNT']['CURRENT_BUDGET'];
+			$userBudget = (float) $arResult['USER_ACCOUNT']['CURRENT_BUDGET'];
 
 			// finding correct inner pay system price ranges to setField()
 			$sumRange = Sale\Services\PaySystem\Restrictions\Manager::getPriceRange($innerPayment, $innerPaySystemId);
@@ -3983,7 +3981,7 @@ class SaleOrderAjax extends \CBitrixComponent
 		}
 
 		$innerPaySystemId = PaySystem\Manager::getInnerPaySystemId();
-		$extPaySystemId = (int)$this->arUserResult['PAY_SYSTEM_ID'];
+		$extPaySystemId = (int) $this->arUserResult['PAY_SYSTEM_ID'];
 
 		$paymentCollection = $order->getPaymentCollection();
 		$remainingSum = $order->getPrice() - $paymentCollection->getSum();
@@ -4159,7 +4157,7 @@ class SaleOrderAjax extends \CBitrixComponent
 		{
 			$paymentCollection = $order->getPaymentCollection();
 			$innerPaySystemId = PaySystem\Manager::getInnerPaySystemId();
-			$extPaySystemId = (int)$this->arUserResult['PAY_SYSTEM_ID'];
+			$extPaySystemId = (int) $this->arUserResult['PAY_SYSTEM_ID'];
 
 			if (empty($extPayment))
 			{
@@ -4244,7 +4242,7 @@ class SaleOrderAjax extends \CBitrixComponent
 				}
 			}
 
-			if (!array_key_exists((int)$selectedPaySystem['ID'], $this->arPaySystemServiceAll))
+			if (!array_key_exists((int) $selectedPaySystem['ID'], $this->arPaySystemServiceAll))
 			{
 				$this->addError(Loc::getMessage('P2D_CALCULATE_ERROR'), self::PAY_SYSTEM_BLOCK);
 				$this->addError(Loc::getMessage('P2D_CALCULATE_ERROR'), self::DELIVERY_BLOCK);
@@ -4316,7 +4314,7 @@ class SaleOrderAjax extends \CBitrixComponent
 				$calcOrder = false;
 				$arDelivery = [];
 
-				if ((int)$shipment->getDeliveryId() === $deliveryId)
+				if ((int) $shipment->getDeliveryId() === $deliveryId)
 				{
 					$arDelivery['CHECKED'] = 'Y';
 					$mustBeCalculated = true;
@@ -4878,7 +4876,7 @@ class SaleOrderAjax extends \CBitrixComponent
 
 			foreach ($arr['groups'] as $groupData)
 			{
-				$groupIndexList[] = (int)$groupData['ID'];
+				$groupIndexList[] = (int) $groupData['ID'];
 			}
 
 			if (!empty($groupIndexList))
@@ -5109,7 +5107,7 @@ class SaleOrderAjax extends \CBitrixComponent
 		$locationOutput = [];
 		$showDefault = true;
 
-		$propertyId = (int)$property['ID'];
+		$propertyId = (int) $property['ID'];
 		$isMultiple = $property['MULTIPLE'] == 'Y' && $property['IS_LOCATION'] != 'Y';
 
 		$locationAltPropDisplayManual = $this->request->get('LOCATION_ALT_PROP_DISPLAY_MANUAL');
@@ -5309,7 +5307,7 @@ class SaleOrderAjax extends \CBitrixComponent
 
 				if ($profileId !== null)
 				{
-					$arUserResult['PROFILE_ID'] = (int)$profileId;
+					$arUserResult['PROFILE_ID'] = (int) $profileId;
 				}
 
 				$paySystemId = $request->get('PAY_SYSTEM_ID');
@@ -5591,7 +5589,7 @@ class SaleOrderAjax extends \CBitrixComponent
 			{
 				if ($profile['CHECKED'] === 'Y')
 				{
-					$profileId = (int)$profile['ID'];
+					$profileId = (int) $profile['ID'];
 					break;
 				}
 			}

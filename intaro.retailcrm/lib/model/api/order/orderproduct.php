@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PHP version 7.1
  *
@@ -9,11 +10,11 @@
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
  */
+
 namespace Intaro\RetailCrm\Model\Api\Order;
 
 use Intaro\RetailCrm\Component\Json\Mapping;
 use Intaro\RetailCrm\Model\Api\AbstractApiModel;
-
 
 /**
  * Class OrderProduct
@@ -95,7 +96,7 @@ class OrderProduct extends AbstractApiModel
     public $priceType;
     
     /**
-     * [массив] Дополнительные свойства позиции в заказе
+     * Дополнительные свойства позиции в заказе
      *
      * @var array $properties
      *

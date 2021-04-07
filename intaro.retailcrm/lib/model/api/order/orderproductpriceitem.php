@@ -10,6 +10,7 @@
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
  */
+
 namespace Intaro\RetailCrm\Model\Api\Order;
 
 use Intaro\RetailCrm\Model\Api\AbstractApiModel;

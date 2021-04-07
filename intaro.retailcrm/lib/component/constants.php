@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PHP version 7.1
  *
@@ -9,6 +10,7 @@
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
  */
+
 namespace Intaro\RetailCrm\Component;
 
 /**
@@ -26,7 +28,7 @@ class Constants
     public const CRM_DELIVERY_SERVICES_ARR = 'deliv_services_arr';
     public const CRM_PAYMENT_TYPES = 'pay_types_arr';
     public const CRM_PAYMENT_STATUSES = 'pay_statuses_arr';
-    public const CRM_PAYMENT = 'payment_arr'; //order payment Y/N
+    public const CRM_PAYMENT = 'payment_arr';
     public const CRM_ORDER_LAST_ID = 'order_last_id';
     public const CRM_ORDER_SITES = 'sites_ids';
     public const CRM_ORDER_DISCHARGE = 'order_discharge';

@@ -45,7 +45,7 @@ if ($arResult['LOYALTY_STATUS'] === 'Y'
         $arResult['LL_PRIVILEGE_SIZE']       = $response->loyaltyLevel->privilegeSize;
         $arResult['LL_PRIVILEGE_SIZE_PROMO'] = $response->loyaltyLevel->privilegeSizePromo;
         $arResult['LOYALTY_LEVEL_TYPE']      = $response->loyaltyLevel->type;
-        $arResult['NEXT_LEVEL_SUM']          = (int)$response->nextLevelSum === 0 ? '-' : $response->nextLevelSum;
+        $arResult['NEXT_LEVEL_SUM']          = (int) $response->nextLevelSum === 0 ? '-' : $response->nextLevelSum;
         $arResult['ORDERS_SUM']              = $response->ordersSum;
     }
     

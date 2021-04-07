@@ -150,7 +150,7 @@ class Register extends Controller
         //TODO когда станет известен формат карты ПЛ, то добавить валидацию ввода
         
         $service        = new LpUserAccountService();
-        $createResponse = $service->createLoyaltyAccount($request['phone'], $request['card'], (string)$request['customerId'], $request['customFields']);
+        $createResponse = $service->createLoyaltyAccount($request['phone'], $request['card'], (string) $request['customerId'], $request['customFields']);
         //TODO добавить провеку на кастомные поля, когда будет готов метод запроса
         if ($createResponse !== null) {
             if ($createResponse->success === false) {

@@ -163,7 +163,7 @@ if (!empty($arParams['LABEL_PROP_POSITION']))
 							{
 								foreach ($arParams['PRODUCT_BLOCKS_ORDER'] as $blockName)
 								{
-									switch (trim((string)$blockName))
+									switch (trim((string) $blockName))
 									{
 										case 'props':
 											if (in_array('PROPS', $arParams['COLUMNS_LIST']))

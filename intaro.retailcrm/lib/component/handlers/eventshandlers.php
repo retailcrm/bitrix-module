@@ -10,6 +10,7 @@
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
  */
+
 namespace Intaro\RetailCrm\Component\Handlers;
 
 IncludeModuleLangFile(__FILE__);
@@ -33,6 +34,9 @@ use Throwable;
  */
 class EventsHandlers
 {
+    
+    public static $disableSaleHandler = false;
+    
     /**
      * EventsHandlers constructor.
      */
@@ -58,10 +62,10 @@ class EventsHandlers
         array &$arResult
     ): void {
         if (ConfigProvider::getLoyaltyProgramStatus() === 'Y') {
-            $bonusInput           = (int)$request->get('bonus-input');
-            $availableBonuses     = (int)$request->get('available-bonuses');
-            $chargeRate           = (int)$request->get('charge-rate');
-            $loyaltyDiscountInput = (float)$request->get('loyalty-discount-input');
+            $bonusInput           = (int) $request->get('bonus-input');
+            $availableBonuses     = (int) $request->get('available-bonuses');
+            $chargeRate           = (int) $request->get('charge-rate');
+            $loyaltyDiscountInput = (float) $request->get('loyalty-discount-input');
             $calculateItemsInput  = $request->get('calculate-items-input');
             $bonusDiscount        = $bonusInput * $chargeRate;
             
@@ -109,7 +113,7 @@ class EventsHandlers
      */
     public function OnSaleOrderSavedHandler(Event $event): void
     {
-        if ($GLOBALS['DISABLE_SALE_HANDLER'] === true) {
+        if (self::$disableSaleHandler === true) {
             return;
         }
         
@@ -129,7 +133,7 @@ class EventsHandlers
             $isLoyaltyOn                = ConfigProvider::getLoyaltyProgramStatus() === 'Y';
             $isDataForLoyaltyDiscount   = isset($_POST['calculate-items-input'], $_POST['loyalty-discount-input']);
             $isBonusesIssetAndAvailable = $isBonusInput
-                && (int)$_POST['available-bonuses'] >= (int)$_POST['bonus-input'];
+                && (int)$_POST['available-bonuses'] >= (int) $_POST['bonus-input'];
             
             /** @var array $calculateItemsInput */
             $calculateItemsInput        = $isDataForLoyaltyDiscount
@@ -137,10 +141,10 @@ class EventsHandlers
                 : [];
     
             if ($isNewOrder && $isLoyaltyOn) {
-                $GLOBALS['DISABLE_SALE_HANDLER'] = true;
+                self::$disableSaleHandler = true;
                 $hlInfo                          = $loyaltyService->addMainInfoToHl($order);
                 $discountInput                   = isset($_POST['loyalty-discount-input'])
-                    ? (float)$_POST['loyalty-discount-input']
+                    ? (float) $_POST['loyalty-discount-input']
                     : 0;
                 $loyaltyBonusMsg                 = '';
         
@@ -149,7 +153,7 @@ class EventsHandlers
                     $hlInfo = $loyaltyService->saveBonuses(
                         $order,
                         $hlInfo,
-                        (int)$_POST['bonus-input'],
+                        (int) $_POST['bonus-input'],
                         isset($_POST['charge-rate']) ? htmlspecialchars(trim($_POST['charge-rate'])) : 1
                     );
             
@@ -161,7 +165,8 @@ class EventsHandlers
                     $loyaltyService->saveDiscounts($order, $calculateItemsInput);
                 }
         
-                $loyaltyService->saveBonusAndDiscToOrderProps($order->getPropertyCollection(),
+                $loyaltyService->saveBonusAndDiscToOrderProps(
+                    $order->getPropertyCollection(),
                     $discountInput,
                     $loyaltyBonusMsg
                 );
@@ -169,8 +174,8 @@ class EventsHandlers
                 $hlInfo = $loyaltyService->addDiscountsToHl($calculateItemsInput, $hlInfo);
                 
                 $loyaltyService->saveLoyaltyInfoToHl($hlInfo);
-        
-                $GLOBALS['DISABLE_SALE_HANDLER'] = false;
+    
+                self::$disableSaleHandler = false;
             }
         } catch (Throwable $exception) {
             AddMessage2Log(GetMessage('CAN_NOT_SAVE_ORDER') . $exception->getMessage());
@@ -207,9 +212,9 @@ class EventsHandlers
             $customerService->createOrUpdateCustomer($customer);
 
             //Если пользователь выразил желание зарегистрироваться в ПЛ и согласился со всеми правилами
-            if ((int)$arFields['UF_REG_IN_PL_INTARO'] === 1
-                && (int)$arFields['UF_AGREE_PL_INTARO'] === 1
-                && (int)$arFields['UF_PD_PROC_PL_INTARO'] === 1
+            if ((int) $arFields['UF_REG_IN_PL_INTARO'] === 1
+                && (int) $arFields['UF_AGREE_PL_INTARO'] === 1
+                && (int) $arFields['UF_PD_PROC_PL_INTARO'] === 1
             ) {
                 $phone          = $arFields['PERSONAL_PHONE'] ?? '';
                 $card           = $arFields['UF_CARD_NUM_INTARO'] ?? '';

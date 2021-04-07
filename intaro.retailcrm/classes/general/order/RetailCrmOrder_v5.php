@@ -248,7 +248,7 @@ class RetailCrmOrder
             if ($methodApi === 'ordersEdit' && ConfigProvider::getLoyaltyProgramStatus() === 'Y') {
                 /** @var LoyaltyService $service */
                 $service                      = ServiceLocator::get(LoyaltyService::class);
-                $item['discountManualAmount'] = $service->getInitialDiscount((int)$externalId) ?? $discount;
+                $item['discountManualAmount'] = $service->getInitialDiscount((int) $externalId) ?? $discount;
             } else {
                 $item['discountManualAmount'] = $discount;
             }

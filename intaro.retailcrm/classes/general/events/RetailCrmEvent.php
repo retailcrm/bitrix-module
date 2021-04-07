@@ -1,5 +1,9 @@
 <?php
 
+use Intaro\RetailCrm\Component\ConfigProvider;
+use Intaro\RetailCrm\Model\Api\Response\OrdersCreateResponse;
+use Intaro\RetailCrm\Model\Api\Response\OrdersEditResponse;
+
 /**
  * Class RetailCrmEvent
  */
@@ -7,12 +11,11 @@ class RetailCrmEvent
 {
     protected static $MODULE_ID              = 'intaro.retailcrm';
     protected static $CRM_API_HOST_OPTION    = 'api_host';
-    protected static $CRM_API_KEY_OPTION     = 'api_key';
     protected static $CRM_ORDER_TYPES_ARR    = 'order_types_arr';
     protected static $CRM_DELIVERY_TYPES_ARR = 'deliv_types_arr';
     protected static $CRM_PAYMENT_TYPES      = 'pay_types_arr';
     protected static $CRM_PAYMENT_STATUSES   = 'pay_statuses_arr';
-    protected static $CRM_PAYMENT            = 'payment_arr'; //order payment Y/N
+    protected static $CRM_PAYMENT            = 'payment_arr';
     protected static $CRM_ORDER_LAST_ID      = 'order_last_id';
     protected static $CRM_ORDER_PROPS        = 'order_props';
     protected static $CRM_LEGAL_DETAILS      = 'legal_details';
@@ -89,9 +92,9 @@ class RetailCrmEvent
     }
     
     /**
-     * @param $event
+     * @param mixed $event
      *
-     * @return array|bool|null|\Intaro\RetailCrm\Model\Api\Response\OrdersCreateResponse|\Intaro\RetailCrm\Model\Api\Response\OrdersEditResponse
+     * @return array|bool|null|OrdersCreateResponse|OrdersEditResponse
      * @throws \Bitrix\Main\ArgumentException
      * @throws \Bitrix\Main\ObjectPropertyException
      * @throws \Bitrix\Main\SystemException
@@ -461,9 +464,9 @@ class RetailCrmEvent
             $site = null;
         }
         
-        $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
-        $api_key  = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
-        $api      = new RetailCrm\ApiClient($api_host, $api_key);
+        $apiHost = ConfigProvider::getApiUrl();
+        $apiKey  = ConfigProvider::getApiKey();
+        $api      = new RetailCrm\ApiClient($apiHost, $apiKey);
         $orderCrm = RCrmActions::apiMethod($api, 'ordersGet', __METHOD__, $arPayment['ORDER_ID'], $site);
         
         if (isset($orderCrm['order'])) {
@@ -579,9 +582,9 @@ class RetailCrmEvent
             $site = null;
         }
         
-        $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
-        $api_key  = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
-        $api      = new RetailCrm\ApiClient($api_host, $api_key);
+        $apiHost = ConfigProvider::getApiUrl();
+        $apiKey  = ConfigProvider::getApiKey();
+        $api      = new RetailCrm\ApiClient($apiHost, $apiKey);
         $orderCrm = RCrmActions::apiMethod($api, 'ordersGet', __METHOD__, $arPayment['ORDER_ID'], $site);
         
         if (isset($orderCrm['order']['payments']) && $orderCrm['order']['payments']) {

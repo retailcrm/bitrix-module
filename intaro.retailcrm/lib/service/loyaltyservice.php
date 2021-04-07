@@ -55,6 +55,7 @@ use Intaro\RetailCrm\Model\Bitrix\OrderProps;
 use Intaro\RetailCrm\Model\Bitrix\SmsCookie;
 use Intaro\RetailCrm\Model\Bitrix\User;
 use Intaro\RetailCrm\Model\Bitrix\UserLoyaltyData;
+use Intaro\RetailCrm\Repository\CurrencyRepository;
 use Intaro\RetailCrm\Repository\OrderLoyaltyDataRepository;
 use Intaro\RetailCrm\Repository\UserRepository;
 
@@ -343,15 +344,14 @@ class LoyaltyService
      *
      * @param OrderLoyaltyData[]                                                           $loyaltyHls
      * @param \Intaro\RetailCrm\Model\Api\Response\Order\Loyalty\OrderLoyaltyApplyResponse $response
-     * @param                                                                              $rate /курс бонуса к валюте
+     * @param int                                                                          $rate /курс бонуса к валюте
      * @return array
      */
     public function addBonusesToHl(
         array $loyaltyHls,
         OrderLoyaltyApplyResponse $response,
-        $rate
+        int $rate
     ): array {
-    
         $isDebited = false;
         $checkId   = '';
         
@@ -777,19 +777,8 @@ class LoyaltyService
         $orderArResult['LP_CALCULATE_SUCCESS'] = $calculate->success;
         $orderArResult['WILL_BE_CREDITED']     = $calculate->order->bonusesCreditTotal;
     
-        try {
-            $currency = CurrencyLangTable::query()
-                ->setSelect(['FORMAT_STRING'])
-                ->where([
-                    ['CURRENCY', '=', ConfigProvider::getCurrencyOrDefault()],
-                    ['LID', '=', 'LANGUAGE_ID'],
-                ])
-                ->fetch();
-        } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
-            AddMessage2Log($exception->getMessage());
-        }
-    
-        $orderArResult['BONUS_CURRENCY'] = html_entity_decode($currency['FORMAT_STRING']);
+        $currencyRepository = new CurrencyRepository();
+        $orderArResult['BONUS_CURRENCY'] = html_entity_decode($currencyRepository->getCurrencyFormatString());
         
         return $orderArResult;
     }
@@ -850,7 +839,7 @@ class LoyaltyService
      */
     public function saveLpDiscountToOrderProp(PropertyValue $prop, float $loyaltyDiscountInput): void
     {
-        if ((int)$loyaltyDiscountInput === 0) {
+        if ((int) $loyaltyDiscountInput === 0) {
             return;
         }
         
@@ -899,12 +888,12 @@ class LoyaltyService
         try {
             /** @var BasketItemBase $basketItem */
             foreach ($order->getBasket() as $key => $basketItem) {
-                
                 $calculateItemPosition = $calculateItemsInput[$basketItem->getId()];
                 $calculateItem         = $calculateItemPosition['SUM_NUM'] / $calculateItemPosition['QUANTITY'];
                 
                 $basketItem->setField('CUSTOM_PRICE', 'Y');
-                $basketItem->setField('DISCOUNT_PRICE',
+                $basketItem->setField(
+                    'DISCOUNT_PRICE',
                     $basketItem->getBasePrice() - $calculateItem
                 );
                 
@@ -1073,7 +1062,7 @@ class LoyaltyService
         $service    = ServiceLocator::get(LpUserAccountService::class);
         $phone      = $userPhone ?? '';
         $card       = $loyalty->getBonusCardNumber() ?? '';
-        $customerId = (string)$userId;
+        $customerId = (string) $userId;
         
         $createResponse = $service->createLoyaltyAccount($phone, $card, $customerId, $customFields);
         
@@ -1152,7 +1141,6 @@ class LoyaltyService
         
         /** @var OrderLoyaltyData  $product */
         foreach ($products as $product) {
-            
             $bonusCount += $product->bonusCount*$product->quantity;
         }
         

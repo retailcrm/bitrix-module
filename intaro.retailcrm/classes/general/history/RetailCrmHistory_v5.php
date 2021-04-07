@@ -5,11 +5,15 @@ use Bitrix\Main\ArgumentNullException;
 use Bitrix\Main\Context;
 use Bitrix\Sale\Basket;
 use Bitrix\Sale\BasketItem;
+use Bitrix\Sale\Delivery\Services\EmptyDeliveryService;
+use Bitrix\Sale\Delivery\Services\Manager;
 use Bitrix\Sale\Fuser;
 use Bitrix\Sale\Internals\PaymentTable;
 use Bitrix\Sale\Location\Search\Finder;
 use Bitrix\Sale\Order;
 use Bitrix\Sale\OrderUserProperties;
+use Intaro\RetailCrm\Component\ConfigProvider;
+use Intaro\RetailCrm\Component\Handlers\EventsHandlers;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Service\LoyaltyService;
 
@@ -23,7 +27,7 @@ class RetailCrmHistory
     public static $CRM_DELIVERY_TYPES_ARR = 'deliv_types_arr';
     public static $CRM_PAYMENT_TYPES = 'pay_types_arr';
     public static $CRM_PAYMENT_STATUSES = 'pay_statuses_arr';
-    public static $CRM_PAYMENT = 'payment_arr'; //order payment Y/N
+    public static $CRM_PAYMENT = 'payment_arr';
     public static $CRM_ORDER_LAST_ID = 'order_last_id';
     public static $CRM_SITES_LIST = 'sites_list';
     public static $CRM_ORDER_PROPS = 'order_props';
@@ -37,7 +41,6 @@ class RetailCrmHistory
     public static $CRM_ORDER_NUMBERS = 'order_numbers';
     public static $CRM_CANSEL_ORDER = 'cansel_order';
     public static $CRM_CURRENCY = 'currency';
-    public static $CRM_DISCOUNT_ROUND = 'discount_round';
 
     const CANCEL_PROPERTY_CODE = 'INTAROCRM_IS_CANCELED';
 
@@ -301,9 +304,9 @@ class RetailCrmHistory
                             }
                     
                             $newOrder->setField('CANCELED', 'Y');
-                            $GLOBALS['DISABLE_SALE_HANDLER'] = true;
+                            EventsHandlers::$disableSaleHandler = true;
                             $newOrder->save();
-                            $GLOBALS['DISABLE_SALE_HANDLER'] = false;
+                            EventsHandlers::$disableSaleHandler = false;
                         }
                 
                         continue;
@@ -959,7 +962,7 @@ class RetailCrmHistory
                                     $duplicateItems[$item['id']]['quantity']      += $item['quantity'];
                                     $duplicateItems[$item['id']]['discountTotal'] +=
                                         $item['quantity'] * $item['discountTotal'];
-                                    $duplicateItems[$item['id']]['initialPrice']  = (float)$item['initialPrice'];
+                                    $duplicateItems[$item['id']]['initialPrice']  = (float) $item['initialPrice'];
                                     $duplicateItems[$item['id']]['price_sum']     = ($item['quantity'] * $item['initialPrice'])
                                         - ($item['quantity'] * $item['discountTotal']);
                                 }
@@ -992,7 +995,7 @@ class RetailCrmHistory
                                     $discountDelta = 0;
                             
                                     foreach ($itemData['initialPrices'] as $initialPriceItem) {
-                                        $delta = $itemData['initialPrice_max'] - (float)$initialPriceItem;
+                                        $delta = $itemData['initialPrice_max'] - (float) $initialPriceItem;
                                 
                                         if ($delta !== 0) {
                                             $discountDelta += $delta;
@@ -1006,7 +1009,7 @@ class RetailCrmHistory
                             Logger::getInstance()->write($duplicateItems, 'duplicateItemsOrderHistory');
                             Logger::getInstance()->write($collectItems, 'collectItemsOrderHistory');
                     
-                            $optionDiscRound = COption::GetOptionString(self::$MODULE_ID, self::$CRM_DISCOUNT_ROUND, 0);
+                            $optionDiscRound = ConfigProvider::getDiscountRound();
                     
                             foreach ($order['items'] as $product) {
                                 if ($collectItems[$product['offer']['externalId']]['quantity']) {
@@ -1268,7 +1271,7 @@ class RetailCrmHistory
         if (file_exists($server . '/bitrix/modules/intaro.retailcrm/classes/general/config/objects.xml')) {
             $objects = simplexml_load_file($server . '/bitrix/modules/intaro.retailcrm/classes/general/config/objects.xml');
             foreach ($objects->fields->field as $object) {
-                $fields[(string)$object["group"]][(string)$object["id"]] = (string)$object;
+                $fields[(string) $object["group"]][(string) $object["id"]] = (string) $object;
             }
         }
         
@@ -1337,7 +1340,7 @@ class RetailCrmHistory
             );
 
             foreach ($objects->fields->field as $object) {
-                $fields[(string)$object['group']][(string)$object['id']] = (string)$object;
+                $fields[(string) $object['group']][(string) $object['id']] = (string) $object;
             }
         }
 
@@ -1479,7 +1482,6 @@ class RetailCrmHistory
     
         /** @var LoyaltyService $service */
         $service = ServiceLocator::get(LoyaltyService::class);
-    
         $service->updateLoyaltyBonusHistory($bonusesCharges);
         
         return $orders;
@@ -1558,17 +1560,17 @@ class RetailCrmHistory
      * Update shipment in order
      *
      * @param \Bitrix\Sale\Order $order
-     * @param                    $optionsDelivTypes
-     * @param                    $orderCrm
-     * @return void
+     * @param array              $optionsDelivTypes
+     * @param array              $orderCrm
+     * @return bool|null
      * @throws \Bitrix\Main\ArgumentException
      * @throws \Bitrix\Main\ArgumentNullException
      * @throws \Bitrix\Main\ObjectNotFoundException
      * @throws \Bitrix\Main\SystemException
      */
-    public static function deliveryUpdate(Bitrix\Sale\Order $order, $optionsDelivTypes, $orderCrm)
+    public static function deliveryUpdate(Order $order, array $optionsDelivTypes, array $orderCrm): ?bool
     {
-        if (!$order instanceof Bitrix\Sale\Order) {
+        if (!$order instanceof Order) {
             return false;
         }
 
@@ -1578,8 +1580,8 @@ class RetailCrmHistory
             $update = false;
         }
 
-        $crmCode = isset($orderCrm['delivery']['code']) ? $orderCrm['delivery']['code'] : false;
-        $noDeliveryId = \Bitrix\Sale\Delivery\Services\EmptyDeliveryService::getEmptyDeliveryServiceId();
+        $crmCode = $orderCrm['delivery']['code'] ?? false;
+        $noDeliveryId = EmptyDeliveryService::getEmptyDeliveryServiceId();
 
         if ($crmCode === false || !isset($optionsDelivTypes[$crmCode])) {
             $deliveryId = $noDeliveryId;
@@ -1587,21 +1589,21 @@ class RetailCrmHistory
             $deliveryId = $optionsDelivTypes[$crmCode];
 
             if (isset($orderCrm['delivery']['service']['code'])) {
-                $deliveryCode = \Bitrix\Sale\Delivery\Services\Manager::getCodeById($deliveryId);
+                $deliveryCode = Manager::getCodeById($deliveryId);
                 $serviceCode = $orderCrm['delivery']['service']['code'];
 
-                $service = \Bitrix\Sale\Delivery\Services\Manager::getService($deliveryId);
+                $service = Manager::getService($deliveryId);
                 if (is_object($service)) {
                     $services = $service->getProfilesList();
                     if (!array_key_exists($serviceCode, $services)) {
                         $serviceCode = strtoupper($serviceCode);
-                        $serviceCode = str_replace(array('-'), "_", $serviceCode);
+                        $serviceCode = str_replace('-', '_', $serviceCode);
                     }
                 }
 
                 if ($deliveryCode) {
                     try {
-                        $deliveryService = \Bitrix\Sale\Delivery\Services\Manager::getObjectByCode($deliveryCode . ':' . $serviceCode);
+                        $deliveryService = Manager::getObjectByCode($deliveryCode . ':' . $serviceCode);
                     } catch (Bitrix\Main\SystemException $systemException) {
                         RCrmActions::eventLog('RetailCrmHistory::deliveryEdit', '\Bitrix\Sale\Delivery\Services\Manager::getObjectByCode', $systemException->getMessage());
                     }
@@ -1613,28 +1615,28 @@ class RetailCrmHistory
             }
         }
 
-        $delivery = \Bitrix\Sale\Delivery\Services\Manager::getObjectById($deliveryId);
+        $delivery = Manager::getObjectById($deliveryId);
         $shipmentColl = $order->getShipmentCollection();
 
         if ($delivery) {
             if (!$update) {
                 $shipment = $shipmentColl->createItem($delivery);
-                $shipment->setFields(array(
+                $shipment->setFields([
                     'BASE_PRICE_DELIVERY' => $orderCrm['delivery']['cost'],
                     'CURRENCY' => $order->getCurrency(),
                     'DELIVERY_NAME' => $delivery->getName(),
                     'CUSTOM_PRICE_DELIVERY' => 'Y'
-                ));
+                ]);
             } else {
                 foreach ($shipmentColl as $shipment) {
                     if (!$shipment->isSystem()) {
-                        $shipment->setFields(array(
+                        $shipment->setFields([
                             'BASE_PRICE_DELIVERY' => $orderCrm['delivery']['cost'],
                             'CURRENCY' => $order->getCurrency(),
                             'DELIVERY_ID' => $deliveryId,
                             'DELIVERY_NAME' => $delivery->getName(),
                             'CUSTOM_PRICE_DELIVERY' => 'Y'
-                        ));
+                        ]);
                     }
                 }
             }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PHP version 7.1
  *
@@ -12,17 +13,15 @@
 
 namespace Intaro\RetailCrm\Service;
 
+use Bitrix\Highloadblock as HL;
 use Bitrix\Main\ArgumentException;
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\ObjectPropertyException;
-use Bitrix\Main\ORM\Data\AddResult;
 use Bitrix\Main\SystemException;
 use Bitrix\Sale\Internals\OrderPropsGroupTable;
 use CSaleOrderProps;
 use CUserTypeEntity;
 use Exception;
-use Bitrix\Highloadblock as HL;
-use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Model\Bitrix\OrderLoyaltyData;
 use Intaro\RetailCrm\Repository\OrderLoyaltyDataRepository;
@@ -35,7 +34,6 @@ use Intaro\RetailCrm\Repository\PersonTypeRepository;
  */
 class OrderLoyaltyDataService
 {
-    
     /**
      * @param $personId
      * @param $groupID
@@ -49,7 +47,6 @@ class OrderLoyaltyDataService
                     ['PROPS_GROUP_ID', '=', $groupID],
                 ]
             );
-            
             
             if ($bonusProp === null) {
                 $fields = [
@@ -95,8 +92,8 @@ class OrderLoyaltyDataService
                     CSaleOrderProps::Add($field);
                 }
             }
-        } catch (ObjectPropertyException | ArgumentException | SystemException $e) {
-            AddMessage2Log($e->getMessage());
+        } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
+            AddMessage2Log($exception->getMessage());
         }
     }
     
@@ -127,7 +124,7 @@ class OrderLoyaltyDataService
     private function getGroupID($personId): ?int
     {
         try {
-            $LPGroup = OrderPropsGroupTable::query()
+            $lPGroup = OrderPropsGroupTable::query()
                 ->setSelect(['ID'])
                 ->where(
                     [
@@ -137,21 +134,23 @@ class OrderLoyaltyDataService
                 )
                 ->fetch();
             
-            if (is_array($LPGroup)) {
-                return $LPGroup['ID'];
+            if (is_array($lPGroup)) {
+                return $lPGroup['ID'];
             }
             
-            if ($LPGroup === false) {
+            if ($lPGroup === false) {
                 return OrderPropsGroupTable::add([
                     'PERSON_TYPE_ID' => $personId,
                     'NAME'           => GetMessage('LP_ORDER_GROUP_NAME'),
                 ])->getId();
             }
-        } catch (Exception $e) {
-            AddMessage2Log($e->getMessage());
+        } catch (Exception $exception) {
+            AddMessage2Log($exception->getMessage());
             
             return null;
         }
+        
+        return null;
     }
     
     /**
@@ -170,6 +169,7 @@ class OrderLoyaltyDataService
      * Создает HL блок для хранения информации о бонусах и скидках
      *
      * @throws \Bitrix\Main\SystemException
+     * @throws \Exception
      */
     public static function createLoyaltyHlBlock(): void
     {
@@ -199,9 +199,29 @@ class OrderLoyaltyDataService
             }
         }
         
+        if (!isset($hlId)) {
+            return;
+        }
+        
         $ufObject     = 'HLBLOCK_' . $hlId;
-        $arCartFields = [
-            'UF_ORDER_ID'      => [
+        $arCartFields = self::getHlFields($ufObject);
+        
+        foreach ($arCartFields as $arCartField) {
+            $obUserField = new CUserTypeEntity();
+            $obUserField->Add($arCartField);
+        }
+    }
+    
+    /**
+     * Возвращает настройки для генерации полей HL блока
+     *
+     * @param string $ufObject
+     * @return array[]
+     */
+    private static function getHlFields(string $ufObject): array
+    {
+        return [
+            'UF_ORDER_ID'     => [
                 'ENTITY_ID'         => $ufObject,
                 'FIELD_NAME'        => 'UF_ORDER_ID',
                 'USER_TYPE_ID'      => 'integer',
@@ -219,7 +239,7 @@ class OrderLoyaltyDataService
                     'en' => Loc::GetMessage('UF_ORDER_ID', null, 'en'),
                 ],
             ],
-            'UF_ITEM_ID'       => [
+            'UF_ITEM_ID'      => [
                 'ENTITY_ID'         => $ufObject,
                 'FIELD_NAME'        => 'UF_ITEM_ID',
                 'USER_TYPE_ID'      => 'integer',
@@ -237,7 +257,7 @@ class OrderLoyaltyDataService
                     'en' => Loc::GetMessage('UF_ITEM_ID', null, 'en'),
                 ],
             ],
-            'UF_ITEM_POS_ID'       => [
+            'UF_ITEM_POS_ID'  => [
                 'ENTITY_ID'         => $ufObject,
                 'FIELD_NAME'        => 'UF_ITEM_POS_ID',
                 'USER_TYPE_ID'      => 'integer',
@@ -255,7 +275,7 @@ class OrderLoyaltyDataService
                     'en' => Loc::GetMessage('UF_ITEM_POS_ID', null, 'en'),
                 ],
             ],
-            'UF_NAME'       => [
+            'UF_NAME'         => [
                 'ENTITY_ID'         => $ufObject,
                 'FIELD_NAME'        => 'UF_NAME',
                 'USER_TYPE_ID'      => 'string',
@@ -273,7 +293,7 @@ class OrderLoyaltyDataService
                     'en' => Loc::GetMessage('UF_NAME', null, 'en'),
                 ],
             ],
-            'UF_DEF_DISCOUNT'       => [
+            'UF_DEF_DISCOUNT' => [
                 'ENTITY_ID'         => $ufObject,
                 'FIELD_NAME'        => 'UF_DEF_DISCOUNT',
                 'USER_TYPE_ID'      => 'double',
@@ -291,7 +311,7 @@ class OrderLoyaltyDataService
                     'en' => Loc::GetMessage('UF_DEF_DISCOUNT', null, 'en'),
                 ],
             ],
-            'UF_BONUS_CASH' => [
+            'UF_BONUS_CASH'   => [
                 'ENTITY_ID'         => $ufObject,
                 'FIELD_NAME'        => 'UF_BONUS_CASH',
                 'USER_TYPE_ID'      => 'integer',
@@ -309,7 +329,7 @@ class OrderLoyaltyDataService
                     'en' => Loc::GetMessage('UF_BONUS_CASH', null, 'en'),
                 ],
             ],
-            'UF_BONUS_RATE'    => [
+            'UF_BONUS_RATE'   => [
                 'ENTITY_ID'         => $ufObject,
                 'FIELD_NAME'        => 'UF_BONUS_RATE',
                 'USER_TYPE_ID'      => 'integer',
@@ -327,7 +347,7 @@ class OrderLoyaltyDataService
                     'en' => Loc::GetMessage('UF_BONUS_RATE', null, 'en'),
                 ],
             ],
-            'UF_BONUS_COUNT'   => [
+            'UF_BONUS_COUNT'  => [
                 'ENTITY_ID'         => $ufObject,
                 'FIELD_NAME'        => 'UF_BONUS_COUNT',
                 'USER_TYPE_ID'      => 'integer',
@@ -345,7 +365,7 @@ class OrderLoyaltyDataService
                     'en' => Loc::GetMessage('UF_BONUS_COUNT', null, 'en'),
                 ],
             ],
-            'UF_CHECK_ID'      => [
+            'UF_CHECK_ID'     => [
                 'ENTITY_ID'         => $ufObject,
                 'FIELD_NAME'        => 'UF_CHECK_ID',
                 'USER_TYPE_ID'      => 'string',
@@ -363,12 +383,12 @@ class OrderLoyaltyDataService
                     'en' => Loc::GetMessage('UF_CHECK_ID', null, 'en'),
                 ],
             ],
-            'UF_IS_DEBITED'    => [
+            'UF_IS_DEBITED'   => [
                 'ENTITY_ID'         => $ufObject,
                 'FIELD_NAME'        => 'UF_IS_DEBITED',
                 'USER_TYPE_ID'      => 'boolean',
                 'MANDATORY'         => 'N',
-                'EDIT_FORM_LABEL' => [
+                'EDIT_FORM_LABEL'   => [
                     'ru' => Loc::GetMessage('UF_IS_DEBITED', null, 'ru'),
                     'en' => Loc::GetMessage('UF_IS_DEBITED', null, 'en'),
                 ],
@@ -381,7 +401,7 @@ class OrderLoyaltyDataService
                     'en' => Loc::GetMessage('UF_IS_DEBITED', null, 'en'),
                 ],
             ],
-            'UF_QUANTITY'      => [
+            'UF_QUANTITY'     => [
                 'ENTITY_ID'         => $ufObject,
                 'FIELD_NAME'        => 'UF_QUANTITY',
                 'USER_TYPE_ID'      => 'integer',
@@ -400,10 +420,5 @@ class OrderLoyaltyDataService
                 ],
             ],
         ];
-        
-        foreach ($arCartFields as $arCartField) {
-            $obUserField = new CUserTypeEntity();
-            $obUserField->Add($arCartField);
-        }
     }
 }

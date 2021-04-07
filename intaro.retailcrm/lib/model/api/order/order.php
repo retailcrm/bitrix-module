@@ -1,8 +1,6 @@
 <?php
 
-
 namespace Intaro\RetailCrm\Model\Api\Order;
-
 
 use Intaro\RetailCrm\Model\Api\AbstractApiModel;
 use Intaro\RetailCrm\Component\Json\Mapping;
@@ -102,7 +100,6 @@ class Order extends AbstractApiModel
      * Позиции в заказе
      *
      * @var array $items
-     *
      *
      * @Mapping\Type("array<Intaro\RetailCrm\Model\Api\Order\OrderProduct>")
      * @Mapping\SerializedName("items")

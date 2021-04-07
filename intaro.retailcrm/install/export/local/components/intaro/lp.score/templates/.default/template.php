@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Bitrix vars
  * @var  array                     $arResult

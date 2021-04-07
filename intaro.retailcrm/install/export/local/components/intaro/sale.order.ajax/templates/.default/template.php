@@ -55,7 +55,7 @@ if (!isset($arParams['BASKET_POSITION']) || !in_array($arParams['BASKET_POSITION
     $arParams['BASKET_POSITION'] = 'after';
 }
 
-$arParams['EMPTY_BASKET_HINT_PATH']       = isset($arParams['EMPTY_BASKET_HINT_PATH']) ? (string)$arParams['EMPTY_BASKET_HINT_PATH'] : '/';
+$arParams['EMPTY_BASKET_HINT_PATH']       = isset($arParams['EMPTY_BASKET_HINT_PATH']) ? (string) $arParams['EMPTY_BASKET_HINT_PATH'] : '/';
 $arParams['SHOW_BASKET_HEADERS']          = $arParams['SHOW_BASKET_HEADERS'] === 'Y' ? 'Y' : 'N';
 $arParams['HIDE_DETAIL_PAGE_URL']         = isset($arParams['HIDE_DETAIL_PAGE_URL']) && $arParams['HIDE_DETAIL_PAGE_URL'] === 'Y' ? 'Y' : 'N';
 $arParams['DELIVERY_FADE_EXTRA_SERVICES'] = $arParams['DELIVERY_FADE_EXTRA_SERVICES'] === 'Y' ? 'Y' : 'N';

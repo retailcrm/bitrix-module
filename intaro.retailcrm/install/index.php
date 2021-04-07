@@ -71,7 +71,7 @@ class intaro_retailcrm extends CModule
     public $CRM_DELIVERY_SERVICES_ARR = 'deliv_services_arr';
     public $CRM_PAYMENT_TYPES = 'pay_types_arr';
     public $CRM_PAYMENT_STATUSES = 'pay_statuses_arr';
-    public $CRM_PAYMENT = 'payment_arr'; //order payment Y/N
+    public $CRM_PAYMENT = 'payment_arr';
     public $CRM_ORDER_LAST_ID = 'order_last_id';
     public $CRM_ORDER_PROPS = 'order_props';
     public $CRM_LEGAL_DETAILS = 'legal_details';
@@ -194,21 +194,21 @@ class intaro_retailcrm extends CModule
             $options = simplexml_load_file($this->INSTALL_PATH . '/../classes/general/config/options.xml');
 
             foreach ($options->contragents->contragent as $contragent) {
-                $type["NAME"]                 = $APPLICATION->ConvertCharset((string)$contragent, 'utf-8', SITE_CHARSET);
-                $type["ID"]                   = (string)$contragent["id"];
+                $type["NAME"]                 = $APPLICATION->ConvertCharset((string) $contragent, 'utf-8', SITE_CHARSET);
+                $type["ID"]                   = (string) $contragent["id"];
                 $arResult['contragentType'][] = $type;
                 unset ($type);
             }
             foreach ($options->fields->field as $field) {
-                $type["NAME"] = $APPLICATION->ConvertCharset((string)$field, 'utf-8', SITE_CHARSET);
-                $type["ID"]   = (string)$field["id"];
+                $type["NAME"] = $APPLICATION->ConvertCharset((string) $field, 'utf-8', SITE_CHARSET);
+                $type["ID"]   = (string) $field["id"];
 
                 if ($field["group"] == 'custom') {
                     $arResult['customFields'][] = $type;
                 } elseif (!$field["group"]) {
                     $arResult['orderProps'][] = $type;
                 } else {
-                    $groups = explode(",", (string)$field["group"]);
+                    $groups = explode(",", (string) $field["group"]);
                     foreach ($groups as $group) {
                         $type["GROUP"][] = trim($group);
                     }
@@ -647,7 +647,7 @@ class intaro_retailcrm extends CModule
                 if (!isset($_POST['finish'])) {
                     $finish = 0;
                 } else {
-                    $finish = (int)$_POST['finish'];
+                    $finish = (int) $_POST['finish'];
                 }
 
                 if (!$countAll) {
@@ -784,7 +784,7 @@ class intaro_retailcrm extends CModule
 
                 }
                 if (isset($history['history'])) {
-                    $hIs    = (int)$history['history'][0]['id'] - 1;
+                    $hIs    = (int) $history['history'][0]['id'] - 1;
                     $orderH = $hIs;
                 } else {
                     $orderH = $this->historyLoad($api, 'ordersHistory');
