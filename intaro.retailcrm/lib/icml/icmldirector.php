@@ -2,19 +2,21 @@
 
 namespace Intaro\RetailCrm\Icml;
 
+use COption;
 use Intaro\RetailCrm\Icml\Utils\BasePrice;
-use Intaro\RetailCrm\Icml\Utils\IblockUtils;
 use Intaro\RetailCrm\Icml\Utils\IcmlLogger;
 use Intaro\RetailCrm\Model\Bitrix\Orm\CatalogIblockInfo;
 use Intaro\RetailCrm\Model\Bitrix\Xml\SelectParams;
+use Intaro\RetailCrm\Model\Bitrix\Xml\XmlData;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlOffer;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup;
+use Intaro\RetailCrm\Repository\CatalogRepository;
 
 /**
- * Class RetailCrmXmlBuilder
+ * Class IcmlDirector
  * @package Intaro\RetailCrm\Icml
  */
-class RetailCrmXmlBuilder
+class IcmlDirector
 {
     public const INFO        = 'INFO';
     public const OFFERS_PART = 500;
@@ -24,13 +26,38 @@ class RetailCrmXmlBuilder
      */
     private $icmlWriter;
     
-    /** @var icmlDataManager */
-    private $icmlDataManager;
+    /** @var XmlOfferBuilder */
+    private $xmlOfferBuilder;
     
     /**
      * @var \Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup
      */
     private $setup;
+    
+    /**
+     * @var \Intaro\RetailCrm\Repository\CatalogRepository
+     */
+    private $catalogRepository;
+    
+    /**
+     * @var string
+     */
+    private $shopName;
+    
+    /**
+     * @var \Intaro\RetailCrm\Icml\XmlCategoriesBuilder
+     */
+    private $xmlCategoryBuilder;
+    
+    /**
+     * @var \Intaro\RetailCrm\Icml\QueryBuilder
+     */
+    private $queryBuilder;
+    
+    /**
+     * @var \Intaro\RetailCrm\Model\Bitrix\Xml\XmlData
+     */
+    private $xmlData;
     
     /**
      * RetailCrmlXml constructor.
@@ -39,9 +66,15 @@ class RetailCrmXmlBuilder
     public function __construct(XmlSetup $setup)
     {
         $this->setup              = $setup;
-        $this->setup->basePriceId = BasePrice::getBasePriceId($this->setup->profileID);
+        $this->shopName           = COption::GetOptionString('main', 'site_name');
+        $this->catalogRepository  = new CatalogRepository();
+        $this->setup->basePriceId = $this->catalogRepository->getBasePriceId($this->setup->profileID);
         $this->icmlWriter         = new IcmlWriter($this->setup->filePath);
-        $this->icmlDataManager    = new IcmlDataManager($this->setup);
+        $this->xmlOfferBuilder    = new XmlOfferBuilder($this->setup);
+        $this->xmlCategoryBuilder = new XmlCategoriesBuilder($setup);
+        $this->queryBuilder       = new QueryBuilder();
+        $this->xmlData            = new XmlData();
+        $this->setXmlData();
     }
     
     /**
@@ -50,11 +83,8 @@ class RetailCrmXmlBuilder
     public function generateXml(): void
     {
         IcmlLogger::writeToToLog(Date('Y:m:d H:i:s')
-            . ': Start getting data for XML', self::INFO);
-        $data = $this->icmlDataManager->getXmlData();
-        IcmlLogger::writeToToLog(Date('Y:m:d H:i:s')
-            . ': End getting data for XML and Start writing categories and header', self::INFO);
-        $this->icmlWriter->writeToXmlHeaderAndCategories($data);
+            . ': Start writing categories and header', self::INFO);
+        $this->icmlWriter->writeToXmlHeaderAndCategories($this->xmlData);
         IcmlLogger::writeToToLog(Date('Y:m:d H:i:s')
             . ': End writing categories in XML and Start writing offers', self::INFO);
         $this->writeOffers();
@@ -63,6 +93,17 @@ class RetailCrmXmlBuilder
         $this->icmlWriter->writeToXmlBottom();
         IcmlLogger::writeToToLog(Date('Y:m:d H:i:s')
             . ': Loading complete (peek memory usage: ' . memory_get_peak_usage() . ')', self::INFO);
+    }
+    
+    /**
+     * @return void
+     */
+    private function setXmlData(): void
+    {
+        $this->xmlData->shopName   = $this->shopName;
+        $this->xmlData->company    = $this->shopName;
+        $this->xmlData->filePath   = $this->setup->filePath;
+        $this->xmlData->categories = $this->xmlCategoryBuilder->getCategories();
     }
     
     /**
@@ -82,25 +123,35 @@ class RetailCrmXmlBuilder
      */
     private function writeIblockOffers(int $productIblockId): void
     {
-        $catalogIblockInfo = IblockUtils::getCatalogIblockInfo($productIblockId);
+        $catalogIblockInfo = $this->catalogRepository->getCatalogIblockInfo($productIblockId);
         
         if ($catalogIblockInfo->skuIblockId === null) {
             $selectParams
-                = $this->getSelectParams($this->setup->properties->products->names[$productIblockId]);
+                = $this->queryBuilder->getSelectParams(
+                $this->setup->properties->products->names[$productIblockId],
+                $this->setup->basePriceId
+            );
             
             $selectParams->pageNumber = 1;
             $selectParams->nPageSize  = self::OFFERS_PART;
             $selectParams->parentId   = null;
             
-            while ($xmlOffers = $this->icmlDataManager->getXmlOffersPart( $selectParams, $catalogIblockInfo)) {
+            while ($xmlOffers = $this->xmlOfferBuilder->getXmlOffersPart($selectParams, $catalogIblockInfo)) {
                 $this->icmlWriter->writeOffers($xmlOffers);
                 
                 $selectParams->pageNumber++;
             }
         } else {
-            $paramsForProduct = $this->getSelectParams($this->setup->properties->products->names[$productIblockId]);
-            $paramsForOffer   = $this->getSelectParams($this->setup->properties->sku->names[$productIblockId]);
-            
+            $paramsForProduct
+                = $this->queryBuilder->getSelectParams(
+                $this->setup->properties->products->names[$productIblockId],
+                $this->setup->basePriceId
+            );
+            $paramsForOffer
+                = $this->queryBuilder->getSelectParams(
+                $this->setup->properties->sku->names[$productIblockId],
+                $this->setup->basePriceId
+            );
             $this->writeOffersAsOffersInXml($paramsForProduct, $paramsForOffer, $catalogIblockInfo);
         }
     }
@@ -122,9 +173,9 @@ class RetailCrmXmlBuilder
         $paramsForProduct->nPageSize = ceil(self::OFFERS_PART / $this->setup->maxOffersValue);
         
         do {
-            $productsPart = $this->icmlDataManager->getXmlOffersPart($paramsForProduct, $catalogIblockInfo);
-            
+            $productsPart = $this->xmlOfferBuilder->getXmlOffersPart($paramsForProduct, $catalogIblockInfo);
             $paramsForProduct->pageNumber++;
+            
             $this->writeProductsOffers($productsPart, $paramsForOffer, $catalogIblockInfo);
         } while (!empty($productsPart));
     }
@@ -150,51 +201,6 @@ class RetailCrmXmlBuilder
     }
     
     /**
-     * Собираем свойства, указанные в настройках
-     *
-     * @param array|null $userProps
-     * @return \Intaro\RetailCrm\Model\Bitrix\Xml\SelectParams
-     */
-    private function getSelectParams(?array $userProps): SelectParams
-    {
-        $catalogFields = ['catalog_length', 'catalog_width', 'catalog_height', 'catalog_weight'];
-        
-        $params = new SelectParams();
-        
-        foreach ($userProps as $key => $name) {
-            if ($name === '') {
-                unset($userProps[$key]);
-                continue;
-            }
-            
-            if (in_array($name, $catalogFields, true)) {
-                $userProps[$key] = strtoupper($userProps[$key]);
-            } else {
-                $userProps[$key] = 'PROPERTY_' . $userProps[$key];
-            }
-        }
-        
-        $params->configurable = $userProps ?? [];
-        $params->main         = [
-            'IBLOCK_ID',
-            'IBLOCK_SECTION_ID',
-            'NAME',
-            'DETAIL_PICTURE',
-            'PREVIEW_PICTURE',
-            'DETAIL_PAGE_URL',
-            'CATALOG_QUANTITY',
-            'CATALOG_PRICE_' . $this->setup->basePriceId,
-            'CATALOG_PURCHASING_PRICE',
-            'EXTERNAL_ID',
-            'CATALOG_GROUP_' . $this->setup->basePriceId,
-            'ID',
-            'LID',
-        ];
-        
-        return $params;
-    }
-    
-    /**
      * Записывает оферы отдельного продукта в xml файл
      *
      * @param \Intaro\RetailCrm\Model\Bitrix\Xml\SelectParams      $paramsForOffer
@@ -212,7 +218,7 @@ class RetailCrmXmlBuilder
         
         do {
             $xmlOffers
-                = $this->icmlDataManager->getXmlOffersBySingleProduct($paramsForOffer, $catalogIblockInfo, $product);
+                = $this->xmlOfferBuilder->getXmlOffersBySingleProduct($paramsForOffer, $catalogIblockInfo, $product);
 
             // если это "простой товар", у которого нет ТП, то просто записываем его
             if ($paramsForOffer->pageNumber === 1 && count($xmlOffers) === 0) {
@@ -226,7 +232,6 @@ class RetailCrmXmlBuilder
                 $this->icmlWriter->writeOffers($xmlOffers);
     
                 $writingOffers += count($xmlOffers);
-    
                 $paramsForOffer->pageNumber++;
             }
         } while (!empty($xmlOffers) && $writingOffers < $this->setup->maxOffersValue);

@@ -7,7 +7,7 @@
  */
 global $MESS;
 use Bitrix\Main\Context;
-use Intaro\RetailCrm\Icml\RetailCrmXmlBuilder;
+use Intaro\RetailCrm\Icml\IcmlDirector;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupProps;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupPropsCategories;
@@ -1006,7 +1006,7 @@ class intaro_retailcrm extends CModule
                 $fileSetup->filePath = $filename;
                 $fileSetup->defaultServerName = Context::getCurrent()->getServer()->getHttpHost();
                 
-                $loader = new RetailCrmXmlBuilder($fileSetup);
+                $loader = new IcmlDirector($fileSetup);
                 $loader->generateXml();
             }
 
