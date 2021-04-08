@@ -310,7 +310,7 @@ class XmlOfferBuilder
     {
         foreach ($xmlOffers as $offer) {
             $offer->productId   = $product->id;
-            $offer->params      = IcmlUtils::arrayMerge($offer->params, $product->params);
+            $offer->params      = array_merge($offer->params, $product->params);
             $offer->unitCode    = $offer->unitCode->mergeWithOtherUnit($product->unitCode);
             $offer->vatRate     = $offer->vatRate === 'none' ? $product->vatRate : $offer->vatRate;
             $offer->vendor      = $offer->mergeValues($product->vendor, $offer->vendor);

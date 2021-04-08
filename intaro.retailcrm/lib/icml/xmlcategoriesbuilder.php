@@ -70,7 +70,7 @@ class XmlCategoriesBuilder
                 $xmlCategories[$categoryId] = $xmlCategory;
             }
     
-            $xmlCategories = IcmlUtils::arrayMerge($xmlCategories, $this->getXmlCategories($categories));
+            $xmlCategories = array_merge($xmlCategories, $this->getXmlCategories($categories));
         }
         
         return $xmlCategories;

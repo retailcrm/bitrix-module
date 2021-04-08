@@ -154,7 +154,6 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../lib/icml/retailcrmxmlbuilder.php');
         include($this->INSTALL_PATH . '/../lib/icml/icmlwriter.php');
         include($this->INSTALL_PATH . '/../lib/icml/icmldatamanager.php');
-        include($this->INSTALL_PATH . '/../lib/icml/utils/icmllogger.php');
         include($this->INSTALL_PATH . '/../lib/icml/utils/baseprice.php');
         include($this->INSTALL_PATH . '/../lib/icml/utils/iblockutils.php');
         include($this->INSTALL_PATH . '/../lib/service/hl.php');

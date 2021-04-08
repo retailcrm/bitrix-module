@@ -2,9 +2,7 @@
 
 namespace Intaro\RetailCrm\Icml;
 
-use Bitrix\Conversion\Utils;
 use COption;
-use Intaro\RetailCrm\Icml\Utils\IcmlLogger;
 use Intaro\RetailCrm\Icml\Utils\IcmlUtils;
 use Intaro\RetailCrm\Model\Bitrix\Orm\CatalogIblockInfo;
 use Intaro\RetailCrm\Model\Bitrix\Xml\SelectParams;
@@ -12,6 +10,7 @@ use Intaro\RetailCrm\Model\Bitrix\Xml\XmlData;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlOffer;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup;
 use Intaro\RetailCrm\Repository\CatalogRepository;
+use Logger;
 
 /**
  * Class IcmlDirector
@@ -20,7 +19,8 @@ use Intaro\RetailCrm\Repository\CatalogRepository;
 class IcmlDirector
 {
     public const INFO        = 'INFO';
-    public const OFFERS_PART = 500;
+    public const OFFERS_PART   = 500;
+    public const FILE_LOG_NAME = 'i_crm_load_log';
     
     /**
      * @var IcmlWriter
@@ -59,6 +59,10 @@ class IcmlDirector
      * @var \Intaro\RetailCrm\Model\Bitrix\Xml\XmlData
      */
     private $xmlData;
+    /**
+     * @var \Logger
+     */
+    private $logger;
     
     /**
      * RetailCrmlXml constructor.
@@ -75,6 +79,7 @@ class IcmlDirector
         $this->xmlCategoryBuilder = new XmlCategoriesBuilder($setup);
         $this->queryBuilder       = new QueryBuilder();
         $this->xmlData            = new XmlData();
+        $this->logger = Logger::getInstance('/bitrix/catalog_export/');
         $this->setXmlData();
     }
     
@@ -83,17 +88,25 @@ class IcmlDirector
      */
     public function generateXml(): void
     {
-        IcmlLogger::writeToToLog(Date('Y:m:d H:i:s')
-            . ': Start writing categories and header', self::INFO);
+        $this->logger->write(
+            self::INFO . ': Start writing categories and header',
+            self::FILE_LOG_NAME
+        );
         $this->icmlWriter->writeToXmlHeaderAndCategories($this->xmlData);
-        IcmlLogger::writeToToLog(Date('Y:m:d H:i:s')
-            . ': End writing categories in XML and Start writing offers', self::INFO);
+        $this->logger->write(
+            self::INFO . ': End writing categories in XML and Start writing offers',
+            self::FILE_LOG_NAME
+        );
         $this->writeOffers();
-        IcmlLogger::writeToToLog(Date('Y:m:d H:i:s')
-            . ': End writing offers in XML', self::INFO);
+        $this->logger->write(
+            self::INFO . ': End writing offers in XML',
+            self::FILE_LOG_NAME
+        );
         $this->icmlWriter->writeToXmlBottom();
-        IcmlLogger::writeToToLog(Date('Y:m:d H:i:s')
-            . ': Loading complete (peek memory usage: ' . memory_get_peak_usage() . ')', self::INFO);
+        $this->logger->write(
+            self::INFO . ': Loading complete (peek memory usage: ' . memory_get_peak_usage() . ')',
+            self::FILE_LOG_NAME
+        );
     }
     
     /**

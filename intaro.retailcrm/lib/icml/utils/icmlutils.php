@@ -127,16 +127,6 @@ class IcmlUtils
     }
     
     /**
-     * @param array $arrayOne
-     * @param array $arrayTwo
-     * @return array
-     */
-    public static function arrayMerge(array $arrayOne, array $arrayTwo): array
-    {
-        return array_merge($arrayOne, $arrayTwo);
-    }
-    
-    /**
      * Получение данных для ноды dimensions
      *
      * Данные должны быть переведены в сантиметры
