@@ -2,9 +2,10 @@
 
 namespace Intaro\RetailCrm\Icml;
 
+use Bitrix\Conversion\Utils;
 use COption;
-use Intaro\RetailCrm\Icml\Utils\BasePrice;
 use Intaro\RetailCrm\Icml\Utils\IcmlLogger;
+use Intaro\RetailCrm\Icml\Utils\IcmlUtils;
 use Intaro\RetailCrm\Model\Bitrix\Orm\CatalogIblockInfo;
 use Intaro\RetailCrm\Model\Bitrix\Xml\SelectParams;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlData;
@@ -227,7 +228,7 @@ class IcmlDirector
             }
             
             if (!empty($xmlOffers)) {
-                $xmlOffers = $this->checkMaxOffersLimit($writingOffers, $xmlOffers);
+                $xmlOffers = IcmlUtils::trimOffersToLimitIfLimit($writingOffers, $xmlOffers, $this->setup->maxOffersValue);
     
                 $this->icmlWriter->writeOffers($xmlOffers);
     
@@ -235,23 +236,5 @@ class IcmlDirector
                 $paramsForOffer->pageNumber++;
             }
         } while (!empty($xmlOffers) && $writingOffers < $this->setup->maxOffersValue);
-    }
-    
-    /**
-     * Проверяет,не достигнул ли лимит по записываемым оффреам maxOffersValue
-     *
-     * @param int        $writingOffers
-     * @param XmlOffer[] $xmlOffers
-     * @return XmlOffer[]
-     */
-    private function checkMaxOffersLimit(int $writingOffers, array $xmlOffers): array
-    {
-        if ($writingOffers + count($xmlOffers) > $this->setup->maxOffersValue) {
-            $sliceIndex
-                = count($xmlOffers) - ($writingOffers + count($xmlOffers) - $this->setup->maxOffersValue);
-            return array_slice($xmlOffers, 0, $sliceIndex);
-        }
-        
-        return $xmlOffers;
     }
 }

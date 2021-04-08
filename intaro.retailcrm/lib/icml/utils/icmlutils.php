@@ -2,6 +2,7 @@
 
 namespace Intaro\RetailCrm\Icml\Utils;
 
+use Intaro\RetailCrm\Model\Bitrix\Xml\XmlOffer;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupPropsCategories;
 
 class IcmlUtils
@@ -184,5 +185,25 @@ class IcmlUtils
         }
         
         return [$resultParams, $dimensions === '0/0/0' ? '' : $dimensions];
+    }
+    
+    /**
+     * Проверяет,не достигнул ли лимит по записываемым оффреам maxOffersValue
+     * и обрезает массив до лимита, если он достигнут
+     *
+     * @param int        $writingOffers
+     * @param XmlOffer[] $xmlOffers
+     * @param int        $maxOffersValue
+     * @return XmlOffer[]
+     */
+    public static function trimOffersToLimitIfLimit(int $writingOffers, array $xmlOffers, int $maxOffersValue): array
+    {
+        if ($writingOffers + count($xmlOffers) > $maxOffersValue) {
+            $sliceIndex
+                = count($xmlOffers) - ($writingOffers + count($xmlOffers) - $maxOffersValue);
+            return array_slice($xmlOffers, 0, $sliceIndex);
+        }
+        
+        return $xmlOffers;
     }
 }
