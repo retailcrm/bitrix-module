@@ -147,7 +147,9 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../lib/icml/icmldirector.php');
         include($this->INSTALL_PATH . '/../lib/icml/icmlwriter.php');
         include($this->INSTALL_PATH . '/../lib/icml/queryparamsmolder.php');
+        include($this->INSTALL_PATH . '/../lib/icml/xmlcategoryfactory.php');
         include($this->INSTALL_PATH . '/../lib/icml/xmlcategoriesbuilder.php');
+        include($this->INSTALL_PATH . '/../lib/icml/xmlofferfactory.php');
         include($this->INSTALL_PATH . '/../lib/icml/xmlofferbuilder.php');
         include($this->INSTALL_PATH . '/../lib/icml/utils/icmlutils.php');
         include($this->INSTALL_PATH . '/../lib/repository/catalogrepository.php');
