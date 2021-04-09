@@ -25,7 +25,7 @@ class CatalogRepository
     /**
      * Получение категорий, к которым относится товар
      *
-     * @param $offerId
+     * @param int $offerId
      * @return array
      */
     public function getProductCategoriesIds(int $offerId): array

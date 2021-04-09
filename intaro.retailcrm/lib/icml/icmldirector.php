@@ -27,8 +27,8 @@ class IcmlDirector
      */
     private $icmlWriter;
     
-    /** @var XmlOfferBuilder */
-    private $xmlOfferBuilder;
+    /** @var \Intaro\RetailCrm\Icml\XmlOfferFactory */
+    private $xmlOfferFactory;
     
     /**
      * @var \Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup
@@ -46,9 +46,9 @@ class IcmlDirector
     private $shopName;
     
     /**
-     * @var \Intaro\RetailCrm\Icml\XmlCategoriesBuilder
+     * @var \Intaro\RetailCrm\Icml\XmlCategoryFactory
      */
-    private $xmlCategoryBuilder;
+    private $xmlCategoryFactory;
     
     /**
      * @var \Intaro\RetailCrm\Icml\QueryParamsMolder
@@ -74,8 +74,8 @@ class IcmlDirector
         $this->shopName           = COption::GetOptionString('main', 'site_name');
         $this->catalogRepository  = new CatalogRepository();
         $this->icmlWriter         = new IcmlWriter($this->setup->filePath);
-        $this->xmlOfferBuilder    = new XmlOfferBuilder($this->setup);
-        $this->xmlCategoryBuilder = new XmlCategoriesBuilder($setup);
+        $this->xmlOfferFactory    = new XmlOfferFactory($this->setup);
+        $this->xmlCategoryFactory = new XmlCategoryFactory($this->setup->iblocksForExport);
         $this->queryBuilder       = new QueryParamsMolder();
         $this->xmlData            = new XmlData();
         $this->logger             = Logger::getInstance('/bitrix/catalog_export/');
@@ -116,7 +116,7 @@ class IcmlDirector
         $this->xmlData->shopName   = $this->shopName;
         $this->xmlData->company    = $this->shopName;
         $this->xmlData->filePath   = $this->setup->filePath;
-        $this->xmlData->categories = $this->xmlCategoryBuilder->getCategories();
+        $this->xmlData->categories = $this->xmlCategoryFactory->getXmlCategories();
     }
     
     /**
@@ -138,6 +138,7 @@ class IcmlDirector
     {
         $catalogIblockInfo = $this->catalogRepository->getCatalogIblockInfo($productIblockId);
         
+        //если нет торговых предложений
         if ($catalogIblockInfo->skuIblockId === null) {
             $selectParams
                 = $this->queryBuilder->getSelectParams(
@@ -149,24 +150,27 @@ class IcmlDirector
             $selectParams->nPageSize  = self::OFFERS_PART;
             $selectParams->parentId   = null;
             
-            while ($xmlOffers = $this->xmlOfferBuilder->getXmlOffersPart($selectParams, $catalogIblockInfo)) {
+            while ($xmlOffers = $this->xmlOfferFactory->getXmlOffersPart($selectParams, $catalogIblockInfo)) {
                 $this->icmlWriter->writeOffers($xmlOffers);
                 
                 $selectParams->pageNumber++;
             }
-        } else {
-            $paramsForProduct
-                = $this->queryBuilder->getSelectParams(
-                $this->setup->properties->products->names[$productIblockId],
-                $this->setup->basePriceId
-            );
-            $paramsForOffer
-                = $this->queryBuilder->getSelectParams(
-                $this->setup->properties->sku->names[$productIblockId],
-                $this->setup->basePriceId
-            );
-            $this->writeOffersAsOffersInXml($paramsForProduct, $paramsForOffer, $catalogIblockInfo);
+            
+            return;
         }
+    
+        //если есть торговые предложения
+        $paramsForProduct
+            = $this->queryBuilder->getSelectParams(
+            $this->setup->properties->products->names[$productIblockId],
+            $this->setup->basePriceId
+        );
+        $paramsForOffer
+            = $this->queryBuilder->getSelectParams(
+            $this->setup->properties->sku->names[$productIblockId],
+            $this->setup->basePriceId
+        );
+        $this->writeOffersAsOffersInXml($paramsForProduct, $paramsForOffer, $catalogIblockInfo);
     }
     
     /**
@@ -186,7 +190,7 @@ class IcmlDirector
         $paramsForProduct->nPageSize = ceil(self::OFFERS_PART / $this->setup->maxOffersValue);
         
         do {
-            $productsPart = $this->xmlOfferBuilder->getXmlOffersPart($paramsForProduct, $catalogIblockInfo);
+            $productsPart = $this->xmlOfferFactory->getXmlOffersPart($paramsForProduct, $catalogIblockInfo);
             $paramsForProduct->pageNumber++;
             
             $this->writeProductsOffers($productsPart, $paramsForOffer, $catalogIblockInfo);
@@ -231,7 +235,7 @@ class IcmlDirector
         
         do {
             $xmlOffers
-                = $this->xmlOfferBuilder->getXmlOffersBySingleProduct($paramsForOffer, $catalogIblockInfo, $product);
+                = $this->xmlOfferFactory->getXmlOffersBySingleProduct($paramsForOffer, $catalogIblockInfo, $product);
 
             // если это "простой товар", у которого нет ТП, то просто записываем его
             if ($paramsForOffer->pageNumber === 1 && count($xmlOffers) === 0) {
@@ -240,7 +244,8 @@ class IcmlDirector
             }
             
             if (!empty($xmlOffers)) {
-                $xmlOffers = IcmlUtils::trimOffersToLimitIfLimit($writingOffers, $xmlOffers, $this->setup->maxOffersValue);
+                $xmlOffers
+                    = IcmlUtils::trimOffersToLimitIfLimit($writingOffers, $xmlOffers, $this->setup->maxOffersValue);
     
                 $this->icmlWriter->writeOffers($xmlOffers);
     

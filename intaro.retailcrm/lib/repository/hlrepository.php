@@ -24,10 +24,10 @@ class HlRepository
     }
     
     /**
-     * @param string $propertyValue
+     * @param string|null $propertyValue
      * @return array|null
      */
-    public function getDataByXmlId(string $propertyValue): ?array
+    public function getDataByXmlId(?string $propertyValue): ?array
     {
         try {
             $result = $this->hl::query()
