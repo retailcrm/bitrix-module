@@ -144,7 +144,7 @@ class CatalogRepository
      * @param int|null $profileID
      * @return int
      */
-    public function getBasePriceId(?int $profileID): int
+    public static function getBasePriceId(?int $profileID): int
     {
         $basePriceId = RetailcrmConfigProvider::getCatalogBasePriceByProfile($profileID);
     

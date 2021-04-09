@@ -30,10 +30,10 @@ class IcmlWriter
      */
     public function __construct($filePath)
     {
-        $this->writer = $writer = new XMLWriter();
-        $writer->openURI($_SERVER['DOCUMENT_ROOT'] . $filePath);
-        $writer->setIndent(true);
-        $writer->startElement('yml_catalog');
+        $this->writer = new XMLWriter();
+        $this->writer->openURI($_SERVER['DOCUMENT_ROOT'] . $filePath);
+        $this->writer->setIndent(true);
+        $this->writer->startElement('yml_catalog');
         $this->writeSimpleAttribute('date', Date('Y-m-d H:i:s'));
     }
     

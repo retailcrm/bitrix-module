@@ -60,7 +60,6 @@ class Hl {
                 ->exec()
                 ->fetch();
         
-        
             if (!$hlblock) {
                 return null;
             }

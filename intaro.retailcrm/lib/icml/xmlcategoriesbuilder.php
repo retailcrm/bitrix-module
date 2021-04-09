@@ -11,6 +11,7 @@ use Intaro\RetailCrm\Model\Bitrix\Xml\XmlCategory;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup;
 use Intaro\RetailCrm\Repository\CatalogRepository;
 use Intaro\RetailCrm\Repository\FileRepository;
+use Intaro\RetailCrm\Repository\SiteRepository;
 
 /**
  * Отвечает за создание XmlCategory
@@ -20,7 +21,7 @@ use Intaro\RetailCrm\Repository\FileRepository;
  */
 class XmlCategoriesBuilder
 {
-    private const MILLION     = 1000000;
+    private const MILLION = 1000000;
     
     /**
      * @var \Intaro\RetailCrm\Repository\CatalogRepository
@@ -31,6 +32,7 @@ class XmlCategoriesBuilder
      * @var \Intaro\RetailCrm\Repository\FileRepository
      */
     private $fileRepository;
+    
     /**
      * @var \Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup
      */
@@ -44,7 +46,7 @@ class XmlCategoriesBuilder
     {
         $this->setup             = $setup;
         $this->catalogRepository = new CatalogRepository();
-        $this->fileRepository    = new FileRepository($this->setup->defaultServerName);
+        $this->fileRepository    = new FileRepository(SiteRepository::getDefaultServerName());
     }
     
     /**
@@ -112,7 +114,7 @@ class XmlCategoriesBuilder
             $xmlCategory->name     = $category->get('NAME');
             $xmlCategory->parentId = $categoryId ? 0 : $category->get('IBLOCK_SECTION_ID');
             $xmlCategory->picture  = $this->fileRepository->getImageUrl($category->get('PICTURE'));
-        } catch (ArgumentException | SystemException $exception){
+        } catch (ArgumentException | SystemException $exception) {
             return null;
         }
         

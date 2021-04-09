@@ -40,7 +40,7 @@ class Unit
      * @param \Intaro\RetailCrm\Model\Bitrix\Xml\Unit|null $unitCode
      * @return \Intaro\RetailCrm\Model\Bitrix\Xml\Unit
      */
-    public function mergeWithOtherUnit(?Unit $unitCode): Unit
+    public function merge(?Unit $unitCode): Unit
     {
         if ($this->code === null && $unitCode !== null) {
             return $unitCode;

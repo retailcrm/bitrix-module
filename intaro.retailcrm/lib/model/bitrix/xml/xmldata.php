@@ -37,4 +37,3 @@ class XmlData
      */
     public $filePath;
 }
-

@@ -6,10 +6,10 @@ use Intaro\RetailCrm\Model\Bitrix\Orm\CatalogIblockInfo;
 use Intaro\RetailCrm\Model\Bitrix\Xml\SelectParams;
 
 /**
- * Class QueryBuilder
+ * Class QueryParamsMolder
  * @package Intaro\RetailCrm\Icml
  */
-class QueryBuilder
+class QueryParamsMolder
 {
     /**
      * Формирует параметры товаров или офферов для запросов к БД на основе настроек экспорта

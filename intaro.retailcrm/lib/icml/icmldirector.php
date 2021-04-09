@@ -51,7 +51,7 @@ class IcmlDirector
     private $xmlCategoryBuilder;
     
     /**
-     * @var \Intaro\RetailCrm\Icml\QueryBuilder
+     * @var \Intaro\RetailCrm\Icml\QueryParamsMolder
      */
     private $queryBuilder;
     
@@ -73,14 +73,12 @@ class IcmlDirector
         $this->setup              = $setup;
         $this->shopName           = COption::GetOptionString('main', 'site_name');
         $this->catalogRepository  = new CatalogRepository();
-        $this->setup->basePriceId = $this->catalogRepository->getBasePriceId($this->setup->profileID);
         $this->icmlWriter         = new IcmlWriter($this->setup->filePath);
         $this->xmlOfferBuilder    = new XmlOfferBuilder($this->setup);
         $this->xmlCategoryBuilder = new XmlCategoriesBuilder($setup);
-        $this->queryBuilder       = new QueryBuilder();
+        $this->queryBuilder       = new QueryParamsMolder();
         $this->xmlData            = new XmlData();
-        $this->logger = Logger::getInstance('/bitrix/catalog_export/');
-        $this->setXmlData();
+        $this->logger             = Logger::getInstance('/bitrix/catalog_export/');
     }
     
     /**
@@ -88,6 +86,7 @@ class IcmlDirector
      */
     public function generateXml(): void
     {
+        $this->setXmlData();
         $this->logger->write(
             self::INFO . ': Start writing categories and header',
             self::FILE_LOG_NAME

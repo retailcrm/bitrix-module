@@ -13,6 +13,7 @@ use Intaro\RetailCrm\Repository\CatalogRepository;
 use Intaro\RetailCrm\Repository\FileRepository;
 use Intaro\RetailCrm\Repository\HlRepository;
 use Intaro\RetailCrm\Repository\MeasureRepository;
+use Intaro\RetailCrm\Repository\SiteRepository;
 use RetailcrmConfigProvider;
 
 /**
@@ -49,9 +50,14 @@ class XmlOfferBuilder
     private $measures;
     
     /**
-     * @var \Intaro\RetailCrm\Icml\QueryBuilder
+     * @var \Intaro\RetailCrm\Icml\QueryParamsMolder
      */
     private $builder;
+    
+    /**
+     * @var string|null
+     */
+    private $defaultServerName;
     
     /**
      * IcmlDataManager constructor.
@@ -63,9 +69,10 @@ class XmlOfferBuilder
         $this->setup             = $setup;
         $this->purchasePriceNull = RetailcrmConfigProvider::getCrmPurchasePrice();
         $this->measures          = MeasureRepository::getMeasures();
-        $this->fileRepository    = new FileRepository($this->setup->defaultServerName);
+        $this->defaultServerName = SiteRepository::getDefaultServerName();
+        $this->fileRepository    = new FileRepository($this->defaultServerName);
         $this->catalogRepository = new CatalogRepository();
-        $this->builder           = new QueryBuilder();
+        $this->builder           = new QueryParamsMolder();
     }
     
     /**
@@ -197,7 +204,7 @@ class XmlOfferBuilder
         $xmlOffer->productId     = $item['ID'];
         $xmlOffer->quantity      = $item['CATALOG_QUANTITY'] ?? '';
         $xmlOffer->url           = $item['DETAIL_PAGE_URL']
-            ? $this->setup->defaultServerName . $item['DETAIL_PAGE_URL']
+            ? $this->defaultServerName . $item['DETAIL_PAGE_URL']
             : '';
         $xmlOffer->price         = $item['CATALOG_PRICE_' . $this->setup->basePriceId];
         $xmlOffer->purchasePrice = IcmlUtils::getPurchasePrice(
@@ -269,12 +276,14 @@ class XmlOfferBuilder
         $offerParams = [];
         
         foreach ($params as $code => $value) {
-            if (empty(GetMessage("PARAM_NAME_$code"))) {
+            $paramName = GetMessage('PARAM_NAME_' . $code);
+            
+            if (empty($paramName)) {
                 continue;
             }
             
             $offerParam        = new OfferParam();
-            $offerParam->name  = GetMessage("PARAM_NAME_$code");
+            $offerParam->name  = $paramName;
             $offerParam->code  = $code;
             $offerParam->value = $value;
             $offerParams[]     = $offerParam;
@@ -311,7 +320,7 @@ class XmlOfferBuilder
         foreach ($xmlOffers as $offer) {
             $offer->productId   = $product->id;
             $offer->params      = array_merge($offer->params, $product->params);
-            $offer->unitCode    = $offer->unitCode->mergeWithOtherUnit($product->unitCode);
+            $offer->unitCode    = $offer->unitCode->merge($product->unitCode);
             $offer->vatRate     = $offer->vatRate === 'none' ? $product->vatRate : $offer->vatRate;
             $offer->vendor      = $offer->mergeValues($product->vendor, $offer->vendor);
             $offer->picture     = $offer->mergeValues($product->picture, $offer->picture);

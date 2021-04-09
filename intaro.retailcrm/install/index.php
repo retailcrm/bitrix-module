@@ -11,6 +11,7 @@ use Intaro\RetailCrm\Icml\IcmlDirector;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupProps;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupPropsCategories;
+use Intaro\RetailCrm\Repository\CatalogRepository;
 
 IncludeModuleLangFile(__FILE__);
 if (class_exists('intaro_retailcrm'))
@@ -18,67 +19,58 @@ if (class_exists('intaro_retailcrm'))
 
 class intaro_retailcrm extends CModule
 {
-    var $MODULE_ID = 'intaro.retailcrm';
-    var $OLD_MODULE_ID = 'intaro.intarocrm';
-    var $MODULE_VERSION;
-    var $MODULE_VERSION_DATE;
-    var $MODULE_NAME;
-    var $MODULE_DESCRIPTION;
-    var $MODULE_GROUP_RIGHTS = 'N';
-
-    var $PARTNER_NAME;
-    var $PARTNER_URI;
-
-    var $RETAIL_CRM_API;
-    var $RETAIL_CRM_EXPORT = 'retailcrm';
-    var $CRM_API_HOST_OPTION = 'api_host';
-    var $CRM_API_KEY_OPTION = 'api_key';
-    var $CRM_SITES_LIST= 'sites_list';
-    var $CRM_ORDER_TYPES_ARR = 'order_types_arr';
-    var $CRM_DELIVERY_TYPES_ARR = 'deliv_types_arr';
-    var $CRM_DELIVERY_SERVICES_ARR = 'deliv_services_arr';
-    var $CRM_PAYMENT_TYPES = 'pay_types_arr';
-    var $CRM_PAYMENT_STATUSES = 'pay_statuses_arr';
-    var $CRM_PAYMENT = 'payment_arr'; //order payment Y/N
-    var $CRM_ORDER_LAST_ID = 'order_last_id';
-    var $CRM_ORDER_PROPS = 'order_props';
-    var $CRM_LEGAL_DETAILS = 'legal_details';
-    var $CRM_CUSTOM_FIELDS = 'custom_fields';
-    var $CRM_CONTRAGENT_TYPE = 'contragent_type';
-    var $CRM_ORDER_DISCHARGE = 'order_discharge';
-    var $CRM_ORDER_FAILED_IDS = 'order_failed_ids';
-    var $CRM_ORDER_HISTORY = 'order_history';
-    var $CRM_CUSTOMER_HISTORY = 'customer_history';
-    var $CRM_CATALOG_BASE_PRICE = 'catalog_base_price';
+    public $MODULE_ID     = 'intaro.retailcrm';
+    public $OLD_MODULE_ID = 'intaro.intarocrm';
+    public $MODULE_VERSION;
+    public $MODULE_VERSION_DATE;
+    public $MODULE_NAME;
+    public $MODULE_DESCRIPTION;
+    public $MODULE_GROUP_RIGHTS = 'N';
+    public $PARTNER_NAME;
+    public $PARTNER_URI;
+    public $RETAIL_CRM_API;
+    public $RETAIL_CRM_EXPORT         = 'retailcrm';
+    public $CRM_API_HOST_OPTION       = 'api_host';
+    public $CRM_API_KEY_OPTION        = 'api_key';
+    public $CRM_SITES_LIST            = 'sites_list';
+    public $CRM_ORDER_TYPES_ARR       = 'order_types_arr';
+    public $CRM_DELIVERY_TYPES_ARR    = 'deliv_types_arr';
+    public $CRM_DELIVERY_SERVICES_ARR = 'deliv_services_arr';
+    public $CRM_PAYMENT_TYPES         = 'pay_types_arr';
+    public $CRM_PAYMENT_STATUSES      = 'pay_statuses_arr';
+    public $CRM_PAYMENT               = 'payment_arr'; //order payment Y/N
+    public $CRM_ORDER_LAST_ID = 'order_last_id';
+    public $CRM_ORDER_PROPS   = 'order_props';
+    public $CRM_LEGAL_DETAILS   = 'legal_details';
+    public $CRM_CUSTOM_FIELDS   = 'custom_fields';
+    public $CRM_CONTRAGENT_TYPE  = 'contragent_type';
+    public $CRM_ORDER_DISCHARGE  = 'order_discharge';
+    public $CRM_ORDER_FAILED_IDS = 'order_failed_ids';
+    public $CRM_ORDER_HISTORY      = 'order_history';
+    public $CRM_CUSTOMER_HISTORY   = 'customer_history';
+    public $CRM_CATALOG_BASE_PRICE = 'catalog_base_price';
     //var $CRM_CATALOG_IBLOCKS = 'catalog_base_iblocks';
-    var $CRM_ORDER_NUMBERS = 'order_numbers';
-    var $CRM_CANSEL_ORDER = 'cansel_order';
-    var $CRM_CURRENCY = 'currency';
-    var $CRM_ADDRESS_OPTIONS = 'address_options';
-
-    var $CRM_INVENTORIES_UPLOAD = 'inventories_upload';
-    var $CRM_STORES = 'stores';
-    var $CRM_SHOPS = 'shops';
-    var $CRM_IBLOCKS_INVENTORIES = 'iblocks_inventories';
-
-    var $CRM_PRICES_UPLOAD = 'prices_upload';
-    var $CRM_PRICES = 'prices';
-    var $CRM_PRICE_SHOPS = 'price_shops';
-    var $CRM_IBLOCKS_PRICES = 'iblock_prices';
-
-    var $CRM_COLLECTOR = 'collector';
-    var $CRM_COLL_KEY = 'coll_key';
-
-    var $CRM_UA = 'ua';
-    var $CRM_UA_KEYS = 'ua_keys';
-
-    var $CRM_API_VERSION = 'api_version';
-    var $HISTORY_TIME = 'history_time';
-
-    var $CLIENT_ID = 'client_id';
-    var $PROTOCOL = 'protocol';
-
-    var $INSTALL_PATH;
+    public $CRM_ORDER_NUMBERS = 'order_numbers';
+    public $CRM_CANSEL_ORDER    = 'cansel_order';
+    public $CRM_CURRENCY        = 'currency';
+    public $CRM_ADDRESS_OPTIONS = 'address_options';
+    public $CRM_INVENTORIES_UPLOAD = 'inventories_upload';
+    public $CRM_STORES              = 'stores';
+    public $CRM_SHOPS               = 'shops';
+    public $CRM_IBLOCKS_INVENTORIES = 'iblocks_inventories';
+    public $CRM_PRICES_UPLOAD = 'prices_upload';
+    public $CRM_PRICES         = 'prices';
+    public $CRM_PRICE_SHOPS    = 'price_shops';
+    public $CRM_IBLOCKS_PRICES = 'iblock_prices';
+    public $CRM_COLLECTOR = 'collector';
+    public $CRM_COLL_KEY  = 'coll_key';
+    public $CRM_UA      = 'ua';
+    public $CRM_UA_KEYS = 'ua_keys';
+    public $CRM_API_VERSION = 'api_version';
+    public $HISTORY_TIME    = 'history_time';
+    public $CLIENT_ID = 'client_id';
+    public $PROTOCOL  = 'protocol';
+    public $INSTALL_PATH;
 
     function intaro_retailcrm()
     {
@@ -100,6 +92,7 @@ class intaro_retailcrm extends CModule
         if (!class_exists('RetailcrmConstants')) {
             require_once dirname(__FILE__) . '/../classes/general/RetailcrmConstants.php';
         }
+        
         if (!class_exists('RetailcrmConfigProvider')) {
             require_once dirname(__FILE__) . '/../classes/general/RetailcrmConfigProvider.php';
         }
@@ -151,11 +144,17 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/xmlsetup.php');
         include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/xmlsetupprops.php');
         include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/xmlsetuppropscategories.php');
-        include($this->INSTALL_PATH . '/../lib/icml/retailcrmxmlbuilder.php');
+        include($this->INSTALL_PATH . '/../lib/icml/icmldirector.php');
         include($this->INSTALL_PATH . '/../lib/icml/icmlwriter.php');
-        include($this->INSTALL_PATH . '/../lib/icml/icmldatamanager.php');
-        include($this->INSTALL_PATH . '/../lib/icml/utils/baseprice.php');
-        include($this->INSTALL_PATH . '/../lib/icml/utils/iblockutils.php');
+        include($this->INSTALL_PATH . '/../lib/icml/queryparamsmolder.php');
+        include($this->INSTALL_PATH . '/../lib/icml/xmlcategoriesbuilder.php');
+        include($this->INSTALL_PATH . '/../lib/icml/xmlofferbuilder.php');
+        include($this->INSTALL_PATH . '/../lib/icml/utils/icmlutils.php');
+        include($this->INSTALL_PATH . '/../lib/repository/catalogrepository.php');
+        include($this->INSTALL_PATH . '/../lib/repository/filerepository.php');
+        include($this->INSTALL_PATH . '/../lib/repository/hlrepository.php');
+        include($this->INSTALL_PATH . '/../lib/repository/measurerepository.php');
+        include($this->INSTALL_PATH . '/../lib/repository/siterepository.php');
         include($this->INSTALL_PATH . '/../lib/service/hl.php');
         include($this->INSTALL_PATH . '/../lib/model/bitrix/orm/catalogiblockinfo.php');
         include($this->INSTALL_PATH . '/../lib/model/bitrix/orm/iblockcatalog.php');
@@ -983,28 +982,27 @@ class intaro_retailcrm extends CModule
 
             $this->CopyFiles();
             if (isset($_POST['LOAD_NOW'])) {
-                $fileSetup = new XmlSetup();
-                $fileSetup->properties = new XmlSetupPropsCategories();
-                $fileSetup->properties->sku = new XmlSetupProps();
-                $fileSetup->properties->products = new XmlSetupProps();
-                $fileSetup->iblocksForExport = $iblocks;
-                $fileSetup->properties->products->units = $propertiesUnitProduct;
-                $fileSetup->properties->products->names = $propertiesProduct;
-                $fileSetup->properties->sku->units = $propertiesUnitSKU;
-                $fileSetup->properties->sku->names = $propertiesSKU;
+                $properties = new XmlSetupPropsCategories(
+                    new XmlSetupProps($propertiesProduct, $propertiesUnitProduct, null),
+                    new XmlSetupProps($propertiesSKU, $propertiesUnitSKU, null)
+                );
                 
                 if ($hlblockModule === true) {
-                    $fileSetup->properties->highloadblockSku = $propertiesHbSKU;
-                    $fileSetup->properties->highloadblockProduct = $propertiesHbProduct;
+                    $properties->highloadblockSku = $propertiesHbSKU;
+                    $properties->highloadblockProduct = $propertiesHbProduct;
                 }
-    
+                
+                $fileSetup = new XmlSetup($properties);
+                $fileSetup->iblocksForExport = $iblocks;
+
                 if ($maxOffers) {
                     $fileSetup->maxOffersValue = $maxOffers;
                 }
-    
-                $fileSetup->filePath = $filename;
-                $fileSetup->defaultServerName = Context::getCurrent()->getServer()->getHttpHost();
                 
+                require_once dirname(__FILE__) . '/../classes/general/RetailcrmConfigProvider.php';
+                
+                $fileSetup->basePriceId = CatalogRepository::getBasePriceId($fileSetup->profileID);
+                $fileSetup->filePath = $filename;
                 $loader = new IcmlDirector($fileSetup);
                 $loader->generateXml();
             }

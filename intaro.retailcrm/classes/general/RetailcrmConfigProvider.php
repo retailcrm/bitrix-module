@@ -230,6 +230,11 @@ class RetailcrmConfigProvider
         return static::getOption(RetailcrmConstants::CRM_PURCHASE_PRICE_NULL);
     }
     
+    public static function getProtocol()
+    {
+        return static::getOption(RetailcrmConstants::PROTOCOL);
+    }
+    
     /**
      * setOnlineConsultantScript
      * 

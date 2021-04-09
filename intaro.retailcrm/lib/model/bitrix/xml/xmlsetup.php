@@ -18,6 +18,16 @@ namespace Intaro\RetailCrm\Model\Bitrix\Xml;
  */
 class XmlSetup
 {
+    
+    /**
+     * XmlSetup constructor.
+     * @param \Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupPropsCategories $xmlProps
+     */
+    public function __construct(XmlSetupPropsCategories $xmlProps)
+    {
+        $this->properties = $xmlProps;
+    }
+    
     /**
      *
      * @var int
@@ -30,7 +40,6 @@ class XmlSetup
      * @var array
      */
     public $iblocksForExport;
-    
     
     /**
      * Путь, по которому сохраняется xml - SETUP_FILE_NAME
@@ -54,13 +63,6 @@ class XmlSetup
     public $maxOffersValue;
     
     /**
-     * адрес сайта
-     *
-     * @var string
-     */
-    public $defaultServerName;
-    
-    /**
      * выгружать ли закупочную цену
      *
      * @var bool
@@ -71,5 +73,4 @@ class XmlSetup
      * @var int|null
      */
     public $basePriceId;
-    
 }

@@ -21,14 +21,17 @@ class XmlCategory
      * @var string
      */
     public $name;
+    
     /**
      * @var string
      */
     public $parentId;
+    
     /**
      * @var string
      */
     public $picture;
+    
     /**
      * @var int
      */

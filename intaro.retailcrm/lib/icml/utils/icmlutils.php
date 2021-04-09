@@ -48,12 +48,12 @@ class IcmlUtils
     /**
      * Возвращает закупочную цену, если она требуется настройками
      *
-     * @param array  $product //результат GetList
-     * @param bool   $isLoadPrice
-     * @param string $purchasePriceNull
+     * @param array     $product
+     * @param bool|null $isLoadPrice
+     * @param string    $purchasePriceNull
      * @return int|null
      */
-    public static function getPurchasePrice(array $product, bool $isLoadPrice, string $purchasePriceNull): ?int
+    public static function getPurchasePrice(array $product, ?bool $isLoadPrice, string $purchasePriceNull): ?int
     {
         if ($isLoadPrice) {
             if ($product['CATALOG_PURCHASING_PRICE']) {
@@ -188,7 +188,7 @@ class IcmlUtils
      */
     public static function trimOffersToLimitIfLimit(int $writingOffers, array $xmlOffers, int $maxOffersValue): array
     {
-        if ($writingOffers + count($xmlOffers) > $maxOffersValue) {
+        if (($writingOffers + count($xmlOffers)) > $maxOffersValue) {
             $sliceIndex
                 = count($xmlOffers) - ($writingOffers + count($xmlOffers) - $maxOffersValue);
             return array_slice($xmlOffers, 0, $sliceIndex);

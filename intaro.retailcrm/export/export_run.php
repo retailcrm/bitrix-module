@@ -6,6 +6,7 @@ use Intaro\RetailCrm\Icml\IcmlDirector;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupProps;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupPropsCategories;
+use Intaro\RetailCrm\Repository\CatalogRepository;
 
 const DEFAULT_OFFERS_IN_ORDER = 5;
 
@@ -24,15 +25,7 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/exp
     ) {
         return;
     }
-    
-    $rsSites = CSite::GetList($by, $sort, ['ACTIVE' => 'Y']);
-    
-    while ($ar = $rsSites->Fetch()) {
-        if ($ar['DEF'] === 'Y') {
-            $SERVER_NAME = $ar['SERVER_NAME'];
-        }
-    }
-    
+
     $hlblockModule = false;
     
     if (CModule::IncludeModule('highloadblock')) {
@@ -56,12 +49,12 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/exp
         'height'       => 'height',
     ];
     
-    $IblockPropertySku = [];
-    $IblockPropertySkuHl = [];
-    $IblockPropertyUnitSku = [];
-    $IblockPropertyProduct = [];
-    $IblockPropertyProductHl = [];
-    $IblockPropertyUnitProduct = [];
+    $iblockPropertySku = [];
+    $iblockPropertySkuHl = [];
+    $iblockPropertyUnitSku = [];
+    $iblockPropertyProduct = [];
+    $iblockPropertyProductHl = [];
+    $iblockPropertyUnitProduct = [];
     
     foreach ($iblockProperties as $prop) {
         $skuUnitProps = ('IBLOCK_PROPERTY_UNIT_SKU' . "_" . $prop);
@@ -69,7 +62,7 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/exp
         
         if (is_array($skuUnitProps)) {
             foreach ($skuUnitProps as $iblock => $val) {
-                $IblockPropertyUnitSku[$iblock][$prop] = $val;
+                $iblockPropertyUnitSku[$iblock][$prop] = $val;
             }
         }
         
@@ -77,7 +70,7 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/exp
         $skuProps = $$skuProps;
         if (is_array($skuProps)) {
             foreach ($skuProps as $iblock => $val) {
-                $IblockPropertySku[$iblock][$prop] = $val;
+                $iblockPropertySku[$iblock][$prop] = $val;
             }
         }
         
@@ -88,7 +81,7 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/exp
                 
                 if (is_array($hbProps)) {
                     foreach ($hbProps as $iblock => $val) {
-                        $IblockPropertySkuHl[$hlblockTable][$iblock][$prop] = $val;
+                        $iblockPropertySkuHl[$hlblockTable][$iblock][$prop] = $val;
                     }
                 }
             }
@@ -98,7 +91,7 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/exp
         $productUnitProps = $$productUnitProps;
         if (is_array($productUnitProps)) {
             foreach ($productUnitProps as $iblock => $val) {
-                $IblockPropertyUnitProduct[$iblock][$prop] = $val;
+                $iblockPropertyUnitProduct[$iblock][$prop] = $val;
             }
         }
         
@@ -106,7 +99,7 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/exp
         $productProps = $$productProps;
         if (is_array($productProps)) {
             foreach ($productProps as $iblock => $val) {
-                $IblockPropertyProduct[$iblock][$prop] = $val;
+                $iblockPropertyProduct[$iblock][$prop] = $val;
             }
         }
         
@@ -117,7 +110,7 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/exp
                 
                 if (is_array($hbProps)) {
                     foreach ($hbProps as $iblock => $val) {
-                        $IblockPropertyProductHl[$hlblockTable][$iblock][$prop] = $val;
+                        $iblockPropertyProductHl[$hlblockTable][$iblock][$prop] = $val;
                     }
                 }
             }
@@ -139,35 +132,25 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/exp
             $skuPictures[$key] = $value;
         }
     }
-    
-    $fileSetup = new XmlSetup();
-    $fileSetup->properties = new XmlSetupPropsCategories();
-    $fileSetup->properties->sku = new XmlSetupProps();
-    $fileSetup->properties->products = new XmlSetupProps();
-    
-    $fileSetup->profileID = $profile_id;
-    $fileSetup->iblocksForExport = $IBLOCK_EXPORT;
 
-    $fileSetup->properties->sku->names = $IblockPropertySku;
-    $fileSetup->properties->sku->units = $IblockPropertyUnitSku;
-    $fileSetup->properties->sku->pictures = $skuPictures;
-
-    $fileSetup->properties->products->names = $IblockPropertyProduct;
-    $fileSetup->properties->products->units = $IblockPropertyUnitProduct;
-    $fileSetup->properties->products->pictures = $productPictures;
+    $xmlProps = new XmlSetupPropsCategories(
+        new XmlSetupProps($iblockPropertyProduct, $iblockPropertyUnitProduct, $productPictures),
+        new XmlSetupProps($iblockPropertySku, $iblockPropertyUnitSku, $skuPictures)
+    );
     
     if ($hlblockModule === true) {
-        $fileSetup->properties->highloadblockSku    = $IblockPropertySkuHl;
-        $fileSetup->properties->highloadblockProduct = $IblockPropertyProductHl;
+        $xmlProps->highloadblockSku    = $iblockPropertySkuHl;
+        $xmlProps->highloadblockProduct = $iblockPropertyProductHl;
     }
     
+    $fileSetup = new XmlSetup($xmlProps);
+    $fileSetup->profileID = $profile_id;
+    $fileSetup->iblocksForExport = $IBLOCK_EXPORT;
     $fileSetup->maxOffersValue = empty($MAX_OFFERS_VALUE) ? DEFAULT_OFFERS_IN_ORDER : (int)$MAX_OFFERS_VALUE;
-
     $fileSetup->filePath = $SETUP_FILE_NAME;
-    $fileSetup->defaultServerName
-        = COption::GetOptionString('intaro.retailcrm', 'protocol') . $SERVER_NAME;
     $fileSetup->loadPurchasePrice = $LOAD_PURCHASE_PRICE === 'Y';
-
+    $fileSetup->basePriceId = CatalogRepository::getBasePriceId($fileSetup->profileID);
+    
     $loader = new IcmlDirector($fileSetup);
     $loader->generateXml();
 }

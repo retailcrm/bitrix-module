@@ -37,7 +37,7 @@ class FileRepository
         $pathImage  = CFile::GetPath($fileId);
         $validation = '/^(http|https):\/\/([A-Z0-9][A-Z0-9_-]*(?:\.[A-Z0-9][A-Z0-9_-]*)+):?(\d+)?\/?/i';
         
-        if ((bool)preg_match($validation, $pathImage) === false) {
+        if ((bool) preg_match($validation, $pathImage) === false) {
             return $this->defaultServerName . $pathImage;
         }
         

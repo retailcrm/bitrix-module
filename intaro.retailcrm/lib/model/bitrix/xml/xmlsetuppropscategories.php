@@ -19,6 +19,17 @@ namespace Intaro\RetailCrm\Model\Bitrix\Xml;
 class XmlSetupPropsCategories
 {
     /**
+     * XmlSetupPropsCategories constructor.
+     * @param \Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupProps $products
+     * @param \Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupProps $sku
+     */
+    public function __construct(XmlSetupProps $products, XmlSetupProps $sku)
+    {
+        $this->products = $products;
+        $this->sku      = $sku;
+    }
+    
+    /**
      * Синхронизируемые свойства товаров
      *
      * @var XmlSetupProps
