@@ -81,50 +81,12 @@ class XmlOfferFactory
         $products = [];
         
         while ($product = $ciBlockResult->GetNext()) {
-    
-            if ($param->parentId === null) {
-                $pictureProperty = $this->setup->properties->products->pictures[$catalogIblockInfo->productIblockId];
-            } else {
-                $pictureProperty = $this->setup->properties->sku->pictures[$catalogIblockInfo->productIblockId];
-            }
-    
-            //достаем значения из HL блоков товаров
-            $this->xmlOfferBuilder->setProductHlParams($this->getHlParams(
-                $catalogIblockInfo->productIblockId,
-                $product,
-                $param->configurable,
-                $this->setup->properties->highloadblockProduct
-            ));
-    
-            //достаем значения из HL блоков торговых предложений
-            $this->xmlOfferBuilder->setSkuHlParams($this->getHlParams(
-                $catalogIblockInfo->productIblockId,
-                $product,
-                $param->configurable,
-                $this->setup->properties->highloadblockSku
-            ));
-            $this->xmlOfferBuilder->setSelectParams($param);
-            $this->xmlOfferBuilder->setOfferProps($product);
-            $this->xmlOfferBuilder->setBarcode($barcodes[$product['ID']] ?? '');
-            $this->xmlOfferBuilder->setCatalogIblockInfo($catalogIblockInfo);
-            $this->xmlOfferBuilder->setPicturesPath(
-                $this
-                ->fileRepository
-                ->getProductPicture($product, $pictureProperty ?? '')
-            );
-            
-            $this->xmlOfferBuilder->createXmlOffer(
-                $param,
-                $product,
-                $barcodes[$product['ID']] ?? '',
-                $catalogIblockInfo,
-                $this->fileRepository->getProductPicture($product, $pictureProperty ?? '')
-            );
+            $this->setXmlOfferParams($param, $product, $catalogIblockInfo, $barcodes);
+            $this->xmlOfferBuilder->createXmlOffer();
             $this->xmlOfferBuilder->addDataFromItem(
                 $product,
                 $this->catalogRepository->getProductCategoriesIds($product['ID'])
             );
-    
             $products[] = $this->xmlOfferBuilder->getXmlOffer();
         }
         
@@ -187,5 +149,49 @@ class XmlOfferFactory
         }
         
         return $params;
+    }
+    
+    /**
+     * @param \Intaro\RetailCrm\Model\Bitrix\Xml\SelectParams      $param
+     * @param array                                                $product
+     * @param \Intaro\RetailCrm\Model\Bitrix\Orm\CatalogIblockInfo $catalogIblockInfo
+     * @param array                                                $barcodes
+     */
+    private function setXmlOfferParams(
+        SelectParams $param,
+        array $product,
+        CatalogIblockInfo $catalogIblockInfo,
+        array $barcodes
+    ): void {
+        if ($param->parentId === null) {
+            $pictureProperty = $this->setup->properties->products->pictures[$catalogIblockInfo->productIblockId];
+        } else {
+            $pictureProperty = $this->setup->properties->sku->pictures[$catalogIblockInfo->productIblockId];
+        }
+    
+        //достаем значения из HL блоков товаров
+        $this->xmlOfferBuilder->setProductHlParams($this->getHlParams(
+            $catalogIblockInfo->productIblockId,
+            $product,
+            $param->configurable,
+            $this->setup->properties->highloadblockProduct
+        ));
+    
+        //достаем значения из HL блоков торговых предложений
+        $this->xmlOfferBuilder->setSkuHlParams($this->getHlParams(
+            $catalogIblockInfo->productIblockId,
+            $product,
+            $param->configurable,
+            $this->setup->properties->highloadblockSku
+        ));
+        $this->xmlOfferBuilder->setSelectParams($param);
+        $this->xmlOfferBuilder->setOfferProps($product);
+        $this->xmlOfferBuilder->setBarcode($barcodes[$product['ID']] ?? '');
+        $this->xmlOfferBuilder->setCatalogIblockInfo($catalogIblockInfo);
+        $this->xmlOfferBuilder->setPicturesPath(
+            $this
+                ->fileRepository
+                ->getProductPicture($product, $pictureProperty ?? '')
+        );
     }
 }

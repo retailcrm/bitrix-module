@@ -5,6 +5,10 @@ namespace Intaro\RetailCrm\Icml\Utils;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlOffer;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupPropsCategories;
 
+/**
+ * Class IcmlUtils
+ * @package Intaro\RetailCrm\Icml\Utils
+ */
 class IcmlUtils
 {
     /**
