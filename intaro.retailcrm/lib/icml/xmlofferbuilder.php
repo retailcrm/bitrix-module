@@ -9,6 +9,7 @@ use Intaro\RetailCrm\Model\Bitrix\Xml\SelectParams;
 use Intaro\RetailCrm\Model\Bitrix\Xml\Unit;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlOffer;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup;
+use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupPropsCategories;
 use RetailcrmConfigProvider;
 
 /**
@@ -116,29 +117,29 @@ class XmlOfferBuilder
         $resultParams = array_merge($this->productHlParams, $this->skuHlParams);
     
         //достаем значения из обычных свойств
-        $resultParams = array_merge($resultParams, IcmlUtils::getSimpleParams(
+        $resultParams = array_merge($resultParams, $this->getSimpleParams(
             $resultParams,
             $this->selectParams->configurable,
             $this->productProps
         ));
     
         [$resultParams, $this->xmlOffer->dimensions]
-            = IcmlUtils::extractDimensionsFromParams(
+            = $this->extractDimensionsFromParams(
             $this->setup->properties,
             $resultParams,
             $this->catalogIblockInfo->productIblockId
         );
         [$resultParams, $this->xmlOffer->weight]
-            = IcmlUtils::extractWeightFromParams(
+            = $this->extractWeightFromParams(
             $this->setup->properties,
             $resultParams,
             $this->catalogIblockInfo->productIblockId
         );
-        [$resultParams, $this->xmlOffer->vendor] = IcmlUtils::extractVendorFromParams($resultParams);
-        $resultParams           = IcmlUtils::dropEmptyParams($resultParams);
+        [$resultParams, $this->xmlOffer->vendor] = $this->extractVendorFromParams($resultParams);
+        $resultParams           = $this->dropEmptyParams($resultParams);
         $this->xmlOffer->params = $this->createParamObject($resultParams);
     }
-    
+
     /**
      * Добавляет в объект XmlOffer информацию из GetList
      *
@@ -154,7 +155,7 @@ class XmlOfferBuilder
             ? $this->defaultServerName . $item['DETAIL_PAGE_URL']
             : '';
         $this->xmlOffer->price         = $item['CATALOG_PRICE_' . $this->setup->basePriceId];
-        $this->xmlOffer->purchasePrice = IcmlUtils::getPurchasePrice(
+        $this->xmlOffer->purchasePrice = $this->getPurchasePrice(
             $item,
             $this->setup->loadPurchasePrice,
             $this->purchasePriceNull
@@ -258,6 +259,176 @@ class XmlOfferBuilder
     public function getXmlOffer(): XmlOffer
     {
         return $this->xmlOffer;
+    }
+    
+    /**
+     * Возвращает закупочную цену, если она требуется настройками
+     *
+     * @param array     $product
+     * @param bool|null $isLoadPrice
+     * @param string    $purchasePriceNull
+     * @return int|null
+     */
+    private function getPurchasePrice(array $product, ?bool $isLoadPrice, string $purchasePriceNull): ?int
+    {
+        if ($isLoadPrice) {
+            if ($product['CATALOG_PURCHASING_PRICE']) {
+                return $product['CATALOG_PURCHASING_PRICE'];
+            }
+            
+            if ($purchasePriceNull === 'Y') {
+                return 0;
+            }
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Возвращает массив обычных свойств
+     *
+     * @param array $resultParams
+     * @param array $configurableParams
+     * @param array $productProps
+     * @return array
+     */
+    private function getSimpleParams(array $resultParams, array $configurableParams, array $productProps): array
+    {
+        foreach ($configurableParams as $key => $params) {
+            if (isset($resultParams[$key])) {
+                continue;
+            }
+            
+            $codeWithValue = $params . '_VALUE';
+            
+            if (isset($productProps[$codeWithValue])) {
+                $resultParams[$key] = $productProps[$codeWithValue];
+            } elseif (isset($productProps[$params])) {
+                $resultParams[$key] = $productProps[$params];
+            }
+        }
+        
+        return $resultParams;
+    }
+    
+    /**
+     * Удаляет параметры с пустыми и нулевыми значениями
+     *
+     * @param array $params
+     * @return array
+     */
+    private function dropEmptyParams(array $params): array
+    {
+        return array_diff($params, ['', 0, '0']);
+    }
+    
+    /**
+     * Разделяем вендора и остальные параметры
+     *
+     * @param array $resultParams
+     * @return array
+     */
+    private function extractVendorFromParams(array $resultParams): array
+    {
+        $vendor = null;
+        
+        if (isset($resultParams['manufacturer'])) {
+            $vendor = $resultParams['manufacturer'];
+            
+            unset($resultParams['manufacturer']);
+        }
+        
+        return [$resultParams, $vendor];
+    }
+    
+    /**
+     * Преобразует вес товара в килограммы для ноды weight
+     *
+     * @param \Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupPropsCategories $xmlSetupPropsCategories
+     * @param array                                                      $resultParams
+     * @param int                                                        $iblockId
+     * @return array
+     */
+    private function extractWeightFromParams(
+        XmlSetupPropsCategories $xmlSetupPropsCategories,
+        array $resultParams,
+        int $iblockId
+    ): array {
+        $factors = [
+            'mg' => 0.000001,
+            'g'  => 0.001,
+            'kg' => 1,
+        ];
+        $unit = '';
+        
+        if (!empty($xmlSetupPropsCategories->products->names[$iblockId]['weight'])) {
+            $unit = $xmlSetupPropsCategories->products->units[$iblockId]['weight'];
+        } elseif (!empty($xmlSetupPropsCategories->sku->names[$iblockId]['weight'])) {
+            $unit = $xmlSetupPropsCategories->sku->units[$iblockId]['weight'];
+        }
+        
+        if (isset($resultParams['weight'], $factors[$unit])) {
+            $weight = $resultParams['weight'] * $factors[$unit];
+        } else {
+            $weight = '';
+        }
+        
+        if (isset($resultParams['weight'])) {
+            unset($resultParams['weight']);
+        }
+        
+        return [$resultParams, $weight];
+    }
+    
+    /**
+     * Получение данных для ноды dimensions
+     *
+     * Данные должны быть переведены в сантиметры
+     * и представлены в формате Длина/Ширина/Высота
+     *
+     * @param \Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupPropsCategories $xmlSetupPropsCategories
+     * @param array                                                      $resultParams
+     * @param int                                                        $iblockId
+     * @return array
+     */
+    private function extractDimensionsFromParams(
+        XmlSetupPropsCategories $xmlSetupPropsCategories,
+        array $resultParams,
+        int $iblockId
+    ): array {
+        $dimensionsParams = ['length', 'width', 'height'];
+        $dimensions       = '';
+        $factors          = [
+            'mm' => 0.1,
+            'cm' => 1,
+            'm'  => 100,
+        ];
+        
+        foreach ($dimensionsParams as $key => $param) {
+            $unit = '';
+            
+            if (!empty($xmlSetupPropsCategories->products->names[$iblockId][$param])) {
+                $unit = $xmlSetupPropsCategories->products->units[$iblockId][$param];
+            } elseif (!empty($xmlSetupPropsCategories->sku->names[$iblockId][$param])) {
+                $unit = $xmlSetupPropsCategories->sku->units[$iblockId][$param];
+            }
+            
+            if (isset($factors[$unit], $resultParams[$param])) {
+                $dimensions .= $resultParams[$param] * $factors[$unit];
+            } else {
+                $dimensions .= '0';
+            }
+            
+            if (count($dimensionsParams) > $key + 1) {
+                $dimensions .= '/';
+            }
+            
+            if (isset($resultParams[$param])) {
+                unset($resultParams[$param]);
+            }
+        }
+        
+        return [$resultParams, $dimensions === '0/0/0' ? '' : $dimensions];
     }
     
     /**

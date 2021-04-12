@@ -87,6 +87,7 @@ class IcmlDirector
     public function generateXml(): void
     {
         $this->setXmlData();
+        $this->icmlWriter->writeToXmlTop($this->xmlData);
         $this->logger->write(
             self::INFO . ': Start writing categories and header',
             self::FILE_LOG_NAME
@@ -124,9 +125,13 @@ class IcmlDirector
      */
     private function writeOffers(): void
     {
+        $this->icmlWriter->startOffersBlock();
+        
         foreach ($this->setup->iblocksForExport as $iblockId) {
             $this->writeIblockOffers($iblockId);
         }
+        
+        $this->icmlWriter->endBlock();
     }
     
     /**
@@ -245,7 +250,7 @@ class IcmlDirector
             
             if (!empty($xmlOffers)) {
                 $xmlOffers
-                    = IcmlUtils::trimOffersToLimitIfLimit($writingOffers, $xmlOffers, $this->setup->maxOffersValue);
+                    = $this->trimOffersToLimitIfLimit($writingOffers, $xmlOffers, $this->setup->maxOffersValue);
     
                 $this->icmlWriter->writeOffers($xmlOffers);
     
@@ -253,5 +258,25 @@ class IcmlDirector
                 $paramsForOffer->pageNumber++;
             }
         } while (!empty($xmlOffers) && $writingOffers < $this->setup->maxOffersValue);
+    }
+
+    /**
+     * Проверяет,не достигнул ли лимит по записываемым оферам maxOffersValue
+     * и обрезает массив до лимита, если он достигнут
+     *
+     * @param int        $writingOffers
+     * @param XmlOffer[] $xmlOffers
+     * @param int        $maxOffersValue
+     * @return XmlOffer[]
+     */
+    private function trimOffersToLimitIfLimit(int $writingOffers, array $xmlOffers, int $maxOffersValue): array
+    {
+        if (($writingOffers + count($xmlOffers)) > $maxOffersValue) {
+            $sliceIndex
+                = count($xmlOffers) - ($writingOffers + count($xmlOffers) - $maxOffersValue);
+            return array_slice($xmlOffers, 0, $sliceIndex);
+        }
+        
+        return $xmlOffers;
     }
 }

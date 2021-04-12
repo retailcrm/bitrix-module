@@ -33,8 +33,26 @@ class IcmlWriter
         $this->writer = new XMLWriter();
         $this->writer->openURI($_SERVER['DOCUMENT_ROOT'] . $filePath);
         $this->writer->setIndent(true);
+    }
+    
+    /**
+     * @param \Intaro\RetailCrm\Model\Bitrix\Xml\XmlData $data
+     */
+    public function writeToXmlTop(XmlData $data): void
+    {
         $this->writer->startElement('yml_catalog');
         $this->writeSimpleAttribute('date', Date('Y-m-d H:i:s'));
+        
+        $this->writer->startElement('shop');
+        $this->writeSimpleElement('name', $data->shopName);
+        $this->writeSimpleElement('company', $data->company);
+    }
+    
+    public function writeToXmlBottom(): void
+    {
+        $this->writer->endElement();
+        $this->writer->endElement();
+        $this->writer->flush();
     }
     
     /**
@@ -42,10 +60,6 @@ class IcmlWriter
      */
     public function writeToXmlHeaderAndCategories(XmlData $data): void
     {
-        $this->writer->startElement('shop');
-        $this->writeSimpleElement('name', $data->shopName);
-        $this->writeSimpleElement('company', $data->company);
-        
         $this->writer->startElement('categories');
         
         foreach ($data->categories as $key => $category) {
@@ -61,8 +75,16 @@ class IcmlWriter
         
         $this->writer->endElement();
         $this->writer->flush();
-        
+    }
+    
+    public function startOffersBlock(): void
+    {
         $this->writer->startElement('offers');
+    }
+    
+    public function endBlock(): void
+    {
+        $this->writer->endElement();
     }
     
     /**
@@ -74,14 +96,6 @@ class IcmlWriter
             $this->writeOffer($offer);
         }
         
-        $this->writer->flush();
-    }
-    
-    public function writeToXmlBottom(): void
-    {
-        $this->writer->endElement();
-        $this->writer->endElement();
-        $this->writer->endElement();
         $this->writer->flush();
     }
     
