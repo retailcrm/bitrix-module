@@ -2,6 +2,7 @@
 
 use Bitrix\Currency\CurrencyManager;
 use Bitrix\Main\Application;
+use Bitrix\Main\EventManager;
 use Bitrix\Main\LoaderException;
 use Bitrix\Main\SystemException;
 use Bitrix\Main\UI\Extension;
@@ -583,12 +584,15 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         }
         
         ConfigProvider::setLoyaltyProgramStatus('Y');
-    } else {
-        ConfigProvider::setLoyaltyProgramStatus('N');
-    }
-
-    if (isset($_POST['loyalty_toggle']) && $_POST['loyalty_toggle'] === 'on') {
-        ConfigProvider::setLoyaltyProgramStatus('Y');
+    
+        $eventManager = EventManager::getInstance();
+        
+        $eventManager->unRegisterEventHandler('sale',
+            'OnSaleOrderSaved',
+            Constants::MODULE_ID,
+            'RetailCrmEvent',
+            'orderSave'
+        );
     } else {
         ConfigProvider::setLoyaltyProgramStatus('N');
     }
