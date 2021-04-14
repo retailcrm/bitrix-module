@@ -9,6 +9,7 @@ use Bitrix\Main\UI\Extension;
 use Bitrix\Sale\Delivery\Services\Manager;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Constants;
+use Intaro\RetailCrm\Component\Handlers\EventsHandlers;
 use Intaro\RetailCrm\Repository\AgreementRepository;
 use Intaro\RetailCrm\Repository\TemplateRepository;
 use Intaro\RetailCrm\Service\OrderLoyaltyDataService;
@@ -37,35 +38,27 @@ $CRM_CONTRAGENT_TYPE       = 'contragent_type';
 $CRM_SITES_LIST            = 'sites_list';
 $CRM_ORDER_NUMBERS         = 'order_numbers';
 $CRM_CANSEL_ORDER          = 'cansel_order';
-
 $CRM_INVENTORIES_UPLOAD  = 'inventories_upload';
 $CRM_STORES              = 'stores';
 $CRM_SHOPS               = 'shops';
 $CRM_IBLOCKS_INVENTORIES = 'iblocks_inventories';
-
 $CRM_PRICES_UPLOAD  = 'prices_upload';
 $CRM_PRICES         = 'prices';
 $CRM_PRICE_SHOPS    = 'price_shops';
 $CRM_IBLOCKS_PRICES = 'iblock_prices';
-
 $CRM_COLLECTOR = 'collector';
 $CRM_COLL_KEY  = 'coll_key';
-
 $CRM_UA      = 'ua';
 $CRM_UA_KEYS = 'ua_keys';
-
 $CRM_CC         = 'cc';
 $CRM_CORP_SHOPS = 'shops-corporate';
 $CRM_CORP_NAME  = 'nickName-corporate';
 $CRM_CORP_ADRES = 'adres-corporate';
-
 $CRM_API_VERSION = 'api_version';
-
 $CRM_CURRENCY        = 'currency';
 $CRM_ADDRESS_OPTIONS = 'address_options';
 $CRM_DIMENSIONS      = 'order_dimensions';
 $PROTOCOL            = 'protocol';
-
 $CRM_PURCHASE_PRICE_NULL = 'purchasePrice_null';
 
 if (!CModule::IncludeModule('intaro.retailcrm') || !CModule::IncludeModule('sale') || !CModule::IncludeModule('iblock') || !CModule::IncludeModule('catalog')) {
@@ -593,6 +586,19 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             'RetailCrmEvent',
             'orderSave'
         );
+    
+        $eventManager->registerEventHandler(
+            'main',
+            'OnAdminContextMenuShow',
+            Constants::MODULE_ID,
+            EventsHandlers::class,
+            'addUpdateLoyaltyButton'
+        );
+        AddEventHandler(
+            'main',
+            'OnAdminContextMenuShow',
+            'OrderDetailAdminContextMenuShow'
+        );
     } else {
         ConfigProvider::setLoyaltyProgramStatus('N');
     }
@@ -611,32 +617,25 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     COption::SetOptionString($mid, $CRM_CUSTOM_FIELDS, serialize(RCrmActions::clearArr($customFieldsArr)));
     COption::SetOptionString($mid, $CRM_ORDER_NUMBERS, $orderNumbers);
     COption::SetOptionString($mid, $CRM_CANSEL_ORDER, serialize(RCrmActions::clearArr($canselOrderArr)));
-
     COption::SetOptionString($mid, $CRM_INVENTORIES_UPLOAD, $inventoriesUpload);
     COption::SetOptionString($mid, $CRM_STORES, serialize(RCrmActions::clearArr($bitrixStoresArr)));
     COption::SetOptionString($mid, $CRM_SHOPS, serialize(RCrmActions::clearArr($bitrixShopsArr)));
     COption::SetOptionString($mid, $CRM_IBLOCKS_INVENTORIES, serialize(RCrmActions::clearArr($bitrixIblocksInventories)));
-
     COption::SetOptionString($mid, $CRM_PRICES_UPLOAD, $pricesUpload);
     COption::SetOptionString($mid, $CRM_PRICES, serialize(RCrmActions::clearArr($bitrixPricesArr)));
     COption::SetOptionString($mid, $CRM_PRICE_SHOPS, serialize(RCrmActions::clearArr($bitrixPriceShopsArr)));
     COption::SetOptionString($mid, $CRM_IBLOCKS_PRICES, serialize(RCrmActions::clearArr($bitrixIblocksPrices)));
-
     COption::SetOptionString($mid, $CRM_COLLECTOR, $collector);
     COption::SetOptionString($mid, $CRM_COLL_KEY, serialize(RCrmActions::clearArr($collectorKeys)));
-
     RetailCrmConfigProvider::setOnlineConsultant($onlineConsultant);
     RetailCrmConfigProvider::setOnlineConsultantScript($onlineConsultantScript);
-
     COption::SetOptionString($mid, $CRM_UA, $ua);
     COption::SetOptionString($mid, $CRM_UA_KEYS, serialize(RCrmActions::clearArr($uaKeys)));
     COption::SetOptionString($mid, $CRM_DIMENSIONS, $orderDimensions);
     RetailcrmConfigProvider::setSendPaymentAmount($sendPaymentAmount);
-    
     RetailCrmConfigProvider::setDiscountRound($discount_round);
     COption::SetOptionString($mid, $CRM_PURCHASE_PRICE_NULL, $purchasePrice_null);
     COption::SetOptionString($mid, RetailcrmConstants::CRM_SHIPMENT_DEDUCTED, $shipment_deducted);
-
     COption::SetOptionString($mid, $CRM_CC, $cc);
     COption::SetOptionString($mid, $CRM_CORP_SHOPS, serialize(RCrmActions::clearArr($bitrixCorpShopsArr)));
     COption::SetOptionString($mid, $CRM_CORP_NAME, serialize(RCrmActions::clearArr((array)$bitrixCorpName)));

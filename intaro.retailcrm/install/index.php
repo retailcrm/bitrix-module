@@ -15,8 +15,6 @@ use Bitrix\Main\EventManager;
 use Bitrix\Main\Loader;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
-use Bitrix\Sale\Internals\OrderPropsGroupTable;
-use Bitrix\Sale\Internals\PaySystemActionTable;
 use Bitrix\Sale\Delivery\Services\Manager;
 use Bitrix\Sale\Internals\OrderTable;
 use Intaro\RetailCrm\Component\Handlers\EventsHandlers;
@@ -26,7 +24,6 @@ use Intaro\RetailCrm\Service\OrderLoyaltyDataService;
 use \RetailCrm\ApiClient;
 use RetailCrm\Exception\CurlException;
 use Intaro\RetailCrm\Repository\ToModuleRepository;
-use Bitrix\Highloadblock as HL;
 
 Loader::IncludeModule('highloadblock');
 

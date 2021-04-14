@@ -107,6 +107,24 @@ class EventsHandlers
     }
     
     /**
+     * @param $items
+     */
+    public function addUpdateLoyaltyButton(&$items)
+    {
+        global $APPLICATION;
+        
+        if (
+            $_SERVER['REQUEST_METHOD'] === 'GET'
+            && $_REQUEST['ID'] > 0
+            && $APPLICATION->GetCurPage() === '/bitrix/admin/sale_order_view.php'
+        ) {
+            /** @var LoyaltyService $service */
+            $service = ServiceLocator::get(LoyaltyService::class);
+            $service->updateLoyaltyInfo($_REQUEST['ID']);
+        }
+    }
+    
+    /**
      * Обработчик события, вызываемого ПОСЛЕ сохранения заказа (OnSaleOrderSaved)
      *
      * @param \Bitrix\Main\Event $event
@@ -142,22 +160,22 @@ class EventsHandlers
     
             if ($isNewOrder && $isLoyaltyOn) {
                 self::$disableSaleHandler = true;
-                $hlInfo                          = $loyaltyService->addMainInfoToHl($order);
-                $discountInput                   = isset($_POST['loyalty-discount-input'])
-                    ? (float) $_POST['loyalty-discount-input']
+                $hlInfo                   = $loyaltyService->addMainInfoToHl($order);
+                $discountInput            = isset($_POST['loyalty-discount-input'])
+                    ? (float)$_POST['loyalty-discount-input']
                     : 0;
-                $loyaltyBonusMsg                 = '';
+                
+                $loyaltyBonusMsg = 0;
         
                 //Если есть бонусы
                 if ($isBonusesIssetAndAvailable) {
                     $hlInfo = $loyaltyService->saveBonuses(
                         $order,
                         $hlInfo,
-                        (int) $_POST['bonus-input'],
-                        isset($_POST['charge-rate']) ? htmlspecialchars(trim($_POST['charge-rate'])) : 1
+                        (int) $_POST['bonus-input']
                     );
             
-                    $loyaltyBonusMsg = $loyaltyService->getLoyaltyMsgForOrderInfo($hlInfo);
+                    $loyaltyBonusMsg = (int) $_POST['bonus-input'];
                 }
         
                 //Если бонусов нет, но скидка по ПЛ есть

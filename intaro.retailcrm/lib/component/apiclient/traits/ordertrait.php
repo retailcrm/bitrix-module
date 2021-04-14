@@ -16,6 +16,7 @@ namespace Intaro\RetailCrm\Component\ApiClient\Traits;
 use Intaro\RetailCrm\Component\Json\Deserializer;
 use Intaro\RetailCrm\Model\Api\Response\OrdersCreateResponse;
 use Intaro\RetailCrm\Model\Api\Response\OrdersEditResponse;
+use Intaro\RetailCrm\Model\Api\Response\OrdersGetResponse;
 
 /**
  * Trait OrderTrait
@@ -45,5 +46,17 @@ trait OrderTrait
         $response = $this->client->ordersEdit($request, 'externalId', $site);
         
         return Deserializer::deserializeArray($response->getResponseBody(), OrdersEditResponse::class);
+    }
+    
+    /**
+     * @param int         $orderId
+     * @param string|null $site
+     * @return \Intaro\RetailCrm\Model\Api\Response\OrdersGetResponse|null
+     */
+    public function getOrder(int $orderId, string $site = null): ?OrdersGetResponse
+    {
+        $response = $this->client->ordersGet($orderId, 'externalId', $site);
+        
+        return Deserializer::deserializeArray($response->getResponseBody(), OrdersGetResponse::class);
     }
 }

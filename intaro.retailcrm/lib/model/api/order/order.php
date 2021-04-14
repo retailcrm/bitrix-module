@@ -48,6 +48,26 @@ class Order extends AbstractApiModel
     public $managerId;
     
     /**
+     * Количество начисленных бонусов
+     *
+     * @var double $bonusesCreditTotal
+     *
+     * @Mapping\Type("double")
+     * @Mapping\SerializedName("bonusesCreditTotal")
+     */
+    public $bonusesCreditTotal;
+    
+    /**
+     * Количество списанных бонусов
+     *
+     * @var double $bonusesChargeTotal
+     *
+     * @Mapping\Type("double")
+     * @Mapping\SerializedName("bonusesChargeTotal")
+     */
+    public $bonusesChargeTotal;
+    
+    /**
      * Денежная скидка на весь заказ
      *
      * @var double $discountManualAmount
@@ -66,6 +86,16 @@ class Order extends AbstractApiModel
      * @Mapping\SerializedName("discountManualPercent")
      */
     public $discountManualPercent;
+    
+    /**
+     * Персональная скидка на заказ
+     *
+     * @var double $personalDiscountPercent
+     *
+     * @Mapping\Type("double")
+     * @Mapping\SerializedName("personalDiscountPercent")
+     */
+    public $personalDiscountPercent;
     
     /**
      * Магазин

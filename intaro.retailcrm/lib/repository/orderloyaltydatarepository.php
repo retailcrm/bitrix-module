@@ -91,9 +91,7 @@ class OrderLoyaltyDataRepository extends AbstractRepository
                 ->fetch();
             
             /** @var OrderLoyaltyData $result */
-            $result = Deserializer::deserializeArray($product, OrderLoyaltyData::class);
-            
-            return $result;
+            return Deserializer::deserializeArray($product, OrderLoyaltyData::class);
         } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
             AddMessage2Log($exception->getMessage());
         }

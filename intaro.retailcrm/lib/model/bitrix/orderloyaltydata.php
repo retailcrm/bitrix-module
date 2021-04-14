@@ -53,46 +53,8 @@ class OrderLoyaltyData
      * @Mapping\SerializedName("UF_ITEM_ID")
      */
     public $itemId;
+
     
-    /**
-     * Название товара
-     *
-     * @var string
-     *
-     * @Mapping\Type("string")
-     * @Mapping\SerializedName("UF_NAME")
-     */
-    public $name;
-    
-    /**
-     * Бонусная скидка ПЛ в денежном выражении
-     *
-     * @var int $bonusCashDiscount
-     *
-     * @Mapping\Type("integer")
-     * @Mapping\SerializedName("UF_BONUS_CASH")
-     */
-    public $bonusCashDiscount;
-    
-    /**
-     * Курс бонуса
-     *
-     * @var integer
-     *
-     * @Mapping\Type("integer")
-     * @Mapping\SerializedName("UF_BONUS_RATE")
-     */
-    public $bonusRate;
-    
-    /**
-     * Количество списываемых бонусов
-     *
-     * @var integer
-     *
-     * @Mapping\Type("integer")
-     * @Mapping\SerializedName("UF_BONUS_COUNT")
-     */
-    public $bonusCount;
     
     /**
      * ID проверочного кода
@@ -146,4 +108,29 @@ class OrderLoyaltyData
      * @Mapping\SerializedName("UF_DEF_DISCOUNT")
      */
     public $defaultDiscount;
+    
+    /**
+     * Название товара
+     *
+     * @var string
+     *
+     * @Mapping\Type("string")
+     * @Mapping\SerializedName("UF_NAME")
+     */
+    public $name;
+    
+    /**
+     * Количество списываемых бонусов
+     *
+     * @var integer
+     *
+     * @Mapping\Type("integer")
+     * @Mapping\SerializedName("UF_BONUS_COUNT")
+     */
+    public $bonusCount;
 }
+
+
+
+
+

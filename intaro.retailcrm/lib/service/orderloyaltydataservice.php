@@ -311,60 +311,6 @@ class OrderLoyaltyDataService
                     'en' => Loc::GetMessage('UF_DEF_DISCOUNT', null, 'en'),
                 ],
             ],
-            'UF_BONUS_CASH'   => [
-                'ENTITY_ID'         => $ufObject,
-                'FIELD_NAME'        => 'UF_BONUS_CASH',
-                'USER_TYPE_ID'      => 'integer',
-                'MANDATORY'         => 'N',
-                'EDIT_FORM_LABEL'   => [
-                    'ru' => Loc::GetMessage('UF_BONUS_CASH', null, 'ru'),
-                    'en' => Loc::GetMessage('UF_BONUS_CASH', null, 'en'),
-                ],
-                'LIST_COLUMN_LABEL' => [
-                    'ru' => Loc::GetMessage('UF_BONUS_CASH', null, 'ru'),
-                    'en' => Loc::GetMessage('UF_BONUS_CASH', null, 'en'),
-                ],
-                'LIST_FILTER_LABEL' => [
-                    'ru' => Loc::GetMessage('UF_BONUS_CASH', null, 'ru'),
-                    'en' => Loc::GetMessage('UF_BONUS_CASH', null, 'en'),
-                ],
-            ],
-            'UF_BONUS_RATE'   => [
-                'ENTITY_ID'         => $ufObject,
-                'FIELD_NAME'        => 'UF_BONUS_RATE',
-                'USER_TYPE_ID'      => 'integer',
-                'MANDATORY'         => 'N',
-                'EDIT_FORM_LABEL'   => [
-                    'ru' => Loc::GetMessage('UF_BONUS_RATE', null, 'ru'),
-                    'en' => Loc::GetMessage('UF_BONUS_RATE', null, 'en'),
-                ],
-                'LIST_COLUMN_LABEL' => [
-                    'ru' => Loc::GetMessage('UF_BONUS_RATE', null, 'ru'),
-                    'en' => Loc::GetMessage('UF_BONUS_RATE', null, 'en'),
-                ],
-                'LIST_FILTER_LABEL' => [
-                    'ru' => Loc::GetMessage('UF_BONUS_RATE', null, 'ru'),
-                    'en' => Loc::GetMessage('UF_BONUS_RATE', null, 'en'),
-                ],
-            ],
-            'UF_BONUS_COUNT'  => [
-                'ENTITY_ID'         => $ufObject,
-                'FIELD_NAME'        => 'UF_BONUS_COUNT',
-                'USER_TYPE_ID'      => 'integer',
-                'MANDATORY'         => 'N',
-                'EDIT_FORM_LABEL'   => [
-                    'ru' => Loc::GetMessage('UF_BONUS_COUNT', null, 'ru'),
-                    'en' => Loc::GetMessage('UF_BONUS_COUNT', null, 'en'),
-                ],
-                'LIST_COLUMN_LABEL' => [
-                    'ru' => Loc::GetMessage('UF_BONUS_COUNT', null, 'ru'),
-                    'en' => Loc::GetMessage('UF_BONUS_COUNT', null, 'en'),
-                ],
-                'LIST_FILTER_LABEL' => [
-                    'ru' => Loc::GetMessage('UF_BONUS_COUNT', null, 'ru'),
-                    'en' => Loc::GetMessage('UF_BONUS_COUNT', null, 'en'),
-                ],
-            ],
             'UF_CHECK_ID'     => [
                 'ENTITY_ID'         => $ufObject,
                 'FIELD_NAME'        => 'UF_CHECK_ID',
@@ -417,6 +363,24 @@ class OrderLoyaltyDataService
                 'LIST_FILTER_LABEL' => [
                     'ru' => Loc::GetMessage('UF_QUANTITY', null, 'ru'),
                     'en' => Loc::GetMessage('UF_QUANTITY', null, 'en'),
+                ],
+            ],
+            'UF_BONUS_COUNT'  => [
+                'ENTITY_ID'         => $ufObject,
+                'FIELD_NAME'        => 'UF_BONUS_COUNT',
+                'USER_TYPE_ID'      => 'integer',
+                'MANDATORY'         => 'N',
+                'EDIT_FORM_LABEL'   => [
+                    'ru' => Loc::GetMessage('UF_BONUS_COUNT', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_BONUS_COUNT', null, 'en'),
+                ],
+                'LIST_COLUMN_LABEL' => [
+                    'ru' => Loc::GetMessage('UF_BONUS_COUNT', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_BONUS_COUNT', null, 'en'),
+                ],
+                'LIST_FILTER_LABEL' => [
+                    'ru' => Loc::GetMessage('UF_BONUS_COUNT', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_BONUS_COUNT', null, 'en'),
                 ],
             ],
         ];

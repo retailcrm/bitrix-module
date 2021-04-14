@@ -1038,8 +1038,8 @@ class RetailCrmHistory
                                             'DIMENSIONS'             => $elem['DIMENSIONS'],
                                             'WEIGHT'                 => $elem['WEIGHT'],
                                             'NOTES'                  => GetMessage('PRICE_TYPE'),
-                                            'PRODUCT_XML_ID'         => $elem["XML_ID"],
-                                            'CATALOG_XML_ID'         => $elem["IBLOCK_XML_ID"]
+                                            'PRODUCT_XML_ID'         => $elem['XML_ID'],
+                                            'CATALOG_XML_ID'         => $elem['IBLOCK_XML_ID']
                                         ]);
                                     } else {
                                         RCrmActions::eventLog(
@@ -1345,13 +1345,8 @@ class RetailCrmHistory
         }
 
         $orders = [];
-        $bonusesCharges = [];
         
         foreach ($orderHistory as $change) {
-            if ($change['field'] === 'order_product.bonuses_charge') {
-                $bonusesCharges[$change['order']['externalId']][] = $change;
-            }
-            
             $change['order'] = self::removeEmpty($change['order']);
             if ($change['order']['items']) {
                 $items = [];
@@ -1364,19 +1359,19 @@ class RetailCrmHistory
                 $change['order']['items'] = $items;
             }
 
-            if ($change['field'] == 'number') {
+            if ($change['field'] === 'number') {
                 $orders[$change['order']['id']]['number'] = $change['newValue'];
             }
 
-            if (isset($change['oldValue']) && $change['field'] == 'customer') {
+            if (isset($change['oldValue']) && $change['field'] === 'customer') {
                 $orders[$change['order']['id']]['customer'] = $change['newValue'];
             }
 
-            if (isset($change['oldValue']) && $change['field'] == 'contact') {
+            if (isset($change['oldValue']) && $change['field'] === 'contact') {
                 $orders[$change['order']['id']]['contact'] = $change['newValue'];
             }
 
-            if (isset($change['oldValue']) && $change['field'] == 'company') {
+            if (isset($change['oldValue']) && $change['field'] === 'company') {
                 $orders[$change['order']['id']]['company'] = $change['newValue'];
             }
 
@@ -1408,11 +1403,11 @@ class RetailCrmHistory
                     $orders[$change['order']['id']]['items'][$change['item']['id']] = $change['item'];
                 }
 
-                if (empty($change['oldValue']) && $change['field'] == 'order_product') {
+                if (empty($change['oldValue']) && $change['field'] === 'order_product') {
                     $orders[$change['order']['id']]['items'][$change['item']['id']]['create'] = 1;
                     unset($orders[$change['order']['id']]['items'][$change['item']['id']]['delete']);
                 }
-                if (empty($change['newValue']) && $change['field'] == 'order_product') {
+                if (empty($change['newValue']) && $change['field'] === 'order_product') {
                     $orders[$change['order']['id']]['items'][$change['item']['id']]['delete'] = 1;
                 }
                 if (/*!$orders[$change['order']['id']]['items'][$change['item']['id']]['create'] && */$fields['item'][$change['field']]) {
@@ -1425,11 +1420,11 @@ class RetailCrmHistory
                     $orders[$change['order']['id']]['payments'][$change['payment']['id']] = $change['payment'];
                 }
 
-                if (empty($change['oldValue']) && $change['field'] == 'payments') {
+                if (empty($change['oldValue']) && $change['field'] === 'payments') {
                     $orders[$change['order']['id']]['payments'][$change['payment']['id']]['create'] = 1;
                     unset($orders[$change['order']['id']]['payments'][$change['payment']['id']]['delete']);
                 }
-                if (empty($change['newValue']) && $change['field'] == 'payments') {
+                if (empty($change['newValue']) && $change['field'] === 'payments') {
                     $orders[$change['order']['id']]['payments'][$change['payment']['id']]['delete'] = 1;
                 }
                 if (!$orders[$change['order']['id']]['payments'][$change['payment']['id']]['create'] && $fields['payment'][$change['field']]) {
@@ -1461,28 +1456,18 @@ class RetailCrmHistory
                 }
             }
 
-            if ($change['field'] == 'last_name') {
-                if (true == is_null($change['newValue'])) {
-                    $orders[$change['order']['id']]['lastName'] = 'clear';
-                }
+            if (($change['field'] === 'last_name') && true == is_null($change['newValue'])) {
+                $orders[$change['order']['id']]['lastName'] = 'clear';
             }
 
-            if ($change['field'] == 'first_Name') {
-                if (true == is_null($change['newValue'])) {
-                    $orders[$change['order']['id']]['firstName'] = 'clear';
-                }
+            if (($change['field'] === 'first_Name') && true == is_null($change['newValue'])) {
+                $orders[$change['order']['id']]['firstName'] = 'clear';
             }
 
-            if ($change['field'] == 'patronymic') {
-                if (true == is_null($change['newValue'])) {
-                    $orders[$change['order']['id']]['patronymic'] = 'clear';
-                }
+            if (($change['field'] === 'patronymic') && true == is_null($change['newValue'])) {
+                $orders[$change['order']['id']]['patronymic'] = 'clear';
             }
         }
-    
-        /** @var LoyaltyService $service */
-        $service = ServiceLocator::get(LoyaltyService::class);
-        $service->updateLoyaltyBonusHistory($bonusesCharges);
         
         return $orders;
     }
