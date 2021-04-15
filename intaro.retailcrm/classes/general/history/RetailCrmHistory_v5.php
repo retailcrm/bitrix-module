@@ -340,45 +340,41 @@ class RetailCrmHistory
                         ->setContragentTypes($contragentTypes)
                         ->setDataCrm($order)
                         ->build();
-            
-                    if (RetailCrmOrder::isOrderCorporate($order)) {
-                        // Fetch contact only if we think it's data is not fully present in order
-                        if (!empty($order['contact'])) {
-                            if (isset($order['contact']['email'])) {
-                                $corporateContact = $order['contact'];
+    
+                    // Fetch contact only if we think it's data is not fully present in order
+                    if (RetailCrmOrder::isOrderCorporate($order) && !empty($order['contact'])) {
+                        if (isset($order['contact']['email'])) {
+                            $corporateContact = $order['contact'];
+                            $orderCustomerExtId = $corporateContact['externalId'] ?? null;
+                            $corporateCustomerBuilder->setCorporateContact($corporateContact)
+                                ->setOrderCustomerExtId($orderCustomerExtId);
+                        } else {
+                            $response = false;
+                    
+                            if (isset($order['contact']['externalId'])) {
+                                $response = RCrmActions::apiMethod(
+                                    $api,
+                                    'customersGet',
+                                    __METHOD__,
+                                    $order['contact']['externalId'],
+                                    $order['site']
+                                );
+                            } elseif (isset($order['contact']['id'])) {
+                                $response = RCrmActions::apiMethod(
+                                    $api,
+                                    'customersGetById',
+                                    __METHOD__,
+                                    $order['contact']['id'],
+                                    $order['site']
+                                );
+                            }
+                    
+                            if ($response && isset($response['customer'])) {
+                                $corporateContact = $response['customer'];
                         
                                 $orderCustomerExtId = $corporateContact['externalId'] ?? null;
                                 $corporateCustomerBuilder->setCorporateContact($corporateContact)
                                     ->setOrderCustomerExtId($orderCustomerExtId);
-                        
-                            } else {
-                                $response = false;
-                        
-                                if (isset($order['contact']['externalId'])) {
-                                    $response = RCrmActions::apiMethod(
-                                        $api,
-                                        'customersGet',
-                                        __METHOD__,
-                                        $order['contact']['externalId'],
-                                        $order['site']
-                                    );
-                                } elseif (isset($order['contact']['id'])) {
-                                    $response = RCrmActions::apiMethod(
-                                        $api,
-                                        'customersGetById',
-                                        __METHOD__,
-                                        $order['contact']['id'],
-                                        $order['site']
-                                    );
-                                }
-                        
-                                if ($response && isset($response['customer'])) {
-                                    $corporateContact = $response['customer'];
-                            
-                                    $orderCustomerExtId = $corporateContact['externalId'] ?? null;
-                                    $corporateCustomerBuilder->setCorporateContact($corporateContact)
-                                        ->setOrderCustomerExtId($orderCustomerExtId);
-                                }
                             }
                         }
                     }
@@ -1598,6 +1594,8 @@ class RetailCrmHistory
                     }
                 }
             }
+            
+            return true;
         }
 
         $delivery = Manager::getObjectById($deliveryId);
