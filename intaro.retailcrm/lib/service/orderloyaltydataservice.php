@@ -36,15 +36,15 @@ class OrderLoyaltyDataService
 {
     /**
      * @param $personId
-     * @param $groupID
+     * @param $groupId
      */
-    private function addBonusField($personId, $groupID): void
+    private function addBonusField($personId, $groupId): void
     {
         try {
             $bonusProp = OrderPropsRepository::getFirstByWhere(['ID'],
                 [
                     ['PERSON_TYPE_ID', '=', $personId],
-                    ['PROPS_GROUP_ID', '=', $groupID],
+                    ['PROPS_GROUP_ID', '=', $groupId],
                 ]
             );
             
@@ -63,7 +63,7 @@ class OrderLoyaltyDataService
                         'IS_PAYER'        => 'N',
                         'IS_FILTERED'     => 'Y',
                         'PERSON_TYPE_ID'  => $personId,
-                        'PROPS_GROUP_ID'  => $groupID,
+                        'PROPS_GROUP_ID'  => $groupId,
                         'DEFAULT_VALUE'   => '',
                         'DESCRIPTION'     => GetMessage('LP_BONUS_INFO'),
                         'UTIL'            => 'Y',
@@ -81,7 +81,7 @@ class OrderLoyaltyDataService
                         'IS_PAYER'        => 'N',
                         'IS_FILTERED'     => 'Y',
                         'PERSON_TYPE_ID'  => $personId,
-                        'PROPS_GROUP_ID'  => $groupID,
+                        'PROPS_GROUP_ID'  => $groupId,
                         'DEFAULT_VALUE'   => '',
                         'DESCRIPTION'     => GetMessage('LP_DISCOUNT_INFO'),
                         'UTIL'            => 'Y',
@@ -110,9 +110,9 @@ class OrderLoyaltyDataService
         
         foreach ($persons as $person) {
             $personId = $person->getID();
-            $groupID  = $this->getGroupID($personId);
-            if (isset($groupID)) {
-                $this->addBonusField($personId, $groupID);
+            $groupId  = $this->getGroupId($personId);
+            if (isset($groupId)) {
+                $this->addBonusField($personId, $groupId);
             }
         }
     }
@@ -121,10 +121,10 @@ class OrderLoyaltyDataService
      * @param $personId
      * @return int
      */
-    private function getGroupID($personId): ?int
+    private function getGroupId($personId): ?int
     {
         try {
-            $lPGroup = OrderPropsGroupTable::query()
+            $lpGroup = OrderPropsGroupTable::query()
                 ->setSelect(['ID'])
                 ->where(
                     [
@@ -134,11 +134,11 @@ class OrderLoyaltyDataService
                 )
                 ->fetch();
             
-            if (is_array($lPGroup)) {
-                return $lPGroup['ID'];
+            if (is_array($lpGroup)) {
+                return $lpGroup['ID'];
             }
             
-            if ($lPGroup === false) {
+            if ($lpGroup === false) {
                 return OrderPropsGroupTable::add([
                     'PERSON_TYPE_ID' => $personId,
                     'NAME'           => GetMessage('LP_ORDER_GROUP_NAME'),

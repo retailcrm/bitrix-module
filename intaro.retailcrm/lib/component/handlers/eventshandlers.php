@@ -34,7 +34,6 @@ use Throwable;
  */
 class EventsHandlers
 {
-    
     public static $disableSaleHandler = false;
     
     /**
@@ -97,7 +96,7 @@ class EventsHandlers
                 if ($calculateItemsInput !== null) {
                     foreach ($arResult['JS_DATA']['GRID']['ROWS'] as $key => &$item) {
                         $item['data']['SUM_NUM'] = $oldItems[$key]['SUM_NUM'];
-                        $item['data']['SUM']     = $item ['data']['SUM_NUM'] . GetMessage('RUB');
+                        $item['data']['SUM']     = $item['data']['SUM_NUM'] . GetMessage('RUB');
                     }
                 }
                 
