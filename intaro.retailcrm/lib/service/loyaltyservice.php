@@ -329,7 +329,7 @@ class LoyaltyService
     ): array {
         $isDebited = false;
         $checkId   = '';
-        
+
         //если верификация необходима, но не пройдена
         if (
             isset($response->verification, $response->verification->checkId)
@@ -1085,7 +1085,7 @@ class LoyaltyService
     {
         $repository = new OrderLoyaltyDataRepository();
         $products   = $repository->getProductsByOrderId($orderId);
-    
+        
         if ($products === null || count($products) === 0) {
             return null;
         }

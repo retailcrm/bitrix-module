@@ -73,7 +73,6 @@ class OrderLoyaltyData
      *
      * @Mapping\Type("bool")
      * @Mapping\SerializedName("UF_IS_DEBITED")
-     * @Mapping\BitrixBoolean
      */
     public $isDebited;
     

@@ -99,7 +99,7 @@ class OrderLoyaltyDataRepository extends AbstractRepository
     
     /**
      * @param $orderId
-     * @return array|null
+     * @return OrderLoyaltyData[]|null
      */
     public function getProductsByOrderId($orderId): ?array
     {
