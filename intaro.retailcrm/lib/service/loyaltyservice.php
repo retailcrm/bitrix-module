@@ -893,22 +893,26 @@ class LoyaltyService
             $repository = new OrderLoyaltyDataRepository();
             $items = $repository->getProductsByOrderId($orderId);
     
-            $actualDiscounts = 0;
+            $bitrixDiscounts = 0;
+            $totalPrice = 0;
+            $totalBasePrice = 0;
+    
             /** @var BasketItemBase $basketItem */
             foreach ($order->getBasket() as $basketItem) {
-                $actualDiscounts += $basketItem->getDiscountPrice() * $basketItem->getQuantity();
+                $totalPrice     += $basketItem->getPrice() * $basketItem->getQuantity();
+                $totalBasePrice += $basketItem->getBasePrice() * $basketItem->getQuantity();
+            }
+    
+            /** @var OrderLoyaltyData $item */
+            foreach ($items as $item) {
+                $bitrixDiscounts += $item->defaultDiscount * $item->quantity;
             }
             
-            if (isset($actualDiscounts)) {
-                /** @var OrderLoyaltyData $item */
-                foreach ($items as $item){
-                    $actualDiscounts -= $item->defaultDiscount * $item->quantity;
-                }
-            }
+            $loyaltyDiscount = $totalBasePrice - $totalPrice - $bitrixDiscounts;
             
             $this->saveBonusAndDiscToOrderProps(
                 $order->getPropertyCollection(),
-                $actualDiscounts ?? 0.0,
+                $loyaltyDiscount ?? 0.0,
                 $response->order->bonusesChargeTotal
             );
             

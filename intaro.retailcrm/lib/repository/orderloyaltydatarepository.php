@@ -108,9 +108,9 @@ class OrderLoyaltyDataRepository extends AbstractRepository
                 return null;
             }
         
-            $products = $this->dataManager::query()->setSelect(['*'])->where('UF_ORDER_ID', '=', $orderId)->fetch();
-        
-            if ($products === false || count($products)) {
+            $products = $this->dataManager::query()->setSelect(['*'])->where('UF_ORDER_ID', '=', $orderId)->fetchAll();
+
+            if ($products === false || count($products) === 0) {
                 return null;
             }
         
