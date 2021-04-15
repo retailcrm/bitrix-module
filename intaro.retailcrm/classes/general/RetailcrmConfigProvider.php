@@ -236,6 +236,20 @@ class RetailcrmConfigProvider
     }
     
     /**
+     * @return string
+     */
+    public static function getSiteName(): string
+    {
+        $sitename = COption::GetOptionString('main', 'site_name');
+        
+        if (!$sitename) {
+            return '';
+        }
+        
+        return $sitename;
+    }
+    
+    /**
      * setOnlineConsultantScript
      * 
      * @param string $value
@@ -567,15 +581,15 @@ class RetailcrmConfigProvider
     }
     
     /**
-     * @param $profileID
+     * @param $profileId
      *
      * @return false|string|null
      */
-    public static function getCatalogBasePriceByProfile($profileID)
+    public static function getCatalogBasePriceByProfile($profileId)
     {
         return COption::GetOptionString(
             RetailcrmConstants::MODULE_ID,
-            RetailcrmConstants::CRM_CATALOG_BASE_PRICE . '_' . $profileID,
+            RetailcrmConstants::CRM_CATALOG_BASE_PRICE . '_' . $profileId,
             0
         );
     }

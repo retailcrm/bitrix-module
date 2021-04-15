@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Intaro\RetailCrm\Icml;
 
 use Bitrix\Main\ArgumentException;
@@ -13,129 +12,30 @@ use Intaro\RetailCrm\Repository\FileRepository;
 use Intaro\RetailCrm\Repository\SiteRepository;
 
 /**
+ * Отвечает за создание XmlCategory
+ *
  * Class XmlCategoryFactory
  * @package Intaro\RetailCrm\Icml
  */
 class XmlCategoryFactory
 {
-    private const MILLION = 1000000;
-    
     /**
-     * @var \Intaro\RetailCrm\Repository\CatalogRepository
-     */
-    private $catalogRepository;
-    
-    /**
-     * @var array
-     */
-    private $iblocksForExport;
-    
-    /**
-     * @var \Intaro\RetailCrm\Icml\XmlCategoriesBuilder
-     */
-    private $xmlCategoryBuilder;
-    
-    /**
-     * @var \Intaro\RetailCrm\Repository\FileRepository
-     */
-    private $fileRepository;
-    
-    public function __construct(array $iblocksForExport)
-    {
-        $this->iblocksForExport   = $iblocksForExport;
-        $this->catalogRepository  = new CatalogRepository();
-        $this->xmlCategoryBuilder = new XmlCategoriesBuilder();
-        $this->fileRepository     = new FileRepository(SiteRepository::getDefaultServerName());
-        
-    }
-    
-    /**
-     * @return XmlCategory[]
-     */
-    public function getXmlCategories(): array
-    {
-        $xmlCategories = [];
-        
-        foreach ($this->iblocksForExport as $iblockId) {
-            $categories = $this->catalogRepository->getCategoriesByIblockId($iblockId);
-            
-            if ($categories === null) {
-                $categoryId  = self::MILLION + $iblockId;
-                $xmlCategory = $this->makeXmlCategoryFromIblock($iblockId, $categoryId);
-                
-                if (!$xmlCategory) {
-                    continue;
-                }
-                
-                $xmlCategories[$categoryId] = $xmlCategory;
-            }
-            
-            $xmlCategories = array_merge($xmlCategories, $this->getXmlSubCategories($categories));
-        }
-        
-        return $xmlCategories;
-    }
-    
-    /**
-     * Возвращает коллекцию подкатегорий категории
-     *
-     * @param \Bitrix\Main\ORM\Objectify\Collection $categories
-     * @return XmlCategory[]
-     */
-    public function getXmlSubCategories(Collection $categories): array
-    {
-        $xmlCategories = [];
-        
-        foreach ($categories as $categoryKey => $category) {
-            if (!$category instanceof EntityObject) {
-                continue;
-            }
-            
-            try {
-                $xmlCategory = $this->xmlCategoryBuilder->getXmlCategory(
-                    $category,
-                    $this->fileRepository->getImageUrl($category->get('PICTURE'))
-                );
-                
-                if (!$xmlCategory) {
-                    continue;
-                }
-                
-                $xmlCategories[$categoryKey] = $this->xmlCategoryBuilder->getXmlCategory(
-                    $category,
-                    $this->fileRepository->getImageUrl($category->get('PICTURE'))
-                );
-            } catch (ArgumentException | SystemException $exception) {
-                AddMessage2Log($exception->getMessage());
-            }
-        }
-        
-        return $xmlCategories;
-    }
-    
-    /**
-     * Создает XmlCategory из инфоблока
-     *
-     * @param int $iblockId
-     * @param int $categoryId
+     * @param \Bitrix\Main\ORM\Objectify\EntityObject $category
+     * @param int|null                                $categoryId
      * @return \Intaro\RetailCrm\Model\Bitrix\Xml\XmlCategory|null
      */
-    public function makeXmlCategoryFromIblock(int $iblockId, int $categoryId): ?XmlCategory
+    public function create(EntityObject $category, string $picture, int $categoryId = null): ?XmlCategory
     {
-        $iblock = $this->catalogRepository->getIblockById($iblockId);
-        
-        if ($iblock === null) {
+        try {
+            $xmlCategory           = new XmlCategory();
+            $xmlCategory->id       = $categoryId ?? $category->get('ID');
+            $xmlCategory->name     = $category->get('NAME');
+            $xmlCategory->parentId = $categoryId ? 0 : $category->get('IBLOCK_SECTION_ID');
+            $xmlCategory->picture  = $picture;
+        } catch (ArgumentException | SystemException $exception) {
             return null;
         }
-    
-        try {
-            return $this->xmlCategoryBuilder->getXmlCategory(
-                $iblock,
-                $this->fileRepository->getImageUrl($iblock->get('PICTURE')),
-                $categoryId
-            );
-        } catch (ArgumentException | SystemException $exception) {
-            AddMessage2Log($exception->getMessage());
-        }
+        
+        return $xmlCategory;
     }
 }

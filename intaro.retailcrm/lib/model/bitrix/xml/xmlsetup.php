@@ -18,7 +18,6 @@ namespace Intaro\RetailCrm\Model\Bitrix\Xml;
  */
 class XmlSetup
 {
-    
     /**
      * XmlSetup constructor.
      * @param \Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupPropsCategories $xmlProps
@@ -29,10 +28,9 @@ class XmlSetup
     }
     
     /**
-     *
      * @var int
      */
-    public $profileID;
+    public $profileId;
     
     /**
      * id инфоблоков, которые подлежат экспорту - IBLOCK_EXPORT

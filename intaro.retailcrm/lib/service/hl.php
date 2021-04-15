@@ -17,18 +17,19 @@ use Bitrix\Main\SystemException;
  *
  * @package Intaro\RetailCrm\Service
  */
-class Hl {
+class Hl
+{
     /**
      * Получение DataManager класса управления HLBlock
      *
-     * @param $HlBlockId
+     * @param int $HlBlockId
      * @return \Bitrix\Main\Entity\DataManager|null
      * @throws \Bitrix\Main\ArgumentException
      * @throws \Bitrix\Main\LoaderException
      * @throws \Bitrix\Main\ObjectPropertyException
      * @throws \Bitrix\Main\SystemException
      */
-    public static function getHlClassById($HlBlockId): ?DataManager
+    public static function getHlClassById(int $HlBlockId): ?DataManager
     {
         Loader::includeModule('highloadblock');
         
@@ -46,26 +47,26 @@ class Hl {
     /**
      * Получение DataManager класса управления HLBlock по названию таблицы
      *
-     * @param $name
+     * @param string $name
      * @return \Bitrix\Main\Entity\DataManager|string|null
      */
     public static function getHlClassByTableName(string $name)
     {
         try {
             Loader::includeModule('highloadblock');
-        
+            
             $hlblock = Highloadblock\HighloadBlockTable::query()
                 ->addSelect('*')
                 ->where('TABLE_NAME', '=', $name)
                 ->exec()
                 ->fetch();
-        
+            
             if (!$hlblock) {
                 return null;
             }
-        
+            
             $entity = Highloadblock\HighloadBlockTable::compileEntity($hlblock);
-        
+            
             return $entity->getDataClass();
         } catch (ObjectPropertyException | ArgumentException | SystemException | LoaderException $exception) {
             AddMessage2Log($exception->getMessage());

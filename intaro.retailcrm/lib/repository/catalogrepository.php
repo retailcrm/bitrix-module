@@ -13,7 +13,9 @@ use CCatalogGroup;
 use CCatalogSku;
 use CCatalogStoreBarCode;
 use CIBlockElement;
+use Intaro\RetailCrm\Icml\QueryParamsMolder;
 use Intaro\RetailCrm\Model\Bitrix\Orm\CatalogIblockInfo;
+use Intaro\RetailCrm\Model\Bitrix\Xml\SelectParams;
 use RetailcrmConfigProvider;
 
 /**
@@ -22,6 +24,19 @@ use RetailcrmConfigProvider;
  */
 class CatalogRepository
 {
+    /**
+     * @var \Intaro\RetailCrm\Icml\QueryParamsMolder
+     */
+    private $builder;
+    
+    /**
+     * CatalogRepository constructor.
+     */
+    public function __construct()
+    {
+        $this->builder = new QueryParamsMolder();
+    }
+    
     /**
      * Получение категорий, к которым относится товар
      *
@@ -68,20 +83,18 @@ class CatalogRepository
     }
     
     /**
-     * @param array $where
-     * @param array $selectFields
-     * @param int   $nPageSize
-     * @param int   $pageNumber
+     * @param \Intaro\RetailCrm\Model\Bitrix\Xml\SelectParams      $param
+     * @param \Intaro\RetailCrm\Model\Bitrix\Orm\CatalogIblockInfo $catalogIblockInfo
      * @return \CIBlockResult|int
      */
-    public function getProductPage(array $where, array $selectFields, int $nPageSize, int $pageNumber)
+    public function getProductPage(SelectParams $param, CatalogIblockInfo $catalogIblockInfo)
     {
         return CIBlockElement::GetList(
             [],
-            $where,
+            $this->builder->getWhereForOfferPart($param->parentId, $catalogIblockInfo),
             false,
-            ['nPageSize' => $nPageSize, 'iNumPage' => $pageNumber, 'checkOutOfRange' => true],
-            $selectFields
+            ['nPageSize' => $param->nPageSize, 'iNumPage' => $param->pageNumber, 'checkOutOfRange' => true],
+            array_merge($param->configurable, $param->main)
         );
     }
     
@@ -141,12 +154,12 @@ class CatalogRepository
     }
     
     /**
-     * @param int|null $profileID
+     * @param int|null $profileId
      * @return int
      */
-    public static function getBasePriceId(?int $profileID): int
+    public static function getBasePriceId(?int $profileId): int
     {
-        $basePriceId = RetailcrmConfigProvider::getCatalogBasePriceByProfile($profileID);
+        $basePriceId = RetailcrmConfigProvider::getCatalogBasePriceByProfile($profileId);
     
         if (!$basePriceId) {
             $dbPriceType = CCatalogGroup::GetList(

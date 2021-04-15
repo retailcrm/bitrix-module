@@ -13,10 +13,10 @@ use Intaro\RetailCrm\Repository\MeasureRepository;
 use Intaro\RetailCrm\Repository\SiteRepository;
 
 /**
- * Class XmlOfferFactory
+ * Class XmlOfferDirector
  * @package Intaro\RetailCrm\Icml
  */
-class XmlOfferFactory
+class XmlOfferDirector
 {
     /**
      * @var \Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup
@@ -27,11 +27,6 @@ class XmlOfferFactory
      * @var \Intaro\RetailCrm\Repository\FileRepository
      */
     private $fileRepository;
-    
-    /**
-     * @var \Intaro\RetailCrm\Icml\QueryParamsMolder
-     */
-    private $builder;
     
     /**
      * @var \Intaro\RetailCrm\Repository\CatalogRepository
@@ -51,7 +46,6 @@ class XmlOfferFactory
     {
         $this->setup = $setup;
         $this->fileRepository = new FileRepository(SiteRepository::getDefaultServerName());
-        $this->builder = new QueryParamsMolder();
         $this->catalogRepository = new CatalogRepository();
         $this->xmlOfferBuilder = new XmlOfferBuilder(
             $setup,
@@ -69,25 +63,15 @@ class XmlOfferFactory
      */
     public function getXmlOffersPart(SelectParams $param, CatalogIblockInfo $catalogIblockInfo): array
     {
-        $where         = $this->builder->getWhereForOfferPart($param->parentId, $catalogIblockInfo);
-        $ciBlockResult = $this->catalogRepository->getProductPage(
-            $where,
-            array_merge($param->configurable, $param->main),
-            $param->nPageSize,
-            $param->pageNumber
-        );
-        
+        $ciBlockResult = $this->catalogRepository->getProductPage($param, $catalogIblockInfo);
         $barcodes =  $this->catalogRepository->getProductBarcodesByIblockId($catalogIblockInfo->productIblockId);
         $products = [];
         
         while ($product = $ciBlockResult->GetNext()) {
             $this->setXmlOfferParams($param, $product, $catalogIblockInfo, $barcodes);
-            $this->xmlOfferBuilder->createXmlOffer();
-            $this->xmlOfferBuilder->addDataFromItem(
-                $product,
-                $this->catalogRepository->getProductCategoriesIds($product['ID'])
-            );
-            $products[] = $this->xmlOfferBuilder->getXmlOffer();
+            $this->xmlOfferBuilder->setCategories($this->catalogRepository->getProductCategoriesIds($product['ID']));
+           
+            $products[] = $this->xmlOfferBuilder->build();
         }
         
         return $products;
@@ -108,7 +92,32 @@ class XmlOfferFactory
     ): array {
         $xmlOffers = $this->getXmlOffersPart($paramsForOffer, $catalogIblockInfo);
         
-        return $this->xmlOfferBuilder->addProductInfo($xmlOffers, $product);
+        return $this->addProductInfo($xmlOffers, $product);
+    }
+    
+    /**
+     * Декорирует оферы информацией из товаров
+     *
+     * @param XmlOffer[]                                  $xmlOffers
+     * @param \Intaro\RetailCrm\Model\Bitrix\Xml\XmlOffer $product
+     * @return \Intaro\RetailCrm\Model\Bitrix\Xml\XmlOffer[]
+     */
+    private function addProductInfo(array $xmlOffers, XmlOffer $product): array
+    {
+        foreach ($xmlOffers as $offer) {
+            $offer->productId   = $product->id;
+            $offer->params      = array_merge($offer->params, $product->params);
+            $offer->unitCode    = $offer->unitCode->merge($product->unitCode);
+            $offer->vatRate     = $offer->vatRate === 'none' ? $product->vatRate : $offer->vatRate;
+            $offer->vendor      = $offer->mergeValues($product->vendor, $offer->vendor);
+            $offer->picture     = $offer->mergeValues($product->picture, $offer->picture);
+            $offer->weight      = $offer->mergeValues($product->weight, $offer->weight);
+            $offer->dimensions  = $offer->mergeValues($product->dimensions, $offer->dimensions);
+            $offer->categoryIds = $product->categoryIds;
+            $offer->productName = $product->productName;
+        }
+        
+        return $xmlOffers;
     }
     
     /**

@@ -19,7 +19,7 @@ if (class_exists('intaro_retailcrm'))
 
 class intaro_retailcrm extends CModule
 {
-    public $MODULE_ID     = 'intaro.retailcrm';
+    public $MODULE_ID = 'intaro.retailcrm';
     public $OLD_MODULE_ID = 'intaro.intarocrm';
     public $MODULE_VERSION;
     public $MODULE_VERSION_DATE;
@@ -29,42 +29,42 @@ class intaro_retailcrm extends CModule
     public $PARTNER_NAME;
     public $PARTNER_URI;
     public $RETAIL_CRM_API;
-    public $RETAIL_CRM_EXPORT         = 'retailcrm';
-    public $CRM_API_HOST_OPTION       = 'api_host';
-    public $CRM_API_KEY_OPTION        = 'api_key';
-    public $CRM_SITES_LIST            = 'sites_list';
-    public $CRM_ORDER_TYPES_ARR       = 'order_types_arr';
-    public $CRM_DELIVERY_TYPES_ARR    = 'deliv_types_arr';
+    public $RETAIL_CRM_EXPORT = 'retailcrm';
+    public $CRM_API_HOST_OPTION = 'api_host';
+    public $CRM_API_KEY_OPTION = 'api_key';
+    public $CRM_SITES_LIST = 'sites_list';
+    public $CRM_ORDER_TYPES_ARR = 'order_types_arr';
+    public $CRM_DELIVERY_TYPES_ARR = 'deliv_types_arr';
     public $CRM_DELIVERY_SERVICES_ARR = 'deliv_services_arr';
-    public $CRM_PAYMENT_TYPES         = 'pay_types_arr';
-    public $CRM_PAYMENT_STATUSES      = 'pay_statuses_arr';
-    public $CRM_PAYMENT               = 'payment_arr'; //order payment Y/N
+    public $CRM_PAYMENT_TYPES = 'pay_types_arr';
+    public $CRM_PAYMENT_STATUSES = 'pay_statuses_arr';
+    public $CRM_PAYMENT = 'payment_arr'; //order payment Y/N
     public $CRM_ORDER_LAST_ID = 'order_last_id';
-    public $CRM_ORDER_PROPS   = 'order_props';
-    public $CRM_LEGAL_DETAILS   = 'legal_details';
-    public $CRM_CUSTOM_FIELDS   = 'custom_fields';
-    public $CRM_CONTRAGENT_TYPE  = 'contragent_type';
-    public $CRM_ORDER_DISCHARGE  = 'order_discharge';
+    public $CRM_ORDER_PROPS = 'order_props';
+    public $CRM_LEGAL_DETAILS = 'legal_details';
+    public $CRM_CUSTOM_FIELDS = 'custom_fields';
+    public $CRM_CONTRAGENT_TYPE = 'contragent_type';
+    public $CRM_ORDER_DISCHARGE = 'order_discharge';
     public $CRM_ORDER_FAILED_IDS = 'order_failed_ids';
-    public $CRM_ORDER_HISTORY      = 'order_history';
-    public $CRM_CUSTOMER_HISTORY   = 'customer_history';
+    public $CRM_ORDER_HISTORY = 'order_history';
+    public $CRM_CUSTOMER_HISTORY = 'customer_history';
     public $CRM_CATALOG_BASE_PRICE = 'catalog_base_price';
     //var $CRM_CATALOG_IBLOCKS = 'catalog_base_iblocks';
     public $CRM_ORDER_NUMBERS = 'order_numbers';
-    public $CRM_CANSEL_ORDER    = 'cansel_order';
-    public $CRM_CURRENCY        = 'currency';
+    public $CRM_CANSEL_ORDER = 'cansel_order';
+    public $CRM_CURRENCY = 'currency';
     public $CRM_ADDRESS_OPTIONS = 'address_options';
     public $CRM_INVENTORIES_UPLOAD = 'inventories_upload';
-    public $CRM_STORES              = 'stores';
-    public $CRM_SHOPS               = 'shops';
+    public $CRM_STORES = 'stores';
+    public $CRM_SHOPS = 'shops';
     public $CRM_IBLOCKS_INVENTORIES = 'iblocks_inventories';
     public $CRM_PRICES_UPLOAD = 'prices_upload';
-    public $CRM_PRICES         = 'prices';
-    public $CRM_PRICE_SHOPS    = 'price_shops';
+    public $CRM_PRICES = 'prices';
+    public $CRM_PRICE_SHOPS = 'price_shops';
     public $CRM_IBLOCKS_PRICES = 'iblock_prices';
     public $CRM_COLLECTOR = 'collector';
-    public $CRM_COLL_KEY  = 'coll_key';
-    public $CRM_UA      = 'ua';
+    public $CRM_COLL_KEY = 'coll_key';
+    public $CRM_UA = 'ua';
     public $CRM_UA_KEYS = 'ua_keys';
     public $CRM_API_VERSION = 'api_version';
     public $HISTORY_TIME    = 'history_time';
@@ -1003,7 +1003,7 @@ class intaro_retailcrm extends CModule
                 
                 require_once dirname(__FILE__) . '/../classes/general/RetailcrmConfigProvider.php';
                 
-                $fileSetup->basePriceId = CatalogRepository::getBasePriceId($fileSetup->profileID);
+                $fileSetup->basePriceId = CatalogRepository::getBasePriceId($fileSetup->profileId);
                 $fileSetup->filePath = $filename;
                 $loader = new IcmlDirector($fileSetup);
                 $loader->generateXml();

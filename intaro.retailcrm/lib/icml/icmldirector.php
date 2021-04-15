@@ -11,6 +11,7 @@ use Intaro\RetailCrm\Model\Bitrix\Xml\XmlOffer;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup;
 use Intaro\RetailCrm\Repository\CatalogRepository;
 use Logger;
+use RetailcrmConfigProvider;
 
 /**
  * Class IcmlDirector
@@ -18,8 +19,8 @@ use Logger;
  */
 class IcmlDirector
 {
-    public const INFO        = 'INFO';
-    public const OFFERS_PART   = 500;
+    public const INFO = 'INFO';
+    public const OFFERS_PART = 500;
     public const FILE_LOG_NAME = 'i_crm_load_log';
     
     /**
@@ -27,8 +28,10 @@ class IcmlDirector
      */
     private $icmlWriter;
     
-    /** @var \Intaro\RetailCrm\Icml\XmlOfferFactory */
-    private $xmlOfferFactory;
+    /**
+     * @var \Intaro\RetailCrm\Icml\XmlOfferDirector
+     */
+    private $xmlOfferDirector;
     
     /**
      * @var \Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup
@@ -46,9 +49,9 @@ class IcmlDirector
     private $shopName;
     
     /**
-     * @var \Intaro\RetailCrm\Icml\XmlCategoryFactory
+     * @var \Intaro\RetailCrm\Icml\XmlCategoryDirector
      */
-    private $xmlCategoryFactory;
+    private $xmlCategoryDirector;
     
     /**
      * @var \Intaro\RetailCrm\Icml\QueryParamsMolder
@@ -59,6 +62,7 @@ class IcmlDirector
      * @var \Intaro\RetailCrm\Model\Bitrix\Xml\XmlData
      */
     private $xmlData;
+    
     /**
      * @var \Logger
      */
@@ -71,11 +75,11 @@ class IcmlDirector
     public function __construct(XmlSetup $setup)
     {
         $this->setup              = $setup;
-        $this->shopName           = COption::GetOptionString('main', 'site_name');
+        $this->shopName           = RetailcrmConfigProvider::getSiteName();
         $this->catalogRepository  = new CatalogRepository();
         $this->icmlWriter         = new IcmlWriter($this->setup->filePath);
-        $this->xmlOfferFactory    = new XmlOfferFactory($this->setup);
-        $this->xmlCategoryFactory = new XmlCategoryFactory($this->setup->iblocksForExport);
+        $this->xmlOfferDirector    = new XmlOfferDirector($this->setup);
+        $this->xmlCategoryDirector = new XmlCategoryDirector($this->setup->iblocksForExport);
         $this->queryBuilder       = new QueryParamsMolder();
         $this->xmlData            = new XmlData();
         $this->logger             = Logger::getInstance('/bitrix/catalog_export/');
@@ -104,7 +108,7 @@ class IcmlDirector
         );
         $this->icmlWriter->writeToXmlBottom();
         $this->logger->write(
-            self::INFO . ': Loading complete (peek memory usage: ' . memory_get_peak_usage() . ')',
+            self::INFO . ': Loading complete (peak memory usage: ' . memory_get_peak_usage() . ')',
             self::FILE_LOG_NAME
         );
     }
@@ -117,7 +121,7 @@ class IcmlDirector
         $this->xmlData->shopName   = $this->shopName;
         $this->xmlData->company    = $this->shopName;
         $this->xmlData->filePath   = $this->setup->filePath;
-        $this->xmlData->categories = $this->xmlCategoryFactory->getXmlCategories();
+        $this->xmlData->categories = $this->xmlCategoryDirector->getXmlCategories();
     }
     
     /**
@@ -155,7 +159,7 @@ class IcmlDirector
             $selectParams->nPageSize  = self::OFFERS_PART;
             $selectParams->parentId   = null;
             
-            while ($xmlOffers = $this->xmlOfferFactory->getXmlOffersPart($selectParams, $catalogIblockInfo)) {
+            while ($xmlOffers = $this->xmlOfferDirector->getXmlOffersPart($selectParams, $catalogIblockInfo)) {
                 $this->icmlWriter->writeOffers($xmlOffers);
                 
                 $selectParams->pageNumber++;
@@ -195,7 +199,7 @@ class IcmlDirector
         $paramsForProduct->nPageSize = ceil(self::OFFERS_PART / $this->setup->maxOffersValue);
         
         do {
-            $productsPart = $this->xmlOfferFactory->getXmlOffersPart($paramsForProduct, $catalogIblockInfo);
+            $productsPart = $this->xmlOfferDirector->getXmlOffersPart($paramsForProduct, $catalogIblockInfo);
             $paramsForProduct->pageNumber++;
             
             $this->writeProductsOffers($productsPart, $paramsForOffer, $catalogIblockInfo);
@@ -240,7 +244,7 @@ class IcmlDirector
         
         do {
             $xmlOffers
-                = $this->xmlOfferFactory->getXmlOffersBySingleProduct($paramsForOffer, $catalogIblockInfo, $product);
+                = $this->xmlOfferDirector->getXmlOffersBySingleProduct($paramsForOffer, $catalogIblockInfo, $product);
 
             // если это "простой товар", у которого нет ТП, то просто записываем его
             if ($paramsForOffer->pageNumber === 1 && count($xmlOffers) === 0) {
@@ -250,7 +254,7 @@ class IcmlDirector
             
             if (!empty($xmlOffers)) {
                 $xmlOffers
-                    = $this->trimOffersToLimitIfLimit($writingOffers, $xmlOffers, $this->setup->maxOffersValue);
+                    = $this->trimOffersList($writingOffers, $xmlOffers, $this->setup->maxOffersValue);
     
                 $this->icmlWriter->writeOffers($xmlOffers);
     
@@ -269,7 +273,7 @@ class IcmlDirector
      * @param int        $maxOffersValue
      * @return XmlOffer[]
      */
-    private function trimOffersToLimitIfLimit(int $writingOffers, array $xmlOffers, int $maxOffersValue): array
+    private function trimOffersList(int $writingOffers, array $xmlOffers, int $maxOffersValue): array
     {
         if (($writingOffers + count($xmlOffers)) > $maxOffersValue) {
             $sliceIndex

@@ -1,7 +1,6 @@
 <?php
 
 use Bitrix\Highloadblock\HighloadBlockTable;
-
 use Intaro\RetailCrm\Icml\IcmlDirector;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupProps;
@@ -38,7 +37,7 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/exp
         }
     }
     
-    $iblockProperties                  = [
+    $iblockProperties = [
         'article'      => 'article',
         'manufacturer' => 'manufacturer',
         'color'        => 'color',
@@ -144,12 +143,12 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/exp
     }
     
     $fileSetup = new XmlSetup($xmlProps);
-    $fileSetup->profileID = $profile_id;
+    $fileSetup->profileId = $profile_id;
     $fileSetup->iblocksForExport = $IBLOCK_EXPORT;
     $fileSetup->maxOffersValue = empty($MAX_OFFERS_VALUE) ? DEFAULT_OFFERS_IN_ORDER : (int)$MAX_OFFERS_VALUE;
     $fileSetup->filePath = $SETUP_FILE_NAME;
     $fileSetup->loadPurchasePrice = $LOAD_PURCHASE_PRICE === 'Y';
-    $fileSetup->basePriceId = CatalogRepository::getBasePriceId($fileSetup->profileID);
+    $fileSetup->basePriceId = CatalogRepository::getBasePriceId($fileSetup->profileId);
     
     $loader = new IcmlDirector($fileSetup);
     $loader->generateXml();
