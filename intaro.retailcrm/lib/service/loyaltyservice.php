@@ -146,45 +146,45 @@ class LoyaltyService
     public function calculateBonus(array $basketItems, float $bonuses = 0): ?LoyaltyCalculateResponse
     {
         global $USER;
-       
+        
         $request                              = new LoyaltyCalculateRequest();
         $request->order                       = new SerializedOrder();
         $request->order->customer             = new SerializedRelationCustomer();
         $request->order->customer->id         = $USER->GetID();
         $request->order->customer->externalId = $USER->GetID();
         
-        $request->site = $this->site;
+        $request->site    = $this->site;
         $request->bonuses = $bonuses;
         
         foreach ($basketItems as $item) {
             $product = new SerializedOrderProduct();
-    
+            
             $fullPrice             = $item['BASE_PRICE'] ?? $item['FULL_PRICE'];
             $product->initialPrice = $fullPrice; //цена без скидки
-    
+            
             if ($fullPrice > 0) {
                 $product->discountManualAmount = $fullPrice - $item['PRICE'];
             }
             
-            $product->offer                = new SerializedOrderProductOffer();
-            $product->offer->externalId    = $item['ID'];
-            $product->offer->id            = $item['ID'];
-            $product->offer->xmlId         = $item['XML_ID'];
-            $product->quantity             = $item['QUANTITY'];
-    
+            $product->offer             = new SerializedOrderProductOffer();
+            $product->offer->externalId = $item['ID'];
+            $product->offer->id         = $item['ID'];
+            $product->offer->xmlId      = $item['XML_ID'];
+            $product->quantity          = $item['QUANTITY'];
+            
             $prices             = ConfigProvider::getCrmPrices();
             $product->priceType = new PriceType();
             $serializePrice     = unserialize($prices);
-    
+            
             if (isset($serializePrice[$item['PRICE_TYPE_ID']])) {
                 $product->priceType->code = $serializePrice[$item['PRICE_TYPE_ID']];
             }
             
             $request->order->items[] = $product;
         }
-
+        
         $result = $this->client->loyaltyCalculate($request);
-
+        
         if (isset($result->errorMsg) && !empty($result->errorMsg)) {
             AddMessage2Log($result->errorMsg);
         }
@@ -293,7 +293,7 @@ class LoyaltyService
     public function saveLoyaltyInfoToHl(array $loyaltyHls): void
     {
         /** @var OrderLoyaltyDataService $hlService */
-        $hlService  = ServiceLocator::get(OrderLoyaltyDataService::class);
+        $hlService = ServiceLocator::get(OrderLoyaltyDataService::class);
         
         foreach ($loyaltyHls as $loyaltyData) {
             $hlService->addDataInLoyaltyHl($loyaltyData);
@@ -309,7 +309,7 @@ class LoyaltyService
      */
     public function addDiscountsToHl(array $calculateItemsInput, array $loyaltyHls): array
     {
-        foreach ($loyaltyHls as $loyaltyHl){
+        foreach ($loyaltyHls as $loyaltyHl) {
             $loyaltyHl->defaultDiscount = $calculateItemsInput[$loyaltyHl->basketItemPositionId]['SHOP_ITEM_DISCOUNT'];
         }
         
@@ -329,7 +329,7 @@ class LoyaltyService
     ): array {
         $isDebited = false;
         $checkId   = '';
-
+        
         //если верификация необходима, но не пройдена
         if (
             isset($response->verification, $response->verification->checkId)
@@ -345,10 +345,10 @@ class LoyaltyService
             $isDebited = true;
         }
         
-        foreach ($loyaltyHls as  $key => $loyaltyHl) {
+        foreach ($loyaltyHls as $key => $loyaltyHl) {
             /** @var OrderProduct $item */
             $item = $response->order->items[$key];
-    
+            
             $loyaltyHl->checkId    = $checkId;
             $loyaltyHl->isDebited  = $isDebited;
             $loyaltyHl->bonusCount = $item->bonusesChargeTotal;
@@ -371,19 +371,19 @@ class LoyaltyService
             /** @var BasketItemBase $basketItem */
             foreach ($order->getBasket() as $basketItem) {
                 $loyaltyHl = new OrderLoyaltyData();
-            
+                
                 $loyaltyHl->orderId              = $order->getId();
                 $loyaltyHl->itemId               = $basketItem->getProductId();
                 $loyaltyHl->basketItemPositionId = $basketItem->getId();
                 $loyaltyHl->quantity             = $basketItem->getQuantity();
                 $loyaltyHl->name                 = $basketItem->getField('NAME');
-            
+                
                 $loyaltyHls[] = $loyaltyHl;
             }
         } catch (Exception $exception) {
             AddMessage2Log($exception->getMessage());
         }
-       
+        
         return $loyaltyHls;
     }
     
@@ -391,14 +391,14 @@ class LoyaltyService
      * Добавляет оплату бонусами в заказ Битрикс (устанавливает кастомные цены)
      *
      * @param \Bitrix\Sale\Order $order
-     * @param  int               $bonusCount /бонусная скидка в рублях
+     * @param int                $bonusCount /бонусная скидка в рублях
      * @return \Intaro\RetailCrm\Model\Api\Response\Order\Loyalty\OrderLoyaltyApplyResponse|null
      */
     public function applyBonusesInOrder(Order $order, int $bonusCount): ?OrderLoyaltyApplyResponse
     {
-        $orderId   = $order->getId();
-        $response  = $this->sendBonusPayment($orderId, $bonusCount);
-    
+        $orderId  = $order->getId();
+        $response = $this->sendBonusPayment($orderId, $bonusCount);
+        
         if ($response->success) {
             try {
                 $basketItems = $order->getBasket();
@@ -410,13 +410,13 @@ class LoyaltyService
                 /** @var BasketItemBase $basketItem */
                 foreach ($basketItems as $key => $basketItem) {
                     /** @var OrderProduct $item */
-                    $item                            = $response->order->items[$key];
+                    $item      = $response->order->items[$key];
                     $basePrice = $basketItem->getField('BASE_PRICE');
                     $basketItem->setField('CUSTOM_PRICE', 'Y');
                     $basketItem->setField('DISCOUNT_PRICE', $item->discountTotal);
                     $basketItem->setField('PRICE', $basePrice - $item->discountTotal);
                 }
-
+                
                 $order->save();
                 
                 return $response;
@@ -598,11 +598,11 @@ class LoyaltyService
     public function setDebitedStatus(int $orderId, bool $newStatus): void
     {
         $repository = new OrderLoyaltyDataRepository();
-        $products = $repository->getProductsByOrderId($orderId);
+        $products   = $repository->getProductsByOrderId($orderId);
         
         if (is_array($products)) {
             /** @var OrderLoyaltyData $product */
-            foreach ($products as $product){
+            foreach ($products as $product) {
                 $product->isDebited = $newStatus;
                 $repository->edit($product);
             }
@@ -614,12 +614,12 @@ class LoyaltyService
      * @param \Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse $calculate
      * @return array
      */
-    public  function calculateBasket(array $basketData, LoyaltyCalculateResponse $calculate): array
+    public function calculateBasket(array $basketData, LoyaltyCalculateResponse $calculate): array
     {
         $totalRenderData                     = &$basketData['TOTAL_RENDER_DATA'];
         $basketData['LP_CALCULATE_SUCCESS']  = $calculate->success;
         $totalRenderData['WILL_BE_CREDITED'] = $calculate->order->bonusesCreditTotal;
-
+        
         foreach ($calculate->calculations as $privilege) {
             if ($privilege->maximum && $privilege->creditBonuses === 0.0) {
                 $totalRenderData['LOYALTY_DISCOUNT']          = round($privilege->discount - $basketData['DISCOUNT_PRICE_ALL'], 2);
@@ -629,41 +629,41 @@ class LoyaltyService
                 $totalRenderData['PRICE_FORMATED']            = $totalRenderData['PRICE']
                     . ' ' . GetMessage($totalRenderData['CURRENCY']); //отформатированная сумма со скидкой
                 $totalRenderData['SUM_WITHOUT_VAT_FORMATED']  = $totalRenderData['PRICE_FORMATED'];
-                $basketData['allSum_FORMATED'] = $totalRenderData['PRICE_FORMATED'];
-                $basketData['allSum_wVAT_FORMATED'] = $totalRenderData['PRICE_FORMATED'];
-                $basketData['allSum'] = $totalRenderData['PRICE'];
+                $basketData['allSum_FORMATED']                = $totalRenderData['PRICE_FORMATED'];
+                $basketData['allSum_wVAT_FORMATED']           = $totalRenderData['PRICE_FORMATED'];
+                $basketData['allSum']                         = $totalRenderData['PRICE'];
                 $totalRenderData['DISCOUNT_PRICE_FORMATED']   = $privilege->discount
                     . ' ' . GetMessage($totalRenderData['CURRENCY']);
                 $totalRenderData['LOYALTY_DISCOUNT_DEFAULT']  = $basketData['DISCOUNT_PRICE_ALL']
                     . ' ' . GetMessage($totalRenderData['CURRENCY']);
             }
         }
-    
+        
         foreach ($basketData['BASKET_ITEM_RENDER_DATA'] as $key => &$item) {
             $item['WILL_BE_CREDITED_BONUS'] = $calculate->order->items[$key]->bonusesCreditTotal;
-        
+            
             if ($calculate->order->items[$key]->bonusesCreditTotal === 0.0) {
                 $item['PRICE']                           -= $calculate->order->items[$key]->discountTotal
                     - ($item['SUM_DISCOUNT_PRICE'] / $item['QUANTITY']);
-                $item['SUM_PRICE'] = $item['PRICE'] * $item['QUANTITY'];
-                $item['PRICE_FORMATED'] = $item['PRICE'] . ' ' . GetMessage($item['CURRENCY']);
-                $item['SUM_PRICE_FORMATED'] = $item['SUM_PRICE'] . ' ' . GetMessage($item['CURRENCY']);
-                $item['SHOW_DISCOUNT_PRICE'] = true;
-                $item['SUM_DISCOUNT_PRICE'] = $calculate->order->items[$key]->discountTotal
+                $item['SUM_PRICE']                       = $item['PRICE'] * $item['QUANTITY'];
+                $item['PRICE_FORMATED']                  = $item['PRICE'] . ' ' . GetMessage($item['CURRENCY']);
+                $item['SUM_PRICE_FORMATED']              = $item['SUM_PRICE'] . ' ' . GetMessage($item['CURRENCY']);
+                $item['SHOW_DISCOUNT_PRICE']             = true;
+                $item['SUM_DISCOUNT_PRICE']              = $calculate->order->items[$key]->discountTotal
                     * $item['QUANTITY'];
-                $item['SUM_DISCOUNT_PRICE_FORMATED'] = $item['SUM_DISCOUNT_PRICE']
+                $item['SUM_DISCOUNT_PRICE_FORMATED']     = $item['SUM_DISCOUNT_PRICE']
                     . ' '
                     . GetMessage($item['CURRENCY']);
                 $item['DISCOUNT_PRICE_PERCENT']          = round($item['SUM_DISCOUNT_PRICE']
                     / (($item['FULL_PRICE'] * $item['QUANTITY']) / 100));
                 $item['DISCOUNT_PRICE_PERCENT_FORMATED'] = $item['DISCOUNT_PRICE_PERCENT'] . '%';
-            
+                
                 if (isset($item['COLUMN_LIST'])) {
                     foreach ($item['COLUMN_LIST'] as &$column) {
                         $column['VALUE'] = $column['CODE'] === 'DISCOUNT'
                             ? $item['DISCOUNT_PRICE_PERCENT_FORMATED'] : $column['VALUE'];
                     }
-                
+                    
                     unset($column);
                 }
             }
@@ -679,15 +679,15 @@ class LoyaltyService
      * @param \Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse $calculate
      * @return array
      */
-    public  function calculateOrderBasket(array $orderArResult, LoyaltyCalculateResponse $calculate): array
+    public function calculateOrderBasket(array $orderArResult, LoyaltyCalculateResponse $calculate): array
     {
         /** @var \Intaro\RetailCrm\Model\Api\LoyaltyCalculation $privilege */
         foreach ($calculate->calculations as $privilege) {
             if ($privilege->maximum) {
                 $orderArResult['AVAILABLE_BONUSES'] = $privilege->maxChargeBonuses;
-    
-                $jsDataTotal  = &$orderArResult['JS_DATA']['TOTAL'];
-
+                
+                $jsDataTotal = &$orderArResult['JS_DATA']['TOTAL'];
+                
                 //если уровень скидочный
                 if ($privilege->maximum && $privilege->discount > 0) {
                     //Персональная скидка
@@ -696,7 +696,7 @@ class LoyaltyService
                     
                     //общая стоимость
                     $jsDataTotal['ORDER_TOTAL_PRICE'] -= $jsDataTotal['LOYALTY_DISCOUNT'];
-    
+                    
                     //обычная скидка
                     $jsDataTotal['DEFAULT_DISCOUNT'] = $jsDataTotal['DISCOUNT_PRICE'];
                     
@@ -708,47 +708,47 @@ class LoyaltyService
                     $jsDataTotal['DISCOUNT_PRICE_FORMATED'] = $jsDataTotal['DISCOUNT_PRICE']
                         . ' ' . GetMessage($orderArResult['BASE_LANG_CURRENCY']);
                     
-                    $jsDataTotal['ORDER_PRICE']-= $jsDataTotal['LOYALTY_DISCOUNT'];
+                    $jsDataTotal['ORDER_PRICE'] -= $jsDataTotal['LOYALTY_DISCOUNT'];
                     
                     $jsDataTotal['ORDER_PRICE_FORMATED'] = $jsDataTotal['ORDER_PRICE']
                         . ' ' . GetMessage($orderArResult['BASE_LANG_CURRENCY']);
-                     
+                    
                     $iterator = 0;
                     
                     foreach ($orderArResult['JS_DATA']['GRID']['ROWS'] as $key => &$item) {
                         $item['data']['SUM_NUM'] = $orderArResult['CALCULATE_ITEMS_INPUT'][$key]['SUM_NUM']
                             = $item['data']['SUM_BASE']
                             - ($calculate->order->items[$iterator]->discountTotal
-                            * $item['data']['QUANTITY']);
+                                * $item['data']['QUANTITY']);
                         
                         $orderArResult['CALCULATE_ITEMS_INPUT'][$key]['QUANTITY'] = $item['data']['QUANTITY'];
                         $orderArResult['CALCULATE_ITEMS_INPUT'][$key]['SHOP_ITEM_DISCOUNT']
-                            = round($item['data']['BASE_PRICE'] - $item['data']['PRICE'], 2);
+                                                                                  = round($item['data']['BASE_PRICE'] - $item['data']['PRICE'], 2);
                         $orderArResult['CALCULATE_ITEMS_INPUT'][$key]['BASE_PRICE']
-                            = $item['data']['BASE_PRICE'];
+                                                                                  = $item['data']['BASE_PRICE'];
                         
                         $item['data']['SUM'] = $item['data']['SUM_NUM']
                             . ' ' . GetMessage($orderArResult['BASE_LANG_CURRENCY']);
-    
+                        
                         $item['data']['DISCOUNT_PRICE'] = $calculate->order->items[$iterator]->discountTotal;
-    
+                        
                         $iterator++;
                     }
-                
+                    
                     unset($item);
-    
+                    
                     $orderArResult['CALCULATE_ITEMS_INPUT']
                         = htmlspecialchars(json_encode($orderArResult['CALCULATE_ITEMS_INPUT']));
                 }
             }
         }
-    
+        
         $orderArResult['CHARGERATE']           = $calculate->loyalty->chargeRate;
         $orderArResult['TOTAL_BONUSES_COUNT']  = $calculate->order->loyaltyAccount->amount;
         $orderArResult['LP_CALCULATE_SUCCESS'] = $calculate->success;
         $orderArResult['WILL_BE_CREDITED']     = $calculate->order->bonusesCreditTotal;
-    
-        $currencyRepository = new CurrencyRepository();
+        
+        $currencyRepository              = new CurrencyRepository();
         $orderArResult['BONUS_CURRENCY'] = html_entity_decode($currencyRepository->getCurrencyFormatString());
         
         return $orderArResult;
@@ -771,7 +771,7 @@ class LoyaltyService
             if ($prop->getField('CODE') === 'LP_DISCOUNT_INFO') {
                 $this->saveLpDiscountToOrderProp($prop, $loyaltyDiscountInput);
             }
-    
+            
             if ($prop->getField('CODE') === 'LP_BONUS_INFO') {
                 $this->saveLpBonusesToOrderProp($prop, $loyaltyBonus);
             }
@@ -785,7 +785,7 @@ class LoyaltyService
     public function saveLpBonusesToOrderProp(PropertyValue $prop, float $loyaltyBonus): void
     {
         try {
-            $result = $prop->setField('VALUE', (string) $loyaltyBonus);
+            $result = $prop->setField('VALUE', (string)$loyaltyBonus);
             
             if (!$result->isSuccess()) {
                 AddMessage2Log($result->getErrorMessages());
@@ -802,7 +802,7 @@ class LoyaltyService
     public function saveLpDiscountToOrderProp(PropertyValue $prop, float $loyaltyDiscountInput): void
     {
         try {
-            $result = $prop->setField('VALUE', (string) $loyaltyDiscountInput);
+            $result = $prop->setField('VALUE', (string)$loyaltyDiscountInput);
             
             if (!$result->isSuccess()) {
                 AddMessage2Log($result->getErrorMessages());
@@ -878,31 +878,31 @@ class LoyaltyService
         $client = ClientFactory::createClientAdapter();
         
         $response = $client->getOrder($orderId);
-
+        
         if ($response === null) {
             return;
         }
-    
+        
         try {
             $order = Order::load($orderId);
-    
+            
             if ($order === null) {
                 return;
             }
             
             $repository = new OrderLoyaltyDataRepository();
-            $items = $repository->getProductsByOrderId($orderId);
-    
+            $items      = $repository->getProductsByOrderId($orderId);
+            
             $bitrixDiscounts = 0;
-            $totalPrice = 0;
-            $totalBasePrice = 0;
-    
+            $totalPrice      = 0;
+            $totalBasePrice  = 0;
+            
             /** @var BasketItemBase $basketItem */
             foreach ($order->getBasket() as $basketItem) {
                 $totalPrice     += $basketItem->getPrice() * $basketItem->getQuantity();
                 $totalBasePrice += $basketItem->getBasePrice() * $basketItem->getQuantity();
             }
-    
+            
             /** @var OrderLoyaltyData $item */
             foreach ($items as $item) {
                 $bitrixDiscounts += $item->defaultDiscount * $item->quantity;
@@ -990,7 +990,7 @@ class LoyaltyService
         $service    = ServiceLocator::get(LpUserAccountService::class);
         $phone      = $userPhone ?? '';
         $card       = $loyalty->getBonusCardNumber() ?? '';
-        $customerId = (string) $userId;
+        $customerId = (string)$userId;
         
         $createResponse = $service->createLoyaltyAccount($phone, $card, $customerId, $customFields);
         
@@ -1059,7 +1059,7 @@ class LoyaltyService
     private function getBonusCount($orderId)
     {
         $repository = new OrderLoyaltyDataRepository();
-        $products = $repository->getProductsByOrderId($orderId);
+        $products   = $repository->getProductsByOrderId($orderId);
         
         if ($products === null || count($products) === 0) {
             return false;
@@ -1067,7 +1067,7 @@ class LoyaltyService
         
         $bonusCount = 0;
         
-        /** @var OrderLoyaltyData  $product */
+        /** @var OrderLoyaltyData $product */
         foreach ($products as $product) {
             $bonusCount += $product->bonusCount * $product->quantity;
         }
@@ -1079,9 +1079,9 @@ class LoyaltyService
      * Списаны ли бонусы в заказе
      *
      * @param $orderId
-     * @return \Bitrix\Sale\Payment|false
+     * @return bool|null
      */
-    public function isBonusDebited($orderId)
+    public function isBonusDebited($orderId): ?bool
     {
         $repository = new OrderLoyaltyDataRepository();
         $products   = $repository->getProductsByOrderId($orderId);
@@ -1089,7 +1089,13 @@ class LoyaltyService
         if ($products === null || count($products) === 0) {
             return null;
         }
-    
-        return $products[0]->isDebited;
+        
+        foreach ($products as $product) {
+          if ($product->bonusCount > 0 && $product->isDebited === false) {
+              return false;
+          }
+        }
+        
+        return true;
     }
 }
