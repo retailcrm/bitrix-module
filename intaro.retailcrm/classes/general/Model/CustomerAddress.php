@@ -45,7 +45,7 @@ class CustomerAddress extends BaseModel
 
     /**@var string $text */
     protected $text;
-
+    
     /**
      * @param string $index
      * @return $this
@@ -56,7 +56,7 @@ class CustomerAddress extends BaseModel
 
         return $this;
     }
-
+    
     /**
      * @param string $country
      * @return $this
@@ -67,7 +67,7 @@ class CustomerAddress extends BaseModel
 
         return $this;
     }
-
+    
     /**
      * @param string $region
      * @return $this
@@ -78,7 +78,7 @@ class CustomerAddress extends BaseModel
 
         return $this;
     }
-
+    
     /**
      * @param string $city
      * @return $this
@@ -89,7 +89,7 @@ class CustomerAddress extends BaseModel
 
         return $this;
     }
-
+    
     /**
      * @param string $street
      * @return $this
@@ -100,7 +100,7 @@ class CustomerAddress extends BaseModel
 
         return $this;
     }
-
+    
     /**
      * @param string $building
      * @return $this
@@ -111,7 +111,7 @@ class CustomerAddress extends BaseModel
 
         return $this;
     }
-
+    
     /**
      * @param string $house
      * @return $this
@@ -122,7 +122,7 @@ class CustomerAddress extends BaseModel
 
         return $this;
     }
-
+    
     /**
      * @param string $block
      * @return $this
@@ -133,7 +133,7 @@ class CustomerAddress extends BaseModel
 
         return $this;
     }
-
+    
     /**
      * @param string $flat
      * @return $this
@@ -144,18 +144,18 @@ class CustomerAddress extends BaseModel
 
         return $this;
     }
-
+    
     /**
      * @param string $floor
      * @return $this
      */
-    public function setFloor($floor)
+    public function setFloor(string $floor)
     {
         $this->floor = $floor;
 
         return $this;
     }
-
+    
     /**
      * @param string $intercomCode
      * @return $this
@@ -166,7 +166,7 @@ class CustomerAddress extends BaseModel
 
         return $this;
     }
-
+    
     /**
      * @param string $metro
      * @return $this
@@ -177,7 +177,7 @@ class CustomerAddress extends BaseModel
 
         return $this;
     }
-
+    
     /**
      * @param string $notes
      * @return $this
@@ -188,7 +188,7 @@ class CustomerAddress extends BaseModel
 
         return $this;
     }
-
+    
     /**
      * @param string $text
      * @return $this

@@ -174,6 +174,8 @@ class RetailCrmHistory
                         retailCrmAfterCustomerSave($customer);
                     }
                 }
+                
+                $customerBuilder->reset();
             }
 
             $GLOBALS['RETAIL_CRM_HISTORY'] = false;

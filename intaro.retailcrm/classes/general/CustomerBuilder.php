@@ -35,14 +35,15 @@ class CustomerBuilder extends AbstractBuilder implements RetailcrmBuilderInterfa
         $this->customerAddress = new CustomerAddress();
         $this->addressBuilder = new AddressBuilder();
     }
-
+    
     /**
      * @param Customer $customer
      * @return $this
      */
-    public function setCustomer($customer)
+    public function setCustomer(Customer $customer)
     {
         $this->customer = $customer;
+        
         return $this;
     }
 
@@ -58,7 +59,7 @@ class CustomerBuilder extends AbstractBuilder implements RetailcrmBuilderInterfa
      * @param CustomerAddress $customerAddress
      * @return $this
      */
-    public function setCustomerAddress($customerAddress)
+    public function setCustomerAddress($customerAddress): CustomerBuilder
     {
         $this->customerAddress = $customerAddress;
         return $this;
@@ -79,6 +80,7 @@ class CustomerBuilder extends AbstractBuilder implements RetailcrmBuilderInterfa
     public function setDataCrm($dataCrm)
     {
         $this->dataCrm = $dataCrm;
+        
         return $this;
     }
 
@@ -89,16 +91,18 @@ class CustomerBuilder extends AbstractBuilder implements RetailcrmBuilderInterfa
     public function setUser($user)
     {
         $this->user = $user;
+        
         return $this;
     }
-
+    
     /**
      * @param int $registeredUserID
      * @return $this
      */
-    public function setRegisteredUserID($registeredUserID)
+    public function setRegisteredUserID(int $registeredUserID)
     {
         $this->registeredUserID = $registeredUserID;
+        
         return $this;
     }
 
@@ -145,14 +149,14 @@ class CustomerBuilder extends AbstractBuilder implements RetailcrmBuilderInterfa
                 }
 
                 if (isset($phone['number'])) {
-                    if ((!isset($this->user['PERSONAL_PHONE']) || strlen($this->user['PERSONAL_PHONE']) == 0)
+                    if ((!isset($this->user['PERSONAL_PHONE']) || '' == $this->user['PERSONAL_PHONE'])
                         && $this->user['PERSONAL_MOBILE'] != $phone['number']
                     ) {
                         $this->customer->setPersonalPhone($phone['number']);
                         $this->user['PERSONAL_PHONE'] = $phone['number'];
                         continue;
                     }
-                    if ((!isset($this->user['PERSONAL_MOBILE']) || strlen($this->user['PERSONAL_MOBILE']) == 0)
+                    if ((!isset($this->user['PERSONAL_MOBILE']) || '' == $this->user['PERSONAL_MOBILE'])
                         && $this->user['PERSONAL_PHONE'] != $phone['number']
                     ) {
                         $this->customer->setPersonalMobile($phone['number']);
@@ -213,26 +217,33 @@ class CustomerBuilder extends AbstractBuilder implements RetailcrmBuilderInterfa
             $this->customerAddress = null;
         }
     }
-
+    
     /**
      * @param string $login
      * @return $this
      */
-    public function setLogin($login)
+    public function setLogin(string $login)
     {
         $this->customer->setLogin($login);
 
         return $this;
     }
-
+    
     /**
      * @param string $email
      * @return $this
      */
-    public function setEmail($email)
+    public function setEmail(string $email)
     {
         $this->customer->setEmail($email);
 
         return $this;
+    }
+    
+    public function reset(): void
+    {
+        $this->customer = new Customer();
+        $this->customerAddress = new CustomerAddress();
+        $this->addressBuilder->reset();
     }
 }
