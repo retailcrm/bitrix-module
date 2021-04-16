@@ -168,7 +168,12 @@ class intaro_retailcrm extends CModule
 
             return false;
         }
-
+        
+        include($this->INSTALL_PATH . '/../lib/component/apiclient/traits/baseclienttrait.php');
+        include($this->INSTALL_PATH . '/../lib/component/apiclient/traits/customerstrait.php');
+        include($this->INSTALL_PATH . '/../lib/component/apiclient/traits/customerscorporatetrait.php');
+        include($this->INSTALL_PATH . '/../lib/component/apiclient/traits/loyaltytrait.php');
+        include($this->INSTALL_PATH . '/../lib/component/apiclient/traits/ordertrait.php');
         include($this->INSTALL_PATH . '/../classes/general/Http/Client.php');
         include($this->INSTALL_PATH . '/../classes/general/Response/ApiResponse.php');
         include($this->INSTALL_PATH . '/../classes/general/RCrmActions.php');
@@ -228,6 +233,8 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../lib/component/constants.php');
         include($this->INSTALL_PATH . '/../lib/repository/agreementrepository.php');
         include($this->INSTALL_PATH . '/../lib/service/orderloyaltydataservice.php');
+        include($this->INSTALL_PATH . '/../lib/component/factory/clientfactory.php');
+        include($this->INSTALL_PATH . '/../lib/component/apiclient/clientadapter.php');
 
         $this->CopyFiles();
         $this->addLPUserFields();
