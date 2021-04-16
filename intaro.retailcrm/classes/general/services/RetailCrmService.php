@@ -13,10 +13,10 @@ class RetailCrmService
     public static function unsetIntegrationDeliveryFields(array $order): array
     {
        $integrationDelivery = RetailcrmConfigProvider::getCrmIntegrationDelivery();
-        
+
         if (isset($order['delivery']['code'])) {
             $deliveryCode = $order['delivery']['code'];
-        
+
             if (!empty($integrationDelivery[$deliveryCode])
                 && $integrationDelivery[$deliveryCode] !== 'sdek'
                 && $integrationDelivery[$deliveryCode] !== 'dpd'
@@ -32,7 +32,7 @@ class RetailCrmService
                 unset($order['delivery']['address']);
                 unset($order['delivery']['data']);
             }
-            
+
             switch ($integrationDelivery[$deliveryCode]) {
                 case "sdek":
                     unset($order['weight']);
@@ -71,37 +71,41 @@ class RetailCrmService
                     break;
             }
         }
-       
+
         return $order;
     }
 
     /**
      * @param array $data
-     * @param string $type
      *
      * @return array
      */
-    public static function selectIntegrationElements(array $data, string $type): array
+    public static function selectIntegrationDeliveries(array $data): array
     {
         $result = [];
 
-        switch ($type) {
-            case 'payment':
-                foreach ($data as $elem) {
-                    if (!empty($elem['integrationModule'])) {
-                        $result[] = $elem['code'];
-                    }
-                }
-                break;
-            case 'delivery':
-                foreach ($data as $elem) {
-                    if (!empty($elem['integrationCode'])) {
-                        $result[$elem['code']] = $elem['integrationCode'];
-                    }
-                }
-                break;
-            default:
-                break;
+        foreach ($data as $elem) {
+            if (!empty($elem['integrationCode'])) {
+                $result[$elem['code']] = $elem['integrationCode'];
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param array $data
+     *
+     * @return array
+     */
+    public static function selectIntegrationPayments(array $data): array
+    {
+        $result = [];
+
+        foreach ($data as $elem) {
+            if (!empty($elem['integrationModule'])) {
+                $result[] = $elem['code'];
+            }
         }
 
         return $result;

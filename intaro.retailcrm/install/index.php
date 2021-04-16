@@ -391,11 +391,11 @@ class intaro_retailcrm extends CModule
             $this->loadDeps();
 
             RetailcrmConfigProvider::setIntegrationDelivery(
-                RetailCrmService::selectIntegrationElements($arResult['deliveryTypesList'], 'delivery')
+                RetailCrmService::selectIntegrationDeliveries($arResult['deliveryTypesList'])
             );
 
             RetailcrmConfigProvider::setIntegrationPaymentTypes(
-                RetailCrmService::selectIntegrationElements($arResult['paymentTypesList'], 'payment')
+                RetailCrmService::selectIntegrationPayments($arResult['paymentTypesList'])
             );
 
             $arResult['deliveryTypesList'] = $delivTypes;

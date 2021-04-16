@@ -559,8 +559,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         echo CAdminMessage::ShowMessage(GetMessage('ERR_' . $e->getCode()));
     }
 
-    $integrationPayments = RetailCrmService::selectIntegrationElements($arResult['paymentTypesList'], 'payment');
-    $integrationDeliveries = RetailCrmService::selectIntegrationElements($arResult['deliveryTypesList'], 'delivery');
+    $integrationPayments = RetailCrmService::selectIntegrationPayments($arResult['paymentTypesList']);
+    $integrationDeliveries = RetailCrmService::selectIntegrationDeliveries($arResult['deliveryTypesList']);
 
     RetailcrmConfigProvider::setIntegrationPaymentTypes($integrationPayments);
     RetailcrmConfigProvider::setIntegrationDelivery($integrationDeliveries);
@@ -705,7 +705,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
 
     $optionCollector = COption::GetOptionString($mid, $CRM_COLLECTOR, 0);
     $optionCollectorKeys = unserialize(COption::GetOptionString($mid, $CRM_COLL_KEY));
-    
+
     $optionOnlineConsultant = RetailcrmConfigProvider::isOnlineConsultantEnabled();
     $optionOnlineConsultantScript = RetailcrmConfigProvider::getOnlineConsultantScript();
 
@@ -1459,7 +1459,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                     </td>
                 </tr>
             <?php endforeach;?>
-            
+
             <tr class="heading r-consultant-button">
                 <td colspan="2" class="option-other-heading">
                     <b>
@@ -1468,7 +1468,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                 </td>
             </tr>
 
-            <tr class="r-consultant" <?php if (!$optionOnlineConsultant) echo 'style="display: none;"'; ?>> 
+            <tr class="r-consultant" <?php if (!$optionOnlineConsultant) echo 'style="display: none;"'; ?>>
                 <td class="adm-detail-content-cell-l" width="45%"><?php echo GetMessage('ONLINE_CONSULTANT_LABEL')?></td>
                 <td class="adm-detail-content-cell-r" width="55%">
                     <textarea name="online_consultant_script"><?php echo $optionOnlineConsultantScript; ?></textarea>
