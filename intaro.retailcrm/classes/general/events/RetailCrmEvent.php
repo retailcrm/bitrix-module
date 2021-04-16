@@ -441,6 +441,7 @@ class RetailCrmEvent
         $optionsSitesList = RetailcrmConfigProvider::getSitesList();
         $optionsPaymentTypes = RetailcrmConfigProvider::getPaymentTypes();
         $optionsPayStatuses = RetailcrmConfigProvider::getPayment();
+        $integrationPaymentTypes = RetailcrmConfigProvider::getIntegrationPaymentTypes();
 
         $arPayment = array(
             'ID' => $event->getId(),
@@ -462,9 +463,7 @@ class RetailCrmEvent
             $site = null;
         }
 
-        $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
-        $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
-        $api = new RetailCrm\ApiClient($api_host, $api_key);
+        $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
         $orderCrm = RCrmActions::apiMethod($api, 'ordersGet', __METHOD__, $arPayment['ORDER_ID'], $site);
 
         if (isset($orderCrm['order'])) {
@@ -531,6 +530,15 @@ class RetailCrmEvent
         if (empty($paymentData)) {
             RCrmActions::apiMethod($api, 'ordersPaymentCreate', __METHOD__, $paymentToCrm, $site);
         } elseif ($paymentData['type'] == $optionsPaymentTypes[$arPayment['PAY_SYSTEM_ID']]) {
+            if (in_array($paymentData['type'], $integrationPaymentTypes)) {
+                RCrmActions::eventLog(
+                    'RetailCrmEvent::paymentSave',
+                    'payments',
+                    'OrderID = ' . $arPayment['ID'] . '. Integration payment detected, which is not editable.'
+                );
+                return false;
+            }
+
             $paymentToCrm['externalId'] = $paymentData['externalId'];
             RCrmActions::apiMethod($api, 'paymentEditByExternalId', __METHOD__, $paymentToCrm, $site);
         } elseif ($paymentData['type'] != $optionsPaymentTypes[$arPayment['PAY_SYSTEM_ID']]) {
