@@ -33,7 +33,7 @@ foreach ($this->basketItems as $row)
 		'CURRENCY' => $row['CURRENCY'],
 		'DISCOUNT_PRICE_PERCENT' => $row['DISCOUNT_PRICE_PERCENT'],
 		'DISCOUNT_PRICE_PERCENT_FORMATED' => $row['DISCOUNT_PRICE_PERCENT_FORMATED'],
-		'SHOW_DISCOUNT_PRICE' => (float)$row['DISCOUNT_PRICE'] > 0,
+		'SHOW_DISCOUNT_PRICE' => (float) $row['DISCOUNT_PRICE'] > 0,
 		'PRICE' => $row['PRICE'],
 		'PRICE_FORMATED' => $row['PRICE_FORMATED'],
 		'FULL_PRICE' => $row['FULL_PRICE'],
@@ -88,7 +88,7 @@ foreach ($this->basketItems as $row)
 		}
 	}
 
-	$rowData['SHOW_PRICE_FOR'] = (float)$rowData['QUANTITY'] !== (float)$rowData['MEASURE_RATIO'];
+	$rowData['SHOW_PRICE_FOR'] = (float) $rowData['QUANTITY'] !== (float) $rowData['MEASURE_RATIO'];
 
 	$hideDetailPicture = false;
 
@@ -396,13 +396,13 @@ foreach ($this->basketItems as $row)
 	$result['BASKET_ITEM_RENDER_DATA'][] = $rowData;
 }
 
-$totalData = array(
-	'DISABLE_CHECKOUT' => (int)$result['ORDERABLE_BASKET_ITEMS_COUNT'] === 0,
+$totalData = [
+	'DISABLE_CHECKOUT' => (int) $result['ORDERABLE_BASKET_ITEMS_COUNT'] === 0,
 	'PRICE' => $result['allSum'],
 	'PRICE_FORMATED' => $result['allSum_FORMATED'],
 	'PRICE_WITHOUT_DISCOUNT_FORMATED' => $result['PRICE_WITHOUT_DISCOUNT'],
 	'CURRENCY' => $result['CURRENCY']
-);
+];
 
 if ($result['DISCOUNT_PRICE_ALL'] > 0)
 {

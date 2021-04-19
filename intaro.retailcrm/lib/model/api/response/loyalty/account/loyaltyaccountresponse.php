@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PHP version 7.1
  *
@@ -9,6 +10,7 @@
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
  */
+
 namespace Intaro\RetailCrm\Model\Api\Response\Loyalty\Account;
 
 use Intaro\RetailCrm\Component\Json\Mapping;
@@ -24,7 +26,7 @@ class LoyaltyAccountResponse extends AbstractApiResponseModel
     /**
      * Результат запроса (успешный/неуспешный)
      *
-     * @var boolean $success
+     * @var bool $success
      *
      * @Mapping\Type("boolean")
      * @Mapping\SerializedName("success")

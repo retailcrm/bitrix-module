@@ -35,11 +35,18 @@ if ($arResult['LOYALTY_STATUS'] === 'Y'
     $response = $service->getLoyaltyAccounts($customer->getLoyalty()->getIdInLoyalty());
     
     if ($response !== null) {
-        $arResult['BONUS_COUNT']   = $response->amount;
-        $arResult['ACTIVE']        = $response->active ? GetMessage('YES') : GetMessage('NO');
-        $arResult['CARD']          = $response->cardNumber !== '' ? $response->cardNumber : GetMessage('CARD_NOT_LINKED');
-        $arResult['PHONE']         = $response->phoneNumber;
-        $arResult['REGISTER_DATE'] = $response->createdAt->format('Y-m-d');
+        $arResult['BONUS_COUNT']             = $response->amount;
+        $arResult['ACTIVE']                  = $response->active ? GetMessage('YES') : GetMessage('NO');
+        $arResult['CARD']                    = $response->cardNumber !== '' ? $response->cardNumber : GetMessage('CARD_NOT_LINKED');
+        $arResult['PHONE']                   = $response->phoneNumber;
+        $arResult['REGISTER_DATE']           = $response->createdAt->format('Y-m-d');
+        $arResult['LOYALTY_LEVEL_NAME']      = $response->loyaltyLevel->name;
+        $arResult['LOYALTY_LEVEL_ID']        = $response->loyaltyLevel->id;
+        $arResult['LL_PRIVILEGE_SIZE']       = $response->loyaltyLevel->privilegeSize;
+        $arResult['LL_PRIVILEGE_SIZE_PROMO'] = $response->loyaltyLevel->privilegeSizePromo;
+        $arResult['LOYALTY_LEVEL_TYPE']      = $response->loyaltyLevel->type;
+        $arResult['NEXT_LEVEL_SUM']          = (int) $response->nextLevelSum === 0 ? '-' : $response->nextLevelSum;
+        $arResult['ORDERS_SUM']              = $response->ordersSum;
     }
     
     $this->IncludeComponentTemplate();

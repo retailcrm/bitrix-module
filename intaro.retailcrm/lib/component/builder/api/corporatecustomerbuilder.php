@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PHP version 7.1
  *
@@ -9,6 +10,7 @@
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
  */
+
 namespace Intaro\RetailCrm\Component\Builder\Api;
 
 use Bitrix\Main\Type\DateTime;
@@ -210,9 +212,6 @@ class CorporateCustomerBuilder implements BuilderInterface
      * @param \Bitrix\Sale\Order $order
      *
      * @return CorporateCustomerBuilder
-     * @throws \Bitrix\Main\ArgumentException
-     * @throws \Bitrix\Main\ObjectPropertyException
-     * @throws \Bitrix\Main\SystemException
      * @throws \Intaro\RetailCrm\Component\Builder\Exception\BuilderException
      */
     public function setOrder(Order $order): CorporateCustomerBuilder

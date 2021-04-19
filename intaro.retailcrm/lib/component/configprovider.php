@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PHP version 7.1
  *
@@ -9,12 +10,14 @@
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
  */
+
 namespace Intaro\RetailCrm\Component;
 
 use Bitrix\Currency\CurrencyManager;
 use Bitrix\Main\ArgumentNullException;
 use Bitrix\Main\ArgumentOutOfRangeException;
 use Bitrix\Main\Config\Option;
+use COption;
 use Intaro\RetailCrm\Service\Utils;
 
 /**
@@ -867,5 +870,37 @@ class ConfigProvider
     public static function getUtils(): Utils
     {
         return ServiceLocator::get(Utils::class);
+    }
+    
+    /**
+     * @return string|null
+     */
+    public static function getCrmPrices(): ?string
+    {
+        return static::getOption(Constants::CRM_PRICES);
+    }
+    
+    /**
+     * @return false|string|null
+     */
+    public static function getAgentUseCrontab()
+    {
+        return COption::GetOptionString('main', 'agents_use_crontab', 'N');
+    }
+    
+    /**
+     * @return false|string|null
+     */
+    public static function getDiscountRound()
+    {
+        return COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_DISCOUNT_ROUND, 0);
+    }
+    
+    /**
+     * @return false|string|null
+     */
+    public static function setDiscountRound($discount_round)
+    {
+        COption::SetOptionString(Constants::MODULE_ID, Constants::CRM_DISCOUNT_ROUND, $discount_round);
     }
 }
