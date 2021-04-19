@@ -64,15 +64,16 @@ class RetailcrmConstants
     const CRM_ADDRESS_OPTIONS = 'address_options';
     const CRM_DIMENSIONS = 'order_dimensions';
     const PROTOCOL = 'protocol';
-    const CRM_ORDER_FAILED_IDS = 'order_failed_ids';
+    const CRM_ORDER_FAILED_IDS           = 'order_failed_ids';
     const CRM_CUSTOMERS_HISTORY_SINCE_ID = 'customer_history';
-    const CRM_ORDER_HISTORY_DATE = 'order_history_date';
-    const CRM_CATALOG_BASE_PRICE = 'catalog_base_price';
-    const CRM_ORDER_DIMENSIONS = 'order_dimensions';
-    const CANCEL_PROPERTY_CODE = 'INTAROCRM_IS_CANCELED';
-    const CRM_INTEGRATION_DELIVERY = 'integration_delivery';
-    const CRM_SHIPMENT_DEDUCTED = 'shipment_deducted';
-    const SEND_PAYMENT_AMOUNT = 'send_payment_amount';
-    const CRM_ONLINE_CONSULTANT = 'online_consultant';
-    const CRM_ONLINE_CONSULTANT_SCRIPT = 'online_consultant_script';
+    const CRM_ORDER_HISTORY_DATE         = 'order_history_date';
+    const CRM_CATALOG_BASE_PRICE         = 'catalog_base_price';
+    const CRM_ORDER_DIMENSIONS           = 'order_dimensions';
+    const CANCEL_PROPERTY_CODE           = 'INTAROCRM_IS_CANCELED';
+    const CRM_INTEGRATION_DELIVERY       = 'integration_delivery';
+    const CRM_SHIPMENT_DEDUCTED          = 'shipment_deducted';
+    const SEND_PAYMENT_AMOUNT            = 'send_payment_amount';
+    const CRM_ONLINE_CONSULTANT          = 'online_consultant';
+    const CRM_ONLINE_CONSULTANT_SCRIPT   = 'online_consultant_script';
+    const CRM_PURCHASE_PRICE_NULL        = 'purchasePrice_null';
 }
