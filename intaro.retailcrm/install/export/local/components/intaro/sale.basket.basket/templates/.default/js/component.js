@@ -639,7 +639,7 @@
 				url: this.ajaxUrl,
 				data: this.getData(data),
 				onsuccess: BX.delegate(function(result) {
-					BX.ajax.runAction('intaro:retailcrm.api.loyalty.basket.calculateBasketBonuses',
+				BX.ajax.runAction('intaro:retailcrm.api.loyalty.basket.calculateBasketBonuses',
 						{
 							method:    'POST',
 							data:      {
@@ -647,23 +647,60 @@
 								basketData: result.BASKET_DATA
 							},
 						}
-						).then(
-						BX.delegate(function(response) {
-								if (response.data.WILL_BE_CREDITED !== undefined) {
-									$('#BONUSES_TOTAL').text(response.data.WILL_BE_CREDITED);
-								}
+						).then((response) => {
+						//если это бонусы
+						if (response.data.WILL_BE_CREDITED !== undefined) {
+							$('#BONUSES_TOTAL').text(response.data.WILL_BE_CREDITED);
+						}
 
-								if (response.data.BASKET_ITEM_RENDER_DATA !== undefined) {
-									response.data.BASKET_ITEM_RENDER_DATA.forEach(
-										function(item, i, arr) {
-											const itemId = '#basket-bonus-item-sum-price-'+item.ID;
-											$(itemId).text(item.WILL_BE_CREDITED_BONUS);
-										}
-									);
+						//если это скидки
+						if (response.data.TOTAL_RENDER_DATA.LOYALTY_DISCOUNT_FORMATED !== undefined) {
+							$('#LOYALTY_DISCOUNT_TOTAL')
+								.text(response.data.TOTAL_RENDER_DATA.LOYALTY_DISCOUNT_FORMATED);
+
+							$('.basket-coupon-block-total-price-current')
+								.text(response.data.TOTAL_RENDER_DATA.PRICE_FORMATED);
+
+							$('.basket-coupon-block-total-price-difference').find('span:first-child')
+								.text(response.data.TOTAL_RENDER_DATA.DISCOUNT_PRICE_FORMATED);
+
+							$('#LOYALTY_DISCOUNT_DEFAULT')
+								.text(response.data.TOTAL_RENDER_DATA.LOYALTY_DISCOUNT_DEFAULT);
+						}
+
+						if (response.data.BASKET_ITEM_RENDER_DATA !== undefined) {
+							response.data.BASKET_ITEM_RENDER_DATA.forEach(
+								function(item, i, arr) {
+									const itemId = '#basket-bonus-item-sum-price-' + item.ID;
+
+									//если это скидки
+									if (response.data.TOTAL_RENDER_DATA.LOYALTY_DISCOUNT_FORMATED !== undefined) {
+										let itemPrice = '#basket-item-price-'+ item.ID;
+										let itemSumPrice = '#basket-item-sum-price-'+ item.ID;
+										let itemPriceDifference = '#basket-item-sum-price-difference-'+ item.ID;
+										let basketItemHeightAligner = '#basket-item-height-aligner-'+ item.ID;
+										let discountWithMinus = '-' + item.DISCOUNT_PRICE_PERCENT_FORMATED;
+
+										$(itemPrice).text(item.PRICE_FORMATED);
+										$(itemSumPrice).text(item.SUM_PRICE_FORMATED);
+										$(itemPriceDifference).text(item.SUM_DISCOUNT_PRICE_FORMATED);
+
+										$(basketItemHeightAligner).find('div[data-column-property-code=DISCOUNT]')
+											.text(item.DISCOUNT_PRICE_PERCENT_FORMATED);
+										$(basketItemHeightAligner).find('.basket-item-label-ring').text(discountWithMinus);
+									}
+
+									//если это бонусы
+									if (item.WILL_BE_CREDITED_BONUS !== undefined
+										&& item.WILL_BE_CREDITED_BONUS > 0
+									) {
+										$(itemId).text(item.WILL_BE_CREDITED_BONUS);
+									}
 								}
-							}
-							, this)
-					);
+							);
+						}
+					}
+				);
 
 					this.actionPool.doProcessing(false);
 
@@ -672,22 +709,20 @@
 
 					this.actionPool.setRefreshStatus(result.BASKET_REFRESHED);
 
-					if (result.RESTORED_BASKET_ITEMS)
-					{
+					if (result.RESTORED_BASKET_ITEMS) {
 						this.restoreBasketItems(result.RESTORED_BASKET_ITEMS);
 					}
 
-					if (result.DELETED_BASKET_ITEMS)
-					{
+					if (result.DELETED_BASKET_ITEMS) {
 						this.deleteBasketItems(result.DELETED_BASKET_ITEMS, this.params.SHOW_RESTORE === 'Y');
 					}
 
-					if (result.MERGED_BASKET_ITEMS)
-					{
+					if (result.MERGED_BASKET_ITEMS) {
 						this.deleteBasketItems(result.MERGED_BASKET_ITEMS, false, true);
 					}
 
 					this.applyBasketResult(result.BASKET_DATA);
+
 					this.editBasketItems(this.getItemsToEdit());
 					this.editTotal();
 
@@ -696,10 +731,10 @@
 
 					this.actionPool.switchTimer();
 
-					if (this.isBasketIntegrated() && this.isBasketChanged())
-					{
+					if (this.isBasketIntegrated() && this.isBasketChanged()) {
 						BX.Sale.OrderAjaxComponent.sendRequest();
 					}
+
 				}, this),
 				onfailure: BX.delegate(function() {
 					this.actionPool.doProcessing(false);

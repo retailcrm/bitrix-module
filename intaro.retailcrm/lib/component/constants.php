@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PHP version 7.1
  *
@@ -9,6 +10,7 @@
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
  */
+
 namespace Intaro\RetailCrm\Component;
 
 /**
@@ -26,7 +28,7 @@ class Constants
     public const CRM_DELIVERY_SERVICES_ARR = 'deliv_services_arr';
     public const CRM_PAYMENT_TYPES = 'pay_types_arr';
     public const CRM_PAYMENT_STATUSES = 'pay_statuses_arr';
-    public const CRM_PAYMENT = 'payment_arr'; //order payment Y/N
+    public const CRM_PAYMENT = 'payment_arr';
     public const CRM_ORDER_LAST_ID = 'order_last_id';
     public const CRM_ORDER_SITES = 'sites_ids';
     public const CRM_ORDER_DISCHARGE = 'order_discharge';
@@ -67,16 +69,16 @@ class Constants
     public const CRM_ORDER_DIMENSIONS = 'order_dimensions';
     public const CANCEL_PROPERTY_CODE = 'INTAROCRM_IS_CANCELED';
     public const CRM_INTEGRATION_DELIVERY = 'integration_delivery';
-    public const CRM_SHIPMENT_DEDUCTED = 'shipment_deducted';
-    public const CORPORATE_CONTRAGENT_TYPE = 'legal-entity';
-    public const SEND_PAYMENT_AMOUNT = 'send_payment_amount';
-    public const CRM_ONLINE_CONSULTANT = 'online_consultant';
+    public const CRM_SHIPMENT_DEDUCTED        = 'shipment_deducted';
+    public const CORPORATE_CONTRAGENT_TYPE    = 'legal-entity';
+    public const SEND_PAYMENT_AMOUNT          = 'send_payment_amount';
+    public const CRM_ONLINE_CONSULTANT        = 'online_consultant';
     public const CRM_ONLINE_CONSULTANT_SCRIPT = 'online_consultant_script';
-    public const LOYALTY_PROGRAM_TOGGLE = 'loyalty_program_toggle';
-    public const CLIENT_ID              = 'client_id';
-    public const AGREEMENT_LOYALTY_PROGRAM      = 'agreement_loyalty_program';
-    public const AGREEMENT_PERSONAL_DATA        = 'agreement_personal_data';
-    public const BONUS_PAYMENT_CODE             = 'INTARO_BONUS';
-    public const HL_LOYALTY_CODE                = 'LoyaltyProgramRetailCRM';
-    public const HL_LOYALTY_TABLE_NAME          = 'loyalty_program';
+    public const LOYALTY_PROGRAM_TOGGLE       = 'loyalty_program_toggle';
+    public const CLIENT_ID                    = 'client_id';
+    public const AGREEMENT_LOYALTY_PROGRAM    = 'agreement_loyalty_program';
+    public const AGREEMENT_PERSONAL_DATA      = 'agreement_personal_data';
+    public const HL_LOYALTY_CODE              = 'LoyaltyProgramRetailCRM';
+    public const HL_LOYALTY_TABLE_NAME        = 'loyalty_program';
+    public const LP_BONUS_INFO                = 'LP_BONUS_INFO';
 }

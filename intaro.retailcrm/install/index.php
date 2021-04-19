@@ -27,8 +27,6 @@ use Bitrix\Main\EventManager;
 use Bitrix\Main\Loader;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
-use Bitrix\Sale\Internals\OrderPropsGroupTable;
-use Bitrix\Sale\Internals\PaySystemActionTable;
 use Bitrix\Sale\Delivery\Services\Manager;
 use Bitrix\Sale\Internals\OrderTable;
 use Intaro\RetailCrm\Component\Handlers\EventsHandlers;
@@ -50,7 +48,6 @@ use RetailCrm\Response\ApiResponse;
 use Intaro\RetailCrm\Repository\OrderPropsRepository;
 use Intaro\RetailCrm\Repository\PersonTypeRepository;
 use Intaro\RetailCrm\Repository\ToModuleRepository;
-use Bitrix\Highloadblock as HL;
 
 Loader::IncludeModule('highloadblock');
 
@@ -61,8 +58,6 @@ if (class_exists('intaro_retailcrm')) {
 
 class intaro_retailcrm extends CModule
 {
-    public const BONUS_PAY_SYSTEM_CODE        = 'retailcrmbonus';
-
     /**
      * @var string[][]
      */
@@ -84,7 +79,6 @@ class intaro_retailcrm extends CModule
     ];
 
     public const V5                             = 'v5';
-    public const INTARO_BONUS                   = 'INTARO_BONUS';
     public const AGREEMENT_LOYALTY_PROGRAM_CODE = 'AGREEMENT_LOYALTY_PROGRAM_CODE';
     public const AGREEMENT_PERSONAL_DATA_CODE   = 'AGREEMENT_PERSONAL_DATA_CODE';
 
@@ -109,7 +103,7 @@ class intaro_retailcrm extends CModule
     public $CRM_DELIVERY_SERVICES_ARR = 'deliv_services_arr';
     public $CRM_PAYMENT_TYPES = 'pay_types_arr';
     public $CRM_PAYMENT_STATUSES = 'pay_statuses_arr';
-    public $CRM_PAYMENT = 'payment_arr'; //order payment Y/N
+    public $CRM_PAYMENT = 'payment_arr';
     public $CRM_ORDER_LAST_ID = 'order_last_id';
     public $CRM_ORDER_PROPS = 'order_props';
     public $CRM_LEGAL_DETAILS = 'legal_details';
@@ -217,6 +211,11 @@ class intaro_retailcrm extends CModule
             return false;
         }
 
+        include($this->INSTALL_PATH . '/../lib/component/apiclient/traits/baseclienttrait.php');
+        include($this->INSTALL_PATH . '/../lib/component/apiclient/traits/customerstrait.php');
+        include($this->INSTALL_PATH . '/../lib/component/apiclient/traits/customerscorporatetrait.php');
+        include($this->INSTALL_PATH . '/../lib/component/apiclient/traits/loyaltytrait.php');
+        include($this->INSTALL_PATH . '/../lib/component/apiclient/traits/ordertrait.php');
         include($this->INSTALL_PATH . '/../classes/general/Http/Client.php');
         include($this->INSTALL_PATH . '/../classes/general/Response/ApiResponse.php');
         include($this->INSTALL_PATH . '/../classes/general/RCrmActions.php');
@@ -267,21 +266,21 @@ class intaro_retailcrm extends CModule
             $options = simplexml_load_file($this->INSTALL_PATH . '/../classes/general/config/options.xml');
 
             foreach ($options->contragents->contragent as $contragent) {
-                $type["NAME"]                 = $APPLICATION->ConvertCharset((string)$contragent, 'utf-8', SITE_CHARSET);
-                $type["ID"]                   = (string)$contragent["id"];
+                $type["NAME"]                 = $APPLICATION->ConvertCharset((string) $contragent, 'utf-8', SITE_CHARSET);
+                $type["ID"]                   = (string) $contragent["id"];
                 $arResult['contragentType'][] = $type;
                 unset ($type);
             }
             foreach ($options->fields->field as $field) {
-                $type["NAME"] = $APPLICATION->ConvertCharset((string)$field, 'utf-8', SITE_CHARSET);
-                $type["ID"]   = (string)$field["id"];
+                $type["NAME"] = $APPLICATION->ConvertCharset((string) $field, 'utf-8', SITE_CHARSET);
+                $type["ID"]   = (string) $field["id"];
 
                 if ($field["group"] == 'custom') {
                     $arResult['customFields'][] = $type;
                 } elseif (!$field["group"]) {
                     $arResult['orderProps'][] = $type;
                 } else {
-                    $groups = explode(",", (string)$field["group"]);
+                    $groups = explode(",", (string) $field["group"]);
                     foreach ($groups as $group) {
                         $type["GROUP"][] = trim($group);
                     }
@@ -304,12 +303,18 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../lib/component/constants.php');
         include($this->INSTALL_PATH . '/../lib/repository/agreementrepository.php');
         include($this->INSTALL_PATH . '/../lib/service/orderloyaltydataservice.php');
+        include($this->INSTALL_PATH . '/../lib/component/factory/clientfactory.php');
+        include($this->INSTALL_PATH . '/../lib/component/apiclient/clientadapter.php');
 
         $this->CopyFiles();
         $this->addLPUserFields();
         $this->addLPEvents();
         $this->addAgreement();
+
         OrderLoyaltyDataService::createLoyaltyHlBlock();
+
+        $service = new OrderLoyaltyDataService();
+        $service->addCustomersLoyaltyFields();
 
         if ($step == 11) {
             $arResult['arSites'] = RCrmActions::getSitesList();
@@ -727,7 +732,7 @@ class intaro_retailcrm extends CModule
                 if (!isset($_POST['finish'])) {
                     $finish = 0;
                 } else {
-                    $finish = (int)$_POST['finish'];
+                    $finish = (int) $_POST['finish'];
                 }
 
                 if (!$countAll) {
@@ -864,7 +869,7 @@ class intaro_retailcrm extends CModule
 
                 }
                 if (isset($history['history'])) {
-                    $hIs    = (int)$history['history'][0]['id'] - 1;
+                    $hIs    = (int) $history['history'][0]['id'] - 1;
                     $orderH = $hIs;
                 } else {
                     $orderH = $this->historyLoad($api, 'ordersHistory');
@@ -1379,15 +1384,6 @@ class intaro_retailcrm extends CModule
         CopyDirFiles(
             $pathFrom . '/export',
             $_SERVER['DOCUMENT_ROOT'],
-            true,
-            true,
-            false
-        );
-        CopyDirFiles(
-            $pathFrom
-            . '/export_sale_payment',
-            $_SERVER['DOCUMENT_ROOT']
-            . COption::GetOptionString('sale', 'path2user_ps_files'),
             true,
             true,
             false

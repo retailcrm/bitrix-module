@@ -163,7 +163,7 @@ if (!empty($arParams['LABEL_PROP_POSITION']))
 							{
 								foreach ($arParams['PRODUCT_BLOCKS_ORDER'] as $blockName)
 								{
-									switch (trim((string)$blockName))
+									switch (trim((string) $blockName))
 									{
 										case 'props':
 											if (in_array('PROPS', $arParams['COLUMNS_LIST']))
@@ -420,10 +420,14 @@ if (!empty($arParams['LABEL_PROP_POSITION']))
 							</span>
 						</div>
                         <?php
-                        if ($arResult['LOYALTY_STATUS'] === 'Y' && $arResult['PERSONAL_LOYALTY_STATUS'] === true) {
+                        if (
+                            $arResult['LOYALTY_STATUS'] === 'Y'
+                            && $arResult['PERSONAL_LOYALTY_STATUS'] === true
+                            && $arResult['TOTAL_RENDER_DATA']['WILL_BE_CREDITED'] > 0
+                        ) {
                         ?>
                                 <div>
-                                    Бонусы: +
+                                    <?=Loc::getMessage('BONUS_PLUS')?> +
                                     <span class="basket-item-property-custom-value" data-column-property-code="TYPE" data-entity="basket-item-property-column-value" id="basket-bonus-item-sum-price-{{ID}}">
                                         {{{WILL_BE_CREDITED_BONUS}}}
                                     </span>

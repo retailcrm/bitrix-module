@@ -23,6 +23,7 @@ declare(strict_types=1);
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
 namespace Intaro\RetailCrm\Vendor\Doctrine\Common\Lexer;
 
 use ReflectionClass;

@@ -175,20 +175,20 @@ class CBitrixBasketComponent extends CBitrixComponent
 		$params['COMPATIBLE_MODE'] = isset($params['COMPATIBLE_MODE']) && $params['COMPATIBLE_MODE'] === 'N' ? 'N' : 'Y';
 		$params['DEFERRED_REFRESH'] = isset($params['DEFERRED_REFRESH']) && $params['DEFERRED_REFRESH'] === 'Y' ? 'Y' : 'N';
 
-		$params['AJAX_PATH'] = !empty($params['AJAX_PATH']) ? trim((string)$params['AJAX_PATH']) : $this->getPath().'/ajax.php';
+		$params['AJAX_PATH'] = !empty($params['AJAX_PATH']) ? trim((string) $params['AJAX_PATH']) : $this->getPath().'/ajax.php';
 
 		if (isset($params['SET_TITLE']) && $params['SET_TITLE'] === 'Y')
 		{
 			$APPLICATION->SetTitle(Loc::getMessage('SBB_TITLE'));
 		}
 
-		$params['PATH_TO_ORDER'] = trim((string)$params['PATH_TO_ORDER']);
+		$params['PATH_TO_ORDER'] = trim((string) $params['PATH_TO_ORDER']);
 		if (empty($params['PATH_TO_ORDER']))
 		{
 			$params['PATH_TO_ORDER'] = '/personal/order/make/';
 		}
 
-		$params['PATH_TO_BASKET'] = trim((string)$params['PATH_TO_BASKET']);
+		$params['PATH_TO_BASKET'] = trim((string) $params['PATH_TO_BASKET']);
 		if (empty($params['PATH_TO_BASKET']))
 		{
 			$params['PATH_TO_BASKET'] = '/personal/cart/';
@@ -277,7 +277,7 @@ class CBitrixBasketComponent extends CBitrixComponent
 			$params['OFFERS_PROPS'] = [];
 		}
 
-		$params['ACTION_VARIABLE'] = isset($params['ACTION_VARIABLE']) ? trim((string)$params['ACTION_VARIABLE']) : '';
+		$params['ACTION_VARIABLE'] = isset($params['ACTION_VARIABLE']) ? trim((string) $params['ACTION_VARIABLE']) : '';
 
 		if (
 			empty($params['ACTION_VARIABLE'])
@@ -288,7 +288,7 @@ class CBitrixBasketComponent extends CBitrixComponent
 		}
 		else
 		{
-			$params['ACTION_VARIABLE'] = trim((string)$params['ACTION_VARIABLE']);
+			$params['ACTION_VARIABLE'] = trim((string) $params['ACTION_VARIABLE']);
 		}
 
 		$params['CORRECT_RATIO'] = isset($params['CORRECT_RATIO']) && $params['CORRECT_RATIO'] === 'N' ? 'N' : 'Y';
@@ -328,13 +328,13 @@ class CBitrixBasketComponent extends CBitrixComponent
 			$params['LABEL_PROP_MOBILE'] = array_fill_keys($params['LABEL_PROP_MOBILE'], true);
 		}
 
-		$params['LABEL_PROP_POSITION'] = trim((string)$params['LABEL_PROP_POSITION']) ?: 'top-left';
+		$params['LABEL_PROP_POSITION'] = trim((string) $params['LABEL_PROP_POSITION']) ?: 'top-left';
 
 		$params['SHOW_DISCOUNT_PERCENT'] = !isset($params['SHOW_DISCOUNT_PERCENT']) || $params['SHOW_DISCOUNT_PERCENT'] === 'Y' ? 'Y' : 'N';
-		$params['DISCOUNT_PERCENT_POSITION'] = trim((string)$params['DISCOUNT_PERCENT_POSITION']) ?: 'bottom-right';
+		$params['DISCOUNT_PERCENT_POSITION'] = trim((string) $params['DISCOUNT_PERCENT_POSITION']) ?: 'bottom-right';
 
 		$params['BASKET_WITH_ORDER_INTEGRATION'] = isset($params['BASKET_WITH_ORDER_INTEGRATION']) && $params['BASKET_WITH_ORDER_INTEGRATION'] === 'Y' ? 'Y' : 'N';
-		$params['BASKET_MAX_COUNT_TO_SHOW'] = isset($params['BASKET_MAX_COUNT_TO_SHOW']) ? (int)$params['BASKET_MAX_COUNT_TO_SHOW'] : 5;
+		$params['BASKET_MAX_COUNT_TO_SHOW'] = isset($params['BASKET_MAX_COUNT_TO_SHOW']) ? (int) $params['BASKET_MAX_COUNT_TO_SHOW'] : 5;
 		$params['BASKET_HAS_BEEN_REFRESHED'] = isset($params['BASKET_HAS_BEEN_REFRESHED']) && $params['BASKET_HAS_BEEN_REFRESHED'] === 'Y' ? 'Y' : 'N';
 
 		$params['SHOW_RESTORE'] = isset($params['SHOW_RESTORE']) && $params['SHOW_RESTORE'] === 'N' ? 'N' : 'Y';
@@ -395,7 +395,7 @@ class CBitrixBasketComponent extends CBitrixComponent
 
 		if (empty($params['COLUMNS_LIST']))
 		{
-			$columns = (string)$this->request->get('select_props');
+			$columns = (string) $this->request->get('select_props');
 
 			if (!empty($columns))
 			{
@@ -405,7 +405,7 @@ class CBitrixBasketComponent extends CBitrixComponent
 
 		if (empty($params['OFFERS_PROPS']))
 		{
-			$offerProps = (string)$this->request->get('offers_props');
+			$offerProps = (string) $this->request->get('offers_props');
 
 			if (!empty($offerProps))
 			{
@@ -521,14 +521,14 @@ class CBitrixBasketComponent extends CBitrixComponent
 	// making correct names for actions (camel case without '_')
 	protected function getCorrectActionName($action)
 	{
-		$action = str_replace('_', ' ', trim((string)$action));
+		$action = str_replace('_', ' ', trim((string) $action));
 
 		return str_replace(' ', '', lcfirst(ucwords($action)));
 	}
 
 	protected function prepareAction()
 	{
-		$action = (string)$this->request->get($this->arParams['ACTION_VARIABLE']);
+		$action = (string) $this->request->get($this->arParams['ACTION_VARIABLE']);
 
 		// prepayment actions
 		if (empty($action) && !$this->isBasketIntegrated())
@@ -573,7 +573,7 @@ class CBitrixBasketComponent extends CBitrixComponent
 	// legacy method
 	protected function selectItemAction()
 	{
-		$currentId = (int)$this->request->get('basketItemId');
+		$currentId = (int) $this->request->get('basketItemId');
 		$propValues = $this->request->get('props') ?: [];
 
 		$this->changeProductOffer($currentId, self::SEARCH_OFFER_BY_PROPERTIES, $propValues, true);
@@ -581,7 +581,7 @@ class CBitrixBasketComponent extends CBitrixComponent
 		$result = [];
 		$result['DELETE_ORIGINAL'] = 'Y';
 		$result['BASKET_DATA'] = $this->getBasketItems();
-		$result['COLUMNS'] = (string)$this->request->get('select_props');
+		$result['COLUMNS'] = (string) $this->request->get('select_props');
 		$result['BASKET_ID'] = $currentId;
 		$result['CODE'] = 'SUCCESS';
 
@@ -594,7 +594,7 @@ class CBitrixBasketComponent extends CBitrixComponent
 	// legacy method
 	protected function recalculateAction()
 	{
-		$currentId = (int)$this->request->get('basketItemId');
+		$currentId = (int) $this->request->get('basketItemId');
 		$propValues = $this->request->get('props') ?: [];
 
 		$this->changeProductOffer($currentId, self::SEARCH_OFFER_BY_PROPERTIES, $propValues, true);
@@ -611,7 +611,7 @@ class CBitrixBasketComponent extends CBitrixComponent
 		}
 
 		$result['BASKET_DATA'] = $this->getBasketItems();
-		$result['COLUMNS'] = (string)$this->request->get('select_props');
+		$result['COLUMNS'] = (string) $this->request->get('select_props');
 		$result['CODE'] = 'SUCCESS';
 
 		if ($this->needToReloadGifts($result))
@@ -635,7 +635,7 @@ class CBitrixBasketComponent extends CBitrixComponent
 			$basket = $this->getBasketStorage()->getBasket();
 			if (!$basket->isEmpty())
 			{
-				$id = (int)$this->request->get('id');
+				$id = (int) $this->request->get('id');
 				/** @var Sale\BasketItem $item */
 				$item = $basket->getItemByBasketCode($id);
 				if ($item)
@@ -675,7 +675,7 @@ class CBitrixBasketComponent extends CBitrixComponent
 			$basket = $this->getBasketStorage()->getBasket();
 			if (!$basket->isEmpty())
 			{
-				$id = (int)$this->request->get('id');
+				$id = (int) $this->request->get('id');
 				/** @var Sale\BasketItem $item */
 				$item = $basket->getItemByBasketCode($id);
 				if ($item)
@@ -715,7 +715,7 @@ class CBitrixBasketComponent extends CBitrixComponent
 			$basket = $this->getBasketStorage()->getBasket();
 			if (!$basket->isEmpty())
 			{
-				$id = (int)$this->request->get('id');
+				$id = (int) $this->request->get('id');
 				/** @var Sale\BasketItem $item */
 				$item = $basket->getItemByBasketCode($id);
 				if ($item)
@@ -765,8 +765,8 @@ class CBitrixBasketComponent extends CBitrixComponent
 	{
 		global $APPLICATION;
 
-		$basketRefresh = (string)$this->request->get('BasketRefresh');
-		$basketOrder = (string)$this->request->get('BasketOrder');
+		$basketRefresh = (string) $this->request->get('BasketRefresh');
+		$basketOrder = (string) $this->request->get('BasketOrder');
 
 		$postList = $this->request->toArray();
 		$result = $this->recalculateBasket($postList);
@@ -1016,7 +1016,7 @@ class CBitrixBasketComponent extends CBitrixComponent
 			{
 				$iblockList[] = $catalog['IBLOCK_ID'];
 
-				if ((int)$catalog['PRODUCT_IBLOCK_ID'] > 0)
+				if ((int) $catalog['PRODUCT_IBLOCK_ID'] > 0)
 				{
 					$iblockList[] = $catalog['PRODUCT_IBLOCK_ID'];
 				}
@@ -1375,7 +1375,7 @@ class CBitrixBasketComponent extends CBitrixComponent
 			$result += $this->getBasketTotal();
 			$result += $this->getCouponInfo();
 
-			if ($this->usePrepayment === 'Y' && (float)$result['allSum'] > 0)
+			if ($this->usePrepayment === 'Y' && (float) $result['allSum'] > 0)
 			{
 				$result += $this->getPrepayment();
 			}
@@ -1403,7 +1403,7 @@ class CBitrixBasketComponent extends CBitrixComponent
 
 		if ($this->isBasketIntegrated())
 		{
-			$exceeded = (int)$this->storage['BASKET_ITEMS_COUNT'] > (int)$this->arParams['BASKET_MAX_COUNT_TO_SHOW'];
+			$exceeded = (int) $this->storage['BASKET_ITEMS_COUNT'] > (int)$this->arParams['BASKET_MAX_COUNT_TO_SHOW'];
 		}
 
 		return $exceeded;
@@ -1431,18 +1431,18 @@ class CBitrixBasketComponent extends CBitrixComponent
 		while ($basketItem = $basketItemsResult->fetch())
 		{
 			$basketItem['PROPS'] = [];
-			$basketItem['QUANTITY'] = (float)$basketItem['QUANTITY'];
+			$basketItem['QUANTITY'] = (float) $basketItem['QUANTITY'];
 
-			$basketItem['WEIGHT'] = (float)$basketItem['WEIGHT'];
+			$basketItem['WEIGHT'] = (float) $basketItem['WEIGHT'];
 			$basketItem['WEIGHT_FORMATED'] = roundEx($basketItem['WEIGHT'] / $this->weightKoef, SALE_WEIGHT_PRECISION).' '.$this->weightUnit;
 
-			$basketItem['PRICE'] = PriceMaths::roundPrecision((float)$basketItem['PRICE']);
+			$basketItem['PRICE'] = PriceMaths::roundPrecision((float) $basketItem['PRICE']);
 			$basketItem['PRICE_FORMATED'] = CCurrencyLang::CurrencyFormat($basketItem['PRICE'], $basketItem['CURRENCY'], true);
 
-			$basketItem['FULL_PRICE'] = PriceMaths::roundPrecision((float)$basketItem['BASE_PRICE']);
+			$basketItem['FULL_PRICE'] = PriceMaths::roundPrecision((float) $basketItem['BASE_PRICE']);
 			$basketItem['FULL_PRICE_FORMATED'] = CCurrencyLang::CurrencyFormat($basketItem['FULL_PRICE'], $basketItem['CURRENCY'], true);
 
-			$basketItem['DISCOUNT_PRICE'] = PriceMaths::roundPrecision((float)$basketItem['DISCOUNT_PRICE']);
+			$basketItem['DISCOUNT_PRICE'] = PriceMaths::roundPrecision((float) $basketItem['DISCOUNT_PRICE']);
 			$basketItem['DISCOUNT_PRICE_FORMATED'] = CCurrencyLang::CurrencyFormat($basketItem['DISCOUNT_PRICE'], $basketItem['CURRENCY'], true);
 
 			$basketItem['SUM_VALUE'] = $basketItem['PRICE'] * $basketItem['QUANTITY'];
@@ -1454,7 +1454,7 @@ class CBitrixBasketComponent extends CBitrixComponent
 			$basketItem['SUM_DISCOUNT_PRICE'] = $basketItem['DISCOUNT_PRICE'] * $basketItem['QUANTITY'];
 			$basketItem['SUM_DISCOUNT_PRICE_FORMATED'] = CCurrencyLang::CurrencyFormat($basketItem['SUM_DISCOUNT_PRICE'], $basketItem['CURRENCY'], true);
 
-			$basketItem['VAT_RATE'] = (float)$basketItem['VAT_RATE'];
+			$basketItem['VAT_RATE'] = (float) $basketItem['VAT_RATE'];
 			$basketItem['PRICE_VAT_VALUE'] = $basketItem['VAT_VALUE']
 				= ($basketItem['PRICE'] * $basketItem['QUANTITY'] / ($basketItem['VAT_RATE'] + 1)) * $basketItem['VAT_RATE'] / $basketItem['QUANTITY'];
 
@@ -1603,7 +1603,7 @@ class CBitrixBasketComponent extends CBitrixComponent
 		$basketItem['PROPS_ALL'] = $item->getPropertyCollection()->getPropertyValues();
 		$basketItem['QUANTITY'] = $item->getQuantity();
 
-		$basketItem['WEIGHT'] = (float)$basketItem['WEIGHT'];
+		$basketItem['WEIGHT'] = (float) $basketItem['WEIGHT'];
 		$basketItem['WEIGHT_FORMATED'] = roundEx($basketItem['WEIGHT'] / $this->weightKoef, SALE_WEIGHT_PRECISION).' '.$this->weightUnit;
 
 		$basketItem['PRICE'] = PriceMaths::roundPrecision($basketItem['PRICE']);
@@ -1807,7 +1807,7 @@ class CBitrixBasketComponent extends CBitrixComponent
 			{
 				$productIblockId = $productsData[$productId]['IBLOCK_ID'];
 				$additionalImage = $this->getAdditionalImageForProduct($productIblockId, $productProperties);
-				if ((int)$additionalImage > 0)
+				if ((int) $additionalImage > 0)
 				{
 					$additionalImages[$productId] = $additionalImage;
 				}
@@ -1909,7 +1909,7 @@ class CBitrixBasketComponent extends CBitrixComponent
 
 			// if sku element doesn't have value of some property - we'll show parent element value instead
 			$parentId = isset($this->storage['SKU_TO_PARENT'][$productId]) ? $this->storage['SKU_TO_PARENT'][$productId] : 0;
-			if ((int)$parentId > 0)
+			if ((int) $parentId > 0)
 			{
 				foreach ($this->arCustomSelectFields as $field)
 				{
@@ -2080,7 +2080,7 @@ class CBitrixBasketComponent extends CBitrixComponent
 
 			foreach ($value as $fileId)
 			{
-				$fileId = (int)trim((string)$fileId);
+				$fileId = (int) trim((string) $fileId);
 				if ($fileId > 0)
 				{
 					$fileSources = [];
@@ -2263,7 +2263,7 @@ class CBitrixBasketComponent extends CBitrixComponent
 
 			if (!empty($result['WARNING_MESSAGE']))
 			{
-				$result['ERROR_MESSAGE'] .= (trim((string)$result['ERROR_MESSAGE']) != '' ? '\n' : '').implode('\n', $result['WARNING_MESSAGE']);
+				$result['ERROR_MESSAGE'] .= (trim((string) $result['ERROR_MESSAGE']) != '' ? '\n' : '').implode('\n', $result['WARNING_MESSAGE']);
 			}
 		}
 
@@ -2832,7 +2832,7 @@ class CBitrixBasketComponent extends CBitrixComponent
 						$currentSkuPropValues = [];
 						foreach ($offer['PROPERTIES'] as $propName => $property)
 						{
-							$property['VALUE'] = (string)$property['VALUE'];
+							$property['VALUE'] = (string) $property['VALUE'];
 							if ($property['VALUE'] == '')
 								continue;
 
@@ -2964,7 +2964,7 @@ class CBitrixBasketComponent extends CBitrixComponent
 			]);
 			while ($arProp = $iterator->fetch())
 			{
-				$arProp['CODE'] = (string)$arProp['CODE'];
+				$arProp['CODE'] = (string) $arProp['CODE'];
 				if ($arProp['CODE'] === '')
 					$arProp['CODE'] = $arProp['ID'];
 				if (!isset($skuPropKeys[$arProp['CODE']]))
@@ -2981,7 +2981,7 @@ class CBitrixBasketComponent extends CBitrixComponent
 							$arValues['n'.$arEnum['ID']] = [
 								'ID' => $arEnum['ID'],
 								'NAME' => $arEnum['VALUE'],
-								'SORT' => (int)$arEnum['SORT'],
+								'SORT' => (int) $arEnum['SORT'],
 								'PICT' => false,
 							];
 						}
@@ -3000,7 +3000,7 @@ class CBitrixBasketComponent extends CBitrixComponent
 							$arValues['n'.$arEnum['ID']] = [
 								'ID' => $arEnum['ID'],
 								'NAME' => $arEnum['NAME'],
-								'SORT' => (int)$arEnum['SORT'],
+								'SORT' => (int) $arEnum['SORT'],
 								'FILE' => $arEnum['PREVIEW_PICTURE'],
 								'PICT' => false,
 								'XML_ID' => $arEnum['NAME'],
@@ -3009,7 +3009,7 @@ class CBitrixBasketComponent extends CBitrixComponent
 						unset($arEnum, $rsPropEnums);
 						break;
 					case Iblock\PropertyTable::TYPE_STRING:
-						$arProp['USER_TYPE'] = (string)$arProp['USER_TYPE'];
+						$arProp['USER_TYPE'] = (string) $arProp['USER_TYPE'];
 						if ($arProp['USER_TYPE'] == 'directory' && $arProp['USER_TYPE_SETTINGS'] !== null)
 						{
 							if (!is_array($arProp['USER_TYPE_SETTINGS']))
@@ -3040,7 +3040,7 @@ class CBitrixBasketComponent extends CBitrixComponent
 										$arValues['n'.$arData['ID']] = [
 											'ID' => $arData['ID'],
 											'NAME' => $arData['UF_NAME'],
-											'SORT' => (int)$arData['UF_SORT'],
+											'SORT' => (int) $arData['UF_SORT'],
 											'FILE' => $arData['UF_FILE'],
 											'PICT' => false,
 											'XML_ID' => $arData['UF_XML_ID'],
@@ -3071,7 +3071,7 @@ class CBitrixBasketComponent extends CBitrixComponent
 			if (!isset($item['MODULE']) || $item['MODULE'] != 'catalog')
 				continue;
 
-			if (isset($item['IBLOCK_ID']) && (int)$item['IBLOCK_ID'] > 0 && isset($arRes[$item['IBLOCK_ID']]))
+			if (isset($item['IBLOCK_ID']) && (int) $item['IBLOCK_ID'] > 0 && isset($arRes[$item['IBLOCK_ID']]))
 			{
 				$arUsedValues = [];
 				$arTmpRes = [];
@@ -3091,7 +3091,7 @@ class CBitrixBasketComponent extends CBitrixComponent
 
 				foreach ($currentItemProperties as $code => $data)
 				{
-					$data['VALUE'] = (string)$data['VALUE'];
+					$data['VALUE'] = (string) $data['VALUE'];
 					if ($data['VALUE'] == '')
 						$data['VALUE'] = '-';
 					$arUsedValues[$code] = [$data['VALUE']];
@@ -3124,7 +3124,7 @@ class CBitrixBasketComponent extends CBitrixComponent
 							}
 							if (!$check)
 								continue;
-							$value = (string)$offerList[$parentId][$offerId]['PROPERTIES'][$propertyCode]['VALUE'];
+							$value = (string) $offerList[$parentId][$offerId]['PROPERTIES'][$propertyCode]['VALUE'];
 							if ($value == '')
 								$value = '-';
 							if (!in_array($value, $arUsedValues[$propertyCode]))
@@ -3320,12 +3320,12 @@ class CBitrixBasketComponent extends CBitrixComponent
 		if (isset($postList['coupon']))
 		{
 			$found = true;
-			$coupon = trim((string)$postList['coupon']);
+			$coupon = trim((string) $postList['coupon']);
 		}
 		elseif (isset($postList['COUPON']))
 		{
 			$found = true;
-			$coupon = trim((string)$postList['COUPON']);
+			$coupon = trim((string) $postList['COUPON']);
 		}
 
 		return [$found, $coupon];
@@ -3624,8 +3624,8 @@ class CBitrixBasketComponent extends CBitrixComponent
 			$this->quantityFloat === 'Y'
 			|| (
 				isset($basketItemData['MEASURE_RATIO'])
-				&& (float)$basketItemData['MEASURE_RATIO'] > 0
-				&& (float)$basketItemData['MEASURE_RATIO'] != (int)$basketItemData['MEASURE_RATIO']
+				&& (float) $basketItemData['MEASURE_RATIO'] > 0
+				&& (float) $basketItemData['MEASURE_RATIO'] != (int) $basketItemData['MEASURE_RATIO']
 			)
 		)
 		{
@@ -3636,7 +3636,7 @@ class CBitrixBasketComponent extends CBitrixComponent
 			$isFloatQuantity = false;
 		}
 
-		$quantity = $isFloatQuantity ? (float)$desiredQuantity : (int)$desiredQuantity;
+		$quantity = $isFloatQuantity ? (float) $desiredQuantity : (int) $desiredQuantity;
 		if ($basketItemData['QUANTITY'] != $quantity)
 		{
 			$basket = $this->getBasketStorage()->getBasket();
@@ -3657,7 +3657,7 @@ class CBitrixBasketComponent extends CBitrixComponent
 	{
 		$result = new Sale\Result();
 
-		$basketItemId = (int)$basketItemId;
+		$basketItemId = (int) $basketItemId;
 		if ($basketItemId <= 0)
 			return $result;
 
@@ -3735,11 +3735,11 @@ class CBitrixBasketComponent extends CBitrixComponent
 	{
 		$result = new Sale\Result();
 
-		$basketId = (int)$basketId;
+		$basketId = (int) $basketId;
 		if ($basketId <= 0)
 			return $result;
 
-		$searchType = (string)$searchType;
+		$searchType = (string) $searchType;
 		if ($searchType != self::SEARCH_OFFER_BY_ID && $searchType != self::SEARCH_OFFER_BY_PROPERTIES)
 			return $result;
 
@@ -3757,7 +3757,7 @@ class CBitrixBasketComponent extends CBitrixComponent
 			if (!isset($searchData['ID']))
 				return $result;
 
-			$newOfferId = (int)$searchData['ID'];
+			$newOfferId = (int) $searchData['ID'];
 			if ($newOfferId <= 0)
 				return $result;
 		}
@@ -3818,7 +3818,7 @@ class CBitrixBasketComponent extends CBitrixComponent
 			if ($basketItem->isBundleParent() || $basketItem->isBundleChild())
 				continue;
 
-			if ((int)$basketItem->getProductId() == $newProduct['ID'])
+			if ((int) $basketItem->getProductId() == $newProduct['ID'])
 			{
 				$existBasketItem = $basketItem;
 				break;
@@ -3936,11 +3936,11 @@ class CBitrixBasketComponent extends CBitrixComponent
 
 	protected function selectOfferByProps($iblockId, $productId, $currentOfferId, array $propertyValues, array $properties)
 	{
-		$iblockId = (int)$iblockId;
+		$iblockId = (int) $iblockId;
 		if ($iblockId <= 0)
 			return null;
 
-		$currentOfferId = (int)$currentOfferId;
+		$currentOfferId = (int) $currentOfferId;
 		if ($currentOfferId <= 0)
 			return null;
 
@@ -4060,10 +4060,10 @@ class CBitrixBasketComponent extends CBitrixComponent
 					switch ($data['PROPERTY_TYPE'])
 					{
 						case Iblock\PropertyTable::TYPE_ELEMENT:
-							$valueId = ($data['VALUE'] == '' ? 0 : (int)$data['VALUE']);
+							$valueId = ($data['VALUE'] == '' ? 0 : (int) $data['VALUE']);
 							break;
 						case Iblock\PropertyTable::TYPE_LIST:
-							$valueId = ($data['VALUE_ENUM_ID'] == '' ? 0 : (int)$data['VALUE_ENUM_ID']);
+							$valueId = ($data['VALUE_ENUM_ID'] == '' ? 0 : (int) $data['VALUE_ENUM_ID']);
 							break;
 						case Iblock\PropertyTable::TYPE_STRING:
 							if ($data['USER_TYPE'] == 'directory')
@@ -4134,7 +4134,7 @@ class CBitrixBasketComponent extends CBitrixComponent
 				continue;
 			if (!isset($property['CODE']))
 				continue;
-			$code = trim((string)$property['CODE']);
+			$code = trim((string) $property['CODE']);
 			if ($code == '')
 				continue;
 			if (isset($result[$code]))
@@ -4154,7 +4154,7 @@ class CBitrixBasketComponent extends CBitrixComponent
 	{
 		$result = false;
 
-		$basketId = (int)$basketId;
+		$basketId = (int) $basketId;
 		if ($basketId > 0)
 		{
 			if (!empty($basket) && is_array($basket))
@@ -4221,10 +4221,10 @@ class CBitrixBasketComponent extends CBitrixComponent
 			$oldValue = $oldProps[$code];
 			$found = false;
 			$key = false;
-			$propId = (isset($oldValue['CODE']) ? (string)$oldValue['CODE'] : '').':'.$oldValue['NAME'];
+			$propId = (isset($oldValue['CODE']) ? (string) $oldValue['CODE'] : '').':'.$oldValue['NAME'];
 			foreach ($newProps as $newKey => $newValue)
 			{
-				$newId = (isset($newValue['CODE']) ? (string)$newValue['CODE'] : '').':'.$newValue['NAME'];
+				$newId = (isset($newValue['CODE']) ? (string) $newValue['CODE'] : '').':'.$newValue['NAME'];
 				if ($newId == $propId)
 				{
 					$key = $newKey;

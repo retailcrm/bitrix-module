@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PHP version 7.1
  *
@@ -9,6 +10,7 @@
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
  */
+
 namespace Intaro\RetailCrm\Model\Api\Request\Loyalty;
 
 use Intaro\RetailCrm\Component\Json\Mapping;
@@ -36,4 +38,14 @@ class LoyaltyCalculateRequest extends AbstractApiModel
      * @Mapping\SerializedName("order")
      */
     public $order;
+    
+    /**
+     * Количество бонусов для списания
+     *
+     * @var float $bonuses
+     *
+     * @Mapping\Type("float")
+     * @Mapping\SerializedName("bonuses")
+     */
+    public $bonuses;
 }

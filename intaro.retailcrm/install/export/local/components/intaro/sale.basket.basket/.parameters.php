@@ -54,7 +54,7 @@ if (Loader::includeModule('catalog'))
 	$catalogIterator = Catalog\CatalogIblockTable::getList($parameters);
 	while ($catalog = $catalogIterator->fetch())
 	{
-		$catalog['IBLOCK_ID'] = (int)$catalog['IBLOCK_ID'];
+		$catalog['IBLOCK_ID'] = (int) $catalog['IBLOCK_ID'];
 		$iblockIds[] = $catalog['IBLOCK_ID'];
 		$iblockNames[$catalog['IBLOCK_ID']] = $catalog['NAME'];
 	}
@@ -72,9 +72,9 @@ if (Loader::includeModule('catalog'))
 		));
 		while ($property = $propertyIterator->fetch())
 		{
-			$property['ID'] = (int)$property['ID'];
-			$property['IBLOCK_ID'] = (int)$property['IBLOCK_ID'];
-			$property['CODE'] = (string)$property['CODE'];
+			$property['ID'] = (int) $property['ID'];
+			$property['IBLOCK_ID'] = (int) $property['IBLOCK_ID'];
+			$property['CODE'] = (string) $property['CODE'];
 
 			if ($property['CODE'] == '')
 			{
@@ -255,7 +255,7 @@ foreach ($iblockIds as $iblockId)
 	{
 		if ($property['PROPERTY_TYPE'] == 'F')
 		{
-			$property['ID'] = (int)$property['ID'];
+			$property['ID'] = (int) $property['ID'];
 			$propertyName = '['.$property['ID'].']'.($property['CODE'] != '' ? '['.$property['CODE'].']' : '').' '.$property['NAME'];
 			if ($property['CODE'] == '')
 			{

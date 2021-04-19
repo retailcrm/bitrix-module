@@ -9,7 +9,7 @@ class RetailCrmHistory
     public static $CRM_DELIVERY_TYPES_ARR = 'deliv_types_arr';
     public static $CRM_PAYMENT_TYPES = 'pay_types_arr';
     public static $CRM_PAYMENT_STATUSES = 'pay_statuses_arr';
-    public static $CRM_PAYMENT = 'payment_arr'; //order payment Y/N
+    public static $CRM_PAYMENT = 'payment_arr';
     public static $CRM_ORDER_LAST_ID = 'order_last_id';
     public static $CRM_SITES_LIST = 'sites_list';
     public static $CRM_ORDER_PROPS = 'order_props';
@@ -751,7 +751,7 @@ class RetailCrmHistory
         if (file_exists($server . '/bitrix/modules/intaro.retailcrm/classes/general/config/objects.xml')) {
             $objects = simplexml_load_file($server . '/bitrix/modules/intaro.retailcrm/classes/general/config/objects.xml'); 
             foreach ($objects->fields->field as $object) {
-                $fields[(string)$object["group"]][(string)$object["id"]] = (string)$object;
+                $fields[(string) $object["group"]][(string) $object["id"]] = (string) $object;
             }
         }
         $customers = array();
@@ -804,7 +804,7 @@ class RetailCrmHistory
         if (file_exists($server . '/bitrix/modules/intaro.retailcrm/classes/general/config/objects.xml')) {
             $objects = simplexml_load_file($server . '/bitrix/modules/intaro.retailcrm/classes/general/config/objects.xml'); 
             foreach ($objects->fields->field as $object) {
-                $fields[(string)$object["group"]][(string)$object["id"]] = (string)$object;
+                $fields[(string) $object["group"]][(string) $object["id"]] = (string) $object;
             }
         }
         $orders = array();

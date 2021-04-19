@@ -10,6 +10,7 @@
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
  */
+
 namespace Intaro\RetailCrm\Model\Bitrix;
 
 use Intaro\RetailCrm\Component\Json\Mapping;
@@ -24,6 +25,16 @@ use Intaro\RetailCrm\Component\Json\Mapping;
 class OrderLoyaltyData
 {
     /**
+     * ID
+     *
+     * @var integer
+     *
+     * @Mapping\Type("integer")
+     * @Mapping\SerializedName("ID")
+     */
+    public $id;
+    
+    /**
      * ID заказа
      *
      * @var integer
@@ -32,36 +43,18 @@ class OrderLoyaltyData
      * @Mapping\SerializedName("UF_ORDER_ID")
      */
     public $orderId;
-    
+   
     /**
-     * Скидка в денежном выражении
+     * ID товара
      *
      * @var integer
      *
      * @Mapping\Type("integer")
-     * @Mapping\SerializedName("UF_CASH_DISCOUNT")
+     * @Mapping\SerializedName("UF_ITEM_ID")
      */
-    public $cashDiscount;
+    public $itemId;
+
     
-    /**
-     * Курс бонуса
-     *
-     * @var integer
-     *
-     * @Mapping\Type("integer")
-     * @Mapping\SerializedName("UF_BONUS_RATE")
-     */
-    public $bonusRate;
-    
-    /**
-     * Количество списываемых бонусов
-     *
-     * @var integer
-     *
-     * @Mapping\Type("integer")
-     * @Mapping\SerializedName("UF_BONUS_COUNT")
-     */
-    public $bonusCount;
     
     /**
      * ID проверочного кода
@@ -80,7 +73,63 @@ class OrderLoyaltyData
      *
      * @Mapping\Type("bool")
      * @Mapping\SerializedName("UF_IS_DEBITED")
-     * @Mapping\BitrixBoolean
      */
     public $isDebited;
+    
+    /**
+     * Количество в корзине
+     *
+     * @var float
+     *
+     * @Mapping\Type("integer")
+     * @Mapping\SerializedName("UF_QUANTITY")
+     */
+    public $quantity;
+    
+    /**
+     * ID позиции товара в корзине
+     *
+     * @var int $basketItemPositionId
+     *
+     * @Mapping\Type("integer")
+     * @Mapping\SerializedName("UF_ITEM_POS_ID")
+     */
+    public $basketItemPositionId;
+    
+    /**
+     * Размер обычной скидки на единицу товара в позиции
+     *
+     * Эта скидка определяется в правилах работы с корзиной
+     *
+     * @var float $defaultDiscount
+     *
+     * @Mapping\Type("float")
+     * @Mapping\SerializedName("UF_DEF_DISCOUNT")
+     */
+    public $defaultDiscount;
+    
+    /**
+     * Название товара
+     *
+     * @var string
+     *
+     * @Mapping\Type("string")
+     * @Mapping\SerializedName("UF_NAME")
+     */
+    public $name;
+    
+    /**
+     * Количество списываемых бонусов
+     *
+     * @var integer
+     *
+     * @Mapping\Type("integer")
+     * @Mapping\SerializedName("UF_BONUS_COUNT")
+     */
+    public $bonusCount;
 }
+
+
+
+
+

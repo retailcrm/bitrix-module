@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PHP version 7.1
  *
@@ -9,11 +10,11 @@
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
  */
+
 namespace Intaro\RetailCrm\Model\Bitrix;
 
 use Bitrix\Main\ORM\Objectify\EntityObject;
 use Bitrix\Main\Type\DateTime;
-use Bitrix\Sale\FuserTable;
 use Intaro\RetailCrm\Model\Bitrix\ORM\ToModuleTable;
 
 /**

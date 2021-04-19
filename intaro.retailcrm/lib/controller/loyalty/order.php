@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PHP version 7.1
  *
@@ -12,22 +13,14 @@
 
 namespace Intaro\RetailCrm\Controller\Loyalty;
 
-use Bitrix\Main\ArgumentException;
-use Bitrix\Main\ArgumentNullException;
-use Bitrix\Main\Diag\Debug;
 use Bitrix\Main\Engine\ActionFilter\Authentication;
 use Bitrix\Main\Engine\ActionFilter\HttpMethod;
 use Bitrix\Main\Engine\Controller;
-use Bitrix\Main\Loader;
-use Bitrix\Main\ObjectPropertyException;
-use Bitrix\Main\SystemException;
-use Exception;
-use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\ServiceLocator;
-use Intaro\RetailCrm\Repository\PaySystemActionRepository;
+use Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse;
 use Intaro\RetailCrm\Service\LoyaltyService;
-use Bitrix\Sale\Order as BitrixOrder;
 use Intaro\RetailCrm\Service\LpUserAccountService;
+use Intaro\RetailCrm\Service\Utils;
 
 /**
  * Class Order
@@ -36,6 +29,32 @@ use Intaro\RetailCrm\Service\LpUserAccountService;
  */
 class Order extends Controller
 {
+    
+    /**
+     * Контроллер для пересчета бонусов
+     *
+     * @param array     $basketItems
+     * @param float|int $inputBonuses
+     *
+     * @return \Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse|null
+     */
+    public function calculateBonusAction(array $basketItems, float $inputBonuses = 0): ?LoyaltyCalculateResponse
+    {
+        /** @var LoyaltyService $service */
+        $service  = ServiceLocator::get(LoyaltyService::class);
+        $response = $service->calculateBonus($basketItems, $inputBonuses);
+
+        if ($response instanceof LoyaltyCalculateResponse) {
+            if ($response->success && count($response->order->items) > 0) {
+                return $response;
+            }
+            
+            Utils::handleErrors($response);
+        }
+        
+        return null;
+    }
+    
     /**
      * @param string $verificationCode
      * @param int    $orderId
@@ -61,59 +80,20 @@ class Order extends Controller
             && isset($response->verification->verifiedAt)
             && !empty($response->verification->verifiedAt)
         ) {
-            try {
-                Loader::includeModule('sale');
-                
-                $order = BitrixOrder::load($orderId);
-                
-                if (!$order) {
-                    AddMessage2Log('Ошибка списания бонусов (не удалось получить объект Order) по заказу №' . $orderId);
-                    return [
-                        'status'   => 'error',
-                        'msg'      => 'Ошибка',
-                        'msgColor' => 'brown',
-                    ];
-                }
-                
-                $paymentCollection = $order->getPaymentCollection();
-                
-                /** @var \Bitrix\Sale\Payment $payment */
-                foreach ($paymentCollection as $payment) {
-                    $isPaid = $payment->isPaid();
-    
-                    try {
-                        $paySystemAction = PaySystemActionRepository::getFirstByWhere(
-                            ['*'],
-                            [
-                                ['ID', '=', $payment->getField('PAY_SYSTEM_ID')],
-                            ]
-                        );
-                    } catch (ObjectPropertyException | ArgumentException | SystemException $e) {
-                        AddMessage2Log($e->getMessage());
-                    }
-                    
-                    if (isset($paySystemAction)
-                        && !$isPaid
-                        && $paySystemAction->get('CODE') === Constants::BONUS_PAYMENT_CODE
-                    ) {
-                        $payment->setPaid('Y');
-                        $order->save();
-                    }
-                }
-            } catch (Exception | ArgumentNullException $exception) {
-                AddMessage2Log($exception->getMessage());
-            }
-            //TODO вынести все в lang файлы
+            $loyaltyService = new LoyaltyService();
+            
+            $loyaltyService->setDebitedStatus($orderId, true);
+            
             return [
                 'status'   => 'success',
-                'msg'      => 'Бонусы успешно списаны',
+                'msg'      => GetMessage('BONUS_SUCCESS'),
                 'msgColor' => 'green',
             ];
         }
         
         return [
             'status'   => 'error',
-            'msg'      => 'Ошибка',
+            'msg'      => GetMessage('BONUS_ERROR'),
             'msgColor' => 'brown',
         ];
     }
@@ -138,7 +118,7 @@ class Order extends Controller
         if ($result === false) {
             return ['msg' => GetMessage('BONUS_ERROR')];
         }
-        Debug::writeToFile(json_encode($result), '', 'log.txt');
+ 
         return $result;
     }
     

@@ -1077,11 +1077,11 @@ final class DocParser
 
             case DocLexer::T_INTEGER:
                 $this->match(DocLexer::T_INTEGER);
-                return (int)$this->lexer->token['value'];
+                return (int) $this->lexer->token['value'];
 
             case DocLexer::T_FLOAT:
                 $this->match(DocLexer::T_FLOAT);
-                return (float)$this->lexer->token['value'];
+                return (float) $this->lexer->token['value'];
 
             case DocLexer::T_TRUE:
                 $this->match(DocLexer::T_TRUE);
