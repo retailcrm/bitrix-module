@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PHP version 7.1
  *
@@ -9,13 +10,13 @@
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
  */
+
 namespace Intaro\RetailCrm\Component\Json\Strategy\Deserialize;
 
 use Intaro\RetailCrm\Component\Json\Mapping\Accessor;
 use Intaro\RetailCrm\Component\Json\Mapping\SerializedName;
 use Intaro\RetailCrm\Component\Json\Mapping\Type;
 use Intaro\RetailCrm\Component\Json\PropertyAnnotations;
-use Intaro\RetailCrm\Component\Json\Strategy\AnnotationReaderTrait;
 use Intaro\RetailCrm\Component\Json\Strategy\IsNoTransformTrait;
 use Intaro\RetailCrm\Component\Json\Strategy\StrategyFactory;
 

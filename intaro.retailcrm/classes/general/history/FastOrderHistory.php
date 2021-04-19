@@ -4,7 +4,7 @@ require_once($_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/main/include/prolog_be
 $GLOBALS['APPLICATION']->RestartBuffer();
 $moduleId = 'intaro.retailcrm';
 $historyTime = 'history_time';
-$idOrderCRM = (int)$_REQUEST['idOrderCRM'];
+$idOrderCRM = (int) $_REQUEST['idOrderCRM'];
 
 if (CModule::IncludeModule($moduleId) && $idOrderCRM && $idOrderCRM > 0) {
     $timeBd = COption::GetOptionString($moduleId, $historyTime, 0);

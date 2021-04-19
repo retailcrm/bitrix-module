@@ -10,15 +10,13 @@
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
  */
+
 namespace Intaro\RetailCrm\Component\Handlers;
 
 IncludeModuleLangFile(__FILE__);
 
-use Bitrix\Main\ArgumentException;
 use Bitrix\Main\Event;
 use Bitrix\Main\HttpRequest;
-use Bitrix\Main\ObjectPropertyException;
-use Bitrix\Main\SystemException;
 use Bitrix\Sale\Order;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\ServiceLocator;
@@ -27,6 +25,7 @@ use Intaro\RetailCrm\Service\LoyaltyService;
 use Intaro\RetailCrm\Service\LpUserAccountService;
 use Intaro\RetailCrm\Service\CustomerService;
 use RetailCrmEvent;
+use Throwable;
 
 /**
  * Class EventsHandlers
@@ -35,6 +34,8 @@ use RetailCrmEvent;
  */
 class EventsHandlers
 {
+    public static $disableSaleHandler = false;
+    
     /**
      * EventsHandlers constructor.
      */
@@ -52,28 +53,73 @@ class EventsHandlers
      * @param array                    $arParams
      * @param array                    $arResult
      */
-    public function OnSaleComponentOrderResultPreparedHandler(Order $order, array $arUserResult, HttpRequest $request, array $arParams, array &$arResult): void
-    {
+    public function OnSaleComponentOrderResultPreparedHandler(
+        Order $order,
+        array $arUserResult,
+        HttpRequest $request,
+        array $arParams,
+        array &$arResult
+    ): void {
         if (ConfigProvider::getLoyaltyProgramStatus() === 'Y') {
-            $bonusInput       = (int)$request->get('bonus-input');
-            $availableBonuses = (int)$request->get('available-bonuses');
-            $chargeRate       = (int)$request->get('charge-rate');
-
+            $bonusInput           = (int) $request->get('bonus-input');
+            $availableBonuses     = (int) $request->get('available-bonuses');
+            $chargeRate           = (int) $request->get('charge-rate');
+            $loyaltyDiscountInput = (float) $request->get('loyalty-discount-input');
+            $calculateItemsInput  = $request->get('calculate-items-input');
+            $bonusDiscount        = $bonusInput * $chargeRate;
+            
             if ($bonusInput > $availableBonuses) {
                 $arResult['LOYALTY']['ERROR'] = GetMessage('BONUS_ERROR_MSG');
+                
                 return;
             }
             
-            $bonusDiscount = $bonusInput * $chargeRate;
+            $jsDataTotal = &$arResult['JS_DATA']['TOTAL'];
             
-            if ($bonusInput > 0
+            $isWriteOffAvailable = $bonusInput > 0
                 && $availableBonuses > 0
-                && $arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE'] >= $bonusDiscount
-            ) {
-                $arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE']          -= $bonusDiscount;
-                $arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE_FORMATED'] = number_format($arResult['JS_DATA']['TOTAL']['ORDER_TOTAL_PRICE'], 0, ',', ' ');
-                $arResult['JS_DATA']['TOTAL']['BONUS_PAYMENT']              = $bonusDiscount;
+                && $jsDataTotal['ORDER_TOTAL_PRICE'] >= $bonusDiscount + $loyaltyDiscountInput;
+            
+            if ($isWriteOffAvailable || $loyaltyDiscountInput > 0) {
+                $jsDataTotal['ORDER_TOTAL_PRICE']
+                                                        -= round($bonusDiscount + $loyaltyDiscountInput, 2);
+                $jsDataTotal['ORDER_TOTAL_PRICE_FORMATED']
+                                                        = number_format($jsDataTotal['ORDER_TOTAL_PRICE'], 0, ',', ' ')
+                    . ' ' . GetMessage('RUB');
+                $jsDataTotal['BONUS_PAYMENT']           = $bonusDiscount;
+                $jsDataTotal['DISCOUNT_PRICE']          += $bonusDiscount + $loyaltyDiscountInput;
+                $jsDataTotal['DISCOUNT_PRICE_FORMATED'] = $jsDataTotal['DISCOUNT_PRICE'] . ' ' . GetMessage('RUB');
+                $jsDataTotal['ORDER_PRICE_FORMATED']
+                                                        = $jsDataTotal['ORDER_PRICE'] - $loyaltyDiscountInput . ' ' . GetMessage('RUB');
+                $oldItems                               = json_decode(htmlspecialchars_decode($calculateItemsInput), true);
+                
+                if ($calculateItemsInput !== null) {
+                    foreach ($arResult['JS_DATA']['GRID']['ROWS'] as $key => &$item) {
+                        $item['data']['SUM_NUM'] = $oldItems[$key]['SUM_NUM'];
+                        $item['data']['SUM']     = $item['data']['SUM_NUM'] . GetMessage('RUB');
+                    }
+                }
+                
+                unset($item);
             }
+        }
+    }
+    
+    /**
+     * @param $items
+     */
+    public function addUpdateLoyaltyButton(&$items)
+    {
+        global $APPLICATION;
+        
+        if (
+            $_SERVER['REQUEST_METHOD'] === 'GET'
+            && $_REQUEST['ID'] > 0
+            && $APPLICATION->GetCurPage() === '/bitrix/admin/sale_order_view.php'
+        ) {
+            /** @var LoyaltyService $service */
+            $service = ServiceLocator::get(LoyaltyService::class);
+            $service->updateLoyaltyInfo($_REQUEST['ID']);
         }
     }
     
@@ -84,27 +130,72 @@ class EventsHandlers
      */
     public function OnSaleOrderSavedHandler(Event $event): void
     {
-        /* @var LoyaltyService $loyaltyService*/
-        $loyaltyService = ServiceLocator::get(LoyaltyService::class);
-        $retailCrmEvent = new RetailCrmEvent();
+        if (self::$disableSaleHandler === true) {
+            return;
+        }
+        
         try {
+            /* @var LoyaltyService $loyaltyService */
+            $loyaltyService = ServiceLocator::get(LoyaltyService::class);
+            $retailCrmEvent = new RetailCrmEvent();
+            /** @var Order $order */
+            $order = $event->getParameter('ENTITY');
+    
             // TODO: Replace old call with a new one.
-            $retailCrmEvent->orderSave($event);
+            $retailCrmEvent->orderSave($order);
     
-            $isNew = $event->getParameter("IS_NEW");
+            $isBonusInput = isset($_POST['bonus-input'], $_POST['available-bonuses']);
+            /** @var bool $isNewOrder */
+            $isNewOrder                 = $event->getParameter('IS_NEW');
+            $isLoyaltyOn                = ConfigProvider::getLoyaltyProgramStatus() === 'Y';
+            $isDataForLoyaltyDiscount   = isset($_POST['calculate-items-input'], $_POST['loyalty-discount-input']);
+            $isBonusesIssetAndAvailable = $isBonusInput
+                && (int)$_POST['available-bonuses'] >= (int) $_POST['bonus-input'];
+            
+            /** @var array $calculateItemsInput */
+            $calculateItemsInput        = $isDataForLoyaltyDiscount
+                ? json_decode(htmlspecialchars_decode($_POST['calculate-items-input']), true)
+                : [];
     
-            if (isset($_POST['bonus-input'], $_POST['available-bonuses'])
-                && $isNew
-                && (int)$_POST['available-bonuses'] >= (int)$_POST['bonus-input']
-            ) {
-                $rate       = isset($_POST['charge-rate']) ? htmlspecialchars(trim($_POST['charge-rate'])) : 1;
-                $bonusCount = (int)$_POST['bonus-input'];
-                $order      = $event->getParameter("ENTITY");
+            if ($isNewOrder && $isLoyaltyOn) {
+                self::$disableSaleHandler = true;
+                $hlInfo                   = $loyaltyService->addMainInfoToHl($order);
+                $discountInput            = isset($_POST['loyalty-discount-input'])
+                    ? (float)$_POST['loyalty-discount-input']
+                    : 0;
                 
-                $loyaltyService->applyBonusesInOrder($order, $bonusCount, $rate);
+                $loyaltyBonusMsg = 0;
+        
+                //Если есть бонусы
+                if ($isBonusesIssetAndAvailable) {
+                    $hlInfo = $loyaltyService->saveBonuses(
+                        $order,
+                        $hlInfo,
+                        (int) $_POST['bonus-input']
+                    );
+            
+                    $loyaltyBonusMsg = (int) $_POST['bonus-input'];
+                }
+        
+                //Если бонусов нет, но скидка по ПЛ есть
+                if ($isDataForLoyaltyDiscount && !$isBonusInput) {
+                    $loyaltyService->saveDiscounts($order, $calculateItemsInput);
+                }
+        
+                $loyaltyService->saveBonusAndDiscToOrderProps(
+                    $order->getPropertyCollection(),
+                    $discountInput,
+                    $loyaltyBonusMsg
+                );
+        
+                $hlInfo = $loyaltyService->addDiscountsToHl($calculateItemsInput, $hlInfo);
+                
+                $loyaltyService->saveLoyaltyInfoToHl($hlInfo);
+    
+                self::$disableSaleHandler = false;
             }
-        } catch (ObjectPropertyException | ArgumentException | SystemException $e) {
-            AddMessage2Log(GetMessage('CAN_NOT_SAVE_ORDER') . $e->getMessage());
+        } catch (Throwable $exception) {
+            AddMessage2Log(GetMessage('CAN_NOT_SAVE_ORDER') . $exception->getMessage());
         }
     }
     
@@ -138,9 +229,9 @@ class EventsHandlers
             $customerService->createOrUpdateCustomer($customer);
 
             //Если пользователь выразил желание зарегистрироваться в ПЛ и согласился со всеми правилами
-            if ((int)$arFields['UF_REG_IN_PL_INTARO'] === 1
-                && (int)$arFields['UF_AGREE_PL_INTARO'] === 1
-                && (int)$arFields['UF_PD_PROC_PL_INTARO'] === 1
+            if ((int) $arFields['UF_REG_IN_PL_INTARO'] === 1
+                && (int) $arFields['UF_AGREE_PL_INTARO'] === 1
+                && (int) $arFields['UF_PD_PROC_PL_INTARO'] === 1
             ) {
                 $phone          = $arFields['PERSONAL_PHONE'] ?? '';
                 $card           = $arFields['UF_CARD_NUM_INTARO'] ?? '';

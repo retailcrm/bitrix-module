@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PHP version 7.1
  *
@@ -9,10 +10,10 @@
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
  */
+
 namespace Intaro\RetailCrm\Repository;
 
 use Bitrix\Main\UserConsent\Internals\AgreementTable;
-use Bitrix\Sale\OrderUserProperties;
 use Intaro\RetailCrm\Component\Json\Deserializer;
 use Intaro\RetailCrm\Component\Json\Serializer;
 use Intaro\RetailCrm\Model\Bitrix\Agreement;

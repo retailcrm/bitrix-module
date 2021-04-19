@@ -1,18 +1,32 @@
 $(document).ready(function() {
     function makeAjaxRequest() {
-            $('#bonus-msg').html('Сколько бонусов потратить?');
-            BX.Sale.OrderAjaxComponent.sendRequest();
+        $('#bonus-msg').html(window.__MESS__.COUNT_FOR_WRITE_OFF);
+        let basketItemsHidden = window.__BASKET_ITEMS__;
+        let inputBonuses      = Number.parseInt($('#bonus-input').val());
+
+        BX.ajax.runAction('intaro:retailcrm.api.loyalty.order.calculateBonus',
+            {
+                data: {
+                    sessid: BX.bitrix_sessid(),
+                    basketItems: basketItemsHidden,
+                    inputBonuses: inputBonuses
+                }
+            }
+        )
+
+        BX.Sale.OrderAjaxComponent.sendRequest();
     }
 
     $('#bonus-input').on('keydown', function() {
-            $('#bonus-msg').html('Обработка информации');
-        });
+        $('#bonus-msg').html(window.__MESS__.DATA_PROCESSING);
+    });
 
     $('#bonus-input').keyup(function() {
         let availableBonuses = Number.parseInt($('#available-bonus-input').val());
-        let inputBonuses = Number.parseInt($('#bonus-input').val());
+        let inputBonuses     = Number.parseInt($('#bonus-input').val());
         if (inputBonuses > availableBonuses) {
-            $('#bonus-input-error').text('Вы не можете потратить более ' + availableBonuses + ' бонусов');
+            $('#bonus-input-error')
+                .text(window.__MESS__.YOU_CANT_SPEND_MORE + ' ' + availableBonuses + ' ' + window.__MESS__.BONUSES);
         } else {
             $('#bonus-input-error').html(null);
         }
@@ -30,7 +44,7 @@ function sendOrderVerificationCode() {
         {
             data: {
                 sessid: BX.bitrix_sessid(),
-                verificationCode:   verificationCode,
+                verificationCode: verificationCode,
                 orderId: orderId,
                 checkId: checkId
             }
