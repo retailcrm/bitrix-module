@@ -28,6 +28,7 @@ class RetailcrmConstants
     const CRM_DELIVERY_TYPES_ARR = 'deliv_types_arr';
     const CRM_DELIVERY_SERVICES_ARR = 'deliv_services_arr';
     const CRM_PAYMENT_TYPES = 'pay_types_arr';
+    const CRM_INTEGRATION_PAYMENT = 'integration_payment';
     const CRM_PAYMENT_STATUSES = 'pay_statuses_arr';
     const CRM_PAYMENT = 'payment_arr'; //order payment Y/N
     const CRM_ORDER_LAST_ID = 'order_last_id';

@@ -144,14 +144,14 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../classes/general/services/RetailCrmService.php');
 
         $version = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_VERSION, 0);
-        if ($version == 'v4') {
-            include($this->INSTALL_PATH . '/../classes/general/ApiClient_v4.php');
-            include($this->INSTALL_PATH . '/../classes/general/order/RetailCrmOrder_v4.php');
-            include($this->INSTALL_PATH . '/../classes/general/history/RetailCrmHistory_v4.php');
-        } elseif ($version == 'v5') {
+        if ($version == 'v5') {
             include($this->INSTALL_PATH . '/../classes/general/ApiClient_v5.php');
             include($this->INSTALL_PATH . '/../classes/general/order/RetailCrmOrder_v5.php');
             include($this->INSTALL_PATH . '/../classes/general/history/RetailCrmHistory_v5.php');
+        } elseif ($version == 'v4') {
+            include($this->INSTALL_PATH . '/../classes/general/ApiClient_v4.php');
+            include($this->INSTALL_PATH . '/../classes/general/order/RetailCrmOrder_v4.php');
+            include($this->INSTALL_PATH . '/../classes/general/history/RetailCrmHistory_v4.php');
         }
 
         $step = intval($_REQUEST['step']);
@@ -387,6 +387,17 @@ class intaro_retailcrm extends CModule
                     $delivTypes[$delivType['code']] = $delivType;
                 }
             }
+
+            $this->loadDeps();
+
+            RetailcrmConfigProvider::setIntegrationDelivery(
+                RetailCrmService::selectIntegrationDeliveries($arResult['deliveryTypesList'])
+            );
+
+            RetailcrmConfigProvider::setIntegrationPaymentTypes(
+                RetailCrmService::selectIntegrationPayments($arResult['paymentTypesList'])
+            );
+
             $arResult['deliveryTypesList'] = $delivTypes;
 
             //bitrix personTypes

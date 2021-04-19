@@ -547,6 +547,24 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         COption::SetOptionString($mid, $CRM_CURRENCY, $_POST['currency']);
     }
 
+    try {
+        $arResult['paymentTypesList'] = $api->paymentTypesList()->paymentTypes;
+        $arResult['deliveryTypesList'] = $api->deliveryTypesList()->deliveryTypes;
+    } catch (\RetailCrm\Exception\CurlException $e) {
+        RCrmActions::eventLog(
+            'intaro.retailcrm/options.php', 'RetailCrm\ApiClient::*List::CurlException',
+            $e->getCode() . ': ' . $e->getMessage()
+        );
+
+        echo CAdminMessage::ShowMessage(GetMessage('ERR_' . $e->getCode()));
+    }
+
+    $integrationPayments = RetailCrmService::selectIntegrationPayments($arResult['paymentTypesList']);
+    $integrationDeliveries = RetailCrmService::selectIntegrationDeliveries($arResult['deliveryTypesList']);
+
+    RetailcrmConfigProvider::setIntegrationPaymentTypes($integrationPayments);
+    RetailcrmConfigProvider::setIntegrationDelivery($integrationDeliveries);
+
     COption::SetOptionString($mid, $CRM_ADDRESS_OPTIONS, serialize($addressDatailOptions));
     COption::SetOptionString($mid, $CRM_SITES_LIST, serialize($siteListArr));
     COption::SetOptionString($mid, $CRM_ORDER_TYPES_ARR, serialize(RCrmActions::clearArr($orderTypesArr)));
@@ -634,18 +652,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         echo CAdminMessage::ShowMessage(GetMessage('ERR_JSON'));
     }
 
-    $deliveryTypes = array();
-    $deliveryIntegrationCode = array();
-    foreach ($arResult['deliveryTypesList'] as $deliveryType) {
-        if ($deliveryType['active'] === true) {
-            $deliveryTypes[$deliveryType['code']] = $deliveryType;
-            $deliveryIntegrationCode[$deliveryType['code']] = $deliveryType['integrationCode'];
-        }
-    }
-
-    $arResult['deliveryTypesList'] = $deliveryTypes;
-    COption::SetOptionString($mid, RetailcrmConstants::CRM_INTEGRATION_DELIVERY, serialize(RCrmActions::clearArr($deliveryIntegrationCode)));
-
     //bitrix orderTypesList -- personTypes
     $arResult['bitrixOrderTypesList'] = RCrmActions::OrderTypesList($arResult['arSites']);
 
@@ -699,7 +705,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
 
     $optionCollector = COption::GetOptionString($mid, $CRM_COLLECTOR, 0);
     $optionCollectorKeys = unserialize(COption::GetOptionString($mid, $CRM_COLL_KEY));
-    
+
     $optionOnlineConsultant = RetailcrmConfigProvider::isOnlineConsultantEnabled();
     $optionOnlineConsultantScript = RetailcrmConfigProvider::getOnlineConsultantScript();
 
@@ -1003,7 +1009,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                 </td>
             </tr>
             <tr class="heading">
-                <td colspan="2"><b><?php echo GetMessage('PAYMENT_TYPES_LIST'); ?></b></td>
+                <td colspan="2"><b><?php echo GetMessage('PAYMENT_TYPES_LIST'); ?></b>
+                    <p><small><?php echo GetMessage('INTEGRATION_PAYMENT_LIST');?></small></p></td>
             </tr>
             <?php foreach($arResult['bitrixPaymentTypesList'] as $bitrixPaymentType): ?>
                 <tr>
@@ -1015,7 +1022,9 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                             <option value="" selected=""></option>
                             <?php foreach($arResult['paymentTypesList'] as $paymentType): ?>
                                 <option value="<?php echo $paymentType['code']; ?>" <?php if ($optionsPayTypes[$bitrixPaymentType['ID']] == $paymentType['code']) echo 'selected'; ?>>
-                                    <?php echo $APPLICATION->ConvertCharset($paymentType['name'], 'utf-8', SITE_CHARSET); ?>
+                                    <?php
+                                    $nameType = isset($paymentType['integrationModule']) ? $APPLICATION->ConvertCharset($paymentType['name'] . GetMessage('INTEGRATIONS'), 'utf-8', SITE_CHARSET) : $APPLICATION->ConvertCharset($paymentType['name'], 'utf-8', SITE_CHARSET);
+                                    echo $nameType;?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
@@ -1450,7 +1459,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                     </td>
                 </tr>
             <?php endforeach;?>
-            
+
             <tr class="heading r-consultant-button">
                 <td colspan="2" class="option-other-heading">
                     <b>
@@ -1459,7 +1468,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                 </td>
             </tr>
 
-            <tr class="r-consultant" <?php if (!$optionOnlineConsultant) echo 'style="display: none;"'; ?>> 
+            <tr class="r-consultant" <?php if (!$optionOnlineConsultant) echo 'style="display: none;"'; ?>>
                 <td class="adm-detail-content-cell-l" width="45%"><?php echo GetMessage('ONLINE_CONSULTANT_LABEL')?></td>
                 <td class="adm-detail-content-cell-r" width="55%">
                     <textarea name="online_consultant_script"><?php echo $optionOnlineConsultantScript; ?></textarea>

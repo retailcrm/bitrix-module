@@ -233,7 +233,8 @@ else{
             </tr>
             <?php endforeach; ?>
             <tr class="heading">
-                <td colspan="2"><b><?php echo GetMessage('PAYMENT_TYPES_LIST'); ?></b></td>
+                <td colspan="2"><b><?php echo GetMessage('PAYMENT_TYPES_LIST'); ?></b>
+                    <p><small><?php echo GetMessage('INTEGRATION_PAYMENT_LIST');?></small></p></td>
             </tr>
             <?php foreach($arResult['bitrixPaymentTypesList'] as $bitrixPaymentType): ?>
             <tr>
@@ -246,7 +247,9 @@ else{
                         <?php foreach($arResult['paymentTypesList'] as $paymentType): ?>
                         <option value="<?php echo $paymentType['code']; ?>"
                             <?php if($defaultPayTypes[$bitrixPaymentType['ID']] == $paymentType['code']) echo 'selected'; ?>>
-                            <?php echo $APPLICATION->ConvertCharset($paymentType['name'], 'utf-8', SITE_CHARSET); ?>
+                            <?php
+                            $nameType = isset($paymentType['integrationModule']) ? $APPLICATION->ConvertCharset($paymentType['name'] . GetMessage('INTEGRATIONS'), 'utf-8', SITE_CHARSET) : $APPLICATION->ConvertCharset($paymentType['name'], 'utf-8', SITE_CHARSET);
+                            echo $nameType;?>
                         </option>
                         <?php endforeach; ?>
                     </select>

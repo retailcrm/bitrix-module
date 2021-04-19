@@ -20,3 +20,5 @@ $MESS ['MESS_5'] = 'A server error occurred, please contact Intaro Software.';
 $MESS ['DELIV_TYPES_EXPORT'] = 'Export a list of delivery types from 1C-Bitrix';
 $MESS ['DELIV_TYPES_EXPORT_F'] = 'Set the correspondence between 1C-Bitrix and RetailCRM delivery types';
 $MESS ['STATUS_NOT_SETTINGS'] ='Cannot find suitable statuses in Bitrix';
+$MESS ['INTEGRATIONS'] = ' (integration)';
+$MESS ['INTEGRATION_PAYMENT_LIST'] = 'The status will not be transferred for integration payments';
