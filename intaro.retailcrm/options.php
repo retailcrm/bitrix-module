@@ -2,12 +2,14 @@
 
 use Bitrix\Currency\CurrencyManager;
 use Bitrix\Main\Application;
+use Bitrix\Main\EventManager;
 use Bitrix\Main\LoaderException;
 use Bitrix\Main\SystemException;
 use Bitrix\Main\UI\Extension;
 use Bitrix\Sale\Delivery\Services\Manager;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Constants;
+use Intaro\RetailCrm\Component\Handlers\EventsHandlers;
 use Intaro\RetailCrm\Repository\AgreementRepository;
 use Intaro\RetailCrm\Repository\TemplateRepository;
 use Intaro\RetailCrm\Service\OrderLoyaltyDataService;
@@ -25,7 +27,7 @@ $CRM_DELIVERY_TYPES_ARR    = 'deliv_types_arr';
 $CRM_DELIVERY_SERVICES_ARR = 'deliv_services_arr';
 $CRM_PAYMENT_TYPES         = 'pay_types_arr';
 $CRM_PAYMENT_STATUSES      = 'pay_statuses_arr';
-$CRM_PAYMENT               = 'payment_arr'; //order payment Y/N
+$CRM_PAYMENT               = 'payment_arr';
 $CRM_ORDER_LAST_ID         = 'order_last_id';
 $CRM_ORDER_SITES           = 'sites_ids';
 $CRM_ORDER_DISCHARGE       = 'order_discharge';
@@ -36,37 +38,27 @@ $CRM_CONTRAGENT_TYPE       = 'contragent_type';
 $CRM_SITES_LIST            = 'sites_list';
 $CRM_ORDER_NUMBERS         = 'order_numbers';
 $CRM_CANSEL_ORDER          = 'cansel_order';
-
 $CRM_INVENTORIES_UPLOAD  = 'inventories_upload';
 $CRM_STORES              = 'stores';
 $CRM_SHOPS               = 'shops';
 $CRM_IBLOCKS_INVENTORIES = 'iblocks_inventories';
-
 $CRM_PRICES_UPLOAD  = 'prices_upload';
 $CRM_PRICES         = 'prices';
 $CRM_PRICE_SHOPS    = 'price_shops';
 $CRM_IBLOCKS_PRICES = 'iblock_prices';
-
 $CRM_COLLECTOR = 'collector';
 $CRM_COLL_KEY  = 'coll_key';
-
 $CRM_UA      = 'ua';
 $CRM_UA_KEYS = 'ua_keys';
-
-$CRM_DISCOUNT_ROUND = 'discount_round';
-
 $CRM_CC         = 'cc';
 $CRM_CORP_SHOPS = 'shops-corporate';
 $CRM_CORP_NAME  = 'nickName-corporate';
 $CRM_CORP_ADRES = 'adres-corporate';
-
 $CRM_API_VERSION = 'api_version';
-
 $CRM_CURRENCY        = 'currency';
 $CRM_ADDRESS_OPTIONS = 'address_options';
 $CRM_DIMENSIONS      = 'order_dimensions';
 $PROTOCOL            = 'protocol';
-
 $CRM_PURCHASE_PRICE_NULL = 'purchasePrice_null';
 
 if (!CModule::IncludeModule('intaro.retailcrm') || !CModule::IncludeModule('sale') || !CModule::IncludeModule('iblock') || !CModule::IncludeModule('catalog')) {
@@ -93,13 +85,13 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"] . '/bitrix/modules/intaro.retailcrm/cl
     $options = simplexml_load_file($_SERVER["DOCUMENT_ROOT"] . '/bitrix/modules/intaro.retailcrm/classes/general/config/options.xml');
 
     foreach ($options->contragents->contragent as $contragent) {
-        $type["NAME"]                 = $APPLICATION->ConvertCharset((string)$contragent, 'utf-8', SITE_CHARSET);
-        $type["ID"]                   = (string)$contragent["id"];
+        $type["NAME"]                 = $APPLICATION->ConvertCharset((string) $contragent, 'utf-8', SITE_CHARSET);
+        $type["ID"]                   = (string) $contragent["id"];
         $arResult['contragentType'][] = $type;
         unset ($type);
     }
     foreach ($options->fields->field as $field) {
-        $type["NAME"] = $APPLICATION->ConvertCharset((string)$field, 'utf-8', SITE_CHARSET);
+        $type["NAME"] = $APPLICATION->ConvertCharset((string) $field, 'utf-8', SITE_CHARSET);
         $type["ID"]   = (string)$field["id"];
 
         if ($field["group"] === 'custom') {
@@ -107,7 +99,7 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"] . '/bitrix/modules/intaro.retailcrm/cl
         } elseif (!$field["group"]) {
             $arResult['orderProps'][] = $type;
         } else {
-            $groups = explode(",", (string)$field["group"]);
+            $groups = explode(",", (string) $field["group"]);
             foreach ($groups as $group) {
                 $type["GROUP"][] = trim($group);
             }
@@ -179,7 +171,7 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_RE
         foreach ($ordersArr as $_ordersArr) {
             $ordersList = explode('-', trim($_ordersArr));
             if (count($ordersList) > 1) {
-                for ($i = (int)trim($ordersList[0]); $i <= (int)trim($ordersList[count($ordersList) - 1]); $i++) {
+                for ($i = (int) trim($ordersList[0]); $i <= (int)trim($ordersList[count($ordersList) - 1]); $i++) {
                     $orders[] = $i;
                 }
             } else {
@@ -309,14 +301,12 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $orderDischarge = (int)htmlspecialchars(trim($_POST['order-discharge']));
     if (($orderDischarge != $previousDischarge) && ($orderDischarge === 0)) {
         // remove depenedencies
-        UnRegisterModuleDependences("sale", \Bitrix\sale\EventActions::EVENT_ON_ORDER_SAVED, $mid, "RetailCrmEvent", "orderSave");
-        UnRegisterModuleDependences("sale", "OnOrderUpdate", $mid, "RetailCrmEvent", "onUpdateOrder");
-        UnRegisterModuleDependences("sale", "OnSaleOrderDeleted", $mid, "RetailCrmEvent", "orderDelete");
+        UnRegisterModuleDependences('sale', 'OnOrderUpdate', $mid, 'RetailCrmEvent', "onUpdateOrder");
+        UnRegisterModuleDependences('sale', 'OnSaleOrderDeleted', $mid, 'RetailCrmEvent', "orderDelete");
     } elseif (($orderDischarge != $previousDischarge) && ($orderDischarge === 1)) {
         // event dependencies
-        RegisterModuleDependences("sale", \Bitrix\sale\EventActions::EVENT_ON_ORDER_SAVED, $mid, "RetailCrmEvent", "orderSave");
-        RegisterModuleDependences("sale", "OnOrderUpdate", $mid, "RetailCrmEvent", "onUpdateOrder");
-        RegisterModuleDependences("sale", "OnSaleOrderDeleted", $mid, "RetailCrmEvent", "orderDelete");
+        RegisterModuleDependences('sale', 'OnOrderUpdate', $mid, 'RetailCrmEvent', "onUpdateOrder");
+        RegisterModuleDependences('sale', 'OnSaleOrderDeleted', $mid, 'RetailCrmEvent', "orderDelete");
     }
 
     $orderPropsArr = [];
@@ -582,17 +572,33 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             if (empty($hlName)) {
                 OrderLoyaltyDataService::createLoyaltyHlBlock();
             }
-        } catch (LoaderException | SystemException $e) {
-            AddMessage2Log($e->getMessage());
+        } catch (LoaderException | SystemException $exception) {
+            AddMessage2Log($exception->getMessage());
         }
         
         ConfigProvider::setLoyaltyProgramStatus('Y');
-    } else {
-        ConfigProvider::setLoyaltyProgramStatus('N');
-    }
-
-    if (isset($_POST['loyalty_toggle']) && $_POST['loyalty_toggle'] === 'on') {
-        ConfigProvider::setLoyaltyProgramStatus('Y');
+    
+        $eventManager = EventManager::getInstance();
+        
+        $eventManager->unRegisterEventHandler('sale',
+            'OnSaleOrderSaved',
+            Constants::MODULE_ID,
+            'RetailCrmEvent',
+            'orderSave'
+        );
+    
+        $eventManager->registerEventHandler(
+            'main',
+            'OnAdminContextMenuShow',
+            Constants::MODULE_ID,
+            EventsHandlers::class,
+            'addUpdateLoyaltyButton'
+        );
+        AddEventHandler(
+            'main',
+            'OnAdminContextMenuShow',
+            'OrderDetailAdminContextMenuShow'
+        );
     } else {
         ConfigProvider::setLoyaltyProgramStatus('N');
     }
@@ -611,32 +617,25 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     COption::SetOptionString($mid, $CRM_CUSTOM_FIELDS, serialize(RCrmActions::clearArr($customFieldsArr)));
     COption::SetOptionString($mid, $CRM_ORDER_NUMBERS, $orderNumbers);
     COption::SetOptionString($mid, $CRM_CANSEL_ORDER, serialize(RCrmActions::clearArr($canselOrderArr)));
-
     COption::SetOptionString($mid, $CRM_INVENTORIES_UPLOAD, $inventoriesUpload);
     COption::SetOptionString($mid, $CRM_STORES, serialize(RCrmActions::clearArr($bitrixStoresArr)));
     COption::SetOptionString($mid, $CRM_SHOPS, serialize(RCrmActions::clearArr($bitrixShopsArr)));
     COption::SetOptionString($mid, $CRM_IBLOCKS_INVENTORIES, serialize(RCrmActions::clearArr($bitrixIblocksInventories)));
-
     COption::SetOptionString($mid, $CRM_PRICES_UPLOAD, $pricesUpload);
     COption::SetOptionString($mid, $CRM_PRICES, serialize(RCrmActions::clearArr($bitrixPricesArr)));
     COption::SetOptionString($mid, $CRM_PRICE_SHOPS, serialize(RCrmActions::clearArr($bitrixPriceShopsArr)));
     COption::SetOptionString($mid, $CRM_IBLOCKS_PRICES, serialize(RCrmActions::clearArr($bitrixIblocksPrices)));
-
     COption::SetOptionString($mid, $CRM_COLLECTOR, $collector);
     COption::SetOptionString($mid, $CRM_COLL_KEY, serialize(RCrmActions::clearArr($collectorKeys)));
-
     RetailCrmConfigProvider::setOnlineConsultant($onlineConsultant);
     RetailCrmConfigProvider::setOnlineConsultantScript($onlineConsultantScript);
-
     COption::SetOptionString($mid, $CRM_UA, $ua);
     COption::SetOptionString($mid, $CRM_UA_KEYS, serialize(RCrmActions::clearArr($uaKeys)));
     COption::SetOptionString($mid, $CRM_DIMENSIONS, $orderDimensions);
     RetailcrmConfigProvider::setSendPaymentAmount($sendPaymentAmount);
-
-    COption::SetOptionString($mid, $CRM_DISCOUNT_ROUND, $discount_round);
+    RetailCrmConfigProvider::setDiscountRound($discount_round);
     COption::SetOptionString($mid, $CRM_PURCHASE_PRICE_NULL, $purchasePrice_null);
     COption::SetOptionString($mid, RetailcrmConstants::CRM_SHIPMENT_DEDUCTED, $shipment_deducted);
-
     COption::SetOptionString($mid, $CRM_CC, $cc);
     COption::SetOptionString($mid, $CRM_CORP_SHOPS, serialize(RCrmActions::clearArr($bitrixCorpShopsArr)));
     COption::SetOptionString($mid, $CRM_CORP_NAME, serialize(RCrmActions::clearArr((array)$bitrixCorpName)));
@@ -756,7 +755,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $optionUa = COption::GetOptionString($mid, $CRM_UA, 0);
     $optionUaKeys = unserialize(COption::GetOptionString($mid, $CRM_UA_KEYS));
 
-    $optionDiscRound        = COption::GetOptionString($mid, $CRM_DISCOUNT_ROUND, 0);
+    $optionDiscRound        = ConfigProvider::getDiscountRound();
     $optionPricePrchaseNull = COption::GetOptionString($mid, $CRM_PURCHASE_PRICE_NULL, 0);
     $optionShipmentDeducted = RetailcrmConfigProvider::getShipmentDeducted();
 
@@ -822,6 +821,12 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     ?>
     <?php
     CJSCore::Init(array("jquery"));
+    
+    try {
+        Extension::load("ui.notification");
+    } catch (LoaderException $e) {
+        AddMessage2Log($e->getMessage());
+    }
     ?>
     <script type="text/javascript">
         function createTemplates(donor) {
@@ -838,7 +843,18 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                         donor:     donor
                     }
                 }
-            );
+            ).then(result => {
+                if (result.data.status !== undefined && result.data.status === true) {
+                    BX.UI.Notification.Center.notify({
+                        content: "<?= GetMessage('TEMPLATE_SUCCESS_COPING') ?>"
+                    });
+                } else {
+                    BX.UI.Notification.Center.notify({
+                        content: "<?= GetMessage('TEMPLATE_COPING_ERROR') ?>"
+                    });
+                }
+                
+            });
         }
 
         function replaceDefaultTemplates(donor) {
@@ -853,6 +869,10 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
             if (donor === 'main.register') {
                 node = $('#lp-reg-templates input:checkbox:checked');
+            }
+            
+            if (donor === 'sale.basket.basket') {
+                node = $('#lp-basket-templates input:checkbox:checked');
             }
 
             node.each(
@@ -874,7 +894,17 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                         replaceDefaultTemplate: 'Y'
                     }
                 }
-            );
+            ).then(result => {
+                if (result.data.status !== undefined && result.data.status === true) {
+                    BX.UI.Notification.Center.notify({
+                        content: "<?= GetMessage('TEMPLATES_SUCCESS_COPING') ?>"
+                    });
+                } else {
+                    BX.UI.Notification.Center.notify({
+                        content: "<?= GetMessage('TEMPLATES_COPING_ERROR') ?>"
+                    });
+                }
+            });;
         }
 
         function editSaleTemplates(method) {
@@ -1617,7 +1647,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                     <input type="button" onclick="replaceDefaultTemplates('sale.basket.basket')" class="adm-btn-save" value="<?php echo GetMessage('LP_REPLACE_TEMPLATE'); ?>" />
                                 </td>
                                 <td width="50%" >
-                                    <div id="lp-reg-templates">
+                                    <div id="lp-basket-templates">
                                         <?php
                                         $templates = TemplateRepository::getAllIds();
                                         foreach ($templates as $template) {

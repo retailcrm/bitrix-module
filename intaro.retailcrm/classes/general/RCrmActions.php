@@ -1,5 +1,6 @@
 <?php
 
+use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\ServiceLocator;
 
 IncludeModuleLangFile(__FILE__);
@@ -213,10 +214,10 @@ class RCrmActions
      */
     public static function orderAgent()
     {
-        if (COption::GetOptionString('main', 'agents_use_crontab', 'N') != 'N') {
+        if (ConfigProvider::getAgentUseCrontab() !== 'N') {
             define('NO_AGENT_CHECK', true);
         }
-
+        
         RetailCrmHistory::customerHistory();
         RetailCrmHistory::orderHistory();
         self::uploadOrdersAgent();

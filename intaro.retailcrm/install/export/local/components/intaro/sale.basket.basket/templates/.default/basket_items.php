@@ -516,7 +516,7 @@ if ($normalCount > 0):
 						<td id="allSum_wVAT_FORMATED"><?=$arResult["allSum_wVAT_FORMATED"]?></td>
 					</tr>
 					<?
-					$showTotalPrice = (float)$arResult["DISCOUNT_PRICE_ALL"] > 0;
+					$showTotalPrice = (float) $arResult["DISCOUNT_PRICE_ALL"] > 0;
 					?>
 						<tr style="display: <?=($showTotalPrice ? 'table-row' : 'none'); ?>;">
 							<td class="custom_t1"></td>

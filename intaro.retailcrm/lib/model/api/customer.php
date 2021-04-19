@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PHP version 7.1
  *
@@ -9,9 +10,9 @@
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
  */
+
 namespace Intaro\RetailCrm\Model\Api;
 
-use DateTime;
 use Intaro\RetailCrm\Component\Json\Mapping;
 
 /**
@@ -24,7 +25,7 @@ class Customer extends AbstractApiModel
     /**
      * ID [обычного|корпоративного] клиента
      *
-     * @var integer $id
+     * @var int $id
      *
      * @Mapping\Type("integer")
      * @Mapping\SerializedName("id")
@@ -184,7 +185,7 @@ class Customer extends AbstractApiModel
     /**
      * ID менеджера, к которому привязан клиент
      *
-     * @var integer $managerId
+     * @var int $managerId
      *
      * @Mapping\Type("integer")
      * @Mapping\SerializedName("managerId")

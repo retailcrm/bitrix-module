@@ -12,6 +12,7 @@ use Bitrix\Main;
 use Bitrix\Main\Config\Option;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\ServiceLocator;
+use Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse;
 use Intaro\RetailCrm\Service\LoyaltyService;
 
 try {
@@ -60,23 +61,10 @@ $arResult['PERSONAL_LOYALTY_STATUS'] = LoyaltyService::getLoyaltyPersonalStatus(
 /** @var LoyaltyService $service */
 $service = ServiceLocator::get(LoyaltyService::class);
 
-if ($arResult['LOYALTY_STATUS'] === 'Y'
-    && $arResult['PERSONAL_LOYALTY_STATUS'] === true
-) {
-    //TODO есть проблемы с округлением. нужно изучить, можно ли не передавать $discountPercent
-    $discountPercent = round($arResult['DISCOUNT_PRICE_ALL'] / ($arResult['allSum'] / 100), 0);
-    $calculate       = $service->calculateBonus(
-        $arResult['BASKET_ITEM_RENDER_DATA'],
-        $arResult['DISCOUNT_PRICE_ALL'],
-        $discountPercent
-    );
+if ($arResult['LOYALTY_STATUS'] === 'Y' && $arResult['PERSONAL_LOYALTY_STATUS'] === true) {
+    $calculate = $service->calculateBonus($arResult['BASKET_ITEM_RENDER_DATA']);
     
-    if ($calculate->success) {
-        $arResult['LP_CALCULATE_SUCCESS']                  = $calculate->success;
-        $arResult['TOTAL_RENDER_DATA']['WILL_BE_CREDITED'] = $calculate->order->bonusesCreditTotal;
-    }
-    
-    foreach ($arResult['BASKET_ITEM_RENDER_DATA'] as $key => &$item) {
-        $item['WILL_BE_CREDITED_BONUS'] = $calculate->order->items[$key]->bonusesCreditTotal;
+    if ($calculate instanceof LoyaltyCalculateResponse && $calculate->success) {
+        $arResult = $service->calculateBasket($arResult, $calculate);
     }
 }

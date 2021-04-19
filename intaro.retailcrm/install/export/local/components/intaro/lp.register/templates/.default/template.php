@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Bitrix vars
  * @param array                    $arParams

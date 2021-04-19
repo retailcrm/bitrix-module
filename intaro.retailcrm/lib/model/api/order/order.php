@@ -1,23 +1,10 @@
 <?php
-/**
- * PHP version 7.1
- *
- * @category Integration
- * @package  Intaro\RetailCrm\Model\Api\Order
- * @author   RetailCRM <integration@retailcrm.ru>
- * @license  MIT
- * @link     http://retailcrm.ru
- * @see      http://retailcrm.ru/docs
- */
+
 namespace Intaro\RetailCrm\Model\Api\Order;
 
+use Intaro\RetailCrm\Model\Api\AbstractApiModel;
 use Intaro\RetailCrm\Component\Json\Mapping;
 
-/**
- * Class Order
- *
- * @package Intaro\RetailCrm\Model\Api\Order
- */
 class Order extends AbstractApiModel
 {
     /**
@@ -29,7 +16,7 @@ class Order extends AbstractApiModel
      * @Mapping\SerializedName("id")
      */
     public $id;
-
+    
     /**
      * Номер заказа
      *
@@ -39,7 +26,7 @@ class Order extends AbstractApiModel
      * @Mapping\SerializedName("number")
      */
     public $number;
-
+    
     /**
      * Внешний ID корпоративного клиента
      *
@@ -49,7 +36,7 @@ class Order extends AbstractApiModel
      * @Mapping\SerializedName("externalId")
      */
     public $externalId;
-
+    
     /**
      * Менеджер, прикрепленный к заказу
      *
@@ -59,7 +46,57 @@ class Order extends AbstractApiModel
      * @Mapping\SerializedName("managerId")
      */
     public $managerId;
-
+    
+    /**
+     * Количество начисленных бонусов
+     *
+     * @var double $bonusesCreditTotal
+     *
+     * @Mapping\Type("double")
+     * @Mapping\SerializedName("bonusesCreditTotal")
+     */
+    public $bonusesCreditTotal;
+    
+    /**
+     * Количество списанных бонусов
+     *
+     * @var double $bonusesChargeTotal
+     *
+     * @Mapping\Type("double")
+     * @Mapping\SerializedName("bonusesChargeTotal")
+     */
+    public $bonusesChargeTotal;
+    
+    /**
+     * Денежная скидка на весь заказ
+     *
+     * @var double $discountManualAmount
+     *
+     * @Mapping\Type("double")
+     * @Mapping\SerializedName("discountManualAmount")
+     */
+    public $discountManualAmount;
+    
+    /**
+     * Процентная скидка на весь заказ
+     *
+     * @var double $discountManualPercent
+     *
+     * @Mapping\Type("double")
+     * @Mapping\SerializedName("discountManualPercent")
+     */
+    public $discountManualPercent;
+    
+    /**
+     * Персональная скидка на заказ
+     *
+     * @var double $personalDiscountPercent
+     *
+     * @Mapping\Type("double")
+     * @Mapping\SerializedName("personalDiscountPercent")
+     */
+    public $personalDiscountPercent;
+    
     /**
      * Магазин
      *
@@ -69,7 +106,7 @@ class Order extends AbstractApiModel
      * @Mapping\SerializedName("site")
      */
     public $site;
-
+    
     /**
      * Статус заказа
      *
@@ -79,7 +116,7 @@ class Order extends AbstractApiModel
      * @Mapping\SerializedName("status")
      */
     public $status;
-
+    
     /**
      * @var \Intaro\RetailCrm\Model\Api\Order\SerializedOrderDelivery
      *
@@ -88,7 +125,17 @@ class Order extends AbstractApiModel
      * @Mapping\SerializedName("delivery")
      */
     public $delivery;
-
+    
+    /**
+     * Позиции в заказе
+     *
+     * @var array $items
+     *
+     * @Mapping\Type("array<Intaro\RetailCrm\Model\Api\Order\OrderProduct>")
+     * @Mapping\SerializedName("items")
+     */
+    public $items;
+    
     /**
      * @var double
      *
@@ -96,7 +143,7 @@ class Order extends AbstractApiModel
      * @Mapping\SerializedName("weight")
      */
     public $weight;
-
+    
     /**
      * @var int
      *
@@ -104,7 +151,7 @@ class Order extends AbstractApiModel
      * @Mapping\SerializedName("length")
      */
     public $length;
-
+    
     /**
      * @var int
      *
@@ -112,7 +159,7 @@ class Order extends AbstractApiModel
      * @Mapping\SerializedName("width")
      */
     public $width;
-
+    
     /**
      * @var int
      *

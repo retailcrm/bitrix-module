@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PHP version 7.1
  *
@@ -46,26 +47,13 @@ class Basket extends Controller
      */
     public function calculateBasketBonusesAction(array $basketData): array
     {
-        $discountPercent = round($basketData['DISCOUNT_PRICE_ALL'] / ($basketData['allSum'] / 100), 0);
-        $calculate       = $this->service->calculateBonus(
-            $basketData['BASKET_ITEM_RENDER_DATA'],
-            $basketData['DISCOUNT_PRICE_ALL'],
-            $discountPercent
-        );
+        $calculateBasket = [];
+        $calculate = $this->service->calculateBonus($basketData['BASKET_ITEM_RENDER_DATA']);
         
         if ($calculate->success) {
-            $response['LP_CALCULATE_SUCCESS'] = $calculate->success;
-            $response['WILL_BE_CREDITED']     = $calculate->order->bonusesCreditTotal;
+            $calculateBasket = $this->service->calculateBasket($basketData, $calculate);
         }
-        
-        foreach ($basketData['BASKET_ITEM_RENDER_DATA'] as $key => &$item) {
-            $item['WILL_BE_CREDITED_BONUS'] = $calculate->order->items[$key]->bonusesCreditTotal;
-        }
-        
-        unset($item);
-        
-        $response['BASKET_ITEM_RENDER_DATA'] = $basketData['BASKET_ITEM_RENDER_DATA'];
-        
-        return $response;
+    
+        return $calculateBasket;
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PHP version 7.1
  *
@@ -9,9 +10,9 @@
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
  */
+
 namespace Intaro\RetailCrm\Repository;
 
-use Bitrix\Main\Type\Collection;
 use Intaro\RetailCrm\Model\Bitrix\ORM\ToModuleTable;
 use Intaro\RetailCrm\Model\Bitrix\ToModule;
 

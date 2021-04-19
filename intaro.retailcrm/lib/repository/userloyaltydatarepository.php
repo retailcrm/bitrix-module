@@ -10,6 +10,7 @@
  * @link     http://retailcrm.ru
  * @see      http://retailcrm.ru/docs
  */
+
 namespace Intaro\RetailCrm\Repository;
 
 use Intaro\RetailCrm\Component\Json\Deserializer;
