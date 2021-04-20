@@ -1,5 +1,6 @@
 <?php
 
+$MESS['IBLOCK_NOT_SELECTED'] = 'No infoblock selected for export';
 $MESS ['RETAIL_MODULE_NAME'] = 'RetailCRM';
 $MESS ['MODULE_DESCRIPTION'] = 'Integration module with RetailCRM - specialized CRM for e-commerce';
 $MESS ['MODULE_PARTNER_NAME'] = 'Intaro Software';

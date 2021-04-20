@@ -2,6 +2,7 @@
 
 namespace Intaro\RetailCrm\Icml;
 
+use Bitrix\Main\SystemException;
 use COption;
 use Intaro\RetailCrm\Icml\Utils\IcmlUtils;
 use Intaro\RetailCrm\Model\Bitrix\Orm\CatalogIblockInfo;
@@ -70,19 +71,20 @@ class IcmlDirector
     
     /**
      * RetailCrmlXml constructor.
+     *
      * @param \Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup $setup
      */
     public function __construct(XmlSetup $setup)
     {
-        $this->setup              = $setup;
-        $this->shopName           = RetailcrmConfigProvider::getSiteName();
-        $this->catalogRepository  = new CatalogRepository();
-        $this->icmlWriter         = new IcmlWriter($this->setup->filePath);
+        $this->setup               = $setup;
+        $this->shopName            = RetailcrmConfigProvider::getSiteName();
+        $this->catalogRepository   = new CatalogRepository();
+        $this->icmlWriter          = new IcmlWriter($this->setup->filePath);
         $this->xmlOfferDirector    = new XmlOfferDirector($this->setup);
         $this->xmlCategoryDirector = new XmlCategoryDirector($this->setup->iblocksForExport);
-        $this->queryBuilder       = new QueryParamsMolder();
-        $this->xmlData            = new XmlData();
-        $this->logger             = Logger::getInstance('/bitrix/catalog_export/');
+        $this->queryBuilder        = new QueryParamsMolder();
+        $this->xmlData             = new XmlData();
+        $this->logger              = Logger::getInstance('/bitrix/catalog_export/');
     }
     
     /**

@@ -106,7 +106,7 @@ class XmlOfferDirector
     {
         foreach ($xmlOffers as $offer) {
             $offer->productId   = $product->id;
-            $offer->params      = array_merge($offer->params, $product->params);
+            $offer->params      = array_merge($this->dropEmpty($offer->params), $this->dropEmpty($product->params));
             $offer->unitCode    = $offer->unitCode->merge($product->unitCode);
             $offer->vatRate     = $offer->vatRate === 'none' ? $product->vatRate : $offer->vatRate;
             $offer->vendor      = $offer->mergeValues($product->vendor, $offer->vendor);
@@ -202,5 +202,21 @@ class XmlOfferDirector
                 ->fileRepository
                 ->getProductPicture($product, $pictureProperty ?? '')
         );
+    }
+    
+    /**
+     * @param array $params
+     *
+     * @return array
+     */
+    private function dropEmpty(array $params): array
+    {
+        foreach ($params as $key => $param) {
+            if (empty($param)) {
+                unset($params[$key]);
+            }
+        }
+        
+        return $params;
     }
 }

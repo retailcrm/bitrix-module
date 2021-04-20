@@ -147,9 +147,9 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../lib/icml/icmldirector.php');
         include($this->INSTALL_PATH . '/../lib/icml/icmlwriter.php');
         include($this->INSTALL_PATH . '/../lib/icml/queryparamsmolder.php');
+        include($this->INSTALL_PATH . '/../lib/icml/xmlcategorydirector.php');
         include($this->INSTALL_PATH . '/../lib/icml/xmlcategoryfactory.php');
-        include($this->INSTALL_PATH . '/../lib/icml/xmlcategoriesbuilder.php');
-        include($this->INSTALL_PATH . '/../lib/icml/xmlofferfactory.php');
+        include($this->INSTALL_PATH . '/../lib/icml/xmlofferdirector.php');
         include($this->INSTALL_PATH . '/../lib/icml/xmlofferbuilder.php');
         include($this->INSTALL_PATH . '/../lib/icml/utils/icmlutils.php');
         include($this->INSTALL_PATH . '/../lib/repository/catalogrepository.php');
@@ -927,9 +927,9 @@ class intaro_retailcrm extends CModule
             }
 
             if (!isset($_POST['MAX_OFFERS_VALUE'])) {
-                $maxOffers = "";
+                $maxOffers = DEFAULT_OFFERS_IN_ORDER;
             } else {
-                $maxOffers = $_POST['MAX_OFFERS_VALUE'];
+                $maxOffers = (int) $_POST['MAX_OFFERS_VALUE'];
             }
 
             if (!isset($_POST['SETUP_PROFILE_NAME'])) {
@@ -999,25 +999,28 @@ class intaro_retailcrm extends CModule
                     new XmlSetupProps($propertiesProduct, $propertiesUnitProduct, null),
                     new XmlSetupProps($propertiesSKU, $propertiesUnitSKU, null)
                 );
-                
+    
                 if ($hlblockModule === true) {
-                    $properties->highloadblockSku = $propertiesHbSKU;
+                    $properties->highloadblockSku     = $propertiesHbSKU;
                     $properties->highloadblockProduct = $propertiesHbProduct;
                 }
-                
-                $fileSetup = new XmlSetup($properties);
+    
+                $fileSetup                   = new XmlSetup($properties);
                 $fileSetup->iblocksForExport = $iblocks;
-
-                if ($maxOffers) {
-                    $fileSetup->maxOffersValue = $maxOffers;
-                }
-                
+                $fileSetup->maxOffersValue   = $maxOffers;
+    
                 require_once dirname(__FILE__) . '/../classes/general/RetailcrmConfigProvider.php';
-                
+    
                 $fileSetup->basePriceId = CatalogRepository::getBasePriceId($fileSetup->profileId);
-                $fileSetup->filePath = $filename;
-                $loader = new IcmlDirector($fileSetup);
-                $loader->generateXml();
+                $fileSetup->filePath    = $filename;
+    
+                if (!is_array($fileSetup->iblocksForExport) || count($fileSetup->iblocksForExport) === 0) {
+                    $message = new CAdminMessage(GetMessage("IBLOCK_NOT_SELECTED"));
+                    echo $message->Show();
+                } else {
+                    $loader = new IcmlDirector($fileSetup);
+                    $loader->generateXml();
+                }
             }
 
             COption::RemoveOption($this->MODULE_ID, $this->CRM_CATALOG_BASE_PRICE);
