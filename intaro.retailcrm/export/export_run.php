@@ -151,8 +151,7 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/exp
     $fileSetup->basePriceId = CatalogRepository::getBasePriceId($fileSetup->profileId);
     
     if (!is_array($fileSetup->iblocksForExport) || count($fileSetup->iblocksForExport) === 0) {
-        $message = new CAdminMessage(GetMessage("IBLOCK_NOT_SELECTED"));
-        echo $message->Show();
+        AddMessage2Log(GetMessage("IBLOCK_NOT_SELECTED"));
     } else {
         $loader = new IcmlDirector($fileSetup);
         $loader->generateXml();

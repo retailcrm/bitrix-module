@@ -994,6 +994,7 @@ class intaro_retailcrm extends CModule
             );
 
             $this->CopyFiles();
+            
             if (isset($_POST['LOAD_NOW'])) {
                 $properties = new XmlSetupPropsCategories(
                     new XmlSetupProps($propertiesProduct, $propertiesUnitProduct, null),
@@ -1015,8 +1016,7 @@ class intaro_retailcrm extends CModule
                 $fileSetup->filePath    = $filename;
     
                 if (!is_array($fileSetup->iblocksForExport) || count($fileSetup->iblocksForExport) === 0) {
-                    $message = new CAdminMessage(GetMessage("IBLOCK_NOT_SELECTED"));
-                    echo $message->Show();
+                    AddMessage2Log(GetMessage("IBLOCK_NOT_SELECTED"));
                 } else {
                     $loader = new IcmlDirector($fileSetup);
                     $loader->generateXml();
@@ -1275,7 +1275,14 @@ class intaro_retailcrm extends CModule
     function CopyFiles()
     {
         CopyDirFiles(
-            $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/export/', $_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/', true, true
+            $_SERVER['DOCUMENT_ROOT']
+            . '/bitrix/modules/'
+            . $this->MODULE_ID
+            . '/install/export/',
+            $_SERVER['DOCUMENT_ROOT']
+            . '/bitrix/php_interface/include/catalog_export/',
+            true,
+            true
         );
     }
 
