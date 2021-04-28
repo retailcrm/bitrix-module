@@ -971,15 +971,15 @@ class intaro_retailcrm extends CModule
             }
 
             $iblockProperties = [
-                "article"      => "article",
-                "manufacturer" => "manufacturer",
-                "color"        => "color",
-                "weight"       => "weight",
-                "size"         => "size",
-                "length"       => "length",
-                "width"        => "width",
-                "height"       => "height",
-                "picture"      => "picture",
+                'article'      => 'article',
+                'manufacturer' => 'manufacturer',
+                'color'        => 'color',
+                'weight'       => 'weight',
+                'size'         => 'size',
+                'length'       => 'length',
+                'width'        => 'width',
+                'height'       => 'height',
+                'picture'      => 'picture',
             ];
 
             $propertiesSKU     = [];
@@ -1392,6 +1392,7 @@ class intaro_retailcrm extends CModule
 
         $lpTemplateNames = [
             'sale.order.ajax',
+            'sale.basket.basket',
             'main.register',
         ];
 
