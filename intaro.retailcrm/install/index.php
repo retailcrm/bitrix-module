@@ -1014,11 +1014,12 @@ class intaro_retailcrm extends CModule
     
                 $fileSetup->basePriceId = CatalogRepository::getBasePriceId($fileSetup->profileId);
                 $fileSetup->filePath    = $filename;
+                $logger = Logger::getInstance('/bitrix/catalog_export/');
     
                 if (!is_array($fileSetup->iblocksForExport) || count($fileSetup->iblocksForExport) === 0) {
-                    AddMessage2Log(GetMessage("IBLOCK_NOT_SELECTED"));
+                    $logger->write(GetMessage('IBLOCK_NOT_SELECTED'), 'i_crm_load_log');
                 } else {
-                    $loader = new IcmlDirector($fileSetup);
+                    $loader = new IcmlDirector($fileSetup, $logger);
                     $loader->generateXml();
                 }
             }

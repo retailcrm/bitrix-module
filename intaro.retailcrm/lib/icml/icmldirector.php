@@ -73,8 +73,9 @@ class IcmlDirector
      * RetailCrmlXml constructor.
      *
      * @param \Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup $setup
+     * @param \Logger                                     $logger
      */
-    public function __construct(XmlSetup $setup)
+    public function __construct(XmlSetup $setup, Logger $logger)
     {
         $this->setup               = $setup;
         $this->shopName            = RetailcrmConfigProvider::getSiteName();
@@ -84,7 +85,7 @@ class IcmlDirector
         $this->xmlCategoryDirector = new XmlCategoryDirector($this->setup->iblocksForExport);
         $this->queryBuilder        = new QueryParamsMolder();
         $this->xmlData             = new XmlData();
-        $this->logger              = Logger::getInstance('/bitrix/catalog_export/');
+        $this->logger              = $logger;
     }
     
     /**
