@@ -890,15 +890,15 @@ class intaro_retailcrm extends CModule
             }
 
             $iblockProperties = [
-                "article"      => "article",
-                "manufacturer" => "manufacturer",
-                "color"        => "color",
-                "weight"       => "weight",
-                "size"         => "size",
-                "length"       => "length",
-                "width"        => "width",
-                "height"       => "height",
-                "picture"      => "picture",
+                'article'      => 'article',
+                'manufacturer' => 'manufacturer',
+                'color'        => 'color',
+                'weight'       => 'weight',
+                'size'         => 'size',
+                'length'       => 'length',
+                'width'        => 'width',
+                'height'       => 'height',
+                'picture'      => 'picture',
             ];
 
             $propertiesSKU     = [];
@@ -1021,8 +1021,6 @@ class intaro_retailcrm extends CModule
                 30
             );
 
-            $this->CopyFiles();
-
             if (isset($_POST['LOAD_NOW'])) {
                 $loader                        = new RetailCrmICML();
                 $loader->iblocks               = $iblocks;
@@ -1106,11 +1104,11 @@ class intaro_retailcrm extends CModule
                     );
 
                     CCatalogExport::Update($PROFILE_ID, [
-                        "IN_AGENT" => "Y",
+                        'IN_AGENT' => 'Y',
                     ]);
                 } else {
                     $agent_period   = 24;
-                    $agent_php_path = "/usr/local/php/bin/php";
+                    $agent_php_path = '/usr/local/php/bin/php';
 
                     if (!file_exists($_SERVER["DOCUMENT_ROOT"] . CATALOG_PATH2EXPORTS . "cron_frame.php")) {
                         CheckDirPath($_SERVER["DOCUMENT_ROOT"] . CATALOG_PATH2EXPORTS);
@@ -1295,9 +1293,10 @@ class intaro_retailcrm extends CModule
             true,
             false
         );
-
+    
         $lpTemplateNames = [
             'sale.order.ajax',
+            'sale.basket.basket',
             'main.register',
         ];
 
