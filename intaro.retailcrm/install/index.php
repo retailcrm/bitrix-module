@@ -24,6 +24,7 @@ use Intaro\RetailCrm\Service\OrderLoyaltyDataService;
 use \RetailCrm\ApiClient;
 use RetailCrm\Exception\CurlException;
 use Intaro\RetailCrm\Repository\ToModuleRepository;
+use RetailCrm\Http\Client;
 
 Loader::IncludeModule('highloadblock');
 
@@ -1460,12 +1461,19 @@ class intaro_retailcrm extends CModule
 
         return $end['id'];
     }
-
-    function ping($api_host, $api_key)
+    
+    /**
+     * @param string $api_host
+     * @param string $api_key
+     *
+     * @return array
+     */
+    function ping(string $api_host, string $api_key): array
     {
         global $APPLICATION;
 
-        $client = new RetailCrm\Http\Client($api_host . '/api/'.self::V5, ['apiKey' => $api_key]);
+        $client = new Client($api_host . '/api/'.self::V5, ['apiKey' => $api_key]);
+        
         try {
             $result = $client->makeRequest('/reference/sites', 'GET');
         } catch (CurlException $e) {
@@ -1476,11 +1484,16 @@ class intaro_retailcrm extends CModule
 
             $res['errCode'] = 'ERR_' . $e->getCode();
         }
-
-        if ($result->getStatusCode() == 200) {
+    
+        if (!isset($result) || $result === null || $result->getStatusCode() == 200) {
             COption::SetOptionString($this->MODULE_ID, $this->CRM_API_VERSION, self::V5);
-            $res['sitesList'] = $APPLICATION->ConvertCharsetArray($result->sites, 'utf-8', SITE_CHARSET);
-
+        
+            $res['sitesList'] = $APPLICATION->ConvertCharsetArray(
+                $result->sites,
+                'utf-8',
+                SITE_CHARSET
+            );
+        
             return $res;
         } else {
             $res['errCode'] = 'ERR_METHOD_NOT_FOUND';
