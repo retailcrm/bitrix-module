@@ -17,12 +17,23 @@ use Intaro\RetailCrm\Service\LoyaltyService;
 
 try {
     Main\Loader::includeModule('intaro.retailcrm');
-} catch (Main\LoaderException $exception) {
+    
+    $arResult['LOYALTY_STATUS']          = ConfigProvider::getLoyaltyProgramStatus();
+    $arResult['PERSONAL_LOYALTY_STATUS'] = LoyaltyService::getLoyaltyPersonalStatus();
+    
+    /** @var LoyaltyService $service */
+    $service = ServiceLocator::get(LoyaltyService::class);
+    
+    if ($arResult['LOYALTY_STATUS'] === 'Y' && $arResult['PERSONAL_LOYALTY_STATUS'] === true) {
+        $calculate = $service->calculateBonus($arResult['BASKET_ITEM_RENDER_DATA']);
+        
+        if ($calculate instanceof LoyaltyCalculateResponse && $calculate->success) {
+            $arResult = $service->calculateBasket($arResult, $calculate);
+        }
+    }
+} catch (Throwable $exception) {
     AddMessage2Log($exception->getMessage());
 }
-
-$contragentsTypes = ConfigProvider::getContragentTypes();
-$key              = array_search('individual', $contragentsTypes, true);
 
 $defaultParams = [
     'TEMPLATE_THEME' => 'blue',
@@ -52,19 +63,4 @@ if ('' !== $arParams['TEMPLATE_THEME']) {
 
 if ('' === $arParams['TEMPLATE_THEME']) {
     $arParams['TEMPLATE_THEME'] = 'blue';
-}
-
-
-$arResult['LOYALTY_STATUS']          = ConfigProvider::getLoyaltyProgramStatus();
-$arResult['PERSONAL_LOYALTY_STATUS'] = LoyaltyService::getLoyaltyPersonalStatus();
-
-/** @var LoyaltyService $service */
-$service = ServiceLocator::get(LoyaltyService::class);
-
-if ($arResult['LOYALTY_STATUS'] === 'Y' && $arResult['PERSONAL_LOYALTY_STATUS'] === true) {
-    $calculate = $service->calculateBonus($arResult['BASKET_ITEM_RENDER_DATA']);
-    
-    if ($calculate instanceof LoyaltyCalculateResponse && $calculate->success) {
-        $arResult = $service->calculateBasket($arResult, $calculate);
-    }
 }
