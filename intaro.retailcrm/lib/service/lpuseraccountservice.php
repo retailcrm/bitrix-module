@@ -70,7 +70,7 @@ class LpUserAccountService
             return $response;
         }
 
-        Utils::handleErrors($response);
+        Utils::handleApiErrors($response);
 
         return $response;
     }
@@ -100,7 +100,7 @@ class LpUserAccountService
         $createResponse = $client->createLoyaltyAccount($createRequest);
 
         if ($createResponse instanceof LoyaltyAccountCreateResponse) {
-            Utils::handleErrors($createResponse, GetMessage('REGISTER_ERROR'));
+            Utils::handleApiErrors($createResponse, GetMessage('REGISTER_ERROR'));
         }
 
         return $createResponse;
@@ -134,7 +134,7 @@ class LpUserAccountService
             ]);
         }
 
-        Utils::handleErrors($createResponse, GetMessage('REGISTER_ERROR'));
+        Utils::handleApiErrors($createResponse, GetMessage('REGISTER_ERROR'));
     }
 
     /**
@@ -157,7 +157,7 @@ class LpUserAccountService
         $response = $client->sendVerificationCode($request);
 
         if ($response !== null) {
-            Utils::handleErrors($response, GetMessage('DEBITING_BONUSES_ERROR'));
+            Utils::handleApiErrors($response, GetMessage('DEBITING_BONUSES_ERROR'));
         }
 
         return $response;
