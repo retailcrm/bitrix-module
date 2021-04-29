@@ -387,11 +387,12 @@ class intaro_retailcrm extends CModule
                 return false;
             }
 
-            $ping = $this->ping($api_host, $api_key);
-            if (isset($ping['sitesList'])) {
-                $arResult['sitesList'] = $ping['sitesList'];
-            } elseif (isset($ping['errCode'])) {
-                $arResult['errCode'] = $ping['errCode'];
+            $shopResponse = $this->getReferenceShops($api_host, $api_key);
+
+            if (isset($shopResponse['sitesList'])) {
+                $arResult['sitesList'] = $shopResponse['sitesList'];
+            } elseif (isset($shopResponse['errCode'])) {
+                $arResult['errCode'] = $shopResponse['errCode'];
                 $APPLICATION->IncludeAdminFile(
                     GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step1.php'
                 );
@@ -473,11 +474,12 @@ class intaro_retailcrm extends CModule
                     return false;
                 }
 
-                $ping = $this->ping($api_host, $api_key);
-                if (isset($ping['sitesList'])) {
-                    $arResult['sitesList'] = $ping['sitesList'];
-                } elseif (isset($ping['errCode'])) {
-                    $arResult['errCode'] = $ping['errCode'];
+                $shopResponse = $this->getReferenceShops($api_host, $api_key);
+
+                if (isset($shopResponse['sitesList'])) {
+                    $arResult['sitesList'] = $shopResponse['sitesList'];
+                } elseif (isset($shopResponse['errCode'])) {
+                    $arResult['errCode'] = $shopResponse['errCode'];
                     $APPLICATION->IncludeAdminFile(
                         GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step1.php'
                     );
@@ -1552,12 +1554,14 @@ class intaro_retailcrm extends CModule
     }
 
     /**
+     * Возвращает список магазинов, связанных с текущим ключом API
+     *
      * @param string $api_host
      * @param string $api_key
      *
      * @return array
      */
-    function ping(string $api_host, string $api_key): array
+    private function getReferenceShops(string $api_host, string $api_key): array
     {
         global $APPLICATION;
 
