@@ -1,5 +1,6 @@
 <?php
 
+use Bitrix\Main\UserTable;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Model\Api\Response\OrdersCreateResponse;
 use Intaro\RetailCrm\Model\Api\Response\OrdersEditResponse;
@@ -101,50 +102,13 @@ class RetailCrmEvent
      */
     public function orderSave($event)
     {
-        if (true == $GLOBALS['ORDER_DELETE_USER_ADMIN']) {
+        $isConfigValid = $this->checkConfig();
+        
+        if (!$isConfigValid) {
             return null;
         }
-        
-        if ($GLOBALS['RETAILCRM_ORDER_OLD_EVENT'] === false
-            && $GLOBALS['RETAILCRM_ORDER_DELETE'] === true
-        ) {
-            return null;
-        }
-        
-        if ($GLOBALS['RETAIL_CRM_HISTORY'] === true) {
-            return null;
-        }
-        
-        if (!CModule::IncludeModule('iblock')) {
-            RCrmActions::eventLog('RetailCrmEvent::orderSave', 'iblock', 'module not found');
-            
-            return null;
-        }
-        
-        if (!CModule::IncludeModule('sale')) {
-            RCrmActions::eventLog('RetailCrmEvent::orderSave', 'sale', 'module not found');
-            
-            return null;
-        }
-        
-        if (!CModule::IncludeModule('catalog')) {
-            RCrmActions::eventLog('RetailCrmEvent::orderSave', 'catalog', 'module not found');
-            
-            return null;
-        }
-        
-        //exists getParameter("ENTITY")
-        if (method_exists($event, 'getId')) {
-            $obOrder = $event;
-        } elseif (method_exists($event, 'getParameter')) {
-            $obOrder = $event->getParameter('ENTITY');
-        } else {
-            RCrmActions::eventLog('RetailCrmEvent::orderSave', 'events', 'event error');
-            
-            return null;
-        }
-        
-        $arOrder = RetailCrmOrder::orderObjToArr($obOrder);
+    
+        $arOrder = $this->getOrderArray($event);
         
         $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
         
@@ -189,6 +153,7 @@ class RetailCrmEvent
         
         //new order?
         $orderCrm = RCrmActions::apiMethod($api, 'ordersGet', __METHOD__, $arOrder['ID'], $site);
+       
         if (isset($orderCrm['order'])) {
             $methodApi            = 'ordersEdit';
             $arParams['crmOrder'] = $orderCrm['order'];
@@ -274,7 +239,7 @@ class RetailCrmEvent
             $userCrm = RCrmActions::apiMethod($api, 'customersGet', __METHOD__, $arOrder['USER_ID'], $site);
             
             if (!isset($userCrm['customer'])) {
-                $arUser = Bitrix\Main\UserTable::getById($arOrder['USER_ID'])->fetch();
+                $arUser = UserTable::getById($arOrder['USER_ID'])->fetch();
                 
                 if (!empty($address)) {
                     $arUser['PERSONAL_STREET'] = $address;
@@ -397,11 +362,23 @@ class RetailCrmEvent
         } else {
             //user
             $userCrm = RCrmActions::apiMethod($api, 'customersGet', __METHOD__, $arOrder['USER_ID'], $site);
+            
             if (!isset($userCrm['customer'])) {
                 $arUser     = Bitrix\Main\UserTable::getById($arOrder['USER_ID'])->fetch();
-                $resultUser = RetailCrmUser::customerSend($arUser, $api, $optionsContragentType[$arOrder['PERSON_TYPE_ID']], true, $site);
+                $resultUser = RetailCrmUser::customerSend(
+                    $arUser,
+                    $api,
+                    $optionsContragentType[$arOrder['PERSON_TYPE_ID']],
+                    true,
+                    $site
+                );
+                
                 if (!$resultUser) {
-                    RCrmActions::eventLog('RetailCrmEvent::orderSave', 'RetailCrmUser::customerSend', 'error during creating customer');
+                    RCrmActions::eventLog(
+                        'RetailCrmEvent::orderSave',
+                        'RetailCrmUser::customerSend',
+                        'error during creating customer'
+                    );
                     
                     return null;
                 }
@@ -409,9 +386,13 @@ class RetailCrmEvent
         }
 
         $resultOrder = RetailCrmOrder::orderSend($arOrder, $api, $arParams, true, $site, $methodApi);
-       
+
         if (!$resultOrder) {
-            RCrmActions::eventLog('RetailCrmEvent::orderSave', 'RetailCrmOrder::orderSend', 'error during creating order');
+            RCrmActions::eventLog(
+                'RetailCrmEvent::orderSave',
+                'RetailCrmOrder::orderSend',
+                'error during creating order'
+            );
             
             return null;
         }
@@ -597,5 +578,64 @@ class RetailCrmEvent
                 }
             }
         }
+    }
+    
+    /**
+     * @return bool
+     */
+    private function checkConfig(): bool
+    {
+        if (true == $GLOBALS['ORDER_DELETE_USER_ADMIN']) {
+            return false;
+        }
+    
+        if ($GLOBALS['RETAILCRM_ORDER_OLD_EVENT'] === false
+            && $GLOBALS['RETAILCRM_ORDER_DELETE'] === true
+        ) {
+            return false;
+        }
+    
+        if ($GLOBALS['RETAIL_CRM_HISTORY'] === true) {
+            return false;
+        }
+    
+        if (!CModule::IncludeModule('iblock')) {
+            RCrmActions::eventLog('RetailCrmEvent::orderSave', 'iblock', 'module not found');
+        
+            return false;
+        }
+    
+        if (!CModule::IncludeModule('sale')) {
+            RCrmActions::eventLog('RetailCrmEvent::orderSave', 'sale', 'module not found');
+        
+            return false;
+        }
+    
+        if (!CModule::IncludeModule('catalog')) {
+            RCrmActions::eventLog('RetailCrmEvent::orderSave', 'catalog', 'module not found');
+        
+            return false;
+        }
+        
+        return true;
+    }
+    
+    /**
+     * @throws \Bitrix\Main\SystemException
+     */
+    private function getOrderArray($event): ?array
+    {
+        //exists getParameter("ENTITY")
+        if (method_exists($event, 'getId')) {
+            $obOrder = $event;
+        } elseif (method_exists($event, 'getParameter')) {
+            $obOrder = $event->getParameter('ENTITY');
+        } else {
+            RCrmActions::eventLog('RetailCrmEvent::orderSave', 'events', 'event error');
+        
+            return null;
+        }
+    
+        return RetailCrmOrder::orderObjToArr($obOrder);
     }
 }

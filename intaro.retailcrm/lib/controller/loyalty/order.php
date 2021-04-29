@@ -49,7 +49,7 @@ class Order extends Controller
                 return $response;
             }
             
-            Utils::handleErrors($response);
+            Utils::handleApiErrors($response);
         }
         
         return null;

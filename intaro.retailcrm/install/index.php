@@ -17,6 +17,7 @@ use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
 use Bitrix\Sale\Delivery\Services\Manager;
 use Bitrix\Sale\Internals\OrderTable;
+use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Handlers\EventsHandlers;
 use Intaro\RetailCrm\Model\Bitrix\Agreement;
 use Intaro\RetailCrm\Repository\AgreementRepository;
@@ -317,11 +318,12 @@ class intaro_retailcrm extends CModule
                 return false;
             }
 
-            $ping = $this->ping($api_host, $api_key);
-            if (isset($ping['sitesList'])) {
-                $arResult['sitesList'] = $ping['sitesList'];
-            } elseif (isset($ping['errCode'])) {
-                $arResult['errCode'] = $ping['errCode'];
+            $shopResponse = $this->getReferenceShops($api_host, $api_key);
+
+            if (isset($shopResponse['sitesList'])) {
+                $arResult['sitesList'] = $shopResponse['sitesList'];
+            } elseif (isset($shopResponse['errCode'])) {
+                $arResult['errCode'] = $shopResponse['errCode'];
                 $APPLICATION->IncludeAdminFile(
                     GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step1.php'
                 );
@@ -403,11 +405,12 @@ class intaro_retailcrm extends CModule
                     return false;
                 }
 
-                $ping = $this->ping($api_host, $api_key);
-                if (isset($ping['sitesList'])) {
-                    $arResult['sitesList'] = $ping['sitesList'];
-                } elseif (isset($ping['errCode'])) {
-                    $arResult['errCode'] = $ping['errCode'];
+                $shopResponse = $this->getReferenceShops($api_host, $api_key);
+                
+                if (isset($shopResponse['sitesList'])) {
+                    $arResult['sitesList'] = $shopResponse['sitesList'];
+                } elseif (isset($shopResponse['errCode'])) {
+                    $arResult['errCode'] = $shopResponse['errCode'];
                     $APPLICATION->IncludeAdminFile(
                         GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step1.php'
                     );
@@ -1462,17 +1465,18 @@ class intaro_retailcrm extends CModule
     }
     
     /**
+     * Возвращает список магазинов, связанных с текущим ключом API
+     *
      * @param string $api_host
      * @param string $api_key
      *
      * @return array
      */
-    function ping(string $api_host, string $api_key): array
+    private function getReferenceShops(string $api_host, string $api_key): array
     {
         global $APPLICATION;
 
         $client = new Client($api_host . '/api/'.self::V5, ['apiKey' => $api_key]);
-        
         try {
             $result = $client->makeRequest('/reference/sites', 'GET');
         } catch (CurlException $e) {
@@ -1484,8 +1488,8 @@ class intaro_retailcrm extends CModule
             $res['errCode'] = 'ERR_' . $e->getCode();
         }
     
-        if (!isset($result) || $result === null || $result->getStatusCode() == 200) {
-            COption::SetOptionString($this->MODULE_ID, $this->CRM_API_VERSION, self::V5);
+        if (!isset($result) || $result->getStatusCode() == 200) {
+            ConfigProvider::setApiVersion(self::V5);
         
             $res['sitesList'] = $APPLICATION->ConvertCharsetArray(
                 $result->sites,

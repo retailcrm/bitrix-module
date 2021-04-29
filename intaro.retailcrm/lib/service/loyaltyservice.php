@@ -424,7 +424,7 @@ class LoyaltyService
                 AddMessage2Log($exception->getMessage());
             }
         } else {
-            Utils::handleErrors($response);
+            Utils::handleApiErrors($response);
             return null;
         }
     }
@@ -445,7 +445,7 @@ class LoyaltyService
             return $response->loyaltyAccounts[0];
         }
         
-        Utils::handleErrors($response);
+        Utils::handleApiErrors($response);
         
         return null;
     }
