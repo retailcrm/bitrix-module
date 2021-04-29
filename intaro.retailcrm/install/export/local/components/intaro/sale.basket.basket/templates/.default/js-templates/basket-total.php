@@ -1,4 +1,4 @@
-<? if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
+<?php if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
 
 use Bitrix\Main\Localization\Loc;
 
@@ -9,7 +9,7 @@ use Bitrix\Main\Localization\Loc;
 ?>
 <script id="basket-total-template" type="text/html">
 	<div class="basket-checkout-container" data-entity="basket-checkout-aligner">
-		<?
+        <?php
 		if ($arParams['HIDE_COUPON'] !== 'Y')
 		{
 			?>
@@ -26,7 +26,7 @@ use Bitrix\Main\Localization\Loc;
 					</div>
 				</div>
 			</div>
-			<?
+            <?php
 		}
 		?>
 		<div class="basket-checkout-section">
@@ -103,8 +103,8 @@ use Bitrix\Main\Localization\Loc;
 				</div>
 			</div>
 		</div>
-
-		<?
+        
+        <?php
 		if ($arParams['HIDE_COUPON'] !== 'Y')
 		{
 		?>
@@ -123,7 +123,7 @@ use Bitrix\Main\Localization\Loc;
 					{{/COUPON_LIST}}
 				</div>
 			</div>
-			<?
+            <?php
 		}
 		?>
 	</div>

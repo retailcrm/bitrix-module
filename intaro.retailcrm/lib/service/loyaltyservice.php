@@ -758,13 +758,13 @@ class LoyaltyService
      * Добавляет информацию о списанных бонусах и скидках программы лояльности в св-ва заказа
      *
      * @param \Bitrix\Sale\PropertyValueCollectionBase $props
-     * @param float                                    $loyaltyDiscountInput
-     * @param float                                    $loyaltyBonus
+     * @param float|null                               $loyaltyDiscountInput
+     * @param float|null                               $loyaltyBonus
      */
     public function saveBonusAndDiscToOrderProps(
         PropertyValueCollectionBase $props,
-        float $loyaltyDiscountInput = 0,
-        float $loyaltyBonus = 0
+        ?float $loyaltyDiscountInput = 0,
+        ?float $loyaltyBonus = 0
     ): void {
         /** @var \Bitrix\Sale\PropertyValue $prop */
         foreach ($props as $prop) {
@@ -780,9 +780,9 @@ class LoyaltyService
     
     /**
      * @param \Bitrix\Sale\PropertyValue $prop
-     * @param float                      $loyaltyBonus
+     * @param float|null                 $loyaltyBonus
      */
-    public function saveLpBonusesToOrderProp(PropertyValue $prop, float $loyaltyBonus): void
+    public function saveLpBonusesToOrderProp(PropertyValue $prop, ?float $loyaltyBonus = 0): void
     {
         try {
             $result = $prop->setField('VALUE', (string)$loyaltyBonus);

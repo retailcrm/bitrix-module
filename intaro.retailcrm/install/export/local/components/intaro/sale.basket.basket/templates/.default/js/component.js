@@ -648,12 +648,12 @@
 							},
 						}
 						).then((response) => {
-						//если это бонусы
+						//если это бонусы TOTAL
 						if (response.data.WILL_BE_CREDITED !== undefined) {
 							$('#BONUSES_TOTAL').text(response.data.WILL_BE_CREDITED);
 						}
 
-						//если это скидки
+						//если это скидки TOTAL
 						if (response.data.TOTAL_RENDER_DATA.LOYALTY_DISCOUNT_FORMATED !== undefined) {
 							$('#LOYALTY_DISCOUNT_TOTAL')
 								.text(response.data.TOTAL_RENDER_DATA.LOYALTY_DISCOUNT_FORMATED);
