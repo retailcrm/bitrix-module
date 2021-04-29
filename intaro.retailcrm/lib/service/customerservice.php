@@ -84,7 +84,7 @@ class CustomerService
             return $response->id;
         }
 
-        Utils::handleErrors($response);
+        Utils::handleApiErrors($response);
 
         return false;
     }
@@ -111,7 +111,7 @@ class CustomerService
             return $response->id;
         }
 
-        Utils::handleErrors($response);
+        Utils::handleApiErrors($response);
 
         return false;
     }
@@ -134,7 +134,7 @@ class CustomerService
             return $response->customer;
         }
 
-        Utils::handleErrors($response);
+        Utils::handleApiErrors($response);
 
         return null;
     }

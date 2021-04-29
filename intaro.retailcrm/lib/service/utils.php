@@ -16,8 +16,10 @@ namespace Intaro\RetailCrm\Service;
 use Bitrix\Main\Entity\DataManager;
 use Bitrix\Main\Loader;
 use Bitrix\Main\Text\Encoding;
+use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Model\Api\Response\AbstractApiResponseModel;
 use Bitrix\Highloadblock as Highloadblock;
+use Logger;
 
 /**
  * Class Utils
@@ -173,7 +175,7 @@ class Utils
      * @param \Intaro\RetailCrm\Model\Api\Response\AbstractApiResponseModel $response
      * @param string                                                        $errorMsg
      */
-    public static function handleErrors(AbstractApiResponseModel $response, $errorMsg = 'ERROR')
+    public static function handleApiErrors(AbstractApiResponseModel $response, $errorMsg = 'ERROR')
     {
         if (isset($response->errorMsg) && !empty($response->errorMsg)) {
             $errorDetails = '';
@@ -183,8 +185,9 @@ class Utils
             }
         
             $msg = sprintf('%s (%s %s)', $errorMsg, $response->errorMsg, $errorDetails);
-        
-            AddMessage2Log($msg);
+            $logger = Logger::getInstance();
+            
+            $logger->write($msg, Constants::API_ERRORS_LOG);
         }
     }
     

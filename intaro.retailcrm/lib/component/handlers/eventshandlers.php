@@ -24,6 +24,8 @@ use Intaro\RetailCrm\Repository\UserRepository;
 use Intaro\RetailCrm\Service\LoyaltyService;
 use Intaro\RetailCrm\Service\LpUserAccountService;
 use Intaro\RetailCrm\Service\CustomerService;
+use Intaro\RetailCrm\Service\Utils;
+use Logger;
 use RetailCrmEvent;
 use Throwable;
 
@@ -142,8 +144,10 @@ class EventsHandlers
             $order = $event->getParameter('ENTITY');
     
             // TODO: Replace old call with a new one.
-            $retailCrmEvent->orderSave($order);
-    
+            $saveResult = $retailCrmEvent->orderSave($order);
+            
+            Utils::handleApiErrors($saveResult);
+            
             $isBonusInput = isset($_POST['bonus-input'], $_POST['available-bonuses']);
             /** @var bool $isNewOrder */
             $isNewOrder                 = $event->getParameter('IS_NEW');
@@ -195,7 +199,8 @@ class EventsHandlers
                 self::$disableSaleHandler = false;
             }
         } catch (Throwable $exception) {
-            AddMessage2Log(GetMessage('CAN_NOT_SAVE_ORDER') . $exception->getMessage());
+            $logger = Logger::getInstance();
+            $logger->write(GetMessage('CAN_NOT_SAVE_ORDER') . $exception->getMessage(), 'uploadApiErrors');
         }
     }
     
