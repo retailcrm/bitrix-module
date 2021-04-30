@@ -1400,7 +1400,7 @@ class intaro_retailcrm extends CModule
 
         foreach ($lpTemplateNames as $lpTemplateName){
             $lpTemplatePath = $_SERVER['DOCUMENT_ROOT']
-                . '/local/templates/.default/components/bitrix/' . $lpTemplateName . '/intaro.retailcrm';
+                . '/local/templates/.default/components/bitrix/' . $lpTemplateName . '/default_loyalty';
 
             if (!file_exists($lpTemplatePath)) {
                 $pathFrom = $_SERVER['DOCUMENT_ROOT']
