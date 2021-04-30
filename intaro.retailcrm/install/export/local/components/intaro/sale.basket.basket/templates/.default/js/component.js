@@ -633,6 +633,8 @@
 				}
 			}
 
+			console.log(this.getData(data));
+
 			BX.ajax({
 				method: 'POST',
 				dataType: 'json',
@@ -663,6 +665,9 @@
 
 							$('.basket-coupon-block-total-price-difference').find('span:first-child')
 								.text(response.data.TOTAL_RENDER_DATA.DISCOUNT_PRICE_FORMATED);
+
+							$('.basket-coupon-block-total-price-old')
+								.html(response.data.TOTAL_RENDER_DATA.PRICE_WITHOUT_DISCOUNT_FORMATED);
 
 							$('#LOYALTY_DISCOUNT_DEFAULT')
 								.text(response.data.TOTAL_RENDER_DATA.LOYALTY_DISCOUNT_DEFAULT);
@@ -699,8 +704,6 @@
 								}
 							);
 						}
-					}
-				);
 
 					this.actionPool.doProcessing(false);
 
@@ -721,7 +724,7 @@
 						this.deleteBasketItems(result.MERGED_BASKET_ITEMS, false, true);
 					}
 
-					this.applyBasketResult(result.BASKET_DATA);
+					this.applyBasketResult(response.data);
 
 					this.editBasketItems(this.getItemsToEdit());
 					this.editTotal();
@@ -734,6 +737,9 @@
 					if (this.isBasketIntegrated() && this.isBasketChanged()) {
 						BX.Sale.OrderAjaxComponent.sendRequest();
 					}
+
+					}
+				);
 
 				}, this),
 				onfailure: BX.delegate(function() {
