@@ -1256,7 +1256,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                                 <select name="legal-detail-<?php echo $legalDetails['ID'] . '-' . $siteCode.'_'.$bitrixOrderType['ID']; ?>" class="typeselect">
                                     <option value=""></option>
                                     <?php foreach ($arResult['arProp'][$bitrixOrderType['ID']] as $arProp): ?>
-                                        <option value="<?php echo $arProp['CODE']; ?>" <?php if ($optionsLegalDetails[$bitrixOrderType['ID']][$legalDetails['ID']] == $arProp['CODE']) echo 'selected'; ?>>
+                                        <option value="<?php echo $arProp['CODE']; ?>" <?php if ($optionsLegalDetails[$siteCode][$bitrixOrderType['ID']][$legalDetails['ID']] == $arProp['CODE']) echo 'selected'; ?>>
                                             <?php echo $arProp['NAME']; ?>
                                         </option>
                                     <?php endforeach; ?>
