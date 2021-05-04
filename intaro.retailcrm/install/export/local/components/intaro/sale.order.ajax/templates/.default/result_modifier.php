@@ -17,7 +17,7 @@ if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) {
  * @var SaleOrderAjax $component
  */
 
-/** RetailCRM loyalty program  Start*/
+/** RetailCRM loyalty program start */
 try {
     Loader::includeModule('intaro.retailcrm');
     
@@ -29,7 +29,7 @@ try {
         $service = ServiceLocator::get(LoyaltyService::class);
         
         /** @var LoyaltyCalculateResponse $calculate */
-        $calculate = $service->calculateBonus($arResult['BASKET_ITEMS']);
+        $calculate = $service->getLoyaltyCalculate($arResult['BASKET_ITEMS']);
         
         if ($calculate instanceof LoyaltyCalculateResponse && $calculate->success) {
             $arResult = $service->calculateOrderBasket($arResult, $calculate);
@@ -45,7 +45,7 @@ try {
 } catch (Throwable $exception) {
     AddMessage2Log($exception->getMessage());
 }
-/** RetailCRM loyalty program  End*/
+/** RetailCRM loyalty program end */
 
 $component = $this->__component;
 

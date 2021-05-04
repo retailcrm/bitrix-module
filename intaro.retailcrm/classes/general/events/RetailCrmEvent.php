@@ -1,5 +1,11 @@
 <?php
 
+use Bitrix\Catalog\Model\Event;
+use Bitrix\Main\UserTable;
+use Bitrix\Sale\Order;
+use Intaro\RetailCrm\Component\ConfigProvider;
+use Intaro\RetailCrm\Model\Api\Response\OrdersCreateResponse;
+use Intaro\RetailCrm\Model\Api\Response\OrdersEditResponse;
 use Intaro\RetailCrm\Service\ManagerService;
 use Bitrix\Sale\Payment;
 use RetailCrm\ApiClient;
@@ -30,22 +36,22 @@ class RetailCrmEvent
         if (isset($GLOBALS['RETAIL_CRM_HISTORY']) && $GLOBALS['RETAIL_CRM_HISTORY']) {
             return false;
         }
-        
+
         if (!$arFields['RESULT']) {
             return false;
         }
-        
+
         $optionsSitesList = RetailcrmConfigProvider::getSitesList();
         $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
         $resultOrder = RetailCrmUser::customerEdit($arFields, $api, $optionsSitesList);
-        
+
         if (!$resultOrder) {
             RCrmActions::eventLog('RetailCrmEvent::OnAfterUserUpdate', 'RetailCrmUser::customerEdit', 'error update customer');
         }
-        
+
         return true;
     }
-    
+
     /**
      * onUpdateOrder
      *
@@ -58,19 +64,19 @@ class RetailCrmEvent
             $GLOBALS['RETAILCRM_ORDER_OLD_EVENT'] = false;
             return;
         }
-        
+
         $GLOBALS['RETAILCRM_ORDER_OLD_EVENT'] = true;
-        
+
         if (($arFields['CANCELED'] === 'Y')
             && (sizeof($arFields['BASKET_ITEMS']) == 0)
             && (sizeof($arFields['ORDER_PROP']) == 0)
         ) {
             $GLOBALS['ORDER_DELETE_USER_ADMIN'] = true;
         }
-        
+
         return;
     }
-    
+
     /**
      * orderDelete
      *
@@ -79,12 +85,12 @@ class RetailCrmEvent
     public function orderDelete($event)
     {
         $GLOBALS['RETAILCRM_ORDER_DELETE'] = true;
-        
+
         return;
     }
-    
+
     /**
-     * @param $event
+     * @param \Bitrix\Sale\Order|\Bitrix\Main\Event $event
      *
      * @return bool
      * @throws \Bitrix\Main\ObjectPropertyException
@@ -93,38 +99,18 @@ class RetailCrmEvent
      */
     public function orderSave($event)
     {
-        if (true == $GLOBALS['ORDER_DELETE_USER_ADMIN']) {
-            return false;
+        if (!$this->checkConfig()) {
+            return null;
         }
-        
-        if ($GLOBALS['RETAILCRM_ORDER_OLD_EVENT'] === false
-            && $GLOBALS['RETAILCRM_ORDER_DELETE'] === true
-        ) {
-            return false;
-        }
-        
-        if ($GLOBALS['RETAIL_CRM_HISTORY'] === true) {
-            return false;
-        }
-        
-        if (!CModule::IncludeModule('iblock')) {
-            RCrmActions::eventLog('RetailCrmEvent::orderSave', 'iblock', 'module not found');
-            
-            return false;
-        }
-        
-        if (!CModule::IncludeModule('sale')) {
-            RCrmActions::eventLog('RetailCrmEvent::orderSave', 'sale', 'module not found');
-            
-            return false;
-        }
-        
+
+        $arOrder = $this->getOrderArray($event);
+
         if (!CModule::IncludeModule('catalog')) {
             RCrmActions::eventLog('RetailCrmEvent::orderSave', 'catalog', 'module not found');
-            
+
             return false;
         }
-        
+
         //exists getParameter("ENTITY")
         if (method_exists($event, 'getId')) {
             $obOrder = $event;
@@ -132,14 +118,14 @@ class RetailCrmEvent
             $obOrder = $event->getParameter('ENTITY');
         } else {
             RCrmActions::eventLog('RetailCrmEvent::orderSave', 'events', 'event error');
-            
+
             return false;
         }
 
         $arOrder = RetailCrmOrder::orderObjToArr($obOrder);
-        
+
         $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
-        
+
         //params
         $optionsOrderTypes = RetailcrmConfigProvider::getOrderTypes();
         $optionsDelivTypes = RetailcrmConfigProvider::getDeliveryTypes();
@@ -151,10 +137,10 @@ class RetailCrmEvent
         $optionsLegalDetails = RetailcrmConfigProvider::getLegalDetails();
         $optionsContragentType = RetailcrmConfigProvider::getContragentTypes();
         $optionsCustomFields = RetailcrmConfigProvider::getCustomFields();
-        
+
         //corp cliente swich
         $optionCorpClient = RetailcrmConfigProvider::getCorporateClientStatus();
-        
+
         $arParams = RCrmActions::clearArr([
             'optionsOrderTypes'     => $optionsOrderTypes,
             'optionsDelivTypes'     => $optionsDelivTypes,
@@ -167,7 +153,7 @@ class RetailCrmEvent
             'optionsSitesList'      => $optionsSitesList,
             'optionsCustomFields'   => $optionsCustomFields,
         ]);
-        
+
         //many sites?
         if ($optionsSitesList) {
             if (array_key_exists($arOrder['LID'], $optionsSitesList) && $optionsSitesList[$arOrder['LID']] !== null) {
@@ -178,7 +164,7 @@ class RetailCrmEvent
         } elseif (!$optionsSitesList) {
             $site = null;
         }
-        
+
         //new order?
         $orderCrm = RCrmActions::apiMethod($api, 'ordersGet', __METHOD__, $arOrder['ID'], $site);
         if (isset($orderCrm['order'])) {
@@ -187,7 +173,7 @@ class RetailCrmEvent
         } else {
             $methodApi = 'ordersCreate';
         }
-        
+
         $orderCompany = null;
         if ('Y' === $optionCorpClient) {
             if (true === RetailCrmCorporateClient::isCorpTookExternalId((string) $arOrder['USER_ID'], $api)) {
@@ -206,34 +192,34 @@ class RetailCrmEvent
             $userCorp = [];
             $corpName = RetailcrmConfigProvider::getCorporateClientName();
             $corpAddress = RetailcrmConfigProvider::getCorporateClientAddress();
-            
+
             foreach ($arOrder['PROPS']['properties'] as $prop) {
                 if ($prop['CODE'] === $corpName) {
                     $nickName = $prop['VALUE'][0];
                 }
-                
+
                 if ($prop['CODE'] === $corpAddress) {
                     $address = $prop['VALUE'][0];
                 }
-                
+
                 if (!empty($optionsLegalDetails)
                     && $search = array_search($prop['CODE'], $optionsLegalDetails[$arOrder['PERSON_TYPE_ID']])
                 ) {
                     $contragent[$search] = $prop['VALUE'][0];//legal order data
                 }
             }
-            
+
             if (!empty($contragentType)) {
                 $contragent['contragentType'] = $contragentType;
             }
-            
+
             $customersCorporate = false;
             $response = $api->customersCorporateList(['companyName' => $nickName]);
-            
+
             if ($response && $response->getStatusCode() == 200) {
                 $customersCorporate = $response['customersCorporate'];
                 $singleCorp = reset($customersCorporate);
-                
+
                 if (!empty($singleCorp)) {
                     $userCorp['customerCorporate'] = $singleCorp;
                     $companiesResponse = $api->customersCorporateCompanies(
@@ -244,7 +230,7 @@ class RetailCrmEvent
                         'id',
                         $site
                     );
-                    
+
                     if ($companiesResponse && $companiesResponse->isSuccessful()) {
                         $orderCompany = array_reduce(
                             $companiesResponse['companies'],
@@ -252,7 +238,7 @@ class RetailCrmEvent
                                 if (is_array($item) && $item['name'] === $nickName) {
                                     $carry = $item;
                                 }
-                                
+
                                 return $carry;
                             },
                             null
@@ -265,35 +251,35 @@ class RetailCrmEvent
                     'ApiClient::customersCorporateList',
                     'error during fetching corporate customers'
                 );
-                
+
                 return false;
             }
-            
+
             //user
             $userCrm = RCrmActions::apiMethod($api, 'customersGet', __METHOD__, $arOrder['USER_ID'], $site);
-            
+
             if (!isset($userCrm['customer'])) {
                 $arUser = Bitrix\Main\UserTable::getById($arOrder['USER_ID'])->fetch();
-                
+
                 if (!empty($address)) {
                     $arUser['PERSONAL_STREET'] = $address;
                 }
-                
+
                 $resultUser = RetailCrmUser::customerSend($arUser, $api, 'individual', true, $site);
-                
+
                 if (!$resultUser) {
                     RCrmActions::eventLog(
                         __CLASS__ . '::' . __METHOD__,
                         'RetailCrmUser::customerSend',
                         'error during creating customer'
                     );
-                    
+
                     return false;
                 }
-                
+
                 $userCrm = ['customer' => ['externalId' => $arOrder['USER_ID']]];
             }
-            
+
             if (!isset($userCorp['customerCorporate'])) {
                 $resultUserCorp = RetailCrmCorporateClient::clientSend(
                     $arOrder,
@@ -303,23 +289,23 @@ class RetailCrmEvent
                     false,
                     $site
                 );
-                
+
                 Logger::getInstance()->write($resultUserCorp, 'resultUserCorp');
-                
+
                 if (!$resultUserCorp) {
                     RCrmActions::eventLog('RetailCrmEvent::orderSave', 'RetailCrmCorporateClient::clientSend', 'error during creating client');
-                    
+
                     return false;
                 }
-                
+
                 $arParams['customerCorporate'] = $resultUserCorp;
                 $arParams['orderCompany'] = $resultUserCorp['mainCompany'] ?? null;
-                
+
                 $customerCorporateAddress = [];
                 $customerCorporateCompany = [];
                 $addressResult = null;
                 $companyResult = null;
-                
+
                 if (!empty($address)) {
                     //TODO address builder add
                     $customerCorporateAddress = [
@@ -327,24 +313,24 @@ class RetailCrmEvent
                         'isMain' => true,
                         'text'   => $address,
                     ];
-                    
+
                     $addressResult = $api->customersCorporateAddressesCreate($resultUserCorp['id'], $customerCorporateAddress, 'id', $site);
                 }
-                
+
                 $customerCorporateCompany = [
                     'name'       => $nickName,
                     'isMain'     => true,
                     'contragent' => $contragent,
                 ];
-                
+
                 if (!empty($addressResult)) {
                     $customerCorporateCompany['address'] = [
                         'id' => $addressResult['id'],
                     ];
                 }
-                
+
                 $companyResult = $api->customersCorporateCompaniesCreate($resultUserCorp['id'], $customerCorporateCompany, 'id', $site);
-                
+
                 $customerCorporateContact = [
                     'isMain'   => true,
                     'customer' => [
@@ -352,26 +338,26 @@ class RetailCrmEvent
                         'site'       => $site,
                     ],
                 ];
-                
+
                 if (!empty($companyResult)) {
                     $orderCompany = [
                         'id' => $companyResult['id'],
                     ];
-                    
+
                     $customerCorporateContact['companies'] = [
                         [
                             'company' => $orderCompany,
                         ],
                     ];
                 }
-                
+
                 $api->customersCorporateContactsCreate(
                     $resultUserCorp['id'],
                     $customerCorporateContact,
                     'id',
                     $site
                 );
-                
+
                 $arParams['orderCompany'] = array_merge(
                     $customerCorporateCompany,
                     ['id' => $companyResult['id']]
@@ -384,14 +370,14 @@ class RetailCrmEvent
                     $api,
                     $site = null
                 );
-                
+
                 $arParams['customerCorporate'] = $userCorp['customerCorporate'];
-                
+
                 if (!empty($orderCompany)) {
                     $arParams['orderCompany'] = $orderCompany;
                 }
             }
-            
+
             $arParams['contactExId'] = $userCrm['customer']['externalId'];
         } else {
             //user
@@ -401,7 +387,7 @@ class RetailCrmEvent
                 $resultUser = RetailCrmUser::customerSend($arUser, $api, $optionsContragentType[$arOrder['PERSON_TYPE_ID']], true, $site);
                 if (!$resultUser) {
                     RCrmActions::eventLog('RetailCrmEvent::orderSave', 'RetailCrmUser::customerSend', 'error during creating customer');
-                    
+
                     return false;
                 }
             }
@@ -412,16 +398,16 @@ class RetailCrmEvent
         }
         //order
         $resultOrder = RetailCrmOrder::orderSend($arOrder, $api, $arParams, true, $site, $methodApi);
-        
+
         if (!$resultOrder) {
             RCrmActions::eventLog('RetailCrmEvent::orderSave', 'RetailCrmOrder::orderSend', 'error during creating order');
-            
+
             return false;
         }
-        
+
         return true;
     }
-    
+
     /**
      * @param \Bitrix\Sale\Payment $event
      *
@@ -432,22 +418,22 @@ class RetailCrmEvent
     public function paymentSave(Payment $event)
     {
         $apiVersion = COption::GetOptionString(self::$MODULE_ID, 'api_version', 0);
-        
+
         /** @var \Bitrix\Sale\Order $order */
         $order = $event->getCollection()->getOrder();
-        
+
         if ((isset($GLOBALS['RETAIL_CRM_HISTORY']) && $GLOBALS['RETAIL_CRM_HISTORY'])
             || $apiVersion !== 'v5'
             || $order->isNew()
         ) {
             return false;
         }
-        
+
         $optionsSitesList = RetailcrmConfigProvider::getSitesList();
         $optionsPaymentTypes = RetailcrmConfigProvider::getPaymentTypes();
         $optionsPayStatuses = RetailcrmConfigProvider::getPayment();
         $integrationPaymentTypes = RetailcrmConfigProvider::getIntegrationPaymentTypes();
-        
+
         $arPayment = [
             'ID'            => $event->getId(),
             'ORDER_ID'      => $event->getField('ORDER_ID'),
@@ -457,7 +443,7 @@ class RetailCrmEvent
             'LID'           => $order->getSiteId(),
             'DATE_PAID'     => $event->getField('DATE_PAID'),
         ];
-        
+
         if ($optionsSitesList) {
             if (array_key_exists($arPayment['LID'], $optionsSitesList) && $optionsSitesList[$arPayment['LID']] !== null) {
                 $site = $optionsSitesList[$arPayment['LID']];
@@ -467,14 +453,14 @@ class RetailCrmEvent
         } elseif (!$optionsSitesList) {
             $site = null;
         }
-        
+
         $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
         $orderCrm = RCrmActions::apiMethod($api, 'ordersGet', __METHOD__, $arPayment['ORDER_ID'], $site);
-        
+
         if (isset($orderCrm['order'])) {
             $payments = $orderCrm['order']['payments'];
         }
-        
+
         if ($payments) {
             foreach ($payments as $payment) {
                 if (isset($payment['externalId'])) {
@@ -487,16 +473,16 @@ class RetailCrmEvent
                 }
             }
         }
-        
+
         if (!empty($arPayment['PAY_SYSTEM_ID']) && isset($optionsPaymentTypes[$arPayment['PAY_SYSTEM_ID']])) {
             $paymentToCrm = [
                 'type' => $optionsPaymentTypes[$arPayment['PAY_SYSTEM_ID']],
             ];
-            
+
             if (!empty($arPayment['ID'])) {
                 $paymentToCrm['externalId'] = RCrmActions::generatePaymentExternalId($arPayment['ID']);
             }
-            
+
             if (!empty($arPayment['DATE_PAID'])) {
                 if (is_object($arPayment['DATE_PAID'])) {
                     $culture = new Bitrix\Main\Context\Culture(['FORMAT_DATETIME' => 'YYYY-MM-DD HH:MI:SS']);
@@ -505,15 +491,15 @@ class RetailCrmEvent
                     $paymentToCrm['paidAt'] = $arPayment['DATE_PAID'];
                 }
             }
-            
+
             if (!empty($optionsPayStatuses[$arPayment['PAID']])) {
                 $paymentToCrm['status'] = $optionsPayStatuses[$arPayment['PAID']];
             }
-            
+
             if (!empty($arPayment['ORDER_ID'])) {
                 $paymentToCrm['order']['externalId'] = $arPayment['ORDER_ID'];
             }
-            
+
             if (RetailcrmConfigProvider::shouldSendPaymentAmount()) {
                 $paymentToCrm['amount'] = $arPayment['SUM'];
             }
@@ -521,9 +507,9 @@ class RetailCrmEvent
             RCrmActions::eventLog('RetailCrmEvent::paymentSave', 'payments', 'OrderID = ' . $arPayment['ID'] . '. Payment not found.');
             return false;
         }
-        
+
         $arPaymentExtId = RCrmActions::generatePaymentExternalId($arPayment['ID']);
-        
+
         if (array_key_exists($arPaymentExtId, $paymentsExternalIds)) {
             $paymentData = $paymentsExternalIds[$arPaymentExtId];
         } elseif (array_key_exists($arPayment['ID'], $paymentsExternalIds)) {
@@ -531,7 +517,7 @@ class RetailCrmEvent
         } else {
             $paymentData = [];
         }
-        
+
         if (empty($paymentData)) {
             RCrmActions::apiMethod($api, 'ordersPaymentCreate', __METHOD__, $paymentToCrm, $site);
         } elseif ($paymentData['type'] == $optionsPaymentTypes[$arPayment['PAY_SYSTEM_ID']]) {
@@ -543,7 +529,7 @@ class RetailCrmEvent
                 );
                 return false;
             }
-            
+
             $paymentToCrm['externalId'] = $paymentData['externalId'];
             RCrmActions::apiMethod($api, 'paymentEditByExternalId', __METHOD__, $paymentToCrm, $site);
         } elseif ($paymentData['type'] != $optionsPaymentTypes[$arPayment['PAY_SYSTEM_ID']]) {
@@ -555,10 +541,10 @@ class RetailCrmEvent
             );
             RCrmActions::apiMethod($api, 'ordersPaymentCreate', __METHOD__, $paymentToCrm, $site);
         }
-        
+
         return true;
     }
-    
+
     /**
      * @param \Bitrix\Sale\Payment $event
      *
@@ -567,22 +553,22 @@ class RetailCrmEvent
     public function paymentDelete(Payment $event): void
     {
         $apiVersion = COption::GetOptionString(self::$MODULE_ID, 'api_version', 0);
-        
+
         if ((isset($GLOBALS['RETAIL_CRM_HISTORY']) && $GLOBALS['RETAIL_CRM_HISTORY'])
             || $apiVersion != 'v5'
             || !$event->getId()
         ) {
             return;
         }
-        
-        $optionsSitesList = RetailcrmConfigProvider::getSitesList();
-        
+
+        $optionsSitesList = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_SITES_LIST, 0));
+
         $arPayment = [
             'ID'       => $event->getId(),
             'ORDER_ID' => $event->getField('ORDER_ID'),
             'LID'      => $event->getCollection()->getOrder()->getSiteId(),
         ];
-        
+
         if ($optionsSitesList) {
             if (array_key_exists($arPayment['LID'], $optionsSitesList) && $optionsSitesList[$arPayment['LID']] !== null) {
                 $site = $optionsSitesList[$arPayment['LID']];
@@ -592,12 +578,12 @@ class RetailCrmEvent
         } elseif (!$optionsSitesList) {
             $site = null;
         }
-        
-        $api_host = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_HOST_OPTION, 0);
-        $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
-        $api = new ApiClient($api_host, $api_key);
+
+        $apiHost = ConfigProvider::getApiUrl();
+        $apiKey  = ConfigProvider::getApiKey();
+        $api      = new RetailCrm\ApiClient($apiHost, $apiKey);
         $orderCrm = RCrmActions::apiMethod($api, 'ordersGet', __METHOD__, $arPayment['ORDER_ID'], $site);
-        
+
         if (isset($orderCrm['order']['payments']) && $orderCrm['order']['payments']) {
             foreach ($orderCrm['order']['payments'] as $payment) {
                 if (isset($payment['externalId'])
@@ -608,5 +594,51 @@ class RetailCrmEvent
                 }
             }
         }
+    }
+
+    /**
+     * @return bool
+     */
+    private function checkConfig(): bool
+    {
+        if (true == $GLOBALS['ORDER_DELETE_USER_ADMIN']) {
+            return false;
+        }
+
+        if ($GLOBALS['RETAILCRM_ORDER_OLD_EVENT'] === false
+            && $GLOBALS['RETAILCRM_ORDER_DELETE'] === true
+        ) {
+            return false;
+        }
+
+        if ($GLOBALS['RETAIL_CRM_HISTORY'] === true) {
+            return false;
+        }
+
+        if (!RetailcrmDependencyLoader::loadDependencies()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param \Bitrix\Sale\Order|\Bitrix\Main\Event $event
+     *
+     * @throws \Bitrix\Main\SystemException
+     */
+    private function getOrderArray($event): ?array
+    {
+        if ($event instanceof Order) {
+            $obOrder = $event;
+        } elseif ($event instanceof Event) {
+            $obOrder = $event->getParameter('ENTITY');
+        } else {
+            RCrmActions::eventLog('RetailCrmEvent::orderSave', 'events', 'event error');
+
+            return null;
+        }
+
+        return RetailCrmOrder::orderObjToArr($obOrder);
     }
 }
