@@ -139,11 +139,13 @@ class LoyaltyService
     }
     
     /**
-     * @param array $basketItems
+     * Возвращает расчет привилегий на основе корзины и количества бонусов для списания
+     *
+     * @param array $basketItems корзина
      * @param float $bonuses количество бонусов для списания
      * @return \Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse|mixed|null
      */
-    public function calculateBonus(array $basketItems, float $bonuses = 0): ?LoyaltyCalculateResponse
+    public function getLoyaltyCalculate(array $basketItems, float $bonuses = 0): ?LoyaltyCalculateResponse
     {
         global $USER;
         
@@ -610,11 +612,13 @@ class LoyaltyService
     }
     
     /**
+     * Добавляет данные о программе лояльности  в массив корзины
+     *
      * @param array                                                                 $basketData
      * @param \Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse $calculate
      * @return array
      */
-    public function calculateBasket(array $basketData, LoyaltyCalculateResponse $calculate): array
+    public function addLoyaltyToBasket(array $basketData, LoyaltyCalculateResponse $calculate): array
     {
         $totalRenderData                     = &$basketData['TOTAL_RENDER_DATA'];
         $basketData['LP_CALCULATE_SUCCESS']  = $calculate->success;

@@ -75,7 +75,7 @@ if ($arResult["SHOW_SMS_FIELD"] == true) {
 
 <div class="bx-auth-reg">
     <?php if ($USER->IsAuthorized()): ?>
-        <?php if ($arResult['LOYALTY_STATUS'] === 'Y'): ?>
+        <?php if ('Y' === $arResult['LOYALTY_STATUS']): ?>
             <?php $this->addExternalJs(SITE_TEMPLATE_PATH . '/script.js'); ?>
     <div id="regBody">
             <?php if (isset($arResult['LP_REGISTER']['msg'])) { ?>

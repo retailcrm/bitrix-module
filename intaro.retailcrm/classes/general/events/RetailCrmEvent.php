@@ -1,6 +1,8 @@
 <?php
 
+use Bitrix\Catalog\Model\Event;
 use Bitrix\Main\UserTable;
+use Bitrix\Sale\Order;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Model\Api\Response\OrdersCreateResponse;
 use Intaro\RetailCrm\Model\Api\Response\OrdersEditResponse;
@@ -93,7 +95,7 @@ class RetailCrmEvent
     }
     
     /**
-     * @param mixed $event
+     * @param \Bitrix\Sale\Order|\Bitrix\Main\Event $event
      *
      * @return array|bool|null|OrdersCreateResponse|OrdersEditResponse
      * @throws \Bitrix\Main\ArgumentException
@@ -102,9 +104,7 @@ class RetailCrmEvent
      */
     public function orderSave($event)
     {
-        $isConfigValid = $this->checkConfig();
-        
-        if (!$isConfigValid) {
+        if (!$this->checkConfig()) {
             return null;
         }
     
@@ -599,21 +599,7 @@ class RetailCrmEvent
             return false;
         }
     
-        if (!CModule::IncludeModule('iblock')) {
-            RCrmActions::eventLog('RetailCrmEvent::orderSave', 'iblock', 'module not found');
-        
-            return false;
-        }
-    
-        if (!CModule::IncludeModule('sale')) {
-            RCrmActions::eventLog('RetailCrmEvent::orderSave', 'sale', 'module not found');
-        
-            return false;
-        }
-    
-        if (!CModule::IncludeModule('catalog')) {
-            RCrmActions::eventLog('RetailCrmEvent::orderSave', 'catalog', 'module not found');
-        
+        if (!RetailcrmDependencyLoader::loadDependencies()) {
             return false;
         }
         
@@ -621,14 +607,15 @@ class RetailCrmEvent
     }
     
     /**
+     * @param \Bitrix\Sale\Order|\Bitrix\Main\Event $event
+     *
      * @throws \Bitrix\Main\SystemException
      */
     private function getOrderArray($event): ?array
     {
-        //exists getParameter("ENTITY")
-        if (method_exists($event, 'getId')) {
+        if ($event instanceof Order) {
             $obOrder = $event;
-        } elseif (method_exists($event, 'getParameter')) {
+        } elseif ($event instanceof Event) {
             $obOrder = $event->getParameter('ENTITY');
         } else {
             RCrmActions::eventLog('RetailCrmEvent::orderSave', 'events', 'event error');

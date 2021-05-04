@@ -17,7 +17,7 @@ class RCrmActions
     const CANCEL_PROPERTY_CODE = 'INTAROCRM_IS_CANCELED';
     
     /**
-     * Возвращает массив сайтов, созданных на текущей лицении Битрикс
+     * Возвращает массив сайтов, созданных на текущей лицензии Битрикс
      *
      * @return array
      */
