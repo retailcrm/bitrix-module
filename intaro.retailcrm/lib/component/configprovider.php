@@ -647,6 +647,8 @@ class ConfigProvider
     }
 
     /**
+     * Включена ли программа лояльности
+     *
      * @return string|null
      */
     public static function getLoyaltyProgramStatus()
