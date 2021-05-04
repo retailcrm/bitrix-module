@@ -42,7 +42,7 @@ class Order extends Controller
     {
         /** @var LoyaltyService $service */
         $service  = ServiceLocator::get(LoyaltyService::class);
-        $response = $service->calculateBonus($basketItems, $inputBonuses);
+        $response = $service->getLoyaltyCalculate($basketItems, $inputBonuses);
 
         if ($response instanceof LoyaltyCalculateResponse) {
             if ($response->success && count($response->order->items) > 0) {

@@ -15,7 +15,7 @@ use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse;
 use Intaro\RetailCrm\Service\LoyaltyService;
 
-/** RetailCRM loyalty program  Start*/
+/** RetailCRM loyalty program  start*/
 try {
     Main\Loader::includeModule('intaro.retailcrm');
     
@@ -26,16 +26,16 @@ try {
     $service = ServiceLocator::get(LoyaltyService::class);
     
     if ($arResult['LOYALTY_STATUS'] === 'Y' && $arResult['PERSONAL_LOYALTY_STATUS'] === true) {
-        $calculate = $service->calculateBonus($arResult['BASKET_ITEM_RENDER_DATA']);
+        $calculate = $service->getLoyaltyCalculate($arResult['BASKET_ITEM_RENDER_DATA']);
         
         if ($calculate instanceof LoyaltyCalculateResponse && $calculate->success) {
-            $arResult = $service->calculateBasket($arResult, $calculate);
+            $arResult = $service->addLoyaltyToBasket($arResult, $calculate);
         }
     }
 } catch (Throwable $exception) {
     AddMessage2Log($exception->getMessage());
 }
-/** RetailCRM loyalty program  End*/
+/** RetailCRM loyalty program end */
 
 $defaultParams = [
     'TEMPLATE_THEME' => 'blue',
