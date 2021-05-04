@@ -15,6 +15,7 @@ use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse;
 use Intaro\RetailCrm\Service\LoyaltyService;
 
+/** RetailCRM loyalty program  Start*/
 try {
     Main\Loader::includeModule('intaro.retailcrm');
     
@@ -34,6 +35,7 @@ try {
 } catch (Throwable $exception) {
     AddMessage2Log($exception->getMessage());
 }
+/** RetailCRM loyalty program  End*/
 
 $defaultParams = [
     'TEMPLATE_THEME' => 'blue',

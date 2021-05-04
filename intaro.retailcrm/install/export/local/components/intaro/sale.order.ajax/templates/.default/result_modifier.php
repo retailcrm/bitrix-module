@@ -17,6 +17,7 @@ if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) {
  * @var SaleOrderAjax $component
  */
 
+/** RetailCRM loyalty program  Start*/
 try {
     Loader::includeModule('intaro.retailcrm');
     
@@ -44,6 +45,7 @@ try {
 } catch (Throwable $exception) {
     AddMessage2Log($exception->getMessage());
 }
+/** RetailCRM loyalty program  End*/
 
 $component = $this->__component;
 
