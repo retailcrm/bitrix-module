@@ -148,13 +148,16 @@ class EventsHandlers
             
             Utils::handleApiErrors($saveResult);
             
-            $isBonusInput = isset($_POST['bonus-input'], $_POST['available-bonuses']);
+            $isBonusInput = (
+                !empty($_POST['bonus-input'])
+                && !empty($_POST['available-bonuses'])
+            );
             /** @var bool $isNewOrder */
             $isNewOrder                 = $event->getParameter('IS_NEW');
             $isLoyaltyOn                = ConfigProvider::getLoyaltyProgramStatus() === 'Y';
             $isDataForLoyaltyDiscount   = isset($_POST['calculate-items-input'], $_POST['loyalty-discount-input']);
             $isBonusesIssetAndAvailable = $isBonusInput
-                && (int)$_POST['available-bonuses'] >= (int) $_POST['bonus-input'];
+                && (int) $_POST['available-bonuses'] >= (int) $_POST['bonus-input'];
             
             /** @var array $calculateItemsInput */
             $calculateItemsInput        = $isDataForLoyaltyDiscount
@@ -165,7 +168,7 @@ class EventsHandlers
                 self::$disableSaleHandler = true;
                 $hlInfo                   = $loyaltyService->addMainInfoToHl($order);
                 $discountInput            = isset($_POST['loyalty-discount-input'])
-                    ? (float)$_POST['loyalty-discount-input']
+                    ? (float) $_POST['loyalty-discount-input']
                     : 0;
                 
                 $loyaltyBonusMsg = 0;
