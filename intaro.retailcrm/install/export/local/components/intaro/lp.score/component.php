@@ -24,7 +24,9 @@ try {
     
     $customer = UserRepository::getById($USER->GetID());
     
-    if ($arResult['LOYALTY_STATUS'] === 'Y'
+    if (
+        $arResult['LOYALTY_STATUS'] === 'Y'
+        && null !== $customer->getLoyalty()
         && $customer->getLoyalty()->getIdInLoyalty() > 0
     ) {
         /* @var LoyaltyService $service */
@@ -43,7 +45,7 @@ try {
             $arResult['LL_PRIVILEGE_SIZE']       = $response->loyaltyLevel->privilegeSize;
             $arResult['LL_PRIVILEGE_SIZE_PROMO'] = $response->loyaltyLevel->privilegeSizePromo;
             $arResult['LOYALTY_LEVEL_TYPE']      = $response->loyaltyLevel->type;
-            $arResult['NEXT_LEVEL_SUM']          = (int)$response->nextLevelSum === 0 ? '-' : $response->nextLevelSum;
+            $arResult['NEXT_LEVEL_SUM']          = (int) $response->nextLevelSum === 0 ? '-' : $response->nextLevelSum;
             $arResult['ORDERS_SUM']              = $response->ordersSum;
         }
         
@@ -52,5 +54,5 @@ try {
         require_once __DIR__ . '/register.php';
     }
 } catch (Throwable $e) {
-    die(GetMessage('CARD_NOT_LINKED'));
+    die(GetMessage('MODULE_NOT_INSTALL'));
 }

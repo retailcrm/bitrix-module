@@ -202,8 +202,7 @@ class EventsHandlers
                 self::$disableSaleHandler = false;
             }
         } catch (Throwable $exception) {
-            $logger = Logger::getInstance();
-            $logger->write(GetMessage('CAN_NOT_SAVE_ORDER') . $exception->getMessage(), 'uploadApiErrors');
+            Logger::getInstance()->write(GetMessage('CAN_NOT_SAVE_ORDER') . $exception->getMessage(), 'uploadApiErrors');
         }
     }
     

@@ -37,21 +37,24 @@ class Basket extends Controller
      */
     public function __construct(Request $request = null)
     {
+        /** @var LoyaltyService */
         $this->service = ServiceLocator::get(LoyaltyService::class);
         parent::__construct($request);
     }
     
     /**
+     * Добавляет данные, полученные при расчете привилегии, в массив корзины
+     *
      * @param array $basketData
      * @return array
      */
-    public function calculateBasketBonusesAction(array $basketData): array
+    public function addLoyaltyToBasketAction(array $basketData): array
     {
         $calculateBasket = [];
-        $calculate = $this->service->calculateBonus($basketData['BASKET_ITEM_RENDER_DATA']);
+        $calculate = $this->service->getLoyaltyCalculate($basketData['BASKET_ITEM_RENDER_DATA']);
         
         if ($calculate->success) {
-            $calculateBasket = $this->service->calculateBasket($basketData, $calculate);
+            $calculateBasket = $this->service->addLoyaltyToBasket($basketData, $calculate);
         }
     
         return $calculateBasket;
