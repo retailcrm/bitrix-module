@@ -633,8 +633,6 @@
 				}
 			}
 
-			console.log(this.getData(data));
-
 			BX.ajax({
 				method: 'POST',
 				dataType: 'json',
