@@ -56,7 +56,7 @@ class XmlSetup
     /**
      * максимальное количество торговых предложений у товара - MAX_OFFERS_VALUE
      *
-     * @var int
+     * @var null|int
      */
     public $maxOffersValue;
     

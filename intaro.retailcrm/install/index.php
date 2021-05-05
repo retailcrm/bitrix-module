@@ -927,7 +927,7 @@ class intaro_retailcrm extends CModule
             }
 
             if (!isset($_POST['MAX_OFFERS_VALUE'])) {
-                $maxOffers = DEFAULT_OFFERS_IN_ORDER;
+                $maxOffers = null;
             } else {
                 $maxOffers = (int) $_POST['MAX_OFFERS_VALUE'];
             }

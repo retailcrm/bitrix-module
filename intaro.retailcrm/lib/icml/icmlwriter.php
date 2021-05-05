@@ -125,7 +125,7 @@ class IcmlWriter
             $this->writer->endElement();
         }
         
-        foreach ($offer->params as $key => $param) {
+        foreach ($offer->params as $param) {
             $this->writeParam($param);
         }
         
@@ -184,7 +184,13 @@ class IcmlWriter
      */
     protected function prepareValue($text)
     {
-        return str_replace('&', '&#x26;', strip_tags($text));
+        global $APPLICATION;
+
+        return str_replace(
+            "&",
+            "&#x26;",
+            strip_tags($APPLICATION->ConvertCharset($text, 'utf-8', 'utf-8'))
+        );
     }
     
     /**

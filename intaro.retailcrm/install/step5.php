@@ -495,7 +495,7 @@ if (!empty($oldValues)) {
     <br>
     <br>
     <font class="text"><?=GetMessage("LOAD_NOW");?>&nbsp;</font>
-    <input id="load-now" type="checkbox" name="LOAD_NOW" value="now" checked >
+    <input id="load-now" type="checkbox" name="LOAD_NOW" value="now">
     <br>
     <br>
     <font class="text"><?=GetMessage("BASE_PRICE");?>&nbsp;</font>

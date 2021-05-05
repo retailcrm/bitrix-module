@@ -7,8 +7,6 @@ use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupProps;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupPropsCategories;
 use Intaro\RetailCrm\Repository\CatalogRepository;
 
-const DEFAULT_OFFERS_IN_ORDER = 5;
-
 if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/export_run.php')) {
     require_once($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/export_run.php');
 } else {
@@ -145,7 +143,7 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/exp
     $fileSetup = new XmlSetup($xmlProps);
     $fileSetup->profileId = $profile_id;
     $fileSetup->iblocksForExport = $IBLOCK_EXPORT;
-    $fileSetup->maxOffersValue = empty($MAX_OFFERS_VALUE) ? DEFAULT_OFFERS_IN_ORDER : (int)$MAX_OFFERS_VALUE;
+    $fileSetup->maxOffersValue = $MAX_OFFERS_VALUE ?? null;
     $fileSetup->filePath = $SETUP_FILE_NAME;
     $fileSetup->loadPurchasePrice = $LOAD_PURCHASE_PRICE === 'Y';
     $fileSetup->basePriceId = CatalogRepository::getBasePriceId($fileSetup->profileId);

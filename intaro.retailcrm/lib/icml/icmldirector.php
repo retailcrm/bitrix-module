@@ -2,7 +2,6 @@
 
 namespace Intaro\RetailCrm\Icml;
 
-use Bitrix\Main\SystemException;
 use COption;
 use Intaro\RetailCrm\Icml\Utils\IcmlUtils;
 use Intaro\RetailCrm\Model\Bitrix\Orm\CatalogIblockInfo;
@@ -20,9 +19,10 @@ use RetailcrmConfigProvider;
  */
 class IcmlDirector
 {
-    public const INFO = 'INFO';
-    public const OFFERS_PART = 500;
-    public const FILE_LOG_NAME = 'i_crm_load_log';
+    public const INFO                      = 'INFO';
+    public const OFFERS_PART               = 500;
+    public const FILE_LOG_NAME             = 'i_crm_load_log';
+    public const DEFAULT_PRODUCT_PAGE_SIZE = 1;
     
     /**
      * @var IcmlWriter
@@ -199,7 +199,7 @@ class IcmlDirector
         CatalogIblockInfo $catalogIblockInfo
     ): void {
         $paramsForProduct->pageNumber = 1;
-        $paramsForProduct->nPageSize = ceil(self::OFFERS_PART / $this->setup->maxOffersValue);
+        $paramsForProduct->nPageSize = $this->calculateProductPageSize();
         
         do {
             $productsPart = $this->xmlOfferDirector->getXmlOffersPart($paramsForProduct, $catalogIblockInfo);
@@ -221,8 +221,7 @@ class IcmlDirector
         SelectParams $paramsForOffer,
         CatalogIblockInfo $catalogIblockInfo
     ): void {
-        $paramsForOffer->nPageSize
-            = $this->setup->maxOffersValue < self::OFFERS_PART ? $this->setup->maxOffersValue : self::OFFERS_PART;
+        $paramsForOffer->nPageSize = $this->calculateOffersPageSize();
         
         foreach ($products as $product) {
             $this->writeProductOffers($paramsForOffer, $catalogIblockInfo, $product);
@@ -242,48 +241,94 @@ class IcmlDirector
         XmlOffer $product
     ): void {
         $paramsForOffer->pageNumber = 1;
-        $writingOffers              = 0;
-        $paramsForOffer->parentId   = $product->id;
+        $writingOffersCount = 0;
+        $paramsForOffer->parentId = $product->id;
         
         do {
-            $xmlOffers
+            $xmlOffersPart
                 = $this->xmlOfferDirector->getXmlOffersBySingleProduct($paramsForOffer, $catalogIblockInfo, $product);
 
             // если это "простой товар", у которого нет ТП, то просто записываем его
-            if ($paramsForOffer->pageNumber === 1 && count($xmlOffers) === 0) {
+            if ($paramsForOffer->pageNumber === 1 && count($xmlOffersPart) === 0) {
                 $this->icmlWriter->writeOffers([$product]);
                 break;
             }
             
-            if (!empty($xmlOffers)) {
-                $xmlOffers
-                    = $this->trimOffersList($writingOffers, $xmlOffers, $this->setup->maxOffersValue);
+            if (!empty($xmlOffersPart)) {
+                $xmlOffersPart
+                    = $this->trimOffersList($writingOffersCount, $xmlOffersPart);
     
-                $this->icmlWriter->writeOffers($xmlOffers);
+                $this->icmlWriter->writeOffers($xmlOffersPart);
     
-                $writingOffers += count($xmlOffers);
+                $writingOffersCount += count($xmlOffersPart);
                 $paramsForOffer->pageNumber++;
             }
-        } while (!empty($xmlOffers) && $writingOffers < $this->setup->maxOffersValue);
+        } while ($this->isContinueRecord($writingOffersCount, $xmlOffersPart));
     }
-
+    
     /**
      * Проверяет,не достигнул ли лимит по записываемым оферам maxOffersValue
      * и обрезает массив до лимита, если он достигнут
      *
      * @param int        $writingOffers
      * @param XmlOffer[] $xmlOffers
-     * @param int        $maxOffersValue
+     *
      * @return XmlOffer[]
      */
-    private function trimOffersList(int $writingOffers, array $xmlOffers, int $maxOffersValue): array
+    private function trimOffersList(int $writingOffers, array $xmlOffers): array
     {
-        if (($writingOffers + count($xmlOffers)) > $maxOffersValue) {
+        if (!empty($this->setup->maxOffersValue) && ($writingOffers + count($xmlOffers)) > $this->setup->maxOffersValue) {
             $sliceIndex
-                = count($xmlOffers) - ($writingOffers + count($xmlOffers) - $maxOffersValue);
+                = count($xmlOffers) - ($writingOffers + count($xmlOffers) - $this->setup->maxOffersValue);
             return array_slice($xmlOffers, 0, $sliceIndex);
         }
         
         return $xmlOffers;
+    }
+    
+    /**
+     * Возвращает размер страницы для запроса товаров
+     *
+     * @return int
+     */
+    private function calculateProductPageSize(): int
+    {
+        if (empty($this->setup->maxOffersValue)) {
+            return self::DEFAULT_PRODUCT_PAGE_SIZE;
+        }
+        
+        return (int) ceil(self::OFFERS_PART / $this->setup->maxOffersValue);
+    }
+    
+    /**
+     * Возвращает размер страницы для офферов
+     *
+     * @return int
+     */
+    private function calculateOffersPageSize(): int
+    {
+        if (empty($this->setup->maxOffersValue)) {
+            return self::OFFERS_PART;
+        }
+    
+        return $this->setup->maxOffersValue < self::OFFERS_PART ?
+            $this->setup->maxOffersValue : self::OFFERS_PART;
+    }
+    
+    /**
+     * Проверяет, нужно ли дальше записывать офферы
+     *
+     * @param int   $writingOffers
+     * @param \Intaro\RetailCrm\Model\Bitrix\Xml\XmlOffer[] $xmlOffers
+     *
+     * @return bool
+     */
+    private function isContinueRecord(int $writingOffers, array $xmlOffers): bool
+    {
+        if (empty($this->setup->maxOffersValue)) {
+            return !empty($xmlOffers);
+        }
+        
+        return !empty($xmlOffers) && $writingOffers < $this->setup->maxOffersValue;
     }
 }

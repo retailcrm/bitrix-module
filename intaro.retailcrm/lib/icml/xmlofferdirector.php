@@ -65,16 +65,16 @@ class XmlOfferDirector
     {
         $ciBlockResult = $this->catalogRepository->getProductPage($param, $catalogIblockInfo);
         $barcodes =  $this->catalogRepository->getProductBarcodesByIblockId($catalogIblockInfo->productIblockId);
-        $products = [];
+        $offers = [];
         
-        while ($product = $ciBlockResult->GetNext()) {
-            $this->setXmlOfferParams($param, $product, $catalogIblockInfo, $barcodes);
-            $this->xmlOfferBuilder->setCategories($this->catalogRepository->getProductCategoriesIds($product['ID']));
+        while ($offer = $ciBlockResult->GetNext()) {
+            $this->setXmlOfferParams($param, $offer, $catalogIblockInfo, $barcodes);
+            $this->xmlOfferBuilder->setCategories($this->catalogRepository->getProductCategoriesIds($offer['ID']));
            
-            $products[] = $this->xmlOfferBuilder->build();
+            $offers[] = $this->xmlOfferBuilder->build();
         }
         
-        return $products;
+        return $offers;
     }
     
     /**
