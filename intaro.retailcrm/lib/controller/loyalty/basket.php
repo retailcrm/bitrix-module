@@ -13,8 +13,6 @@
 
 namespace Intaro\RetailCrm\Controller\Loyalty;
 
-use Bitrix\Main\Engine\ActionFilter\Authentication;
-use Bitrix\Main\Engine\ActionFilter\HttpMethod;
 use Bitrix\Main\Engine\Controller;
 use Bitrix\Main\Request;
 use Exception;

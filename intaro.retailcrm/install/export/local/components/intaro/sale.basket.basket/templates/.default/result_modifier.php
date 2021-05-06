@@ -14,13 +14,14 @@ use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse;
 use Intaro\RetailCrm\Service\LoyaltyService;
+use Intaro\RetailCrm\Service\LoyaltyAccountService;
 
 /** RetailCRM loyalty program  start*/
 try {
     Main\Loader::includeModule('intaro.retailcrm');
     
     $arResult['LOYALTY_STATUS']          = ConfigProvider::getLoyaltyProgramStatus();
-    $arResult['PERSONAL_LOYALTY_STATUS'] = LoyaltyService::getLoyaltyPersonalStatus();
+    $arResult['PERSONAL_LOYALTY_STATUS'] = LoyaltyAccountService::getLoyaltyPersonalStatus();
     
     /** @var LoyaltyService $service */
     $service = ServiceLocator::get(LoyaltyService::class);

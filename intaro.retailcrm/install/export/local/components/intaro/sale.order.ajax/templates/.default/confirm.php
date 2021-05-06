@@ -4,7 +4,9 @@
 
 use Bitrix\Main\Localization\Loc;
 use Intaro\RetailCrm\Component\ServiceLocator;
+use Intaro\RetailCrm\Service\CookieService;
 use Intaro\RetailCrm\Service\LoyaltyService;
+use Intaro\RetailCrm\Service\LoyaltyAccountService;
 
 /**
  * @var array $arParams
@@ -19,18 +21,21 @@ if ($arParams["SET_TITLE"] === "Y") {
 <?php if (!empty($arResult["ORDER"])): ?>
     <?php
     if ($arResult['LOYALTY_STATUS'] === 'Y' && $arResult['PERSONAL_LOYALTY_STATUS'] === true) {
-        /** @var LoyaltyService $service */
-        $service   = ServiceLocator::get(LoyaltyService::class);
-        $isDebited = $service->isBonusDebited($arResult["ORDER"]['ID']);
+        /** @var LoyaltyService $loyaltyService */
+        $loyaltyService = ServiceLocator::get(LoyaltyService::class);
+    
+        /** @var CookieService $cookieService */
+        $cookieService = ServiceLocator::get(CookieService::class);
+        $isDebited     = $loyaltyService->isBonusDebited($arResult["ORDER"]['ID']);
         
         //если есть бонусная оплата и она не оплачена, то отрисовываем форму введения кода верификации
         if ($isDebited !== null && $isDebited === false) {
             
-            $smsCookie = $service->getSmsCookie('lpOrderBonusConfirm');
+            $smsCookie = $cookieService->getSmsCookie('lpOrderBonusConfirm');
 
             //если куки пустые (страница обновляется после длительного перерыва), то пробуем снова отправить бонусы
             if ($smsCookie === null || empty($smsCookie->checkId)) {
-                $smsCookie = $service->resendBonusPayment($arResult["ORDER"]['ID']);
+                $smsCookie = $loyaltyService->resendBonusPayment($arResult["ORDER"]['ID']);
             }
             
             if ($smsCookie === false) { ?>
