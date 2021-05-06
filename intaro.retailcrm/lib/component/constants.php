@@ -82,4 +82,5 @@ class Constants
     public const HL_LOYALTY_TABLE_NAME        = 'loyalty_program';
     public const LP_BONUS_INFO                = 'LP_BONUS_INFO';
     public const API_ERRORS_LOG               = 'apiErrors';
+    public const LOYALTY_ERROR                = 'loyaltyErrors';
 }

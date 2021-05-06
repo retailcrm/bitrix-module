@@ -10,6 +10,7 @@ use Bitrix\Sale\Location\LocationTable;
 use Bitrix\Sale\Order;
 use RetailCrm\ApiClient;
 use Intaro\RetailCrm\Service\ManagerService;
+use Intaro\RetailCrm\Service\LoyaltyAccountService;
 use RetailCrm\Response\ApiResponse;
 
 
@@ -343,8 +344,7 @@ class RetailCrmOrder
 
         Logger::getInstance()->write($order, 'orderSend');
 
-
-        if (ConfigProvider::getLoyaltyProgramStatus() === 'Y') {
+        if (ConfigProvider::getLoyaltyProgramStatus() === 'Y' && LoyaltyAccountService::getLoyaltyPersonalStatus()) {
             $order['privilegeType'] = 'loyalty_level';
         }
 

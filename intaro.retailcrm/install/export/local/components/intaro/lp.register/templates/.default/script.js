@@ -77,7 +77,7 @@ function sendVerificationCode() {
     const verificationCode = $('#smsVerificationCodeField').val();
     const checkId          = $('#checkIdField').val();
 
-    BX.ajax.runAction('intaro:retailcrm.api.loyalty.register.sendVerificationCode',
+    BX.ajax.runAction('intaro:retailcrm.api.loyalty.register.activateLpBySms',
         {
             data: {
                 sessid:  BX.bitrix_sessid(),

@@ -11,11 +11,6 @@ class AdminPanel extends Controller
     public function configureActions(): array
     {
         return [
-            'loyaltyProgramToggle' => [
-                '-prefilters' => [
-                    Authentication::class,
-                ],
-            ],
             'createTemplate' => [
                 '-prefilters' => [
                     Authentication::class,
@@ -28,9 +23,10 @@ class AdminPanel extends Controller
      * @param array  $templates
      * @param string $donor
      * @param string $replaceDefaultTemplate
+     *
      * @return array
      */
-    public function createTemplateAction(array $templates, string $donor ,$replaceDefaultTemplate = 'N'): array
+    public function createTemplateAction(array $templates, string $donor, string $replaceDefaultTemplate = 'N'): array
     {
         $templateName = $replaceDefaultTemplate === 'Y' ? '.default' : Constants::MODULE_ID;
 

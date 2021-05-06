@@ -9,7 +9,7 @@ use Intaro\RetailCrm\Component\Builder\Exception\BuilderException;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Model\Bitrix\User;
-use Intaro\RetailCrm\Service\CollectorCookieExtractor;
+use Intaro\RetailCrm\Service\CookieService;
 use PHPUnit\Framework\TestCase;
 use Tests\Intaro\RetailCrm\Helpers;
 
@@ -49,9 +49,9 @@ class CorporateCustomerBuilderTest extends TestCase
     public function testBuild()
     {
         $cookieData = 'rcCookie';
-        $originalCookieCollector = ServiceLocator::get(CollectorCookieExtractor::class);
+        $originalCookieCollector = ServiceLocator::get(CookieService::class);
 
-        $cookieExtractorMock = $this->getMockBuilder(CollectorCookieExtractor::class)
+        $cookieExtractorMock = $this->getMockBuilder(CookieService::class)
             ->setMethods(['extractCookie'])
             ->getMock();
 
@@ -60,7 +60,7 @@ class CorporateCustomerBuilderTest extends TestCase
             ->withAnyParameters()
             ->willReturn($cookieData);
 
-        ServiceLocator::set(CollectorCookieExtractor::class, $cookieExtractorMock);
+        ServiceLocator::set(CookieService::class, $cookieExtractorMock);
 
         $userLogin = uniqid('testuser_', false);
         $user = new User();
@@ -90,7 +90,7 @@ class CorporateCustomerBuilderTest extends TestCase
             ->build()
             ->getResult();
 
-        ServiceLocator::set(CollectorCookieExtractor::class, $originalCookieCollector);
+        ServiceLocator::set(CookieService::class, $originalCookieCollector);
 
         self::assertNotEmpty($customer);
     }

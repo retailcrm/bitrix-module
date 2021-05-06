@@ -7,6 +7,7 @@ use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Repository\UserRepository;
 use Intaro\RetailCrm\Service\LoyaltyService;
 use Bitrix\Main\Loader;
+use Intaro\RetailCrm\Service\LoyaltyAccountService;
 
 global $USER;
 
@@ -20,7 +21,7 @@ try {
     Loader::includeModule('intaro.retailcrm');
     
     $arResult['LOYALTY_STATUS']          = ConfigProvider::getLoyaltyProgramStatus();
-    $arResult['PERSONAL_LOYALTY_STATUS'] = LoyaltyService::getLoyaltyPersonalStatus();
+    $arResult['PERSONAL_LOYALTY_STATUS'] = LoyaltyAccountService::getLoyaltyPersonalStatus();
     
     $customer = UserRepository::getById($USER->GetID());
     
