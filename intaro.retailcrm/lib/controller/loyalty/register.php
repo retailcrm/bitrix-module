@@ -12,7 +12,7 @@ use Intaro\RetailCrm\Model\Api\Request\SmsVerification\SmsVerificationConfirmReq
 use Intaro\RetailCrm\Model\Api\SmsVerificationConfirm;
 use Intaro\RetailCrm\Model\Bitrix\User;
 use Intaro\RetailCrm\Service\LoyaltyService;
-use Intaro\RetailCrm\Service\LpUserAccountService;
+use Intaro\RetailCrm\Service\LoyaltyAccountService;
 use Intaro\RetailCrm\Service\Utils;
 
 class Register extends Controller
@@ -45,11 +45,14 @@ class Register extends Controller
     }
     
     /**
-     * @param $request
+     * Сохраняет информацию о регистрации пользователя в ПЛ в профиле пользователя
+     *
+     * @param array $request
+     *
      * @return array
      * @throws \ReflectionException
      */
-    public function saveUserLpFieldsAction($request): array
+    public function saveUserLpFieldsAction(array $request): array
     {
         global $USER_FIELD_MANAGER;
     
@@ -114,13 +117,13 @@ class Register extends Controller
         ];
     }
     
-    
     /**
+     * Создает в CRM участие в ПЛ на основе регистрационных данных
+     *
      * @param array $request
+     *
      * @return array|string[]
      * @throws \ReflectionException
-     *
-     * TODO - возможно это мертвый метод. проверить
      */
     public function accountCreateAction(array $request): array
     {
@@ -148,7 +151,7 @@ class Register extends Controller
         }
         
         //TODO когда станет известен формат карты ПЛ, то добавить валидацию ввода
-        $service        = new LpUserAccountService();
+        $service        = new LoyaltyAccountService();
         $createResponse = $service->createLoyaltyAccount(
             $request['phone'],
             $request['card'],
@@ -190,7 +193,9 @@ class Register extends Controller
     }
     
     /**
-     * @param string $idInLoyalty
+     * Повторно отправляет смс для активации участия в программе лояльности
+     *
+     * @param string $idInLoyalty id участия в ПЛ
      * @return string[]|null
      */
     public function resendRegisterSmsAction(string $idInLoyalty): ?array
@@ -199,23 +204,26 @@ class Register extends Controller
             return ['msg' => GetMessage('ARGUMENT_ERROR')];
         }
         
-        /** @var LoyaltyService $service */
-        $service = ServiceLocator::get(LoyaltyService::class);
+        /** @var LoyaltyAccountService $service */
+        $service = ServiceLocator::get(LoyaltyAccountService::class);
         
         return $service->tryActivate((int) $idInLoyalty);
     }
     
     /**
-     * @param string $code
-     * @param string $checkId
+     * Активирует участие в ПЛ по коду из СМС
+     *
+     * @param string $verificationCode Проверочный код из СМС
+     * @param string $checkId Идентификатор проверки кода
+     *
      * @return array|string[]
      */
-    public function sendVerificationCodeAction(string $code, string $checkId): array
+    public function activateLpBySmsAction(string $verificationCode, string $checkId): array
     {
-        $code       = trim($code);
-        $lengthCode = strlen($code);
+        $verificationCode = trim($verificationCode);
+        $lengthCode = strlen($verificationCode);
         
-        if (empty($code) && $lengthCode > self::MIN_CODE_LENGTH && $lengthCode < self::MAX_CODE_LENGTH) {
+        if (empty($verificationCode) && $lengthCode > self::MIN_CODE_LENGTH && $lengthCode < self::MAX_CODE_LENGTH) {
             return [
                 'status'   => 'error',
                 'msg'      => GetMessage('EMPTY_CODE'),
@@ -225,7 +233,7 @@ class Register extends Controller
     
         $smsVerification                        = new SmsVerificationConfirmRequest();
         $smsVerification->verification          = new SmsVerificationConfirm();
-        $smsVerification->verification->code    = $code;
+        $smsVerification->verification->code    = $verificationCode;
         $smsVerification->verification->checkId = $checkId;
         
         /** @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter $client */
@@ -250,11 +258,11 @@ class Register extends Controller
             ];
         }
         
-        if ($verificationResult->success === true
+        if (
+            $verificationResult->success === true
             && isset($verificationResult->verification->verifiedAt)
             && !empty($verificationResult->verification->verifiedAt)
         ) {
-            
             global $USER_FIELD_MANAGER;
             global $USER;
             

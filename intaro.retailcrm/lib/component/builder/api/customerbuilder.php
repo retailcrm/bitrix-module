@@ -14,7 +14,7 @@
 namespace Intaro\RetailCrm\Component\Builder\Api;
 
 use Intaro\RetailCrm\Component\Builder\Exception\BuilderException;
-use Intaro\RetailCrm\Service\CollectorCookieExtractor;
+use Intaro\RetailCrm\Service\CookieService;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Converter\DateTimeConverter;
 use Intaro\RetailCrm\Component\Events;
@@ -39,7 +39,7 @@ class CustomerBuilder implements BuilderInterface
     /** @var \Intaro\RetailCrm\Model\Api\Customer $customer */
     private $customer;
 
-    /** @var CollectorCookieExtractor */
+    /** @var CookieService */
     private $cookieExtractor;
 
     /** @var string $personTypeId */
@@ -53,7 +53,7 @@ class CustomerBuilder implements BuilderInterface
      */
     public function __construct()
     {
-        $this->cookieExtractor = ServiceLocator::get(CollectorCookieExtractor::class);
+        $this->cookieExtractor = ServiceLocator::get(CookieService::class);
     }
 
     /**

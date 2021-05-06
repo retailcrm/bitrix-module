@@ -10,6 +10,7 @@ use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Repository\AgreementRepository;
 use Intaro\RetailCrm\Service\CustomerService;
 use Intaro\RetailCrm\Service\LoyaltyService;
+use Intaro\RetailCrm\Service\LoyaltyAccountService;
 
 /** RetailCRM loyalty program start */
 try {
@@ -26,8 +27,8 @@ try {
         
         $customerService->createCustomer($customer);
         
-        /* @var LoyaltyService $service */
-        $service = ServiceLocator::get(LoyaltyService::class);
+        /* @var LoyaltyAccountService $service */
+        $service = ServiceLocator::get(LoyaltyAccountService::class);
         $arResult['LP_REGISTER'] = $service->checkRegInLp();
     }
     

@@ -3,10 +3,10 @@
 use Bitrix\Main\Context;
 use Bitrix\Main\Loader;
 use Intaro\RetailCrm\Component\ServiceLocator;
-use Intaro\RetailCrm\Service\CollectorCookieExtractor;
+use Intaro\RetailCrm\Service\CookieService;
 use Intaro\RetailCrm\Service\OrderLoyaltyDataService;
 use Intaro\RetailCrm\Service\LoyaltyService;
-use Intaro\RetailCrm\Service\LpUserAccountService;
+use Intaro\RetailCrm\Service\LoyaltyAccountService;
 use Intaro\RetailCrm\Service\CustomerService;
 use Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\AnnotationReader;
 use Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\AnnotationRegistry;
@@ -33,8 +33,8 @@ ServiceLocator::registerServices([
     \Intaro\RetailCrm\Service\Utils::class,
     Logger::class,
     AnnotationReader::class,
-    CollectorCookieExtractor::class,
-    LpUserAccountService::class,
+    CookieService::class,
+    LoyaltyAccountService::class,
     LoyaltyService::class,
     CustomerService::class,
     OrderLoyaltyDataService::class
