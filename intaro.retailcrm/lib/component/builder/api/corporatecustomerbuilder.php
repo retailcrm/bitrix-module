@@ -17,7 +17,7 @@ use Bitrix\Main\Type\DateTime;
 use Bitrix\Sale\Order;
 use Intaro\RetailCrm\Component\Builder\BuilderInterface;
 use Intaro\RetailCrm\Component\Builder\Exception\BuilderException;
-use Intaro\RetailCrm\Service\CollectorCookieExtractor;
+use Intaro\RetailCrm\Service\CookieService;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Converter\DateTimeConverter;
 use Intaro\RetailCrm\Component\Events;
@@ -50,7 +50,7 @@ class CorporateCustomerBuilder implements BuilderInterface
     /** @var \Bitrix\Sale\Order $order */
     private $order;
 
-    /** @var CollectorCookieExtractor */
+    /** @var CookieService */
     private $cookieExtractor;
 
     /** @var array */
@@ -85,7 +85,7 @@ class CorporateCustomerBuilder implements BuilderInterface
      */
     public function __construct()
     {
-        $this->cookieExtractor = ServiceLocator::get(CollectorCookieExtractor::class);
+        $this->cookieExtractor = ServiceLocator::get(CookieService::class);
         $this->sites = ConfigProvider::getSitesList();
         $this->legalDetails = ConfigProvider::getLegalDetails();
         $this->contragentTypes = ConfigProvider::getContragentTypes();

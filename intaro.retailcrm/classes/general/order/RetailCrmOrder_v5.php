@@ -11,6 +11,7 @@ use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Service\LoyaltyService;
+use Intaro\RetailCrm\Service\LoyaltyAccountService;
 use RetailCrm\Response\ApiResponse;
 
 IncludeModuleLangFile(__FILE__);
@@ -339,7 +340,7 @@ class RetailCrmOrder
         Logger::getInstance()->write($order, 'orderSend');
     
     
-        if (ConfigProvider::getLoyaltyProgramStatus() === 'Y' && LoyaltyService::getLoyaltyPersonalStatus()) {
+        if (ConfigProvider::getLoyaltyProgramStatus() === 'Y' && LoyaltyAccountService::getLoyaltyPersonalStatus()) {
             $order['privilegeType'] = 'loyalty_level';
         }
     

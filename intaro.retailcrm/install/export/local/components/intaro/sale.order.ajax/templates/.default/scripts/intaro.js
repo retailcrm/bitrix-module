@@ -4,7 +4,7 @@ $(document).ready(function() {
         let basketItemsHidden = window.__BASKET_ITEMS__;
         let inputBonuses      = Number.parseInt($('#bonus-input').val());
 
-        BX.ajax.runAction('intaro:retailcrm.api.loyalty.order.calculateBonus',
+        BX.ajax.runAction('intaro:retailcrm.api.loyalty.order.loyaltyCalculate',
             {
                 data: {
                     sessid: BX.bitrix_sessid(),

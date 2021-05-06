@@ -6,6 +6,7 @@ use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse;
 use Intaro\RetailCrm\Service\LoyaltyService;
+use Intaro\RetailCrm\Service\LoyaltyAccountService;
 
 if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) {
     die();
@@ -22,7 +23,7 @@ try {
     Loader::includeModule('intaro.retailcrm');
     
     $arResult['LOYALTY_STATUS']          = ConfigProvider::getLoyaltyProgramStatus();
-    $arResult['PERSONAL_LOYALTY_STATUS'] = LoyaltyService::getLoyaltyPersonalStatus();
+    $arResult['PERSONAL_LOYALTY_STATUS'] = LoyaltyAccountService::getLoyaltyPersonalStatus();
     
     if ($arResult['LOYALTY_STATUS'] === 'Y' && $arResult['PERSONAL_LOYALTY_STATUS'] === true) {
         /* @var LoyaltyService $service */

@@ -5,7 +5,7 @@ namespace Tests\Intaro\RetailCrm\Component\Builder\Api;
 use Bitrix\Main\Event;
 use Bitrix\Main\EventManager;
 use Intaro\RetailCrm\Component\Builder\Api\CustomerBuilder;
-use Intaro\RetailCrm\Service\CollectorCookieExtractor;
+use Intaro\RetailCrm\Service\CookieService;
 use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\Events;
 use Intaro\RetailCrm\Component\ServiceLocator;
@@ -34,9 +34,9 @@ class CustomerBuilderTest extends TestCase
         self::assertTrue($entity instanceof User);
 
         $cookieData = 'rcCookie';
-        $originalCookieCollector = ServiceLocator::get(CollectorCookieExtractor::class);
+        $originalCookieCollector = ServiceLocator::get(CookieService::class);
 
-        $cookieExtractorMock = $this->getMockBuilder(CollectorCookieExtractor::class)
+        $cookieExtractorMock = $this->getMockBuilder(CookieService::class)
             ->setMethods(['extractCookie'])
             ->getMock();
 
@@ -45,7 +45,7 @@ class CustomerBuilderTest extends TestCase
             ->withAnyParameters()
             ->willReturn($cookieData);
 
-        ServiceLocator::set(CollectorCookieExtractor::class, $cookieExtractorMock);
+        ServiceLocator::set(CookieService::class, $cookieExtractorMock);
 
         $builder = new CustomerBuilder();
         $result = $builder
@@ -56,7 +56,7 @@ class CustomerBuilderTest extends TestCase
             ->build()
             ->getResult();
 
-        ServiceLocator::set(CollectorCookieExtractor::class, $originalCookieCollector);
+        ServiceLocator::set(CookieService::class, $originalCookieCollector);
 
         self::assertTrue($result instanceof Customer);
         self::assertEquals($entity->getId(), $result->externalId);

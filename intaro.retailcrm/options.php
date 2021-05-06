@@ -592,12 +592,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             'OnAdminContextMenuShow',
             Constants::MODULE_ID,
             EventsHandlers::class,
-            'addUpdateLoyaltyButton'
-        );
-        AddEventHandler(
-            'main',
-            'OnAdminContextMenuShow',
-            'OrderDetailAdminContextMenuShow'
+            'OnAdminContextMenuShowHandler'
         );
     } else {
         ConfigProvider::setLoyaltyProgramStatus('N');
