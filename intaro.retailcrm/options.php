@@ -576,7 +576,10 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 OrderLoyaltyDataService::createLoyaltyHlBlock();
             }
         } catch (LoaderException | SystemException $e) {
-            AddMessage2Log($e->getMessage());
+            RCrmActions::eventLog(
+                'intaro.retailcrm/options.php', 'OrderLoyaltyDataService::createLoyaltyHlBlock',
+                $e->getCode() . ': ' . $e->getMessage()
+            );
         }
 
         ConfigProvider::setLoyaltyProgramStatus('Y');
@@ -844,6 +847,15 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     ?>
     <?php
     CJSCore::Init(array("jquery"));
+
+    try {
+        Extension::load("ui.notification");
+    } catch (LoaderException $exception) {
+        RCrmActions::eventLog(
+            'intaro.retailcrm/options.php', 'Extension::load',
+            $e->getCode() . ': ' . $exception->getMessage()
+        );
+    }
     ?>
     <script type="text/javascript">
 

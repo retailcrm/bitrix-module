@@ -188,13 +188,13 @@ class RCrmActions
 
     public static function eventLog($auditType, $itemId, $description)
     {
-        CEventLog::Add(array(
+        CEventLog::Add([
             'SEVERITY'      => 'SECURITY',
             'AUDIT_TYPE_ID' => $auditType,
             'MODULE_ID'     => self::$MODULE_ID,
             'ITEM_ID'       => $itemId,
             'DESCRIPTION'   => $description,
-        ));
+        ]);
     }
 
     /**

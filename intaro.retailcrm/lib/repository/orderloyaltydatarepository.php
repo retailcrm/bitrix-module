@@ -22,6 +22,7 @@ use Intaro\RetailCrm\Component\Json\Deserializer;
 use Intaro\RetailCrm\Component\Json\Serializer;
 use Intaro\RetailCrm\Model\Bitrix\OrderLoyaltyData;
 use Intaro\RetailCrm\Service\Utils;
+use Logger;
 
 /**
  * Class OrderLoyaltyDataRepository
@@ -36,12 +37,18 @@ class OrderLoyaltyDataRepository extends AbstractRepository
     private $dataManager;
     
     /**
+     * @var \Logger
+     */
+    private $logger;
+    
+    /**
      * OrderLoyaltyDataRepository constructor.
      * @throws \Bitrix\Main\LoaderException
      * @throws \Bitrix\Main\SystemException
      */
     public function __construct()
     {
+        $this->logger = Logger::getInstance();
         $this->dataManager = Utils::getHlClassByName(Constants::HL_LOYALTY_CODE);
     }
    
@@ -68,7 +75,7 @@ class OrderLoyaltyDataRepository extends AbstractRepository
             
             return null;
         } catch (Exception $exception) {
-            AddMessage2Log($exception->getMessage());
+            $this->logger->write($exception->getMessage(), Constants::LOYALTY_ERROR);
         }
         
         return null;
@@ -93,7 +100,7 @@ class OrderLoyaltyDataRepository extends AbstractRepository
             /** @var OrderLoyaltyData $result */
             return Deserializer::deserializeArray($product, OrderLoyaltyData::class);
         } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
-            AddMessage2Log($exception->getMessage());
+            $this->logger->write($exception->getMessage(), Constants::LOYALTY_ERROR);
         }
     }
     
@@ -122,7 +129,7 @@ class OrderLoyaltyDataRepository extends AbstractRepository
         
             return $result;
         } catch (SystemException | Exception $exception) {
-            AddMessage2Log($exception->getMessage());
+            $this->logger->write($exception->getMessage(), Constants::LOYALTY_ERROR);
         }
     }
     
@@ -148,7 +155,7 @@ class OrderLoyaltyDataRepository extends AbstractRepository
             }
             
         } catch (Exception $exception) {
-            AddMessage2Log($exception->getMessage());
+            $this->logger->write($exception->getMessage(), Constants::LOYALTY_ERROR);
         }
         
         return false;
@@ -177,7 +184,7 @@ class OrderLoyaltyDataRepository extends AbstractRepository
             }
         
         } catch (SystemException | Exception $exception) {
-            AddMessage2Log($exception->getMessage());
+            $this->logger->write($exception->getMessage(), Constants::LOYALTY_ERROR);
         }
     
         return null;

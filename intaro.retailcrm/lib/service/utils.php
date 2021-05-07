@@ -163,7 +163,7 @@ class Utils
             
             $msg = sprintf('%s (%s %s)', GetMessage('REGISTER_ERROR'), $response->errorMsg, $errorDetails);
             
-            AddMessage2Log($msg);
+            Logger::getInstance()->write($msg);
             
             return $msg;
         }
