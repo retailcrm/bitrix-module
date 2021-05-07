@@ -12,6 +12,11 @@ use Bitrix\Sale\Location\Search\Finder;
 use Bitrix\Sale\Order;
 use Bitrix\Sale\OrderUserProperties;
 use Intaro\RetailCrm\Service\ManagerService;
+use Intaro\RetailCrm\Component\ConfigProvider;
+use Intaro\RetailCrm\Component\Constants;
+use Intaro\RetailCrm\Component\Handlers\EventsHandlers;
+use Intaro\RetailCrm\Component\ServiceLocator;
+use Intaro\RetailCrm\Service\LoyaltyService;
 
 IncludeModuleLangFile(__FILE__);
 class RetailCrmHistory
@@ -532,7 +537,7 @@ class RetailCrmHistory
 
                         continue;
                     }
-    
+
                     $site = self::getSite($order['site']);
 
                     if (null === $site) {
@@ -1229,7 +1234,7 @@ class RetailCrmHistory
 
         return false;
     }
-    
+
     /**
      * @param string $shopCode
      *
@@ -1238,18 +1243,18 @@ class RetailCrmHistory
     public static function getSite(string $shopCode): ?string
     {
         $optionsSitesList = RetailcrmConfigProvider::getSitesList();
-        
+
         if ($optionsSitesList) {
             $searchResult = array_search($shopCode, $optionsSitesList, true);
-            
+
             return is_string($searchResult) ? $searchResult : null;
         }
-    
+
         $defaultSite = CSite::GetDefSite();
-        
+
         return is_string($defaultSite) ? $defaultSite : null;
     }
-    
+
     /**
      * @param $array
      * @param $value
@@ -1493,7 +1498,7 @@ class RetailCrmHistory
 
         return $orders;
     }
-    
+
     /**
      * Filters out history by these terms:
      *  - Changes from current API key will be added only if CMS changes are more actual than history.
@@ -1512,7 +1517,7 @@ class RetailCrmHistory
         $history          = [];
         $organizedHistory = [];
         $notOurChanges    = [];
-        
+
         foreach ($historyEntries as $entry) {
             if (!isset($entry[$recordType]['externalId'])) {
                 if ($entry['source'] == 'api'
@@ -1522,23 +1527,23 @@ class RetailCrmHistory
                 ) {
                     continue;
                 }
-                
+
                 $history[] = $entry;
-                
+
                 continue;
             }
-            
+
             $externalId = $entry[$recordType]['externalId'];
             $field      = $entry['field'];
-            
+
             if (!isset($organizedHistory[$externalId])) {
                 $organizedHistory[$externalId] = [];
             }
-            
+
             if (!isset($notOurChanges[$externalId])) {
                 $notOurChanges[$externalId] = [];
             }
-            
+
             if ($entry['source'] == 'api'
                 && isset($entry['apiKey']['current'])
                 && $entry['apiKey']['current'] == true
@@ -1553,16 +1558,16 @@ class RetailCrmHistory
                 $notOurChanges[$externalId][$field] = true;
             }
         }
-        
+
         unset($notOurChanges);
-        
+
         foreach ($organizedHistory as $historyChunk) {
             $history = array_merge($history, $historyChunk);
         }
-        
+
         return $history;
     }
-    
+
     /**
      * Update shipment in order
      *

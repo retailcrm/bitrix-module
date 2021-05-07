@@ -17,12 +17,14 @@ use Exception;
 use Intaro\RetailCrm\Component\Builder\Api\CustomerBuilder;
 use Intaro\RetailCrm\Component\Builder\Exception\BuilderException;
 use Intaro\RetailCrm\Component\ConfigProvider;
+use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
 use Intaro\RetailCrm\Model\Api\Customer;
 use Intaro\RetailCrm\Model\Api\Request\Customers\CustomersCreateRequest;
 use Intaro\RetailCrm\Model\Api\Request\Customers\CustomersEditRequest;
 use Intaro\RetailCrm\Model\Api\Request\Customers\CustomersGetRequest;
 use Intaro\RetailCrm\Repository\UserRepository;
+use Logger;
 
 /**
  * Class CustomerService
@@ -145,9 +147,7 @@ class CustomerService
      */
     public function createModel(int $userId)
     {
-        $contragentsTypes = ConfigProvider::getContragentTypes();
-        $key = array_search('individual', $contragentsTypes, true);
-
+        $key = array_search('individual', ConfigProvider::getContragentTypes(), true);
         $builder = new CustomerBuilder();
 
         try {
@@ -159,7 +159,7 @@ class CustomerService
                 ->build()
                 ->getResult();
         }catch (BuilderException $exception){
-            AddMessage2Log($exception->getMessage());
+            Logger::getInstance()->write($exception->getMessage(), Constants::LOYALTY_ERROR);
         }
     }
 }

@@ -18,6 +18,8 @@ use Bitrix\Main\ArgumentException;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
 use Intaro\RetailCrm\Component\ConfigProvider;
+use Intaro\RetailCrm\Component\Constants;
+use Logger;
 
 /**
  * Class CurrencyRepository
@@ -44,7 +46,7 @@ class CurrencyRepository extends AbstractRepository
             
             return $currency['FORMAT_STRING'];
         } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
-            AddMessage2Log($exception->getMessage());
+            Logger::getInstance()->write($exception->getMessage(), Constants::REPOSITORY_ERRORS);
         }
     }
 }
