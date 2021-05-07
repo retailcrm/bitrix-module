@@ -32,6 +32,8 @@ use Bitrix\Sale\Internals\OrderTable;
 use Intaro\RetailCrm\Component\Handlers\EventsHandlers;
 use Intaro\RetailCrm\Model\Bitrix\Agreement;
 use Intaro\RetailCrm\Repository\AgreementRepository;
+use Intaro\RetailCrm\Component\ConfigProvider;
+use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\Handlers\EventsHandlers;
 use Intaro\RetailCrm\Model\Bitrix\Agreement;
 use Intaro\RetailCrm\Repository\AgreementRepository;
@@ -1766,7 +1768,11 @@ class intaro_retailcrm extends CModule
                     );
                 }
             } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
-                AddMessage2Log($exception->getMessage(), $this->MODULE_ID);
+                RCrmActions::eventLog(
+                    'intaro.retailcrm/install/index.php',
+                    'RetailCrm\ApiClient::addLPEvents',
+                    $exception->getMessage()
+                );
             }
         }
     }

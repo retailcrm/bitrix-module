@@ -1,15 +1,10 @@
 <?php
 
-use Bitrix\Main\ArgumentException;
 use Bitrix\Main\Loader;
-use Bitrix\Main\LoaderException;
-use Bitrix\Main\ObjectPropertyException;
-use Bitrix\Main\SystemException;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Repository\AgreementRepository;
 use Intaro\RetailCrm\Service\CustomerService;
-use Intaro\RetailCrm\Service\LoyaltyService;
 use Intaro\RetailCrm\Service\LoyaltyAccountService;
 
 /** RetailCRM loyalty program start */
@@ -50,3 +45,4 @@ try {
     AddMessage2Log($exception->getMessage());
 }
 /** RetailCRM loyalty program end */
+
