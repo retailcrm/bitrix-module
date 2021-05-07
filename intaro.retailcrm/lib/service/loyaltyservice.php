@@ -101,7 +101,6 @@ class LoyaltyService
         $result = $this->client->loyaltyOrderApply($request);
 
         Utils::handleApiErrors($result);
-
         return $result;
     }
 
