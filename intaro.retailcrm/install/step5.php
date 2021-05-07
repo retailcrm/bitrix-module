@@ -495,8 +495,9 @@ if (!empty($oldValues)) {
     <br>
     <br>
     <font class="text"><?=GetMessage("LOAD_NOW");?>&nbsp;</font>
-    <input id="load-now" type="checkbox" name="LOAD_NOW" value="now">
+    <input id="load-now" onchange="checkLoadStatus(this)" type="checkbox" name="LOAD_NOW" value="now">
     <br>
+    <div id="loadMessage" hidden><?=GetMessage("LOAD_NOW_MSG");?></div>
     <br>
     <font class="text"><?=GetMessage("BASE_PRICE");?>&nbsp;</font>
     <select name="price-types" class="typeselect">
@@ -615,6 +616,16 @@ if (!empty($oldValues)) {
                     getHbFromAjax($(obj).find('option')[obj.selectedIndex], 'product');
                 }
             };
+            
+            function checkLoadStatus(object)
+            {
+                if (object.checked) {
+                    $('#loadMessage').show();
+                } else {
+                    $('#loadMessage').hide();
+                }
+            }
+            
             function checkProfile(obj)
             {
                 if (obj.value !== 'none')
@@ -677,12 +688,11 @@ if (!empty($oldValues)) {
     <input type="hidden" name="continue" value="5">
     <div style="padding: 1px 13px 2px; height:28px;">
         <div align="right" style="float:right; width:50%; position:relative;">
-            <input type="submit" name="inst" value="<?php echo GetMessage("MOD_NEXT_STEP"); ?>" class="adm-btn-save">
+            <input type="submit" name="inst" onclick="BX.showWait()" value="<?= GetMessage("MOD_NEXT_STEP"); ?>"
+                   class="adm-btn-save">
         </div>
         <div align="left" style="float:right; width:50%; position:relative;">
-            <input type="submit" name="back" value="<?php echo GetMessage("MOD_PREV_STEP"); ?>" class="adm-btn-save">
+            <input type="submit" name="back" value="<?= GetMessage("MOD_PREV_STEP"); ?>" class="adm-btn-save">
         </div>
     </div>
 </form>
-
-
