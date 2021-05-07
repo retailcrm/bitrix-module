@@ -18,6 +18,7 @@ IncludeModuleLangFile(__FILE__);
 use Bitrix\Main\Event;
 use Bitrix\Main\HttpRequest;
 use Bitrix\Sale\Order;
+use Intaro\RetailCrm\Component\Builder\Bitrix\LoyaltyDataBuilder;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Repository\UserRepository;
@@ -176,7 +177,10 @@ class EventsHandlers
     
             if ($isNewOrder && $isLoyaltyOn) {
                 self::$disableSaleHandler = true;
-                $hlInfo                   = $orderLoyaltyDataService->addMainInfoToHl($order);
+                
+                $hlInfoBuilder = new LoyaltyDataBuilder();
+                $hlInfoBuilder->setOrder($order);
+                
                 $discountInput            = isset($_POST['loyalty-discount-input'])
                     ? (float) $_POST['loyalty-discount-input']
                     : 0;
@@ -185,12 +189,9 @@ class EventsHandlers
         
                 //Если есть бонусы
                 if ($isBonusesIssetAndAvailable) {
-                    $hlInfo = $loyaltyService->saveBonuses(
-                        $order,
-                        $hlInfo,
-                        (int) $_POST['bonus-input']
+                    $hlInfoBuilder->setApplyResponse(
+                        $loyaltyService->applyBonusesInOrder($order, (int) $_POST['bonus-input'])
                     );
-            
                     $loyaltyBonusMsg = (int) $_POST['bonus-input'];
                 }
         
@@ -204,9 +205,11 @@ class EventsHandlers
                     $discountInput,
                     $loyaltyBonusMsg
                 );
-        
-                $hlInfo = $orderLoyaltyDataService->addDiscountsToHl($calculateItemsInput, $hlInfo);
-    
+                $hlInfoBuilder->setCalculateItemsInput($calculateItemsInput);
+                $hlInfoBuilder->build();
+                
+                $hlInfo = $hlInfoBuilder->getResult();
+    \Bitrix\Main\Diag\Debug::writeToFile(json_encode($hlInfo), '', 'log.txt');
                 $orderLoyaltyDataService->saveLoyaltyInfoToHl($hlInfo);
     
                 self::$disableSaleHandler = false;
