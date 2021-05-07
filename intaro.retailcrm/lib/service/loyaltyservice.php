@@ -81,8 +81,13 @@ class LoyaltyService
     }
 
     /**
-     * @param int $orderId
-     * @param int $bonusCount
+     * Выполняет запрос на применение бонусов по программе лояльности
+     *
+     * @link https://docs.retailcrm.ru/Developers/API/APIVersions/APIv5#post--api-v5-orders-loyalty-apply
+     *
+     * @param int $orderId ID заказа
+     * @param int $bonusCount количество бонусов для списания
+     *
      * @return \Intaro\RetailCrm\Model\Api\Response\Order\Loyalty\OrderLoyaltyApplyResponse|mixed|null
      */
     public function sendBonusPayment(int $orderId, int $bonusCount): ?OrderLoyaltyApplyResponse
@@ -95,15 +100,15 @@ class LoyaltyService
         
         $result = $this->client->loyaltyOrderApply($request);
         
-        if (isset($result->errorMsg) && !empty($result->errorMsg)) {
-            $this->logger->write($result->errorMsg, Constants::LOYALTY_ERROR);
-        }
+        Utils::handleApiErrors($result);
         
         return $result;
     }
     
     /**
      * Возвращает расчет привилегий на основе корзины и количества бонусов для списания
+     *
+     * @link https://docs.retailcrm.ru/Developers/API/APIVersions/APIv5#post--api-v5-loyalty-calculate
      *
      * @param array $basketItems корзина
      * @param float $bonuses количество бонусов для списания
@@ -161,7 +166,11 @@ class LoyaltyService
     //TODO доделать метод проверки регистрации в ПЛ
 
     /**
-     * @param int $idInLoyalty
+     * Возвращает список участий в программе лояльности
+     *
+     * @link https://docs.retailcrm.ru/Developers/API/APIVersions/APIv5#get--api-v5-loyalty-accounts
+     *
+     * @param int $idInLoyalty ID участия в программе лояльности
      * @return null|\Intaro\RetailCrm\Model\Api\LoyaltyAccount
      */
     public function getLoyaltyAccounts(int $idInLoyalty): ?LoyaltyAccount

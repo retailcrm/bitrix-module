@@ -49,6 +49,9 @@ class OrderLoyaltyDataService
      */
     private $logger;
     
+    /**
+     * OrderLoyaltyDataService constructor.
+     */
     public function __construct()
     {
         $this->logger = Logger::getInstance();
@@ -73,19 +76,7 @@ class OrderLoyaltyDataService
             }
         }
     }
-    
-    /**
-     * Записывает информацию о скидках по программе лояльности в HL блок
-     *
-     * @param \Intaro\RetailCrm\Model\Bitrix\OrderLoyaltyData $loyaltyHl
-     */
-    public function addDataInLoyaltyHl(OrderLoyaltyData $loyaltyHl): void
-    {
-        $repository = new OrderLoyaltyDataRepository();
-        
-        $repository->add($loyaltyHl);
-    }
-    
+
     /**
      * Создает HL блок для хранения информации о бонусах и скидках
      *
@@ -158,6 +149,8 @@ class OrderLoyaltyDataService
     }
     
     /**
+     * Обновляет данные о начисленных бонусах и скидках в полях заказа
+     *
      * @param int $orderId
      */
     public function updateLoyaltyInfo(int $orderId): void
@@ -226,6 +219,18 @@ class OrderLoyaltyDataService
         foreach ($loyaltyHls as $loyaltyData) {
             $hlService->addDataInLoyaltyHl($loyaltyData);
         }
+    }
+    
+    /**
+     * Записывает информацию о скидках по программе лояльности в HL блок
+     *
+     * @param \Intaro\RetailCrm\Model\Bitrix\OrderLoyaltyData $loyaltyHl
+     */
+    private function addDataInLoyaltyHl(OrderLoyaltyData $loyaltyHl): void
+    {
+        $repository = new OrderLoyaltyDataRepository();
+        
+        $repository->add($loyaltyHl);
     }
     
     /**
