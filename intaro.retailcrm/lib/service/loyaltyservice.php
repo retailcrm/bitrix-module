@@ -159,29 +159,7 @@ class LoyaltyService
     }
     
     //TODO доделать метод проверки регистрации в ПЛ
-    
-    /**
-     * Сохранение бонусов при оформлении заказа в заказе
-     *
-     * @param \Bitrix\Sale\Order $order
-     * @param OrderLoyaltyData[] $hlInfo
-     * @param int                $bonusInput
-     * @return \Intaro\RetailCrm\Model\Bitrix\OrderLoyaltyData[]
-     */
-    public function saveBonuses(Order $order, array $hlInfo, int $bonusInput): array
-    {
-        /** @var OrderLoyaltyDataService $service */
-        $service = ServiceLocator::get(OrderLoyaltyDataService::class);
-        
-        $bonusResponse = $this->applyBonusesInOrder($order, $bonusInput);
-        
-        if ($bonusResponse !== null) {
-            $hlInfo = $service->addBonusesToHl($hlInfo, $bonusResponse);
-        }
-        
-        return $hlInfo;
-    }
-    
+
     /**
      * @param int $idInLoyalty
      * @return null|\Intaro\RetailCrm\Model\Api\LoyaltyAccount
@@ -473,9 +451,10 @@ class LoyaltyService
      *
      * @param \Bitrix\Sale\Order $order
      * @param int                $bonusCount /бонусная скидка в рублях
+     *
      * @return \Intaro\RetailCrm\Model\Api\Response\Order\Loyalty\OrderLoyaltyApplyResponse|null
      */
-    private function applyBonusesInOrder(Order $order, int $bonusCount): ?OrderLoyaltyApplyResponse
+    public function applyBonusesInOrder(Order $order, int $bonusCount): ?OrderLoyaltyApplyResponse
     {
         $orderId  = $order->getId();
         $response = $this->sendBonusPayment($orderId, $bonusCount);
