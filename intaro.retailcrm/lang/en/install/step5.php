@@ -18,7 +18,7 @@ $MESS ['CRON_LOADING'] = 'By CRON every 24 hours';
 $MESS ['AGENT_LOADING'] = 'By Agent every 24 hours (by default)';
 $MESS ['LOAD_NOW'] = 'Export now';
 $MESS ['LOAD_NOW_MSG'] = 'The generation will start after you click "Finish installation".
-Do not close this page until the generation process is complete.';
+This may take some time';
 $MESS ['PROFILE_NAME'] = 'Profile name:';
 $MESS ['PROFILE_NAME_EXAMPLE'] = 'RetailCRM catalog export';
 $MESS ['ERR_FIELDS_PROFILE'] = 'Invalid profile name field';

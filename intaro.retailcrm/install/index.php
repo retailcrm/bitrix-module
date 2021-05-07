@@ -137,6 +137,7 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../classes/general/user/RetailCrmUser.php');
         include($this->INSTALL_PATH . '/../classes/general/events/RetailCrmEvent.php');
         include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/offerparam.php');
+        include($this->INSTALL_PATH . '/../lib/component/agent.php');
         include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/selectparams.php');
         include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/unit.php');
         include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/xmlcategory.php');
@@ -1037,10 +1038,6 @@ class intaro_retailcrm extends CModule
                 "SETUP_VARS"      => $ar,
             ]);
     
-            if (isset($_POST['LOAD_NOW'])) {
-                CCatalogExport::PreGenerateExport($profileId);
-            }
-            
             if (intval($profileId) <= 0) {
                 $arResult['errCode'] = 'ERR_IBLOCK';
         
@@ -1052,12 +1049,14 @@ class intaro_retailcrm extends CModule
                 $this->CRM_CATALOG_BASE_PRICE . '_' . $profileId,
                 htmlspecialchars(trim($_POST['price-types']))
             );
-    
+            
+            $agentId = null;
+            
             if ($typeLoading === 'agent') {
                 $dateAgent = new DateTime();
                 $intAgent = new DateInterval('PT60S'); // PT60S - 60 sec;
                 $dateAgent->add($intAgent);
-                CAgent::AddAgent(
+                $agentId = CAgent::AddAgent(
                     "CCatalogExport::PreGenerateExport(" . $profileId . ");", "catalog", "N", 86400,
                     $dateAgent->format('d.m.Y H:i:s'), // date of first check
                     "Y", // agent is active
@@ -1070,6 +1069,22 @@ class intaro_retailcrm extends CModule
                 ]);
             }
     
+            if (
+                isset($_POST['LOAD_NOW'])
+                && $agentId === null
+            ) {
+                CAgent::AddAgent(
+                    "\Intaro\RetailCrm\Component\Agent::preGenerateExport(" . $profileId . ");",
+                    $this->MODULE_ID,
+                    "N",
+                    86400,
+                    $dateAgent->format('d.m.Y H:i:s'),
+                    "Y",
+                    $dateAgent->format('d.m.Y H:i:s')
+                );
+            }
+            
+            
             if ('cron' === $typeLoading) {
                 $agent_period = 24;
                 $agent_php_path = "/usr/local/php/bin/php";
