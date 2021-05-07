@@ -13,6 +13,7 @@ use Bitrix\Sale\Location\Search\Finder;
 use Bitrix\Sale\Order;
 use Bitrix\Sale\OrderUserProperties;
 use Intaro\RetailCrm\Component\ConfigProvider;
+use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\Handlers\EventsHandlers;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Service\LoyaltyService;
@@ -1232,7 +1233,7 @@ class RetailCrmHistory
                 $historyFilter['sinceId'] = $end['id'];
             }
         } catch (Throwable $exception) {
-            AddMessage2Log($exception->getMessage());
+            Logger::getInstance()->write($exception->getMessage(), Constants::HISTORY_ERRORS);
         }
         
         return false;

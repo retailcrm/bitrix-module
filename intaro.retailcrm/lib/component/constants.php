@@ -83,4 +83,6 @@ class Constants
     public const LP_BONUS_INFO                = 'LP_BONUS_INFO';
     public const API_ERRORS_LOG               = 'apiErrors';
     public const LOYALTY_ERROR                = 'loyaltyErrors';
+    public const HISTORY_ERRORS               = 'historyErrors';
+    public const REPOSITORY_ERRORS            = 'repositoryErrors';
 }

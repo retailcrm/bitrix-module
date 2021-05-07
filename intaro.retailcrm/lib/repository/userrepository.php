@@ -22,6 +22,7 @@ use Intaro\RetailCrm\Component\Json\Deserializer;
 use Intaro\RetailCrm\Component\Json\Serializer;
 use Intaro\RetailCrm\Model\Bitrix\User;
 use Intaro\RetailCrm\Model\Bitrix\UserLoyaltyData;
+use Logger;
 
 /**
  * Class UserRepository
@@ -55,7 +56,7 @@ class UserRepository extends AbstractRepository
         try {
             $loyaltyFields = UserLoyaltyDataRepository::getLoyaltyFields($fields['ID']);
         } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
-            AddMessage2Log($exception->getMessage());
+            Logger::getInstance()->write($exception->getMessage());
         }
     
         if (isset($loyaltyFields)) {
