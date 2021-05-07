@@ -21,7 +21,7 @@ class RCrmActions
      *
      * @return array
      */
-    public static function SitesList(): array
+    public static function sitesList(): array
     {
         $arSites = [];
         $rsSites = CSite::GetList($by, $sort, ['ACTIVE' => 'Y']);

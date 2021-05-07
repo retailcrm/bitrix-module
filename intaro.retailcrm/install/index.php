@@ -249,7 +249,7 @@ class intaro_retailcrm extends CModule
         $service->addCustomersLoyaltyFields();
 
         if ($step == 11) {
-            $arResult['arSites'] = RCrmActions::SitesList();
+            $arResult['arSites'] = RCrmActions::sitesList();
             if (count($arResult['arSites']) < 2) {
                 $step = 2;
             }
@@ -360,7 +360,7 @@ class intaro_retailcrm extends CModule
                 return false;
             }
 
-            $arResult['arSites'] = RCrmActions::SitesList();
+            $arResult['arSites'] = RCrmActions::sitesList();
 
             if (count($arResult['arSites']) > 1) {
 
@@ -503,7 +503,7 @@ class intaro_retailcrm extends CModule
             $this->RETAIL_CRM_API = new ApiClient($api_host, $api_key);
 
             //bitrix orderTypesList
-            $arResult['arSites']              = RCrmActions::SitesList();
+            $arResult['arSites']              = RCrmActions::sitesList();
             $arResult['bitrixOrderTypesList'] = RCrmActions::OrderTypesList($arResult['arSites']);
 
             $orderTypesArr = [];
@@ -680,7 +680,7 @@ class intaro_retailcrm extends CModule
             }
 
             //bitrix orderTypesList
-            $orderTypesList = RCrmActions::OrderTypesList(RCrmActions::SitesList());
+            $orderTypesList = RCrmActions::OrderTypesList(RCrmActions::sitesList());
 
             $orderTypesArr = [];
             foreach ($orderTypesList as $orderType) {

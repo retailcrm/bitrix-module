@@ -206,11 +206,7 @@ class EventsHandlers
                     $loyaltyBonusMsg
                 );
                 $hlInfoBuilder->setCalculateItemsInput($calculateItemsInput);
-                $hlInfoBuilder->build();
-                
-                $hlInfo = $hlInfoBuilder->getResult();
-    \Bitrix\Main\Diag\Debug::writeToFile(json_encode($hlInfo), '', 'log.txt');
-                $orderLoyaltyDataService->saveLoyaltyInfoToHl($hlInfo);
+                $orderLoyaltyDataService->saveLoyaltyInfoToHl($hlInfoBuilder->build()->getResult());
     
                 self::$disableSaleHandler = false;
             }
