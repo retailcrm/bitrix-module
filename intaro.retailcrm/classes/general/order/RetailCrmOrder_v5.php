@@ -70,7 +70,8 @@ class RetailCrmOrder
             $order['customer']['browserId'] = $_COOKIE['_rc'];
         }
 
-        $order['contragent']['contragentType'] = $arParams['optionsContragentType'][$arFields['PERSON_TYPE_ID']];
+        $order['contragent']['contragentType']
+            = $arParams['optionsContragentType'][$arFields['LID']][$arFields['PERSON_TYPE_ID']] ?? null;
 
         if ($methodApi == 'ordersEdit') {
             $order['discountManualAmount'] = 0;

@@ -1180,7 +1180,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                             <select name="contragent-type-<?php echo $siteCode.'_'.$bitrixOrderType['ID']; ?>" class="typeselect">
                                 <?php foreach ($arResult['contragentType'] as $contragentType): ?>
                                     <option value="<?php echo $contragentType["ID"]; ?>"
-                                        <?php if ($optionsContragentType[$bitrixOrderType['LID']][$bitrixOrderType['ID']] == $contragentType['ID']) echo 'selected'; ?>>
+                                        <?php if ($optionsContragentType[$siteCode][$bitrixOrderType['ID']] == $contragentType['ID']) echo 'selected'; ?>>
                                         <?php echo $contragentType["NAME"]; ?>
                                     </option>
                                 <?php endforeach; ?>
