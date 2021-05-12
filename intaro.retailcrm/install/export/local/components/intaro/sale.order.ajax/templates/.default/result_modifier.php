@@ -19,9 +19,19 @@ if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) {
  */
 
 /** RetailCRM loyalty program start */
-try {
-    Loader::includeModule('intaro.retailcrm');
-    
+/**
+ * @return bool
+ */
+function checkLoad(): bool
+{
+    try {
+        return Loader::includeModule('intaro.retailcrm');
+    } catch (LoaderException $e) {
+        return false;
+    }
+}
+
+if (checkLoad()) {
     $arResult['LOYALTY_STATUS']          = ConfigProvider::getLoyaltyProgramStatus();
     $arResult['PERSONAL_LOYALTY_STATUS'] = LoyaltyAccountService::getLoyaltyPersonalStatus();
     
@@ -43,8 +53,8 @@ try {
             'BONUSES'             => GetMessage('BONUSES'),
         ]);
     }
-} catch (Throwable $exception) {
-    AddMessage2Log($exception->getMessage());
+} else {
+    AddMessage2Log(GetMessage('INTARO_NOT_INSTALLED'));
 }
 /** RetailCRM loyalty program end */
 
