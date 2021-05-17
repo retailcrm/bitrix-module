@@ -12,6 +12,7 @@ use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupProps;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupPropsCategories;
 use Intaro\RetailCrm\Repository\CatalogRepository;
+use Intaro\RetailCrm\Vendor\Symfony\Component\Process\PhpExecutableFinder;
 use RetailCrm\Exception\CurlException;
 
 IncludeModuleLangFile(__FILE__);
@@ -1005,17 +1006,15 @@ class intaro_retailcrm extends CModule
                 . $this->RETAIL_CRM_EXPORT
                 . '_run.php')
             ) {
-                $dbProfile = CCatalogExport::GetList([], ["FILE_NAME" => $this->RETAIL_CRM_EXPORT]);
+                $dbProfile = CCatalogExport::GetList([], ['FILE_NAME' => $this->RETAIL_CRM_EXPORT]);
+    
+                if ($dbProfile instanceof CDBResult) {
+                    $this->removeExportProfiles($dbProfile);
         
-                while ($arProfile = $dbProfile->Fetch()) {
-                    if ($arProfile["DEFAULT_PROFILE"] != "Y") {
-                        CAgent::RemoveAgent("CCatalogExport::PreGenerateExport(" . $arProfile['ID'] . ");", "catalog");
-                        CCatalogExport::Delete($arProfile['ID']);
-                    }
                 }
             }
     
-            $ar = $this->GetProfileSetupVars(
+            $setupVars = $this->getProfileSetupVars(
                 $iblocks,
                 $propertiesProduct,
                 $propertiesUnitProduct,
@@ -1035,10 +1034,10 @@ class intaro_retailcrm extends CModule
                 "IN_AGENT"        => "N",
                 "IN_CRON"         => "N",
                 "NEED_EDIT"       => "N",
-                "SETUP_VARS"      => $ar,
+                "SETUP_VARS"      => $setupVars,
             ]);
     
-            if (intval($profileId) <= 0) {
+            if ((int) $profileId <= 0) {
                 $arResult['errCode'] = 'ERR_IBLOCK';
         
                 return;
@@ -1057,10 +1056,13 @@ class intaro_retailcrm extends CModule
                 $intAgent = new DateInterval('PT60S'); // PT60S - 60 sec;
                 $dateAgent->add($intAgent);
                 $agentId = CAgent::AddAgent(
-                    "CCatalogExport::PreGenerateExport(" . $profileId . ");", "catalog", "N", 86400,
-                    $dateAgent->format('d.m.Y H:i:s'), // date of first check
-                    "Y", // agent is active
-                    $dateAgent->format('d.m.Y H:i:s'), // date of first start
+                    'CCatalogExport::PreGenerateExport(' . $profileId . ');',
+                    'catalog',
+                    'N',
+                    86400,
+                    $dateAgent->format('d.m.Y H:i:s'),
+                    'Y',
+                    $dateAgent->format('d.m.Y H:i:s'),
                     30
                 );
         
@@ -1074,20 +1076,24 @@ class intaro_retailcrm extends CModule
                 && $agentId === null
             ) {
                 CAgent::AddAgent(
-                    "\Intaro\RetailCrm\Component\Agent::preGenerateExport(" . $profileId . ");",
+                    '\Intaro\RetailCrm\Component\Agent::preGenerateExport(' . $profileId . ');',
                     $this->MODULE_ID,
-                    "N",
+                    'N',
                     86400,
                     $dateAgent->format('d.m.Y H:i:s'),
-                    "Y",
+                    'Y',
                     $dateAgent->format('d.m.Y H:i:s')
                 );
             }
             
             
             if ('cron' === $typeLoading) {
+                include($this->INSTALL_PATH . '/../lib/vendor/symfony/component/process/phpexecutablefinder.php');
+                include($this->INSTALL_PATH . '/../lib/vendor/symfony/component/process/executablefinder.php');
+                
                 $agent_period = 24;
-                $agent_php_path = "/usr/local/php/bin/php";
+                $finder = new PhpExecutableFinder();
+                $agent_php_path = $finder->find();
         
                 if (!file_exists($_SERVER["DOCUMENT_ROOT"] . CATALOG_PATH2EXPORTS . "cron_frame.php")) {
                     CheckDirPath($_SERVER["DOCUMENT_ROOT"] . CATALOG_PATH2EXPORTS);
@@ -1263,17 +1269,19 @@ class intaro_retailcrm extends CModule
         UnRegisterModuleDependences("main", "OnBeforeProlog", $this->MODULE_ID, "RetailCrmUa", "add");
         UnRegisterModuleDependences("sale", "OnSalePaymentEntitySaved", $this->MODULE_ID, "RetailCrmEvent", "paymentSave");
         UnRegisterModuleDependences("sale", "OnSalePaymentEntityDeleted", $this->MODULE_ID, "RetailCrmEvent", "paymentDelete");
+    
+        if (
+            CModule::IncludeModule('catalog')
+            && file_exists($_SERVER['DOCUMENT_ROOT']
+                . '/bitrix/php_interface/include/catalog_export/'
+                . $this->RETAIL_CRM_EXPORT
+                . '_run.php')
+        ) {
+            $dbProfile = CCatalogExport::GetList([], ['FILE_NAME' => $this->RETAIL_CRM_EXPORT]);
 
-        if (CModule::IncludeModule("catalog")) {
-            if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/' . $this->RETAIL_CRM_EXPORT . '_run.php')) {
-                $dbProfile = CCatalogExport::GetList(array(), array("FILE_NAME" => $this->RETAIL_CRM_EXPORT));
-
-                while ($arProfile = $dbProfile->Fetch()) {
-                    if ($arProfile["DEFAULT_PROFILE"] != "Y") {
-                        CAgent::RemoveAgent("CCatalogExport::PreGenerateExport(" . $arProfile['ID'] . ");", "catalog");
-                        CCatalogExport::Delete($arProfile['ID']);
-                    }
-                }
+            if ($dbProfile instanceof CDBResult) {
+                $this->removeExportProfiles($dbProfile);
+            
             }
         }
 
@@ -1317,7 +1325,7 @@ class intaro_retailcrm extends CModule
         rmdir($defaultSite['ABS_DOC_ROOT'] . '/retailcrm/');
     }
 
-    function GetProfileSetupVars(
+    function getProfileSetupVars(
         $iblocks,
         $propertiesProduct,
         $propertiesUnitProduct,
@@ -1453,5 +1461,20 @@ class intaro_retailcrm extends CModule
         }
 
         return $res;
+    }
+    
+    /**
+     * Удаляет профили экспорта icml каталага и агент, запускавший этот экспорт
+     *
+     * @param \CDBResult $dbProfile
+     */
+    private function removeExportProfiles(CDBResult $dbProfile): void
+    {
+        while ($arProfile = $dbProfile->Fetch()) {
+            if ($arProfile['DEFAULT_PROFILE'] !== 'Y') {
+                CAgent::RemoveAgent('CCatalogExport::PreGenerateExport(' . $arProfile['ID'] . ');', 'catalog');
+                CCatalogExport::Delete($arProfile['ID']);
+            }
+        }
     }
 }

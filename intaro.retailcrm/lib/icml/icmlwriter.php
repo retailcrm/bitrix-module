@@ -186,9 +186,7 @@ class IcmlWriter
     {
         global $APPLICATION;
 
-        return str_replace(
-            "&",
-            "&#x26;",
+        return htmlspecialchars(
             strip_tags($APPLICATION->ConvertCharset($text, 'utf-8', 'utf-8'))
         );
     }

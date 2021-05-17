@@ -7,7 +7,7 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
 } else {
     if (isset($_POST['ajax']) && $_POST['ajax'] == '1') {
         CModule::IncludeModule('highloadblock');
-        $rsData = HighloadBlockTable::getList(array('filter' => array('TABLE_NAME' => $_POST['table'])));
+        $rsData = HighloadBlockTable::getList(['filter' => ['TABLE_NAME' => $_POST['table']]]);
         $hlblockArr = $rsData->Fetch();
         $hlblock = HighloadBlockTable::getById($hlblockArr["ID"])->fetch();
         $entity = HighloadBlockTable::compileEntity($hlblock);

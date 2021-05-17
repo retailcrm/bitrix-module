@@ -19,9 +19,9 @@ use RetailcrmConfigProvider;
  */
 class IcmlDirector
 {
-    public const INFO                      = 'INFO';
-    public const OFFERS_PART               = 500;
-    public const FILE_LOG_NAME             = 'i_crm_load_log';
+    public const INFO = 'INFO';
+    public const OFFERS_PART = 500;
+    public const FILE_LOG_NAME = 'i_crm_load_log';
     public const DEFAULT_PRODUCT_PAGE_SIZE = 1;
     
     /**
@@ -77,15 +77,15 @@ class IcmlDirector
      */
     public function __construct(XmlSetup $setup, Logger $logger)
     {
-        $this->setup               = $setup;
-        $this->shopName            = RetailcrmConfigProvider::getSiteName();
-        $this->catalogRepository   = new CatalogRepository();
-        $this->icmlWriter          = new IcmlWriter($this->setup->filePath);
-        $this->xmlOfferDirector    = new XmlOfferDirector($this->setup);
+        $this->setup = $setup;
+        $this->shopName = RetailcrmConfigProvider::getSiteName();
+        $this->catalogRepository = new CatalogRepository();
+        $this->icmlWriter = new IcmlWriter($this->setup->filePath);
+        $this->xmlOfferDirector = new XmlOfferDirector($this->setup);
         $this->xmlCategoryDirector = new XmlCategoryDirector($this->setup->iblocksForExport);
-        $this->queryBuilder        = new QueryParamsMolder();
-        $this->xmlData             = new XmlData();
-        $this->logger              = $logger;
+        $this->queryBuilder = new QueryParamsMolder();
+        $this->xmlData = new XmlData();
+        $this->logger = $logger;
     }
     
     /**
@@ -263,7 +263,7 @@ class IcmlDirector
                 $writingOffersCount += count($xmlOffersPart);
                 $paramsForOffer->pageNumber++;
             }
-        } while ($this->isContinueRecord($writingOffersCount, $xmlOffersPart));
+        } while ($this->shouldContinueWriting($writingOffersCount, $xmlOffersPart));
     }
     
     /**
@@ -323,7 +323,7 @@ class IcmlDirector
      *
      * @return bool
      */
-    private function isContinueRecord(int $writingOffers, array $xmlOffers): bool
+    private function shouldContinueWriting(int $writingOffers, array $xmlOffers): bool
     {
         if (empty($this->setup->maxOffersValue)) {
             return !empty($xmlOffers);
