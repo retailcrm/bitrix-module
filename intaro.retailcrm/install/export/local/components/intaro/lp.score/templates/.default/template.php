@@ -24,8 +24,8 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
     <?php if (isset($arResult['ORDERS_SUM'])) {?>
         <b><?=GetMessage('ORDERS_SUM')?></b> <?= $arResult['ORDERS_SUM']?><br>
     <?php }?>
-    <?php if (isset($arResult['NEXT_LEVEL_SUM'])) {?>
-        <b><?=GetMessage('NEXT_LEVEL_SUM')?></b> <?= $arResult['NEXT_LEVEL_SUM']?><br>
+    <?php if (isset($arResult['REMAINING_SUM'])) {?>
+        <b><?=GetMessage('REMAINING_SUM')?></b> <?= $arResult['REMAINING_SUM']?><br>
     <?php }?>
     <?php if (isset($arResult['BONUS_COUNT'])) {?>
         <b><?=GetMessage('BONUS_COUNT')?></b> <?= $arResult['BONUS_COUNT']?><br>
@@ -42,6 +42,10 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
     
     <?php if (isset($arResult['LOYALTY_LEVEL_TYPE'])) {?>
         <br><br><b><?=GetMessage('LOYALTY_LEVEL_TYPE')?></b><br>
+    
+        <?php if (isset($arResult['NEXT_LEVEL_SUM'])) {?>
+            <b><?=GetMessage('NEXT_LEVEL_SUM')?></b> <?= $arResult['NEXT_LEVEL_SUM']?><br>
+        <?php }?>
         <?php
         switch ($arResult['LOYALTY_LEVEL_TYPE']) {
             case 'bonus_percent':
