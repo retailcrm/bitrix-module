@@ -42,7 +42,7 @@ try {
             $arResult['PHONE']                   = $response->phoneNumber;
             $arResult['REGISTER_DATE']           = $response->createdAt->format('Y-m-d');
             $arResult['LOYALTY_LEVEL_NAME']      = $response->loyaltyLevel->name;
-            $arResult['LOYALTY_LEVEL_ID']        = $response->loyaltyLevel->id;
+            $arResult['LOYALTY_LEVEL_ID']        = $response->id;
             $arResult['LL_PRIVILEGE_SIZE']       = $response->loyaltyLevel->privilegeSize;
             $arResult['LL_PRIVILEGE_SIZE_PROMO'] = $response->loyaltyLevel->privilegeSizePromo;
             $arResult['LOYALTY_LEVEL_TYPE']      = $response->loyaltyLevel->type;
