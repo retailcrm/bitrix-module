@@ -2,14 +2,21 @@ $(document).ready(function() {
     function makeAjaxRequest() {
         $('#bonus-msg').html(window.__MESS__.COUNT_FOR_WRITE_OFF);
         let basketItemsHidden = window.__BASKET_ITEMS__;
-        let inputBonuses      = Number.parseInt($('#bonus-input').val());
+        let inputBonuses = $('#bonus-input').val();
+
+        if (/^[1-9]\d+$/.test(inputBonuses) === false) {
+            $('#bonus-input-error').html(window.__MESS__.VALIDATE_BONUS_ERROR);
+            return;
+        }
+
+        let inputBonusesInt = Number.parseInt(inputBonuses);
 
         BX.ajax.runAction('intaro:retailcrm.api.loyalty.order.loyaltyCalculate',
             {
                 data: {
                     sessid: BX.bitrix_sessid(),
                     basketItems: basketItemsHidden,
-                    inputBonuses: inputBonuses
+                    inputBonuses: inputBonusesInt
                 }
             }
         )
