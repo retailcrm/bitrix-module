@@ -47,10 +47,11 @@ if (checkLoad()) {
         }
         
         $arResult['JS_MESS'] = json_encode([
-            'COUNT_FOR_WRITE_OFF' => GetMessage('COUNT_FOR_WRITE_OFF'),
-            'DATA_PROCESSING'     => GetMessage('DATA_PROCESSING'),
-            'YOU_CANT_SPEND_MORE' => GetMessage('YOU_CANT_SPEND_MORE'),
-            'BONUSES'             => GetMessage('BONUSES'),
+            'COUNT_FOR_WRITE_OFF'  => GetMessage('COUNT_FOR_WRITE_OFF'),
+            'VALIDATE_BONUS_ERROR' => GetMessage('VALIDATE_BONUS_ERROR'),
+            'DATA_PROCESSING'      => GetMessage('DATA_PROCESSING'),
+            'YOU_CANT_SPEND_MORE'  => GetMessage('YOU_CANT_SPEND_MORE'),
+            'BONUSES'              => GetMessage('BONUSES'),
         ]);
     }
 } else {
