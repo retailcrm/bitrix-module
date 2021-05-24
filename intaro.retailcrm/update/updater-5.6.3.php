@@ -9,10 +9,6 @@ use Bitrix\Main\SiteTable;
  */
 function update_5_6_3()
 {
-    if (!class_exists('COption')) {
-        return;
-    }
-
     $mid = 'intaro.retailcrm';
     $bdContragentType = 'contragent_type';
     $bdOrderProps = 'order_props';
