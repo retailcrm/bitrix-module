@@ -14,6 +14,7 @@ use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupPropsCategories;
 use Intaro\RetailCrm\Repository\CatalogRepository;
 use Intaro\RetailCrm\Vendor\Symfony\Component\Process\PhpExecutableFinder;
 use RetailCrm\Exception\CurlException;
+use RetailCrm\Response\ApiResponse;
 
 IncludeModuleLangFile(__FILE__);
 if (class_exists('intaro_retailcrm'))
@@ -1450,7 +1451,7 @@ class intaro_retailcrm extends CModule
                 $res['errCode'] = 'ERR_' . $e->getCode();
             }
 
-            if ($result->getStatusCode() == 200) {
+            if ($result instanceof ApiResponse && $result->getStatusCode() == 200) {
                 COption::SetOptionString($this->MODULE_ID, $this->CRM_API_VERSION, $version);
                 $res['sitesList'] = $APPLICATION->ConvertCharsetArray($result->sites, 'utf-8', SITE_CHARSET);
 

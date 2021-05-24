@@ -180,15 +180,14 @@ class IcmlWriter
     
     /**
      * @param $text
-     * @return string|string[]
+     *
+     * @return string
      */
-    protected function prepareValue($text)
+    protected function prepareValue($text): string
     {
         global $APPLICATION;
 
-        return htmlspecialchars(
-            strip_tags($APPLICATION->ConvertCharset($text, 'utf-8', 'utf-8'))
-        );
+        return strip_tags($APPLICATION->ConvertCharset($text, 'utf-8', 'utf-8'));
     }
     
     /**
@@ -198,6 +197,7 @@ class IcmlWriter
     {
         $this->writer->startElement('category');
         $this->writeSimpleAttribute('id', $category->id);
+        $this->writeParentId($category->parentId);
         $this->writeSimpleElement('name', $category->name);
         $this->writeSimpleElement('picture', $category->picture);
         $this->writer->endElement();
@@ -213,5 +213,15 @@ class IcmlWriter
         $this->writeSimpleAttribute('code', $param->code);
         $this->writer->text($this->prepareValue($param->value));
         $this->writer->endElement();
+    }
+    
+    /**
+     * @param string $parentId
+     */
+    private function writeParentId(string $parentId)
+    {
+        if ($parentId > 0) {
+            $this->writeSimpleAttribute('parentId', $parentId);
+        }
     }
 }

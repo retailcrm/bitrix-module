@@ -2,6 +2,8 @@
 
 namespace Intaro\RetailCrm\Icml;
 
+use Bitrix\Catalog\ProductTable;
+use Bitrix\Main\ArgumentException;
 use Intaro\RetailCrm\Icml\Utils\IcmlUtils;
 use Intaro\RetailCrm\Model\Bitrix\Orm\CatalogIblockInfo;
 use Intaro\RetailCrm\Model\Bitrix\Xml\OfferParam;
@@ -10,6 +12,7 @@ use Intaro\RetailCrm\Model\Bitrix\Xml\Unit;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlOffer;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupPropsCategories;
+use Logger;
 use RetailcrmConfigProvider;
 
 /**
@@ -88,14 +91,16 @@ class XmlOfferBuilder
      * IcmlDataManager constructor.
      *
      * XmlOfferBuilder constructor.
+     *
      * @param \Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup $setup
      * @param array                                       $measure
+     * @param string|null                                 $defaultServerName
      */
     public function __construct(XmlSetup $setup, array $measure, ?string $defaultServerName)
     {
         $this->setup             = $setup;
         $this->purchasePriceNull = RetailcrmConfigProvider::getCrmPurchasePrice();
-        $this->measures          = $measure;
+        $this->measures          = $this->prepareMeasures($measure);
         $this->defaultServerName = $defaultServerName;
      }
     
@@ -218,27 +223,24 @@ class XmlOfferBuilder
      */
     private function addDataFromItem(array $item, array $categoryIds): void
     {
-        $this->xmlOffer->id            = $item['ID'];
-        $this->xmlOffer->productId     = $item['ID'];
-        $this->xmlOffer->quantity      = $item['CATALOG_QUANTITY'] ?? '';
-        $this->xmlOffer->url           = $item['DETAIL_PAGE_URL']
+        $this->xmlOffer->id = $item['ID'];
+        $this->xmlOffer->productId = $item['ID'];
+        $this->xmlOffer->quantity = $item['CATALOG_QUANTITY'] ?? '';
+        $this->xmlOffer->url = $item['DETAIL_PAGE_URL']
             ? $this->defaultServerName . $item['DETAIL_PAGE_URL']
             : '';
-        $this->xmlOffer->price         = $item['CATALOG_PRICE_' . $this->setup->basePriceId];
+        $this->xmlOffer->price = $item['CATALOG_PRICE_' . $this->setup->basePriceId];
         $this->xmlOffer->purchasePrice = $this->getPurchasePrice(
             $item,
             $this->setup->loadPurchasePrice,
             $this->purchasePriceNull
         );
-        $this->xmlOffer->categoryIds   = $categoryIds;
-        $this->xmlOffer->name          = $item['NAME'];
-        $this->xmlOffer->xmlId         = $item['EXTERNAL_ID'] ?? '';
-        $this->xmlOffer->productName   = $item['NAME'];
-        $this->xmlOffer->vatRate       = $item['CATALOG_VAT'] ?? 'none';
-        
-        if (isset($item['CATALOG_MEASURE'])) {
-            $this->xmlOffer->unitCode = $this->createUnit($item['CATALOG_MEASURE']);
-        }
+        $this->xmlOffer->categoryIds = $categoryIds;
+        $this->xmlOffer->name = $item['NAME'];
+        $this->xmlOffer->xmlId = $item['EXTERNAL_ID'] ?? '';
+        $this->xmlOffer->productName = $item['NAME'];
+        $this->xmlOffer->vatRate = $item['CATALOG_VAT'] ?? 'none';
+        $this->xmlOffer->unitCode = $this->getUnitCode($item['CATALOG_MEASURE'], $item['ID']);
     }
     
     /**
@@ -444,13 +446,75 @@ class XmlOfferBuilder
      * @param int $measureIndex
      * @return \Intaro\RetailCrm\Model\Bitrix\Xml\Unit
      */
-    private function createUnit(int $measureIndex): Unit
+    private function createUnitFromCode(int $measureIndex): Unit
     {
         $unit       = new Unit();
-        $unit->name = $this->measures[$measureIndex]['MEASURE_TITLE'];
-        $unit->code = $this->measures[$measureIndex]['SYMBOL_INTL'];
-        $unit->sym  = $this->measures[$measureIndex]['SYMBOL_RUS'];
+        $unit->name = $this->measures[$measureIndex]['MEASURE_TITLE'] ?? '';
+        $unit->code = $this->measures[$measureIndex]['SYMBOL_INTL'] ?? '';
+        $unit->sym  = $this->measures[$measureIndex]['SYMBOL_RUS'] ?? '';
         
         return $unit;
+    }
+    
+    /**
+     * Удаляет запрещенные в unit сode символы
+     *
+     * @link https://docs.retailcrm.ru/Developers/modules/ICML
+     *
+     * @param array $measures
+     *
+     * @return array
+     */
+    private function prepareMeasures(array $measures): array
+    {
+        foreach ($measures as &$measure) {
+            if (isset($measure['SYMBOL_INTL'])) {
+                $measure['SYMBOL_INTL'] =  preg_replace("/[^a-zA-Z_\-]/",'', $measure['SYMBOL_INTL']);
+            }
+        }
+        
+        return $measures;
+    }
+    
+    /**
+     * @param array $currentMeasure
+     *
+     * @return \Intaro\RetailCrm\Model\Bitrix\Xml\Unit
+     */
+    private function createUnitFromProductTable(array $currentMeasure): Unit
+    {
+        $clearCurrentMeasure = $this->prepareMeasures(array_shift($currentMeasure));
+
+        $unit = new Unit();
+        $unit->name = $clearCurrentMeasure['MEASURE']['MEASURE_TITLE'] ?? '';
+        $unit->code = $clearCurrentMeasure['MEASURE']['SYMBOL_INTL'] ?? '';
+        $unit->sym = $clearCurrentMeasure['MEASURE']['SYMBOL_RUS'] ?? '';
+    
+        return $unit;
+    }
+    
+    /**
+     * @param int|null $measureId
+     * @param int      $itemId
+     *
+     * @return \Intaro\RetailCrm\Model\Bitrix\Xml\Unit|null
+     */
+    private function getUnitCode(?int $measureId, int $itemId): ?Unit
+    {
+        if (isset($measureId) && !empty($measureId)) {
+           return $this->createUnitFromCode($measureId);
+        } else {
+            try {
+                $currentMeasure = ProductTable::getCurrentRatioWithMeasure($itemId);
+            
+                if (is_array($currentMeasure)) {
+                    return $this->createUnitFromProductTable($currentMeasure);
+                }
+            } catch (ArgumentException $exception) {
+                Logger::getInstance()->write(GetMessage('UNIT_ERROR'), 'i_crm_load_log');
+            }
+        }
+        
+        return null;
     }
 }

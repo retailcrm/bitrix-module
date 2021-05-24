@@ -10,3 +10,4 @@ $MESS['PARAM_NAME_width'] = 'Ширина (габариты)';
 $MESS['PARAM_NAME_height'] = 'Высота (габариты)';
 $MESS['PARAM_NAME_picture'] = 'Фото';
 $MESS['PARAM_NAME_size'] = 'Размер';
+$MESS['UNIT_ERROR'] = 'Ошибка получения unit кода';

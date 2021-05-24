@@ -21,7 +21,9 @@ class XmlCategoryFactory
 {
     /**
      * @param \Bitrix\Main\ORM\Objectify\EntityObject $category
+     * @param string                                  $picture
      * @param int|null                                $categoryId
+     *
      * @return \Intaro\RetailCrm\Model\Bitrix\Xml\XmlCategory|null
      */
     public function create(EntityObject $category, string $picture, int $categoryId = null): ?XmlCategory
