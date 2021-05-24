@@ -1450,8 +1450,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                     <label>
                                         <input class="addr" type="radio" name="address-detail-<?php echo $bitrixOrderType['ID']; ?>" value="0" 
                                             <?php
-                                            if ($addressOptions[$bitrixOrderType['ID']]
-                                                === '0') {
+                                            if ($addressOptions[$bitrixOrderType['ID']] === '0') {
                                                 echo 'checked';
                                             } 
                                         ?>>
@@ -1460,8 +1459,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                     <label>
                                         <input class="addr" type="radio" name="address-detail-<?php echo $bitrixOrderType['ID']; ?>" value="1" 
                                             <?php
-                                            if ($addressOptions[$bitrixOrderType['ID']]
-                                                === '1') {
+                                            if ($addressOptions[$bitrixOrderType['ID']] === '1') {
                                                 echo 'checked';
                                             } 
                                             ?>>

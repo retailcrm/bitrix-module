@@ -18,10 +18,7 @@ use Intaro\RetailCrm\Service\LoyaltyService;
 use Intaro\RetailCrm\Service\LoyaltyAccountService;
 
 /** RetailCRM loyalty program  start*/
-/**
- * @return bool
- */
-function checkLoad(): bool
+function checkLoadIntaro(): bool
 {
     try {
         return Loader::includeModule('intaro.retailcrm');
@@ -30,7 +27,7 @@ function checkLoad(): bool
     }
 }
 
-if (checkLoad()) {
+if (checkLoadIntaro()) {
     $arResult['LOYALTY_STATUS'] = ConfigProvider::getLoyaltyProgramStatus();
     $arResult['PERSONAL_LOYALTY_STATUS'] = LoyaltyAccountService::getLoyaltyPersonalStatus();
     
