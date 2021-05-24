@@ -4,7 +4,7 @@ $(document).ready(function() {
         let basketItemsHidden = window.__BASKET_ITEMS__;
         let inputBonuses = $('#bonus-input').val();
 
-        if (/^[1-9]\d+$/.test(inputBonuses) === false) {
+        if (/(?<![-\d])(?<!\d[.,])\d*$/.test(inputBonuses) === false) {
             $('#bonus-input-error').html(window.__MESS__.VALIDATE_BONUS_ERROR);
             return;
         }
