@@ -32,9 +32,10 @@ class Utils
      * Removes all empty fields from arrays, works for nested arrays
      *
      * @param array $arr
+     *
      * @return array
      */
-    public function clearArray($arr)
+    public function clearArray(array $arr): array
     {
         if (is_array($arr) === false) {
             return $arr;
@@ -131,7 +132,8 @@ class Utils
     }
     
     /**
-     * @param $response
+     * @param \Intaro\RetailCrm\Model\Api\Response\AbstractApiResponseModel $response
+     *
      * @return string
      */
     public static function getResponseErrors(AbstractApiResponseModel $response): string
@@ -185,9 +187,8 @@ class Utils
             }
         
             $msg = sprintf('%s (%s %s)', $errorMsg, $response->errorMsg, $errorDetails);
-            $logger = Logger::getInstance();
-            
-            $logger->write($msg, Constants::API_ERRORS_LOG);
+    
+            Logger::getInstance()->write($msg, Constants::API_ERRORS_LOG);
         }
     }
     
@@ -199,9 +200,7 @@ class Utils
      */
     public static function filterPhone(string $phoneNumber)
     {
-        $phoneNumber = preg_replace('/\s|\+|-|\(|\)/', '', $phoneNumber);
-        
-        return $phoneNumber;
+        return preg_replace('/\s|\+|-|\(|\)/', '', $phoneNumber);
     }
     
     /**

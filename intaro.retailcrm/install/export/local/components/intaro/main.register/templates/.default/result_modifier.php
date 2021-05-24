@@ -2,6 +2,7 @@
 
 use Bitrix\Main\ArgumentException;
 use Bitrix\Main\Loader;
+use Bitrix\Main\LoaderException;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
 use Intaro\RetailCrm\Component\ConfigProvider;
@@ -12,7 +13,16 @@ use Intaro\RetailCrm\Service\CustomerService;
 use Intaro\RetailCrm\Service\LoyaltyAccountService;
 
 /** RetailCRM loyalty program start */
-if (Loader::includeModule('intaro.retailcrm')) {
+function checkLoadIntaro(): bool
+{
+    try {
+        return Loader::includeModule('intaro.retailcrm');
+    } catch (LoaderException $e) {
+        return false;
+    }
+}
+
+if (checkLoadIntaro()) {
     $arResult['LOYALTY_STATUS'] = ConfigProvider::getLoyaltyProgramStatus();
     
     global $USER;

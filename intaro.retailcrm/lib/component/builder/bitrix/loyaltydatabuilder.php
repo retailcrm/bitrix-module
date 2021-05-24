@@ -110,26 +110,38 @@ class LoyaltyDataBuilder implements BuilderInterface
     
     /**
      * @param \Bitrix\Sale\Order $order
+     *
+     * @return \Intaro\RetailCrm\Component\Builder\Bitrix\LoyaltyDataBuilder
      */
-    public function setOrder(Order $order): void
+    public function setOrder(Order $order): LoyaltyDataBuilder
     {
         $this->order = $order;
+    
+        return $this;
     }
     
     /**
      * @param \Intaro\RetailCrm\Model\Api\Response\Order\Loyalty\OrderLoyaltyApplyResponse $applyResponse
+     *
+     * @return \Intaro\RetailCrm\Component\Builder\Bitrix\LoyaltyDataBuilder
      */
-    public function setApplyResponse(OrderLoyaltyApplyResponse $applyResponse): void
+    public function setApplyResponse(OrderLoyaltyApplyResponse $applyResponse): LoyaltyDataBuilder
     {
         $this->applyResponse = $applyResponse;
+        
+        return $this;
     }
     
     /**
      * @param array $calculateItemsInput
+     *
+     * @return \Intaro\RetailCrm\Component\Builder\Bitrix\LoyaltyDataBuilder
      */
-    public function setCalculateItemsInput(array $calculateItemsInput): void
+    public function setCalculateItemsInput(array $calculateItemsInput): LoyaltyDataBuilder
     {
         $this->calculateItemsInput = $calculateItemsInput;
+        
+        return $this;
     }
     
     /**
