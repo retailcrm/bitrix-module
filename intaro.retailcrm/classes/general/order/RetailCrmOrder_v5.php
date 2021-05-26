@@ -1,5 +1,6 @@
 <?php
 
+use Bitrix\Sale\Internals\Fields;
 use Intaro\RetailCrm\Service\UploadOrderService;
 
 IncludeModuleLangFile(__FILE__);
@@ -30,7 +31,7 @@ class RetailCrmOrder
             RCrmActions::eventLog('RetailCrmOrder::orderSend', 'empty($arFields)', 'incorrect order');
             return false;
         }
-        $uploadOrderService = new UploadOrderService();
+
         $dimensionsSetting = RetailcrmConfigProvider::getOrderDimensions();
         $currency = RetailcrmConfigProvider::getCurrencyOrDefault();
         $optionCorpClient = RetailcrmConfigProvider::getCorporateClientStatus();
@@ -224,7 +225,7 @@ class RetailCrmOrder
             }
 
             $item['discountManualPercent'] = 0;
-            $item['discountManualAmount'] = $uploadOrderService->getDiscountManualAmount($product);
+            $item['discountManualAmount'] = self::getDiscountManualAmount($product);
             $item['initialPrice'] = (double) $product['BASE_PRICE'];
 
             $order['items'][] = $item;
@@ -751,5 +752,26 @@ class RetailCrmOrder
         }
 
         return $arOrder;
+    }
+    
+    /**
+     * @param \Bitrix\Sale\Internals\Fields $product
+     *
+     * @return float
+     */
+    public static function getDiscountManualAmount(Fields $product): float
+    {
+        if ($product->get('CUSTOM_PRICE') === 'Y') {
+            return $product->get('BASE_PRICE') - $product->get('PRICE');
+        }
+        
+        $discount = (double) $product->get('DISCOUNT_PRICE');
+        $dpItem = $product->get('BASE_PRICE') - $product->get('PRICE');
+        
+        if ($dpItem > 0 && $discount <= 0) {
+            return $dpItem;
+        }
+        
+        return $discount;
     }
 }
