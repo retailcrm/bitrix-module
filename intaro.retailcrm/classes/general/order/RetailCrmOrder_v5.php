@@ -769,7 +769,7 @@ class RetailCrmOrder
     {
         if ($product->get('CUSTOM_PRICE') === 'Y') {
             $sumDifference = $product->get('BASE_PRICE') - $product->get('PRICE');
-            return  $sumDifference > 0 ? $sumDifference : 0.0;
+            return $sumDifference > 0 ? $sumDifference : 0.0;
         }
         
         $discount = (double) $product->get('DISCOUNT_PRICE');
