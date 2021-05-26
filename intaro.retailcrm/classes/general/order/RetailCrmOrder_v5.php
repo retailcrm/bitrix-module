@@ -1,4 +1,7 @@
 <?php
+
+use Intaro\RetailCrm\Service\UploadOrderService;
+
 IncludeModuleLangFile(__FILE__);
 class RetailCrmOrder
 {
@@ -27,7 +30,7 @@ class RetailCrmOrder
             RCrmActions::eventLog('RetailCrmOrder::orderSend', 'empty($arFields)', 'incorrect order');
             return false;
         }
-
+        $uploadOrderService = new UploadOrderService();
         $dimensionsSetting = RetailcrmConfigProvider::getOrderDimensions();
         $currency = RetailcrmConfigProvider::getCurrencyOrDefault();
         $optionCorpClient = RetailcrmConfigProvider::getCorporateClientStatus();
@@ -220,15 +223,8 @@ class RetailCrmOrder
                 $item['purchasePrice'] = $purchasePrice;
             }
 
-            $discount = (double) $product['DISCOUNT_PRICE'];
-            $dpItem = $product['BASE_PRICE'] - $product['PRICE'];
-
-            if ( $dpItem > 0 && $discount <= 0) {
-                $discount = $dpItem;
-            }
-
             $item['discountManualPercent'] = 0;
-            $item['discountManualAmount'] = $discount;
+            $item['discountManualAmount'] = $uploadOrderService->getDiscountManualAmount($product);
             $item['initialPrice'] = (double) $product['BASE_PRICE'];
 
             $order['items'][] = $item;
