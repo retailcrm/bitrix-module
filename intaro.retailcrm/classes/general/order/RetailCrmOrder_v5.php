@@ -225,8 +225,14 @@ class RetailCrmOrder
             }
 
             $item['discountManualPercent'] = 0;
-            $item['discountManualAmount'] = self::getDiscountManualAmount($product);
-            $item['initialPrice'] = (double) $product['BASE_PRICE'];
+            
+            if ($product['BASE_PRICE'] >= $product['PRICE']) {
+                $item['discountManualAmount'] = self::getDiscountManualAmount($product);
+                $item['initialPrice'] = (double) $product['BASE_PRICE'];
+            } else {
+                $item['discountManualAmount'] = 0;
+                $item['initialPrice'] = $product['PRICE'];
+            }
 
             $order['items'][] = $item;
 
@@ -762,7 +768,8 @@ class RetailCrmOrder
     public static function getDiscountManualAmount(Fields $product): float
     {
         if ($product->get('CUSTOM_PRICE') === 'Y') {
-            return $product->get('BASE_PRICE') - $product->get('PRICE');
+            $sumDifference = $product->get('BASE_PRICE') - $product->get('PRICE');
+            return  $sumDifference > 0 ? $sumDifference : 0.0;
         }
         
         $discount = (double) $product->get('DISCOUNT_PRICE');
