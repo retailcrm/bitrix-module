@@ -29,7 +29,7 @@ function checkLoadIntaro(): bool
 }
 
 if (checkLoadIntaro()) {
-    $arResult['LOYALTY_STATUS']          = ConfigProvider::getLoyaltyProgramStatus();
+    $arResult['LOYALTY_STATUS'] = ConfigProvider::getLoyaltyProgramStatus();
     $arResult['PERSONAL_LOYALTY_STATUS'] = LoyaltyAccountService::getLoyaltyPersonalStatus();
     
     if ($arResult['LOYALTY_STATUS'] === 'Y' && $arResult['PERSONAL_LOYALTY_STATUS'] === true) {

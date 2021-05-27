@@ -174,12 +174,16 @@ class Utils
     }
     
     /**
-     * @param \Intaro\RetailCrm\Model\Api\Response\AbstractApiResponseModel $response
-     * @param string                                                        $errorMsg
+     * @param \Intaro\RetailCrm\Model\Api\Response\AbstractApiResponseModel|null $response
+     * @param string                                                             $errorMsg
      */
-    public static function handleApiErrors(AbstractApiResponseModel $response, $errorMsg = 'ERROR')
+    public static function handleApiErrors(?AbstractApiResponseModel $response, string $errorMsg = 'ERROR')
     {
-        if (isset($response->errorMsg) && !empty($response->errorMsg)) {
+        if (
+            $response instanceof AbstractApiResponseModel
+            && isset($response->errorMsg)
+            && !empty($response->errorMsg)
+        ) {
             $errorDetails = '';
         
             if (isset($response->errors) && is_array($response->errors)) {

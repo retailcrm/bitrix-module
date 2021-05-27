@@ -30,7 +30,7 @@ if (checkLoadIntaro()) {
     if ('Y' === $arResult['LOYALTY_STATUS'] && $USER->IsAuthorized()) {
         /** @var CustomerService $customerService */
         $customerService = ServiceLocator::get(CustomerService::class);
-        $customer        = $customerService->createModel($USER->GetID());
+        $customer = $customerService->createModel($USER->GetID());
         
         $customerService->createCustomer($customer);
         
