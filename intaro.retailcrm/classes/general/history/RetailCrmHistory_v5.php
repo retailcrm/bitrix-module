@@ -308,8 +308,21 @@ class RetailCrmHistory
                     );
 
                     continue;
-                } else {
-                    $contragentTypes = array_flip($contragentTypes[$site]);
+                }
+
+                $contragentTypes = array_flip($contragentTypes[$site] ?? []);
+
+                if (empty($contragentTypes)) {
+                    Logger::getInstance()->write(
+                        sprintf(
+                            'Not found types of contragent for site=%s: %s',
+                            $site,
+                            serialize($contragentTypes)
+                        ),
+                        'orderHistory'
+                    );
+
+                    continue;
                 }
 
                 if (isset($order['customer']['externalId']) && !is_numeric($order['customer']['externalId'])) {

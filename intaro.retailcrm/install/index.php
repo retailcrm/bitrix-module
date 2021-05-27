@@ -401,7 +401,10 @@ class intaro_retailcrm extends CModule
             $arResult['deliveryTypesList'] = $delivTypes;
 
             //bitrix personTypes
-            $arResult['bitrixOrderTypesList'] = RCrmActions::getOrderTypesListSite($arResult['arSites']);
+            $bitrixSitesList = array_map(static function ($site) {
+                return $site['LID'] ?? '';
+            }, $arResult['arSites'] ?? []);
+            $arResult['bitrixOrderTypesList'] = RCrmActions::getOrderTypesListSite($bitrixSitesList);
 
             //bitrix deliveryList
             $arResult['bitrixDeliveryTypesList'] = RCrmActions::DeliveryList();
@@ -449,7 +452,10 @@ class intaro_retailcrm extends CModule
 
             //bitrix orderTypesList
             $arResult['arSites'] = RCrmActions::SitesList();
-            $arResult['bitrixOrderTypesList'] = RCrmActions::getOrderTypesListSite($arResult['arSites']);
+            $bitrixSitesList = array_map(static function ($site) {
+                return $site['LID'] ?? '';
+            }, $arResult['arSites'] ?? []);
+            $arResult['bitrixOrderTypesList'] = RCrmActions::getOrderTypesListSite($bitrixSitesList);
 
             $orderTypesArr = array();
             foreach ($arResult['bitrixOrderTypesList'] as $siteCode => $site) {
@@ -626,7 +632,10 @@ class intaro_retailcrm extends CModule
             }
 
             //bitrix orderTypesList
-            $orderTypesList = RCrmActions::getOrderTypesListSite(RCrmActions::SitesList());
+            $bitrixSitesList = array_map(static function ($site) {
+                return $site['LID'] ?? '';
+            }, RCrmActions::SitesList() ?? []);
+            $orderTypesList = RCrmActions::getOrderTypesListSite($bitrixSitesList);
 
             $orderTypesArr = array();
             foreach ($orderTypesList as $siteCode => $site) {

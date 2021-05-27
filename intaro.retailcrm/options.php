@@ -241,7 +241,10 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     }
 
     //form order types ids arr
-    $orderTypesList = RCrmActions::getOrderTypesListSite($arResult['arSites']);
+    $bitrixSitesList = array_map(static function ($site) {
+        return $site['LID'] ?? '';
+    }, $arResult['arSites'] ?? []);
+    $orderTypesList = RCrmActions::getOrderTypesListSite($bitrixSitesList);
 
     $orderTypesArr = array();
     foreach ($orderTypesList as $siteCode => $site) {
@@ -668,7 +671,10 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     }
 
     //bitrix orderTypesList -- personTypes
-    $arResult['bitrixOrderTypesList'] = RCrmActions::getOrderTypesListSite($arResult['arSites']);
+    $bitrixSitesList = array_map(static function ($site) {
+        return $site['LID'] ?? '';
+    }, $arResult['arSites'] ?? []);
+    $arResult['bitrixOrderTypesList'] = RCrmActions::getOrderTypesListSite($bitrixSitesList);
 
     //bitrix deliveryTypesList
     $arResult['bitrixDeliveryTypesList'] = RCrmActions::DeliveryList();
@@ -1160,7 +1166,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                 $unique[$key] = count($optionsContragentType[$key]) === count(array_unique($optionsContragentType[$key]));
                 if (!$unique[$key]): ?>
                     <div style="text-align: center;color: red;">
-                        <b><?php echo GetMessage('COUNTERPATY_SETTINGS') . ' ' . $key; ?></b>
+                        <b><?php echo GetMessage('COUNTERPARTY_SETTINGS', ['#SITE#' => $key]); ?></b>
                     </div>
                 <?php endif; ?>
             <?php endforeach; ?>

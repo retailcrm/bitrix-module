@@ -1,14 +1,17 @@
-<?php 
-    IncludeModuleLangFile(__FILE__);
+<?php
 
-    if(isset($arResult['errCode']) && $arResult['errCode']) 
-        echo CAdminMessage::ShowMessage(GetMessage($arResult['errCode']));
+use Bitrix\Main\Config\Option;
+
+IncludeModuleLangFile(__FILE__);
+
+if(isset($arResult['errCode']) && $arResult['errCode'])
+    echo CAdminMessage::ShowMessage(GetMessage($arResult['errCode']));
 
 $MODULE_ID = 'intaro.retailcrm';
 $CRM_SITES_LIST = 'sites_list';
 
 $arResult['SITES_LIST'] = unserialize(
-        \Bitrix\Main\Config\Option::get($MODULE_ID, $CRM_SITES_LIST),
+        Option::get($MODULE_ID, $CRM_SITES_LIST),
         ['allowed_classes' => false]
 );
 ?>

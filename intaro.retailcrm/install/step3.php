@@ -14,12 +14,16 @@ $api_host = COption::GetOptionString($MODULE_ID, $CRM_API_HOST_OPTION, 0);
 $api_key = COption::GetOptionString($MODULE_ID, $CRM_API_KEY_OPTION, 0);
 $arResult['arSites'] = RCrmActions::SitesList();
 
+$bitrixSitesList = array_map(static function ($site) {
+    return $site['LID'] ?? '';
+}, $arResult['arSites'] ?? []);
+
 $RETAIL_CRM_API = new \RetailCrm\ApiClient($api_host, $api_key);
 COption::SetOptionString($MODULE_ID, $CRM_API_HOST_OPTION, $api_host);
 COption::SetOptionString($MODULE_ID, $CRM_API_KEY_OPTION, $api_key);
 
 if (!isset($arResult['bitrixOrderTypesList'])) {
-    $arResult['bitrixOrderTypesList'] = RCrmActions::getOrderTypesListSite($arResult['arSites']);
+    $arResult['bitrixOrderTypesList'] = RCrmActions::getOrderTypesListSite($bitrixSitesList);
     $arResult['arProp'] = RCrmActions::OrderPropsList();
     $arResult['ORDER_PROPS'] = unserialize(COption::GetOptionString($MODULE_ID, $CRM_ORDER_PROPS, 0));
 }

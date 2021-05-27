@@ -1,4 +1,7 @@
 <?php
+
+use \Bitrix\Sale\PersonType;
+
 IncludeModuleLangFile(__FILE__);
 class RCrmActions
 {
@@ -37,16 +40,16 @@ class RCrmActions
         return $orderTypesList;
     }
 
-    public static function getOrderTypesListSite($arSites)
+    public static function getOrderTypesListSite(array $sites): array
     {
         $orderTypesList = [];
 
-        foreach ($arSites as $site) {
-            $personTypes = \Bitrix\Sale\PersonType::load($site['LID']);
+        foreach ($sites as $site) {
+            $personTypes = PersonType::load($site);
             $bitrixOrderTypesList = [];
 
             foreach ($personTypes as $personType) {
-                $bitrixOrderTypesList[$site['LID']][$personType['ID']] = $personType;
+                $bitrixOrderTypesList[$site][$personType['ID']] = $personType;
             }
 
             $orderTypesList = array_merge($orderTypesList, $bitrixOrderTypesList);
