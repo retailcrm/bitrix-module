@@ -22,6 +22,11 @@ class RCrmActions
         return $arSites;
     }
 
+    public static function getSiteListIds(array $sitesList): array
+    {
+        return array_column($sitesList, 'LID');
+    }
+
     public static function OrderTypesList($arSites)
     {
         $orderTypesList = array();

@@ -401,10 +401,9 @@ class intaro_retailcrm extends CModule
             $arResult['deliveryTypesList'] = $delivTypes;
 
             //bitrix personTypes
-            $bitrixSitesList = array_map(static function ($site) {
-                return $site['LID'] ?? '';
-            }, $arResult['arSites'] ?? []);
-            $arResult['bitrixOrderTypesList'] = RCrmActions::getOrderTypesListSite($bitrixSitesList);
+            $arResult['bitrixOrderTypesList'] = RCrmActions::getOrderTypesListSite(
+                RCrmActions::getSiteListIds($arResult['arSites'])
+            );
 
             //bitrix deliveryList
             $arResult['bitrixDeliveryTypesList'] = RCrmActions::DeliveryList();
@@ -451,11 +450,9 @@ class intaro_retailcrm extends CModule
             $this->RETAIL_CRM_API = new \RetailCrm\ApiClient($api_host, $api_key);
 
             //bitrix orderTypesList
-            $arResult['arSites'] = RCrmActions::SitesList();
-            $bitrixSitesList = array_map(static function ($site) {
-                return $site['LID'] ?? '';
-            }, $arResult['arSites'] ?? []);
-            $arResult['bitrixOrderTypesList'] = RCrmActions::getOrderTypesListSite($bitrixSitesList);
+            $arResult['bitrixOrderTypesList'] = RCrmActions::getOrderTypesListSite(
+                RCrmActions::getSiteListIds(RCrmActions::SitesList())
+            );
 
             $orderTypesArr = array();
             foreach ($arResult['bitrixOrderTypesList'] as $siteCode => $site) {
@@ -632,10 +629,9 @@ class intaro_retailcrm extends CModule
             }
 
             //bitrix orderTypesList
-            $bitrixSitesList = array_map(static function ($site) {
-                return $site['LID'] ?? '';
-            }, RCrmActions::SitesList() ?? []);
-            $orderTypesList = RCrmActions::getOrderTypesListSite($bitrixSitesList);
+            $orderTypesList = RCrmActions::getOrderTypesListSite(
+                RCrmActions::getSiteListIds(RCrmActions::SitesList())
+            );
 
             $orderTypesArr = array();
             foreach ($orderTypesList as $siteCode => $site) {

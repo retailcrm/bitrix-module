@@ -11,15 +11,12 @@ $CRM_PAYMENT_TYPES = 'pay_types_arr';
 $CRM_PAYMENT_STATUSES = 'pay_statuses_arr';
 $CRM_PAYMENT = 'payment_arr';
 $CRM_ORDER_TYPES_ARR = 'order_types_arr';
+
 $api_host = COption::GetOptionString($MODULE_ID, $CRM_API_HOST_OPTION, 0);
 $api_key = COption::GetOptionString($MODULE_ID, $CRM_API_KEY_OPTION, 0);
-$arResult['arSites'] = RCrmActions::SitesList();
-
-$bitrixSitesList = array_map(static function ($site) {
-    return $site['LID'] ?? '';
-}, $arResult['arSites'] ?? []);
 
 $RETAIL_CRM_API = new \RetailCrm\ApiClient($api_host, $api_key);
+
 COption::SetOptionString($MODULE_ID, $CRM_API_HOST_OPTION, $api_host);
 COption::SetOptionString($MODULE_ID, $CRM_API_KEY_OPTION, $api_key);
 
@@ -44,7 +41,9 @@ if (!isset($arResult['bitrixStatusesList'])) {
 }
 
 if (!isset($arResult['orderTypesList'])) {
-    $arResult['bitrixOrderTypesList'] = RCrmActions::getOrderTypesListSite($bitrixSitesList);
+    $arResult['bitrixOrderTypesList'] = RCrmActions::getOrderTypesListSite(
+            RCrmActions::getSiteListIds(RCrmActions::SitesList())
+    );
     $arResult['orderTypesList'] = $RETAIL_CRM_API->orderTypesList()->orderTypes;
 }
 

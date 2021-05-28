@@ -4,8 +4,9 @@ use Bitrix\Main\Config\Option;
 
 IncludeModuleLangFile(__FILE__);
 
-if(isset($arResult['errCode']) && $arResult['errCode'])
+if (isset($arResult['errCode']) && $arResult['errCode']) {
     echo CAdminMessage::ShowMessage(GetMessage($arResult['errCode']));
+}
 
 $MODULE_ID = 'intaro.retailcrm';
 $CRM_SITES_LIST = 'sites_list';

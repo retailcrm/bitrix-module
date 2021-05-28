@@ -241,10 +241,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     }
 
     //form order types ids arr
-    $bitrixSitesList = array_map(static function ($site) {
-        return $site['LID'] ?? '';
-    }, $arResult['arSites'] ?? []);
-    $orderTypesList = RCrmActions::getOrderTypesListSite($bitrixSitesList);
+    $orderTypesList = RCrmActions::getOrderTypesListSite(RCrmActions::getSiteListIds($arResult['arSites']));
 
     $orderTypesArr = array();
     foreach ($orderTypesList as $siteCode => $site) {
@@ -671,10 +668,9 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     }
 
     //bitrix orderTypesList -- personTypes
-    $bitrixSitesList = array_map(static function ($site) {
-        return $site['LID'] ?? '';
-    }, $arResult['arSites'] ?? []);
-    $arResult['bitrixOrderTypesList'] = RCrmActions::getOrderTypesListSite($bitrixSitesList);
+    $arResult['bitrixOrderTypesList'] = RCrmActions::getOrderTypesListSite(
+            RCrmActions::getSiteListIds($arResult['arSites'])
+    );
 
     //bitrix deliveryTypesList
     $arResult['bitrixDeliveryTypesList'] = RCrmActions::DeliveryList();
