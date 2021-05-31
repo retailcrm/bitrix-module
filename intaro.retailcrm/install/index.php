@@ -6,73 +6,74 @@
  * Class name:  intaro_retailcrm
  */
 global $MESS;
+use Bitrix\Main\Context;
+use Intaro\RetailCrm\Icml\IcmlDirector;
+use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup;
+use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupProps;
+use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupPropsCategories;
+use Intaro\RetailCrm\Repository\CatalogRepository;
+use Intaro\RetailCrm\Vendor\Symfony\Component\Process\PhpExecutableFinder;
+use RetailCrm\Exception\CurlException;
+use RetailCrm\Response\ApiResponse;
+
 IncludeModuleLangFile(__FILE__);
 if (class_exists('intaro_retailcrm'))
     return;
 
 class intaro_retailcrm extends CModule
 {
-    var $MODULE_ID = 'intaro.retailcrm';
-    var $OLD_MODULE_ID = 'intaro.intarocrm';
-    var $MODULE_VERSION;
-    var $MODULE_VERSION_DATE;
-    var $MODULE_NAME;
-    var $MODULE_DESCRIPTION;
-    var $MODULE_GROUP_RIGHTS = 'N';
-
-    var $PARTNER_NAME;
-    var $PARTNER_URI;
-
-    var $RETAIL_CRM_API;
-    var $RETAIL_CRM_EXPORT = 'retailcrm';
-    var $CRM_API_HOST_OPTION = 'api_host';
-    var $CRM_API_KEY_OPTION = 'api_key';
-    var $CRM_SITES_LIST= 'sites_list';
-    var $CRM_ORDER_TYPES_ARR = 'order_types_arr';
-    var $CRM_DELIVERY_TYPES_ARR = 'deliv_types_arr';
-    var $CRM_DELIVERY_SERVICES_ARR = 'deliv_services_arr';
-    var $CRM_PAYMENT_TYPES = 'pay_types_arr';
-    var $CRM_PAYMENT_STATUSES = 'pay_statuses_arr';
-    var $CRM_PAYMENT = 'payment_arr'; //order payment Y/N
-    var $CRM_ORDER_LAST_ID = 'order_last_id';
-    var $CRM_ORDER_PROPS = 'order_props';
-    var $CRM_LEGAL_DETAILS = 'legal_details';
-    var $CRM_CUSTOM_FIELDS = 'custom_fields';
-    var $CRM_CONTRAGENT_TYPE = 'contragent_type';
-    var $CRM_ORDER_DISCHARGE = 'order_discharge';
-    var $CRM_ORDER_FAILED_IDS = 'order_failed_ids';
-    var $CRM_ORDER_HISTORY = 'order_history';
-    var $CRM_CUSTOMER_HISTORY = 'customer_history';
-    var $CRM_CATALOG_BASE_PRICE = 'catalog_base_price';
+    public $MODULE_ID = 'intaro.retailcrm';
+    public $OLD_MODULE_ID = 'intaro.intarocrm';
+    public $MODULE_VERSION;
+    public $MODULE_VERSION_DATE;
+    public $MODULE_NAME;
+    public $MODULE_DESCRIPTION;
+    public $MODULE_GROUP_RIGHTS = 'N';
+    public $PARTNER_NAME;
+    public $PARTNER_URI;
+    public $RETAIL_CRM_API;
+    public $RETAIL_CRM_EXPORT = 'retailcrm';
+    public $CRM_API_HOST_OPTION = 'api_host';
+    public $CRM_API_KEY_OPTION = 'api_key';
+    public $CRM_SITES_LIST = 'sites_list';
+    public $CRM_ORDER_TYPES_ARR = 'order_types_arr';
+    public $CRM_DELIVERY_TYPES_ARR = 'deliv_types_arr';
+    public $CRM_DELIVERY_SERVICES_ARR = 'deliv_services_arr';
+    public $CRM_PAYMENT_TYPES = 'pay_types_arr';
+    public $CRM_PAYMENT_STATUSES = 'pay_statuses_arr';
+    public $CRM_PAYMENT = 'payment_arr'; //order payment Y/N
+    public $CRM_ORDER_LAST_ID = 'order_last_id';
+    public $CRM_ORDER_PROPS = 'order_props';
+    public $CRM_LEGAL_DETAILS = 'legal_details';
+    public $CRM_CUSTOM_FIELDS = 'custom_fields';
+    public $CRM_CONTRAGENT_TYPE = 'contragent_type';
+    public $CRM_ORDER_DISCHARGE = 'order_discharge';
+    public $CRM_ORDER_FAILED_IDS = 'order_failed_ids';
+    public $CRM_ORDER_HISTORY = 'order_history';
+    public $CRM_CUSTOMER_HISTORY = 'customer_history';
+    public $CRM_CATALOG_BASE_PRICE = 'catalog_base_price';
     //var $CRM_CATALOG_IBLOCKS = 'catalog_base_iblocks';
-    var $CRM_ORDER_NUMBERS = 'order_numbers';
-    var $CRM_CANSEL_ORDER = 'cansel_order';
-    var $CRM_CURRENCY = 'currency';
-    var $CRM_ADDRESS_OPTIONS = 'address_options';
-
-    var $CRM_INVENTORIES_UPLOAD = 'inventories_upload';
-    var $CRM_STORES = 'stores';
-    var $CRM_SHOPS = 'shops';
-    var $CRM_IBLOCKS_INVENTORIES = 'iblocks_inventories';
-
-    var $CRM_PRICES_UPLOAD = 'prices_upload';
-    var $CRM_PRICES = 'prices';
-    var $CRM_PRICE_SHOPS = 'price_shops';
-    var $CRM_IBLOCKS_PRICES = 'iblock_prices';
-
-    var $CRM_COLLECTOR = 'collector';
-    var $CRM_COLL_KEY = 'coll_key';
-
-    var $CRM_UA = 'ua';
-    var $CRM_UA_KEYS = 'ua_keys';
-
-    var $CRM_API_VERSION = 'api_version';
-    var $HISTORY_TIME = 'history_time';
-
-    var $CLIENT_ID = 'client_id';
-    var $PROTOCOL = 'protocol';
-
-    var $INSTALL_PATH;
+    public $CRM_ORDER_NUMBERS = 'order_numbers';
+    public $CRM_CANSEL_ORDER = 'cansel_order';
+    public $CRM_CURRENCY = 'currency';
+    public $CRM_ADDRESS_OPTIONS = 'address_options';
+    public $CRM_INVENTORIES_UPLOAD = 'inventories_upload';
+    public $CRM_STORES = 'stores';
+    public $CRM_SHOPS = 'shops';
+    public $CRM_IBLOCKS_INVENTORIES = 'iblocks_inventories';
+    public $CRM_PRICES_UPLOAD = 'prices_upload';
+    public $CRM_PRICES = 'prices';
+    public $CRM_PRICE_SHOPS = 'price_shops';
+    public $CRM_IBLOCKS_PRICES = 'iblock_prices';
+    public $CRM_COLLECTOR = 'collector';
+    public $CRM_COLL_KEY = 'coll_key';
+    public $CRM_UA = 'ua';
+    public $CRM_UA_KEYS = 'ua_keys';
+    public $CRM_API_VERSION = 'api_version';
+    public $HISTORY_TIME    = 'history_time';
+    public $CLIENT_ID = 'client_id';
+    public $PROTOCOL  = 'protocol';
+    public $INSTALL_PATH;
 
     function intaro_retailcrm()
     {
@@ -94,6 +95,7 @@ class intaro_retailcrm extends CModule
         if (!class_exists('RetailcrmConstants')) {
             require_once dirname(__FILE__) . '/../classes/general/RetailcrmConstants.php';
         }
+        
         if (!class_exists('RetailcrmConfigProvider')) {
             require_once dirname(__FILE__) . '/../classes/general/RetailcrmConfigProvider.php';
         }
@@ -136,7 +138,33 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../classes/general/RCrmActions.php');
         include($this->INSTALL_PATH . '/../classes/general/user/RetailCrmUser.php');
         include($this->INSTALL_PATH . '/../classes/general/events/RetailCrmEvent.php');
-        include($this->INSTALL_PATH . '/../classes/general/icml/RetailCrmICML.php');
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/offerparam.php');
+        include($this->INSTALL_PATH . '/../lib/component/agent.php');
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/selectparams.php');
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/unit.php');
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/xmlcategory.php');
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/xmldata.php');
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/xmloffer.php');
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/xmlsetup.php');
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/xmlsetupprops.php');
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/xmlsetuppropscategories.php');
+        include($this->INSTALL_PATH . '/../lib/icml/icmldirector.php');
+        include($this->INSTALL_PATH . '/../lib/icml/icmlwriter.php');
+        include($this->INSTALL_PATH . '/../lib/icml/queryparamsmolder.php');
+        include($this->INSTALL_PATH . '/../lib/icml/xmlcategorydirector.php');
+        include($this->INSTALL_PATH . '/../lib/icml/xmlcategoryfactory.php');
+        include($this->INSTALL_PATH . '/../lib/icml/xmlofferdirector.php');
+        include($this->INSTALL_PATH . '/../lib/icml/xmlofferbuilder.php');
+        include($this->INSTALL_PATH . '/../lib/icml/utils/icmlutils.php');
+        include($this->INSTALL_PATH . '/../lib/repository/catalogrepository.php');
+        include($this->INSTALL_PATH . '/../lib/repository/filerepository.php');
+        include($this->INSTALL_PATH . '/../lib/repository/hlrepository.php');
+        include($this->INSTALL_PATH . '/../lib/repository/measurerepository.php');
+        include($this->INSTALL_PATH . '/../lib/repository/siterepository.php');
+        include($this->INSTALL_PATH . '/../lib/service/hl.php');
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/orm/catalogiblockinfo.php');
+        include($this->INSTALL_PATH . '/../lib/model/bitrix/orm/iblockcatalog.php');
+        include($this->INSTALL_PATH . '/../classes/general/RetailcrmConstants.php');
         include($this->INSTALL_PATH . '/../classes/general/Exception/InvalidJsonException.php');
         include($this->INSTALL_PATH . '/../classes/general/Exception/CurlException.php');
         include($this->INSTALL_PATH . '/../classes/general/RestNormalizer.php');
@@ -367,7 +395,7 @@ class intaro_retailcrm extends CModule
                 $arResult['paymentStatusesList'] = $this->RETAIL_CRM_API->paymentStatusesList()->paymentStatuses;
                 $arResult['paymentList'] = $this->RETAIL_CRM_API->statusesList()->statuses;
                 $arResult['paymentGroupList'] = $this->RETAIL_CRM_API->statusGroupsList()->statusGroups;
-            } catch (\RetailCrm\Exception\CurlException $e) {
+            } catch (CurlException $e) {
                 RCrmActions::eventLog(
                     'intaro.retailcrm/install/index.php', 'RetailCrm\ApiClient::*List::CurlException',
                     $e->getCode() . ': ' . $e->getMessage()
@@ -477,7 +505,7 @@ class intaro_retailcrm extends CModule
                             'description' => RCrmActions::toJSON($deliveryType['DESCRIPTION']),
                             'paymentTypes' => ''
                         )));
-                    } catch (\RetailCrm\Exception\CurlException $e) {
+                    } catch (CurlException $e) {
                         $load = false;
                         RCrmActions::eventLog(
                             'intaro.crm/install/index.php', 'RetailCrm\ApiClient::deliveryTypeEdit::CurlException',
@@ -496,7 +524,7 @@ class intaro_retailcrm extends CModule
                                             'name' => RCrmActions::toJSON($deliveryService['NAME']),
                                             'deliveryType' => $deliveryType['ID']
                                         )));
-                                    } catch (\RetailCrm\Exception\CurlException $e) {
+                                    } catch (CurlException $e) {
                                         RCrmActions::eventLog(
                                             'intaro.crm/install/index.php', 'RetailCrm\ApiClient::deliveryServiceEdit::CurlException',
                                             $e->getCode() . ': ' . $e->getMessage()
@@ -722,7 +750,7 @@ class intaro_retailcrm extends CModule
             if ($historyDate = COption::GetOptionString($this->OLD_MODULE_ID, 'order_history_date', 0)) {
                 try {
                     $history = $api->ordersHistory(array('startDate' => $historyDate));
-                } catch (\RetailCrm\Exception\CurlException $e) {
+                } catch (CurlException $e) {
                     RCrmActions::eventLog(
                         'intaro.retailcrm/install/index.php', 'RetailCrm\RestApi::ordersHistory::CurlException',
                         $e->getCode() . ': ' . $e->getMessage()
@@ -903,9 +931,9 @@ class intaro_retailcrm extends CModule
             }
 
             if (!isset($_POST['MAX_OFFERS_VALUE'])) {
-                $maxOffers = "";
+                $maxOffers = null;
             } else {
-                $maxOffers = $_POST['MAX_OFFERS_VALUE'];
+                $maxOffers = (int) $_POST['MAX_OFFERS_VALUE'];
             }
 
             if (!isset($_POST['SETUP_PROFILE_NAME'])) {
@@ -970,146 +998,171 @@ class intaro_retailcrm extends CModule
             );
 
             $this->CopyFiles();
-            if (isset($_POST['LOAD_NOW'])) {
-                $loader = new RetailCrmICML();
-                $loader->iblocks = $iblocks;
-                $loader->propertiesUnitProduct = $propertiesUnitProduct;
-                $loader->propertiesProduct = $propertiesProduct;
-                $loader->propertiesUnitSKU = $propertiesUnitSKU;
-                $loader->propertiesSKU = $propertiesSKU;
-
-                if ($hlblockModule === true) {
-                    $loader->highloadblockSkuProperties = $propertiesHbSKU;
-                    $loader->highloadblockProductProperties = $propertiesHbProduct;
-                }
-
-                if ($maxOffers) {
-                    $loader->offerPageSize = $maxOffers;
-                }
-
-                $loader->filename = $filename;
-                $loader->serverName = \Bitrix\Main\Context::getCurrent()->getServer()->getHttpHost();
-                $loader->application = $APPLICATION;
-                $loader->Load();
-            }
-
+            
             COption::RemoveOption($this->MODULE_ID, $this->CRM_CATALOG_BASE_PRICE);
-
-            if ($typeLoading == 'agent' || $typeLoading == 'cron') {
-                if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/' . $this->RETAIL_CRM_EXPORT . '_run.php')) {
-                    $dbProfile = CCatalogExport::GetList(array(), array("FILE_NAME" => $this->RETAIL_CRM_EXPORT));
-
-                    while ($arProfile = $dbProfile->Fetch()) {
-                        if ($arProfile["DEFAULT_PROFILE"] != "Y") {
-                            CAgent::RemoveAgent("CCatalogExport::PreGenerateExport(" . $arProfile['ID'] . ");", "catalog");
-                            CCatalogExport::Delete($arProfile['ID']);
-                        }
-                    }
-                }
-
-                $ar = $this->GetProfileSetupVars(
-                    $iblocks,
-                    $propertiesProduct,
-                    $propertiesUnitProduct,
-                    $propertiesSKU,
-                    $propertiesUnitSKU,
-                    $propertiesHbSKU,
-                    $propertiesHbProduct,
-                    $filename,
-                    $maxOffers
-                );
-                $PROFILE_ID = CCatalogExport::Add(array(
-                    "LAST_USE"        => false,
-                    "FILE_NAME"       => $this->RETAIL_CRM_EXPORT,
-                    "NAME"            => $profileName,
-                    "DEFAULT_PROFILE" => "N",
-                    "IN_MENU"         => "N",
-                    "IN_AGENT"        => "N",
-                    "IN_CRON"         => "N",
-                    "NEED_EDIT"       => "N",
-                    "SETUP_VARS"      => $ar
-                    ));
-                if (intval($PROFILE_ID) <= 0) {
-                    $arResult['errCode'] = 'ERR_IBLOCK';
-
-                    return;
-                }
-
-                COption::SetOptionString(
-                    $this->MODULE_ID,
-                    $this->CRM_CATALOG_BASE_PRICE . '_' . $PROFILE_ID,
-                    htmlspecialchars(trim($_POST['price-types']))
-                );
-
-                if ($typeLoading == 'agent') {
-                    $dateAgent = new DateTime();
-                    $intAgent = new DateInterval('PT60S'); // PT60S - 60 sec;
-                    $dateAgent->add($intAgent);
-                    CAgent::AddAgent(
-                            "CCatalogExport::PreGenerateExport(" . $PROFILE_ID . ");", "catalog", "N", 86400, $dateAgent->format('d.m.Y H:i:s'), // date of first check
-                            "Y", // agent is active
-                            $dateAgent->format('d.m.Y H:i:s'), // date of first start
-                            30
-                    );
-
-                    CCatalogExport::Update($PROFILE_ID, array(
-                        "IN_AGENT" => "Y"
-                    ));
-                } else {
-                    $agent_period = 24;
-                    $agent_php_path = "/usr/local/php/bin/php";
-
-                    if (!file_exists($_SERVER["DOCUMENT_ROOT"] . CATALOG_PATH2EXPORTS . "cron_frame.php")) {
-                        CheckDirPath($_SERVER["DOCUMENT_ROOT"] . CATALOG_PATH2EXPORTS);
-                        $tmp_file_size = filesize($_SERVER["DOCUMENT_ROOT"] . CATALOG_PATH2EXPORTS_DEF . "cron_frame.php");
-                        $fp = fopen($_SERVER["DOCUMENT_ROOT"] . CATALOG_PATH2EXPORTS_DEF . "cron_frame.php", "rb");
-                        $tmp_data = fread($fp, $tmp_file_size);
-                        fclose($fp);
-
-                        $tmp_data = str_replace("#DOCUMENT_ROOT#", $_SERVER["DOCUMENT_ROOT"], $tmp_data);
-                        $tmp_data = str_replace("#PHP_PATH#", $agent_php_path, $tmp_data);
-
-                        $fp = fopen($_SERVER["DOCUMENT_ROOT"] . CATALOG_PATH2EXPORTS . "cron_frame.php", "ab");
-                        fwrite($fp, $tmp_data);
-                        fclose($fp);
-                    }
-
-                    $cfg_data = "";
-                    if (file_exists($_SERVER["DOCUMENT_ROOT"] . "/bitrix/crontab/crontab.cfg")) {
-                        $cfg_file_size = filesize($_SERVER["DOCUMENT_ROOT"] . "/bitrix/crontab/crontab.cfg");
-                        $fp = fopen($_SERVER["DOCUMENT_ROOT"] . "/bitrix/crontab/crontab.cfg", "rb");
-                        $cfg_data = fread($fp, $cfg_file_size);
-                        fclose($fp);
-                    }
-
-                    CheckDirPath($_SERVER["DOCUMENT_ROOT"] . CATALOG_PATH2EXPORTS . "logs/");
-
-                    if ($arProfile["IN_CRON"] == "Y") {
-                        // remove
-                        $cfg_data = preg_replace("#^.*?" . preg_quote(CATALOG_PATH2EXPORTS) . "cron_frame.php +" . $PROFILE_ID . " *>.*?$#im", "", $cfg_data);
-                    } else {
-                        $strTime = "0 */" . $agent_period . " * * * ";
-                        if (strlen($cfg_data) > 0)
-                            $cfg_data .= "\n";
-
-                        $cfg_data .= $strTime . $agent_php_path . " -f " . $_SERVER["DOCUMENT_ROOT"] . CATALOG_PATH2EXPORTS . "cron_frame.php " . $PROFILE_ID . " >" . $_SERVER["DOCUMENT_ROOT"] . CATALOG_PATH2EXPORTS . "logs/" . $PROFILE_ID . ".txt\n";
-                    }
-
-                    CCatalogExport::Update($PROFILE_ID, array(
-                        "IN_CRON" => "Y"
-                    ));
-
-                    CheckDirPath($_SERVER["DOCUMENT_ROOT"] . "/bitrix/crontab/");
-                    $cfg_data = preg_replace("#[\r\n]{2,}#im", "\n", $cfg_data);
-                    $fp = fopen($_SERVER["DOCUMENT_ROOT"] . "/bitrix/crontab/crontab.cfg", "wb");
-                    fwrite($fp, $cfg_data);
-                    fclose($fp);
-
-                    $arRetval = array();
-                    @exec("crontab " . $_SERVER["DOCUMENT_ROOT"] . "/bitrix/crontab/crontab.cfg", $arRetval, $return_var);
+    
+            if (
+            file_exists($_SERVER['DOCUMENT_ROOT']
+                . '/bitrix/php_interface/include/catalog_export/'
+                . $this->RETAIL_CRM_EXPORT
+                . '_run.php')
+            ) {
+                $dbProfile = CCatalogExport::GetList([], ['FILE_NAME' => $this->RETAIL_CRM_EXPORT]);
+    
+                if ($dbProfile instanceof CDBResult) {
+                    $this->removeExportProfiles($dbProfile);
+        
                 }
             }
-
+    
+            $setupVars = $this->getProfileSetupVars(
+                $iblocks,
+                $propertiesProduct,
+                $propertiesUnitProduct,
+                $propertiesSKU,
+                $propertiesUnitSKU,
+                $propertiesHbSKU,
+                $propertiesHbProduct,
+                $filename,
+                $maxOffers
+            );
+            $profileId = CCatalogExport::Add([
+                "LAST_USE"        => false,
+                "FILE_NAME"       => $this->RETAIL_CRM_EXPORT,
+                "NAME"            => $profileName,
+                "DEFAULT_PROFILE" => "N",
+                "IN_MENU"         => "N",
+                "IN_AGENT"        => "N",
+                "IN_CRON"         => "N",
+                "NEED_EDIT"       => "N",
+                "SETUP_VARS"      => $setupVars,
+            ]);
+    
+            if ((int) $profileId <= 0) {
+                $arResult['errCode'] = 'ERR_IBLOCK';
+        
+                return;
+            }
+    
+            COption::SetOptionString(
+                $this->MODULE_ID,
+                $this->CRM_CATALOG_BASE_PRICE . '_' . $profileId,
+                htmlspecialchars(trim($_POST['price-types']))
+            );
+            
+            $agentId = null;
+            
+            if ($typeLoading === 'agent') {
+                $dateAgent = new DateTime();
+                $intAgent = new DateInterval('PT60S'); // PT60S - 60 sec;
+                $dateAgent->add($intAgent);
+                $agentId = CAgent::AddAgent(
+                    'CCatalogExport::PreGenerateExport(' . $profileId . ');',
+                    'catalog',
+                    'N',
+                    86400,
+                    $dateAgent->format('d.m.Y H:i:s'),
+                    'Y',
+                    $dateAgent->format('d.m.Y H:i:s'),
+                    30
+                );
+        
+                CCatalogExport::Update($profileId, [
+                    "IN_AGENT" => "Y",
+                ]);
+            }
+    
+            if (
+                isset($_POST['LOAD_NOW'])
+                && $agentId === null
+            ) {
+                CAgent::AddAgent(
+                    '\Intaro\RetailCrm\Component\Agent::preGenerateExport(' . $profileId . ');',
+                    $this->MODULE_ID,
+                    'N',
+                    86400,
+                    $dateAgent->format('d.m.Y H:i:s'),
+                    'Y',
+                    $dateAgent->format('d.m.Y H:i:s')
+                );
+            }
+            
+            
+            if ('cron' === $typeLoading) {
+                include($this->INSTALL_PATH . '/../lib/vendor/symfony/component/process/phpexecutablefinder.php');
+                include($this->INSTALL_PATH . '/../lib/vendor/symfony/component/process/executablefinder.php');
+                
+                $agent_period = 24;
+                $finder = new PhpExecutableFinder();
+                $agent_php_path = $finder->find();
+        
+                if (!file_exists($_SERVER["DOCUMENT_ROOT"] . CATALOG_PATH2EXPORTS . "cron_frame.php")) {
+                    CheckDirPath($_SERVER["DOCUMENT_ROOT"] . CATALOG_PATH2EXPORTS);
+                    $tmp_file_size = filesize($_SERVER["DOCUMENT_ROOT"] . CATALOG_PATH2EXPORTS_DEF . "cron_frame.php");
+                    $fp = fopen($_SERVER["DOCUMENT_ROOT"] . CATALOG_PATH2EXPORTS_DEF . "cron_frame.php", "rb");
+                    $tmp_data = fread($fp, $tmp_file_size);
+                    fclose($fp);
+            
+                    $tmp_data = str_replace("#DOCUMENT_ROOT#", $_SERVER["DOCUMENT_ROOT"], $tmp_data);
+                    $tmp_data = str_replace("#PHP_PATH#", $agent_php_path, $tmp_data);
+            
+                    $fp = fopen($_SERVER["DOCUMENT_ROOT"] . CATALOG_PATH2EXPORTS . "cron_frame.php", "ab");
+                    fwrite($fp, $tmp_data);
+                    fclose($fp);
+                }
+        
+                $cfg_data = "";
+                if (file_exists($_SERVER["DOCUMENT_ROOT"] . "/bitrix/crontab/crontab.cfg")) {
+                    $cfg_file_size = filesize($_SERVER["DOCUMENT_ROOT"] . "/bitrix/crontab/crontab.cfg");
+                    $fp = fopen($_SERVER["DOCUMENT_ROOT"] . "/bitrix/crontab/crontab.cfg", "rb");
+                    $cfg_data = fread($fp, $cfg_file_size);
+                    fclose($fp);
+                }
+        
+                CheckDirPath($_SERVER["DOCUMENT_ROOT"] . CATALOG_PATH2EXPORTS . "logs/");
+        
+                if ($arProfile["IN_CRON"] == "Y") {
+                    // remove
+                    $cfg_data = preg_replace("#^.*?"
+                        . preg_quote(CATALOG_PATH2EXPORTS)
+                        . "cron_frame.php +"
+                        . $profileId
+                        . " *>.*?$#im", "", $cfg_data);
+                } else {
+                    $strTime = "0 */" . $agent_period . " * * * ";
+                    if (strlen($cfg_data) > 0) {
+                        $cfg_data .= "\n";
+                    }
+            
+                    $cfg_data .= $strTime
+                        . $agent_php_path
+                        . " -f "
+                        . $_SERVER["DOCUMENT_ROOT"]
+                        . CATALOG_PATH2EXPORTS
+                        . "cron_frame.php "
+                        . $profileId
+                        . " >"
+                        . $_SERVER["DOCUMENT_ROOT"]
+                        . CATALOG_PATH2EXPORTS
+                        . "logs/"
+                        . $profileId
+                        . ".txt\n";
+                }
+        
+                CCatalogExport::Update($profileId, [
+                    "IN_CRON" => "Y",
+                ]);
+        
+                CheckDirPath($_SERVER["DOCUMENT_ROOT"] . "/bitrix/crontab/");
+                $cfg_data = preg_replace("#[\r\n]{2,}#im", "\n", $cfg_data);
+                $fp = fopen($_SERVER["DOCUMENT_ROOT"] . "/bitrix/crontab/crontab.cfg", "wb");
+                fwrite($fp, $cfg_data);
+                fclose($fp);
+        
+                $arRetval = [];
+                @exec("crontab " . $_SERVER["DOCUMENT_ROOT"] . "/bitrix/crontab/crontab.cfg", $arRetval, $return_var);
+            }
+    
             $api_host = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, 0);
             $api_key = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, 0);
             $api_version = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_VERSION, 0);
@@ -1217,17 +1270,19 @@ class intaro_retailcrm extends CModule
         UnRegisterModuleDependences("main", "OnBeforeProlog", $this->MODULE_ID, "RetailCrmUa", "add");
         UnRegisterModuleDependences("sale", "OnSalePaymentEntitySaved", $this->MODULE_ID, "RetailCrmEvent", "paymentSave");
         UnRegisterModuleDependences("sale", "OnSalePaymentEntityDeleted", $this->MODULE_ID, "RetailCrmEvent", "paymentDelete");
+    
+        if (
+            CModule::IncludeModule('catalog')
+            && file_exists($_SERVER['DOCUMENT_ROOT']
+                . '/bitrix/php_interface/include/catalog_export/'
+                . $this->RETAIL_CRM_EXPORT
+                . '_run.php')
+        ) {
+            $dbProfile = CCatalogExport::GetList([], ['FILE_NAME' => $this->RETAIL_CRM_EXPORT]);
 
-        if (CModule::IncludeModule("catalog")) {
-            if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/' . $this->RETAIL_CRM_EXPORT . '_run.php')) {
-                $dbProfile = CCatalogExport::GetList(array(), array("FILE_NAME" => $this->RETAIL_CRM_EXPORT));
-
-                while ($arProfile = $dbProfile->Fetch()) {
-                    if ($arProfile["DEFAULT_PROFILE"] != "Y") {
-                        CAgent::RemoveAgent("CCatalogExport::PreGenerateExport(" . $arProfile['ID'] . ");", "catalog");
-                        CCatalogExport::Delete($arProfile['ID']);
-                    }
-                }
+            if ($dbProfile instanceof CDBResult) {
+                $this->removeExportProfiles($dbProfile);
+            
             }
         }
 
@@ -1245,7 +1300,14 @@ class intaro_retailcrm extends CModule
     function CopyFiles()
     {
         CopyDirFiles(
-            $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . $this->MODULE_ID . '/install/export/', $_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export/', true, true
+            $_SERVER['DOCUMENT_ROOT']
+            . '/bitrix/modules/'
+            . $this->MODULE_ID
+            . '/install/export/',
+            $_SERVER['DOCUMENT_ROOT']
+            . '/bitrix/php_interface/include/catalog_export/',
+            true,
+            true
         );
     }
 
@@ -1264,7 +1326,7 @@ class intaro_retailcrm extends CModule
         rmdir($defaultSite['ABS_DOC_ROOT'] . '/retailcrm/');
     }
 
-    function GetProfileSetupVars(
+    function getProfileSetupVars(
         $iblocks,
         $propertiesProduct,
         $propertiesUnitProduct,
@@ -1316,7 +1378,7 @@ class intaro_retailcrm extends CModule
 
         try {
             $history = $api->$method(array(), $page);
-        } catch (\RetailCrm\Exception\CurlException $e) {
+        } catch (CurlException $e) {
             RCrmActions::eventLog(
                 'RetailCrmHistory::' . $method, 'RetailCrm\RestApi::' . $method . '::CurlException',
                 $e->getCode() . ': ' . $e->getMessage()
@@ -1336,7 +1398,7 @@ class intaro_retailcrm extends CModule
             while (true) {
                 try {
                     $history = $api->$method(array(), $page);
-                } catch (\RetailCrm\Exception\CurlException $e) {
+                } catch (CurlException $e) {
                     RCrmActions::eventLog(
                         'RetailCrmHistory::' . $method, 'RetailCrm\RestApi::' . $method . '::CurlException',
                         $e->getCode() . ': ' . $e->getMessage()
@@ -1380,7 +1442,7 @@ class intaro_retailcrm extends CModule
             $client = new RetailCrm\Http\Client($api_host . '/api/' . $version, array('apiKey' => $api_key));
             try {
                 $result = $client->makeRequest('/reference/sites', 'GET');
-            } catch (\RetailCrm\Exception\CurlException $e) {
+            } catch (CurlException $e) {
                 RCrmActions::eventLog(
                     'intaro.retailcrm/install/index.php', 'RetailCrm\ApiClient::sitesList',
                     $e->getCode() . ': ' . $e->getMessage()
@@ -1389,7 +1451,7 @@ class intaro_retailcrm extends CModule
                 $res['errCode'] = 'ERR_' . $e->getCode();
             }
 
-            if ($result->getStatusCode() == 200) {
+            if ($result instanceof ApiResponse && $result->getStatusCode() == 200) {
                 COption::SetOptionString($this->MODULE_ID, $this->CRM_API_VERSION, $version);
                 $res['sitesList'] = $APPLICATION->ConvertCharsetArray($result->sites, 'utf-8', SITE_CHARSET);
 
@@ -1400,5 +1462,20 @@ class intaro_retailcrm extends CModule
         }
 
         return $res;
+    }
+    
+    /**
+     * Удаляет профили экспорта icml каталага и агент, запускавший этот экспорт
+     *
+     * @param \CDBResult $dbProfile
+     */
+    private function removeExportProfiles(CDBResult $dbProfile): void
+    {
+        while ($arProfile = $dbProfile->Fetch()) {
+            if ($arProfile['DEFAULT_PROFILE'] !== 'Y') {
+                CAgent::RemoveAgent('CCatalogExport::PreGenerateExport(' . $arProfile['ID'] . ');', 'catalog');
+                CCatalogExport::Delete($arProfile['ID']);
+            }
+        }
     }
 }

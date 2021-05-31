@@ -17,6 +17,7 @@ $MESS ['NOT_LOADING'] = 'Нет';
 $MESS ['CRON_LOADING'] = 'С помощью CRON каждые 24 часа';
 $MESS ['AGENT_LOADING'] = 'Агентом каждые 24 часа (по умолчанию)';
 $MESS ['LOAD_NOW'] = 'Выгрузить сейчас';
+$MESS ['LOAD_NOW_MSG'] = 'Генерация начнется после нажатия "Завершить установку". Это может занять некоторое время';
 $MESS ['PROFILE_NAME'] = 'Имя профиля:';
 $MESS ['PROFILE_NAME_EXAMPLE'] = 'Выгрузка каталога RetailCRM';
 $MESS ['ERR_FIELDS_PROFILE'] = 'Неверно заполнено поле имени профиля';
