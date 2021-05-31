@@ -1,13 +1,16 @@
 <?
+
+use Bitrix\Highloadblock\HighloadBlockTable;
+
 if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/export_setup.php")){
     require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/export_setup.php");
 } else {
     if (isset($_POST['ajax']) && $_POST['ajax'] == '1') {
         CModule::IncludeModule('highloadblock');
-        $rsData = \Bitrix\Highloadblock\HighloadBlockTable::getList(array('filter' => array('TABLE_NAME' => $_POST['table'])));
+        $rsData = HighloadBlockTable::getList(['filter' => ['TABLE_NAME' => $_POST['table']]]);
         $hlblockArr = $rsData->Fetch();
-        $hlblock = \Bitrix\Highloadblock\HighloadBlockTable::getById($hlblockArr["ID"])->fetch();
-        $entity = \Bitrix\Highloadblock\HighloadBlockTable::compileEntity($hlblock);
+        $hlblock = HighloadBlockTable::getById($hlblockArr["ID"])->fetch();
+        $entity = HighloadBlockTable::compileEntity($hlblock);
         $hbFields = $entity->getFields();
         $hlblockList['table'] = $hlblockArr["TABLE_NAME"];
 
@@ -55,11 +58,11 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/retailcrm/expor
     if (CModule::IncludeModule('highloadblock')) {
         $hlblockModule = true;
         $hlblockList = array();
-        $hlblockListDb = \Bitrix\Highloadblock\HighloadBlockTable::getList();
+        $hlblockListDb = HighloadBlockTable::getList();
 
         while ($hlblockArr = $hlblockListDb->Fetch()) {
-            $hlblock = \Bitrix\Highloadblock\HighloadBlockTable::getById($hlblockArr["ID"])->fetch();
-            $entity = \Bitrix\Highloadblock\HighloadBlockTable::compileEntity($hlblock);
+            $hlblock = HighloadBlockTable::getById($hlblockArr["ID"])->fetch();
+            $entity = HighloadBlockTable::compileEntity($hlblock);
             $hbFields = $entity->getFields();
             $hlblockList[$hlblockArr["TABLE_NAME"]]['LABEL'] = $hlblockArr["NAME"];
 
