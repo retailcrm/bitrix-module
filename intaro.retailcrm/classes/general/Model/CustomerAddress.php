@@ -146,10 +146,11 @@ class CustomerAddress extends BaseModel
     }
     
     /**
-     * @param string $floor
+     * @param string|null $floor
+     *
      * @return $this
      */
-    public function setFloor(string $floor)
+    public function setFloor(?string $floor): CustomerAddress
     {
         $this->floor = $floor;
 

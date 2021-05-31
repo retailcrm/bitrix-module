@@ -1,4 +1,8 @@
 <?php
+
+use Bitrix\Sale\Internals\Fields;
+use Intaro\RetailCrm\Service\UploadOrderService;
+
 IncludeModuleLangFile(__FILE__);
 class RetailCrmOrder
 {
@@ -220,16 +224,15 @@ class RetailCrmOrder
                 $item['purchasePrice'] = $purchasePrice;
             }
 
-            $discount = (double) $product['DISCOUNT_PRICE'];
-            $dpItem = $product['BASE_PRICE'] - $product['PRICE'];
-
-            if ( $dpItem > 0 && $discount <= 0) {
-                $discount = $dpItem;
-            }
-
             $item['discountManualPercent'] = 0;
-            $item['discountManualAmount'] = $discount;
-            $item['initialPrice'] = (double) $product['BASE_PRICE'];
+            
+            if ($product['BASE_PRICE'] >= $product['PRICE']) {
+                $item['discountManualAmount'] = self::getDiscountManualAmount($product);
+                $item['initialPrice'] = (double) $product['BASE_PRICE'];
+            } else {
+                $item['discountManualAmount'] = 0;
+                $item['initialPrice'] = $product['PRICE'];
+            }
 
             $order['items'][] = $item;
 
@@ -755,5 +758,27 @@ class RetailCrmOrder
         }
 
         return $arOrder;
+    }
+    
+    /**
+     * @param \Bitrix\Sale\Internals\Fields $product
+     *
+     * @return float
+     */
+    public static function getDiscountManualAmount(Fields $product): float
+    {
+        if ($product->get('CUSTOM_PRICE') === 'Y') {
+            $sumDifference = $product->get('BASE_PRICE') - $product->get('PRICE');
+            return $sumDifference > 0 ? $sumDifference : 0.0;
+        }
+        
+        $discount = (double) $product->get('DISCOUNT_PRICE');
+        $dpItem = $product->get('BASE_PRICE') - $product->get('PRICE');
+        
+        if ($dpItem > 0 && $discount <= 0) {
+            return $dpItem;
+        }
+        
+        return $discount;
     }
 }
