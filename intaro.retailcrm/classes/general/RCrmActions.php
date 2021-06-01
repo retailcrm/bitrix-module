@@ -1,4 +1,7 @@
 <?php
+
+use Intaro\RetailCrm\Service\ManagerService;
+
 IncludeModuleLangFile(__FILE__);
 class RCrmActions
 {
@@ -186,11 +189,11 @@ class RCrmActions
      *
      * @return self name
      */
-
     public static function uploadOrdersAgent()
     {
         RetailCrmOrder::uploadOrders();
         $failedIds = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_FAILED_IDS, 0));
+        
         if (is_array($failedIds) && !empty($failedIds)) {
             RetailCrmOrder::uploadOrders(50, true);
         }
@@ -206,10 +209,13 @@ class RCrmActions
      */
     public static function orderAgent()
     {
-        if (COption::GetOptionString('main', 'agents_use_crontab', 'N') != 'N') {
+        if (COption::GetOptionString('main', 'agents_use_crontab', 'N') !== 'N') {
             define('NO_AGENT_CHECK', true);
         }
 
+        $service = new ManagerService();
+        $service->synchronizeManagers();
+        
         RetailCrmHistory::customerHistory();
         RetailCrmHistory::orderHistory();
         self::uploadOrdersAgent();

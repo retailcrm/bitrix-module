@@ -4,6 +4,8 @@ use Bitrix\Main\UserTable;
 use Bitrix\Sale\Internals\Fields;
 use Bitrix\Sale\Order;
 use RetailCrm\ApiClient;
+use Intaro\RetailCrm\Service\ManagerService;
+use Intaro\RetailCrm\Service\UploadOrderService;
 
 IncludeModuleLangFile(__FILE__);
 class RetailCrmOrder
@@ -38,23 +40,20 @@ class RetailCrmOrder
         $currency = RetailcrmConfigProvider::getCurrencyOrDefault();
         $optionCorpClient = RetailcrmConfigProvider::getCorporateClientStatus();
 
-        $order = array(
-            'number'          => $arFields['NUMBER'],
-            'externalId'      => $arFields['ID'],
-            'createdAt'       => $arFields['DATE_INSERT'],
-            'customer'        => isset($arParams['customerCorporate'])
-                ? array('id' => $arParams['customerCorporate']['id'])
-                : array('externalId' => $arFields['USER_ID']),
-            'orderType'       => isset($arParams['optionsOrderTypes'][$arFields['PERSON_TYPE_ID']]) ?
-                $arParams['optionsOrderTypes'][$arFields['PERSON_TYPE_ID']] : '',
-            'status'          => isset($arParams['optionsPayStatuses'][$arFields['STATUS_ID']]) ?
-                $arParams['optionsPayStatuses'][$arFields['STATUS_ID']] : '',
+        $order = [
+            'number' => $arFields['NUMBER'],
+            'externalId' => $arFields['ID'],
+            'createdAt' => $arFields['DATE_INSERT'],
+            'customer' => isset($arParams['customerCorporate'])
+                ? ['id' => $arParams['customerCorporate']['id']]
+                : ['externalId' => $arFields['USER_ID']],
+            'orderType' => $arParams['optionsOrderTypes'][$arFields['PERSON_TYPE_ID']] ?? '',
+            'status' => $arParams['optionsPayStatuses'][$arFields['STATUS_ID']] ?? '',
             'customerComment' => $arFields['USER_DESCRIPTION'],
             'managerComment'  => $arFields['COMMENTS'],
-            'delivery' => array(
-                'cost' => $arFields['PRICE_DELIVERY']
-            ),
-        );
+            'managerId'  => $arFields['managerId'] ?? null,
+            'delivery' => ['cost' => $arFields['PRICE_DELIVERY']],
+        ];
 
         if (isset($arParams['contactExId'])) {
             $order['contact']['externalId'] = $arParams['contactExId'];
@@ -428,6 +427,11 @@ class RetailCrmOrder
             }
 
             self::createCustomerForOrder($api, $arCustomer, $arCustomerCorporate,$arParams, $order, $site);
+
+            if (isset($order['RESPONSIBLE_ID']) && !empty($order['RESPONSIBLE_ID'])) {
+                $managerService = new ManagerService();
+                $arParams['managerId']  = $managerService->getManagerCrmId((int) $order['RESPONSIBLE_ID']);
+            }
 
             $arOrders = self::orderSend($order, $api, $arParams, false, $site,'ordersCreate');
 

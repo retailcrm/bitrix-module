@@ -69,27 +69,27 @@ class ApiClient
      *
      * @return ApiResponse
      */
-    public function usersList(array $filter = array(), $page = null, $limit = null)
+    public function usersList(array $filter = [], $page = null, $limit = null): ApiResponse
     {
-        $parameters = array();
-
+        $parameters = [];
+        
         if (count($filter)) {
             $parameters['filter'] = $filter;
         }
         if (null !== $page) {
-            $parameters['page'] = (int) $page;
+            $parameters['page'] = (int)$page;
         }
         if (null !== $limit) {
-            $parameters['limit'] = (int) $limit;
+            $parameters['limit'] = (int)$limit;
         }
-
+        
         return $this->client->makeRequest(
             '/users',
             Client::METHOD_GET,
             $parameters
         );
     }
-
+    
     /**
      * Get user groups
      *
