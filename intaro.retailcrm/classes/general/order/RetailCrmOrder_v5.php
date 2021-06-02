@@ -1,12 +1,10 @@
 <?php
 
 use Bitrix\Main\UserTable;
-use Bitrix\Main\Context\Culture;
 use Bitrix\Sale\Delivery\Services\Manager;
 use Bitrix\Sale\Internals\Fields;
 use Bitrix\Sale\Order;
 use RetailCrm\ApiClient;
-use Bitrix\Sale\Internals\OrderTable;
 use Intaro\RetailCrm\Service\ManagerService;
 use Intaro\RetailCrm\Service\UploadOrderService;
 

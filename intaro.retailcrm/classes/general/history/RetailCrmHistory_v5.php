@@ -541,11 +541,11 @@ class RetailCrmHistory
                         continue;
                     }
 
-                    if (isset($order['managerId'])) {
+                    if (isset($order['managerId']['id'])) {
                         //TODO заменить вызов на сервис-локатор, когда он приедет
                         $service = new ManagerService();
 
-                        $newOrder->setField('RESPONSIBLE_ID', $service->getManagerBitrixId($order['manager']));
+                        $newOrder->setField('RESPONSIBLE_ID', $service->getManagerBitrixId($order['manager']['id']));
                     }
 
                     if ($optionsSitesList) {
