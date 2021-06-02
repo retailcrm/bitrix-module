@@ -4,10 +4,7 @@ namespace Intaro\RetailCrm\Service;
 
 use Intaro\RetailCrm\Repository\ManagerRepository;
 use InvalidArgumentException;
-use Logger;
-use RCrmActions;
 use RetailCrm\ApiClient;
-use RetailCrm\Response\ApiResponse;
 use RetailcrmConfigProvider;
 
 /**
@@ -23,12 +20,12 @@ class ManagerService
      * @var \Intaro\RetailCrm\Repository\ManagerRepository
      */
     private $repository;
-    
+
     /**
      * @var \RetailCrm\ApiClient
      */
     private $client;
-    
+
     /**
      * ManagerService constructor.
      */
@@ -37,34 +34,48 @@ class ManagerService
         $this->client = new ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
         $this->repository = new ManagerRepository();
     }
-    
+
     /**
      * Синхронизирует пользователей CRM и Битрикс
      */
     public function synchronizeManagers(): void
     {
         $currentPage = 1;
-    
+
+        $this->clearManagersOption();
+
         do {
             $crmUsers = $this->getCrmUsersPage($currentPage);
             $matchesArray = $this->findMatchesInBitrix($crmUsers);
-            
-            $this->repository->addManagersToMapping($matchesArray);
-        
+
+            if (!empty($matchesArray)) {
+                $this->repository->addManagersToMapping($matchesArray);
+            }
+
             $currentPage++;
         } while (count($crmUsers) > 0);
     }
-    
+
     /**
-     * @param int $bitrixUserId
+     * @param string $bitrixUserId
      *
      * @return int|null
      */
-    public function getManagerCrmId(int $bitrixUserId): ?int
+    public function getManagerCrmId(string $bitrixUserId): ?int
     {
         return $this->repository->getManagerCrmIdByBitrixId($bitrixUserId);
     }
-    
+
+    /**
+     * @param int|null $crmManagerId
+     *
+     * @return int
+     */
+    public function getManagerBitrixId(?int $crmManagerId): ?int
+    {
+        return $this->repository->getBitrixIdByCrmId($crmManagerId);
+    }
+
     /**
      * @param int $pageNumber
      *
@@ -73,24 +84,24 @@ class ManagerService
     private function getCrmUsersPage(int $pageNumber): array
     {
         $response = $this->client->usersList([], $pageNumber);
-        
+
         if (!$response->isSuccessful()) {
             return [];
         }
-        
+
         try {
             $users = $response->offsetGet('users');
-            
+
             if (is_array($users)) {
                 return $users;
             }
-            
+
             return [];
         } catch (InvalidArgumentException $exception) {
             return [];
         }
     }
-    
+
     /**
      * @param array $crmUsers
      *
@@ -99,18 +110,19 @@ class ManagerService
     private function findMatchesInBitrix(array $crmUsers): array
     {
         $matchesUsers = [];
-        
+
         foreach ($crmUsers as $crmUser) {
             $matchesUser = $this->getMatchesForCrmUser($crmUser);
 
-            if (count($matchesUser)>0) {
-                $matchesUsers[] = $matchesUser;
+            if (count($matchesUser) > 0) {
+                $bitrixId = 'bitrixUserId-' . $matchesUser['bitrixUserId'];
+                $matchesUsers[$bitrixId] = $matchesUser['crmUserId'];
             }
         }
-        
+
         return $matchesUsers;
     }
-    
+
     /**
      * @param array $crmUser
      *
@@ -120,12 +132,20 @@ class ManagerService
     {
         if (!empty($crmUser['email']) && !empty($crmUser['id'])) {
             $bitrixUserId = $this->repository->getManagerBitrixIdByEmail($crmUser['email']);
-    
+
             if (is_int($bitrixUserId)) {
-                return [$bitrixUserId => $crmUser['id']];
+                return [
+                    'bitrixUserId' => $bitrixUserId,
+                    'crmUserId' => $crmUser['id']
+                ];
             }
         }
-    
+
         return [];
+    }
+
+    private function clearManagersOption(): void
+    {
+        RetailcrmConfigProvider::setUsersMap([]);
     }
 }

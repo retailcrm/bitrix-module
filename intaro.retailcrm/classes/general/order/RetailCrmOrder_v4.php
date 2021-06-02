@@ -86,7 +86,7 @@ class RetailCrmOrder
             } elseif ($search = array_search($prop['CODE'], $arParams['optionsOrderProps'][$arFields['PERSON_TYPE_ID']])) {//other
                 if (in_array($search, array('fio', 'phone', 'email'))) {//fio, phone, email
                     if ($search == 'fio') {
-                        $order = array_merge($order, RCrmActions::explodeFIO($prop['VALUE'][0]));//add fio fields
+                        $order = array_merge($order, RCrmActions::explodeFio($prop['VALUE'][0]));//add fio fields
                     } elseif ($search == 'email' && mb_strlen($prop['VALUE'][0]) > 100) {
                         continue;
                     } else {

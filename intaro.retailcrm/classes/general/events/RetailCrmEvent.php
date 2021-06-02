@@ -142,7 +142,6 @@ class RetailCrmEvent
 
             return false;
         }
-
         $arOrder = RetailCrmOrder::orderObjToArr($obOrder);
 
         $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
@@ -417,7 +416,7 @@ class RetailCrmEvent
 
         if (isset($arOrder['RESPONSIBLE_ID']) && !empty($arOrder['RESPONSIBLE_ID'])) {
             $managerService = new ManagerService();
-            $arParams['managerId']  = $managerService->getManagerCrmId((int) $arOrder['RESPONSIBLE_ID']);
+            $arParams['managerId']  = $managerService->getManagerCrmId($arOrder['RESPONSIBLE_ID']);
         }
 
         //order

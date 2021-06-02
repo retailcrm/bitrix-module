@@ -251,7 +251,7 @@ class RetailcrmConfigProvider
         
         return $siteName;
     }
-    
+
     /**
      * @return mixed
      */
@@ -259,17 +259,17 @@ class RetailcrmConfigProvider
     {
         return static::getUnserializedOption(RetailcrmConstants::CRM_USERS_MAP);
     }
-    
+
     /**
-     * @param array $userMap
+     * @param array|null $userMap
      *
      * @return bool
      */
-    public static function setUsersMap(array $userMap): bool
+    public static function setUsersMap(?array $userMap): bool
     {
        return static::setOption(RetailcrmConstants::CRM_USERS_MAP, serialize($userMap));
     }
-    
+
     /**
      * setOnlineConsultantScript
      * 
