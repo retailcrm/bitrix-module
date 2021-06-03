@@ -24,15 +24,15 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"] . "/bitrix/php_interface/retailcrm/exp
     }
 
     $iblockProperties = [
-        "article"      => "article",
+        "article" => "article",
         "manufacturer" => "manufacturer",
-        "color"        => "color",
-        "size"         => "size",
-        "weight"       => "weight",
-        "length"       => "length",
-        "width"        => "width",
-        "height"       => "height",
-        "picture"      => "picture",
+        "color" => "color",
+        "size" => "size",
+        "weight" => "weight",
+        "length" => "length",
+        "width" => "width",
+        "height" => "height",
+        "picture" => "picture",
     ];
 
     if (!check_bitrix_sessid()) {
@@ -121,8 +121,9 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"] . "/bitrix/php_interface/retailcrm/exp
                 GetMessage('CET_YAND_RUN_ERR_SETUP_FILE_ACCESS_DENIED'));
         }
 
-        if (($ACTION == "EXPORT_SETUP" || $ACTION == 'EXPORT_EDIT' || $ACTION == 'EXPORT_COPY')
-            && strlen($SETUP_PROFILE_NAME) <= 0) {
+        $isValidAction = ($ACTION === "EXPORT_SETUP" || $ACTION === 'EXPORT_EDIT' || $ACTION === 'EXPORT_COPY');
+
+        if ($isValidAction && strlen($SETUP_PROFILE_NAME) <= 0) {
             $arSetupErrors[] = GetMessage("CET_ERROR_NO_PROFILE_NAME");
         }
 
@@ -161,15 +162,15 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"] . "/bitrix/php_interface/retailcrm/exp
             }
 
             $iblockPropertiesName = [
-                "article"      => GetMessage("PROPERTY_ARTICLE_HEADER_NAME"),
+                "article" => GetMessage("PROPERTY_ARTICLE_HEADER_NAME"),
                 "manufacturer" => GetMessage("PROPERTY_MANUFACTURER_HEADER_NAME"),
-                "color"        => GetMessage("PROPERTY_COLOR_HEADER_NAME"),
-                "size"         => GetMessage("PROPERTY_SIZE_HEADER_NAME"),
-                "weight"       => GetMessage("PROPERTY_WEIGHT_HEADER_NAME"),
-                "length"       => GetMessage("PROPERTY_LENGTH_HEADER_NAME"),
-                "width"        => GetMessage("PROPERTY_WIDTH_HEADER_NAME"),
-                "height"       => GetMessage("PROPERTY_HEIGHT_HEADER_NAME"),
-                "picture"      => GetMessage("PROPERTY_PICTURE_HEADER_NAME"),
+                "color" => GetMessage("PROPERTY_COLOR_HEADER_NAME"),
+                "size" => GetMessage("PROPERTY_SIZE_HEADER_NAME"),
+                "weight" => GetMessage("PROPERTY_WEIGHT_HEADER_NAME"),
+                "length" => GetMessage("PROPERTY_LENGTH_HEADER_NAME"),
+                "width" => GetMessage("PROPERTY_WIDTH_HEADER_NAME"),
+                "height" => GetMessage("PROPERTY_HEIGHT_HEADER_NAME"),
+                "picture" => GetMessage("PROPERTY_PICTURE_HEADER_NAME"),
             ];
 
             $iblockFieldsName = [
@@ -183,7 +184,7 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"] . "/bitrix/php_interface/retailcrm/exp
                     "name" => GetMessage("SELECT_LENGTH_PROPERTY_NAME"),
                     'unit' => 'length',
                 ],
-                "width"  => [
+                "width" => [
                     "code" => "catalog_width",
                     "name" => GetMessage("SELECT_WIDTH_PROPERTY_NAME"),
                     'unit' => 'length',
@@ -196,33 +197,33 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"] . "/bitrix/php_interface/retailcrm/exp
             ];
 
             $iblockPropertiesHint = [
-                "article"      => ["ARTICLE", "ART", "ARTNUMBER", "ARTICUL", "ARTIKUL"],
+                "article" => ["ARTICLE", "ART", "ARTNUMBER", "ARTICUL", "ARTIKUL"],
                 "manufacturer" => ["MANUFACTURER", "PROISVODITEL", "PROISVOD", "PROISV"],
-                "color"        => ["COLOR", "CVET"],
-                "size"         => ["SIZE", "RAZMER"],
-                "weight"       => ["WEIGHT", "VES", "VEC"],
-                "length"       => ["LENGTH", "DLINA"],
-                "width"        => ["WIDTH", "SHIRINA"],
-                "height"       => ["HEIGHT", "VISOTA"],
-                "picture"      => ["PICTURE", "PICTURE"],
+                "color" => ["COLOR", "CVET"],
+                "size" => ["SIZE", "RAZMER"],
+                "weight" => ["WEIGHT", "VES", "VEC"],
+                "length" => ["LENGTH", "DLINA"],
+                "width" => ["WIDTH", "SHIRINA"],
+                "height" => ["HEIGHT", "VISOTA"],
+                "picture" => ["PICTURE", "PICTURE"],
             ];
 
             $units = [
                 'length' => [
                     'mm' => GetMessage("UNIT_MEASUREMENT_MM"),
                     'cm' => GetMessage("UNIT_MEASUREMENT_CM"),
-                    'm'  => GetMessage("UNIT_MEASUREMENT_M"),
+                    'm' => GetMessage("UNIT_MEASUREMENT_M"),
                 ],
-                'mass'   => [
+                'mass' => [
                     'mg' => GetMessage("UNIT_MEASUREMENT_MG"),
-                    'g'  => GetMessage("UNIT_MEASUREMENT_G"),
+                    'g' => GetMessage("UNIT_MEASUREMENT_G"),
                     'kg' => GetMessage("UNIT_MEASUREMENT_KG"),
                 ],
             ];
 
             $hintUnit = [
                 'length' => 'mm',
-                'mass'   => 'g',
+                'mass' => 'g',
             ];
 
             $boolAll = false;
@@ -295,17 +296,17 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"] . "/bitrix/php_interface/retailcrm/exp
                         }
 
                         $arIBlockList[] = [
-                            'ID'                               => $iblock['ID'],
-                            'NAME'                             => $iblock['NAME'],
-                            'IBLOCK_TYPE_ID'                   => $iblock['IBLOCK_TYPE_ID'],
-                            'IBLOCK_EXPORT'                    => $boolExport,
-                            'PROPERTIES_SKU'                   => $propertiesSKU,
-                            'PROPERTIES_PRODUCT'               => $propertiesProduct,
-                            'OLD_PROPERTY_SKU_SELECT'          => $oldPropertySKU,
-                            'OLD_PROPERTY_UNIT_SKU_SELECT'     => $oldPropertyUnitSKU,
-                            'OLD_PROPERTY_PRODUCT_SELECT'      => $oldPropertyProduct,
+                            'ID' => $iblock['ID'],
+                            'NAME' => $iblock['NAME'],
+                            'IBLOCK_TYPE_ID' => $iblock['IBLOCK_TYPE_ID'],
+                            'IBLOCK_EXPORT' => $boolExport,
+                            'PROPERTIES_SKU' => $propertiesSKU,
+                            'PROPERTIES_PRODUCT' => $propertiesProduct,
+                            'OLD_PROPERTY_SKU_SELECT' => $oldPropertySKU,
+                            'OLD_PROPERTY_UNIT_SKU_SELECT' => $oldPropertyUnitSKU,
+                            'OLD_PROPERTY_PRODUCT_SELECT' => $oldPropertyProduct,
                             'OLD_PROPERTY_UNIT_PRODUCT_SELECT' => $oldPropertyUnitProduct,
-                            'SITE_LIST'                        => '(' . implode(' ', $arSiteList) . ')',
+                            'SITE_LIST' => '(' . implode(' ', $arSiteList) . ')',
                         ];
 
                         if ($boolExport) {
@@ -781,15 +782,15 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"] . "/bitrix/php_interface/retailcrm/exp
             <select name="price-types" class="typeselect">
                 <option value=""></option>
                 <?php
-                foreach ($arResult['PRICE_TYPES'] as $priceType) {?>
-                    <option value="<?= $priceType['ID']; ?>"
+                foreach ($arResult['PRICE_TYPES'] as $priceType) { ?>
+                    <option value="<?=$priceType['ID'];?>"
                         <?php
                         if ($priceType['ID'] == $basePriceId) {
                             echo 'selected';
                         } ?>>
-                        <?= $priceType['NAME']; ?>
+                        <?=$priceType['NAME'];?>
                     </option>
-                <?php
+                    <?php
                 } ?>
             </select>
 
@@ -808,21 +809,21 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"] . "/bitrix/php_interface/retailcrm/exp
                 <br>
                 <br>
                 <br>
-            <?php
+                <?php
             } ?>
 
             <?php
-            if ($ACTION == "EXPORT_SETUP" || $ACTION == 'EXPORT_EDIT' || $ACTION == 'EXPORT_COPY') {?>
+            if ($ACTION == "EXPORT_SETUP" || $ACTION == 'EXPORT_EDIT' || $ACTION == 'EXPORT_COPY') { ?>
                 <font class="text"><?=GetMessage("PROFILE_NAME");?><br><br></font>
                 <input
                     type="text"
                     name="SETUP_PROFILE_NAME"
-                    value="<?= htmlspecialchars($SETUP_PROFILE_NAME) ?>"
+                    value="<?=htmlspecialchars($SETUP_PROFILE_NAME)?>"
                     size="50">
                 <br>
                 <br>
                 <br>
-            <?php
+                <?php
             } ?>
 
             <script type="text/javascript" src="/bitrix/js/main/jquery/jquery-1.7.min.js"></script>
@@ -906,11 +907,11 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"] . "/bitrix/php_interface/retailcrm/exp
                     if (BX(obj.id).value !== 'none') {
                         if (obj.id.indexOf("SKU") !== -1) {
                             BX(obj.id.replace('SKU', 'PRODUCT')).value = 'none';
-                            bid = obj.id.replace('SKU', 'PRODUCT');
+                            bid                                        = obj.id.replace('SKU', 'PRODUCT');
                             $("#" + bid).siblings('#highloadblock').remove();
                         } else if (BX(obj.id.replace('PRODUCT', 'SKU'))) {
                             BX(obj.id.replace('PRODUCT', 'SKU')).value = 'none';
-                            bid = obj.id.replace('PRODUCT', 'SKU');
+                            bid                                        = obj.id.replace('PRODUCT', 'SKU');
                             $("#" + bid).siblings('#highloadblock').remove();
                         }
                     }
