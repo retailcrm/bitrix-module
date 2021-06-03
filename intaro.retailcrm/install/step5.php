@@ -588,7 +588,8 @@ if (!empty($oldValues)) {
                 intCurrent += (boolCheck ? 1 : -1);
                 BX('icml_export_all').checked = (intCurrent < cnt ? false : true);
                 BX('count_checked').value = intCurrent;
-            };
+            }
+
             function propertyChange(obj)
             {
                 if (BX(obj.id).value !== 'none') {
@@ -603,19 +604,21 @@ if (!empty($oldValues)) {
                     }
                 }
 
-                if ($(obj).find('option')[obj.selectedIndex].className == 'not-highloadblock') {
-                    var a = $(obj).find('option')[obj.selectedIndex].parent('select').siblings('#highloadblock');
-                    $(a).remove();
+                let selectedOption = $(obj).find('option')[obj.selectedIndex];
+
+                if (selectedOption.className === 'not-highloadblock') {
+                    let objId = '#' + obj.id;
+                    $(objId).parent().children('#highloadblock').remove();
                 }
 
-                if ($(obj).find('option')[obj.selectedIndex].className == 'highloadblock') {
-                    getHbFromAjax($(obj).find('option')[obj.selectedIndex], 'sku');
+                if (selectedOption.className === 'highloadblock') {
+                    getHbFromAjax(selectedOption, 'sku');
                 }
 
-                if ($(obj).find('option')[obj.selectedIndex].className == 'highloadblock-product') {
-                    getHbFromAjax($(obj).find('option')[obj.selectedIndex], 'product');
+                if (selectedOption.className === 'highloadblock-product') {
+                    getHbFromAjax(selectedOption, 'product');
                 }
-            };
+            }
             
             function checkLoadStatus(object)
             {
