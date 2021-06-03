@@ -30,6 +30,7 @@ class RetailUser extends CUser
                 "PASSWORD"         => $userPassword,
                 "CONFIRM_PASSWORD" => $userPassword,
             ];
+
             $id = $retailUser->Add($arFields);
 
             if (!$id) {

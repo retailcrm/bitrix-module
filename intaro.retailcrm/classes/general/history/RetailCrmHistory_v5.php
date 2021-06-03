@@ -2,7 +2,6 @@
 
 use Bitrix\Main\ArgumentException;
 use Bitrix\Main\ArgumentNullException;
-use Bitrix\Main\ArgumentOutOfRangeException;
 use Bitrix\Main\Context;
 use Bitrix\Sale\Basket;
 use Bitrix\Sale\Delivery\Services\EmptyDeliveryService;
@@ -189,7 +188,7 @@ class RetailCrmHistory
                         retailCrmAfterCustomerSave($customer);
                     }
                 }
-                
+
                 $customerBuilder->reset();
             }
 
@@ -224,7 +223,9 @@ class RetailCrmHistory
     {
         global $USER;
 
-        if (is_object($USER) == false) {
+        if (is_object($USER) === false) {
+            require_once dirname(__FILE__) . '/RetailUser.php';
+
             $USER = new RetailUser();
         }
 
@@ -486,11 +487,11 @@ class RetailCrmHistory
 
                     $newOrder = Order::create($site, $orderCustomerExtId, $currency);
 
-                    if (isset($order['managerId'])) {
+                    if (array_key_exists('managerId', $order)) {
                         //TODO заменить вызов на сервис-локатор, когда он приедет
                         $service = new ManagerService();
 
-                        $newOrder->setField('RESPONSIBLE_ID', $service->getManagerBitrixId($order['manager']));
+                        $newOrder->setField('RESPONSIBLE_ID', $service->getManagerBitrixId($order['managerId']));
                     }
 
                     if (isset($buyerProfileToAppend['ID']) && isset($optionsLegalDetails['legalName'])) {
@@ -541,11 +542,11 @@ class RetailCrmHistory
                         continue;
                     }
 
-                    if (isset($order['managerId']['id'])) {
+                    if (array_key_exists('managerId', $order)) {
                         //TODO заменить вызов на сервис-локатор, когда он приедет
                         $service = new ManagerService();
 
-                        $newOrder->setField('RESPONSIBLE_ID', $service->getManagerBitrixId($order['manager']['id']));
+                        $newOrder->setField('RESPONSIBLE_ID', $service->getManagerBitrixId($order['managerId']));
                     }
 
                     if ($optionsSitesList) {
@@ -1375,7 +1376,7 @@ class RetailCrmHistory
             }
 
             if ($change['field'] == 'manager') {
-                $orders[$change['order']['id']]['manager'] = $change['newValue'];
+                $orders[$change['order']['id']]['managerId'] = $change['newValue'];
             }
 
             if (isset($change['oldValue']) && $change['field'] == 'customer') {
@@ -1964,7 +1965,7 @@ class RetailCrmHistory
         try {
             $newOrder->setField('CANCELED', 'Y');
             $newOrder->save();
-        } catch (ArgumentNullException | ArgumentOutOfRangeException | ArgumentException $exception) {
+        } catch (Exception $exception) {
             RCrmActions::eventLog(
                 'RetailCrmHistory::orderHistory',
                 'Bitrix\Sale\Order::cancelOrder',
