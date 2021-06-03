@@ -12,6 +12,9 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
 }
 ?>
 <p>
+    <?php if (isset($arResult['ERRORS'])) {?>
+        <b><?=GetMessage('ERRORS')?></b> <?= $arResult['ERRORS']?><br>
+    <?php }?>
     <?php if (isset($arResult['LOYALTY_LEVEL_ID'])) {?>
         <b><?=GetMessage('LOYALTY_LEVEL_ID')?></b> <?= $arResult['LOYALTY_LEVEL_ID']?><br>
     <?php }?>

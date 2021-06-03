@@ -31,17 +31,17 @@ class Utils
     /**
      * Removes all empty fields from arrays, works for nested arrays
      *
-     * @param array $arr
+     * @param array|null $arr
      *
-     * @return array
+     * @return array|null
      */
-    public function clearArray(array $arr): array
+    public function clearArray(?array $arr): ?array
     {
         if (is_array($arr) === false) {
             return $arr;
         }
 
-        $result = array();
+        $result = [];
 
         foreach ($arr as $index => $node) {
             $result[$index] = is_array($node) === true ? $this->clearArray($node) : trim($node);
