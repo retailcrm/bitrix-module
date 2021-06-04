@@ -2,8 +2,11 @@
 
 namespace Intaro\RetailCrm\Icml;
 
+use Bitrix\Highloadblock\HighloadBlockTable;
+use Intaro\RetailCrm\Service\Hl;
+
 /**
- * Отвечает за управление настройками выгрузки
+ * Отвечает за управление настройками выгрузки icml каталога
  *
  * Class SettingsService
  *
@@ -17,13 +20,20 @@ class SettingsService
     private $arOldSetupVars;
 
     /**
+     * @var string|null
+     */
+    private $action;
+
+    /**
      * SettingsService constructor.
      *
-     * @param array $arOldSetupVars
+     * @param array       $arOldSetupVars
+     * @param string|null $action
      */
-    public function __construct(array $arOldSetupVars)
+    public function __construct(array $arOldSetupVars, ?string $action)
     {
         $this->arOldSetupVars = $arOldSetupVars;
+        $this->action = $action;
     }
 
     /**
@@ -160,5 +170,90 @@ class SettingsService
             'length' => 'mm',
             'mass' => 'g',
         ];
+    }
+
+    /**
+     * @param string|null $setupFileName
+     * @param string      $setupProfileName
+     *
+     * @return array
+     */
+    public function checkFileAndProfile(?string $setupFileName, string $setupProfileName): array
+    {
+        global $APPLICATION;
+
+        $arSetupErrors = [];
+
+        if (strlen($setupFileName) <= 0) {
+            $arSetupErrors[] = GetMessage('ERROR_NO_FILENAME');
+        } elseif ($APPLICATION->GetFileAccessPermission($setupFileName) < 'W') {
+            $arSetupErrors[] = str_replace("#FILE#", $setupFileName,
+                GetMessage('FILE_ACCESS_DENIED'));
+        }
+
+        $isValidAction = (
+            $this->action === 'EXPORT_SETUP'
+            || $this->action === 'EXPORT_EDIT'
+            || $this->action === 'EXPORT_COPY'
+        );
+
+        if ($isValidAction && strlen($setupProfileName) <= 0) {
+            $arSetupErrors[] = GetMessage('ERROR_NO_PROFILE_NAME');
+        }
+
+        return $arSetupErrors;
+    }
+
+    /**
+     * @return array
+     * @throws \Bitrix\Main\ArgumentException
+     * @throws \Bitrix\Main\LoaderException
+     * @throws \Bitrix\Main\ObjectPropertyException
+     * @throws \Bitrix\Main\SystemException
+     */
+    public function getHlBlockList(): array
+    {
+        $hlBlockList = [];
+        $hlblockListDb = HighloadBlockTable::getList();
+
+        while ($hlblockArr = $hlblockListDb->Fetch()) {
+            $entity = Hl::getBaseEntityByHlId($hlblockArr["ID"]);
+            $hbFields = $entity->getFields();
+            $hlBlockList[$hlblockArr["TABLE_NAME"]]['LABEL'] = $hlblockArr["NAME"];
+
+            foreach ($hbFields as $hbFieldCode => $hbField) {
+                $hlBlockList[$hlblockArr["TABLE_NAME"]]['FIELDS'][] = $hbFieldCode;
+            }
+        }
+
+        return $hlBlockList;
+    }
+
+    /**
+     * @param array $iblockProperties
+     * @param bool  $hlblockModule
+     * @param array $hlBlockList
+     *
+     * @return string
+     */
+    public function getSetupFieldsString(array $iblockProperties, bool $hlblockModule, array $hlBlockList): string
+    {
+        $values = 'loadPurchasePrice,SETUP_FILE_NAME,iblockExport,maxOffersValue';
+
+        foreach ($iblockProperties as $val) {
+            $values .= ",iblockPropertySku_" . $val
+                . ",iblockPropertyUnitSku_" . $val
+                . ",iblockPropertyProduct_" . $val
+                . ",iblockPropertyUnitProduct_" . $val;
+
+            if ($hlblockModule === true && $val !== 'picture') {
+                foreach ($hlBlockList as $hlblockTable => $hlblock) {
+                    $values .= ',highloadblock' . $hlblockTable . '_' . $val;
+                    $values .= ',highloadblock_product' . $hlblockTable . '_' . $val;
+                }
+            }
+        }
+
+        return $values;
     }
 }

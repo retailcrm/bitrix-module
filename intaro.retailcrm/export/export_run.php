@@ -7,6 +7,8 @@ use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupProps;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupPropsCategories;
 use Intaro\RetailCrm\Repository\CatalogRepository;
 
+/** @var $SETUP_FILE_NAME */
+
 if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/export_run.php')) {
     require_once($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/export_run.php');
 } else {
@@ -54,7 +56,7 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/exp
     $iblockPropertyUnitProduct = [];
 
     foreach ($iblockProperties as $prop) {
-        $skuUnitProps = ('IBLOCK_PROPERTY_UNIT_SKU' . "_" . $prop);
+        $skuUnitProps = ('iblockPropertyUnitSku_' . $prop);
         $skuUnitProps = $$skuUnitProps;
 
         if (is_array($skuUnitProps)) {
@@ -63,7 +65,7 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/exp
             }
         }
 
-        $skuProps = ('IBLOCK_PROPERTY_SKU' . "_" . $prop);
+        $skuProps = ('iblockPropertySku_' . $prop);
         $skuProps = $$skuProps;
         if (is_array($skuProps)) {
             foreach ($skuProps as $iblock => $val) {
@@ -84,7 +86,7 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/exp
             }
         }
 
-        $productUnitProps = "IBLOCK_PROPERTY_UNIT_PRODUCT" . "_" . $prop;
+        $productUnitProps = 'iblockPropertyUnitProduct_' . $prop;
         $productUnitProps = $$productUnitProps;
         if (is_array($productUnitProps)) {
             foreach ($productUnitProps as $iblock => $val) {
@@ -92,7 +94,7 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/exp
             }
         }
 
-        $productProps = "IBLOCK_PROPERTY_PRODUCT" . "_" . $prop;
+        $productProps = "iblockPropertyProduct_" . $prop;
         $productProps = $$productProps;
         if (is_array($productProps)) {
             foreach ($productProps as $iblock => $val) {
@@ -116,16 +118,16 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/exp
 
     $productPictures = [];
 
-    if (is_array($IBLOCK_PROPERTY_PRODUCT_picture)) {
-        foreach ($IBLOCK_PROPERTY_PRODUCT_picture as $key => $value) {
+    if (is_array($iblockPropertyProduct_picture)) {
+        foreach ($iblockPropertyProduct_picture as $key => $value) {
             $productPictures[$key] = $value;
         }
     }
 
     $skuPictures = [];
 
-    if (is_array($IBLOCK_PROPERTY_SKU_picture)) {
-        foreach ($IBLOCK_PROPERTY_SKU_picture as $key => $value) {
+    if (is_array($iblockPropertySku_picture)) {
+        foreach ($iblockPropertySku_picture as $key => $value) {
             $skuPictures[$key] = $value;
         }
     }
@@ -144,7 +146,7 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/exp
     $fileSetup->profileId = $profile_id;
     $fileSetup->iblocksForExport = $iblockExport;
     $fileSetup->maxOffersValue = $maxOffersValue ?? null;
-    $fileSetup->filePath = $setupFileName;
+    $fileSetup->filePath = $SETUP_FILE_NAME;
     $fileSetup->loadPurchasePrice = $loadPurchasePrice === 'Y';
     $fileSetup->basePriceId = CatalogRepository::getBasePriceId($fileSetup->profileId);
     $logger = Logger::getInstance('/bitrix/catalog_export/');
