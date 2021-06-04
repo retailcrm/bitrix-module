@@ -142,10 +142,10 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/exp
 
     $fileSetup = new XmlSetup($xmlProps);
     $fileSetup->profileId = $profile_id;
-    $fileSetup->iblocksForExport = $IBLOCK_EXPORT;
-    $fileSetup->maxOffersValue = $MAX_OFFERS_VALUE ?? null;
-    $fileSetup->filePath = $SETUP_FILE_NAME;
-    $fileSetup->loadPurchasePrice = $LOAD_PURCHASE_PRICE === 'Y';
+    $fileSetup->iblocksForExport = $iblockExport;
+    $fileSetup->maxOffersValue = $maxOffersValue ?? null;
+    $fileSetup->filePath = $setupFileName;
+    $fileSetup->loadPurchasePrice = $loadPurchasePrice === 'Y';
     $fileSetup->basePriceId = CatalogRepository::getBasePriceId($fileSetup->profileId);
     $logger = Logger::getInstance('/bitrix/catalog_export/');
 
