@@ -897,9 +897,9 @@ class intaro_retailcrm extends CModule
                 }
             }
 
-            $propertiesProduct = array();
-            $propertiesUnitProduct = array();
-            $propertiesHbProduct = array();
+            $propertiesProduct = [];
+            $propertiesUnitProduct = [];
+            $propertiesHbProduct = [];
 
             foreach ($iblockProperties as $prop) {
                 foreach ($_POST['IBLOCK_PROPERTY_PRODUCT'. '_' . $prop] as $iblock => $val) {
@@ -951,7 +951,7 @@ class intaro_retailcrm extends CModule
             }
 
             if (isset($arResult['errCode']) && $arResult['errCode']) {
-                $arOldValues = array(
+                $arOldValues = [
                     'IBLOCK_EXPORT' => $iblocks,
                     'IBLOCK_PROPERTY_SKU' => $propertiesSKU,
                     'IBLOCK_PROPERTY_UNIT_SKU' => $propertiesUnitSKU,
@@ -959,8 +959,8 @@ class intaro_retailcrm extends CModule
                     'IBLOCK_PROPERTY_UNIT_PRODUCT' => $propertiesUnitProduct,
                     'SETUP_FILE_NAME' => $filename,
                     'SETUP_PROFILE_NAME' => $profileName,
-                    'MAX_OFFERS_VALUE' => $maxOffers
-                );
+                    'MAX_OFFERS_VALUE' => $maxOffers,
+                ];
                 global $oldValues;
                 $oldValues = $arOldValues;
                 $APPLICATION->IncludeAdminFile(
@@ -1313,8 +1313,9 @@ class intaro_retailcrm extends CModule
 
     function DeleteFiles()
     {
-        $rsSites = CSite::GetList($by, $sort, array('DEF' => 'Y'));
-        $defaultSite = array();
+        $rsSites = CSite::GetList($by, $sort, ['DEF' => 'Y']);
+        $defaultSite = [];
+
         while ($ar = $rsSites->Fetch()) {
             $defaultSite = $ar;
             break;

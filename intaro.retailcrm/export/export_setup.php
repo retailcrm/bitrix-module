@@ -10,14 +10,19 @@ CModule::IncludeModule('intaro.retailcrm');
  *
  * Предопределенные переменные:
  *
+ * Ранее сохраненные настройки экспорта из SETUP_VARS b_catalog_export
  * @var $arOldSetupVars
+ *
  * @var $APPLICATION
  * @var $ACTION
+ *
+ * 1 - вывод настроек, 2 - сохранение формы с настройками
  * @var $STEP
  * @var $PROFILE_ID
  * @var $SETUP_FILE_NAME
  * @var $SETUP_PROFILE_NAME
  */
+
 //TODO заменить вызов на сервис-локатор, когда он приедет
 $settingsService = new SettingsService($arOldSetupVars, $ACTION);
 
@@ -26,6 +31,7 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"] . "/bitrix/php_interface/retailcrm/exp
 
     return;
 }
+
 if (!check_bitrix_sessid()) {
     return;
 }
@@ -35,16 +41,10 @@ __IncludeLang(GetLangFileName(
         "/icml_export_setup.php")
 );
 
-$MODULE_ID = 'intaro.retailcrm';
-$CRM_CATALOG_BASE_PRICE = 'catalog_base_price';
+$MODULE_ID = RetailcrmConstants::MODULE_ID;
+$CRM_CATALOG_BASE_PRICE = RetailcrmConstants::CRM_CATALOG_BASE_PRICE;
 $basePriceId = COption::GetOptionString($MODULE_ID, $CRM_CATALOG_BASE_PRICE . '_' . $_REQUEST['PROFILE_ID'], 1);
-
-$priceTypes = [];
-$dbPriceType = CCatalogGroup::GetList(["SORT" => "ASC"], [], [], [], ['ID', 'NAME', 'BASE']);
-
-while ($arPriceType = $dbPriceType->Fetch()) {
-    $priceTypes[$arPriceType['ID']] = $arPriceType;
-}
+$priceTypes = $settingsService->priceTypes;
 
 //highloadblock
 if (CModule::IncludeModule('highloadblock')) {
@@ -53,50 +53,49 @@ if (CModule::IncludeModule('highloadblock')) {
 }
 
 if (($ACTION === 'EXPORT' || $ACTION === 'EXPORT_EDIT' || $ACTION === 'EXPORT_COPY') && $STEP === 1) {
-    $SETUP_FILE_NAME = $settingsService->getSingleSetting('SETUP_FILE_NAME');
-    $SETUP_PROFILE_NAME = $settingsService->getSingleSetting('SETUP_PROFILE_NAME');
-    $loadPurchasePrice = $settingsService->getSingleSetting('loadPurchasePrice');
-    $iblockExport = $settingsService->getSingleSetting('iblockExport');
+    $SETUP_FILE_NAME = $settingsService->setupFileName;
+    $SETUP_PROFILE_NAME = $settingsService->setupProfileName;
+    $loadPurchasePrice = $settingsService->loadPurchasePrice;
+    $iblockExport = $settingsService->iblockExport;
 
     if ($iblockExport) {
         $maxOffersValue = $settingsService->getSingleSetting('maxOffersValue');
     }
 
-    $iblockPropertySku = [];
-    $iblockPropertyUnitSku = [];
-    $iblockPropertyProduct = [];
-    $iblockPropertyUnitProduct = [];
+    $settingsService->setProps();
 
-    $iblockProperties = $settingsService->getIblockPropsPreset();
-
-    foreach ($iblockProperties as $prop) {
-        $settingsService->setProperties($iblockPropertySku, 'iblockPropertySku_' . $prop);
-        $settingsService->setProperties(
-            $iblockPropertyUnitSku,
-            'iblockPropertyUnitSku_' . $prop
-        );
-        $settingsService->setProperties(
-            $iblockPropertyProduct,
-            'iblockPropertyProduct_' . $prop
-        );
-        $settingsService->setProperties(
-            $iblockPropertyUnitProduct,
-            'iblockPropertyUnitProduct_' . $prop
-        );
-    }
+    $iblockPropertySku = $settingsService->iblockPropertySku;
+    $iblockPropertyUnitSku = $settingsService->iblockPropertyUnitSku;
+    $iblockPropertyProduct = $settingsService->iblockPropertyProduct;
+    $iblockPropertyUnitProduct = $settingsService->iblockPropertyUnitProduct;
+    $iblockPropertiesName = $settingsService->getIblockPropsNames();
+    $iblockFieldsName = $settingsService->getIblockFieldsNames();
+    $iblockPropertiesHint = $settingsService->getHintProps();
+    $units = $settingsService->getUnitsNames();
+    $hintUnit = $settingsService->getHintUnit();
+    $boolAll = false;
+    $intCountChecked = 0;
+    $intCountAvailIBlock = 0;
 }
 
-if ($STEP === 2) {
-    $arSetupErrors = $settingsService->checkFileAndProfile(
-        $SETUP_FILE_NAME ?? null,
-        $SETUP_PROFILE_NAME ?? null
-    );
-
-    if (count($arSetupErrors) === 0) {
-        $STEP = 1;
-        ShowError(implode('<br />', $arSetupErrors));
-    }
+if (!isset($iblockExport) || !is_array($iblockExport)) {
+    $iblockExport = [];
 }
+
+[$arIBlockList, $intCountChecked, $intCountAvailIBlock, $isExportIblock]
+    = $settingsService->getSettingsForIblocks();
+
+if (count($iblockExport) != 0) {
+    if ($intCountChecked == $intCountAvailIBlock) {
+        $boolAll = true;
+    }
+} else {
+    $intCountChecked = $intCountAvailIBlock;
+    $boolAll = true;
+}
+
+//Проверка на ошибки
+$STEP = $settingsService->returnIfErrors($STEP, $SETUP_FILE_NAME, $SETUP_PROFILE_NAME);
 
 //Отображение формы
 if ($STEP === 1) {
@@ -114,137 +113,8 @@ if ($STEP === 1) {
             <?php
         }
         ?>
-
         <h3><?=GetMessage("SETTINGS_INFOBLOCK");?></h3>
         <span class="text"><?=GetMessage("EXPORT_CATALOGS");?><br><br></span>
-        <?php
-        if (!isset($iblockExport) || !is_array($iblockExport)) {
-            $iblockExport = [];
-        }
-
-        $iblockPropertiesName = $settingsService->getIblockPropsNames();
-        $iblockFieldsName = $settingsService->getIblockFieldsNames();
-        $iblockPropertiesHint = $settingsService->getHintProps();
-        $units = $settingsService->getUnitsNames();
-        $hintUnit = $settingsService->getHintUnit();
-        $boolAll = false;
-        $intCountChecked = 0;
-        $intCountAvailIBlock = 0;
-        $arIBlockList = [];
-        $dbRes = CIBlock::GetList(
-            ['IBLOCK_TYPE' => 'ASC', 'NAME' => 'ASC'],
-            ['CHECK_PERMISSIONS' => 'Y', 'MIN_PERMISSION' => 'W']
-        );
-
-        while ($iblock = $dbRes->Fetch()) {
-            $arCatalog = CCatalog::GetByIDExt($iblock["ID"]);
-
-            if (!$arCatalog) {
-                continue;
-            }
-
-            if (
-                $arCatalog['CATALOG_TYPE'] !== 'D'
-                && $arCatalog['CATALOG_TYPE'] !== 'X'
-                && $arCatalog['CATALOG_TYPE'] !== 'P'
-            ) {
-                continue;
-            }
-
-            $propertiesSKU = null;
-
-            if ($arCatalog['CATALOG_TYPE'] === 'X' || $arCatalog['CATALOG_TYPE'] === 'P') {
-                $iblockOffer = CCatalogSKU::GetInfoByProductIBlock($iblock["ID"]);
-                $dbSkuProperties = CIBlock::GetProperties($iblockOffer['IBLOCK_ID'], []);
-
-                while ($prop = $dbSkuProperties->Fetch()) {
-                    $propertiesSKU[] = $prop;
-                }
-
-                $oldPropertySKU = null;
-
-                if (isset($iblockPropertySku[$iblock['ID']])) {
-                    foreach ($iblockPropertiesName as $key => $prop) {
-                        $oldPropertySKU[$key] = $iblockPropertySku[$iblock['ID']][$key];
-                    }
-                }
-
-                $oldPropertyUnitSKU = null;
-
-                if (isset($iblockPropertyUnitSku[$iblock['ID']])) {
-                    foreach ($iblockPropertiesName as $key => $prop) {
-                        $oldPropertyUnitSKU[$key] = $iblockPropertyUnitSku[$iblock['ID']][$key];
-                    }
-                }
-            }
-
-            $propertiesProduct = null;
-            $dbProductProps = CIBlock::GetProperties($iblock['ID'], []);
-
-            while ($prop = $dbProductProps->Fetch()) {
-                $propertiesProduct[] = $prop;
-            }
-
-            $oldPropertyProduct = null;
-
-            if (isset($iblockPropertyProduct[$iblock['ID']])) {
-                foreach ($iblockPropertiesName as $key => $prop) {
-                    $oldPropertyProduct[$key] = $iblockPropertyProduct[$iblock['ID']][$key];
-                }
-            }
-
-            $oldPropertyUnitProduct = null;
-
-            if (isset($iblockPropertyUnitProduct[$iblock['ID']])) {
-                foreach ($iblockPropertiesName as $key => $prop) {
-                    $oldPropertyUnitProduct[$key] = $iblockPropertyUnitProduct[$iblock['ID']][$key];
-                }
-            }
-
-            $arSiteList = [];
-            $rsSites = CIBlock::GetSite($iblock["ID"]);
-
-            while ($arSite = $rsSites->Fetch()) {
-                $arSiteList[] = $arSite["SITE_ID"];
-            }
-
-            if (count($iblockExport) != 0) {
-                $boolExport = (in_array($iblock['ID'], $iblockExport));
-            } else {
-                $boolExport = true;
-            }
-
-            $arIBlockList[] = [
-                'ID' => $iblock['ID'],
-                'NAME' => $iblock['NAME'],
-                'IBLOCK_TYPE_ID' => $iblock['IBLOCK_TYPE_ID'],
-                'iblockExport' => $boolExport,
-                'PROPERTIES_SKU' => $propertiesSKU,
-                'PROPERTIES_PRODUCT' => $propertiesProduct,
-                'OLD_PROPERTY_SKU_SELECT' => $oldPropertySKU,
-                'OLD_PROPERTY_UNIT_SKU_SELECT' => $oldPropertyUnitSKU ?? null,
-                'OLD_PROPERTY_PRODUCT_SELECT' => $oldPropertyProduct,
-                'OLD_PROPERTY_UNIT_PRODUCT_SELECT' => $oldPropertyUnitProduct,
-                'SITE_LIST' => '(' . implode(' ', $arSiteList) . ')',
-            ];
-
-            if ($boolExport) {
-                $intCountChecked++;
-            }
-
-            $intCountAvailIBlock++;
-        }
-
-        if (count($iblockExport) != 0) {
-            if ($intCountChecked == $intCountAvailIBlock) {
-                $boolAll = true;
-            }
-        } else {
-            $intCountChecked = $intCountAvailIBlock;
-            $boolAll = true;
-        }
-        ?>
-
         <span class="text" style="font-weight: bold;"><?=GetMessage("CHECK_ALL_INFOBLOCKS");?></span>
         <input
             style="vertical-align: middle;"
@@ -261,7 +131,8 @@ if ($STEP === 1) {
             $checkBoxCounter = 0;
 
             //Перебираем все торговые каталоги, формируя для каждого таблицу настроек
-            foreach ($arIBlockList as $key => $arIBlock) { ?>
+            foreach ($arIBlockList as $key => $arIBlock) {
+                ?>
                 <div>
                     <div>
                         <span class="text" style="font-weight: bold;"><?= htmlspecialcharsex("["
@@ -335,7 +206,7 @@ if ($STEP === 1) {
                                             if (
                                             version_compare(SM_VERSION, '14.0.0', '>=')
                                             && array_key_exists($key, $iblockFieldsName)
-                                            ) : ?>
+                                            ) { ?>
                                             <optgroup label="<?=GetMessage("SELECT_FIELD_NAME");?>">
                                                 <?php
                                                 foreach ($iblockFieldsName as $keyField => $field) {
@@ -370,45 +241,31 @@ if ($STEP === 1) {
                                             </optgroup>
                                             <optgroup label="<?=GetMessage("SELECT_PROPERTY_NAME");?>">
                                                 <?php
-                                                endif; ?>
+                                                }
 
-                                                <?php
-                                                foreach ($arIBlock['PROPERTIES_PRODUCT'] as $prop): ?>
+                                                foreach ($arIBlock['PROPERTIES_PRODUCT'] as $prop) {?>
                                                     <option value="<?=$prop['CODE']?>"
                                                         <?php
-                                                        if ($prop['USER_TYPE'] == 'directory') {
-                                                            echo 'class="highloadblock-product"';
-                                                            echo 'id="'
-                                                                . $prop['USER_TYPE_SETTINGS']['TABLE_NAME']
-                                                                . '"';
-                                                        } else {
-                                                            echo 'class="not-highloadblock"';
-                                                        }
-                                                        if ($arIBlock['OLD_PROPERTY_PRODUCT_SELECT'] != null) {
-                                                            if ($prop["CODE"]
-                                                                == $arIBlock['OLD_PROPERTY_PRODUCT_SELECT'][$key]) {
-                                                                echo " selected";
-                                                                $productSelected = true;
-                                                                if ($prop['USER_TYPE'] == 'directory') {
-                                                                    $selected = $prop['USER_TYPE_SETTINGS']['TABLE_NAME'];
-                                                                }
-                                                            }
-                                                        } else {
-                                                            foreach ($iblockPropertiesHint[$key] as $hint) {
-                                                                if ($prop["CODE"] == $hint) {
-                                                                    echo " selected";
-                                                                    $productSelected = true;
-                                                                    break;
-                                                                }
-                                                            }
+                                                        echo $settingsService->getOptionClass($prop);
+
+                                                        $selected = '';
+                                                        $productSelected = $settingsService->isOptionSelected(
+                                                            $prop,
+                                                            $arIBlock['OLD_PROPERTY_PRODUCT_SELECT'],
+                                                            $key,
+                                                            $selected
+                                                        );
+
+                                                        if ($productSelected) {
+                                                            echo " selected";
                                                         }
                                                         ?>
                                                     >
                                                         <?=$prop["NAME"];?>
                                                     </option>
                                                 <?php
-                                                endforeach; ?>
-                                                <?php
+                                                }
+
                                                 if (version_compare(SM_VERSION, '14.0.0', '>=')
                                                 && array_key_exists($key, $iblockFieldsName)){
                                                 ?>
@@ -424,26 +281,28 @@ if ($STEP === 1) {
                                                 . $selected
                                                 . '_'
                                                 . $key][$arIBlock['ID']])
-                                        ) : ?>
+                                        ) {?>
                                             <select name="highloadblock_product<?=$selected;?>_<?=$key;?>[
                                             <?=$arIBlock['ID'] ?>]" id="highloadblock"
                                                     style="width: 100px; margin-left: 50px;">
                                                 <?php
-                                                foreach ($hlBlockList[$selected]['FIELDS'] as $field) : ?>
-                                                    <option value="<?=$field;?>"<?php
+                                                foreach ($hlBlockList[$selected]['FIELDS'] as $field) { ?>
+                                                    <option value="<?=$field?>"<?php
                                                     if ($arOldSetupVars['highloadblock_product'
                                                         . $selected
                                                         . '_'
                                                         . $key][$arIBlock['ID']]
-                                                        == $field) : echo "selected"; endif; ?>>
+                                                        == $field) {
+                                                        echo "selected";
+                                                    } ?>>
                                                         <?=$field;?>
                                                     </option>
                                                 <?php
-                                                endforeach; ?>
+                                                } ?>
                                             </select>
                                         <?php
-                                        endif; ?>
-                                        <?php
+                                        }
+
                                         if (array_key_exists($key, $iblockFieldsName)) :?>
                                             <select
                                                 style="width: 100px; margin-left: 50px;"
@@ -486,7 +345,7 @@ if ($STEP === 1) {
 
                                     <?php
                                     //Столбец со свойствами тороговых предложений
-                                    if ($arIBlock['PROPERTIES_SKU'] != null): ?>
+                                    if ($arIBlock['PROPERTIES_SKU'] != null) {?>
                                         <td class="adm-list-table-cell">
                                             <select
                                                 style="width: 200px;"
@@ -588,7 +447,7 @@ if ($STEP === 1) {
                                                     . $selected
                                                     . '_'
                                                     . $key][$arIBlock['ID']])
-                                            ) : ?>
+                                            ) { ?>
                                                 <select name="highloadblock<?=$selected;?>_<?=$key;?>[
                                                 <?= $arIBlock['ID'] ?>
                                                 ]" id="highloadblock"
@@ -609,8 +468,8 @@ if ($STEP === 1) {
                                                     endforeach; ?>
                                                 </select>
                                             <?php
-                                            endif; ?>
-                                            <?php
+                                            }
+
                                             if (array_key_exists($key, $iblockFieldsName)) {?>
                                                 <select
                                                     style="width: 100px; margin-left: 50px;"
@@ -623,17 +482,12 @@ if ($STEP === 1) {
                                                             foreach ($unitType as $keyUnit => $unit) { ?>
                                                                 <option value="<?=$keyUnit;?>"
                                                                     <?php
-                                                                    if ($arIBlock['OLD_PROPERTY_UNIT_SKU_SELECT']
-                                                                        != null) {
-                                                                        if ($keyUnit
-                                                                            == $arIBlock['OLD_PROPERTY_UNIT_SKU_SELECT'][$key]) {
-                                                                            echo " selected";
-                                                                        }
-                                                                    } else {
-                                                                        if ($keyUnit == $hintUnit[$unitTypeName]) {
-                                                                            echo " selected";
-                                                                        }
-                                                                    }
+                                                                    echo $settingsService->getUnitOptionStatus(
+                                                                        $arIBlock,
+                                                                        $keyUnit,
+                                                                        $key,
+                                                                        $unitTypeName
+                                                                    );
                                                                     ?>
                                                                 >
                                                                     <?=$unit?>
@@ -646,9 +500,8 @@ if ($STEP === 1) {
                                             <?php
                                             } ?>
                                         </td>
-
                                     <?php
-                                    endif; ?>
+                                    } ?>
                                 </tr>
 
                             <?php
@@ -703,18 +556,22 @@ if ($STEP === 1) {
         <?php
         if ($ACTION === "EXPORT_SETUP" || $ACTION === 'EXPORT_EDIT' || $ACTION === 'EXPORT_COPY') { ?>
             <span class="text"><?=GetMessage("OFFERS_VALUE");?><br><br></span>
-            <input
-                type="text"
-                name="maxOffersValue"
-                value="<?=htmlspecialchars($maxOffersValue)?>"
-                size="15"><br><br><br>
+            <label>
+                <input
+                    type="text"
+                    name="maxOffersValue"
+                    value="<?=htmlspecialchars($maxOffersValue)?>"
+                    size="15">
+            </label><br><br><br>
 
             <span class="text"><?=GetMessage("PROFILE_NAME");?><br><br></span>
-            <input
-                type="text"
-                name="SETUP_PROFILE_NAME"
-                value="<?=htmlspecialchars($SETUP_PROFILE_NAME)?>"
-                size="50"><br><br><br>
+            <label>
+                <input
+                    type="text"
+                    name="SETUP_PROFILE_NAME"
+                    value="<?=htmlspecialchars($SETUP_PROFILE_NAME)?>"
+                    size="50">
+            </label><br><br><br>
             <?php
         } ?>
 
@@ -892,6 +749,7 @@ if ($STEP === 2) {
         $CRM_CATALOG_BASE_PRICE . '_' . $_REQUEST['PROFILE_ID'],
         htmlspecialchars(trim($_POST['price-types']))
     );
+
     $FINITE = true;
 }
 ?>
