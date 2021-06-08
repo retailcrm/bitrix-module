@@ -271,6 +271,41 @@ class RetailcrmConfigProvider
     }
 
     /**
+     * @param $profileId
+     *
+     * @return false|string|null
+     */
+    public static function getCrmBasePrice($profileId)
+    {
+        return COption::GetOptionString(
+            RetailcrmConstants::MODULE_ID,
+            RetailcrmConstants::CRM_CATALOG_BASE_PRICE . '_' . $profileId,
+            1
+        );
+    }
+    
+    public static function setProfileBasePrice($profileId, $priceTypes): void
+    {
+        COption::SetOptionString(
+            RetailcrmConstants::MODULE_ID,
+            RetailcrmConstants::CRM_CATALOG_BASE_PRICE . '_' . $profileId,
+            htmlspecialchars(trim($priceTypes))
+        );
+    }
+    
+    /**
+     * @return string
+     */
+    public static function getDefaultIcmlPath(): string
+    {
+        return (COption::GetOptionString(
+            'catalog',
+            'export_default_path',
+            '/bitrix/catalog_export/'))
+        . 'retailcrm.xml';
+    }
+    
+    /**
      * setOnlineConsultantScript
      * 
      * @param string $value

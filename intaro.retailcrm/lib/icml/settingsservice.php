@@ -8,6 +8,7 @@ use CCatalogGroup;
 use CCatalogSku;
 use CIBlock;
 use Intaro\RetailCrm\Service\Hl;
+use RetailcrmConfigProvider;
 
 /**
  * Отвечает за управление настройками выгрузки icml каталога
@@ -85,7 +86,9 @@ class SettingsService
         $this->action = $action;
         $this->iblockExport = $this->getSingleSetting('iblockExport');
         $this->loadPurchasePrice = $this->getSingleSetting('loadPurchasePrice');
-        $this->setupFileName = $this->getSingleSetting('SETUP_FILE_NAME');
+        $oldSetup = $this->getSingleSetting('SETUP_FILE_NAME');
+        $defaultFilePath = RetailcrmConfigProvider::getDefaultIcmlPath();
+        $this->setupFileName = htmlspecialcharsbx('' !== $oldSetup ? $oldSetup : $defaultFilePath);
         $this->setupProfileName = $this->getSingleSetting('SETUP_PROFILE_NAME');
 
         $this->getPriceTypes();
@@ -93,18 +96,59 @@ class SettingsService
 
     public function getPriceTypes()
     {
-        $dbPriceType = CCatalogGroup::GetList(["SORT" => "ASC"], [], [], [], ['ID', 'NAME', 'BASE']);
+        $dbPriceType = CCatalogGroup::GetList(['SORT' => 'ASC'], [], [], [], ['ID', 'NAME', 'BASE']);
 
         while ($arPriceType = $dbPriceType->Fetch()) {
             $this->priceTypes[$arPriceType['ID']] = $arPriceType;
         }
     }
-
+    
+    /**
+     * @param bool $selected
+     * @param int  $key
+     * @param int  $iblockId
+     * @param      $field
+     *
+     * @return string
+     */
+    public function getHlOptionStatus(bool $selected, int $key, int $iblockId, $field): string
+    {
+        if ($this->arOldSetupVars['highloadblock_product' . $selected . '_' . $key][$iblockId] === $field) {
+            return 'selected';
+        }
+        
+        return '';
+    }
+    
+    /**
+     * @param bool|null $selected
+     * @param string    $key
+     * @param int       $iblockId
+     *
+     * @return bool
+     */
+    public function isHlProductSelected(?bool $selected, string $key, int $iblockId): bool
+    {
+        return isset($selected, $this->arOldSetupVars['highloadblock_product' . $selected . '_' . $key][$iblockId]);
+    }
+    
+    /**
+     * @param string $key
+     * @param array  $iblockFieldsName
+     *
+     * @return bool
+     */
+    public function isOptionIsPreset(string $key, array $iblockFieldsName): bool
+    {
+        return version_compare(SM_VERSION, '14.0.0', '>=')
+        && array_key_exists($key, $iblockFieldsName);
+    }
+    
     /**
      * @param array  $properties
      * @param string $propName
      */
-    private function setProperties(array &$properties, string $propName)
+    private function setProperties(array &$properties, string $propName): void
     {
         foreach ($this->arOldSetupVars[$propName] as $iblock => $val) {
             $properties[$iblock][$propName] = $val;
@@ -129,15 +173,15 @@ class SettingsService
     public function getIblockPropsPreset(): array
     {
         return [
-            "article" => "article",
-            "manufacturer" => "manufacturer",
-            "color" => "color",
-            "size" => "size",
-            "weight" => "weight",
-            "length" => "length",
-            "width" => "width",
-            "height" => "height",
-            "picture" => "picture",
+            'article'      => 'article',
+            'manufacturer' => 'manufacturer',
+            'color'        => 'color',
+            'size'         => 'size',
+            'weight'       => 'weight',
+            'length'       => 'length',
+            'width'        => 'width',
+            'height'       => 'height',
+            'picture'      => 'picture',
         ];
     }
 
@@ -152,7 +196,7 @@ class SettingsService
             'color' => ['COLOR', 'CVET'],
             'size' => ['SIZE', 'RAZMER'],
             'weight' => ['WEIGHT', 'VES', 'VEC'],
-            'length' => ["LENGTH", 'DLINA'],
+            'length' => ['LENGTH', 'DLINA'],
             'width' => ['WIDTH', 'SHIRINA'],
             'height' => ['HEIGHT', 'VISOTA'],
             'picture' => ['PICTURE', 'PICTURE'],
@@ -165,15 +209,15 @@ class SettingsService
     public function getIblockPropsNames(): array
     {
         return  [
-            "article" => GetMessage("PROPERTY_ARTICLE_HEADER_NAME"),
-            "manufacturer" => GetMessage("PROPERTY_MANUFACTURER_HEADER_NAME"),
-            "color" => GetMessage("PROPERTY_COLOR_HEADER_NAME"),
-            "size" => GetMessage("PROPERTY_SIZE_HEADER_NAME"),
-            "weight" => GetMessage("PROPERTY_WEIGHT_HEADER_NAME"),
-            "length" => GetMessage("PROPERTY_LENGTH_HEADER_NAME"),
-            "width" => GetMessage("PROPERTY_WIDTH_HEADER_NAME"),
-            "height" => GetMessage("PROPERTY_HEIGHT_HEADER_NAME"),
-            "picture" => GetMessage("PROPERTY_PICTURE_HEADER_NAME"),
+            'article'      => GetMessage('PROPERTY_ARTICLE_HEADER_NAME'),
+            'manufacturer' => GetMessage('PROPERTY_MANUFACTURER_HEADER_NAME'),
+            'color'        => GetMessage('PROPERTY_COLOR_HEADER_NAME'),
+            'size'         => GetMessage('PROPERTY_SIZE_HEADER_NAME'),
+            'weight'       => GetMessage('PROPERTY_WEIGHT_HEADER_NAME'),
+            'length'       => GetMessage('PROPERTY_LENGTH_HEADER_NAME'),
+            'width'        => GetMessage('PROPERTY_WIDTH_HEADER_NAME'),
+            'height'       => GetMessage('PROPERTY_HEIGHT_HEADER_NAME'),
+            'picture'      => GetMessage('PROPERTY_PICTURE_HEADER_NAME'),
         ];
     }
 
@@ -183,24 +227,24 @@ class SettingsService
     public function getIblockFieldsNames(): array
     {
         return [
-            "weight" => [
-                "code" => "catalog_weight",
-                "name" => GetMessage("SELECT_WEIGHT_PROPERTY_NAME"),
+            'weight' => [
+                'code' => 'catalog_weight',
+                'name' => GetMessage('SELECT_WEIGHT_PROPERTY_NAME'),
                 'unit' => 'mass',
             ],
-            "length" => [
-                "code" => "catalog_length",
-                "name" => GetMessage("SELECT_LENGTH_PROPERTY_NAME"),
+            'length' => [
+                'code' => 'catalog_length',
+                'name' => GetMessage('SELECT_LENGTH_PROPERTY_NAME'),
                 'unit' => 'length',
             ],
-            "width" => [
-                "code" => "catalog_width",
-                "name" => GetMessage("SELECT_WIDTH_PROPERTY_NAME"),
+            'width' => [
+                'code' => 'catalog_width',
+                'name' => GetMessage('SELECT_WIDTH_PROPERTY_NAME'),
                 'unit' => 'length',
             ],
-            "height" => [
-                "code" => "catalog_height",
-                "name" => GetMessage("SELECT_HEIGHT_PROPERTY_NAME"),
+            'height' => [
+                'code' => 'catalog_height',
+                'name' => GetMessage('SELECT_HEIGHT_PROPERTY_NAME'),
                 'unit' => 'length',
             ],
         ];
@@ -213,14 +257,14 @@ class SettingsService
     {
         return [
             'length' => [
-                'mm' => GetMessage("UNIT_MEASUREMENT_MM"),
-                'cm' => GetMessage("UNIT_MEASUREMENT_CM"),
-                'm' => GetMessage("UNIT_MEASUREMENT_M"),
+                'mm' => GetMessage('UNIT_MEASUREMENT_MM'),
+                'cm' => GetMessage('UNIT_MEASUREMENT_CM'),
+                'm' => GetMessage('UNIT_MEASUREMENT_M'),
             ],
             'mass' => [
-                'mg' => GetMessage("UNIT_MEASUREMENT_MG"),
-                'g' => GetMessage("UNIT_MEASUREMENT_G"),
-                'kg' => GetMessage("UNIT_MEASUREMENT_KG"),
+                'mg' => GetMessage('UNIT_MEASUREMENT_MG'),
+                'g' => GetMessage('UNIT_MEASUREMENT_G'),
+                'kg' => GetMessage('UNIT_MEASUREMENT_KG'),
             ],
         ];
     }
@@ -238,9 +282,7 @@ class SettingsService
 
     public function setProps(): void
     {
-        $iblockProperties = $this->getIblockPropsPreset();
-
-        foreach ($iblockProperties as $prop) {
+        foreach ($this->getIblockPropsPreset() as $prop) {
            $this->setProperties($this->iblockPropertySku, 'iblockPropertySku_' . $prop);
            $this->setProperties($this->iblockPropertyUnitSku, 'iblockPropertyUnitSku_' . $prop);
            $this->setProperties($this->iblockPropertyProduct, 'iblockPropertyProduct_' . $prop);
@@ -263,7 +305,7 @@ class SettingsService
         if (strlen($setupFileName) <= 0) {
             $arSetupErrors[] = GetMessage('ERROR_NO_FILENAME');
         } elseif ($APPLICATION->GetFileAccessPermission($setupFileName) < 'W') {
-            $arSetupErrors[] = str_replace("#FILE#", $setupFileName,
+            $arSetupErrors[] = str_replace('#FILE#', $setupFileName,
                 GetMessage('FILE_ACCESS_DENIED'));
         }
 
@@ -293,12 +335,12 @@ class SettingsService
         $hlblockListDb = HighloadBlockTable::getList();
 
         while ($hlblockArr = $hlblockListDb->Fetch()) {
-            $entity = Hl::getBaseEntityByHlId($hlblockArr["ID"]);
+            $entity = Hl::getBaseEntityByHlId($hlblockArr['ID']);
             $hbFields = $entity->getFields();
-            $hlBlockList[$hlblockArr["TABLE_NAME"]]['LABEL'] = $hlblockArr["NAME"];
+            $hlBlockList[$hlblockArr['TABLE_NAME']]['LABEL'] = $hlblockArr['NAME'];
 
             foreach ($hbFields as $hbFieldCode => $hbField) {
-                $hlBlockList[$hlblockArr["TABLE_NAME"]]['FIELDS'][] = $hbFieldCode;
+                $hlBlockList[$hlblockArr['TABLE_NAME']]['FIELDS'][] = $hbFieldCode;
             }
         }
 
@@ -317,10 +359,10 @@ class SettingsService
         $values = 'loadPurchasePrice,SETUP_FILE_NAME,iblockExport,maxOffersValue';
 
         foreach ($iblockProperties as $val) {
-            $values .= ",iblockPropertySku_" . $val
-                . ",iblockPropertyUnitSku_" . $val
-                . ",iblockPropertyProduct_" . $val
-                . ",iblockPropertyUnitProduct_" . $val;
+            $values .= ',iblockPropertySku_' . $val
+                . ',iblockPropertyUnitSku_' . $val
+                . ',iblockPropertyProduct_' . $val
+                . ',iblockPropertyUnitProduct_' . $val;
 
             if ($hlblockModule === true && $val !== 'picture') {
                 foreach ($hlBlockList as $hlblockTable => $hlblock) {
@@ -332,20 +374,20 @@ class SettingsService
 
         return $values;
     }
-
+    
     /**
-     * @param array      $prop
-     * @param array|null $oldSelect
-     * @param string     $key
-     * @param string     $selected
+     * @param array       $prop
+     * @param array|null  $oldSelect
+     * @param string      $key
+     * @param string|null $selected
      *
      * @return bool
      */
-    public function isOptionSelected(array $prop, ?array $oldSelect, string $key, string &$selected): bool
+    public function isOptionSelected(array $prop, ?array $oldSelect = null, string $key, string &$selected = null): bool
     {
         if ($oldSelect != null) {
-            if ($prop["CODE"] === $oldSelect[$key]) {
-                if ($prop['USER_TYPE'] === 'directory') {
+            if ($prop['CODE'] === $oldSelect[$key]) {
+                if ($selected !== null && $prop['USER_TYPE'] === 'directory') {
                     $selected = $prop['USER_TYPE_SETTINGS']['TABLE_NAME'];
                 }
 
@@ -355,7 +397,7 @@ class SettingsService
             $iblockPropertiesHint = $this->getHintProps();
 
             foreach ($iblockPropertiesHint[$key] as $hint) {
-                if ($prop["CODE"] == $hint) {
+                if ($prop['CODE'] == $hint) {
                     return true;
                 }
             }
@@ -375,23 +417,23 @@ class SettingsService
             return 'class="highloadblock-product" id="'
                 . $prop['USER_TYPE_SETTINGS']['TABLE_NAME']
                 . '"';
-        } else {
-            return 'class="not-highloadblock"';
         }
+    
+        return 'class="not-highloadblock"';
     }
-
+    
     /**
-     * @param array $arIBlock
-     * @param       $keyUnit
-     * @param       $key
-     * @param       $unitTypeName
+     * @param array|null $unitSelect
+     * @param            $keyUnit
+     * @param            $key
+     * @param            $unitTypeName
      *
      * @return string
      */
-    public function getUnitOptionStatus(array $arIBlock, $keyUnit, $key, $unitTypeName): string
+    public function getUnitOptionStatus(?array $unitSelect, $keyUnit, $key, $unitTypeName): string
     {
-        if ($arIBlock['OLD_PROPERTY_UNIT_SKU_SELECT'] != null) {
-            if ($keyUnit == $arIBlock['OLD_PROPERTY_UNIT_SKU_SELECT'][$key]) {
+        if ($unitSelect != null) {
+            if ($keyUnit == $unitSelect[$key]) {
                 return ' selected';
             }
         } else {
@@ -417,7 +459,7 @@ class SettingsService
         $rsSites = CIBlock::GetSite($iblockId);
 
         while ($arSite = $rsSites->Fetch()) {
-            $siteList[] = $arSite["SITE_ID"];
+            $siteList[] = $arSite['SITE_ID'];
         }
 
         return $siteList;
@@ -464,19 +506,20 @@ class SettingsService
     }
 
     /**
-     * @param array|null $allProps
+     * @param array|null $oldValues
      * @param array|null $propsNames
      * @param int        $iblockId
      *
      * @return array|null
      */
-    private function getOldProps(?array $allProps, ?array $propsNames, int $iblockId): ?array
+    private function getOldProps(?array $oldValues, ?array $propsNames, int $iblockId, string $keyGroup = ''): ?array
     {
         $props = null;
 
-        if (isset($allProps[$iblockId])) {
+        if (isset($oldValues[$iblockId])) {
             foreach ($propsNames as $key => $prop) {
-                $props[$key] = $allProps[$iblockId][$key];
+                $fullKey = $keyGroup . '_' . $key;
+                $props[$key] = $oldValues[$iblockId][$fullKey];
             }
         }
 
@@ -490,13 +533,9 @@ class SettingsService
      */
     private function isCorrectCatalogType(array $arCatalog): bool
     {
-        if ($arCatalog['CATALOG_TYPE'] === 'D'
+        return $arCatalog['CATALOG_TYPE'] === 'D'
             || $arCatalog['CATALOG_TYPE'] === 'X'
-            || $arCatalog['CATALOG_TYPE'] === 'P') {
-            return true;
-        }
-
-        return false;
+            || $arCatalog['CATALOG_TYPE'] === 'P';
     }
 
     /**
@@ -525,7 +564,7 @@ class SettingsService
      */
     public function isExport($iblockId, $iblockExport): bool
     {
-        if (count($iblockExport) != 0) {
+        if (count($iblockExport) !== 0) {
             return (in_array($iblockId, $iblockExport));
         }
 
@@ -563,9 +602,10 @@ class SettingsService
     public function getSettingsForIblocks(): array
     {
         $iblockPropertiesName = $this->getIblockPropsNames();
-
         $arIBlockList = [];
-
+        $intCountChecked = 0;
+        $intCountAvailIBlock = 0;
+        
         $dbRes = CIBlock::GetList(
             ['IBLOCK_TYPE' => 'ASC', 'NAME' => 'ASC'],
             ['CHECK_PERMISSIONS' => 'Y', 'MIN_PERMISSION' => 'W']
@@ -578,39 +618,36 @@ class SettingsService
                 continue;
             }
 
-            $propertiesSKU = null;
-            $propertiesSKU = null;
-            $oldPropertySKU = null;
-
             if ($arCatalog['CATALOG_TYPE'] === 'X' || $arCatalog['CATALOG_TYPE'] === 'P') {
                 $propertiesSKU = $this->getSkuProps($iblock['ID']);
                 $oldPropertySKU = $this->getOldProps(
                     $this->iblockPropertySku,
                     $iblockPropertiesName,
-                    $iblock['ID']
+                    $iblock['ID'],
+                    'iblockPropertySku'
                 );
                 $oldPropertyUnitSKU = $this->getOldProps(
                     $this->iblockPropertyUnitSku,
                     $iblockPropertiesName,
-                    $iblock['ID']
+                    $iblock['ID'],
+                    'iblockPropertyUnitSku'
                 );
             }
-
-            $isExportIblock = $this->isExport($iblock['ID'], $this->iblockExport);
-
+            
             $arIBlockList[] = [
                 'ID' => $iblock['ID'],
                 'NAME' => $iblock['NAME'],
                 'IBLOCK_TYPE_ID' => $iblock['IBLOCK_TYPE_ID'],
-                'iblockExport' => $isExportIblock,
-                'PROPERTIES_SKU' => $propertiesSKU,
-                'PROPERTIES_PRODUCT' => $this->getProductProps($iblock['ID']),
-                'OLD_PROPERTY_SKU_SELECT' => $oldPropertySKU,
+                'iblockExport' => $this->isExport($iblock['ID'], $this->iblockExport),
+                'PROPERTIES_SKU' => $propertiesSKU ?? null,
+                'OLD_PROPERTY_SKU_SELECT' => $oldPropertySKU ?? null,
                 'OLD_PROPERTY_UNIT_SKU_SELECT' => $oldPropertyUnitSKU ?? null,
+                'PROPERTIES_PRODUCT' => $this->getProductProps($iblock['ID']),
                 'OLD_PROPERTY_PRODUCT_SELECT' => $this->getOldProps(
                     $this->iblockPropertyProduct,
                     $iblockPropertiesName,
-                    $iblock['ID']
+                    $iblock['ID'],
+                    'iblockPropertyProduct'
                 ),
                 'OLD_PROPERTY_UNIT_PRODUCT_SELECT' => $this->getOldPropsUnitProduct(
                     $iblock['ID'],
@@ -618,14 +655,14 @@ class SettingsService
                 ),
                 'SITE_LIST' => '(' . implode(' ', $this->getSiteList($iblock['ID'])) . ')',
             ];
-
-            if ($isExportIblock) {
+            
+            if ($arIBlockList['iblockExport']) {
                 $intCountChecked++;
             }
 
             $intCountAvailIBlock++;
         }
-
-        return [$arIBlockList, $intCountChecked, $intCountAvailIBlock, $isExportIblock];
+        
+        return [$arIBlockList, $intCountChecked, $intCountAvailIBlock, $arIBlockList['iblockExport'] ?? false];
     }
 }
