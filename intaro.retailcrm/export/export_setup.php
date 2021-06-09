@@ -67,7 +67,6 @@ if (($ACTION === 'EXPORT' || $ACTION === 'EXPORT_EDIT' || $ACTION === 'EXPORT_CO
     $iblockPropertyUnitSku = $settingsService->iblockPropertyUnitSku;
     $iblockPropertyProduct = $settingsService->iblockPropertyProduct;
     $iblockPropertyUnitProduct = $settingsService->iblockPropertyUnitProduct;
-    $iblockPropertiesName = $settingsService->getIblockPropsNames();
     $iblockFieldsName = $settingsService->getIblockFieldsNames();
     $iblockPropertiesHint = $settingsService->getHintProps();
     $units = $settingsService->getUnitsNames();
@@ -185,7 +184,7 @@ if ($STEP === 1) {
                             <tbody>
 
                             <?php
-                            foreach ($iblockPropertiesName as $propertyKey => $property) {
+                            foreach ($settingsService->getIblockPropsNames() as $propertyKey => $property) {
                                 $productSelected = false; ?>
 
                                 <tr class="adm-list-table-row">
@@ -202,10 +201,8 @@ if ($STEP === 1) {
                                             onchange="propertyChange(this);">
                                             <option value=""></option>
                                             <?php
-                                            if ($settingsService->isOptionIsPreset(
-                                                $propertyKey,
-                                                $iblockFieldsName ?? [])
-                                            ) { ?>
+                                            if ($settingsService->isOptionHasPreset($propertyKey)) {
+                                                ?>
                                             <optgroup label="<?=GetMessage('SELECT_FIELD_NAME')?>">
                                                 <?php
                                                 foreach ($iblockFieldsName as $keyField => $field) {
@@ -234,7 +231,7 @@ if ($STEP === 1) {
                                                     <option value="<?=$prop['CODE']?>"
                                                         <?php
                                                         echo $settingsService->getOptionClass($prop);
-        
+                                                        
                                                         $selected = '';
                                                         $productSelected = $settingsService->isOptionSelected(
                                                             $prop,
@@ -242,7 +239,7 @@ if ($STEP === 1) {
                                                             $propertyKey,
                                                             $selected
                                                         );
-        
+
                                                         if ($productSelected) {
                                                             echo ' selected';
                                                         }
@@ -253,32 +250,31 @@ if ($STEP === 1) {
                                                     <?php
                                                 }
 
-                                                if (
-                                                $settingsService->isOptionIsPreset($propertyKey, $iblockFieldsName ?? [])
-                                                ) {
+                                                if ($settingsService->isOptionHasPreset($propertyKey)) {
                                                 ?>
                                             </optgroup>
                                         <?php
                                         } ?>
                                         </select>
-                                        
                                         <?php
                                         if ($settingsService->isHlProductSelected(
                                             $selected ?? null,
                                             $propertyKey,
                                             $arIBlock['ID'])
                                         ) {?>
-                                            <select name="highloadblock_product<?=$selected?>_<?=$propertyKey?>[
+                                            <select name="highloadblock_product<?=$selected . '_' . $propertyKey?>[
                                             <?=$arIBlock['ID'] ?>]" id="highloadblock"
                                                     style="width: 100px; margin-left: 50px;">
                                                 <?php
-                                                foreach ($hlBlockList[$selected]['FIELDS'] as $field) { ?>
+                                                foreach ($hlBlockList[$selected]['FIELDS'] as $field) {
+                                                    ?>
                                                     <option value="<?=$field?>"
                                                         <?= $settingsService->getHlOptionStatus(
                                                             $selected,
                                                             $propertyKey,
                                                             $arIBlock['ID'],
-                                                            $field
+                                                            $field,
+                                                            'highloadblock_product'
                                                         ) ?>
                                                     >
                                                         <?=$field?>
@@ -289,6 +285,7 @@ if ($STEP === 1) {
                                         <?php
                                         }
 
+                                        //Единицы измерения для товаров
                                         if (array_key_exists($propertyKey, $iblockFieldsName)) :?>
                                             <select
                                                 style="width: 100px; margin-left: 50px;"
@@ -336,10 +333,8 @@ if ($STEP === 1) {
 
                                                 <option value=""></option>
                                                 <?php
-                                                if ($settingsService->isOptionIsPreset(
-                                                    $propertyKey,
-                                                    $iblockFieldsName ?? [])
-                                                ) { ?>
+                                                if ($settingsService->isOptionHasPreset($propertyKey)) {
+                                                    ?>
                                                 <optgroup label="<?=GetMessage('SELECT_FIELD_NAME');?>">
                                                     <?php
                                                     foreach ($iblockFieldsName as $keyField => $field) {
@@ -387,10 +382,8 @@ if ($STEP === 1) {
                                                         <?php
                                                     }
 
-                                                    if (
-                                                    $settingsService
-                                                        ->isOptionIsPreset($propertyKey, $iblockFieldsName ?? [])
-                                                    ) { ?>
+                                                    if ($settingsService->isOptionHasPreset($propertyKey)) {
+                                                        ?>
                                                 </optgroup>
                                             <?php
                                             } ?>
@@ -403,21 +396,22 @@ if ($STEP === 1) {
                                                     . '_'
                                                     . $propertyKey][$arIBlock['ID']])
                                             ) { ?>
-                                                <select name="highloadblock<?=$selected?>_<?=$propertyKey?>[
+                                                <select name="highloadblock<?=$selected . '_' . $propertyKey?>[
                                                 <?= $arIBlock['ID'] ?>
-                                                ]" id="highloadblock"
-                                                        style="width: 100px; margin-left: 50px;">
+                                                ]" id="highloadblock" style="width: 100px; margin-left: 50px;">
                                                     <?php
                                                     foreach ($hlBlockList[$selected]['FIELDS'] as $field) : ?>
-                                                        <option value="<?=$field;?>"<?php
-                                                        if ($arOldSetupVars['highloadblock'
-                                                            . $selected
-                                                            . '_'
-                                                            . $propertyKey][$arIBlock['ID']]
-                                                            == $field) {
-                                                            echo 'selected';
-                                                        } ?>>
-                                                            <?=$field;?>
+                                                        <option value="<?=$field?>"
+                                                            <?=
+                                                            $settingsService->getHlOptionStatus(
+                                                                $selected,
+                                                                $propertyKey,
+                                                                $arIBlock['ID'],
+                                                                $field,
+                                                                'highloadblock'
+                                                            )?>
+                                                        >
+                                                            <?=$field?>
                                                         </option>
                                                     <?php
                                                     endforeach; ?>
