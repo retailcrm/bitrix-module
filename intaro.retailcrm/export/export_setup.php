@@ -24,7 +24,12 @@ CModule::IncludeModule('intaro.retailcrm');
  */
 
 //TODO заменить вызов на сервис-локатор, когда он приедет
-$settingsService = new SettingsService($arOldSetupVars, $ACTION);
+$settingsService = new SettingsService(
+    $arOldSetupVars,
+    $ACTION
+);
+
+$isSetupModulePage = $settingsService->isSetupModulePage();
 
 if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/export_setup.php')) {
     require_once($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/export_setup.php');
@@ -43,6 +48,10 @@ __IncludeLang(GetLangFileName(
 
 $basePriceId = RetailcrmConfigProvider::getCrmBasePrice($_REQUEST['PROFILE_ID']);
 $priceTypes = $settingsService->priceTypes;
+$iblockFieldsName = $settingsService->getIblockFieldsNames();
+$iblockPropertiesHint = $settingsService->getHintProps();
+$units = $settingsService->getUnitsNames();
+$hintUnit = $settingsService->getHintUnit();
 
 //highloadblock
 if (CModule::IncludeModule('highloadblock')) {
@@ -67,10 +76,7 @@ if (($ACTION === 'EXPORT' || $ACTION === 'EXPORT_EDIT' || $ACTION === 'EXPORT_CO
     $iblockPropertyUnitSku = $settingsService->iblockPropertyUnitSku;
     $iblockPropertyProduct = $settingsService->iblockPropertyProduct;
     $iblockPropertyUnitProduct = $settingsService->iblockPropertyUnitProduct;
-    $iblockFieldsName = $settingsService->getIblockFieldsNames();
-    $iblockPropertiesHint = $settingsService->getHintProps();
-    $units = $settingsService->getUnitsNames();
-    $hintUnit = $settingsService->getHintUnit();
+
     $boolAll = false;
     $intCountChecked = 0;
     $intCountAvailIBlock = 0;
@@ -486,6 +492,22 @@ if ($STEP === 1) {
         <span class="text"><?=GetMessage('LOAD_PURCHASE_PRICE')?>&nbsp;</span>
         <input type="checkbox" name="loadPurchasePrice" value="Y" <?=$loadPurchasePrice === 'Y' ? 'checked' : ''?>>
         <br><br><br>
+        <?php
+        if ($isSetupModulePage) { ?>
+        <font class="text"><?=GetMessage("LOAD_PERIOD");?><br><br></font>
+        <input type="radio" name="TYPE_LOADING" value="none" onclick="checkProfile(this);"><?=GetMessage("NOT_LOADING");?><Br>
+        <input type="radio" name="TYPE_LOADING" value="cron" onclick="checkProfile(this);"><?=GetMessage("CRON_LOADING");?><Br>
+        <input type="radio" name="TYPE_LOADING" value="agent"  checked  onclick="checkProfile(this);"><?=GetMessage("AGENT_LOADING");?><Br>
+        <br>
+        <br>
+        <span class="text"><?=GetMessage("LOAD_NOW");?>&nbsp;</span>
+        <input id="load-now" onchange="checkLoadStatus(this)" type="checkbox" name="LOAD_NOW" value="now">
+        <br>
+        <div id="loadMessage" hidden><?=GetMessage("LOAD_NOW_MSG");?></div>
+        <br>
+            <?php
+        }?>
+
         <span class="text"><?=GetMessage('BASE_PRICE')?>&nbsp;</span>
         <select name="price-types" class="typeselect">
             <option value=""></option>
@@ -519,22 +541,53 @@ if ($STEP === 1) {
             <?php
         } ?>
         <?=bitrix_sessid_post()?>
-        <input type="hidden" name="lang" value="<?=LANGUAGE_ID?>">
-        <input type="hidden" name="ACT_FILE" value="<?=htmlspecialcharsbx($_REQUEST['ACT_FILE'])?>">
-        <input type="hidden" name="ACTION" value="<?=htmlspecialcharsbx($ACTION)?>">
-        <input type="hidden" name="STEP" value="<?=$STEP + 1?>">
-        <input type="hidden" name="SETUP_FIELDS_LIST" value="<?=
-        $settingsService->getSetupFieldsString(
-            $iblockProperties ?? [],
-            $hlblockModule === true,
-            $hlBlockList ?? []
-        )
-        ?>">
-        <input type="submit" value="<?=($ACTION === 'EXPORT') ? GetMessage('EXPORT') : GetMessage('SAVE')?>">
+        <?php
+        if ($isSetupModulePage) { ?>
+            <input type="hidden" name="lang" value="<?= LANG; ?>">
+            <input type="hidden" name="id" value="intaro.retailcrm">
+            <input type="hidden" name="install" value="Y">
+            <input type="hidden" name="step" value="6">
+            <input type="hidden" name="continue" value="5">
+            <div style="padding: 1px 13px 2px; height:28px;">
+                <div align="right" style="float:right; width:50%; position:relative;">
+                    <input type="submit" name="inst" onclick="BX.showWait()" value="<?= GetMessage("MOD_NEXT_STEP"); ?>"
+                           class="adm-btn-save">
+                </div>
+                <div align="left" style="float:right; width:50%; position:relative;">
+                    <input type="submit" name="back" value="<?= GetMessage("MOD_PREV_STEP"); ?>" class="adm-btn-save">
+                </div>
+            </div>
+
+        <?php
+        } else {?>
+            <input type="hidden" name="lang" value="<?=LANGUAGE_ID?>">
+            <input type="hidden" name="ACT_FILE" value="<?=htmlspecialcharsbx($_REQUEST['ACT_FILE'])?>">
+            <input type="hidden" name="ACTION" value="<?=htmlspecialcharsbx($ACTION)?>">
+            <input type="hidden" name="STEP" value="<?=$STEP + 1?>">
+            <input type="hidden" name="SETUP_FIELDS_LIST" value="<?=
+            $settingsService->getSetupFieldsString(
+                $iblockProperties ?? [],
+                $hlblockModule === true,
+                $hlBlockList ?? []
+            )
+            ?>">
+            <input type="submit" value="<?=($ACTION === 'EXPORT') ? GetMessage('EXPORT') : GetMessage('SAVE')?>">
+        <?php
+        } ?>
     </form>
 
     <script type="text/javascript" src='/bitrix/js/main/jquery/jquery-1.7.min.js'></script>
     <script type="text/javascript">
+
+        function checkLoadStatus(object)
+        {
+            if (object.checked) {
+                $('#loadMessage').show();
+            } else {
+                $('#loadMessage').hide();
+            }
+        }
+
         function checkAll(obj, cnt) {
             for (let i = 0; i < cnt; i++) {
                 if (obj.checked) {
@@ -617,20 +670,57 @@ if ($STEP === 1) {
             }
 
             if (selectedOption.className === 'highloadblock') {
-                getHbFromAjax(selectedOption, 'sku');
+                getHlTablesFromController(selectedOption, 'sku');
             }
 
             if (selectedOption.className === 'highloadblock-product') {
-                getHbFromAjax(selectedOption, 'product');
+                getHlTablesFromController(selectedOption, 'product');
             }
         }
 
-        function getHbFromAjax(that, type) {
+        function getHlTablesFromController(that, type) {
             const td         = $(that).parents('td .adm-list-table-cell');
             const select     = $(that).parent('select').siblings('#highloadblock');
             const table_name = $(that).attr('id');
             const iblock     = $(that).parents('.iblockExportTable').attr('data-type');
             const key        = $(that).parent('select').attr('data-type');
+            const url = $('td .adm-list-table-cell').parents('form').attr('action');
+
+            if (url == '/bitrix/admin/partner_modules.php') {
+                const sessid  = BX.bitrix_sessid();
+                const step    = $('input[name="continue"]').val();
+                const id      = $('input[name="id"]').val();
+                const install = $('input[name="install"]').val();
+                const data    = 'install=' + install + '&step=' + step + '&sessid=' + sessid +
+                    '&id=' + id + '&ajax=1&table=' + table_name;
+
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: data,
+                    dataType: "json",
+                    success: function(res) {
+                        $(select).remove();
+                        $('#waiting').remove();
+                        let new_options = '';
+                        $.each(res.fields, function(key, value) {
+                            new_options += '<option value="' + value + '">' + value + '</option>';
+                        });
+                        if (type == 'sku') {
+                            $(td).append('<select name="highloadblock' + res.table + '_' + key + '[' + iblock + ']" id="highloadblock" style="width: 100px; margin-left: 50px;">' + new_options + '</select>');
+                        }
+                        if (type == 'product') {
+                            $(td).append('<select name="highloadblock_product' + res.table + '_' + key + '[' + iblock + ']" id="highloadblock" style="width: 100px; margin-left: 50px;">' + new_options + '</select>');
+                        }
+
+                    },
+                    beforeSend: function() {
+                        $(td).append('<span style="margin-left:50px;" id="waiting"><?=GetMessage("WAIT")?></span>');
+                    }
+                });
+
+                return;
+            }
 
             BX.ajax.runAction('intaro:retailcrm.api.icml.getHlTable',
                 {

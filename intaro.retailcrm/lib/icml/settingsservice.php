@@ -163,7 +163,17 @@ class SettingsService
         return version_compare(SM_VERSION, '14.0.0', '>=')
         && array_key_exists($key, $this->getIblockFieldsNames());
     }
-    
+
+    /**
+     * @return bool
+     */
+    public function isSetupModulePage(): bool
+    {
+        global $APPLICATION;
+
+        return $APPLICATION->GetCurPage() === '/bitrix/admin/partner_modules.php';
+    }
+
     /**
      * @param array  $properties
      * @param string $propName
