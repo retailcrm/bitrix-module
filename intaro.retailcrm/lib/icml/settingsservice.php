@@ -102,17 +102,17 @@ class SettingsService
             $this->priceTypes[$arPriceType['ID']] = $arPriceType;
         }
     }
-    
+
     /**
-     * @param bool   $selected
-     * @param int    $key
+     * @param string $selected
+     * @param string $key
      * @param int    $iblockId
      * @param        $field
      * @param string $fieldGroup
      *
      * @return string
      */
-    public function getHlOptionStatus(bool $selected, int $key, int $iblockId, $field, string $fieldGroup): string
+    public function getHlOptionStatus(string $selected, string $key, int $iblockId, $field, string $fieldGroup): string
     {
         if ($this->arOldSetupVars[$fieldGroup . $selected . '_' . $key][$iblockId] === $field) {
             return ' selected';
@@ -120,17 +120,25 @@ class SettingsService
         
         return '';
     }
-    
+
     /**
-     * @param bool|null $selected
-     * @param string    $key
-     * @param int       $iblockId
+     * @param string $key
+     * @param int    $iblockId
+     * @param string $tableName
+     * @param string $catalogType
      *
      * @return bool
      */
-    public function isHlProductSelected(?bool $selected, string $key, int $iblockId): bool
-    {
-        return isset($selected, $this->arOldSetupVars['highloadblock_product' . $selected . '_' . $key][$iblockId]);
+    public function isHlSelected(
+        string $key,
+        int $iblockId,
+        string $tableName = '',
+        string $catalogType = ''
+    ): bool {
+        return isset(
+            $tableName,
+            $this->arOldSetupVars['highloadblock' . $catalogType . $tableName . '_' .$key][$iblockId]
+        );
     }
     
     /**
@@ -370,23 +378,33 @@ class SettingsService
 
         return $values;
     }
-    
+
+    /**
+     * @param array $prop
+     *
+     * @return string|null
+     */
+    public function getHlTableName(array $prop): ?string
+    {
+        if ($prop['USER_TYPE'] === 'directory') {
+            return $prop['USER_TYPE_SETTINGS']['TABLE_NAME'];
+        }
+
+        return null;
+    }
+
+
     /**
      * @param array       $prop
      * @param array|null  $oldSelect
      * @param string      $key
-     * @param string|null $selected
      *
      * @return bool
      */
-    public function isOptionSelected(array $prop, ?array $oldSelect = null, string $key, string &$selected = null): bool
+    public function isOptionSelected(array $prop, ?array $oldSelect = null, string $key): bool
     {
         if ($oldSelect !== null) {
             if ($prop['CODE'] === $oldSelect[$key]) {
-                if ($selected !== null && $prop['USER_TYPE'] === 'directory') {
-                    $selected = $prop['USER_TYPE_SETTINGS']['TABLE_NAME'];
-                }
-
                 return true;
             }
         } else {
@@ -404,13 +422,16 @@ class SettingsService
 
     /**
      * @param array $prop
+     * @param bool  $isProduct
      *
      * @return string
      */
-    public function getOptionClass(array $prop): string
+    public function getOptionClass(array $prop, bool $isProduct): string
     {
+        $productMarker = $isProduct ? '-product' : '';
+
         if ($prop['USER_TYPE'] === 'directory') {
-            return 'class="highloadblock-product" id="'
+            return 'class="highloadblock' . $productMarker .'" id="'
                 . $prop['USER_TYPE_SETTINGS']['TABLE_NAME']
                 . '"';
         }

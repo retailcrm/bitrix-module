@@ -214,9 +214,9 @@ if ($STEP === 1) {
                                                                 $arIBlock['OLD_PROPERTY_PRODUCT_SELECT'],
                                                                 $propertyKey
                                                             );
-
-                                                            echo $productSelected ? ' selected' : ''
                                                             ?>
+
+                                                            <?= $productSelected ? ' selected' : ''?>
                                                         >
                                                             <?=$field['name']?>
                                                         </option>
@@ -227,22 +227,25 @@ if ($STEP === 1) {
                                             <optgroup label="<?=GetMessage('SELECT_PROPERTY_NAME')?>">
                                                 <?php
                                                 }
+
+                                                $productHlTableName = '';
+
                                                 foreach ($arIBlock['PROPERTIES_PRODUCT'] as $prop) { ?>
                                                     <option value="<?=$prop['CODE']?>"
                                                         <?php
-                                                        echo $settingsService->getOptionClass($prop);
-                                                        
-                                                        $selected = '';
+                                                        echo $settingsService->getOptionClass($prop, true);
+
                                                         $productSelected = $settingsService->isOptionSelected(
                                                             $prop,
                                                             $arIBlock['OLD_PROPERTY_PRODUCT_SELECT'],
-                                                            $propertyKey,
-                                                            $selected
+                                                            $propertyKey
                                                         );
 
-                                                        if ($productSelected) {
-                                                            echo ' selected';
-                                                        }
+                                                        $productHlTableName
+                                                            = $settingsService->getHlTableName($prop)
+                                                            ?? $productHlTableName;
+
+                                                        echo $productSelected ? ' selected' : '';
                                                         ?>
                                                     >
                                                         <?=$prop['NAME']?>
@@ -257,20 +260,22 @@ if ($STEP === 1) {
                                         } ?>
                                         </select>
                                         <?php
-                                        if ($settingsService->isHlProductSelected(
-                                            $selected ?? null,
+                                        if ($settingsService->isHlSelected(
                                             $propertyKey,
-                                            $arIBlock['ID'])
+                                            $arIBlock['ID'],
+                                            $productHlTableName,
+                                            '_product'
+                                        )
                                         ) {?>
-                                            <select name="highloadblock_product<?=$selected . '_' . $propertyKey?>[
-                                            <?=$arIBlock['ID'] ?>]" id="highloadblock"
+                                            <select name="highloadblock_product<?=$productHlTableName . '_' .
+                                            $propertyKey . '[' . $arIBlock['ID'] . ']' ?>" id="highloadblock"
                                                     style="width: 100px; margin-left: 50px;">
                                                 <?php
-                                                foreach ($hlBlockList[$selected]['FIELDS'] as $field) {
+                                                foreach ($hlBlockList[$productHlTableName]['FIELDS'] as $field) {
                                                     ?>
                                                     <option value="<?=$field?>"
                                                         <?= $settingsService->getHlOptionStatus(
-                                                            $selected,
+                                                            $productHlTableName,
                                                             $propertyKey,
                                                             $arIBlock['ID'],
                                                             $field,
@@ -360,19 +365,24 @@ if ($STEP === 1) {
                                                     <?php
                                                     }
 
+                                                    $skuHlTableName = '';
+
                                                     foreach ($arIBlock['PROPERTIES_SKU'] as $prop) { ?>
                                                         <option value="<?=$prop['CODE']?>"
                                                             <?php
-                                                            echo $settingsService->getOptionClass($prop);
+                                                            echo $settingsService->getOptionClass($prop, false);
         
                                                             if (!$productSelected) {
                                                                 $isSelected = $settingsService->isOptionSelected(
                                                                     $prop,
                                                                     $arIBlock['OLD_PROPERTY_SKU_SELECT'],
-                                                                    $propertyKey,
-                                                                    $selected
+                                                                    $propertyKey
                                                                 );
-            
+
+                                                                $skuHlTableName
+                                                                    = $settingsService->getHlTableName($prop)
+                                                                    ?? $skuHlTableName;
+
                                                                 echo $isSelected ? ' selected' : '';
                                                             }
                                                             ?>
@@ -390,21 +400,26 @@ if ($STEP === 1) {
                                             </select>
                                             <?php
                                             if (
-                                                isset($selected)
-                                                && isset($arOldSetupVars['highloadblock'
-                                                    . $selected
-                                                    . '_'
-                                                    . $propertyKey][$arIBlock['ID']])
+                                            $settingsService->isHlSelected(
+                                                $propertyKey,
+                                                $arIBlock['ID'],
+                                                $skuHlTableName
+                                            )
                                             ) { ?>
-                                                <select name="highloadblock<?=$selected . '_' . $propertyKey?>[
-                                                <?= $arIBlock['ID'] ?>
-                                                ]" id="highloadblock" style="width: 100px; margin-left: 50px;">
+                                                <select
+                                                    name="highloadblock<?=$skuHlTableName . '_' . $propertyKey . '['
+                                                    . $arIBlock['ID'] . ']'?>"
+                                                    id="highloadblock"
+                                                    style="width: 100px;
+                                                    margin-left: 50px;"
+                                                >
                                                     <?php
-                                                    foreach ($hlBlockList[$selected]['FIELDS'] as $field) : ?>
+                                                    foreach ($hlBlockList[$skuHlTableName]['FIELDS'] as $field)
+                                                        : ?>
                                                         <option value="<?=$field?>"
                                                             <?=
                                                             $settingsService->getHlOptionStatus(
-                                                                $selected,
+                                                                $skuHlTableName,
                                                                 $propertyKey,
                                                                 $arIBlock['ID'],
                                                                 $field,
