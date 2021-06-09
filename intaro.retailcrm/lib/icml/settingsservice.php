@@ -20,6 +20,18 @@ use RetailcrmConfigProvider;
 class SettingsService
 {
     /**
+     * инфоблок товаров, имеющих торговые предложения,
+     * при это сам инфоблок тоже является торговым каталогом
+     */
+    const CATALOG_WITH_SKU = 'X';
+
+    /*
+     * инфоблок товаров, имеющих торговые предложения,
+     * но сам торговым каталогом не является
+     */
+    const INFOBLOCK_WITH_SKU = 'P';
+
+    /**
      * @var array
      */
     private $arOldSetupVars;
@@ -492,18 +504,22 @@ class SettingsService
         $propertiesSKU = null;
 
         $iblockOffer = CCatalogSKU::GetInfoByProductIBlock($iblockId);
-        $dbSkuProperties = CIBlock::GetProperties($iblockOffer['IBLOCK_ID'], []);
 
-        while ($prop = $dbSkuProperties->Fetch()) {
-            $propertiesSKU[] = $prop;
+        if ($iblockOffer !== false) {
+            $dbSkuProperties = CIBlock::GetProperties($iblockOffer['IBLOCK_ID'], []);
+
+            while ($prop = $dbSkuProperties->Fetch()) {
+                $propertiesSKU[] = $prop;
+            }
         }
 
         return $propertiesSKU;
     }
-    
+
     /**
      * @param array|null $oldValues
      * @param int        $iblockId
+     * @param string     $keyGroup
      *
      * @return array|null
      */
@@ -612,7 +628,10 @@ class SettingsService
                 continue;
             }
 
-            if ($arCatalog['CATALOG_TYPE'] === 'X' || $arCatalog['CATALOG_TYPE'] === 'P') {
+            if (
+                $arCatalog['CATALOG_TYPE'] === self::CATALOG_WITH_SKU
+                || $arCatalog['CATALOG_TYPE'] === self::INFOBLOCK_WITH_SKU
+            ) {
                 $propertiesSKU = $this->getSkuProps($iblock['ID']);
                 $oldPropertySKU = $this->getOldProps(
                     $this->iblockPropertySku,
@@ -653,6 +672,8 @@ class SettingsService
             }
 
             $intCountAvailIBlock++;
+
+            unset($propertiesSKU, $oldPropertySKU, $oldPropertyUnitSKU);
         }
         
         return [$arIBlockList, $intCountChecked, $intCountAvailIBlock, $arIBlockList['iblockExport'] ?? false];

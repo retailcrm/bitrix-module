@@ -6,6 +6,7 @@ use Bitrix\Main\ArgumentException;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
 use Intaro\RetailCrm\Service\Hl;
+use Logger;
 
 /**
  * Class HlRepository
@@ -41,7 +42,8 @@ class HlRepository
             
             return $result;
         } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
-            AddMessage2Log($exception->getMessage());
+            Logger::getInstance()->write($exception->getMessage(), 'repositoryErrors');
+
             return null;
         }
     }

@@ -97,9 +97,9 @@ class Hl
      * Получение DataManager класса управления HLBlock по названию таблицы
      *
      * @param string $name
-     * @return \Bitrix\Main\Entity\DataManager|null
+     * @return \Bitrix\Main\Entity\DataManager|null|string
      */
-    public static function getHlClassByTableName(string $name): ?DataManager
+    public static function getHlClassByTableName(string $name)
     {
         $entity = self::getBaseEntityByTableName($name);
 
