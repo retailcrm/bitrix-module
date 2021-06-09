@@ -224,22 +224,22 @@ class SettingsService
     {
         return [
             'weight' => [
-                'code' => 'catalog_weight',
+                'CODE' => 'catalog_weight',
                 'name' => GetMessage('SELECT_WEIGHT_PROPERTY_NAME'),
                 'unit' => 'mass',
             ],
             'length' => [
-                'code' => 'catalog_length',
+                'CODE' => 'catalog_length',
                 'name' => GetMessage('SELECT_LENGTH_PROPERTY_NAME'),
                 'unit' => 'length',
             ],
             'width' => [
-                'code' => 'catalog_width',
+                'CODE' => 'catalog_width',
                 'name' => GetMessage('SELECT_WIDTH_PROPERTY_NAME'),
                 'unit' => 'length',
             ],
             'height' => [
-                'code' => 'catalog_height',
+                'CODE' => 'catalog_height',
                 'name' => GetMessage('SELECT_HEIGHT_PROPERTY_NAME'),
                 'unit' => 'length',
             ],

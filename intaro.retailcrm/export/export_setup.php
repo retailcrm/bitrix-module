@@ -207,14 +207,14 @@ if ($STEP === 1) {
                                                 <?php
                                                 foreach ($iblockFieldsName as $keyField => $field) {
                                                     if ($keyField === $propertyKey) { ?>
-                                                        <option value="<?=$field['code']?>"
+                                                        <option value="<?=$field['CODE']?>"
                                                             <?php
                                                             $productSelected = $settingsService->isOptionSelected(
                                                                 $field,
                                                                 $arIBlock['OLD_PROPERTY_PRODUCT_SELECT'],
                                                                 $propertyKey
                                                             );
-                                                            
+
                                                             echo $productSelected ? ' selected' : ''
                                                             ?>
                                                         >
@@ -339,7 +339,7 @@ if ($STEP === 1) {
                                                     <?php
                                                     foreach ($iblockFieldsName as $keyField => $field) {
                                                         if ($keyField === $propertyKey) :?>
-                                                            <option value="<?=$field['code']?>"
+                                                            <option value="<?=$field['CODE']?>"
                                                                 <?php
                                                                 $isSelected = $settingsService->isOptionSelected(
                                                                     $field,
