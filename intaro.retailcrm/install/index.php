@@ -881,11 +881,11 @@ class intaro_retailcrm extends CModule
                 "height"       => "height",
                 "picture"      => "picture",
             );
-
-            $propertiesSKU = array();
-            $propertiesUnitSKU = array();
-            $propertiesHbSKU = array();
-
+    
+            $propertiesSKU = [];
+            $propertiesUnitSKU = [];
+            $propertiesHbSKU = [];
+    
             foreach ($iblockProperties as $prop) {
                 foreach ($_POST['iblockPropertySku'. '_' . $prop] as $iblock => $val) {
                     $propertiesSKU[$iblock][$prop] = $val;
@@ -943,7 +943,7 @@ class intaro_retailcrm extends CModule
             }
 
             if (!isset($_POST['SETUP_PROFILE_NAME'])) {
-                $profileName = "";
+                $profileName = '';
             } else {
                 $profileName = $_POST['SETUP_PROFILE_NAME'];
             }
@@ -952,14 +952,13 @@ class intaro_retailcrm extends CModule
                 $arResult['errCode'] = 'ERR_FIELDS_PROFILE';
             }
 
-            if ($filename == "") {
+            if ($filename === '') {
                 $arResult['errCode'] = 'ERR_FIELDS_FILE';
             }
 
             if (isset($arResult['errCode']) && $arResult['errCode']) {
-
                 $arOldValues = [
-                    'IBLOCK_EXPORT' => $iblocks,
+                    'iblockExport' => $iblocks,
                     'iblockPropertySku' => $propertiesSKU,
                     'iblockPropertyUnitSku' => $propertiesUnitSKU,
                     'iblockPropertyProduct' => $propertiesProduct,
@@ -968,7 +967,9 @@ class intaro_retailcrm extends CModule
                     'SETUP_PROFILE_NAME' => $profileName,
                     'maxOffersValue' => $maxOffers,
                 ];
+                
                 global $oldValues;
+                
                 $oldValues = $arOldValues;
                 $APPLICATION->IncludeAdminFile(
                     GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step5.php'
@@ -1345,32 +1346,49 @@ class intaro_retailcrm extends CModule
         $filename,
         $maxOffers
     ) {
-        $strVars = "";
-        foreach ($iblocks as $key => $val)
+        $strVars = '';
+        
+        foreach ($iblocks as $key => $val) {
             $strVars .= 'iblockExport[' . $key . ']=' . $val . '&';
-        foreach ($propertiesSKU as $iblock => $arr)
-            foreach ($arr as $id => $val)
+        }
+        
+        foreach ($propertiesSKU as $iblock => $arr) {
+            foreach ($arr as $id => $val) {
                 $strVars .= 'iblockPropertySku_' . $id . '[' . $iblock . ']=' . $val . '&';
-        foreach ($propertiesUnitSKU as $iblock => $arr)
-            foreach ($arr as $id => $val)
+            }
+        }
+        foreach ($propertiesUnitSKU as $iblock => $arr) {
+            foreach ($arr as $id => $val) {
                 $strVars .= 'iblockPropertyUnitSku_' . $id . '[' . $iblock . ']=' . $val . '&';
-        foreach ($propertiesProduct as $iblock => $arr)
-            foreach ($arr as $id => $val)
+            }
+        }
+        foreach ($propertiesProduct as $iblock => $arr) {
+            foreach ($arr as $id => $val) {
                 $strVars .= 'iblockPropertyProduct_' . $id . '[' . $iblock . ']=' . $val . '&';
-        foreach ($propertiesUnitProduct as $iblock => $arr)
-            foreach ($arr as $id => $val)
+            }
+        }
+        foreach ($propertiesUnitProduct as $iblock => $arr) {
+            foreach ($arr as $id => $val) {
                 $strVars .= 'iblockPropertyUnitProduct_' . $id . '[' . $iblock . ']=' . $val . '&';
+            }
+        }
         if ($propertiesHbSKU) {
-            foreach ($propertiesHbSKU as $table => $arr)
-                foreach ($arr as $iblock => $val)
-                    foreach ($val as $id => $value)
+            foreach ($propertiesHbSKU as $table => $arr) {
+                foreach ($arr as $iblock => $val) {
+                    foreach ($val as $id => $value) {
                         $strVars .= 'highloadblock' . $table . '_' . $id . '[' . $iblock . ']=' . $value . '&';
+                    }
+                }
+            }
         }
         if ($propertiesHbProduct) {
-            foreach ($propertiesHbProduct as $table => $arr)
-                foreach ($arr as $iblock => $val)
-                    foreach ($val as $id => $value)
+            foreach ($propertiesHbProduct as $table => $arr) {
+                foreach ($arr as $iblock => $val) {
+                    foreach ($val as $id => $value) {
                         $strVars .= 'highloadblock_product' . $table . '_' . $id . '[' . $iblock . ']=' . $value . '&';
+                    }
+                }
+            }
         }
 
         $strVars .= 'SETUP_FILE_NAME=' . urlencode($filename);

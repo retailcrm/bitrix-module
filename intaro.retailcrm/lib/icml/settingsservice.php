@@ -23,13 +23,13 @@ class SettingsService
      * инфоблок товаров, имеющих торговые предложения,
      * при это сам инфоблок тоже является торговым каталогом
      */
-    const CATALOG_WITH_SKU = 'X';
+    public const CATALOG_WITH_SKU = 'X';
 
     /*
      * инфоблок товаров, имеющих торговые предложения,
      * но сам торговым каталогом не является
      */
-    const INFOBLOCK_WITH_SKU = 'P';
+    public const INFOBLOCK_WITH_SKU = 'P';
 
     /**
      * @var array
@@ -100,8 +100,9 @@ class SettingsService
         $this->loadPurchasePrice = $this->getSingleSetting('loadPurchasePrice');
         $oldSetup = $this->getSingleSetting('SETUP_FILE_NAME');
         $defaultFilePath = RetailcrmConfigProvider::getDefaultIcmlPath();
-        $this->setupFileName = htmlspecialcharsbx('' !== $oldSetup ? $oldSetup : $defaultFilePath);
-        $this->setupProfileName = $this->getSingleSetting('SETUP_PROFILE_NAME');
+        $this->setupFileName = htmlspecialcharsbx($oldSetup ?? $defaultFilePath);
+        $this->setupProfileName
+            = $this->getSingleSetting('SETUP_PROFILE_NAME') ?? GetMessage('PROFILE_NAME_EXAMPLE');
 
         $this->getPriceTypes();
     }

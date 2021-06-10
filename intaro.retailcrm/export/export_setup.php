@@ -52,6 +52,8 @@ $iblockFieldsName = $settingsService->getIblockFieldsNames();
 $iblockPropertiesHint = $settingsService->getHintProps();
 $units = $settingsService->getUnitsNames();
 $hintUnit = $settingsService->getHintUnit();
+$SETUP_FILE_NAME = $settingsService->setupFileName;
+$SETUP_PROFILE_NAME = $settingsService->setupProfileName;
 
 //highloadblock
 if (CModule::IncludeModule('highloadblock')) {
@@ -61,8 +63,6 @@ if (CModule::IncludeModule('highloadblock')) {
 
 if (($ACTION === 'EXPORT' || $ACTION === 'EXPORT_EDIT' || $ACTION === 'EXPORT_COPY') && $STEP === 1) {
     $iblockProperties = $settingsService->getIblockPropsPreset();
-    $SETUP_FILE_NAME = $settingsService->setupFileName;
-    $SETUP_PROFILE_NAME = $settingsService->setupProfileName;
     $loadPurchasePrice = $settingsService->loadPurchasePrice;
     $iblockExport = $settingsService->iblockExport;
 
@@ -494,16 +494,16 @@ if ($STEP === 1) {
         <br><br><br>
         <?php
         if ($isSetupModulePage) { ?>
-        <font class="text"><?=GetMessage("LOAD_PERIOD");?><br><br></font>
-        <input type="radio" name="TYPE_LOADING" value="none" onclick="checkProfile(this);"><?=GetMessage("NOT_LOADING");?><Br>
-        <input type="radio" name="TYPE_LOADING" value="cron" onclick="checkProfile(this);"><?=GetMessage("CRON_LOADING");?><Br>
-        <input type="radio" name="TYPE_LOADING" value="agent"  checked  onclick="checkProfile(this);"><?=GetMessage("AGENT_LOADING");?><Br>
+        <font class="text"><?=GetMessage('LOAD_PERIOD');?><br><br></font>
+        <input type="radio" name="TYPE_LOADING" value="none" onclick="checkProfile(this);"><?=GetMessage('NOT_LOADING')?><Br>
+        <input type="radio" name="TYPE_LOADING" value="cron" onclick="checkProfile(this);"><?=GetMessage('CRON_LOADING')?><Br>
+        <input type="radio" name="TYPE_LOADING" value="agent"  checked  onclick="checkProfile(this);"><?=GetMessage('AGENT_LOADING')?><Br>
         <br>
         <br>
-        <span class="text"><?=GetMessage("LOAD_NOW");?>&nbsp;</span>
+        <span class="text"><?=GetMessage('LOAD_NOW')?>&nbsp;</span>
         <input id="load-now" onchange="checkLoadStatus(this)" type="checkbox" name="LOAD_NOW" value="now">
         <br>
-        <div id="loadMessage" hidden><?=GetMessage("LOAD_NOW_MSG");?></div>
+        <div id="loadMessage" hidden><?=GetMessage('LOAD_NOW_MSG')?></div>
         <br>
             <?php
         }?>
@@ -550,11 +550,11 @@ if ($STEP === 1) {
             <input type="hidden" name="continue" value="5">
             <div style="padding: 1px 13px 2px; height:28px;">
                 <div align="right" style="float:right; width:50%; position:relative;">
-                    <input type="submit" name="inst" onclick="BX.showWait()" value="<?= GetMessage("MOD_NEXT_STEP"); ?>"
+                    <input type="submit" name="inst" onclick="BX.showWait()" value="<?= GetMessage('MOD_NEXT_STEP'); ?>"
                            class="adm-btn-save">
                 </div>
                 <div align="left" style="float:right; width:50%; position:relative;">
-                    <input type="submit" name="back" value="<?= GetMessage("MOD_PREV_STEP"); ?>" class="adm-btn-save">
+                    <input type="submit" name="back" value="<?= GetMessage('MOD_PREV_STEP'); ?>" class="adm-btn-save">
                 </div>
             </div>
 
@@ -578,7 +578,6 @@ if ($STEP === 1) {
 
     <script type="text/javascript" src='/bitrix/js/main/jquery/jquery-1.7.min.js'></script>
     <script type="text/javascript">
-
         function checkLoadStatus(object)
         {
             if (object.checked) {
@@ -686,7 +685,7 @@ if ($STEP === 1) {
             const key        = $(that).parent('select').attr('data-type');
             const url = $('td .adm-list-table-cell').parents('form').attr('action');
 
-            if (url == '/bitrix/admin/partner_modules.php') {
+            if (url === '/bitrix/admin/partner_modules.php') {
                 const sessid  = BX.bitrix_sessid();
                 const step    = $('input[name="continue"]').val();
                 const id      = $('input[name="id"]').val();
@@ -715,7 +714,7 @@ if ($STEP === 1) {
 
                     },
                     beforeSend: function() {
-                        $(td).append('<span style="margin-left:50px;" id="waiting"><?=GetMessage("WAIT")?></span>');
+                        $(td).append('<span style="margin-left:50px;" id="waiting"><?=GetMessage('WAIT')?></span>');
                     }
                 });
 
