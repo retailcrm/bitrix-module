@@ -182,6 +182,7 @@ class IcmlDirector
             $this->setup->properties->sku->names[$productIblockId],
             $this->setup->basePriceId
         );
+        
         $this->writeOffersAsOffersInXml($paramsForProduct, $paramsForOffer, $catalogIblockInfo);
     }
     

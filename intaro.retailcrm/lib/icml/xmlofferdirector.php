@@ -106,7 +106,7 @@ class XmlOfferDirector
     {
         foreach ($xmlOffers as $offer) {
             $offer->productId   = $product->id;
-            $offer->params      = array_merge($offer->params, $product->params);
+            $offer->params      = $this->mergeParams($offer->params, $product->params);
             $offer->unitCode    = $offer->unitCode === null ? null : $offer->unitCode->merge($product->unitCode);
             $offer->vatRate     = $offer->vatRate === 'none' ? $product->vatRate : $offer->vatRate;
             $offer->vendor      = $offer->mergeValues($product->vendor, $offer->vendor);
@@ -202,5 +202,30 @@ class XmlOfferDirector
                 ->fileRepository
                 ->getProductPicture($product, $pictureProperty ?? '')
         );
+    }
+    
+    /**
+     * @param array $offerParams
+     * @param array $productParams
+     */
+    private function mergeParams(array $offerParams, array $productParams): array
+    {
+        $offerCodes = [];
+        
+        /** @var \Intaro\RetailCrm\Model\Bitrix\Xml\OfferParam $offerParam */
+        foreach ($offerParams as $offerParam) {
+            $offerCodes[] = $offerParam->code;
+        }
+
+        /** @var \Intaro\RetailCrm\Model\Bitrix\Xml\OfferParam $productParam */
+        foreach ($productParams as $productParam) {
+            if (in_array($productParam->code, $offerCodes, true)) {
+                continue;
+            }
+        
+            $offerParams[] = $productParam;
+        }
+        
+        return $offerParams;
     }
 }
