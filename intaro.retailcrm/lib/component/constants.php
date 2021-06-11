@@ -86,4 +86,5 @@ class Constants
     public const HISTORY_ERRORS            = 'historyErrors';
     public const REPOSITORY_ERRORS         = 'repositoryErrors';
     public const TEMPLATES_ERROR           = 'templatesErrors';
+    public const DEFAULT_LOYALTY_TEMPLATE  = 'default_loyalty';
 }
