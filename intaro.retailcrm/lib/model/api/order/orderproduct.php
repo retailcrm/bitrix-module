@@ -36,11 +36,9 @@ class OrderProduct extends AbstractApiModel
     /**
      * Внешние идентификаторы позиции в заказе
      *
-     * @deprecated
-     *
      * @var array $externalIds
      *
-     * @Mapping\Type("array")
+     * @Mapping\Type("array<Intaro\RetailCrm\Model\Api\CodeValueModel>")
      * @Mapping\SerializedName("externalIds")
      */
     public $externalIds;
@@ -64,7 +62,17 @@ class OrderProduct extends AbstractApiModel
      * @Mapping\SerializedName("initialPrice")
      */
     public $initialPrice;
-    
+
+    /**
+     * Количество
+     *
+     * @var float $quantity
+     *
+     * @Mapping\Type("float")
+     * @Mapping\SerializedName("quantity")
+     */
+    public $quantity;
+
     /**
      * Итоговая денежная скидка на единицу товара c учетом всех скидок на товар и заказ
      *
