@@ -393,6 +393,8 @@ class LoyaltyService
                     $orderArResult['CALCULATE_ITEMS_INPUT']
                         = htmlspecialchars(json_encode($orderArResult['CALCULATE_ITEMS_INPUT']));
                 }
+
+                break;
             }
         }
 

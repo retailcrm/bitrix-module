@@ -36,8 +36,12 @@ if (checkLoadIntaro()) {
     
     if ($arResult['LOYALTY_STATUS'] === 'Y' && $arResult['PERSONAL_LOYALTY_STATUS'] === true) {
         $calculate = $service->getLoyaltyCalculate($arResult['BASKET_ITEM_RENDER_DATA']);
-        
-        if ($calculate instanceof LoyaltyCalculateResponse && $calculate->success) {
+
+        if (
+            $calculate instanceof LoyaltyCalculateResponse
+            && $calculate->success
+            && null !== $calculate->order->loyaltyAccount
+        ) {
             $arResult = $service->addLoyaltyToBasket($arResult, $calculate);
         }
     }
