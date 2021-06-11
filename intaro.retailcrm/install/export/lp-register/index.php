@@ -5,7 +5,7 @@ $APPLICATION->SetTitle("Регистрация");
 
 <?php $APPLICATION->IncludeComponent(
     "bitrix:main.register",
-    "intaro.retailcrm",
+    "default_loyalty",
     [
         "AUTH"               => "Y",
         "REQUIRED_FIELDS"    => [],
