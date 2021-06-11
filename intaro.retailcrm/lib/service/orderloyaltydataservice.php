@@ -30,7 +30,8 @@ use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
 use Intaro\RetailCrm\Component\Handlers\EventsHandlers;
 use Intaro\RetailCrm\Component\ServiceLocator;
-use Intaro\RetailCrm\Model\Api\OrderProduct;
+use Intaro\RetailCrm\Model\Api\CodeValueModel;
+use Intaro\RetailCrm\Model\Api\Order\OrderProduct;
 use Intaro\RetailCrm\Model\Api\Response\Order\Loyalty\OrderLoyaltyApplyResponse;
 use Intaro\RetailCrm\Model\Bitrix\OrderLoyaltyData;
 use Intaro\RetailCrm\Repository\OrderLoyaltyDataRepository;
@@ -160,7 +161,7 @@ class OrderLoyaltyDataService
         
         $response = $client->getOrder($orderId);
         
-        if ($response === null) {
+        if ($response === null || !is_array($response->order->items)) {
             return;
         }
         
@@ -172,25 +173,19 @@ class OrderLoyaltyDataService
             }
             
             $repository = new OrderLoyaltyDataRepository();
-            $items      = $repository->getProductsByOrderId($orderId);
-            
-            $bitrixDiscounts = 0;
-            $totalPrice      = 0;
-            $totalBasePrice  = 0;
-            
-            /** @var BasketItemBase $basketItem */
-            foreach ($order->getBasket() as $basketItem) {
-                $totalPrice     += $basketItem->getPrice() * $basketItem->getQuantity();
-                $totalBasePrice += $basketItem->getBasePrice() * $basketItem->getQuantity();
+            $bitrixItems = $repository->getProductsByOrderId($orderId);
+            $loyaltyDiscount  = 0;
+
+            /** @var OrderProduct $item */
+            foreach ($response->order->items as $item) {
+                /** @var CodeValueModel $itemBitrixId */
+                $itemBitrixId = $item->externalIds[0];
+                /** @var OrderLoyaltyData $bitrixItem */
+                $bitrixItem = $bitrixItems[$itemBitrixId->value];
+
+                $loyaltyDiscount += ($item->discountTotal - $bitrixItem->defaultDiscount) * $item->quantity;
             }
-            
-            /** @var OrderLoyaltyData $item */
-            foreach ($items as $item) {
-                $bitrixDiscounts += $item->defaultDiscount * $item->quantity;
-            }
-            
-            $loyaltyDiscount = $totalBasePrice - $totalPrice - $bitrixDiscounts;
-            
+
             $this->saveBonusAndDiscToOrderProps(
                 $order->getPropertyCollection(),
                 $loyaltyDiscount ?? 0.0,
