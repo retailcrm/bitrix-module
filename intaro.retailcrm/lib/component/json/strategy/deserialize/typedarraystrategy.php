@@ -58,7 +58,7 @@ class TypedArrayStrategy implements DeserializeStrategyInterface
 
             $result[$deserializedKey] = StrategyFactory::deserializeStrategyByType($valueType)->deserialize(
                 $valueType,
-                $value[$key],
+                count($value[$key]) > 1 ? $value[$key] : $value,
                 new PropertyAnnotations()
             );
         }
