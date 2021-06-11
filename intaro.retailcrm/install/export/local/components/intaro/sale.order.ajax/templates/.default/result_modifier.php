@@ -38,8 +38,12 @@ if (checkLoadIntaro()) {
         
         /** @var LoyaltyCalculateResponse $calculate */
         $calculate = $service->getLoyaltyCalculate($arResult['BASKET_ITEMS']);
-        
-        if ($calculate instanceof LoyaltyCalculateResponse && $calculate->success) {
+
+        if (
+            $calculate instanceof LoyaltyCalculateResponse
+            && $calculate->success
+            &&  null !== $calculate->order->loyaltyAccount
+        ) {
             $arResult = $service->calculateOrderBasket($arResult, $calculate);
         }
         

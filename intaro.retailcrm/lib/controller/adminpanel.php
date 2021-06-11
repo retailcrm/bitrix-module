@@ -28,11 +28,8 @@ class AdminPanel extends Controller
      */
     public function createTemplateAction(array $templates, string $donor, string $replaceDefaultTemplate = 'N'): array
     {
-        $templateName = $replaceDefaultTemplate === 'Y' ? '.default' : Constants::MODULE_ID;
-
+        $templateName = $replaceDefaultTemplate === 'Y' ? '.default' : Constants::DEFAULT_LOYALTY_TEMPLATE;
         $donor = str_replace(['../', './'], '', $donor);
-
-
         foreach ($templates as $template) {
 
             $template['location'] = str_replace(['../', './'], '', $template['location']);
