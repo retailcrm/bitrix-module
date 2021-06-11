@@ -54,8 +54,6 @@ class OrderLoyaltyData
      */
     public $itemId;
 
-    
-    
     /**
      * ID проверочного кода
      *
