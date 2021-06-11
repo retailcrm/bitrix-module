@@ -106,33 +106,51 @@ class OrderLoyaltyDataRepository extends AbstractRepository
     
     /**
      * @param $orderId
-     * @return OrderLoyaltyData[]|null
+     *
+     * @return OrderLoyaltyData[]
      */
-    public function getProductsByOrderId($orderId): ?array
+    public function getProductsByOrderId($orderId): array
+    {
+        $products = $this->getHlRowByOrderId($orderId);
+
+        if (count($products) === 0 || false === $products) {
+            return [];
+        }
+
+        $result = [];
+
+        foreach ($products as $product) {
+            $result[$product['UF_ITEM_POS_ID']]
+                = Deserializer::deserializeArray($product, OrderLoyaltyData::class);
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param int $orderId
+     *
+     * @return array|false //fetchAll может вернуть false
+     */
+    private function getHlRowByOrderId(int $orderId)
     {
         try {
             if ($this->dataManager === null) {
-                return null;
+                return [];
             }
-        
-            $products = $this->dataManager::query()->setSelect(['*'])->where('UF_ORDER_ID', '=', $orderId)->fetchAll();
 
-            if ($products === false || count($products) === 0) {
-                return null;
-            }
-        
-            $result = [];
-        
-            foreach ($products as $product) {
-                $result[] = Deserializer::deserializeArray($product, OrderLoyaltyData::class);
-            }
-        
-            return $result;
+            return $this->dataManager::query()
+                ->setSelect(['*'])
+                ->where('UF_ORDER_ID', '=', $orderId)
+                ->fetchAll();
+
         } catch (SystemException | Exception $exception) {
             $this->logger->write($exception->getMessage(), Constants::LOYALTY_ERROR);
         }
+
+        return [];
     }
-    
+
     /**
      * @param \Intaro\RetailCrm\Model\Bitrix\OrderLoyaltyData $position
      * @return bool
