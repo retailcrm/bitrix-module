@@ -5,9 +5,9 @@ use Bitrix\Main\Context\Culture;
 use Bitrix\Main\UserTable;
 use Bitrix\Sale\Delivery\Services\Manager;
 use Bitrix\Sale\Internals\Fields;
+use Bitrix\Sale\Internals\OrderTable;
 use Bitrix\Sale\Location\LocationTable;
 use Bitrix\Sale\Order;
-use Bitrix\Sale\OrderTable;
 use RetailCrm\ApiClient;
 use Intaro\RetailCrm\Service\ManagerService;
 use RetailCrm\Response\ApiResponse;
@@ -473,7 +473,7 @@ class RetailCrmOrder
         }
 
         if (count($ordersPack) > 0) {
-            if (false === RetailCrmOrder::uploadCustomersList($resCustomers, $api, $optionsSitesList)) {
+            if (false === RetailCrmOrder::uploadCustomersList($resCustomers, $api, $arParams['optionsSitesList'])) {
                 return false;
             }
 
@@ -494,7 +494,7 @@ class RetailCrmOrder
                 }
             }
 
-            if (false === RetailCrmOrder::uploadOrdersList($ordersPack, $api, $optionsSitesList)) {
+            if (false === RetailCrmOrder::uploadOrdersList($ordersPack, $api, $arParams['optionsSitesList'])) {
                 return false;
             }
 
