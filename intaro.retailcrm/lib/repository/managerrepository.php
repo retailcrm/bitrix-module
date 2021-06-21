@@ -44,7 +44,7 @@ class ManagerRepository
         }
 
         if (!RetailcrmConfigProvider::setUsersMap($recordData)) {
-            $this->logger->write(GetMessage('REP_ERR') . __METHOD__, 'repositoryErrors');
+            $this->logger->write(GetMessage('REP_ERR', ['#METHOD#' => __METHOD__]), 'repositoryErrors');
         }
     }
 

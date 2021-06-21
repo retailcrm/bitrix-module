@@ -224,8 +224,6 @@ class RetailCrmHistory
         global $USER;
 
         if (is_object($USER) === false) {
-            require_once dirname(__FILE__) . '/RetailUser.php';
-
             $USER = new RetailUser();
         }
 
@@ -275,7 +273,6 @@ class RetailCrmHistory
 
             //orders with changes
             foreach ($orders as $order) {
-                //TODO функция отсутствует в модуле. Возможно условие стоит удалить.
                 if (function_exists('retailCrmBeforeOrderSave')) {
                     $newResOrder = retailCrmBeforeOrderSave($order);
 
@@ -488,8 +485,7 @@ class RetailCrmHistory
                     $newOrder = Order::create($site, $orderCustomerExtId, $currency);
 
                     if (array_key_exists('managerId', $order)) {
-                        //TODO заменить вызов на сервис-локатор, когда он приедет
-                        $service = new ManagerService();
+                        $service = ManagerService::getInstance();
 
                         $newOrder->setField('RESPONSIBLE_ID', $service->getManagerBitrixId($order['managerId']));
                     }
@@ -543,8 +539,7 @@ class RetailCrmHistory
                     }
 
                     if (array_key_exists('managerId', $order)) {
-                        //TODO заменить вызов на сервис-локатор, когда он приедет
-                        $service = new ManagerService();
+                        $service = ManagerService::getInstance();
 
                         $newOrder->setField('RESPONSIBLE_ID', $service->getManagerBitrixId($order['managerId']));
                     }

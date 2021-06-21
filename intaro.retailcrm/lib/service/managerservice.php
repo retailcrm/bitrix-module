@@ -16,6 +16,8 @@ use RetailcrmConfigProvider;
  */
 class ManagerService
 {
+    protected static $instance;
+    
     /**
      * @var \Intaro\RetailCrm\Repository\ManagerRepository
      */
@@ -29,20 +31,34 @@ class ManagerService
     /**
      * ManagerService constructor.
      */
-    public function __construct()
+    private function __construct()
     {
         $this->client = new ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
         $this->repository = new ManagerRepository();
     }
-
+    
+    /**
+     * @return \Intaro\RetailCrm\Service\ManagerService
+     *
+     * TODO заменить вызов на сервис-локатор, когда он приедет
+     */
+    public static function getInstance(): ManagerService
+    {
+        if (self::$instance === null) {
+            self::$instance = new self();
+        }
+        
+        return self::$instance;
+    }
+    
     /**
      * Синхронизирует пользователей CRM и Битрикс
      */
     public function synchronizeManagers(): void
     {
         $currentPage = 1;
-
-        $this->clearManagersOption();
+    
+        RetailcrmConfigProvider::setUsersMap([]);
 
         do {
             $crmUsers = $this->getCrmUsersPage($currentPage);
@@ -142,10 +158,5 @@ class ManagerService
         }
 
         return [];
-    }
-
-    private function clearManagersOption(): void
-    {
-        RetailcrmConfigProvider::setUsersMap([]);
     }
 }

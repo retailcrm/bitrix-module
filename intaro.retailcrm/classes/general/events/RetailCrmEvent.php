@@ -415,7 +415,7 @@ class RetailCrmEvent
         }
 
         if (isset($arOrder['RESPONSIBLE_ID']) && !empty($arOrder['RESPONSIBLE_ID'])) {
-            $managerService = new ManagerService();
+            $managerService = ManagerService::getInstance();
             $arParams['managerId']  = $managerService->getManagerCrmId($arOrder['RESPONSIBLE_ID']);
         }
 

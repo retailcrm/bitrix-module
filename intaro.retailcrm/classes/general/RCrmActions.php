@@ -213,7 +213,7 @@ class RCrmActions
             define('NO_AGENT_CHECK', true);
         }
 
-        $service = new ManagerService();
+        $service = ManagerService::getInstance();
         $service->synchronizeManagers();
 
         RetailCrmHistory::customerHistory();
