@@ -145,4 +145,12 @@ class LoyaltyAccount
      * @Mapping\SerializedName("customer")
      */
     public $customer;
+    
+    /**
+     * @var array $customFields
+     *
+     * @Mapping\Type("array")
+     * @Mapping\SerializedName("customFields")
+     */
+    public $customFields;
 }
