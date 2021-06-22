@@ -97,7 +97,7 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"] . '/bitrix/modules/intaro.retailcrm/cl
     }
 }
 
-$arResult['arSites'] = RCrmActions::SitesList();
+$arResult['arSites'] = RCrmActions::getSitesList();
 //ajax update deliveryServices
 if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') && isset($_POST['ajax']) && ($_POST['ajax'] == 1)) {
     $api_host = COption::GetOptionString($mid, $CRM_API_HOST_OPTION, 0);
@@ -211,7 +211,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
     $api_key = htmlspecialchars(trim($_POST['api_key']));
 
     //bitrix site list
-    $siteListArr = array();
+    $siteListArr = [];
+    
     foreach ($arResult['arSites'] as $arSites) {
         if (count($arResult['arSites']) > 1) {
             if ($_POST['sites-id-' . $arSites['LID']]) {
@@ -221,7 +222,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             }
         }
     }
-
+    
     if ($api_host && $api_key) {
         $api = new RetailCrm\ApiClient($api_host, $api_key);
         try {

@@ -426,20 +426,19 @@ class RetailCrmOrder
         $recOrders = [];
 
         foreach ($orderIds as $orderId) {
-            $site = null;
-            $orderObj = Order::load($orderId);
+            $bitrixOrder = Order::load($orderId);
 
-            if (!$orderObj) {
+            if (!$bitrixOrder) {
                 continue;
             }
 
             $arCustomer = [];
             $arCustomerCorporate = [];
-            $order = self::orderObjToArr($orderObj);
+            $order = self::orderObjToArr($bitrixOrder);
             $user = UserTable::getById($order['USER_ID'])->fetch();
-            $site = self::getSite($order['LID'], $arParams['optionsSitesList']);
+            $site = self::getCrmShopCodeByLid($order['LID'], $arParams['optionsSitesList']);
 
-            if (true === $site) {
+            if (null === $site && count($arParams['optionsSitesList']) > 0) {
                 continue;
             }
 
@@ -684,19 +683,11 @@ class RetailCrmOrder
      * @param string $orderLid
      * @param array  $optionsSitesList
      *
-     * @return false|mixed|null
+     * @return string|null
      */
-    public static function getSite(string $orderLid, array $optionsSitesList)
+    public static function getCrmShopCodeByLid(string $orderLid, array $optionsSitesList): ?string
     {
-        if ($optionsSitesList) {
-            if (array_key_exists($orderLid, $optionsSitesList) && $optionsSitesList[$orderLid] != null) {
-                return $optionsSitesList[$orderLid];
-            }
-    
-            return false;
-        }
-
-        return null;
+        return $optionsSitesList[$orderLid] ?? null;
     }
 
     /**
@@ -719,9 +710,9 @@ class RetailCrmOrder
         $sizePack = 50;
 
         foreach ($pack as $key => $itemLoad) {
-            $site = self::getSite($key, $optionsSitesList);
-
-            if (true === $site) {
+            $site = self::getCrmShopCodeByLid($key, $optionsSitesList);
+    
+            if (null === $site && count($optionsSitesList) > 0) {
                 continue;
             }
 

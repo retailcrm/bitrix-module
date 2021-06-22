@@ -236,7 +236,6 @@ class RetailCrmHistory
         $optionsPayStatuses = array_flip(RetailcrmConfigProvider::getPaymentStatuses()); // --statuses
         $optionsOrderProps = RetailcrmConfigProvider::getOrderProps();
         $optionsLegalDetails = RetailcrmConfigProvider::getLegalDetails();
-        $optionsSitesList = RetailcrmConfigProvider::getSitesList();
         $optionsOrderNumbers = RetailcrmConfigProvider::getOrderNumbers();
         $optionsCanselOrder = RetailcrmConfigProvider::getCancellableOrderPaymentStatuses();
         $currency = RetailcrmConfigProvider::getCurrencyOrDefault();
@@ -298,11 +297,7 @@ class RetailCrmHistory
                     continue;
                 }
 
-                if ($optionsSitesList) {
-                    $site = array_search($order['site'], $optionsSitesList);
-                } else {
-                    $site = CSite::GetDefSite();
-                }
+                $site = self::getSite($order['site']);
 
                 if (empty($site)) {
                     RCrmActions::eventLog(
@@ -537,20 +532,10 @@ class RetailCrmHistory
 
                         continue;
                     }
+    
+                    $site = self::getSite($order['site']);
 
-                    if (array_key_exists('managerId', $order)) {
-                        $service = ManagerService::getInstance();
-
-                        $newOrder->setField('RESPONSIBLE_ID', $service->getManagerBitrixId($order['managerId']));
-                    }
-
-                    if ($optionsSitesList) {
-                        $site = array_search($order['site'], $optionsSitesList);
-                    } else {
-                        $site = CSite::GetDefSite();
-                    }
-
-                    if (empty($site)) {
+                    if (null === $site) {
                         RCrmActions::eventLog(
                             'RetailCrmHistory::orderHistory',
                             'Bitrix\Sale\Order::edit',
@@ -1244,7 +1229,27 @@ class RetailCrmHistory
 
         return false;
     }
-
+    
+    /**
+     * @param string $shopCode
+     *
+     * @return string|null
+     */
+    public static function getSite(string $shopCode): ?string
+    {
+        $optionsSitesList = RetailcrmConfigProvider::getSitesList();
+        
+        if ($optionsSitesList) {
+            $searchResult = array_search($shopCode, $optionsSitesList, true);
+            
+            return is_string($searchResult) ? $searchResult : null;
+        }
+    
+        $defaultSite = CSite::GetDefSite();
+        
+        return is_string($defaultSite) ? $defaultSite : null;
+    }
+    
     /**
      * @param $array
      * @param $value
