@@ -333,7 +333,8 @@ class RetailcrmConfigProvider
     public static function getIntegrationPaymentTypes(): array
     {
         if (self::isEmptyNotZero(static::$integrationPayment)) {
-            static::$integrationPayment = static::getUnserializedOption(RetailcrmConstants::CRM_INTEGRATION_PAYMENT);
+            $option = static::getUnserializedOption(RetailcrmConstants::CRM_INTEGRATION_PAYMENT);
+            static::$integrationPayment = is_array($option) ? $option : [];
         }
 
         return static::$integrationPayment;
