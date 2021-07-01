@@ -2,56 +2,33 @@
 IncludeModuleLangFile(__FILE__);
 class RetailCrmUser
 {
-    public static function customerSend($arFields, $api, $contragentType, $send = false, $site = null)
+
+    /**
+     * @param array $arFields
+     * @param       $api
+     * @param       $contragentType
+     * @param false $send
+     * @param null  $site
+     *
+     * @return array|false
+     * @throws \Exception
+     */
+    public static function customerSend(array $arFields, $api, $contragentType, bool $send = false, $site = null)
     {
         if (!$api || empty($contragentType)) {
             return false;
         }
+
         if (empty($arFields)) {
             RCrmActions::eventLog('RetailCrmUser::customerSend', 'empty($arFields)', 'incorrect customer');
+
             return false;
         }
 
-        $customer = array(
-            'externalId'     => $arFields['ID'],
-            'email'          => $arFields['EMAIL'],
-            'createdAt'      => new \DateTime($arFields['DATE_REGISTER']),
-            'subscribed'     => false,
-            'contragent'     => array(
-                'contragentType' => $contragentType
-            )
-        );
-
-        if (!empty($arFields['NAME'])) {
-            $customer['firstName'] = $arFields['NAME'];
-        }
-        if (!empty($arFields['LAST_NAME'])) {
-            $customer['lastName'] = $arFields['LAST_NAME'];
-        }
-        if (!empty($arFields['SECOND_NAME'])) {
-            $customer['patronymic'] = $arFields['SECOND_NAME'];
-        }
-
-        if (!empty($arFields['PERSONAL_PHONE'])) {
-            $customer['phones'][]['number'] = $arFields['PERSONAL_PHONE'];
-        }
-        if (!empty($arFields['WORK_PHONE'])) {
-            $customer['phones'][]['number'] = $arFields['WORK_PHONE'];
-        }
-
-        if (!empty($arFields['PERSONAL_CITY'])) {
-            $customer['address']['city'] = $arFields['PERSONAL_CITY'];
-        }
-        if (!empty($arFields['PERSONAL_STREET'])) {
-            $customer['address']['text'] = $arFields['PERSONAL_STREET'];
-        }
-        if (!empty($arFields['PERSONAL_ZIP'])) {
-            $customer['address']['index'] = $arFields['PERSONAL_ZIP'];
-        }
-
-        if (mb_strlen($arFields['EMAIL']) > 100 ) {
-            unset($customer['email']);
-        }
+        $customer = self::getSimpleCustomer($arFields);
+        $customer['createdAt'] = new \DateTime($arFields['DATE_REGISTER']);
+        $customer['subscribed'] = false;
+        $customer['contragent'] = ['contragentType' => $contragentType];
 
         if ($send && isset($_COOKIE['_rc']) && $_COOKIE['_rc'] != '') {
             $customer['browserId'] = $_COOKIE['_rc'];
@@ -59,6 +36,7 @@ class RetailCrmUser
 
         if (function_exists('retailCrmBeforeCustomerSend')) {
             $newResCustomer = retailCrmBeforeCustomerSend($customer);
+
             if (is_array($newResCustomer) && !empty($newResCustomer)) {
                 $customer = $newResCustomer;
             } elseif ($newResCustomer === false) {
@@ -73,58 +51,26 @@ class RetailCrmUser
 
         Logger::getInstance()->write($customer, 'customerSend');
 
-        if ($send) {
-            if (!RCrmActions::apiMethod($api, 'customersCreate', __METHOD__, $customer, $site)) {
+        if (
+            $send
+            && !RCrmActions::apiMethod($api, 'customersCreate', __METHOD__, $customer, $site)
+        ) {
                 return false;
-            }
         }
 
         return $customer;
     }
 
-    public static function customerEdit($arFields, $api, $optionsSitesList = array()){
+    public static function customerEdit($arFields, $api, $optionsSitesList = array()): bool
+    {
         if (empty($arFields)) {
             RCrmActions::eventLog('RetailCrmUser::customerEdit', 'empty($arFields)', 'incorrect customer');
             return false;
         }
 
-        $customer = array(
-            'externalId'     => $arFields['ID'],
-            'email'          => $arFields['EMAIL'],
-        );
-
-        if (!empty($arFields['NAME'])) {
-            $customer['firstName'] = $arFields['NAME'];
-        }
-        if (!empty($arFields['LAST_NAME'])) {
-            $customer['lastName'] = $arFields['LAST_NAME'];
-        }
-        if (!empty($arFields['SECOND_NAME'])) {
-            $customer['patronymic'] = $arFields['SECOND_NAME'];
-        }
-
-        if ( mb_strlen($arFields['EMAIL']) > 100) {
-            unset($customer['email']);
-        }
-
-        if (!empty($arFields['PERSONAL_PHONE'])) {
-            $customer['phones'][]['number'] = $arFields['PERSONAL_PHONE'];
-        }
-        if (!empty($arFields['WORK_PHONE'])) {
-            $customer['phones'][]['number'] = $arFields['WORK_PHONE'];
-        }
-
-        if (!empty($arFields['PERSONAL_CITY'])) {
-            $customer['address']['city'] = $arFields['PERSONAL_CITY'];
-        }
-        if (!empty($arFields['PERSONAL_STREET'])) {
-            $customer['address']['text'] = $arFields['PERSONAL_STREET'];
-        }
-        if (!empty($arFields['PERSONAL_ZIP'])) {
-            $customer['address']['index'] = $arFields['PERSONAL_ZIP'];
-        }
-
+        $customer = self::getSimpleCustomer($arFields);
         $found = false;
+
         if (count($optionsSitesList) > 0) {
             foreach ($optionsSitesList as $site) {
                 $userCrm = RCrmActions::apiMethod($api, 'customersGet', __METHOD__, $arFields['ID'], $site);
@@ -162,5 +108,29 @@ class RetailCrmUser
         }
 
         return true;
+    }
+
+    /**
+     * @param array $arFields
+     *
+     * @return array
+     */
+    private static function getSimpleCustomer(array $arFields): array
+    {
+        $customer['externalId'] = $arFields['ID'];
+        $customer['firstName'] = $arFields['NAME'] ?? null;
+        $customer['lastName'] = $arFields['LAST_NAME'] ?? null;
+        $customer['patronymic'] = $arFields['SECOND_NAME'] ?? null;
+        $customer['phones'][]['number'] = $arFields['PERSONAL_PHONE'] ?? null;
+        $customer['phones'][]['number'] = $arFields['WORK_PHONE'] ?? null;
+        $customer['address']['city'] = $arFields['PERSONAL_CITY'] ?? null;
+        $customer['address']['text'] = $arFields['PERSONAL_STREET'] ?? null;
+        $customer['address']['index'] = $arFields['PERSONAL_ZIP'] ?? null;
+
+        if ( mb_strlen($arFields['EMAIL']) < 100) {
+            $customer['email'] = $arFields['EMAIL'];
+        }
+
+        return $customer;
     }
 }

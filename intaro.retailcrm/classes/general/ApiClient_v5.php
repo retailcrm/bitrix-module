@@ -11,6 +11,7 @@
 
 namespace RetailCrm;
 
+use InvalidArgumentException;
 use RetailCrm\Http\Client;
 use RetailCrm\Response\ApiResponse;
 
@@ -131,7 +132,7 @@ class ApiClient
         $statuses = array("free", "busy", "dinner", "break");
 
         if (empty($status) || !in_array($status, $statuses)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Parameter `status` must be not empty & must be equal one of these values: free|busy|dinner|break'
             );
         }
@@ -209,7 +210,7 @@ class ApiClient
     public function customersCorporateCreate(array $customer, $site = null)
     {
         if (! count($customer)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Parameter `customer` must contains a data'
             );
         }
@@ -235,7 +236,7 @@ class ApiClient
     public function customersCorporateFixExternalIds(array $ids)
     {
         if (! count($ids)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Method parameter must contains at least one IDs pair'
             );
         }
@@ -262,7 +263,7 @@ class ApiClient
     public function customersCorporateUpload(array $customers, $site = null)
     {
         if (! count($customers)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Parameter `customers` must contains array of the customers'
             );
         }
@@ -391,7 +392,7 @@ class ApiClient
     public function customersCorporateContactsCreate($id, array $contact = [], $by = 'externalId', $site = null)
     {
         if (! count($contact)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Parameter `contact` must contains a data'
             );
         }
@@ -528,7 +529,7 @@ class ApiClient
     public function customersCorporateNotesCreate($note, $site = null)
     {
         if (empty($note['customer']['id']) && empty($note['customer']['externalId'])) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Customer identifier must be set'
             );
         }
@@ -554,7 +555,7 @@ class ApiClient
     public function customersCorporateNotesDelete($id)
     {
         if (empty($id)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Note id must be set'
             );
         }
@@ -662,7 +663,7 @@ class ApiClient
                 || (isset($addressFiltered['text']) && empty($addressFiltered['text']))
             )
         ) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Parameter `address` must contain address text or all other address field'
             );
         }
@@ -777,36 +778,46 @@ class ApiClient
     /**
      * Edit a corporate customer
      *
-     * @param array  $customerCorporate corporate customer data
-     * @param string $by       (default: 'externalId')
-     * @param string $site     (default: null)
-     *
-     * @throws \InvalidArgumentException
-     * @throws \RetailCrm\Exception\CurlException
-     * @throws \RetailCrm\Exception\InvalidJsonException
+     * @param array       $params corporate customer data
+     * @param string $by (default: 'externalId')
+     * @param null        $site (default: null)
      *
      * @return \RetailCrm\Response\ApiResponse
      */
-    public function customersCorporateEdit(array $customerCorporate, $by = 'externalId', $site = null)
-    {
-        if (!count($customerCorporate)) {
-            throw new \InvalidArgumentException(
+    public function customersCorporateEdit(
+        array $params,
+        $by = 'externalId',
+        $site = null
+    ): ApiResponse {
+        if (!count($params)) {
+            throw new InvalidArgumentException(
                 'Parameter `customerCorporate` must contains a data'
             );
         }
+
+        if (!isset($params['urlId'])) {
+            throw new InvalidArgumentException(
+                'urlId should be in $params'
+            );
+        }
+
+        $urlId = $params['urlId'];
+
+        unset($params['urlId']);
         $this->checkIdParameter($by);
-        if (!array_key_exists($by, $customerCorporate)) {
-            throw new \InvalidArgumentException(
+
+        if (!array_key_exists($by, $params)) {
+            throw new InvalidArgumentException(
                 sprintf('Corporate customer array must contain the "%s" parameter.', $by)
             );
         }
         /* @noinspection PhpUndefinedMethodInspection */
         return $this->client->makeRequest(
-            sprintf('/customers-corporate/%s/edit', $customerCorporate[$by]),
+            sprintf('/customers-corporate/%s/edit', $urlId),
             Client::METHOD_POST,
             $this->fillSite(
                 $site,
-                ['customerCorporate' => json_encode($customerCorporate), 'by' => $by]
+                ['customerCorporate' => json_encode($params), 'by' => $by]
             )
         );
     }
@@ -826,7 +837,7 @@ class ApiClient
     public function ordersCreate(array $order, $site = null)
     {
         if (!count($order)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Parameter `order` must contains a data'
             );
         }
@@ -852,7 +863,7 @@ class ApiClient
     public function ordersFixExternalIds(array $ids)
     {
         if (! count($ids)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Method parameter must contains at least one IDs pair'
             );
         }
@@ -910,7 +921,7 @@ class ApiClient
     public function ordersUpload(array $orders, $site = null)
     {
         if (!count($orders)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Parameter `orders` must contains array of the orders'
             );
         }
@@ -962,7 +973,7 @@ class ApiClient
     public function ordersEdit(array $order, $by = 'externalId', $site = null)
     {
         if (!count($order)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Parameter `order` must contains a data'
             );
         }
@@ -970,7 +981,7 @@ class ApiClient
         $this->checkIdParameter($by);
 
         if (!array_key_exists($by, $order)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 sprintf('Order array must contain the "%s" parameter.', $by)
             );
         }
@@ -1063,7 +1074,7 @@ class ApiClient
     public function customersCreate(array $customer, $site = null)
     {
         if (! count($customer)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Parameter `customer` must contains a data'
             );
         }
@@ -1089,7 +1100,7 @@ class ApiClient
     public function customersFixExternalIds(array $ids)
     {
         if (! count($ids)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Method parameter must contains at least one IDs pair'
             );
         }
@@ -1116,7 +1127,7 @@ class ApiClient
     public function customersUpload(array $customers, $site = null)
     {
         if (! count($customers)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Parameter `customers` must contains array of the customers'
             );
         }
@@ -1168,7 +1179,7 @@ class ApiClient
     public function customersEdit(array $customer, $by = 'externalId', $site = null)
     {
         if (!count($customer)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Parameter `customer` must contains a data'
             );
         }
@@ -1176,7 +1187,7 @@ class ApiClient
         $this->checkIdParameter($by);
 
         if (!array_key_exists($by, $customer)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 sprintf('Customer array must contain the "%s" parameter.', $by)
             );
         }
@@ -1234,13 +1245,13 @@ class ApiClient
         $techniques = array('ours', 'summ', 'theirs');
 
         if (!count($order) || !count($resultOrder)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Parameters `order` & `resultOrder` must contains a data'
             );
         }
 
         if (!in_array($technique, $techniques)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Parameter `technique` must be on of ours|summ|theirs'
             );
         }
@@ -1270,7 +1281,7 @@ class ApiClient
     public function ordersPaymentCreate(array $payment, $site = null)
     {
         if (!count($payment)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Parameter `payment` must contains a data'
             );
         }
@@ -1297,7 +1308,7 @@ class ApiClient
     public function ordersPaymentEdit(array $payment, $by = 'id', $site = null)
     {
         if (!count($payment)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Parameter `payment` must contains a data'
             );
         }
@@ -1305,7 +1316,7 @@ class ApiClient
         $this->checkIdParameter($by);
 
         if (!array_key_exists($by, $payment)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 sprintf('Order array must contain the "%s" parameter.', $by)
             );
         }
@@ -1330,7 +1341,7 @@ class ApiClient
     public function ordersPaymentDelete($id)
     {
         if (empty($id)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Note id must be set'
             );
         }
@@ -1353,7 +1364,7 @@ class ApiClient
     {
 
         if (!count($customers) || !count($resultCustomer)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Parameters `customers` & `resultCustomer` must contains a data'
             );
         }
@@ -1417,7 +1428,7 @@ class ApiClient
     public function customersNotesCreate($note, $site = null)
     {
         if (empty($note['customer']['id']) && empty($note['customer']['externalId'])) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Customer identifier must be set'
             );
         }
@@ -1443,7 +1454,7 @@ class ApiClient
     public function customersNotesDelete($id)
     {
         if (empty($id)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Note id must be set'
             );
         }
@@ -1499,13 +1510,13 @@ class ApiClient
             empty($customField['name']) ||
             empty($customField['type'])
         ) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Parameter `customField` must contain a data & fields `code`, `name` & `type` must be set'
             );
         }
 
         if (empty($entity) || !in_array($entity, array('customer', 'order'))) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Parameter `entity` must contain a data & value must be `order` or `customer`'
             );
         }
@@ -1528,13 +1539,13 @@ class ApiClient
     public function customFieldsEdit($entity, $customField)
     {
         if (!count($customField) || empty($customField['code'])) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Parameter `customField` must contain a data & fields `code` must be set'
             );
         }
 
         if (empty($entity) || !in_array($entity, array('customer', 'order'))) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Parameter `entity` must contain a data & value must be `order` or `customer`'
             );
         }
@@ -1557,13 +1568,13 @@ class ApiClient
     public function customFieldsGet($entity, $code)
     {
         if (empty($code)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Parameter `code` must be not empty'
             );
         }
 
         if (empty($entity) || !in_array($entity, array('customer', 'order'))) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Parameter `entity` must contain a data & value must be `order` or `customer`'
             );
         }
@@ -1617,7 +1628,7 @@ class ApiClient
             empty($customDictionary['code']) ||
             empty($customDictionary['elements'])
         ) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Parameter `dictionary` must contain a data & fields `code` & `elemets` must be set'
             );
         }
@@ -1642,7 +1653,7 @@ class ApiClient
             empty($customDictionary['code']) ||
             empty($customDictionary['elements'])
         ) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Parameter `dictionary` must contain a data & fields `code` & `elemets` must be set'
             );
         }
@@ -1664,7 +1675,7 @@ class ApiClient
     public function customDictionariesGet($code)
     {
         if (empty($code)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Parameter `code` must be not empty'
             );
         }
@@ -1717,7 +1728,7 @@ class ApiClient
     public function tasksCreate($task, $site = null)
     {
         if (!count($task)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Parameter `task` must contain a data'
             );
         }
@@ -1744,7 +1755,7 @@ class ApiClient
     public function tasksEdit($task, $site = null)
     {
         if (!count($task)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Parameter `task` must contain a data'
             );
         }
@@ -1769,7 +1780,7 @@ class ApiClient
     public function tasksGet($id)
     {
         if (empty($id)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Parameter `id` must be not empty'
             );
         }
@@ -1829,7 +1840,7 @@ class ApiClient
     public function ordersPacksCreate(array $pack, $site = null)
     {
         if (!count($pack)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Parameter `pack` must contains a data'
             );
         }
@@ -1889,7 +1900,7 @@ class ApiClient
     public function ordersPacksGet($id)
     {
         if (empty($id)) {
-            throw new \InvalidArgumentException('Parameter `id` must be set');
+            throw new InvalidArgumentException('Parameter `id` must be set');
         }
 
         return $this->client->makeRequest(
@@ -1912,7 +1923,7 @@ class ApiClient
     public function ordersPacksDelete($id)
     {
         if (empty($id)) {
-            throw new \InvalidArgumentException('Parameter `id` must be set');
+            throw new InvalidArgumentException('Parameter `id` must be set');
         }
 
         return $this->client->makeRequest(
@@ -1936,7 +1947,7 @@ class ApiClient
     public function ordersPacksEdit(array $pack, $site = null)
     {
         if (!count($pack) || empty($pack['id'])) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Parameter `pack` must contains a data & pack `id` must be set'
             );
         }
@@ -1997,7 +2008,7 @@ class ApiClient
     public function storeInventoriesUpload(array $offers, $site = null)
     {
         if (!count($offers)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Parameter `offers` must contains array of the offers'
             );
         }
@@ -2024,7 +2035,7 @@ class ApiClient
     public function storePricesUpload(array $prices, $site = null)
     {
         if (!count($prices)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Parameter `prices` must contains array of the prices'
             );
         }
@@ -2084,7 +2095,7 @@ class ApiClient
     public function integrationModulesGet($code)
     {
         if (empty($code)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Parameter `code` must be set'
             );
         }
@@ -2109,7 +2120,7 @@ class ApiClient
     public function integrationModulesEdit(array $configuration)
     {
         if (!count($configuration) || empty($configuration['code'])) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Parameter `configuration` must contains a data & configuration `code` must be set'
             );
         }
@@ -2136,11 +2147,11 @@ class ApiClient
     public function deliveryTracking($code, array $statusUpdate)
     {
         if (empty($code)) {
-            throw new \InvalidArgumentException('Parameter `code` must be set');
+            throw new InvalidArgumentException('Parameter `code` must be set');
         }
 
         if (!count($statusUpdate)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Parameter `statusUpdate` must contains a data'
             );
         }
@@ -2200,7 +2211,7 @@ class ApiClient
     public function deliveryServicesEdit(array $data)
     {
         if (!array_key_exists('code', $data)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Data must contain "code" parameter.'
             );
         }
@@ -2243,7 +2254,7 @@ class ApiClient
     public function deliveryTypesEdit(array $data)
     {
         if (!array_key_exists('code', $data)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Data must contain "code" parameter.'
             );
         }
@@ -2286,7 +2297,7 @@ class ApiClient
     public function orderMethodsEdit(array $data)
     {
         if (!array_key_exists('code', $data)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Data must contain "code" parameter.'
             );
         }
@@ -2329,7 +2340,7 @@ class ApiClient
     public function orderTypesEdit(array $data)
     {
         if (!array_key_exists('code', $data)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Data must contain "code" parameter.'
             );
         }
@@ -2372,7 +2383,7 @@ class ApiClient
     public function paymentStatusesEdit(array $data)
     {
         if (!array_key_exists('code', $data)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Data must contain "code" parameter.'
             );
         }
@@ -2415,7 +2426,7 @@ class ApiClient
     public function paymentTypesEdit(array $data)
     {
         if (!array_key_exists('code', $data)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Data must contain "code" parameter.'
             );
         }
@@ -2458,7 +2469,7 @@ class ApiClient
     public function productStatusesEdit(array $data)
     {
         if (!array_key_exists('code', $data)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Data must contain "code" parameter.'
             );
         }
@@ -2535,7 +2546,7 @@ class ApiClient
     public function sitesEdit(array $data)
     {
         if (!array_key_exists('code', $data)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Data must contain "code" parameter.'
             );
         }
@@ -2595,7 +2606,7 @@ class ApiClient
     public function statusesEdit(array $data)
     {
         if (!array_key_exists('code', $data)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Data must contain "code" parameter.'
             );
         }
@@ -2638,13 +2649,13 @@ class ApiClient
     public function storesEdit(array $data)
     {
         if (!array_key_exists('code', $data)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Data must contain "code" parameter.'
             );
         }
 
         if (!array_key_exists('name', $data)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Data must contain "name" parameter.'
             );
         }
@@ -2686,13 +2697,13 @@ class ApiClient
     public function pricesEdit(array $data)
     {
         if (!array_key_exists('code', $data)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Data must contain "code" parameter.'
             );
         }
 
         if (!array_key_exists('name', $data)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Data must contain "name" parameter.'
             );
         }
@@ -2729,15 +2740,15 @@ class ApiClient
     )
     {
         if (!isset($phone)) {
-            throw new \InvalidArgumentException('Phone number must be set');
+            throw new InvalidArgumentException('Phone number must be set');
         }
 
         if (!isset($type)) {
-            throw new \InvalidArgumentException('Type must be set (in|out|hangup)');
+            throw new InvalidArgumentException('Type must be set (in|out|hangup)');
         }
 
         if (empty($codes)) {
-            throw new \InvalidArgumentException('Codes array must be set');
+            throw new InvalidArgumentException('Codes array must be set');
         }
 
         $parameters['phone'] = $phone;
@@ -2769,7 +2780,7 @@ class ApiClient
     public function telephonyCallsUpload(array $calls)
     {
         if (!count($calls)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Parameter `calls` must contains array of the calls'
             );
         }
@@ -2796,7 +2807,7 @@ class ApiClient
     public function telephonyCallManager($phone, $details)
     {
         if (!isset($phone)) {
-            throw new \InvalidArgumentException('Phone number must be set');
+            throw new InvalidArgumentException('Phone number must be set');
         }
 
         $parameters['phone'] = $phone;
@@ -2883,19 +2894,19 @@ class ApiClient
      *
      * @param string $by identify by
      *
+     * @return bool
      * @throws \InvalidArgumentException
      *
-     * @return bool
      */
-    protected function checkIdParameter($by)
+    protected function checkIdParameter(string $by): bool
     {
-        $allowedForBy = array(
+        $allowedForBy = [
             'externalId',
-            'id'
-        );
+            'id',
+        ];
 
         if (!in_array($by, $allowedForBy, false)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 sprintf(
                     'Value "%s" for "by" param is not valid. Allowed values are %s.',
                     $by,

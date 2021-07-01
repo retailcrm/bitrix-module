@@ -444,28 +444,30 @@ class RCrmActions
             case 'customersCorporateContacts':
             case 'customersList':
             case 'customersCorporateList':
-                return self::proxy($api, $methodApi, $method, array($params));
+                return self::proxy($api, $methodApi, $method, [$params]);
             case 'orderGet':
-                return self::proxy($api, 'ordersGet', $method, array($params, 'id', $site));
+                return self::proxy($api, 'ordersGet', $method, [$params, 'id', $site]);
 
             case 'ordersGet':
             case 'ordersEdit':
             case 'customersGet':
             case 'customersEdit':
             case 'customersCorporateGet':
-                return self::proxy($api, $methodApi, $method, array($params, 'externalId', $site));
+                return self::proxy($api, $methodApi, $method, [$params, 'externalId', $site]);
             case 'customersCorporateGetById':
-                return self::proxy($api, 'customersCorporateGet', $method, array($params, 'id', $site));
+                return self::proxy($api, 'customersCorporateGet', $method, [$params, 'id', $site]);
             case 'customersGetById':
-                return self::proxy($api, 'customersGet', $method, array($params, 'id', $site));
+                return self::proxy($api, 'customersGet', $method, [$params, 'id', $site]);
 
             case 'paymentEditById':
-                return self::proxy($api, 'ordersPaymentEdit', $method, array($params, 'id', $site));
+                return self::proxy($api, 'ordersPaymentEdit', $method, [$params, 'id', $site]);
 
             case 'paymentEditByExternalId':
-                return self::proxy($api, 'ordersPaymentEdit', $method, array($params, 'externalId', $site));
+                return self::proxy($api, 'ordersPaymentEdit', $method, [$params, 'externalId', $site]);
+            case 'customersCorporateEdit':
+                return self::proxy($api, 'customersCorporateEdit', $method, [$params, 'externalId', $site]);
             default:
-                return self::proxy($api, $methodApi, $method, array($params, $site));
+            return self::proxy($api, $methodApi, $method, array($params, $site));
         }
     }
 
