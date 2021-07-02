@@ -1,13 +1,48 @@
 $(document).ready(function() {
+
+    function isInt(n)
+    {
+        return n !== ""
+            && !isNaN(n)
+            && n.charAt(0) !== "0"
+            && Math.round(parseFloat(n)) === parseFloat(n)
+            && parseInt(n) > 0;
+    }
+
+    function isFloat(n){
+        return n !== ""
+            && !isNaN(n)
+            && parseFloat(n)>0
+            && (n.split(".").length - 1) === 1
+            && Math.round(n) !== n;
+    }
+
+    function isErrorsInInputBonuses() {
+        let availableBonuses = Number.parseInt($('#available-bonus-input').val());
+        let inputBonuses     = Number.parseInt($('#bonus-input').val());
+        if (inputBonuses > availableBonuses) {
+            $('#bonus-input-error')
+                .text(window.__MESS__.YOU_CANT_SPEND_MORE + ' ' + availableBonuses + ' ' + window.__MESS__.BONUSES);
+            return true;
+        } else {
+            $('#bonus-input-error').html(null);
+        }
+        
+        return false;
+    }
+
     function makeAjaxRequest() {
         $('#bonus-msg').html(window.__MESS__.COUNT_FOR_WRITE_OFF);
         let basketItemsHidden = window.__BASKET_ITEMS__;
         let inputBonuses = $('#bonus-input').val();
 
-        if (/^[1-9]+$/.test(inputBonuses) === false) {
+        if (!isInt(inputBonuses) && !isFloat(inputBonuses)) {
             $('#bonus-input-error').html(window.__MESS__.VALIDATE_BONUS_ERROR);
+
             return;
         }
+
+        $('#bonus-input').change(isErrorsInInputBonuses());
 
         let inputBonusesInt = Number.parseInt(inputBonuses);
 
@@ -26,17 +61,6 @@ $(document).ready(function() {
 
     $('#bonus-input').on('keydown', function() {
         $('#bonus-msg').html(window.__MESS__.DATA_PROCESSING);
-    });
-
-    $('#bonus-input').keyup(function() {
-        let availableBonuses = Number.parseInt($('#available-bonus-input').val());
-        let inputBonuses     = Number.parseInt($('#bonus-input').val());
-        if (inputBonuses > availableBonuses) {
-            $('#bonus-input-error')
-                .text(window.__MESS__.YOU_CANT_SPEND_MORE + ' ' + availableBonuses + ' ' + window.__MESS__.BONUSES);
-        } else {
-            $('#bonus-input-error').html(null);
-        }
     });
 
     $('#bonus-input').on('keydown', _.debounce(makeAjaxRequest, 1000));
