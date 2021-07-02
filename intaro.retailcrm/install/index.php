@@ -1293,15 +1293,15 @@ class intaro_retailcrm extends CModule
         $api_key     = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, 0);
         $api_version = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_VERSION, 0);
 
-        include($this->INSTALL_PATH . '/../classes/general/Http/Client.php');
-        include($this->INSTALL_PATH . '/../classes/general/Response/ApiResponse.php');
-        include($this->INSTALL_PATH . '/../classes/general/Exception/InvalidJsonException.php');
-        include($this->INSTALL_PATH . '/../classes/general/Exception/CurlException.php');
-        include($this->INSTALL_PATH . '/../classes/general/RCrmActions.php');
-        include($this->INSTALL_PATH . '/../classes/general/Logger.php');
-        include($this->INSTALL_PATH . '/../classes/general/ApiClient_v5.php');
-        include($this->INSTALL_PATH . '/../classes/general/order/RetailCrmOrder_v5.php');
-        include($this->INSTALL_PATH . '/../classes/general/history/RetailCrmHistory_v5.php');
+        require_once($this->INSTALL_PATH . '/../classes/general/Http/Client.php');
+        require_once($this->INSTALL_PATH . '/../classes/general/Response/ApiResponse.php');
+        require_once($this->INSTALL_PATH . '/../classes/general/Exception/InvalidJsonException.php');
+        require_once($this->INSTALL_PATH . '/../classes/general/Exception/CurlException.php');
+        require_once($this->INSTALL_PATH . '/../classes/general/RCrmActions.php');
+        require_once($this->INSTALL_PATH . '/../classes/general/Logger.php');
+        require_once($this->INSTALL_PATH . '/../classes/general/ApiClient_v5.php');
+        require_once($this->INSTALL_PATH . '/../classes/general/order/RetailCrmOrder_v5.php');
+        require_once($this->INSTALL_PATH . '/../classes/general/history/RetailCrmHistory_v5.php');
 
         $retail_crm_api = new ApiClient($api_host, $api_key);
 
