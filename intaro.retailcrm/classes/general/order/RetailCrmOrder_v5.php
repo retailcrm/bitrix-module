@@ -461,8 +461,12 @@ class RetailCrmOrder
 
                 foreach ($ordersPack as $lid => $lidOrdersList) {
                     foreach ($lidOrdersList as $key => $orderData) {
-                        $lidOrdersList[$key]
-                            = self::addCorporateCustomerToOrder($orderData, $api, $resCustomersCorporate, $cachedCorporateIds);
+                        $lidOrdersList[$key] = self::addCorporateCustomerToOrder(
+                            $orderData,
+                            $api,
+                            $resCustomersCorporate,
+                            $cachedCorporateIds
+                        );
                     }
 
                     $ordersPack[$lid] = $lidOrdersList;
@@ -510,32 +514,36 @@ class RetailCrmOrder
             if (true === RetailCrmCorporateClient::isCorpTookExternalId($user['ID'], $api)) {
                 RetailCrmCorporateClient::setPrefixForExternalId($user['ID'], $api);
             }
+        }
 
-            if ($optionsContragentType[$order['PERSON_TYPE_ID']] === 'legal-entity') {
-                // TODO check if order is corporate, and if it IS - make corporate order
-                $arCustomer = RetailCrmUser::customerSend(
-                    $user,
-                    $api,
-                    'individual',
-                    false,
-                    $site
-                );
+        if (
+            'Y' === RetailcrmConfigProvider::getCorporateClientStatus()
+            && $optionsContragentType[$order['PERSON_TYPE_ID']] === 'legal-entity'
+        ) {
+            // TODO check if order is corporate, and if it IS - make corporate order
+            $arCustomer = RetailCrmUser::customerSend(
+                $user,
+                $api,
+                'individual',
+                false,
+                $site
+            );
 
-                $arCustomerCorporate = RetailCrmCorporateClient::clientSend(
-                    $order,
-                    $api,
-                    'legal-entity',
-                    false,
-                    true,
-                    $site
-                );
+            $arCustomerCorporate = RetailCrmCorporateClient::clientSend(
+                $order,
+                $api,
+                'legal-entity',
+                false,
+                true,
+                $site
+            );
 
-                $arParams['orderCompany'] = isset($arCustomerCorporate['companies'])
-                    ? reset($arCustomerCorporate['companies']) : null;
-                $arParams['contactExId'] = $user['ID'];
+            $arParams['orderCompany'] = isset($arCustomerCorporate['companies'])
+                ? reset($arCustomerCorporate['companies'])
+                : null;
+            $arParams['contactExId'] = $user['ID'];
 
-                return;
-            }
+            return;
         }
 
         $arCustomer = RetailCrmUser::customerSend(

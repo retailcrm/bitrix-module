@@ -195,6 +195,14 @@ class RetailCrmEvent
 
         $orderCompany = null;
 
+        if ('Y' === $optionCorpClient) {
+            if (true === RetailCrmCorporateClient::isCorpTookExternalId($arOrder['USER_ID'], $api)) {
+                RetailCrmCorporateClient::setPrefixForExternalId($arOrder['USER_ID'], $api);
+            }
+        }
+
+        //TODO эта управляющая конструкция по функционалу дублирует RetailCrmOrder::createCustomerForOrder.
+        // Необходимо устранить дублирование, вынеся логику в обособленный класс-сервис
         if ("Y" === $optionCorpClient && $optionsContragentType[$arOrder['PERSON_TYPE_ID']] == 'legal-entity') {
             //corparate cliente
             $nickName = '';
