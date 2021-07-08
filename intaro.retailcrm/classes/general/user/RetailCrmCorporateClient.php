@@ -1,7 +1,14 @@
 <?php
+
+use Bitrix\Main\UserTable;
+use RetailCrm\ApiClient;
+use RetailCrm\Response\ApiResponse;
+
 IncludeModuleLangFile(__FILE__);
 class RetailCrmCorporateClient
 {
+    const CORP_PREFIX = 'corp';
+
     public static function clientSend($arOrder, $api, $contragentType, $send = false, $fillCorp = false, $site = null)
     {
         if (!$api || empty($contragentType)) {
@@ -12,7 +19,7 @@ class RetailCrmCorporateClient
         $contragent = array();
         $shops = RetailcrmConfigProvider::getSitesListCorporate();
         $optionsLegalDetails = RetailcrmConfigProvider::getLegalDetails();
-        $arUser = Bitrix\Main\UserTable::getById($arOrder['USER_ID'])->fetch();
+        $arUser = UserTable::getById($arOrder['USER_ID'])->fetch();
 
         if (count($shops) == 0) {
             RCrmActions::eventLog('RetailCrmCorporateClient::clientSend()', '$shops', 'No stores selected for download');
@@ -45,38 +52,38 @@ class RetailCrmCorporateClient
         }
 
         foreach ($shops as $shop) {
-            $customerCorporate = array(
-                'createdAt'      => $arOrder['DATE_INSERT'],
-                "nickName" => $nickName
-            );
+            $customerCorporate = [
+                'createdAt' => $arOrder['DATE_INSERT'],
+                "nickName" => $nickName,
+            ];
 
             if ($fillCorp) {
                 $customerCorporate = array_merge(
                     $customerCorporate,
-                    array(
-                        'customerContacts' => array(
-                            array(
+                    [
+                        'customerContacts' => [
+                            [
                                 'isMain' => true,
-                                'customer' => array(
+                                'customer' => [
                                     'externalId' => $arUser['ID'],
-                                    'site' => $shop
-                                )
-                            )
-                        ),
-                        'companies' => array(
-                            array(
+                                    'site' => $shop,
+                                ],
+                            ],
+                        ],
+                        'companies' => [
+                            [
                                 'name' => $nickName,
                                 'isMain' => true,
-                            )
-                        ),
-                        'addresses' => array(
-                            array(
+                            ],
+                        ],
+                        'addresses' => [
+                            [
                                 'name' => $nickName,
                                 'isMain' => true,
-                                'text' => $address
-                            )
-                        )
-                    )
+                                'text' => $address,
+                            ],
+                        ],
+                    ]
                 );
             }
         }
@@ -152,6 +159,58 @@ class RetailCrmCorporateClient
                     ), 'apiErrors');
                 }
             }
+        }
+    }
+
+    /**
+     * Проверяет, существует ли корпоративный клиент с указанным externalId
+     *
+     * @param string               $bitrixUserId
+     * @param \RetailCrm\ApiClient $api
+     *
+     * @return bool
+     */
+    public static function isCorpTookExternalId(string $bitrixUserId, ApiClient $api): bool
+    {
+        $response = RCrmActions::apiMethod(
+            $api,
+            'customersCorporateGet',
+            __METHOD__,
+            $bitrixUserId
+        );
+
+        if (false === $response) {
+            return false;
+        }
+
+        if ($response instanceof ApiResponse && $response->offsetGet('customerCorporate')) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param string               $externalId
+     * @param \RetailCrm\ApiClient $api
+     */
+    public static function setPrefixForExternalId(string $externalId, ApiClient $api)
+    {
+        $response = RCrmActions::apiMethod(
+            $api,
+            'customersCorporateEdit',
+            __METHOD__,
+            [
+                'urlId' => $externalId,
+                'externalId' => self::CORP_PREFIX . $externalId
+            ]
+        );
+
+        if (false === $response) {
+            Logger::getInstance()->write(
+                sprintf('Не удалось добавить префикс для корпоративного клиента %s',  $externalId),
+                'clientCorporate'
+            );
         }
     }
 }
