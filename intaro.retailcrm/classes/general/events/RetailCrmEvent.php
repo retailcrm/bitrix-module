@@ -196,8 +196,8 @@ class RetailCrmEvent
         $orderCompany = null;
 
         if ('Y' === $optionCorpClient) {
-            if (true === RetailCrmCorporateClient::isCorpTookExternalId($arOrder['USER_ID'], $api)) {
-                RetailCrmCorporateClient::setPrefixForExternalId($arOrder['USER_ID'], $api);
+            if (true === RetailCrmCorporateClient::isCorpTookExternalId((string) $arOrder['USER_ID'], $api)) {
+                RetailCrmCorporateClient::setPrefixForExternalId((string) $arOrder['USER_ID'], $api);
             }
         }
 

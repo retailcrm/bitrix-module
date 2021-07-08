@@ -165,12 +165,12 @@ class RetailCrmCorporateClient
     /**
      * Проверяет, существует ли корпоративный клиент с указанным externalId
      *
-     * @param                      $bitrixUserId
+     * @param string               $bitrixUserId
      * @param \RetailCrm\ApiClient $api
      *
      * @return bool
      */
-    public static function isCorpTookExternalId($bitrixUserId, ApiClient $api): bool
+    public static function isCorpTookExternalId(string $bitrixUserId, ApiClient $api): bool
     {
         $response = RCrmActions::apiMethod(
             $api,
@@ -191,10 +191,10 @@ class RetailCrmCorporateClient
     }
 
     /**
-     * @param                      $externalId
+     * @param string               $externalId
      * @param \RetailCrm\ApiClient $api
      */
-    public static function setPrefixForExternalId($externalId, ApiClient $api)
+    public static function setPrefixForExternalId(string $externalId, ApiClient $api)
     {
         $response = RCrmActions::apiMethod(
             $api,

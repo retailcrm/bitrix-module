@@ -127,7 +127,7 @@ class RetailCrmUser
         $customer['address']['text'] = $arFields['PERSONAL_STREET'] ?? null;
         $customer['address']['index'] = $arFields['PERSONAL_ZIP'] ?? null;
 
-        if ( mb_strlen($arFields['EMAIL']) < 100) {
+        if (mb_strlen($arFields['EMAIL']) < 100) {
             $customer['email'] = $arFields['EMAIL'];
         }
 

@@ -511,8 +511,8 @@ class RetailCrmOrder
         $user = UserTable::getById($order['USER_ID'])->fetch();
 
         if ('Y' === RetailcrmConfigProvider::getCorporateClientStatus()) {
-            if (true === RetailCrmCorporateClient::isCorpTookExternalId($user['ID'], $api)) {
-                RetailCrmCorporateClient::setPrefixForExternalId($user['ID'], $api);
+            if (true === RetailCrmCorporateClient::isCorpTookExternalId((string) $user['ID'], $api)) {
+                RetailCrmCorporateClient::setPrefixForExternalId((string) $user['ID'], $api);
             }
         }
 
