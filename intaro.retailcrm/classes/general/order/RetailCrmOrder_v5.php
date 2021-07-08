@@ -1,7 +1,9 @@
 <?php
 
+use Bitrix\Main\UserTable;
 use Bitrix\Sale\Internals\Fields;
-use Intaro\RetailCrm\Service\UploadOrderService;
+use Bitrix\Sale\Order;
+use RetailCrm\ApiClient;
 
 IncludeModuleLangFile(__FILE__);
 class RetailCrmOrder
@@ -350,11 +352,11 @@ class RetailCrmOrder
             return true;
         }
 
-        $resOrders = array();
-        $resCustomers = array();
-        $resCustomersAdded = array();
-        $resCustomersCorporate = array();
-        $orderIds = array();
+        $ordersPack = [];
+        $resCustomers = [];
+        $resCustomersAdded = [];
+        $resCustomersCorporate = [];
+        $orderIds = [];
 
         $lastUpOrderId = RetailcrmConfigProvider::getLastOrderId();
         $failedIds = RetailcrmConfigProvider::getFailedOrdersIds();
@@ -410,60 +412,22 @@ class RetailCrmOrder
 
         foreach ($orderIds as $orderId) {
             $site = null;
-            $id = \Bitrix\Sale\Order::load($orderId);
+            $id = Order::load($orderId);
 
             if (!$id) {
                 continue;
             }
 
-            $arCustomer = array();
-            $arCustomerCorporate = array();
+            $arCustomer = [];
+            $arCustomerCorporate = [];
             $order = self::orderObjToArr($id);
-            $user = Bitrix\Main\UserTable::getById($order['USER_ID'])->fetch();
             $site = RetailCrmOrder::getSite($order['LID'], $optionsSitesList);
 
             if (true === $site) {
                 continue;
             }
 
-            if ("Y" == RetailcrmConfigProvider::getCorporateClientStatus()
-                && $optionsContragentType[$order['PERSON_TYPE_ID']] == 'legal-entity'
-            ) {
-                // TODO check if order is corporate, and if it IS - make corporate order
-                $arCustomer = RetailCrmUser::customerSend(
-                    $user,
-                    $api,
-                    'individual',
-                    false,
-                    $site
-                );
-
-                $arCustomerCorporate = RetailCrmCorporateClient::clientSend(
-                    $order,
-                    $api,
-                    'legal-entity',
-                    false,
-                    true,
-                    $site
-                );
-
-                $arParams['orderCompany'] = isset($arCustomerCorporate['companies'])
-                    ? reset($arCustomerCorporate['companies']) : null;
-
-                $arParams['contactExId'] = $user['ID'];
-            } else {
-                $arCustomer = RetailCrmUser::customerSend(
-                    $user,
-                    $api,
-                    $optionsContragentType[$order['PERSON_TYPE_ID']],
-                    false,
-                    $site
-                );
-
-                if (isset($arParams['contactExId'])) {
-                    unset($arParams['contactExId']);
-                }
-            }
+            self::createCustomerForOrder($api, $arCustomer, $arCustomerCorporate,$arParams, $order, $site);
 
             $arOrders = self::orderSend($order, $api, $arParams, false, $site,'ordersCreate');
 
@@ -475,7 +439,7 @@ class RetailCrmOrder
                 $resCustomersCorporate[$arCustomerCorporate['nickName']] = $arCustomerCorporate;
             }
 
-            $email = isset($arCustomer['email']) ? $arCustomer['email'] : '';
+            $email = $arCustomer['email'] ?? '';
 
             if (!in_array($email, $resCustomersAdded)) {
                 $resCustomersAdded[] = $email;
@@ -483,79 +447,33 @@ class RetailCrmOrder
             }
 
             $resCustomers[$order['LID']][] = $arCustomer;
-            $resOrders[$order['LID']][] = $arOrders;
+            $ordersPack[$order['LID']][] = $arOrders;
             $recOrders[] = $orderId;
         }
 
-        if (count($resOrders) > 0) {
+        if (count($ordersPack) > 0) {
             if (false === RetailCrmOrder::uploadCustomersList($resCustomers, $api, $optionsSitesList)) {
                 return false;
             }
 
-            if ("Y" == RetailcrmConfigProvider::getCorporateClientStatus()) {
-                $cachedCorporateIds = array();
+            if ('Y' == RetailcrmConfigProvider::getCorporateClientStatus()) {
+                $cachedCorporateIds = [];
 
-                foreach ($resOrders as $packKey => $pack) {
-                    foreach ($pack as $key => $orderData) {
-                        if (isset($orderData['contragent']['contragentType'])
-                            && $orderData['contragent']['contragentType'] == 'legal-entity'
-                            && !empty($orderData['contragent']['legalName'])
-                        ) {
-                            if (isset($cachedCorporateIds[$orderData['contragent']['legalName']])) {
-                                $orderData['customer'] = array(
-                                    'id' => $cachedCorporateIds[$orderData['contragent']['legalName']]
-                                );
-                            } else {
-                                $corpData = $api->customersCorporateList(array(
-                                    'nickName' => array($orderData['contragent']['legalName'])
-                                ));
-
-                                if ($corpData
-                                    && $corpData->isSuccessful()
-                                    && $corpData->offsetExists('customersCorporate')
-                                    && !empty($corpData['customersCorporate'])
-                                ) {
-                                    $corpData = $corpData['customersCorporate'];
-                                    $corpData = reset($corpData);
-
-                                    $orderData['customer'] = array('id' => $corpData['id']);
-                                    $cachedCorporateIds[$orderData['contragent']['legalName']] = $corpData['id'];
-
-                                    RetailCrmCorporateClient::addCustomersCorporateAddresses(
-                                        $orderData['customer']['id'],
-                                        $orderData['contragent']['legalName'],
-                                        $orderData['delivery']['address']['text'],
-                                        $api,
-                                        $site = null
-                                    );
-                                } elseif (array_key_exists(
-                                    $orderData['contragent']['legalName'],
-                                    $resCustomersCorporate
-                                )) {
-                                    $createResponse = $api
-                                        ->customersCorporateCreate(
-                                            $resCustomersCorporate[$orderData['contragent']['legalName']]
-                                        );
-
-                                    if ($createResponse && $createResponse->isSuccessful()) {
-                                        $orderData['customer'] = array('id' => $createResponse['id']);
-                                        $cachedCorporateIds[$orderData['contragent']['legalName']]
-                                            = $createResponse['id'];
-                                    }
-                                }
-
-                                time_nanosleep(0, 250000000);
-                            }
-
-                            $pack[$key] = $orderData;
-                        }
+                foreach ($ordersPack as $lid => $lidOrdersList) {
+                    foreach ($lidOrdersList as $key => $orderData) {
+                        $lidOrdersList[$key] = self::addCorporateCustomerToOrder(
+                            $orderData,
+                            $api,
+                            $resCustomersCorporate,
+                            $cachedCorporateIds
+                        );
                     }
 
-                    $resOrders[$packKey] = $pack;
+                    $ordersPack[$lid] = $lidOrdersList;
                 }
             }
 
-            if (false === RetailCrmOrder::uploadOrdersList($resOrders, $api, $optionsSitesList)) {
+            if (false === RetailCrmOrder::uploadOrdersList($ordersPack, $api, $optionsSitesList)) {
                 return false;
             }
 
@@ -567,6 +485,141 @@ class RetailCrmOrder
         }
 
         return true;
+    }
+
+    /**
+     * @param \RetailCrm\ApiClient $api
+     * @param array                $arCustomer
+     * @param array                $arCustomerCorporate
+     * @param array                $arParams
+     * @param array                $order
+     * @param                      $site
+     *
+     * @throws \Bitrix\Main\ArgumentException
+     * @throws \Bitrix\Main\ObjectPropertyException
+     * @throws \Bitrix\Main\SystemException
+     */
+    public static function createCustomerForOrder(
+        ApiClient $api,
+        array &$arCustomer,
+        array &$arCustomerCorporate,
+        array &$arParams,
+        array $order,
+        $site
+    ): void {
+        $optionsContragentType = RetailcrmConfigProvider::getContragentTypes();
+        $user = UserTable::getById($order['USER_ID'])->fetch();
+
+        if ('Y' === RetailcrmConfigProvider::getCorporateClientStatus()) {
+            if (true === RetailCrmCorporateClient::isCorpTookExternalId((string) $user['ID'], $api)) {
+                RetailCrmCorporateClient::setPrefixForExternalId((string) $user['ID'], $api);
+            }
+        }
+
+        if (
+            'Y' === RetailcrmConfigProvider::getCorporateClientStatus()
+            && $optionsContragentType[$order['PERSON_TYPE_ID']] === 'legal-entity'
+        ) {
+            // TODO check if order is corporate, and if it IS - make corporate order
+            $arCustomer = RetailCrmUser::customerSend(
+                $user,
+                $api,
+                'individual',
+                false,
+                $site
+            );
+
+            $arCustomerCorporate = RetailCrmCorporateClient::clientSend(
+                $order,
+                $api,
+                'legal-entity',
+                false,
+                true,
+                $site
+            );
+
+            $arParams['orderCompany'] = isset($arCustomerCorporate['companies'])
+                ? reset($arCustomerCorporate['companies'])
+                : null;
+            $arParams['contactExId'] = $user['ID'];
+
+            return;
+        }
+
+        $arCustomer = RetailCrmUser::customerSend(
+            $user,
+            $api,
+            $optionsContragentType[$order['PERSON_TYPE_ID']],
+            false,
+            $site
+        );
+
+        if (isset($arParams['contactExId'])) {
+            unset($arParams['contactExId']);
+        }
+    }
+
+    /**
+     * @param array                $orderData
+     * @param \RetailCrm\ApiClient $api
+     * @param array                $resCustomersCorporate
+     * @param array                $cachedCorporateIds
+     *
+     * @return array
+     */
+    public static function addCorporateCustomerToOrder(
+        array $orderData,
+        ApiClient $api,
+        array $resCustomersCorporate,
+        array &$cachedCorporateIds
+    ): array {
+        $customerLegalName = $orderData['contragent']['legalName'];
+
+        if (
+            isset($orderData['contragent']['contragentType'])
+            && $orderData['contragent']['contragentType'] === 'legal-entity'
+            && !empty($customerLegalName)
+        ) {
+            if (isset($cachedCorporateIds[$customerLegalName])) {
+                $orderData['customer'] = ['id' => $cachedCorporateIds[$customerLegalName]];
+            } else {
+                $corpListResponse = $api->customersCorporateList(['nickName' => [$customerLegalName]]);
+
+                if (
+                    $corpListResponse
+                    && $corpListResponse->isSuccessful()
+                    && $corpListResponse->offsetExists('customersCorporate')
+                    && !empty($corpListResponse['customersCorporate'])
+                ) {
+                    $corpListResponse = $corpListResponse['customersCorporate'];
+                    $corpListResponse = reset($corpListResponse);
+
+                    $orderData['customer'] = ['id' => $corpListResponse['id']];
+                    $cachedCorporateIds[$customerLegalName] = $corpListResponse['id'];
+
+                    RetailCrmCorporateClient::addCustomersCorporateAddresses(
+                        $orderData['customer']['id'],
+                        $customerLegalName,
+                        $orderData['delivery']['address']['text'],
+                        $api,
+                        $site = null
+                    );
+                } elseif (array_key_exists($customerLegalName, $resCustomersCorporate)) {
+                    $createResponse = $api->customersCorporateCreate(
+                            $resCustomersCorporate[$customerLegalName]
+                        );
+
+                    if ($createResponse && $createResponse->isSuccessful()) {
+                        $orderData['customer'] = ['id' => $createResponse['id']];
+                        $cachedCorporateIds[$customerLegalName] = $createResponse['id'];
+                    }
+                }
+
+                time_nanosleep(0, 250000000);
+            }
+        }
+
+        return $orderData;
     }
 
     /**
@@ -681,12 +734,12 @@ class RetailCrmOrder
      *
      * @return bool
      */
-    public static function isOrderCorporate($order)
+    public static function isOrderCorporate($order): bool
     {
         return (is_array($order) || $order instanceof ArrayAccess)
             && isset($order['customer'])
             && isset($order['customer']['type'])
-            && $order['customer']['type'] == 'customer_corporate';
+            && $order['customer']['type'] === 'customer_corporate';
     }
 
     /**
