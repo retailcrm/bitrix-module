@@ -298,8 +298,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     //order discharge mode
     // 0 - agent
     // 1 - event
-    $orderDischarge = 0;
-    $orderDischarge = (int)htmlspecialchars(trim($_POST['order-discharge']));
+    $orderDischarge = (int) htmlspecialchars(trim($_POST['order-discharge']));
+    
     if (($orderDischarge != $previousDischarge) && ($orderDischarge === 0)) {
         // remove depenedencies
         UnRegisterModuleDependences("sale", \Bitrix\Sale\EventActions::EVENT_ON_ORDER_SAVED, $mid, "RetailCrmEvent", "orderSave");
@@ -889,7 +889,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $optionsPayStatuses    = unserialize(COption::GetOptionString($mid, $CRM_PAYMENT_STATUSES, 0)); // --statuses
     $optionsPayment        = unserialize(COption::GetOptionString($mid, $CRM_PAYMENT, 0));
     $optionsSitesList      = unserialize(COption::GetOptionString($mid, $CRM_SITES_LIST, 0));
-    $optionsDischarge      = COption::GetOptionString($mid, $CRM_ORDER_DISCHARGE, 0);
+    $optionsDischarge      = (int) COption::GetOptionString($mid, $CRM_ORDER_DISCHARGE, 0);
     $optionsOrderProps     = unserialize(COption::GetOptionString($mid, $CRM_ORDER_PROPS, 0));
     $optionsContragentType = unserialize(COption::GetOptionString($mid, $CRM_CONTRAGENT_TYPE, 0));
     $optionsLegalDetails   = unserialize(COption::GetOptionString($mid, $CRM_LEGAL_DETAILS, 0));
