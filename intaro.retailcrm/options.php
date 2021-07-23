@@ -316,7 +316,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     foreach ($orderTypesList as $orderType) {
         $propsCount     = 0;
         $_orderPropsArr = [];
-        
+
         foreach ($arResult['orderProps'] as $orderProp) {
             if (isset($_POST['address-detail-' . $orderType['ID']])) {
                 $addressDatailOptions[$orderType['ID']] = $_POST['address-detail-' . $orderType['ID']];
@@ -328,13 +328,13 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             ) {
                 break;
             }
-            
+
             $_orderPropsArr[$orderProp['ID']] = htmlspecialchars(
                 trim($_POST['order-prop-' . $orderProp['ID'] . '-' . $orderType['ID']])
             );
             $propsCount++;
         }
-        
+
         $orderPropsArr[$orderType['ID']] = $_orderPropsArr;
     }
 
@@ -611,7 +611,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     } else {
         ConfigProvider::setLoyaltyProgramStatus('N');
     }
-
     try {
         $arResult['paymentTypesList'] = $api->paymentTypesList()->paymentTypes;
         $arResult['deliveryTypesList'] = $api->deliveryTypesList()->deliveryTypes;
@@ -629,51 +628,176 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
     RetailcrmConfigProvider::setIntegrationPaymentTypes($integrationPayments);
     RetailcrmConfigProvider::setIntegrationDelivery($integrationDeliveries);
-
-    COption::SetOptionString($mid, $CRM_ADDRESS_OPTIONS, serialize($addressDatailOptions));
-    COption::SetOptionString($mid, $CRM_SITES_LIST, serialize($siteListArr));
-    COption::SetOptionString($mid, $CRM_ORDER_TYPES_ARR, serialize(RCrmActions::clearArr($orderTypesArr)));
-    COption::SetOptionString($mid, $CRM_DELIVERY_TYPES_ARR, serialize(RCrmActions::clearArr($deliveryTypesArr)));
-    COption::SetOptionString($mid, $CRM_PAYMENT_TYPES, serialize(RCrmActions::clearArr($paymentTypesArr)));
-    COption::SetOptionString($mid, $CRM_PAYMENT_STATUSES, serialize(RCrmActions::clearArr($paymentStatusesArr)));
-    COption::SetOptionString($mid, $CRM_PAYMENT, serialize(RCrmActions::clearArr($paymentArr)));
-    COption::SetOptionString($mid, $CRM_ORDER_DISCHARGE, $orderDischarge);
-    COption::SetOptionString($mid, $CRM_ORDER_PROPS, serialize(RCrmActions::clearArr($orderPropsArr)));
-    COption::SetOptionString($mid, $CRM_CONTRAGENT_TYPE, serialize(RCrmActions::clearArr($contragentTypeArr)));
-    COption::SetOptionString($mid, $CRM_LEGAL_DETAILS, serialize(RCrmActions::clearArr($legalDetailsArr)));
-    COption::SetOptionString($mid, $CRM_CUSTOM_FIELDS, serialize(RCrmActions::clearArr($customFieldsArr)));
-    COption::SetOptionString($mid, $CRM_ORDER_NUMBERS, $orderNumbers);
-    COption::SetOptionString($mid, $CRM_CANSEL_ORDER, serialize(RCrmActions::clearArr($canselOrderArr)));
-
-    COption::SetOptionString($mid, $CRM_INVENTORIES_UPLOAD, $inventoriesUpload);
-    COption::SetOptionString($mid, $CRM_STORES, serialize(RCrmActions::clearArr($bitrixStoresArr)));
-    COption::SetOptionString($mid, $CRM_SHOPS, serialize(RCrmActions::clearArr($bitrixShopsArr)));
-    COption::SetOptionString($mid, $CRM_IBLOCKS_INVENTORIES, serialize(RCrmActions::clearArr($bitrixIblocksInventories)));
-
-    COption::SetOptionString($mid, $CRM_PRICES_UPLOAD, $pricesUpload);
-    COption::SetOptionString($mid, $CRM_PRICES, serialize(RCrmActions::clearArr($bitrixPricesArr)));
-    COption::SetOptionString($mid, $CRM_PRICE_SHOPS, serialize(RCrmActions::clearArr($bitrixPriceShopsArr)));
-    COption::SetOptionString($mid, $CRM_IBLOCKS_PRICES, serialize(RCrmActions::clearArr($bitrixIblocksPrices)));
-
-    COption::SetOptionString($mid, $CRM_COLLECTOR, $collector);
-    COption::SetOptionString($mid, $CRM_COLL_KEY, serialize(RCrmActions::clearArr($collectorKeys)));
-
+    COption::SetOptionString(
+        $mid,
+        $CRM_ADDRESS_OPTIONS,
+        serialize($addressDatailOptions)
+    );
+    COption::SetOptionString(
+        $mid,
+        $CRM_SITES_LIST,
+        serialize($siteListArr)
+    );
+    COption::SetOptionString(
+        $mid,
+        $CRM_ORDER_TYPES_ARR,
+        serialize(RCrmActions::clearArr(is_array($orderTypesArr) ? $orderTypesArr : []))
+    );
+    COption::SetOptionString(
+        $mid,
+        $CRM_DELIVERY_TYPES_ARR,
+        serialize(RCrmActions::clearArr(is_array($deliveryTypesArr) ? $deliveryTypesArr : []))
+    );
+    COption::SetOptionString(
+        $mid,
+        $CRM_PAYMENT_TYPES,
+        serialize(RCrmActions::clearArr(is_array($paymentTypesArr) ? $paymentTypesArr : []))
+    );
+    COption::SetOptionString(
+        $mid,
+        $CRM_PAYMENT_STATUSES,
+        serialize(RCrmActions::clearArr(is_array($paymentStatusesArr) ? $paymentStatusesArr : []))
+    );
+    COption::SetOptionString(
+        $mid,
+        $CRM_PAYMENT,
+        serialize(RCrmActions::clearArr(is_array($paymentArr) ? $paymentArr : []))
+    );
+    COption::SetOptionString(
+        $mid,
+        $CRM_ORDER_DISCHARGE,
+        $orderDischarge
+    );
+    COption::SetOptionString(
+        $mid,
+        $CRM_ORDER_PROPS,
+        serialize(RCrmActions::clearArr(is_array($orderPropsArr) ? $orderPropsArr : []))
+        );
+    COption::SetOptionString(
+        $mid,
+        $CRM_CONTRAGENT_TYPE,
+        serialize(RCrmActions::clearArr(is_array($contragentTypeArr) ? $contragentTypeArr : []))
+    );
+    COption::SetOptionString(
+        $mid,
+        $CRM_LEGAL_DETAILS,
+        serialize(RCrmActions::clearArr(is_array($legalDetailsArr) ? $legalDetailsArr : []))
+        );
+    COption::SetOptionString(
+        $mid,
+        $CRM_CUSTOM_FIELDS,
+        serialize(RCrmActions::clearArr(is_array($customFieldsArr) ? $customFieldsArr : []))
+        );
+    COption::SetOptionString(
+        $mid,
+        $CRM_ORDER_NUMBERS,
+        $orderNumbers
+    );
+    COption::SetOptionString(
+        $mid,
+        $CRM_CANSEL_ORDER,
+        serialize(RCrmActions::clearArr(is_array($canselOrderArr) ? $canselOrderArr : []))
+        );
+    COption::SetOptionString(
+        $mid,
+        $CRM_INVENTORIES_UPLOAD,
+        $inventoriesUpload
+    );
+    COption::SetOptionString(
+        $mid,
+        $CRM_STORES,
+        serialize(RCrmActions::clearArr(is_array($bitrixStoresArr) ? $bitrixStoresArr : []))
+        );
+    COption::SetOptionString(
+        $mid,
+        $CRM_SHOPS,
+        serialize(RCrmActions::clearArr(is_array($bitrixShopsArr) ? $bitrixShopsArr : []))
+        );
+    COption::SetOptionString(
+        $mid,
+        $CRM_IBLOCKS_INVENTORIES,
+        serialize(RCrmActions::clearArr(is_array($bitrixIblocksInventories) ? $bitrixIblocksInventories : []))
+        );
+    COption::SetOptionString(
+        $mid,
+        $CRM_PRICES_UPLOAD,
+        $pricesUpload
+    );
+    COption::SetOptionString(
+        $mid,
+        $CRM_PRICES,
+        serialize(RCrmActions::clearArr(is_array($bitrixPricesArr) ? $bitrixPricesArr : []))
+        );
+    COption::SetOptionString(
+        $mid,
+        $CRM_PRICE_SHOPS,
+        serialize(RCrmActions::clearArr(is_array($bitrixPriceShopsArr) ? $bitrixPriceShopsArr : []))
+        );
+    COption::SetOptionString(
+        $mid,
+        $CRM_IBLOCKS_PRICES,
+        serialize(RCrmActions::clearArr(is_array($bitrixIblocksPrices) ? $bitrixIblocksPrices : []))
+        );
+    COption::SetOptionString(
+        $mid,
+        $CRM_COLLECTOR,
+        $collector
+    );
+    COption::SetOptionString(
+        $mid,
+        $CRM_COLL_KEY,
+        serialize(RCrmActions::clearArr(is_array($collectorKeys) ? $collectorKeys : []))
+        );
     RetailCrmConfigProvider::setOnlineConsultant($onlineConsultant);
     RetailCrmConfigProvider::setOnlineConsultantScript($onlineConsultantScript);
 
-    COption::SetOptionString($mid, $CRM_UA, $ua);
-    COption::SetOptionString($mid, $CRM_UA_KEYS, serialize(RCrmActions::clearArr($uaKeys)));
-    COption::SetOptionString($mid, $CRM_DIMENSIONS, $orderDimensions);
+    COption::SetOptionString(
+        $mid,
+        $CRM_UA,
+        $ua
+    );
+    COption::SetOptionString(
+        $mid,
+        $CRM_UA_KEYS,
+        serialize(RCrmActions::clearArr(is_array($uaKeys) ? $uaKeys : []))
+        );
+    COption::SetOptionString(
+        $mid,
+        $CRM_DIMENSIONS,
+        $orderDimensions
+    );
     RetailcrmConfigProvider::setSendPaymentAmount($sendPaymentAmount);
 
     COption::SetOptionString($mid, $CRM_DISCOUNT_ROUND, $discount_round);
-    COption::SetOptionString($mid, $CRM_PURCHASE_PRICE_NULL, $purchasePrice_null);
-    COption::SetOptionString($mid, RetailcrmConstants::CRM_SHIPMENT_DEDUCTED, $shipment_deducted);
+    COption::SetOptionString(
+        $mid,
+        $CRM_PURCHASE_PRICE_NULL,
+        $purchasePrice_null
+    );
+    COption::SetOptionString(
+        $mid,
+        RetailcrmConstants::CRM_SHIPMENT_DEDUCTED, $shipment_deducted);
 
-    COption::SetOptionString($mid, $CRM_CC, $cc);
-    COption::SetOptionString($mid, $CRM_CORP_SHOPS, serialize(RCrmActions::clearArr($bitrixCorpShopsArr)));
-    COption::SetOptionString($mid, $CRM_CORP_NAME, serialize(RCrmActions::clearArr((array)$bitrixCorpName)));
-    COption::SetOptionString($mid, $CRM_CORP_ADRES, serialize(RCrmActions::clearArr((array)$bitrixCorpAdres)));
+    COption::SetOptionString(
+        $mid,
+        $CRM_CC,
+        $cc
+    );
+    COption::SetOptionString(
+        $mid,
+        $CRM_CORP_SHOPS,
+        serialize(RCrmActions::clearArr(is_array($bitrixCorpShopsArr) ? $bitrixCorpShopsArr : []))
+        );
+    COption::SetOptionString(
+        $mid,
+        $CRM_CORP_NAME,
+        serialize(RCrmActions::clearArr(is_array($bitrixCorpName) ? $bitrixCorpName : []))
+        );
+    COption::SetOptionString(
+        $mid,
+        $CRM_CORP_ADRES,
+        serialize(RCrmActions::clearArr(is_array($bitrixCorpAdres) ? $bitrixCorpAdres : []))
+        );
 
     $request = Application::getInstance()->getContext()->getRequest();
 
@@ -727,7 +851,11 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     }
 
     $arResult['deliveryTypesList'] = $deliveryTypes;
-    COption::SetOptionString($mid, RetailcrmConstants::CRM_INTEGRATION_DELIVERY, serialize(RCrmActions::clearArr($deliveryIntegrationCode)));
+    COption::SetOptionString(
+        $mid,
+        RetailcrmConstants::CRM_INTEGRATION_DELIVERY,
+        serialize(RCrmActions::clearArr(is_array($deliveryIntegrationCode) ? $deliveryIntegrationCode : []))
+    );
 
     //bitrix orderTypesList -- personTypes
     $arResult['bitrixOrderTypesList'] = RCrmActions::OrderTypesList($arResult['arSites']);
@@ -1448,20 +1576,20 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                             <td colspan="2" style="background-color: transparent;">
                                 <b>
                                     <label>
-                                        <input class="addr" type="radio" name="address-detail-<?php echo $bitrixOrderType['ID']; ?>" value="0" 
+                                        <input class="addr" type="radio" name="address-detail-<?php echo $bitrixOrderType['ID']; ?>" value="0"
                                             <?php
                                             if ($addressOptions[$bitrixOrderType['ID']] === '0') {
                                                 echo 'checked';
-                                            } 
+                                            }
                                         ?>>
                                         <?= GetMessage('ADDRESS_SHORT')?>
                                     </label>
                                     <label>
-                                        <input class="addr" type="radio" name="address-detail-<?php echo $bitrixOrderType['ID']; ?>" value="1" 
+                                        <input class="addr" type="radio" name="address-detail-<?php echo $bitrixOrderType['ID']; ?>" value="1"
                                             <?php
                                             if ($addressOptions[$bitrixOrderType['ID']] === '1') {
                                                 echo 'checked';
-                                            } 
+                                            }
                                             ?>>
                                         <?= GetMessage('ADDRESS_FULL')?>
                                     </label>
