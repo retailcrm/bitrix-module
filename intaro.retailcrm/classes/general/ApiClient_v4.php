@@ -1814,7 +1814,18 @@ class ApiClient
     {
         $this->siteCode = $site;
     }
-
+    
+    /**
+     * @return \RetailCrm\Response\ApiResponse
+     */
+    public function getCredentials(): ApiResponse
+    {
+        return $this->client->makeRequest(
+            '/credentials',
+            Client::METHOD_GET
+        );
+    }
+    
     /**
      * Check ID parameter
      *
