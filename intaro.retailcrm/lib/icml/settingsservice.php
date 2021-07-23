@@ -84,7 +84,12 @@ class SettingsService
     /**
      * @var array
      */
-    public $priceTypes = [];
+    public         $priceTypes = [];
+
+    /**
+     * @var \Intaro\RetailCrm\Icml\SettingsService|null
+     */
+    private static $instance = null;
 
     /**
      * SettingsService constructor.
@@ -92,7 +97,7 @@ class SettingsService
      * @param array       $arOldSetupVars
      * @param string|null $action
      */
-    public function __construct(array $arOldSetupVars, ?string $action)
+    private function __construct(array $arOldSetupVars, ?string $action)
     {
         $this->arOldSetupVars = $arOldSetupVars;
         $this->action = $action;
@@ -105,6 +110,21 @@ class SettingsService
             = $this->getSingleSetting('SETUP_PROFILE_NAME') ?? GetMessage('PROFILE_NAME_EXAMPLE');
 
         $this->getPriceTypes();
+    }
+
+    /**
+     * @param array       $arOldSetupVars
+     * @param string|null $action
+     *
+     * @return \Intaro\RetailCrm\Icml\SettingsService|null
+     */
+    static public function getInstance(array $arOldSetupVars, ?string $action): ?SettingsService
+    {
+        if(is_null(self::$instance))
+        {
+            self::$instance = new self($arOldSetupVars, $action);
+        }
+        return self::$instance;
     }
 
     public function getPriceTypes()
@@ -120,12 +140,12 @@ class SettingsService
      * @param string $selected
      * @param string $key
      * @param int    $iblockId
-     * @param        $field
+     * @param string $field
      * @param string $fieldGroup
      *
      * @return string
      */
-    public function getHlOptionStatus(string $selected, string $key, int $iblockId, $field, string $fieldGroup): string
+    public function getHlOptionStatus(string $selected, string $key, int $iblockId, string $field, string $fieldGroup): string
     {
         if ($this->arOldSetupVars[$fieldGroup . $selected . '_' . $key][$iblockId] === $field) {
             return ' selected';
@@ -424,9 +444,9 @@ class SettingsService
      *
      * @return bool
      */
-    public function isOptionSelected(array $prop, ?array $oldSelect = null, string $key): bool
+    public function isOptionSelected(array $prop, array $oldSelect, string $key): bool
     {
-        if ($oldSelect !== null) {
+        if (count($oldSelect) > 0) {
             if ($prop['CODE'] === $oldSelect[$key]) {
                 return true;
             }
@@ -461,18 +481,18 @@ class SettingsService
     
         return 'class="not-highloadblock"';
     }
-    
+
     /**
-     * @param array|null $unitSelect
-     * @param            $keyUnit
-     * @param            $key
-     * @param            $unitTypeName
+     * @param array $unitSelect
+     * @param string|null $keyUnit
+     * @param string|null $key
+     * @param string|null $unitTypeName
      *
      * @return string
      */
-    public function getUnitOptionStatus(?array $unitSelect, $keyUnit, $key, $unitTypeName): string
+    public function getUnitOptionStatus(array $unitSelect, ?string $keyUnit, ?string $key, ?string $unitTypeName): string
     {
-        if ($unitSelect !== null) {
+        if (count($unitSelect) > 0) {
             if ($keyUnit === $unitSelect[$key]) {
                 return ' selected';
             }
@@ -528,15 +548,17 @@ class SettingsService
     }
 
     /**
+     * Возвращает уже выбранные свойства
+     *
      * @param array|null $oldValues
      * @param int        $iblockId
      * @param string     $keyGroup
      *
-     * @return array|null
+     * @return array
      */
-    private function getOldProps(?array $oldValues, int $iblockId, string $keyGroup = ''): ?array
+    private function getOldProps(?array $oldValues, int $iblockId, string $keyGroup = ''): array
     {
-        $props = null;
+        $props = [];
 
         if (isset($oldValues[$iblockId])) {
             foreach ($this->getIblockPropsNames() as $key => $prop) {
@@ -662,8 +684,8 @@ class SettingsService
                 'IBLOCK_TYPE_ID' => $iblock['IBLOCK_TYPE_ID'],
                 'iblockExport' => $this->isExport($iblock['ID'], $this->iblockExport),
                 'PROPERTIES_SKU' => $propertiesSKU ?? null,
-                'OLD_PROPERTY_SKU_SELECT' => $oldPropertySKU ?? null,
-                'OLD_PROPERTY_UNIT_SKU_SELECT' => $oldPropertyUnitSKU ?? null,
+                'OLD_PROPERTY_SKU_SELECT' => $oldPropertySKU ?? [],
+                'OLD_PROPERTY_UNIT_SKU_SELECT' => $oldPropertyUnitSKU ?? [],
                 'PROPERTIES_PRODUCT' => $this->getProductProps($iblock['ID']),
                 'OLD_PROPERTY_PRODUCT_SELECT' => $this->getOldProps(
                     $this->iblockPropertyProduct,

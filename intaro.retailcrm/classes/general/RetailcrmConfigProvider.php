@@ -277,17 +277,12 @@ class RetailcrmConfigProvider
      */
     public static function getCrmBasePrice($profileId)
     {
-        return COption::GetOptionString(
-            RetailcrmConstants::MODULE_ID,
-            RetailcrmConstants::CRM_CATALOG_BASE_PRICE . '_' . $profileId,
-            1
-        );
+        return self::getOption(RetailcrmConstants::CRM_CATALOG_BASE_PRICE . '_' . $profileId, 1);
     }
     
     public static function setProfileBasePrice($profileId, $priceTypes): void
     {
-        COption::SetOptionString(
-            RetailcrmConstants::MODULE_ID,
+        self::setOption(
             RetailcrmConstants::CRM_CATALOG_BASE_PRICE . '_' . $profileId,
             htmlspecialchars(trim($priceTypes))
         );

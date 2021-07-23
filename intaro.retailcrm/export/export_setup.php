@@ -24,7 +24,7 @@ CModule::IncludeModule('intaro.retailcrm');
  */
 
 //TODO заменить вызов на сервис-локатор, когда он приедет
-$settingsService = new SettingsService(
+$settingsService = SettingsService::getInstance(
     $arOldSetupVars,
     $ACTION
 );
@@ -284,7 +284,7 @@ if ($STEP === 1) {
                                                             $productHlTableName,
                                                             $propertyKey,
                                                             $arIBlock['ID'],
-                                                            $field,
+                                                            (string) $field,
                                                             'highloadblock_product'
                                                         ) ?>
                                                     >
@@ -311,10 +311,10 @@ if ($STEP === 1) {
                                                         foreach ($unitType as $keyUnit => $unit): ?>
                                                             <option value="<?=$keyUnit?>"
                                                                 <?=$settingsService->getUnitOptionStatus(
-                                                                    $arIBlock['OLD_PROPERTY_UNIT_PRODUCT_SELECT'] ?? null,
+                                                                    $arIBlock['OLD_PROPERTY_UNIT_PRODUCT_SELECT'],
                                                                     $keyUnit,
                                                                     $propertyKey,
-                                                                    $unitTypeName
+                                                                    (string) $unitTypeName
                                                                 )
                                                                 ?>
                                                             >
@@ -428,7 +428,7 @@ if ($STEP === 1) {
                                                                 $skuHlTableName,
                                                                 $propertyKey,
                                                                 $arIBlock['ID'],
-                                                                $field,
+                                                                (string) $field,
                                                                 'highloadblock'
                                                             )?>
                                                         >
@@ -453,7 +453,7 @@ if ($STEP === 1) {
                                                                 <option value="<?=$keyUnit?>"
                                                                     <?php
                                                                     echo $settingsService->getUnitOptionStatus(
-                                                                        $arIBlock['OLD_PROPERTY_UNIT_SKU_SELECT'] ?? null,
+                                                                        $arIBlock['OLD_PROPERTY_UNIT_SKU_SELECT'],
                                                                         $keyUnit,
                                                                         $propertyKey,
                                                                         $unitTypeName
@@ -677,49 +677,52 @@ if ($STEP === 1) {
             }
         }
 
-        function getHlTablesFromController(that, type) {
+        function  setHlFieldsInInstallPage(that, type){
+            const td         = $(that).parents('td .adm-list-table-cell');
+            const select     = $(that).parent('select').siblings('#highloadblock');
+            const iblock     = $(that).parents('.iblockExportTable').attr('data-type');
+            const key        = $(that).parent('select').attr('data-type');
+            const sessid  = BX.bitrix_sessid();
+            const table_name = $(that).attr('id');
+            const step    = $('input[name="continue"]').val();
+            const id      = $('input[name="id"]').val();
+            const install = $('input[name="install"]').val();
+            const data    = 'install=' + install + '&step=' + step + '&sessid=' + sessid +
+                '&id=' + id + '&ajax=1&table=' + table_name;
+
+            $.ajax({
+                url: '/bitrix/admin/partner_modules.php',
+                type: 'POST',
+                data: data,
+                dataType: "json",
+                success: function(res) {
+                    $(select).remove();
+                    $('#waiting').remove();
+                    let new_options = '';
+                    $.each(res.fields, function(key, value) {
+                        new_options += '<option value="' + value + '">' + value + '</option>';
+                    });
+
+                    if (type === 'sku') {
+                        $(td).append(getSelect(res, key, iblock, new_options, 'highloadblock'));
+                    }
+
+                    if (type === 'product') {
+                        $(td).append(getSelect(res, key, iblock, new_options, 'highloadblock_product'));
+                    }
+                },
+                beforeSend: function() {
+                    $(td).append('<span style="margin-left:50px;" id="waiting"><?=GetMessage('WAIT')?></span>');
+                }
+            });
+        }
+
+        function setHlFieldsInSettingsPage(that, type){
             const td         = $(that).parents('td .adm-list-table-cell');
             const select     = $(that).parent('select').siblings('#highloadblock');
             const table_name = $(that).attr('id');
             const iblock     = $(that).parents('.iblockExportTable').attr('data-type');
             const key        = $(that).parent('select').attr('data-type');
-            const url = $('td .adm-list-table-cell').parents('form').attr('action');
-
-            if (url === '/bitrix/admin/partner_modules.php') {
-                const sessid  = BX.bitrix_sessid();
-                const step    = $('input[name="continue"]').val();
-                const id      = $('input[name="id"]').val();
-                const install = $('input[name="install"]').val();
-                const data    = 'install=' + install + '&step=' + step + '&sessid=' + sessid +
-                    '&id=' + id + '&ajax=1&table=' + table_name;
-
-                $.ajax({
-                    url: url,
-                    type: 'POST',
-                    data: data,
-                    dataType: "json",
-                    success: function(res) {
-                        $(select).remove();
-                        $('#waiting').remove();
-                        let new_options = '';
-                        $.each(res.fields, function(key, value) {
-                            new_options += '<option value="' + value + '">' + value + '</option>';
-                        });
-                        if (type == 'sku') {
-                            $(td).append('<select name="highloadblock' + res.table + '_' + key + '[' + iblock + ']" id="highloadblock" style="width: 100px; margin-left: 50px;">' + new_options + '</select>');
-                        }
-                        if (type == 'product') {
-                            $(td).append('<select name="highloadblock_product' + res.table + '_' + key + '[' + iblock + ']" id="highloadblock" style="width: 100px; margin-left: 50px;">' + new_options + '</select>');
-                        }
-
-                    },
-                    beforeSend: function() {
-                        $(td).append('<span style="margin-left:50px;" id="waiting"><?=GetMessage('WAIT')?></span>');
-                    }
-                });
-
-                return;
-            }
 
             BX.ajax.runAction('intaro:retailcrm.api.icml.getHlTable',
                 {
@@ -737,26 +740,36 @@ if ($STEP === 1) {
                         new_options += '<option value="' + value + '">' + value + '</option>';
                     });
 
-                    let typeValue = '';
+                    let typeValue = 'highloadblock';
 
                     if (type === 'product') {
-                        typeValue = '_product'
+                        typeValue += '_product'
                     }
 
-                    $(td).append(
-                        '<select name="highloadblock'
-                        + typeValue
-                        + response.data.table
-                        + '_'
-                        + key
-                        + '['
-                        + iblock
-                        + ']" id="highloadblock" style="width: 100px; margin-left: 50px;">'
-                        + new_options
-                        + '</select>'
-                    );
+                    $(td).append(getSelect (response.data, key, iblock, new_options, typeValue));
                 }
             );
+        }
+
+        function getHlTablesFromController(that, type) {
+            const url = $('td .adm-list-table-cell').parents('form').attr('action');
+
+            if (url === '/bitrix/admin/partner_modules.php') {
+                setHlFieldsInInstallPage(that, type);
+            } else {
+                setHlFieldsInSettingsPage(that, type)
+            }
+        }
+
+        function getSelect (res, key, iblock, new_options, type){
+            let select = document.createElement('select');
+            let atrName = type + res.table + '_' + key + '[' + iblock + ']';
+            select.setAttribute('name', atrName);
+            select.setAttribute('id', 'highloadblock');
+            select.setAttribute('style','width: 100px; margin-left: 50px;');
+            select.innerHTML = new_options;
+
+            return select;
         }
     </script>
     <?php

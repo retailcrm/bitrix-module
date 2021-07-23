@@ -1022,13 +1022,16 @@ class intaro_retailcrm extends CModule
         
                 }
             }
-    
+
+
             $setupVars = $this->getProfileSetupVars(
                 $iblocks,
-                $propertiesProduct,
-                $propertiesUnitProduct,
-                $propertiesSKU,
-                $propertiesUnitSKU,
+                [
+                    'iblockPropertySku' => $propertiesSKU,
+                    'iblockPropertyUnitSku' => $propertiesUnitSKU,
+                    'iblockPropertyProduct' => $propertiesProduct,
+                    'iblockPropertyUnitProduct' => $propertiesUnitProduct,
+                ],
                 $propertiesHbSKU,
                 $propertiesHbProduct,
                 $filename,
@@ -1337,62 +1340,54 @@ class intaro_retailcrm extends CModule
 
     function getProfileSetupVars(
         $iblocks,
-        $propertiesProduct,
-        $propertiesUnitProduct,
-        $propertiesSKU,
-        $propertiesUnitSKU,
+        $simpleProps,
         $propertiesHbSKU,
         $propertiesHbProduct,
         $filename,
         $maxOffers
-    ) {
+    ): string {
         $strVars = '';
-        
+
         foreach ($iblocks as $key => $val) {
             $strVars .= 'iblockExport[' . $key . ']=' . $val . '&';
         }
-        
-        foreach ($propertiesSKU as $iblock => $arr) {
-            foreach ($arr as $id => $val) {
-                $strVars .= 'iblockPropertySku_' . $id . '[' . $iblock . ']=' . $val . '&';
-            }
+
+        foreach ($simpleProps as $propType => $props) {
+            $strVars = $this->addToStrVars($strVars, $propType, $props);
         }
-        foreach ($propertiesUnitSKU as $iblock => $arr) {
-            foreach ($arr as $id => $val) {
-                $strVars .= 'iblockPropertyUnitSku_' . $id . '[' . $iblock . ']=' . $val . '&';
-            }
-        }
-        foreach ($propertiesProduct as $iblock => $arr) {
-            foreach ($arr as $id => $val) {
-                $strVars .= 'iblockPropertyProduct_' . $id . '[' . $iblock . ']=' . $val . '&';
-            }
-        }
-        foreach ($propertiesUnitProduct as $iblock => $arr) {
-            foreach ($arr as $id => $val) {
-                $strVars .= 'iblockPropertyUnitProduct_' . $id . '[' . $iblock . ']=' . $val . '&';
-            }
-        }
+
         if ($propertiesHbSKU) {
             foreach ($propertiesHbSKU as $table => $arr) {
-                foreach ($arr as $iblock => $val) {
-                    foreach ($val as $id => $value) {
-                        $strVars .= 'highloadblock' . $table . '_' . $id . '[' . $iblock . ']=' . $value . '&';
-                    }
-                }
+                $strVars = $this->addToStrVars($strVars, 'highloadblock' . $table, $arr);
             }
         }
+
         if ($propertiesHbProduct) {
             foreach ($propertiesHbProduct as $table => $arr) {
-                foreach ($arr as $iblock => $val) {
-                    foreach ($val as $id => $value) {
-                        $strVars .= 'highloadblock_product' . $table . '_' . $id . '[' . $iblock . ']=' . $value . '&';
-                    }
-                }
+                $strVars = $this->addToStrVars($strVars, 'highloadblock_product' . $table, $arr);
             }
         }
 
         $strVars .= 'SETUP_FILE_NAME=' . urlencode($filename);
         $strVars .= '&maxOffersValue=' . urlencode($maxOffers);
+
+        return $strVars;
+    }
+
+    /**
+     * @param string $strVars
+     * @param string $propType
+     * @param array  $props
+     *
+     * @return string
+     */
+    public function addToStrVars(string $strVars, string $propType, array $props): string
+    {
+        foreach ($props as $iblock => $arr) {
+            foreach ($arr as $id => $val) {
+                $strVars .= $propType . '_' . $id . '[' . $iblock . ']=' . $val . '&';
+            }
+        }
 
         return $strVars;
     }
