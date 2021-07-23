@@ -669,19 +669,18 @@ if ($STEP === 1) {
             }
 
             if (selectedOption.className === 'highloadblock') {
-                getHlTablesFromController(selectedOption, 'sku');
+                getHlTablesFromController(selectedOption, 'sku', obj.getAttribute('data-type'));
             }
 
             if (selectedOption.className === 'highloadblock-product') {
-                getHlTablesFromController(selectedOption, 'product');
+                getHlTablesFromController(selectedOption, 'product', obj.getAttribute('data-type'));
             }
         }
 
-        function  setHlFieldsInInstallPage(that, type){
+        function  setHlFieldsInInstallPage(that, type, key){
             const td         = $(that).parents('td .adm-list-table-cell');
             const select     = $(that).parent('select').siblings('#highloadblock');
             const iblock     = $(that).parents('.iblockExportTable').attr('data-type');
-            const key        = $(that).parent('select').attr('data-type');
             const sessid  = BX.bitrix_sessid();
             const table_name = $(that).attr('id');
             const step    = $('input[name="continue"]').val();
@@ -717,12 +716,11 @@ if ($STEP === 1) {
             });
         }
 
-        function setHlFieldsInSettingsPage(that, type){
+        function setHlFieldsInSettingsPage(that, type, key){
             const td         = $(that).parents('td .adm-list-table-cell');
             const select     = $(that).parent('select').siblings('#highloadblock');
             const table_name = $(that).attr('id');
             const iblock     = $(that).parents('.iblockExportTable').attr('data-type');
-            const key        = $(that).parent('select').attr('data-type');
 
             BX.ajax.runAction('intaro:retailcrm.api.icml.getHlTable',
                 {
@@ -751,13 +749,13 @@ if ($STEP === 1) {
             );
         }
 
-        function getHlTablesFromController(that, type) {
+        function getHlTablesFromController(that, type, key) {
             const url = $('td .adm-list-table-cell').parents('form').attr('action');
 
             if (url === '/bitrix/admin/partner_modules.php') {
-                setHlFieldsInInstallPage(that, type);
+                setHlFieldsInInstallPage(that, type, key);
             } else {
-                setHlFieldsInSettingsPage(that, type)
+                setHlFieldsInSettingsPage(that, type, key)
             }
         }
 
