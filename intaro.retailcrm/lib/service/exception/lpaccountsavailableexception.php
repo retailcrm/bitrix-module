@@ -16,10 +16,10 @@ namespace Intaro\RetailCrm\Service\Exception;
 use Exception;
 
 /**
- * Class LpAccountsAvailableException
+ * Class LpAccountsUnavailableException
  *
  * @package Intaro\RetailCrm\Component\Builder\Exception
  */
-class LpAccountsAvailableException extends Exception
+class LpAccountsUnavailableException extends Exception
 {
 }
