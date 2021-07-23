@@ -823,7 +823,8 @@ class ConfigProvider
      */
     public static function setOrderTypes($orderTypesArr)
     {
-        static::setOption(Constants::CRM_ORDER_TYPES_ARR, serialize(self::getUtils()->clearArray($orderTypesArr)));
+        static::setOption(Constants::CRM_ORDER_TYPES_ARR, serialize(self::getUtils()
+            ->clearArray(is_array($orderTypesArr)?$orderTypesArr:[])));
     }
 
     /**
@@ -833,7 +834,8 @@ class ConfigProvider
      */
     public static function setDeliveryTypes($deliveryTypesArr)
     {
-        static::setOption(Constants::CRM_DELIVERY_TYPES_ARR, serialize(self::getUtils()->clearArray($deliveryTypesArr)));
+        static::setOption(Constants::CRM_DELIVERY_TYPES_ARR, serialize(self::getUtils()
+            ->clearArray(is_array($deliveryTypesArr)?$deliveryTypesArr:[])));
     }
 
     /**
@@ -843,7 +845,8 @@ class ConfigProvider
      */
     public static function setPaymentTypes($paymentTypesArr)
     {
-        static::setOption(Constants::CRM_PAYMENT_TYPES, serialize(self::getUtils()->clearArray($paymentTypesArr)));
+        static::setOption(Constants::CRM_PAYMENT_TYPES, serialize(self::getUtils()
+            ->clearArray(is_array($paymentTypesArr)?$paymentTypesArr:[])));
     }
 
     /**
@@ -853,7 +856,8 @@ class ConfigProvider
      */
     public static function setPaymentStatuses($paymentStatusesArr)
     {
-        static::setOption(Constants::CRM_PAYMENT_STATUSES, serialize(self::getUtils()->clearArray($paymentStatusesArr)));
+        static::setOption(Constants::CRM_PAYMENT_STATUSES, serialize(self::getUtils()
+            ->clearArray(is_array($paymentStatusesArr)?$paymentStatusesArr:[])));
     }
 
     /**
@@ -863,7 +867,8 @@ class ConfigProvider
      */
     public static function setContragentTypes($contragentTypeArr)
     {
-        static::setOption(Constants::CRM_CONTRAGENT_TYPE, serialize(self::getUtils()->clearArray($contragentTypeArr)));
+        static::setOption(Constants::CRM_CONTRAGENT_TYPE, serialize(self::getUtils()
+            ->clearArray(is_array($contragentTypeArr)?$contragentTypeArr:[])));
     }
 
     /**

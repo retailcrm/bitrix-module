@@ -1,7 +1,7 @@
 <?php
 
 use Bitrix\Main\Localization\Loc;
-use Intaro\RetailCrm\Service\Exception\LpAccountsAvailableException;
+use Intaro\RetailCrm\Service\Exception\LpAccountsUnavailableException;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Repository\UserRepository;
@@ -61,7 +61,7 @@ try {
     } else {
         require_once __DIR__ . '/register.php';
     }
-} catch (LpAccountsAvailableException $exception) {
+} catch (LpAccountsUnavailableException $exception) {
     $arResult['ERRORS'] = GetMessage('LP_NOT_ACTUAL');
 
     $this->IncludeComponentTemplate();

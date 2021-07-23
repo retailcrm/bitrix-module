@@ -236,9 +236,10 @@ class RCrmActions
      * working with nested arrs
      *
      * @param array $arr
+     *
      * @return array
      */
-    public static function clearArr($arr)
+    public static function clearArr(array $arr): array
     {
         /** @var \Intaro\RetailCrm\Service\Utils $utils */
         $utils = ServiceLocator::getOrCreate(\Intaro\RetailCrm\Service\Utils::class);

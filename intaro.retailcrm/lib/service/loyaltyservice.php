@@ -37,7 +37,7 @@ use Intaro\RetailCrm\Model\Api\SerializedRelationCustomer;
 use Intaro\RetailCrm\Model\Bitrix\OrderLoyaltyData;
 use Intaro\RetailCrm\Repository\CurrencyRepository;
 use Intaro\RetailCrm\Repository\OrderLoyaltyDataRepository;
-use Intaro\RetailCrm\Service\Exception\LpAccountsAvailableException;
+use Intaro\RetailCrm\Service\Exception\LpAccountsUnavailableException;
 use Logger;
 
 /**
@@ -174,7 +174,7 @@ class LoyaltyService
      * @param int $idInLoyalty ID участия в программе лояльности
      *
      * @return null|\Intaro\RetailCrm\Model\Api\LoyaltyAccount
-     * @throws \Intaro\RetailCrm\Service\Exception\LpAccountsAvailableException
+     * @throws \Intaro\RetailCrm\Service\Exception\LpAccountsUnavailableException
      */
     public function getLoyaltyAccounts(int $idInLoyalty): ?LoyaltyAccount
     {
@@ -186,7 +186,7 @@ class LoyaltyService
 
         if ($response !== null && $response->success) {
             if (!isset($response->loyaltyAccounts[0])) {
-                throw new LpAccountsAvailableException();
+                throw new LpAccountsUnavailableException();
             }
 
             return $response->loyaltyAccounts[0];
