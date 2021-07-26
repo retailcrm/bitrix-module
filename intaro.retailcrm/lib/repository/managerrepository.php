@@ -3,12 +3,9 @@
 
 namespace Intaro\RetailCrm\Repository;
 
-use Bitrix\Main\ArgumentException;
-use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\ORM\Objectify\EntityObject;
-use Bitrix\Main\SystemException;
 use Bitrix\Main\UserTable;
-use Logger;
+use RetailCrm\Component\Exception\FailedDbOperationException;
 use RetailcrmConfigProvider;
 
 /**
@@ -19,19 +16,10 @@ use RetailcrmConfigProvider;
 class ManagerRepository
 {
     /**
-     * @var \Logger
-     */
-    private $logger;
-
-    public function __construct()
-    {
-        $this->logger = Logger::getInstance();
-    }
-
-    /**
      * @param array $newMatches
      *
      * @return void
+     * @throws \RetailCrm\Component\Exception\FailedDbOperationException
      */
     public function addManagersToMapping(array $newMatches): void
     {
@@ -44,7 +32,7 @@ class ManagerRepository
         }
 
         if (!RetailcrmConfigProvider::setUsersMap($recordData)) {
-            $this->logger->write(GetMessage('REP_ERR', ['#METHOD#' => __METHOD__]), 'repositoryErrors');
+            throw new FailedDbOperationException();
         }
     }
 
@@ -64,10 +52,12 @@ class ManagerRepository
      * @param string $email
      *
      * @return int|null
+     * @throws \Bitrix\Main\ArgumentException
+     * @throws \Bitrix\Main\ObjectPropertyException
+     * @throws \Bitrix\Main\SystemException
      */
     public function getManagerBitrixIdByEmail(string $email): ?int
     {
-        try {
             /** @var \Bitrix\Main\ORM\Objectify\EntityObject $user */
             $user = UserTable::query()
                 ->addSelect('ID')
@@ -84,9 +74,6 @@ class ManagerRepository
             }
 
             return null;
-        } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
-            $this->logger->write(GetMessage('REP_ERR') . __METHOD__, 'repositoryErrors');
-        }
     }
 
     /**

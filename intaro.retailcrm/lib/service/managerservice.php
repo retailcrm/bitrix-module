@@ -2,9 +2,14 @@
 
 namespace Intaro\RetailCrm\Service;
 
+use Bitrix\Main\ArgumentException;
+use Bitrix\Main\ObjectPropertyException;
+use Bitrix\Main\SystemException;
 use Intaro\RetailCrm\Repository\ManagerRepository;
 use InvalidArgumentException;
+use Logger;
 use RetailCrm\ApiClient;
+use RetailCrm\Component\Exception\FailedDbOperationException;
 use RetailcrmConfigProvider;
 
 /**
@@ -29,14 +34,20 @@ class ManagerService
     private $client;
 
     /**
+     * @var \Logger
+     */
+    private $logger;
+
+    /**
      * ManagerService constructor.
      */
     private function __construct()
     {
         $this->client = new ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
         $this->repository = new ManagerRepository();
+        $this->logger = Logger::getInstance();
     }
-    
+
     /**
      * @return \Intaro\RetailCrm\Service\ManagerService
      *
@@ -65,7 +76,11 @@ class ManagerService
             $matchesArray = $this->findMatchesInBitrix($crmUsers);
 
             if (!empty($matchesArray)) {
-                $this->repository->addManagersToMapping($matchesArray);
+                try {
+                    $this->repository->addManagersToMapping($matchesArray);
+                } catch (FailedDbOperationException $exception) {
+                    $this->logger->write(GetMessage('REP_ERR', ['#METHOD#' => __METHOD__]),'serviceErrors');
+                }
             }
 
             $currentPage++;
@@ -147,13 +162,17 @@ class ManagerService
     private function getMatchesForCrmUser(array $crmUser): array
     {
         if (!empty($crmUser['email']) && !empty($crmUser['id'])) {
-            $bitrixUserId = $this->repository->getManagerBitrixIdByEmail($crmUser['email']);
+            try {
+                $bitrixUserId = $this->repository->getManagerBitrixIdByEmail($crmUser['email']);
 
-            if (is_int($bitrixUserId)) {
-                return [
-                    'bitrixUserId' => $bitrixUserId,
-                    'crmUserId' => $crmUser['id']
-                ];
+                if (is_int($bitrixUserId)) {
+                    return [
+                        'bitrixUserId' => $bitrixUserId,
+                        'crmUserId' => $crmUser['id']
+                    ];
+                }
+            } catch (ObjectPropertyException | ArgumentException | SystemException $e) {
+                $this->logger->write(GetMessage('REP_ERR', ['#METHOD#' => __METHOD__]), 'serviceErrors');
             }
         }
 

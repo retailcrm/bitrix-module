@@ -1,14 +1,22 @@
 <?php
 
+use Bitrix\Main\Context;
+use Bitrix\Main\Context\Culture;
 use Bitrix\Main\UserTable;
 use Bitrix\Sale\Delivery\Services\Manager;
 use Bitrix\Sale\Internals\Fields;
+use Bitrix\Sale\Location\LocationTable;
 use Bitrix\Sale\Order;
+use Bitrix\Sale\OrderTable;
 use RetailCrm\ApiClient;
 use Intaro\RetailCrm\Service\ManagerService;
-use Intaro\RetailCrm\Service\UploadOrderService;
+use RetailCrm\Response\ApiResponse;
 
 IncludeModuleLangFile(__FILE__);
+
+/**
+ * Class RetailCrmOrder
+ */
 class RetailCrmOrder
 {
     /**
@@ -22,16 +30,23 @@ class RetailCrmOrder
      * @param null   $site
      * @param string $methodApi
      *
-     * @return boolean
+     * @return boolean|array
      * @throws \Bitrix\Main\ArgumentException
      * @throws \Bitrix\Main\ObjectPropertyException
      * @throws \Bitrix\Main\SystemException
      */
-    public static function orderSend($arOrder, $api, $arParams, $send = false, $site = null, $methodApi = 'ordersEdit')
-    {
+    public static function orderSend(
+        array $arOrder,
+        $api,
+        $arParams,
+        bool $send = false,
+        $site = null,
+        string $methodApi = 'ordersEdit'
+    ) {
         if (!$api || empty($arParams)) { // add cond to check $arParams
             return false;
         }
+
         if (empty($arOrder)) {
             RCrmActions::eventLog('RetailCrmOrder::orderSend', 'empty($arFields)', 'incorrect order');
             return false;
@@ -109,10 +124,10 @@ class RetailCrmOrder
                     }
                 } else {//address
                     if ($prop['TYPE'] == 'LOCATION' && isset($prop['VALUE'][0]) && $prop['VALUE'][0] != '') {
-                        $arLoc = \Bitrix\Sale\Location\LocationTable::getByCode($prop['VALUE'][0])->fetch();
+                        $arLoc = LocationTable::getByCode($prop['VALUE'][0])->fetch();
                         if ($arLoc) {
-                            $server = \Bitrix\Main\Context::getCurrent()->getServer()->getDocumentRoot();
-                            $countrys = array();
+                            $server = Context::getCurrent()->getServer()->getDocumentRoot();
+                            $countrys = [];
 
                             if (file_exists($server . '/bitrix/modules/intaro.retailcrm/classes/general/config/country.xml')) {
                                 $countrysFile = simplexml_load_file($server . '/bitrix/modules/intaro.retailcrm/classes/general/config/country.xml');
@@ -121,9 +136,9 @@ class RetailCrmOrder
                                 }
                             }
 
-                            $location = \Bitrix\Sale\Location\Name\LocationTable::getList(array(
-                                'filter' => array('=LOCATION_ID' => $arLoc['CITY_ID'], 'LANGUAGE_ID' => 'ru')
-                            ))->fetch();
+                            $location = \Bitrix\Sale\Location\Name\LocationTable::getList([
+                                'filter' => ['=LOCATION_ID' => $arLoc['CITY_ID'], 'LANGUAGE_ID' => 'ru'],
+                            ])->fetch();
 
                             if (count($countrys) > 0) {
                                 $countryOrder = \Bitrix\Sale\Location\Name\LocationTable::getList(array(
@@ -197,15 +212,15 @@ class RetailCrmOrder
                 );
             }
 
-            $item = array(
-                'externalIds'      => $externalIds,
-                'quantity'        => $product['QUANTITY'],
-                'offer'           => array(
+            $item = [
+                'externalIds' => $externalIds,
+                'quantity' => $product['QUANTITY'],
+                'offer' => [
                     'externalId' => $product['PRODUCT_ID'],
-                    'xmlId' => $product['PRODUCT_XML_ID']
-                ),
-                'productName'     => $product['NAME']
-            );
+                    'xmlId' => $product['PRODUCT_XML_ID'],
+                ],
+                'productName' => $product['NAME'],
+            ];
 
             if (isset($itemId)) {
                 $item['id'] = $itemId;
@@ -259,7 +274,8 @@ class RetailCrmOrder
 
         $integrationPayment = RetailcrmConfigProvider::getIntegrationPaymentTypes();
         //payments
-        $payments = array();
+        $payments = [];
+
         foreach ($arOrder['PAYMENTS'] as $payment) {
             if (!empty($payment['PAY_SYSTEM_ID']) && isset($arParams['optionsPayTypes'][$payment['PAY_SYSTEM_ID']])) {
                 $pm = array(
@@ -291,10 +307,9 @@ class RetailCrmOrder
                     'payments',
                     'OrderID = ' . $arOrder['ID'] . '. Payment not found.'
                 );
-
-                continue;
             }
         }
+
         if (count($payments) > 0) {
             $order['payments'] = $payments;
         }
@@ -346,7 +361,7 @@ class RetailCrmOrder
      * @throws \Bitrix\Main\ObjectPropertyException
      * @throws \Bitrix\Main\SystemException
      */
-    public static function uploadOrders($pSize = 50, $failed = false, array $orderList = null)
+    public static function uploadOrders(int $pSize = 50, bool $failed = false, array $orderList = []): bool
     {
         if (!RetailcrmDependencyLoader::loadDependencies()) {
             return true;
@@ -363,15 +378,15 @@ class RetailCrmOrder
 
         if ($failed == true && $failedIds !== false && count($failedIds) > 0) {
             $orderIds = $failedIds;
-        } elseif ($orderList !== null && count($orderList) > 0) {
+        } elseif (count($orderList) > 0) {
             $orderIds = $orderList;
         } else {
-            $dbOrder = OrderTable::GetList(array(
-                'order'   => array("ID" => "ASC"),
-                'filter'  => array('>ID' => $lastUpOrderId),
-                'limit'   => $pSize,
-                'select'  => array('ID')
-            ));
+            $dbOrder = OrderTable::GetList([
+                'order' => ["ID" => "ASC"],
+                'filter' => ['>ID' => $lastUpOrderId],
+                'limit' => $pSize,
+                'select' => ['ID'],
+            ]);
 
             while ($arOrder = $dbOrder->fetch()) {
                 $orderIds[] = $arOrder['ID'];
@@ -412,15 +427,12 @@ class RetailCrmOrder
 
         foreach ($orderIds as $orderId) {
             $site = null;
-            $id = Order::load($orderId);
             $orderObj = Order::load($orderId);
 
             if (!$orderObj) {
                 continue;
             }
 
-            $arCustomer = [];
-            $arCustomerCorporate = [];
             $arCustomer = [];
             $arCustomerCorporate = [];
             $order = self::orderObjToArr($orderObj);
@@ -434,7 +446,7 @@ class RetailCrmOrder
             self::createCustomerForOrder($api, $arCustomer, $arCustomerCorporate,$arParams, $order, $site);
 
             if (isset($order['RESPONSIBLE_ID']) && !empty($order['RESPONSIBLE_ID'])) {
-                $managerService = new ManagerService();
+                $managerService = ManagerService::getInstance();
                 $arParams['managerId']  = $managerService->getManagerCrmId((int) $order['RESPONSIBLE_ID']);
             }
 
@@ -507,6 +519,7 @@ class RetailCrmOrder
      * @throws \Bitrix\Main\ArgumentException
      * @throws \Bitrix\Main\ObjectPropertyException
      * @throws \Bitrix\Main\SystemException
+     * @throws \Exception
      */
     public static function createCustomerForOrder(
         ApiClient $api,
@@ -611,7 +624,7 @@ class RetailCrmOrder
                         $customerLegalName,
                         $orderData['delivery']['address']['text'],
                         $api,
-                        $site = null
+                        null
                     );
                 } elseif (array_key_exists($customerLegalName, $resCustomersCorporate)) {
                     $createResponse = $api->customersCorporateCreate(
@@ -669,11 +682,11 @@ class RetailCrmOrder
 
     /**
      * @param string $key
-     * @param array $optionsSitesList
+     * @param array  $optionsSitesList
      *
      * @return false|mixed|null
      */
-    public static function getSite($key, $optionsSitesList)
+    public static function getSite(string $key, array $optionsSitesList)
     {
         if ($optionsSitesList) {
             if (array_key_exists($key, $optionsSitesList) && $optionsSitesList[$key] != null) {
@@ -687,17 +700,17 @@ class RetailCrmOrder
     }
 
     /**
-     * @param array $pack
-     * @param string $method
-     * @param string $keyResponse
+     * @param array               $pack
+     * @param string              $method
+     * @param string              $keyResponse
      * @param RetailCrm\ApiClient $api
-     * @param array $optionsSitesList
+     * @param array               $optionsSitesList
      *
      * @return array|false
      */
-    public static function uploadItems($pack, $method, $keyResponse, $api, $optionsSitesList)
+    public static function uploadItems(array $pack, string $method, string $keyResponse, ApiClient $api, array $optionsSitesList)
     {
-        $uploaded = array();
+        $uploaded = [];
         $sizePack = 50;
 
         foreach ($pack as $key => $itemLoad) {
@@ -725,7 +738,7 @@ class RetailCrmOrder
                     return false;
                 }
 
-                if ($response instanceof \RetailCrm\Response\ApiResponse) {
+                if ($response instanceof ApiResponse) {
                     if ($response->offsetExists($keyResponse)) {
                         $uploaded = array_merge($uploaded, $response[$keyResponse]);
                     }
