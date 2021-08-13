@@ -3,7 +3,9 @@
 /**
  * Class RetailCrmOrder_v5Test
  */
-class RetailCrmOrder_v5Test extends \PHPUnit_Framework_TestCase {
+class RetailCrmOrder_v5Test extends \PHPUnit\Framework\TestCase {
+    use TestHelper;
+
     /**
      * setUp method
      */
@@ -19,6 +21,7 @@ class RetailCrmOrder_v5Test extends \PHPUnit_Framework_TestCase {
         RetailcrmConfigProvider::setPaymentTypes(['bitrixPayment' => 'crmPayment']);
         RetailcrmConfigProvider::setDeliveryTypes(['test' => 'test']);
         RetailcrmConfigProvider::setSendPaymentAmount('N');
+        RetailcrmConfigProvider::setIntegrationPaymentTypes([]);
     }
 
     /**
@@ -49,35 +52,14 @@ class RetailCrmOrder_v5Test extends \PHPUnit_Framework_TestCase {
      */
     public function orderSendProvider()
     {
-        $arFields = [
-            'ID' => 1,
-            'NUMBER' => 1,
-            'USER_ID' => 1,
-            'STATUS_ID' => 1,
-            'PERSON_TYPE_ID' => 'bitrixType',
-            'DATE_INSERT' => '2015-02-22 00:00:00',
-            'USER_DESCRIPTION' => 'userComment',
-            'COMMENTS' => 'managerComment',
-            'PRICE_DELIVERY' => '100',
-            'PROPS' => ['properties' => []],
-            'DELIVERYS' => [[
-                'id' => 'test',
-                'service' => 'service'
-            ]],
-            'BASKET' => [],
-            'PAYMENTS' => [[
-                'ID' => 1,
-                'PAY_SYSTEM_ID' => 'bitrixPayment',
-                'SUM' => 1000
-            ]]
-        ];
+        $arFields = $this->getArFields();
         $arParams = [
             'optionsOrderTypes' => RetailcrmConfigProvider::getOrderTypes(),
             'optionsPayStatuses' => RetailcrmConfigProvider::getPaymentStatuses(),
             'optionsContragentType' => RetailcrmConfigProvider::getContragentTypes(),
             'optionsDelivTypes' => RetailcrmConfigProvider::getDeliveryTypes(),
             'optionsPayTypes' => RetailcrmConfigProvider::getPaymentTypes(),
-            'optionsPayment' => []
+            'optionsPayment' => ['Y' => 'paid']
         ];
 
         return [[
@@ -86,7 +68,7 @@ class RetailCrmOrder_v5Test extends \PHPUnit_Framework_TestCase {
             'methodApi' => 'ordersCreate',
             'expected' => [
                 'number'          => $arFields['NUMBER'],
-                'externalId'      => $arFields['ID'],
+                'externalId'      => (string) $arFields['ID'],
                 'createdAt'       => $arFields['DATE_INSERT'],
                 'customer'        => ['externalId' => $arFields['USER_ID']],
                 'orderType'       => $arParams['optionsOrderTypes'][$arFields['PERSON_TYPE_ID']],
@@ -102,7 +84,9 @@ class RetailCrmOrder_v5Test extends \PHPUnit_Framework_TestCase {
                 ],
                 'payments' => [[
                     'type' => $arParams['optionsPayTypes'][$arFields['PAYMENTS'][0]['PAY_SYSTEM_ID']],
-                    'externalId' => RCrmActions::generatePaymentExternalId($arFields['PAYMENTS'][0]['ID'])
+                    'externalId' => RCrmActions::generatePaymentExternalId($arFields['PAYMENTS'][0]['ID']),
+                    'status' => 'paid',
+                    'paidAt' => $this->getDateTime()->format('Y-m-d H:i:s')
                 ]]
             ],
         ]];
