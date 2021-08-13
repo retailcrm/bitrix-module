@@ -428,7 +428,7 @@ class RCrmActions
                 'active' => $active
             );
 
-            self::apiMethod($api, 'marketplaceSettingsEdit', __METHOD__, $configuration);
+            //self::apiMethod($api, 'marketplaceSettingsEdit', __METHOD__, $configuration);
         } else {
             $configuration = array(
                 'clientId' => $clientId,
@@ -441,7 +441,7 @@ class RCrmActions
                 'accountUrl' => $accountUrl
             );
 
-            self::apiMethod($api, 'integrationModulesEdit', __METHOD__, $configuration);
+            //self::apiMethod($api, 'integrationModulesEdit', __METHOD__, $configuration);
         }
     }
 

@@ -272,11 +272,13 @@ class RetailCrmOrder
             $order['weight'] = $weight;
         }
 
-        $integrationPayment = RetailcrmConfigProvider::getIntegrationPaymentTypes();
+        $integrationPayments = RetailcrmConfigProvider::getIntegrationPaymentTypes();
         //payments
         $payments = [];
 
         foreach ($arOrder['PAYMENTS'] as $payment) {
+            $isIntegrationPayment = RetailCrmService::isIntegrationPayment($arParams, $payment, $integrationPayments);
+
             if (!empty($payment['PAY_SYSTEM_ID']) && isset($arParams['optionsPayTypes'][$payment['PAY_SYSTEM_ID']])) {
                 $pm = array(
                     'type' => $arParams['optionsPayTypes'][$payment['PAY_SYSTEM_ID']]
@@ -286,14 +288,12 @@ class RetailCrmOrder
                     $pm['externalId'] = RCrmActions::generatePaymentExternalId($payment['ID']);
                 }
 
-                if (!empty($payment['DATE_PAID'])) {
+                if (!empty($payment['DATE_PAID']) && !$isIntegrationPayment) {
                     $pm['paidAt'] = new \DateTime($payment['DATE_PAID']);
                 }
 
-                if (!empty($arParams['optionsPayment'][$payment['PAID']])) {
-                    if (array_search($arParams['optionsPayTypes'][$payment['PAY_SYSTEM_ID']], $integrationPayment) === false) {
-                        $pm['status'] = $arParams['optionsPayment'][$payment['PAID']];
-                    }
+                if (!empty($arParams['optionsPayment'][$payment['PAID']]) && !$isIntegrationPayment) {
+                    $pm['status'] = $arParams['optionsPayment'][$payment['PAID']];
                 }
 
                 if (RetailcrmConfigProvider::shouldSendPaymentAmount()) {

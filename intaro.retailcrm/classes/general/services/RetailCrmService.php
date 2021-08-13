@@ -110,4 +110,14 @@ class RetailCrmService
 
         return $result;
     }
+
+    public static function isIntegrationPayment(
+        array $arParams,
+        array $orderPayment,
+        array $integrationPayments
+    ): bool {
+        $orderPaymentType = $arParams['optionsPayTypes'][$orderPayment['PAY_SYSTEM_ID']] ?? null;
+
+        return in_array($orderPaymentType, $integrationPayments, true);
+    }
 }
