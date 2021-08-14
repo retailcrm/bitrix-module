@@ -84,8 +84,8 @@ class RetailCrmInventories
                     }
 
                     $elems = array();
-                    $chunkStores = array_chunk($stores, 50, true);
-                    foreach ($chunkStores as $stores) { 
+                    $storesChunks = array_chunk($stores, 50, true);
+                    foreach ($storesChunks as $storesChunk) {
                         foreach ($products as $product) {
                             if (count($product['offers']) > 0) {
                                 $elems = array_merge($elems, $product['offers']);
@@ -97,7 +97,7 @@ class RetailCrmInventories
                         $invUpload = array();
                         $dbStoreProduct = CCatalogStoreProduct::GetList(
                             array(),
-                            array('PRODUCT_ID' => $elems, 'STORE_ID' => array_keys($stores)),
+                            array('PRODUCT_ID' => $elems, 'STORE_ID' => array_keys($storesChunk)),
                             false,
                             false,
                             array('PRODUCT_ID', 'STORE_ID', 'AMOUNT')
@@ -109,8 +109,8 @@ class RetailCrmInventories
                                 );
                             }
                             $invUpload[$arStoreProduct['PRODUCT_ID']]['stores'][] = array(
-                                'code' => $stores[$arStoreProduct['STORE_ID']],
-                                'available' => self::switchCount($arStoreProduct['AMOUNT'], $inventoriesType[$stores[$arStoreProduct['STORE_ID']]]),
+                                'code' => $storesChunk[$arStoreProduct['STORE_ID']],
+                                'available' => self::switchCount($arStoreProduct['AMOUNT'], $inventoriesType[$storesChunk[$arStoreProduct['STORE_ID']]]),
                             );
                         }    
                         //for log                  
