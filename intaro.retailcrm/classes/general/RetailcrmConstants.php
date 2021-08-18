@@ -77,4 +77,5 @@ class RetailcrmConstants
     public const CRM_ONLINE_CONSULTANT_SCRIPT = 'online_consultant_script';
     public const CRM_PURCHASE_PRICE_NULL = 'purchasePrice_null';
     public const CRM_USERS_MAP = 'crm_users_map';
+    public const BITRIX_USER_ID_PREFIX = 'bitrixUserId-';
 }

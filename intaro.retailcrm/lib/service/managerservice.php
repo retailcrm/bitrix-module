@@ -11,6 +11,7 @@ use Logger;
 use RetailCrm\ApiClient;
 use RetailCrm\Component\Exception\FailedDbOperationException;
 use RetailcrmConfigProvider;
+use RetailcrmConstants;
 
 /**
  * Отвечает за работу с ответственными лицами в заказах
@@ -94,7 +95,9 @@ class ManagerService
      */
     public function getManagerCrmId(string $bitrixUserId): ?int
     {
-        return $this->repository->getManagerCrmIdByBitrixId($bitrixUserId);
+        $usersMap = RetailcrmConfigProvider::getUsersMap();
+
+        return $usersMap[RetailcrmConstants::BITRIX_USER_ID_PREFIX . $bitrixUserId] ?? null;
     }
 
     /**
@@ -104,7 +107,25 @@ class ManagerService
      */
     public function getManagerBitrixId(?int $crmManagerId): ?int
     {
-        return $this->repository->getBitrixIdByCrmId($crmManagerId);
+        $usersMap = RetailcrmConfigProvider::getUsersMap();
+
+        if (!is_array($usersMap) || count($usersMap) === 0) {
+            return null;
+        }
+
+        $flipUserMap = array_flip($usersMap);
+
+        if (!isset($flipUserMap[$crmManagerId])) {
+            return null;
+        }
+
+        $managerId = str_replace(RetailcrmConstants::BITRIX_USER_ID_PREFIX, '', $flipUserMap[$crmManagerId]);
+
+        if (empty($managerId)) {
+            return null;
+        }
+
+        return (int) $managerId;
     }
 
     /**
@@ -146,7 +167,7 @@ class ManagerService
             $matchesUser = $this->getMatchesForCrmUser($crmUser);
 
             if (count($matchesUser) > 0) {
-                $bitrixId = 'bitrixUserId-' . $matchesUser['bitrixUserId'];
+                $bitrixId = RetailcrmConstants::BITRIX_USER_ID_PREFIX . $matchesUser['bitrixUserId'];
                 $matchesUsers[$bitrixId] = $matchesUser['crmUserId'];
             }
         }
