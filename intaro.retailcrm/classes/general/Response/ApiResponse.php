@@ -11,6 +11,7 @@
 
 namespace RetailCrm\Response;
 
+use InvalidArgumentException;
 use RetailCrm\Exception\InvalidJsonException;
 
 /**
@@ -166,7 +167,7 @@ class ApiResponse implements \ArrayAccess
     public function offsetGet($offset)
     {
         if (!isset($this->response[$offset])) {
-            throw new \InvalidArgumentException("Property \"$offset\" not found");
+            throw new InvalidArgumentException("Property \"$offset\" not found");
         }
 
         return $this->response[$offset];

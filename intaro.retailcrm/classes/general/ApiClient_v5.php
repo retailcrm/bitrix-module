@@ -63,28 +63,24 @@ class ApiClient
     /**
      * Returns users list
      *
-     * @param array $filter
-     * @param null  $page
-     * @param null  $limit
-     *
-     * @throws \RetailCrm\Exception\InvalidJsonException
-     * @throws \RetailCrm\Exception\CurlException
-     * @throws \InvalidArgumentException
+     * @param array    $filter
+     * @param int|null $page
+     * @param int|null $limit
      *
      * @return ApiResponse
      */
-    public function usersList(array $filter = array(), $page = null, $limit = null)
+    public function usersList(array $filter = [], int $page = null, int $limit = null): ApiResponse
     {
-        $parameters = array();
+        $parameters = [];
 
         if (count($filter)) {
             $parameters['filter'] = $filter;
         }
         if (null !== $page) {
-            $parameters['page'] = (int) $page;
+            $parameters['page'] = $page;
         }
         if (null !== $limit) {
-            $parameters['limit'] = (int) $limit;
+            $parameters['limit'] = $limit;
         }
 
         return $this->client->makeRequest(
