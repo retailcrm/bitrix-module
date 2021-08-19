@@ -521,7 +521,7 @@ class RetailCrmHistory
                             }
                         }
 
-                        $fio = RCrmActions::explodeFIO($fio);
+                        $fio = RCrmActions::explodeFio($fio);
                         $newFio = array();
                         if ($fio) {
                             $newFio[] = isset($order['lastName']) ? RCrmActions::fromJSON($order['lastName']) : (isset($fio['lastName']) ? $fio['lastName'] : '');

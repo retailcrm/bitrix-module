@@ -243,15 +243,33 @@ class RetailcrmConfigProvider
      */
     public static function getSiteName(): string
     {
-        $sitename = COption::GetOptionString('main', 'site_name');
+        $siteName = COption::GetOptionString('main', 'site_name');
         
-        if (!$sitename) {
+        if (!$siteName) {
             return '';
         }
         
-        return $sitename;
+        return $siteName;
     }
-    
+
+    /**
+     * @return mixed
+     */
+    public static function getUsersMap()
+    {
+        return static::getUnserializedOption(RetailcrmConstants::CRM_USERS_MAP);
+    }
+
+    /**
+     * @param array|null $userMap
+     *
+     * @return bool
+     */
+    public static function setUsersMap(?array $userMap): bool
+    {
+       return static::setOption(RetailcrmConstants::CRM_USERS_MAP, serialize($userMap));
+    }
+
     /**
      * setOnlineConsultantScript
      * 
@@ -772,9 +790,9 @@ class RetailcrmConfigProvider
      * @param bool   $desc
      * @param string $site
      */
-    private static function setOption($name, $value = "", $desc = false, $site = "")
+    private static function setOption($name, string $value = '', bool $desc = false, string $site = ''): bool
     {
-        COption::SetOptionString(
+        return COption::SetOptionString(
             RetailcrmConstants::MODULE_ID,
             $name,
             $value,

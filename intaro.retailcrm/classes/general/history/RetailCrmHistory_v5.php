@@ -1,4 +1,18 @@
 <?php
+
+use Bitrix\Main\ArgumentException;
+use Bitrix\Main\ArgumentNullException;
+use Bitrix\Main\Context;
+use Bitrix\Sale\Basket;
+use Bitrix\Sale\Delivery\Services\EmptyDeliveryService;
+use Bitrix\Sale\Delivery\Services\Manager;
+use Bitrix\Sale\Fuser;
+use Bitrix\Sale\Internals\PaymentTable;
+use Bitrix\Sale\Location\Search\Finder;
+use Bitrix\Sale\Order;
+use Bitrix\Sale\OrderUserProperties;
+use Intaro\RetailCrm\Service\ManagerService;
+
 IncludeModuleLangFile(__FILE__);
 class RetailCrmHistory
 {
@@ -174,7 +188,7 @@ class RetailCrmHistory
                         retailCrmAfterCustomerSave($customer);
                     }
                 }
-                
+
                 $customerBuilder->reset();
             }
 
@@ -192,11 +206,24 @@ class RetailCrmHistory
         }
     }
 
-    public static function orderHistory()
+    /**
+     * @return bool
+     * @throws \Bitrix\Main\ArgumentException
+     * @throws \Bitrix\Main\ArgumentNullException
+     * @throws \Bitrix\Main\ArgumentOutOfRangeException
+     * @throws \Bitrix\Main\ArgumentTypeException
+     * @throws \Bitrix\Main\NotImplementedException
+     * @throws \Bitrix\Main\NotSupportedException
+     * @throws \Bitrix\Main\ObjectException
+     * @throws \Bitrix\Main\ObjectNotFoundException
+     * @throws \Bitrix\Main\ObjectPropertyException
+     * @throws \Bitrix\Main\SystemException
+     */
+    public static function orderHistory(): bool
     {
         global $USER;
 
-        if (is_object($USER) == false) {
+        if (is_object($USER) === false) {
             $USER = new RetailUser();
         }
 
@@ -227,11 +254,11 @@ class RetailCrmHistory
 
         while (true) {
             $orderHistory = RCrmActions::apiMethod($api, 'ordersHistory', __METHOD__, $historyFilter);
-            $orderH = isset($orderHistory['history']) ? $orderHistory['history'] : array();
+            $orderH = $orderHistory['history'] ?? [];
 
             Logger::getInstance()->write($orderH, 'orderHistory');
 
-            if (count($orderH) == 0) {
+            if (count($orderH) === 0) {
                 if ($orderHistory['history']['totalPageCount'] > $orderHistory['history']['currentPage']) {
                     $historyFilter['page'] = $orderHistory['history']['currentPage'] + 1;
 
@@ -265,30 +292,7 @@ class RetailCrmHistory
 
                 if (isset($order['deleted'])) {
                     if (isset($order['externalId'])) {
-                        try {
-                            $newOrder = Bitrix\Sale\Order::load($order['externalId']);
-                        } catch (Bitrix\Main\ArgumentNullException $e) {
-                            RCrmActions::eventLog(
-                                'RetailCrmHistory::orderHistory',
-                                'Bitrix\Sale\Order::load',
-                                $e->getMessage() . ': ' . $order['externalId']
-                            );
-
-                            continue;
-                        }
-
-                        if (!$newOrder instanceof \Bitrix\Sale\Order) {
-                            RCrmActions::eventLog(
-                                'RetailCrmHistory::orderHistory',
-                                'Bitrix\Sale\Order::load',
-                                'Error order load: ' . $order['externalId']
-                            );
-
-                            continue;
-                        }
-
-                        $newOrder->setField('CANCELED', 'Y');
-                        $newOrder->save();
+                        self::cancelOrder($order['externalId']);
                     }
 
                     continue;
@@ -317,7 +321,7 @@ class RetailCrmHistory
                 $corporateCustomerBuilder = new CorporateCustomerBuilder();
 
                 $corporateContact = array();
-                $orderCustomerExtId = isset($order['customer']['externalId']) ? $order['customer']['externalId'] : null;
+                $orderCustomerExtId = $order['customer']['externalId'] ?? null;
                 $corporateCustomerBuilder->setOrderCustomerExtId($orderCustomerExtId)
                     ->setContragentTypes($contragentTypes)
                     ->setDataCrm($order)
@@ -329,9 +333,7 @@ class RetailCrmHistory
                         if (isset($order['contact']['email'])) {
                             $corporateContact = $order['contact'];
 
-                            $orderCustomerExtId = isset($corporateContact['externalId'])
-                                ? $corporateContact['externalId']
-                                : null;
+                            $orderCustomerExtId = $corporateContact['externalId'] ?? null;
                             $corporateCustomerBuilder->setCorporateContact($corporateContact)
                                 ->setOrderCustomerExtId($orderCustomerExtId);
 
@@ -359,9 +361,7 @@ class RetailCrmHistory
                             if ($response && isset($response['customer'])) {
                                 $corporateContact = $response['customer'];
 
-                                $orderCustomerExtId = isset($corporateContact['externalId'])
-                                    ? $corporateContact['externalId']
-                                    : null;
+                                $orderCustomerExtId = $corporateContact['externalId'] ?? null;
                                 $corporateCustomerBuilder->setCorporateContact($corporateContact)
                                     ->setOrderCustomerExtId($orderCustomerExtId);
                             }
@@ -467,7 +467,7 @@ class RetailCrmHistory
 
                     if (RetailCrmOrder::isOrderCorporate($order) && !empty($order['company'])) {
                         $buyerProfile = $corporateCustomerBuilder->getBuyerProfile()->getObjectToArray();
-                        $buyerProfileToAppend = Bitrix\Sale\OrderUserProperties::getList(array(
+                        $buyerProfileToAppend = OrderUserProperties::getList(array(
                             "filter" => $buyerProfile
                         ))->fetch();
 
@@ -475,23 +475,29 @@ class RetailCrmHistory
                             $buyerProfileInstance = new CSaleOrderUserProps();
 
                             if ($buyerProfileInstance->Add($buyerProfile)) {
-                                $buyerProfileToAppend = Bitrix\Sale\OrderUserProperties::getList(array(
+                                $buyerProfileToAppend = OrderUserProperties::getList(array(
                                     "filter" => $buyerProfile
                                 ))->fetch();
                             }
                         }
                     }
 
-                    $newOrder = Bitrix\Sale\Order::create($site, $orderCustomerExtId, $currency);
+                    $newOrder = Order::create($site, $orderCustomerExtId, $currency);
 
-                    if (isset($buyerProfileToAppend['ID']) && isset($optionsLegalDetails['legalName'])) {
-                        $newOrder->setFields(array(
-                            $optionsLegalDetails['legalName'] => $buyerProfileToAppend['NAME'],
-                            'PERSON_TYPE_ID' => $buyerProfileToAppend['PERSON_TYPE_ID']
-                        ));
+                    if (array_key_exists('managerId', $order)) {
+                        $service = ManagerService::getInstance();
+
+                        $newOrder->setField('RESPONSIBLE_ID', $service->getManagerBitrixId($order['managerId']));
                     }
 
-                    if (!is_object($newOrder) || !$newOrder instanceof \Bitrix\Sale\Order) {
+                    if (isset($buyerProfileToAppend['ID']) && isset($optionsLegalDetails['legalName'])) {
+                        $newOrder->setFields([
+                            $optionsLegalDetails['legalName'] => $buyerProfileToAppend['NAME'],
+                            'PERSON_TYPE_ID'                  => $buyerProfileToAppend['PERSON_TYPE_ID'],
+                        ]);
+                    }
+
+                    if (!is_object($newOrder) || !$newOrder instanceof Order) {
                         RCrmActions::eventLog(
                             'RetailCrmHistory::orderHistory',
                             'Bitrix\Sale\Order::create',
@@ -510,8 +516,8 @@ class RetailCrmHistory
 
                     if ($order['externalId'] && is_numeric($order['externalId'])) {
                         try {
-                            $newOrder = Bitrix\Sale\Order::load($order['externalId']);
-                        } catch (Bitrix\Main\ArgumentNullException $e) {
+                            $newOrder = Order::load($order['externalId']);
+                        } catch (ArgumentNullException $e) {
                             RCrmActions::eventLog(
                                 'RetailCrmHistory::orderHistory',
                                 'Bitrix\Sale\Order::load',
@@ -522,7 +528,7 @@ class RetailCrmHistory
                         }
                     }
 
-                    if (!isset($newOrder) || $newOrder === null) {
+                    if (!isset($newOrder)) {
                         RCrmActions::eventLog(
                             'RetailCrmHistory::orderHistory',
                             'Bitrix\Sale\Order::load',
@@ -530,6 +536,12 @@ class RetailCrmHistory
                         );
 
                         continue;
+                    }
+
+                    if (array_key_exists('managerId', $order)) {
+                        $service = ManagerService::getInstance();
+
+                        $newOrder->setField('RESPONSIBLE_ID', $service->getManagerBitrixId($order['managerId']));
                     }
 
                     if ($optionsSitesList) {
@@ -661,35 +673,37 @@ class RetailCrmHistory
                     // fio
                     if ($order['firstName'] || $order['lastName'] || $order['patronymic']) {
                         $fio = '';
+
                         foreach ($propertyCollectionArr['properties'] as $prop) {
                             if (in_array($optionsOrderProps[$personType]['fio'], $prop)) {
                                 $getFio = $newOrder->getPropertyCollection()->getItemByOrderPropertyId($prop['ID']);
+
                                 if (method_exists($getFio, 'getValue')) {
                                     $fio = $getFio->getValue();
                                 }
                             }
                         }
 
-                        $fio = RCrmActions::explodeFIO($fio);
+                        $fio = RCrmActions::explodeFio($fio);
                         $newFio = array();
+
                         if ($fio) {
                             $newFio[] = isset($order['lastName'])
                                 ? RCrmActions::fromJSON($order['lastName'])
-                                : (isset($fio['lastName']) ? $fio['lastName'] : '');
+                                : ($fio['lastName'] ?? '');
                             $newFio[] = isset($order['firstName'])
                                 ? RCrmActions::fromJSON($order['firstName'])
-                                : (isset($fio['firstName']) ? $fio['firstName'] : '');
+                                : ($fio['firstName'] ?? '');
                             $newFio[] = isset($order['patronymic'])
                                 ? RCrmActions::fromJSON($order['patronymic'])
-                                : (isset($fio['patronymic']) ? $fio['patronymic'] : '');
+                                : ($fio['patronymic'] ?? '');
 
-                            $order['fio'] = trim(implode(' ', $newFio));
                         } else {
                             $newFio[] = isset($order['lastName']) ? RCrmActions::fromJSON($order['lastName']) : '';
                             $newFio[] = isset($order['firstName']) ? RCrmActions::fromJSON($order['firstName']) : '';
                             $newFio[] = isset($order['patronymic']) ? RCrmActions::fromJSON($order['patronymic']) : '';
-                            $order['fio'] = trim(implode(' ', $newFio));
                         }
+                        $order['fio'] = trim(implode(' ', $newFio));
                     }
 
                     if (array_key_exists('fio', $order)) {
@@ -739,10 +753,10 @@ class RetailCrmHistory
                                         $parameters['filter']['NAME.LANGUAGE_ID'] = 'ru';
 
                                         try {
-                                            if ( !isset($location) ) {
-                                                $location = \Bitrix\Sale\Location\Search\Finder::find(
+                                            if (!isset($location)) {
+                                                $location = Finder::find(
                                                     $parameters,
-                                                    array('USE_INDEX' => false, 'USE_ORM' => false)
+                                                    ['USE_INDEX' => false, 'USE_ORM' => false]
                                                 )->fetch();
                                             }
 
@@ -750,7 +764,7 @@ class RetailCrmHistory
                                                 ->getItemByOrderPropertyId($propsKey[$orderProp]['ID']);
 
                                             self::setProp($somePropValue, $location['CODE']);
-                                        } catch (\Bitrix\Main\ArgumentException $argumentException) {
+                                        } catch (ArgumentException $argumentException) {
                                             RCrmActions::eventLog(
                                                 'RetailCrmHistory::orderHistory',
                                                 'RetailCrmHistory::setProp',
@@ -818,9 +832,7 @@ class RetailCrmHistory
                                     $somePropValue,
                                     RCrmActions::fromJSON(
                                         $key == 'legalAddress'
-                                            ? (isset($order['company']['address']['text'])
-                                            ? $order['company']['address']['text']
-                                            : '')
+                                            ? ($order['company']['address']['text'] ?? '')
                                             : $order['company'][$key]
                                     )
                                 );
@@ -850,14 +862,14 @@ class RetailCrmHistory
                     $basket = $newOrder->getBasket();
 
                     if (!$basket) {
-                        $basket = Bitrix\Sale\Basket::create($site);
+                        $basket = Basket::create($site);
                         $newOrder->setBasket($basket);
                     }
 
                     $fUserId = $basket->getFUserId(true);
 
                     if (!$fUserId) {
-                        $fUserId = Bitrix\Sale\Fuser::getIdByUserId($order['customer']['externalId']);
+                        $fUserId = Fuser::getIdByUserId($order['customer']['externalId']);
                         $basket->setFUserId($fUserId);
                     }
 
@@ -1010,7 +1022,6 @@ class RetailCrmHistory
 
                             if (!$item) {
                                 if ($product['delete']) {
-
                                     continue;
                                 }
 
@@ -1124,7 +1135,7 @@ class RetailCrmHistory
                         }
                     }
 
-                    if ($itemUpdate === true && $newOrder->getField('CANCELED') != 'Y') {
+                    if ($itemUpdate === true && $newOrder->getField('CANCELED') !== 'Y') {
                         self::shipmentItemReset($newOrder);
                     }
 
@@ -1161,7 +1172,7 @@ class RetailCrmHistory
                     $newOrder->setField('PRICE', $orderSumm);
                     self::orderSave($newOrder);
 
-                    if ($optionsOrderNumbers == 'Y' && isset($order['number'])) {
+                    if ($optionsOrderNumbers === 'Y' && isset($order['number'])) {
                         $newOrder->setField('ACCOUNT_NUMBER', $order['number']);
                         self::orderSave($newOrder);
                     }
@@ -1191,7 +1202,7 @@ class RetailCrmHistory
                                 );
 
                                 if ($paymentId) {
-                                    \Bitrix\Sale\Internals\PaymentTable::update($paymentId, array('XML_ID' => ''));
+                                    PaymentTable::update($paymentId, array('XML_ID' => ''));
                                 }
                             }
                         }
@@ -1257,7 +1268,7 @@ class RetailCrmHistory
     public static function assemblyCustomer($customerHistory)
     {
         $customerHistory = self::filterHistory($customerHistory, 'customer');
-        $server = \Bitrix\Main\Context::getCurrent()->getServer()->getDocumentRoot();
+        $server = Context::getCurrent()->getServer()->getDocumentRoot();
         $fields = array();
         if (file_exists($server . '/bitrix/modules/intaro.retailcrm/classes/general/config/objects.xml')) {
             $objects = simplexml_load_file($server . '/bitrix/modules/intaro.retailcrm/classes/general/config/objects.xml');
@@ -1326,7 +1337,7 @@ class RetailCrmHistory
     public static function assemblyOrder($orderHistory)
     {
         $orderHistory = self::filterHistory($orderHistory, 'order');
-        $server = \Bitrix\Main\Context::getCurrent()->getServer()->getDocumentRoot();
+        $server = Context::getCurrent()->getServer()->getDocumentRoot();
 
         if (file_exists($server . '/bitrix/modules/intaro.retailcrm/classes/general/config/objects.xml')) {
             $objects = simplexml_load_file(
@@ -1342,8 +1353,10 @@ class RetailCrmHistory
 
         foreach ($orderHistory as $change) {
             $change['order'] = self::removeEmpty($change['order']);
+
             if ($change['order']['items']) {
-                $items = array();
+                $items = [];
+
                 foreach ($change['order']['items'] as $item) {
                     if (isset($change['created'])) {
                         $item['create'] = 1;
@@ -1355,6 +1368,10 @@ class RetailCrmHistory
 
             if ($change['field'] == 'number') {
                 $orders[$change['order']['id']]['number'] = $change['newValue'];
+            }
+
+            if ($change['field'] == 'manager') {
+                $orders[$change['order']['id']]['managerId'] = $change['newValue'];
             }
 
             if (isset($change['oldValue']) && $change['field'] == 'customer') {
@@ -1562,8 +1579,8 @@ class RetailCrmHistory
             $update = false;
         }
 
-        $crmCode = isset($orderCrm['delivery']['code']) ? $orderCrm['delivery']['code'] : false;
-        $noDeliveryId = \Bitrix\Sale\Delivery\Services\EmptyDeliveryService::getEmptyDeliveryServiceId();
+        $crmCode = $orderCrm['delivery']['code'] ?? false;
+        $noDeliveryId = EmptyDeliveryService::getEmptyDeliveryServiceId();
 
         if ($crmCode === false || !isset($optionsDelivTypes[$crmCode])) {
             $deliveryId = $noDeliveryId;
@@ -1571,10 +1588,10 @@ class RetailCrmHistory
             $deliveryId = $optionsDelivTypes[$crmCode];
 
             if (isset($orderCrm['delivery']['service']['code'])) {
-                $deliveryCode = \Bitrix\Sale\Delivery\Services\Manager::getCodeById($deliveryId);
+                $deliveryCode = Manager::getCodeById($deliveryId);
                 $serviceCode = $orderCrm['delivery']['service']['code'];
 
-                $service = \Bitrix\Sale\Delivery\Services\Manager::getService($deliveryId);
+                $service = Manager::getService($deliveryId);
                 if (is_object($service)) {
                     $services = $service->getProfilesList();
                     if (!array_key_exists($serviceCode, $services)) {
@@ -1585,7 +1602,7 @@ class RetailCrmHistory
 
                 if ($deliveryCode) {
                     try {
-                        $deliveryService = \Bitrix\Sale\Delivery\Services\Manager::getObjectByCode($deliveryCode . ':' . $serviceCode);
+                        $deliveryService = Manager::getObjectByCode($deliveryCode . ':' . $serviceCode);
                     } catch (Bitrix\Main\SystemException $systemException) {
                         RCrmActions::eventLog('RetailCrmHistory::deliveryEdit', '\Bitrix\Sale\Delivery\Services\Manager::getObjectByCode', $systemException->getMessage());
                     }
@@ -1597,7 +1614,7 @@ class RetailCrmHistory
             }
         }
 
-        $delivery = \Bitrix\Sale\Delivery\Services\Manager::getObjectById($deliveryId);
+        $delivery = Manager::getObjectById($deliveryId);
         $shipmentColl = $order->getShipmentCollection();
 
         if ($delivery) {
@@ -1910,39 +1927,45 @@ class RetailCrmHistory
 
         return $val;
     }
-}
 
-class RetailUser extends CUser
-{
-    public function GetID()
+    /**
+     * @param int $externalId
+     *
+     * @return void
+     */
+    public static function cancelOrder(int $externalId)
     {
-        $rsUser = CUser::GetList(($by = 'ID'), ($order = 'DESC'), array('LOGIN' => 'retailcrm'));
-
-        if ($arUser = $rsUser->Fetch()) {
-            return $arUser['ID'];
-        } else {
-            $retailUser = new CUser;
-
-            $userPassword = uniqid();
-
-            $arFields = array(
-                "NAME"             => 'retailcrm',
-                "LAST_NAME"        => 'retailcrm',
-                "EMAIL"            => 'retailcrm@retailcrm.com',
-                "LOGIN"            => 'retailcrm',
-                "LID"              => "ru",
-                "ACTIVE"           => "Y",
-                "GROUP_ID"         => array(2),
-                "PASSWORD"         => $userPassword,
-                "CONFIRM_PASSWORD" => $userPassword
+        try {
+            $newOrder = Order::load($externalId);
+        } catch (ArgumentNullException $e) {
+            RCrmActions::eventLog(
+                'RetailCrmHistory::orderHistory',
+                'Bitrix\Sale\Order::load',
+                $e->getMessage() . ': ' . $externalId
             );
-            $id = $retailUser->Add($arFields);
 
-            if (!$id) {
-                return null;
-            } else {
-                return $id;
-            }
+            return;
+        }
+
+        if (!$newOrder instanceof Order) {
+            RCrmActions::eventLog(
+                'RetailCrmHistory::orderHistory',
+                'Bitrix\Sale\Order::load',
+                'Error order load: ' . $externalId
+            );
+
+            return;
+        }
+
+        try {
+            $newOrder->setField('CANCELED', 'Y');
+            $newOrder->save();
+        } catch (Exception $exception) {
+            RCrmActions::eventLog(
+                'RetailCrmHistory::orderHistory',
+                'Bitrix\Sale\Order::cancelOrder',
+                'Error order canceled: ' . $externalId
+            );
         }
     }
 }

@@ -1,4 +1,7 @@
 <?php
+
+use Intaro\RetailCrm\Service\ManagerService;
+
 IncludeModuleLangFile(__FILE__);
 class RCrmActions
 {
@@ -186,11 +189,11 @@ class RCrmActions
      *
      * @return self name
      */
-
     public static function uploadOrdersAgent()
     {
         RetailCrmOrder::uploadOrders();
         $failedIds = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_FAILED_IDS, 0));
+        
         if (is_array($failedIds) && !empty($failedIds)) {
             RetailCrmOrder::uploadOrders(50, true);
         }
@@ -206,9 +209,12 @@ class RCrmActions
      */
     public static function orderAgent()
     {
-        if (COption::GetOptionString('main', 'agents_use_crontab', 'N') != 'N') {
+        if (COption::GetOptionString('main', 'agents_use_crontab', 'N') !== 'N') {
             define('NO_AGENT_CHECK', true);
         }
+
+        $service = ManagerService::getInstance();
+        $service->synchronizeManagers();
 
         RetailCrmHistory::customerHistory();
         RetailCrmHistory::orderHistory();
@@ -354,10 +360,16 @@ class RCrmActions
         return $string;
     }
 
-    public static function explodeFIO($fio)
+    /**
+     * @param string|null $fio
+     *
+     * @return array
+     */
+    public static function explodeFio(?string $fio): array
     {
-        $result = array();
+        $result = [];
         $fio = preg_replace('|[\s]+|s', ' ', trim($fio));
+
         if (empty($fio)) {
             return $result;
         } else {
@@ -367,23 +379,23 @@ class RCrmActions
         switch (count($newFio)) {
             default:
             case 0:
-                $result['firstName']  = $fio;
+                $result['firstName'] = $fio;
                 break;
             case 1:
-                $result['firstName']  = $newFio[0];
+                $result['firstName'] = $newFio[0];
                 break;
             case 2:
-                $result = array(
+                $result = [
                     'lastName'  => $newFio[0],
-                    'firstName' => $newFio[1]
-                );
+                    'firstName' => $newFio[1],
+                ];
                 break;
             case 3:
-                $result = array(
+                $result = [
                     'lastName'   => $newFio[0],
                     'firstName'  => $newFio[1],
-                    'patronymic' => $newFio[2]
-                );
+                    'patronymic' => $newFio[2],
+                ];
                 break;
         }
 

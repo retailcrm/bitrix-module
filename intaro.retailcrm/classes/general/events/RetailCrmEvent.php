@@ -1,5 +1,7 @@
 <?php
 
+use Intaro\RetailCrm\Service\ManagerService;
+
 /**
  * Class RetailCrmEvent
  */
@@ -140,7 +142,6 @@ class RetailCrmEvent
 
             return false;
         }
-
         $arOrder = RetailCrmOrder::orderObjToArr($obOrder);
 
         $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
@@ -411,6 +412,11 @@ class RetailCrmEvent
                     return false;
                 }
             }
+        }
+
+        if (isset($arOrder['RESPONSIBLE_ID']) && !empty($arOrder['RESPONSIBLE_ID'])) {
+            $managerService = ManagerService::getInstance();
+            $arParams['managerId']  = $managerService->getManagerCrmId($arOrder['RESPONSIBLE_ID']);
         }
 
         //order
