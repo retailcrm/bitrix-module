@@ -3,8 +3,7 @@
 /**
  * Class RetailCrmOrder_v5Test
  */
-class RetailCrmOrder_v5Test extends \PHPUnit\Framework\TestCase {
-    use TestHelper;
+class RetailCrmOrder_v5Test extends BitrixTestCase {
 
     /**
      * setUp method
@@ -16,12 +15,11 @@ class RetailCrmOrder_v5Test extends \PHPUnit\Framework\TestCase {
         COption::SetOptionString('intaro.retailcrm', 'api_version', 'v5');
         CModule::IncludeModule('intaro.retailcrm');
         RetailcrmConfigProvider::setOrderTypes(['bitrixType' => 'crmType']);
-        RetailcrmConfigProvider::setContragentTypes(['bitrixType' => 'crmType']);
+        RetailcrmConfigProvider::setContragentTypes(['bitrixType' => 'individual']);
         RetailcrmConfigProvider::setPaymentStatuses([1 => 'paymentStatus']);
-        RetailcrmConfigProvider::setPaymentTypes(['bitrixPayment' => 'crmPayment']);
+        RetailcrmConfigProvider::setPaymentTypes(['bitrixPayment' => 'testPayment']);
         RetailcrmConfigProvider::setDeliveryTypes(['test' => 'test']);
         RetailcrmConfigProvider::setSendPaymentAmount('N');
-        RetailcrmConfigProvider::setIntegrationPaymentTypes([]);
     }
 
     /**
@@ -77,7 +75,8 @@ class RetailCrmOrder_v5Test extends \PHPUnit\Framework\TestCase {
                 'managerComment'  => $arFields['COMMENTS'],
                 'delivery' => [
                     'cost' => $arFields['PRICE_DELIVERY'],
-                    'code' => $arFields['DELIVERYS'][0]['service'],
+                    'code' => $arFields['DELIVERYS'][0]['id'],
+                    'service' => ['code' => $arFields['DELIVERYS'][0]['service']]
                 ],
                 'contragent' => [
                     'contragentType' => $arParams['optionsContragentType'][$arFields['PERSON_TYPE_ID']]

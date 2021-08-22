@@ -8,8 +8,6 @@ use \Bitrix\Main\Application;
 
 class RetailCrmOrderTest extends BitrixTestCase
 {
-    use TestHelper;
-
     protected $retailCrmOrder;
     protected $test;
 
