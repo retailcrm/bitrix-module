@@ -14,12 +14,6 @@ class RetailCrmOrder_v5Test extends BitrixTestCase {
 
         COption::SetOptionString('intaro.retailcrm', 'api_version', 'v5');
         CModule::IncludeModule('intaro.retailcrm');
-        RetailcrmConfigProvider::setOrderTypes(['bitrixType' => 'crmType']);
-        RetailcrmConfigProvider::setContragentTypes(['bitrixType' => 'individual']);
-        RetailcrmConfigProvider::setPaymentStatuses([1 => 'paymentStatus']);
-        RetailcrmConfigProvider::setPaymentTypes(['bitrixPayment' => 'testPayment']);
-        RetailcrmConfigProvider::setDeliveryTypes(['test' => 'test']);
-        RetailcrmConfigProvider::setSendPaymentAmount('N');
     }
 
     /**
@@ -46,11 +40,47 @@ class RetailCrmOrder_v5Test extends BitrixTestCase {
     }
 
     /**
+     * @dataProvider orderSendProvider
+     */
+    public function testOrderSendWitIntegrationPayment(
+        array $arFields,
+        array $arParams,
+        string $methodApi,
+        array $expected
+    ): void {
+        RetailcrmConfigProvider::setIntegrationPaymentTypes(['testPayment']);
+
+        $orderSend = RetailCrmOrder::orderSend(
+            $arFields,
+            new stdClass(),
+            $arParams,
+            false,
+            null,
+            $methodApi
+        );
+
+        unset($expected['payments'][0]['paidAt'], $expected['payments'][0]['status']);
+        static::assertEquals($expected['payments'][0], $orderSend['payments'][0]);
+    }
+
+    public function initSystemData(): void
+    {
+        RetailcrmConfigProvider::setOrderTypes(['bitrixType' => 'crmType']);
+        RetailcrmConfigProvider::setContragentTypes(['bitrixType' => 'individual']);
+        RetailcrmConfigProvider::setPaymentStatuses([1 => 'paymentStatus']);
+        RetailcrmConfigProvider::setPaymentTypes(['bitrixPayment' => 'testPayment']);
+        RetailcrmConfigProvider::setDeliveryTypes(['test' => 'test']);
+        RetailcrmConfigProvider::setSendPaymentAmount('N');
+    }
+
+    /**
      * @return array[]
      */
     public function orderSendProvider()
     {
         $arFields = $this->getArFields();
+        $this->initSystemData();
+
         $arParams = [
             'optionsOrderTypes' => RetailcrmConfigProvider::getOrderTypes(),
             'optionsPayStatuses' => RetailcrmConfigProvider::getPaymentStatuses(),
