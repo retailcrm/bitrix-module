@@ -115,7 +115,7 @@ class XmlOfferBuilder
         
         $this->addDataFromParams();
         $this->addDataFromItem($this->productProps, $this->categories);
-        
+
         return $this->xmlOffer;
     }
     
@@ -503,18 +503,18 @@ class XmlOfferBuilder
     {
         if (isset($measureId) && !empty($measureId)) {
            return $this->createUnitFromCode($measureId);
-        } else {
-            try {
-                $currentMeasure = ProductTable::getCurrentRatioWithMeasure($itemId);
-            
-                if (is_array($currentMeasure)) {
-                    return $this->createUnitFromProductTable($currentMeasure);
-                }
-            } catch (ArgumentException $exception) {
-                Logger::getInstance()->write(GetMessage('UNIT_ERROR'), 'i_crm_load_log');
-            }
         }
+    
+        try {
+            $currentMeasure = ProductTable::getCurrentRatioWithMeasure($itemId);
         
+            if (is_array($currentMeasure)) {
+                return $this->createUnitFromProductTable($currentMeasure);
+            }
+        } catch (ArgumentException $exception) {
+            Logger::getInstance()->write(GetMessage('UNIT_ERROR'), 'i_crm_load_log');
+        }
+    
         return null;
     }
 }

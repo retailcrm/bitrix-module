@@ -2,7 +2,9 @@
 
 namespace Intaro\RetailCrm\Repository;
 
+use Bitrix\Catalog\StoreBarcodeTable;
 use Bitrix\Iblock\IblockTable;
+use Bitrix\Iblock\SectionElementTable;
 use Bitrix\Iblock\SectionTable;
 use Bitrix\Main\ArgumentException;
 use Bitrix\Main\ObjectPropertyException;
@@ -45,11 +47,19 @@ class CatalogRepository
      */
     public function getProductCategoriesIds(int $offerId): array
     {
-        $query = CIBlockElement::GetElementGroups($offerId, false, ['ID']);
-        $ids   = [];
-        
-        while ($category = $query->GetNext()) {
-            $ids[] = $category['ID'];
+        $ids = [];
+    
+        try {
+            $categories = SectionElementTable::query()
+                ->addSelect('IBLOCK_SECTION_ID')
+                ->where('IBLOCK_ELEMENT_ID', $offerId)
+                ->fetchAll();
+        } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
+            return [];
+        }
+    
+        foreach ($categories as $category){
+            $ids[] = $category['IBLOCK_SECTION_ID'];
         }
         
         return $ids;
@@ -58,25 +68,23 @@ class CatalogRepository
     /**
      * Returns products IDs with barcodes by infoblock id
      *
-     * @param int $iblockId
-     *
      * @return array
      */
-    public function getProductBarcodesByIblockId(int $iblockId): array
+    public function getBarcodes(): array
     {
         $barcodes  = [];
-        $dbBarCode = CCatalogStoreBarCode::getList(
-            [],
-            ['IBLOCK_ID' => $iblockId],
-            false,
-            false,
-            ['PRODUCT_ID', 'BARCODE']
-        );
         
-        while ($arBarCode = $dbBarCode->GetNext()) {
-            if (!empty($arBarCode)) {
-                $barcodes[$arBarCode['PRODUCT_ID']] = $arBarCode['BARCODE'];
-            }
+        try {
+            $arBarCodes = StoreBarcodeTable::query()
+                ->addSelect('PRODUCT_ID')
+                ->addSelect('BARCODE')
+                ->fetchAll();
+        } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
+            return [];
+        }
+        
+        foreach ($arBarCodes as $arBarCode){
+            $barcodes[$arBarCode['PRODUCT_ID']] = $arBarCode['BARCODE'];
         }
         
         return $barcodes;

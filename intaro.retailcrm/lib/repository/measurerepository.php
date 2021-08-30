@@ -2,7 +2,10 @@
 
 namespace Intaro\RetailCrm\Repository;
 
-use CCatalogMeasure;
+use Bitrix\Catalog\MeasureTable;
+use Bitrix\Main\ArgumentException;
+use Bitrix\Main\ObjectPropertyException;
+use Bitrix\Main\SystemException;
 
 /**
  * Class MeasureRepository
@@ -18,12 +21,23 @@ class MeasureRepository
     public static function getMeasures(): array
     {
         $measures    = [];
-        $resMeasure = CCatalogMeasure::getList();
-        
-        while ($measure = $resMeasure->Fetch()) {
-            $measures[$measure['ID']] = $measure;
+    
+        try {
+            $resMeasures = MeasureTable::query()
+                ->addSelect('ID')
+                ->addSelect('MEASURE_TITLE')
+                ->addSelect('SYMBOL_INTL')
+                ->addSelect('SYMBOL')
+                ->fetchAll();
+        } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
+            die('hui');
+            return [];
         }
-        
+    
+        foreach ($resMeasures as $resMeasure) {
+            $measures[$resMeasure['ID']] = $resMeasure;
+        }
+
         return $measures;
     }
 }

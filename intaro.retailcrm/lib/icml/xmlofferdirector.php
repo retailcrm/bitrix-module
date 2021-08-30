@@ -36,7 +36,12 @@ class XmlOfferDirector
     /**
      * @var \Intaro\RetailCrm\Icml\XmlOfferBuilder
      */
-    private $xmlOfferBuilder;
+    private       $xmlOfferBuilder;
+    
+    /**
+     * @var array
+     */
+    private $barcodes;
     
     /**
      * XmlOfferFactory constructor.
@@ -52,6 +57,7 @@ class XmlOfferDirector
             MeasureRepository::getMeasures(),
             SiteRepository::getDefaultServerName()
         );
+        $this->barcodes = $this->catalogRepository->getBarcodes();
     }
     
     /**
@@ -64,13 +70,12 @@ class XmlOfferDirector
     public function getXmlOffersPart(SelectParams $param, CatalogIblockInfo $catalogIblockInfo): array
     {
         $ciBlockResult = $this->catalogRepository->getProductPage($param, $catalogIblockInfo);
-        $barcodes =  $this->catalogRepository->getProductBarcodesByIblockId($catalogIblockInfo->productIblockId);
         $offers = [];
         
         while ($offer = $ciBlockResult->GetNext()) {
-            $this->setXmlOfferParams($param, $offer, $catalogIblockInfo, $barcodes);
+            $this->setXmlOfferParams($param, $offer, $catalogIblockInfo);
             $this->xmlOfferBuilder->setCategories($this->catalogRepository->getProductCategoriesIds($offer['ID']));
-           
+            
             $offers[] = $this->xmlOfferBuilder->build();
         }
         
@@ -113,6 +118,7 @@ class XmlOfferDirector
             $offer->picture     = $offer->mergeValues($product->picture, $offer->picture);
             $offer->weight      = $offer->mergeValues($product->weight, $offer->weight);
             $offer->dimensions  = $offer->mergeValues($product->dimensions, $offer->dimensions);
+            $offer->barcode     = $offer->mergeValues($product->barcode, $offer->barcode);
             $offer->categoryIds = $product->categoryIds;
             $offer->productName = $product->productName;
         }
@@ -164,13 +170,11 @@ class XmlOfferDirector
      * @param \Intaro\RetailCrm\Model\Bitrix\Xml\SelectParams      $param
      * @param array                                                $product
      * @param \Intaro\RetailCrm\Model\Bitrix\Orm\CatalogIblockInfo $catalogIblockInfo
-     * @param array                                                $barcodes
      */
     private function setXmlOfferParams(
         SelectParams $param,
         array $product,
-        CatalogIblockInfo $catalogIblockInfo,
-        array $barcodes
+        CatalogIblockInfo $catalogIblockInfo
     ): void {
         if ($param->parentId === null) {
             $pictureProperty = $this->setup->properties->products->pictures[$catalogIblockInfo->productIblockId];
@@ -195,7 +199,7 @@ class XmlOfferDirector
         ));
         $this->xmlOfferBuilder->setSelectParams($param);
         $this->xmlOfferBuilder->setOfferProps($product);
-        $this->xmlOfferBuilder->setBarcode($barcodes[$product['ID']] ?? '');
+        $this->xmlOfferBuilder->setBarcode($this->barcodes[$product['ID']] ?? '');
         $this->xmlOfferBuilder->setCatalogIblockInfo($catalogIblockInfo);
         $this->xmlOfferBuilder->setPicturesPath(
             $this

@@ -205,7 +205,7 @@ class IcmlDirector
         do {
             $productsPart = $this->xmlOfferDirector->getXmlOffersPart($paramsForProduct, $catalogIblockInfo);
             $paramsForProduct->pageNumber++;
-            
+
             $this->writeProductsOffers($productsPart, $paramsForOffer, $catalogIblockInfo);
         } while (!empty($productsPart));
     }
