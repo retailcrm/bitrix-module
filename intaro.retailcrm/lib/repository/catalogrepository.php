@@ -49,7 +49,8 @@ class CatalogRepository
     {
         try {
             $categories = SectionElementTable::query()
-                ->addSelect('IBLOCK_SECTION')
+                ->addSelect('IBLOCK_SECTION.ID')
+                ->addSelect('IBLOCK_SECTION.CODE')
                 ->where('IBLOCK_ELEMENT_ID', $offerId)
                 ->fetchAll();
         } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {

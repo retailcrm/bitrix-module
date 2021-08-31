@@ -223,6 +223,10 @@ class XmlOfferDirector
      */
     private function replaceUrlTemplate(array $offer, array $categories): string
     {
+        if (strpos($offer['DETAIL_PAGE_URL'], '#PRODUCT_URL#')) {
+            return $offer['DETAIL_PAGE_URL'];
+        }
+        
         $replaceableUrlParts = [
             '#SITE_DIR#'=> 'LANG_DIR',
             '#ID#' => 'ID',
