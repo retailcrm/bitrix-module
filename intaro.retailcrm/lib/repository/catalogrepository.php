@@ -45,24 +45,18 @@ class CatalogRepository
      * @param int $offerId
      * @return array
      */
-    public function getProductCategoriesIds(int $offerId): array
+    public function getProductCategories(int $offerId): array
     {
-        $ids = [];
-    
         try {
             $categories = SectionElementTable::query()
-                ->addSelect('IBLOCK_SECTION_ID')
+                ->addSelect('IBLOCK_SECTION')
                 ->where('IBLOCK_ELEMENT_ID', $offerId)
                 ->fetchAll();
         } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
             return [];
         }
-    
-        foreach ($categories as $category){
-            $ids[] = $category['IBLOCK_SECTION_ID'];
-        }
         
-        return $ids;
+        return $categories;
     }
     
     /**
@@ -102,7 +96,7 @@ class CatalogRepository
             $this->builder->getWhereForOfferPart($param->parentId, $catalogIblockInfo),
             false,
             ['nPageSize' => $param->nPageSize, 'iNumPage' => $param->pageNumber, 'checkOutOfRange' => true],
-            array_merge($param->configurable, $param->main)
+            $param->allParams
         );
     }
     

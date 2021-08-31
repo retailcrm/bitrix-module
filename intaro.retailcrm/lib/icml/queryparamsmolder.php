@@ -39,8 +39,12 @@ class QueryParamsMolder
         
         $params->configurable = $userProps ?? [];
         $params->main         = [
+            'LANG_DIR',
+            'CODE',
             'IBLOCK_ID',
+            'IBLOCK_CODE',
             'IBLOCK_SECTION_ID',
+            'IBLOCK_EXTERNAL_ID',
             'NAME',
             'DETAIL_PICTURE',
             'PREVIEW_PICTURE',

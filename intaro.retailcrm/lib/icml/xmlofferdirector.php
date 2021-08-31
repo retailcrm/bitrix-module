@@ -2,6 +2,8 @@
 
 namespace Intaro\RetailCrm\Icml;
 
+use CIBlock;
+use CIBlockSection;
 use Intaro\RetailCrm\Model\Bitrix\Orm\CatalogIblockInfo;
 use Intaro\RetailCrm\Model\Bitrix\Xml\SelectParams;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlOffer;
@@ -72,9 +74,13 @@ class XmlOfferDirector
         $ciBlockResult = $this->catalogRepository->getProductPage($param, $catalogIblockInfo);
         $offers = [];
         
-        while ($offer = $ciBlockResult->GetNext()) {
+        while ($offer = $ciBlockResult->Fetch()) {
+            $categories = $this->catalogRepository->getProductCategories($offer['ID']);
+            $offer['DETAIL_PAGE_URL'] = $this->replaceUrlTemplate($offer, $categories);
+
             $this->setXmlOfferParams($param, $offer, $catalogIblockInfo);
-            $this->xmlOfferBuilder->setCategories($this->catalogRepository->getProductCategoriesIds($offer['ID']));
+            $this->xmlOfferBuilder
+                ->setCategories(array_column($categories, 'IBLOCK_SECTION_ELEMENT_IBLOCK_SECTION_ID'));
             
             $offers[] = $this->xmlOfferBuilder->build();
         }
@@ -121,6 +127,7 @@ class XmlOfferDirector
             $offer->barcode     = $offer->mergeValues($product->barcode, $offer->barcode);
             $offer->categoryIds = $product->categoryIds;
             $offer->productName = $product->productName;
+            $offer->url = $this->mergeUrls($product->url, $offer->url);
         }
         
         return $xmlOffers;
@@ -206,6 +213,89 @@ class XmlOfferDirector
                 ->fileRepository
                 ->getProductPicture($product, $pictureProperty ?? '')
         );
+    }
+    
+    /**
+     * @param array $offer
+     * @param array $categories
+     *
+     * @return string
+     */
+    private function replaceUrlTemplate(array $offer, array $categories): string
+    {
+        $replaceableUrlParts = [
+            '#SITE_DIR#'=> 'LANG_DIR',
+            '#ID#' => 'ID',
+            '#CODE#'  => 'CODE',
+            '#EXTERNAL_ID#' => 'EXTERNAL_ID',
+            '#IBLOCK_TYPE_ID#' => 'IBLOCK_TYPE_ID',
+            '#IBLOCK_ID#' => 'IBLOCK_ID',
+            '#IBLOCK_CODE#' => 'IBLOCK_CODE',
+            '#IBLOCK_EXTERNAL_ID#' => 'IBLOCK_EXTERNAL_ID',
+            '#ELEMENT_ID#' => 'ID',
+            '#ELEMENT_CODE#' => 'CODE',
+        ];
+
+        $resultUrl = $offer['DETAIL_PAGE_URL'];
+
+        foreach ($replaceableUrlParts as $key => $replaceableUrlPart) {
+            if (isset($offer[$replaceableUrlPart])) {
+                $resultUrl = str_replace($key, $offer[$replaceableUrlPart], $resultUrl);
+            }
+        }
+
+        if (
+            isset($categories[0]['IBLOCK_SECTION_ELEMENT_IBLOCK_SECTION_ID'])
+            && strpos($offer['DETAIL_PAGE_URL'], '#SECTION_ID#') !== false
+        ) {
+            $resultUrl = str_replace(
+                '#SECTION_ID#',
+                $categories[0]['IBLOCK_SECTION_ELEMENT_IBLOCK_SECTION_ID'],
+                $resultUrl
+            );
+        }
+        
+        if (
+            isset($categories[0]['IBLOCK_SECTION_ELEMENT_IBLOCK_SECTION_CODE'])
+            && strpos($offer['DETAIL_PAGE_URL'], '#SECTION_CODE#') !== false
+        ) {
+            $resultUrl = str_replace(
+                '#SECTION_CODE#',
+                $categories[0]['IBLOCK_SECTION_ELEMENT_IBLOCK_SECTION_CODE'],
+                $resultUrl
+            );
+        }
+    
+        if (
+            isset(
+                $categories[0]['IBLOCK_SECTION_ELEMENT_IBLOCK_SECTION_CODE'],
+                $categories[0]['IBLOCK_SECTION_ELEMENT_IBLOCK_SECTION_ID']
+            )
+            && strpos($offer['DETAIL_PAGE_URL'], '#SECTION_CODE_PATH#') !== false
+        ) {
+            $resultUrl = str_replace(
+                '#SECTION_CODE_PATH#',
+                CIBlockSection::getSectionCodePath($categories[0]['IBLOCK_SECTION_ELEMENT_IBLOCK_SECTION_ID']),
+                $resultUrl
+            );
+        }
+        
+        return str_replace('//', '/', $resultUrl);
+    }
+    
+    /**
+     * @param string $productUrl
+     * @param string $offerUrl
+     *
+     * @return string
+     */
+    private function mergeUrls(string $productUrl, string $offerUrl): string
+    {
+        if (strpos($offerUrl, '#PRODUCT_URL#') !== false) {
+            return $productUrl;
+        }
+        
+        return $offerUrl;
     }
     
     /**

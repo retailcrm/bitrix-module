@@ -30,7 +30,6 @@ class MeasureRepository
                 ->addSelect('SYMBOL')
                 ->fetchAll();
         } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
-            die('hui');
             return [];
         }
     

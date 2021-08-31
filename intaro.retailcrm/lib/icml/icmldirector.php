@@ -161,6 +161,7 @@ class IcmlDirector
             $selectParams->pageNumber = 1;
             $selectParams->nPageSize  = self::OFFERS_PART;
             $selectParams->parentId   = null;
+            $selectParams->allParams = array_merge($selectParams->configurable, $selectParams->main);
             
             while ($xmlOffers = $this->xmlOfferDirector->getXmlOffersPart($selectParams, $catalogIblockInfo)) {
                 $this->icmlWriter->writeOffers($xmlOffers);
@@ -201,6 +202,7 @@ class IcmlDirector
     ): void {
         $paramsForProduct->pageNumber = 1;
         $paramsForProduct->nPageSize = $this->calculateProductPageSize();
+        $paramsForProduct->allParams = array_merge($paramsForProduct->configurable, $paramsForProduct->main);
         
         do {
             $productsPart = $this->xmlOfferDirector->getXmlOffersPart($paramsForProduct, $catalogIblockInfo);
@@ -244,6 +246,7 @@ class IcmlDirector
         $paramsForOffer->pageNumber = 1;
         $writingOffersCount = 0;
         $paramsForOffer->parentId = $product->id;
+        $paramsForOffer->allParams = array_merge($paramsForOffer->configurable, $paramsForOffer->main);
         
         do {
             $xmlOffersPart
