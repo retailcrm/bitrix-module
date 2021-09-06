@@ -274,12 +274,11 @@ class RetailCrmOrder
             $order['weight'] = $weight;
         }
 
-        $integrationPayments = RetailcrmConfigProvider::getIntegrationPaymentTypes();
         //payments
         $payments = [];
         
         foreach ($arOrder['PAYMENTS'] as $payment) {
-            $isIntegrationPayment = RetailCrmService::isIntegrationPayment($arParams, $payment, $integrationPayments);
+            $isIntegrationPayment = RetailCrmService::isIntegrationPayment($payment['PAY_SYSTEM_ID'] ?? null);
 
             if (!empty($payment['PAY_SYSTEM_ID']) && isset($arParams['optionsPayTypes'][$payment['PAY_SYSTEM_ID']])) {
                 $pm = [
