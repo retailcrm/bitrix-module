@@ -54,7 +54,7 @@ class BitrixTestCase extends \PHPUnit\Framework\TestCase
             'BASKET' => [],
             'PAYMENTS' => [[
                 'ID' => 1,
-                'PAY_SYSTEM_ID' => 'bitrixPayment',
+                'PAY_SYSTEM_ID' => 1,
                 'SUM' => 1000,
                 'DATE_PAID' => $this->getDateTime(),
                 'PAID' => 'Y'
