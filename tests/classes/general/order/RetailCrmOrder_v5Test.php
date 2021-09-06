@@ -68,7 +68,7 @@ class RetailCrmOrder_v5Test extends BitrixTestCase {
         RetailcrmConfigProvider::setOrderTypes(['bitrixType' => 'crmType']);
         RetailcrmConfigProvider::setContragentTypes(['bitrixType' => 'individual']);
         RetailcrmConfigProvider::setPaymentStatuses([1 => 'paymentStatus']);
-        RetailcrmConfigProvider::setPaymentTypes(['bitrixPayment' => 'testPayment']);
+        RetailcrmConfigProvider::setPaymentTypes([1 => 'testPayment']);
         RetailcrmConfigProvider::setDeliveryTypes(['test' => 'test']);
         RetailcrmConfigProvider::setSendPaymentAmount('N');
     }
