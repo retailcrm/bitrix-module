@@ -2,7 +2,9 @@
 
 namespace Intaro\RetailCrm\Repository;
 
+use Bitrix\Catalog\StoreBarcodeTable;
 use Bitrix\Iblock\IblockTable;
+use Bitrix\Iblock\SectionElementTable;
 use Bitrix\Iblock\SectionTable;
 use Bitrix\Main\ArgumentException;
 use Bitrix\Main\ObjectPropertyException;
@@ -28,7 +30,7 @@ class CatalogRepository
      * @var \Intaro\RetailCrm\Icml\QueryParamsMolder
      */
     private $builder;
-    
+
     /**
      * CatalogRepository constructor.
      */
@@ -36,52 +38,53 @@ class CatalogRepository
     {
         $this->builder = new QueryParamsMolder();
     }
-    
+
     /**
      * Получение категорий, к которым относится товар
      *
      * @param int $offerId
      * @return array
      */
-    public function getProductCategoriesIds(int $offerId): array
+    public function getProductCategories(int $offerId): array
     {
-        $query = CIBlockElement::GetElementGroups($offerId, false, ['ID']);
-        $ids   = [];
-        
-        while ($category = $query->GetNext()) {
-            $ids[] = $category['ID'];
+        try {
+            $categories = SectionElementTable::query()
+                ->addSelect('IBLOCK_SECTION.ID')
+                ->addSelect('IBLOCK_SECTION.CODE')
+                ->where('IBLOCK_ELEMENT_ID', $offerId)
+                ->fetchAll();
+        } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
+            return [];
         }
-        
-        return $ids;
+
+        return $categories;
     }
-    
+
     /**
      * Returns products IDs with barcodes by infoblock id
      *
-     * @param int $iblockId
-     *
      * @return array
      */
-    public function getProductBarcodesByIblockId(int $iblockId): array
+    public function getBarcodes(): array
     {
         $barcodes  = [];
-        $dbBarCode = CCatalogStoreBarCode::getList(
-            [],
-            ['IBLOCK_ID' => $iblockId],
-            false,
-            false,
-            ['PRODUCT_ID', 'BARCODE']
-        );
-        
-        while ($arBarCode = $dbBarCode->GetNext()) {
-            if (!empty($arBarCode)) {
-                $barcodes[$arBarCode['PRODUCT_ID']] = $arBarCode['BARCODE'];
-            }
+
+        try {
+            $arBarCodes = StoreBarcodeTable::query()
+                ->addSelect('PRODUCT_ID')
+                ->addSelect('BARCODE')
+                ->fetchAll();
+        } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
+            return [];
         }
-        
+
+        foreach ($arBarCodes as $arBarCode){
+            $barcodes[$arBarCode['PRODUCT_ID']] = $arBarCode['BARCODE'];
+        }
+
         return $barcodes;
     }
-    
+
     /**
      * @param \Intaro\RetailCrm\Model\Bitrix\Xml\SelectParams      $param
      * @param \Intaro\RetailCrm\Model\Bitrix\Orm\CatalogIblockInfo $catalogIblockInfo
@@ -94,10 +97,10 @@ class CatalogRepository
             $this->builder->getWhereForOfferPart($param->parentId, $catalogIblockInfo),
             false,
             ['nPageSize' => $param->nPageSize, 'iNumPage' => $param->pageNumber, 'checkOutOfRange' => true],
-            array_merge($param->configurable, $param->main)
+            $param->allParams
         );
     }
-    
+
     /**
      * @param int $iblockId
      * @return  \Bitrix\Main\ORM\Objectify\Collection|null
@@ -113,7 +116,7 @@ class CatalogRepository
             return null;
         }
     }
-    
+
     /**
      * @param $iblockId
      * @return EntityObject|null
@@ -128,7 +131,7 @@ class CatalogRepository
             return null;
         }
     }
-    
+
     /**
      * Возвращает информацию об инфоблоке торговых предложений по ID инфоблока товаров
      *
@@ -139,20 +142,20 @@ class CatalogRepository
     {
         $catalogIblockInfo = new CatalogIblockInfo();
         $info              = CCatalogSKU::GetInfoByProductIBlock($productIblockId);
-        
+
         if ($info === false) {
             $catalogIblockInfo->productIblockId = $productIblockId;
-            
+
             return $catalogIblockInfo;
         }
-        
+
         $catalogIblockInfo->skuIblockId     = $info['IBLOCK_ID'];
         $catalogIblockInfo->productIblockId = $info['PRODUCT_IBLOCK_ID'];
         $catalogIblockInfo->skuPropertyId   = $info['SKU_PROPERTY_ID'];
-        
+
         return $catalogIblockInfo;
     }
-    
+
     /**
      * @param int|null $profileId
      * @return int
@@ -160,7 +163,7 @@ class CatalogRepository
     public static function getBasePriceId(?int $profileId): int
     {
         $basePriceId = RetailcrmConfigProvider::getCatalogBasePriceByProfile($profileId);
-    
+
         if (!$basePriceId) {
             $dbPriceType = CCatalogGroup::GetList(
                 [],
@@ -169,11 +172,11 @@ class CatalogRepository
                 false,
                 ['ID']
             );
-    
+
             $result = $dbPriceType->GetNext();
             return $result['ID'];
         }
-        
+
         return $basePriceId;
     }
 }
