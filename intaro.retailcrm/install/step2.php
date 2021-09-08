@@ -1,4 +1,9 @@
 <?php
+
+use RetailCrm\ApiClient;
+
+/** @var $APPLICATION */
+
 IncludeModuleLangFile(__FILE__);
 
 $MODULE_ID = 'intaro.retailcrm';
@@ -13,12 +18,12 @@ $CRM_PAYMENT = 'payment_arr';
 $CRM_ORDER_TYPES_ARR = 'order_types_arr';
 $api_host = COption::GetOptionString($MODULE_ID, $CRM_API_HOST_OPTION, 0);
 $api_key = COption::GetOptionString($MODULE_ID, $CRM_API_KEY_OPTION, 0);
-$arResult['arSites'] = RCrmActions::SitesList();
+$arResult['arSites'] = RCrmActions::getSitesList();
 
-$RETAIL_CRM_API = new \RetailCrm\ApiClient($api_host, $api_key);
+$RETAIL_CRM_API = new ApiClient($api_host, $api_key);
 COption::SetOptionString($MODULE_ID, $CRM_API_HOST_OPTION, $api_host);
 COption::SetOptionString($MODULE_ID, $CRM_API_KEY_OPTION, $api_key);
-COption::SetOptionString($MODULE_ID, $CRM_SITES_LIST, serialize(array()));
+COption::SetOptionString($MODULE_ID, $CRM_SITES_LIST, serialize([]));
 
 if (!isset($arResult['PAYMENT'])) {
     $arResult['PAYMENT'] = unserialize(COption::GetOptionString($MODULE_ID, $CRM_PAYMENT, 0));
@@ -62,59 +67,53 @@ $arResult['bitrixPaymentList'][0]['ID'] = 'Y';
 $arResult['bitrixPaymentList'][1]['NAME'] = GetMessage('PAYMENT_N');
 $arResult['bitrixPaymentList'][1]['ID'] = 'N';
 
-if(isset($arResult['ORDER_TYPES'])){
+if (isset($arResult['ORDER_TYPES'])) {
     $defaultOrderTypes = $arResult['ORDER_TYPES'];
-}
-else{
-    $defaultOrderTypes = array (
+} else {
+    $defaultOrderTypes = [
         1 => 'eshop-individual',
-        2 => 'eshop-legal'
-    );
+        2 => 'eshop-legal',
+    ];
 }
 
-if(isset($arResult['DELIVERY_TYPES'])){
+if (isset($arResult['DELIVERY_TYPES'])) {
     $defaultDelivTypes = $arResult['DELIVERY_TYPES'];
-}
-else{
-    $defaultDelivTypes = array (
+} else {
+    $defaultDelivTypes = [
         1 => 'courier',
-        2 => 'self-delivery'
-    );
+        2 => 'self-delivery',
+    ];
 }
 
-if(isset($arResult['PAYMENT_TYPES'])){
+if (isset($arResult['PAYMENT_TYPES'])) {
     $defaultPayTypes = $arResult['PAYMENT_TYPES'];
-}
-else{
-    $defaultPayTypes = array (
+} else {
+    $defaultPayTypes = [
         1 => 'cash',
         4 => 'e-money',
         5 => 'bank-card',
-        9 => 'bank-transfer'
-    );
+        9 => 'bank-transfer',
+    ];
 }
 
-if(isset($arResult['PAYMENT_STATUSES'])){
+if (isset($arResult['PAYMENT_STATUSES'])) {
     $defaultPayStatuses = $arResult['PAYMENT_STATUSES'];
-}
-else{
-    $defaultPayStatuses = array (
+} else {
+    $defaultPayStatuses = [
         'N' => 'new',
         'P' => 'prepayed',
         'F' => 'complete',
-    );
+    ];
 }
 
-if(isset($arResult['PAYMENT'])){
+if (isset($arResult['PAYMENT'])) {
     $defaultPayment = $arResult['PAYMENT'];
-}
-else{
-    $defaultPayment = array(
+} else {
+    $defaultPayment = [
         'Y' => 'paid',
-        'N' => 'not-paid'
-    );
+        'N' => 'not-paid',
+    ];
 }
-
 ?>
 
 <style type="text/css">
@@ -278,7 +277,7 @@ else{
                         </table>
                     </td>
                 </tr>
-            <?endif;?>
+            <?php endif;?>
 
             <?php foreach($arResult['bitrixStatusesList'] as $bitrixStatus): ?>
             <tr>
