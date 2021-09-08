@@ -1,4 +1,4 @@
-<?
+<?php
 
 $MESS["ERROR_FILENAME_NOT_SET"] = "Не указан файл данных.";
 $MESS["ERROR_PROFIE_NOT_SET"] = "Не указано имя профиля";
@@ -9,8 +9,8 @@ $MESS["FILENAME"] = "Укажите имя файла данных:";
 $MESS["LOAD_PURCHASE_PRICE"] = "Выгружать закупочную цену";
 $MESS["PROPERTY"] = "Свойство, содержащее артикул товара";
 $MESS["ALL_CATALOG"] = "Все каталоги";
-$MESS["CET_EXPORT"] = "Экспортировать";
-$MESS["CET_SAVE"] = "Сохранить";
+$MESS["EXPORT"] = "Экспортировать";
+$MESS["SAVE"] = "Сохранить";
 $MESS["ERROR_IBLOCK_MODULE"] = "Модуль Инфоблоки не установлен";
 $MESS["ERROR_IBLOCK_CATALOG"] = "Модуль Каталог не установлен";
 $MESS["ERROR_IBLOCK_INTAROCRM"] = "Модуль RetailCRM не установлен";
