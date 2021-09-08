@@ -219,7 +219,7 @@ class intaro_retailcrm extends CModule
         }
 
         if ($step == 11) {
-            $arResult['arSites'] = RCrmActions::SitesList();
+            $arResult['arSites'] = RCrmActions::getSitesList();
             if (count($arResult['arSites']) < 2) {
                 $step = 2;
             }
@@ -329,7 +329,7 @@ class intaro_retailcrm extends CModule
                 return;
             }
 
-            $arResult['arSites'] = RCrmActions::SitesList();
+            $arResult['arSites'] = RCrmActions::getSitesList();
 
             if (count($arResult['arSites']) > 1) {
 
@@ -374,7 +374,8 @@ class intaro_retailcrm extends CModule
                     return;
                 }
 
-                $ping = self::ping($api_host, $api_key);
+                $ping = $this->ping($api_host, $api_key);
+                
                 if (isset($ping['sitesList'])) {
                     $arResult['sitesList'] = $ping['sitesList'];
                 } elseif (isset($ping['errCode'])) {
@@ -482,7 +483,7 @@ class intaro_retailcrm extends CModule
             $this->RETAIL_CRM_API = new ApiClient($api_host, $api_key);
 
             //bitrix orderTypesList
-            $arResult['arSites'] = RCrmActions::SitesList();
+            $arResult['arSites'] = RCrmActions::getSitesList();
             $arResult['bitrixOrderTypesList'] = RCrmActions::OrderTypesList($arResult['arSites']);
 
             $orderTypesArr = array();
@@ -658,7 +659,7 @@ class intaro_retailcrm extends CModule
             }
 
             //bitrix orderTypesList
-            $orderTypesList = RCrmActions::OrderTypesList(RCrmActions::SitesList());
+            $orderTypesList = RCrmActions::OrderTypesList(RCrmActions::getSitesList());
 
             $orderTypesArr = array();
             foreach ($orderTypesList as $orderType) {
