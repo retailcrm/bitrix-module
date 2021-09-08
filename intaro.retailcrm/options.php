@@ -222,7 +222,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
             }
         }
     }
-    
+
     if ($api_host && $api_key) {
         $api = new RetailCrm\ApiClient($api_host, $api_key);
         try {

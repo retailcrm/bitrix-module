@@ -27,10 +27,10 @@ class RCrmActions
         while ($ar = $rsSites->Fetch()) {
             $arSites[] = $ar;
         }
-        
+
         return $arSites;
     }
-    
+
     public static function OrderTypesList($arSites)
     {
         $orderTypesList = array();
