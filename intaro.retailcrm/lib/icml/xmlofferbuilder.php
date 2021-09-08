@@ -27,57 +27,57 @@ class XmlOfferBuilder
      * @var \Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup
      */
     private $setup;
-    
+
     /**
      * @var bool|string|null
      */
     private $purchasePriceNull;
-    
+
     /**
      * @var array
      */
     private $measures;
-    
+
     /**
      * @var string|null
      */
     private $defaultServerName;
-    
+
     /**
      * @var array
      */
     private $skuHlParams;
-    
+
     /**
      * @var array
      */
     private $productHlParams;
-    
+
     /**
      * @var string
      */
     private $productPicture;
-    
+
     /**
      * @var \Intaro\RetailCrm\Model\Bitrix\Orm\CatalogIblockInfo
      */
     private $catalogIblockInfo;
-    
+
     /**
      * @var array
      */
     private $productProps;
-    
+
     /**
      * @var string
      */
     private $barcode;
-    
+
     /**
      * @var \Intaro\RetailCrm\Model\Bitrix\Xml\SelectParams
      */
     private $selectParams;
-    
+
     /**
      * @var \Intaro\RetailCrm\Model\Bitrix\Xml\XmlOffer
      */
@@ -86,7 +86,7 @@ class XmlOfferBuilder
      * @var array
      */
     private $categories;
-    
+
     /**
      * IcmlDataManager constructor.
      *
@@ -103,7 +103,7 @@ class XmlOfferBuilder
         $this->measures          = $this->prepareMeasures($measure);
         $this->defaultServerName = $defaultServerName;
      }
-    
+
     /**
      * @return \Intaro\RetailCrm\Model\Bitrix\Xml\XmlOffer
      */
@@ -112,13 +112,13 @@ class XmlOfferBuilder
         $this->xmlOffer          = new XmlOffer();
         $this->xmlOffer->barcode = $this->barcode;
         $this->xmlOffer->picture = $this->productPicture;
-        
+
         $this->addDataFromParams();
         $this->addDataFromItem($this->productProps, $this->categories);
-        
+
         return $this->xmlOffer;
     }
-    
+
     /**
      * @param array $categories
      */
@@ -126,7 +126,7 @@ class XmlOfferBuilder
     {
         $this->categories = $categories;
     }
-    
+
     /**
      * @param mixed $skuHlParams
      */
@@ -134,7 +134,7 @@ class XmlOfferBuilder
     {
         $this->skuHlParams = $skuHlParams;
     }
-    
+
     /**
      * @param mixed $productHlParams
      */
@@ -142,7 +142,7 @@ class XmlOfferBuilder
     {
         $this->productHlParams = $productHlParams;
     }
-    
+
     /**
      * @param \Intaro\RetailCrm\Model\Bitrix\Xml\SelectParams $selectParams
      */
@@ -150,16 +150,16 @@ class XmlOfferBuilder
     {
         $this->selectParams = $selectParams;
     }
-    
+
     /**
      * @param array $productProps
      */
     public function setOfferProps(array $productProps): void
     {
         $this->productProps = $productProps;
-        
+
     }
-    
+
     /**
      * @param string $barcode
      */
@@ -167,7 +167,7 @@ class XmlOfferBuilder
     {
         $this->barcode = $barcode;
     }
-    
+
     /**
      * @param \Intaro\RetailCrm\Model\Bitrix\Orm\CatalogIblockInfo $catalogIblockInfo
      */
@@ -175,7 +175,7 @@ class XmlOfferBuilder
     {
         $this->catalogIblockInfo = $catalogIblockInfo;
     }
-    
+
     /**
      * @param string $getProductPicture
      */
@@ -183,21 +183,21 @@ class XmlOfferBuilder
     {
         $this->productPicture = $getProductPicture;
     }
-    
+
     /**
      * Добавляет в XmlOffer значения настраиваемых параметров, производителя, вес и габариты
      */
     private function addDataFromParams(): void
     {
         $resultParams = array_merge($this->productHlParams, $this->skuHlParams);
-    
+
         //достаем значения из обычных свойств
         $resultParams = array_merge($resultParams, $this->getSimpleParams(
             $resultParams,
             $this->selectParams->configurable,
             $this->productProps
         ));
-    
+
         [$resultParams, $this->xmlOffer->dimensions]
             = $this->extractDimensionsFromParams(
             $this->setup->properties,
@@ -242,7 +242,7 @@ class XmlOfferBuilder
         $this->xmlOffer->vatRate = $item['CATALOG_VAT'] ?? 'none';
         $this->xmlOffer->unitCode = $this->getUnitCode($item['CATALOG_MEASURE'], $item['ID']);
     }
-    
+
     /**
      * Возвращает закупочную цену, если она требуется настройками
      *
@@ -257,15 +257,15 @@ class XmlOfferBuilder
             if ($product['CATALOG_PURCHASING_PRICE']) {
                 return $product['CATALOG_PURCHASING_PRICE'];
             }
-            
+
             if ($purchasePriceNull === 'Y') {
                 return 0;
             }
         }
-        
+
         return null;
     }
-    
+
     /**
      * Возвращает массив обычных свойств
      *
@@ -280,19 +280,19 @@ class XmlOfferBuilder
             if (isset($resultParams[$key])) {
                 continue;
             }
-            
+
             $codeWithValue = $params . '_VALUE';
-            
+
             if (isset($productProps[$codeWithValue])) {
                 $resultParams[$key] = $productProps[$codeWithValue];
             } elseif (isset($productProps[$params])) {
                 $resultParams[$key] = $productProps[$params];
             }
         }
-        
+
         return $resultParams;
     }
-    
+
     /**
      * Удаляет параметры с пустыми и нулевыми значениями
      *
@@ -303,7 +303,7 @@ class XmlOfferBuilder
     {
         return array_diff($params, ['', 0, '0']);
     }
-    
+
     /**
      * Разделяем вендора и остальные параметры
      *
@@ -313,16 +313,16 @@ class XmlOfferBuilder
     private function extractVendorFromParams(array $resultParams): array
     {
         $vendor = null;
-        
+
         if (isset($resultParams['manufacturer'])) {
             $vendor = $resultParams['manufacturer'];
-            
+
             unset($resultParams['manufacturer']);
         }
-        
+
         return [$resultParams, $vendor];
     }
-    
+
     /**
      * Преобразует вес товара в килограммы для ноды weight
      *
@@ -342,26 +342,26 @@ class XmlOfferBuilder
             'kg' => 1,
         ];
         $unit = '';
-        
+
         if (!empty($xmlSetupPropsCategories->products->names[$iblockId]['weight'])) {
             $unit = $xmlSetupPropsCategories->products->units[$iblockId]['weight'];
         } elseif (!empty($xmlSetupPropsCategories->sku->names[$iblockId]['weight'])) {
             $unit = $xmlSetupPropsCategories->sku->units[$iblockId]['weight'];
         }
-        
+
         if (isset($resultParams['weight'], $factors[$unit])) {
             $weight = $resultParams['weight'] * $factors[$unit];
         } else {
             $weight = '';
         }
-        
+
         if (isset($resultParams['weight'])) {
             unset($resultParams['weight']);
         }
-        
+
         return [$resultParams, $weight];
     }
-    
+
     /**
      * Получение данных для ноды dimensions
      *
@@ -385,34 +385,34 @@ class XmlOfferBuilder
             'cm' => 1,
             'm'  => 100,
         ];
-        
+
         foreach ($dimensionsParams as $key => $param) {
             $unit = '';
-            
+
             if (!empty($xmlSetupPropsCategories->products->names[$iblockId][$param])) {
                 $unit = $xmlSetupPropsCategories->products->units[$iblockId][$param];
             } elseif (!empty($xmlSetupPropsCategories->sku->names[$iblockId][$param])) {
                 $unit = $xmlSetupPropsCategories->sku->units[$iblockId][$param];
             }
-            
+
             if (isset($factors[$unit], $resultParams[$param])) {
                 $dimensions .= $resultParams[$param] * $factors[$unit];
             } else {
                 $dimensions .= '0';
             }
-            
+
             if (count($dimensionsParams) > $key + 1) {
                 $dimensions .= '/';
             }
-            
+
             if (isset($resultParams[$param])) {
                 unset($resultParams[$param]);
             }
         }
-        
+
         return [$resultParams, $dimensions === '0/0/0' ? '' : $dimensions];
     }
-    
+
     /**
      * Собираем объект параметре заказа
      *
@@ -422,21 +422,21 @@ class XmlOfferBuilder
     private function createParamObject(array $params): array
     {
         $offerParams = [];
-        
+
         foreach ($params as $code => $value) {
             $paramName = GetMessage('PARAM_NAME_' . $code);
-            
+
             if (empty($paramName)) {
                 continue;
             }
-            
+
             $offerParam        = new OfferParam();
             $offerParam->name  = $paramName;
             $offerParam->code  = $code;
             $offerParam->value = $value;
             $offerParams[]     = $offerParam;
         }
-        
+
         return $offerParams;
     }
 
@@ -452,10 +452,10 @@ class XmlOfferBuilder
         $unit->name = $this->measures[$measureIndex]['MEASURE_TITLE'] ?? '';
         $unit->code = $this->measures[$measureIndex]['SYMBOL_INTL'] ?? '';
         $unit->sym  = $this->measures[$measureIndex]['SYMBOL_RUS'] ?? '';
-        
+
         return $unit;
     }
-    
+
     /**
      * Удаляет запрещенные в unit сode символы
      *
@@ -472,10 +472,10 @@ class XmlOfferBuilder
                 $measure['SYMBOL_INTL'] =  preg_replace("/[^a-zA-Z_\-]/",'', $measure['SYMBOL_INTL']);
             }
         }
-        
+
         return $measures;
     }
-    
+
     /**
      * @param array $currentMeasure
      *
@@ -489,10 +489,10 @@ class XmlOfferBuilder
         $unit->name = $clearCurrentMeasure['MEASURE']['MEASURE_TITLE'] ?? '';
         $unit->code = $clearCurrentMeasure['MEASURE']['SYMBOL_INTL'] ?? '';
         $unit->sym = $clearCurrentMeasure['MEASURE']['SYMBOL_RUS'] ?? '';
-    
+
         return $unit;
     }
-    
+
     /**
      * @param int|null $measureId
      * @param int      $itemId
@@ -503,18 +503,18 @@ class XmlOfferBuilder
     {
         if (isset($measureId) && !empty($measureId)) {
            return $this->createUnitFromCode($measureId);
-        } else {
-            try {
-                $currentMeasure = ProductTable::getCurrentRatioWithMeasure($itemId);
-            
-                if (is_array($currentMeasure)) {
-                    return $this->createUnitFromProductTable($currentMeasure);
-                }
-            } catch (ArgumentException $exception) {
-                Logger::getInstance()->write(GetMessage('UNIT_ERROR'), 'i_crm_load_log');
-            }
         }
-        
+
+        try {
+            $currentMeasure = ProductTable::getCurrentRatioWithMeasure($itemId);
+
+            if (is_array($currentMeasure)) {
+                return $this->createUnitFromProductTable($currentMeasure);
+            }
+        } catch (ArgumentException $exception) {
+            Logger::getInstance()->write(GetMessage('UNIT_ERROR'), 'i_crm_load_log');
+        }
+
         return null;
     }
 }
