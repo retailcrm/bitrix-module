@@ -23,14 +23,14 @@ class SelectParams
      * @var array
      */
     public $configurable;
-    
+
     /**
      * обязательные свойства
      *
      * @var array
      */
     public $main;
-    
+
     /**
      * номер запрашиваемой страницы
      *
@@ -44,14 +44,14 @@ class SelectParams
      * @var int
      */
     public $nPageSize;
-    
+
     /**
      * id товара у торогового предложения, если запрашивается SKU
      *
      * @var int
      */
     public $parentId;
-    
+
     /**
      * @var array
      */

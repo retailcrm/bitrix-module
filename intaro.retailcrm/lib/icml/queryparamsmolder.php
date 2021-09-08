@@ -21,22 +21,22 @@ class QueryParamsMolder
     public function getSelectParams(?array $userProps, int $basePriceId): SelectParams
     {
         $catalogFields = ['catalog_length', 'catalog_width', 'catalog_height', 'catalog_weight'];
-        
+
         $params = new SelectParams();
-        
+
         foreach ($userProps as $key => $name) {
             if ($name === '') {
                 unset($userProps[$key]);
                 continue;
             }
-            
+
             if (in_array($name, $catalogFields, true)) {
                 $userProps[$key] = strtoupper($userProps[$key]);
             } else {
                 $userProps[$key] = 'PROPERTY_' . $userProps[$key];
             }
         }
-        
+
         $params->configurable = $userProps ?? [];
         $params->main         = [
             'LANG_DIR',
@@ -57,10 +57,10 @@ class QueryParamsMolder
             'ID',
             'LID',
         ];
-        
+
         return $params;
     }
-    
+
     /**
      * @param int|null                                             $parentId
      * @param \Intaro\RetailCrm\Model\Bitrix\Orm\CatalogIblockInfo $info
@@ -74,7 +74,7 @@ class QueryParamsMolder
                 'ACTIVE'    => 'Y',
             ];
         }
-    
+
         return [
             'IBLOCK_ID'                        => $info->skuIblockId,
             'ACTIVE'                           => 'Y',

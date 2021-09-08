@@ -23,52 +23,52 @@ class IcmlDirector
     public const OFFERS_PART = 500;
     public const FILE_LOG_NAME = 'i_crm_load_log';
     public const DEFAULT_PRODUCT_PAGE_SIZE = 1;
-    
+
     /**
      * @var IcmlWriter
      */
     private $icmlWriter;
-    
+
     /**
      * @var \Intaro\RetailCrm\Icml\XmlOfferDirector
      */
     private $xmlOfferDirector;
-    
+
     /**
      * @var \Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup
      */
     private $setup;
-    
+
     /**
      * @var \Intaro\RetailCrm\Repository\CatalogRepository
      */
     private $catalogRepository;
-    
+
     /**
      * @var string
      */
     private $shopName;
-    
+
     /**
      * @var \Intaro\RetailCrm\Icml\XmlCategoryDirector
      */
     private $xmlCategoryDirector;
-    
+
     /**
      * @var \Intaro\RetailCrm\Icml\QueryParamsMolder
      */
     private $queryBuilder;
-    
+
     /**
      * @var \Intaro\RetailCrm\Model\Bitrix\Xml\XmlData
      */
     private $xmlData;
-    
+
     /**
      * @var \Logger
      */
     private $logger;
-    
+
     /**
      * RetailCrmlXml constructor.
      *
@@ -87,7 +87,7 @@ class IcmlDirector
         $this->xmlData = new XmlData();
         $this->logger = $logger;
     }
-    
+
     /**
      * Основной метод. Генерирует icml файл католога товаров Битрикс
      */
@@ -115,7 +115,7 @@ class IcmlDirector
             self::FILE_LOG_NAME
         );
     }
-    
+
     /**
      * @return void
      */
@@ -126,21 +126,21 @@ class IcmlDirector
         $this->xmlData->filePath   = $this->setup->filePath;
         $this->xmlData->categories = $this->xmlCategoryDirector->getXmlCategories();
     }
-    
+
     /**
      * записывает оферы всех торговых каталогов в xml файл
      */
     private function writeOffers(): void
     {
         $this->icmlWriter->startOffersBlock();
-        
+
         foreach ($this->setup->iblocksForExport as $iblockId) {
             $this->writeIblockOffers($iblockId);
         }
-        
+
         $this->icmlWriter->endBlock();
     }
-    
+
     /**
      * записывает оферы конкретного торгового каталога товаров в xml файл
      *
@@ -149,7 +149,7 @@ class IcmlDirector
     private function writeIblockOffers(int $productIblockId): void
     {
         $catalogIblockInfo = $this->catalogRepository->getCatalogIblockInfo($productIblockId);
-        
+
         //если нет торговых предложений
         if ($catalogIblockInfo->skuIblockId === null) {
             $selectParams
@@ -157,21 +157,21 @@ class IcmlDirector
                 $this->setup->properties->products->names[$productIblockId],
                 $this->setup->basePriceId
             );
-            
+
             $selectParams->pageNumber = 1;
             $selectParams->nPageSize  = self::OFFERS_PART;
             $selectParams->parentId   = null;
             $selectParams->allParams = array_merge($selectParams->configurable, $selectParams->main);
-            
+
             while ($xmlOffers = $this->xmlOfferDirector->getXmlOffersPart($selectParams, $catalogIblockInfo)) {
                 $this->icmlWriter->writeOffers($xmlOffers);
-                
+
                 $selectParams->pageNumber++;
             }
-            
+
             return;
         }
-    
+
         //если есть торговые предложения
         $paramsForProduct
             = $this->queryBuilder->getSelectParams(
@@ -183,10 +183,10 @@ class IcmlDirector
             $this->setup->properties->sku->names[$productIblockId],
             $this->setup->basePriceId
         );
-        
+
         $this->writeOffersAsOffersInXml($paramsForProduct, $paramsForOffer, $catalogIblockInfo);
     }
-    
+
     /**
      * Эта стратегия записи используется,
      * когда в каталоге есть торговые предложения
@@ -203,7 +203,7 @@ class IcmlDirector
         $paramsForProduct->pageNumber = 1;
         $paramsForProduct->nPageSize = $this->calculateProductPageSize();
         $paramsForProduct->allParams = array_merge($paramsForProduct->configurable, $paramsForProduct->main);
-        
+
         do {
             $productsPart = $this->xmlOfferDirector->getXmlOffersPart($paramsForProduct, $catalogIblockInfo);
             $paramsForProduct->pageNumber++;
@@ -211,7 +211,7 @@ class IcmlDirector
             $this->writeProductsOffers($productsPart, $paramsForOffer, $catalogIblockInfo);
         } while (!empty($productsPart));
     }
-    
+
     /**
      * Записывает в файл оферы всех товаров из $products
      *
@@ -225,12 +225,12 @@ class IcmlDirector
         CatalogIblockInfo $catalogIblockInfo
     ): void {
         $paramsForOffer->nPageSize = $this->calculateOffersPageSize();
-        
+
         foreach ($products as $product) {
             $this->writeProductOffers($paramsForOffer, $catalogIblockInfo, $product);
         }
     }
-    
+
     /**
      * Записывает оферы отдельного продукта в xml файл
      *
@@ -247,7 +247,7 @@ class IcmlDirector
         $writingOffersCount = 0;
         $paramsForOffer->parentId = $product->id;
         $paramsForOffer->allParams = array_merge($paramsForOffer->configurable, $paramsForOffer->main);
-        
+
         do {
             $xmlOffersPart
                 = $this->xmlOfferDirector->getXmlOffersBySingleProduct($paramsForOffer, $catalogIblockInfo, $product);
@@ -257,19 +257,19 @@ class IcmlDirector
                 $this->icmlWriter->writeOffers([$product]);
                 break;
             }
-            
+
             if (!empty($xmlOffersPart)) {
                 $xmlOffersPart
                     = $this->trimOffersList($writingOffersCount, $xmlOffersPart);
-    
+
                 $this->icmlWriter->writeOffers($xmlOffersPart);
-    
+
                 $writingOffersCount += count($xmlOffersPart);
                 $paramsForOffer->pageNumber++;
             }
         } while ($this->shouldContinueWriting($writingOffersCount, $xmlOffersPart));
     }
-    
+
     /**
      * Проверяет,не достигнул ли лимит по записываемым оферам maxOffersValue
      * и обрезает массив до лимита, если он достигнут
@@ -286,10 +286,10 @@ class IcmlDirector
                 = count($xmlOffers) - ($writingOffers + count($xmlOffers) - $this->setup->maxOffersValue);
             return array_slice($xmlOffers, 0, $sliceIndex);
         }
-        
+
         return $xmlOffers;
     }
-    
+
     /**
      * Возвращает размер страницы для запроса товаров
      *
@@ -300,10 +300,10 @@ class IcmlDirector
         if (empty($this->setup->maxOffersValue)) {
             return self::DEFAULT_PRODUCT_PAGE_SIZE;
         }
-        
+
         return (int) ceil(self::OFFERS_PART / $this->setup->maxOffersValue);
     }
-    
+
     /**
      * Возвращает размер страницы для офферов
      *
@@ -314,11 +314,11 @@ class IcmlDirector
         if (empty($this->setup->maxOffersValue)) {
             return self::OFFERS_PART;
         }
-    
+
         return $this->setup->maxOffersValue < self::OFFERS_PART ?
             $this->setup->maxOffersValue : self::OFFERS_PART;
     }
-    
+
     /**
      * Проверяет, нужно ли дальше записывать офферы
      *
@@ -332,7 +332,7 @@ class IcmlDirector
         if (empty($this->setup->maxOffersValue)) {
             return !empty($xmlOffers);
         }
-        
+
         return !empty($xmlOffers) && $writingOffers < $this->setup->maxOffersValue;
     }
 }

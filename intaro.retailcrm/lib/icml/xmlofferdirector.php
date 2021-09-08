@@ -24,27 +24,27 @@ class XmlOfferDirector
      * @var \Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup
      */
     private $setup;
-    
+
     /**
      * @var \Intaro\RetailCrm\Repository\FileRepository
      */
     private $fileRepository;
-    
+
     /**
      * @var \Intaro\RetailCrm\Repository\CatalogRepository
      */
     private $catalogRepository;
-    
+
     /**
      * @var \Intaro\RetailCrm\Icml\XmlOfferBuilder
      */
     private       $xmlOfferBuilder;
-    
+
     /**
      * @var array
      */
     private $barcodes;
-    
+
     /**
      * XmlOfferFactory constructor.
      * @param \Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup $setup
@@ -61,7 +61,7 @@ class XmlOfferDirector
         );
         $this->barcodes = $this->catalogRepository->getBarcodes();
     }
-    
+
     /**
      * Возвращает страницу (массив) с товарами или торговыми предложениями (в зависимости от $param)
      *
@@ -73,7 +73,7 @@ class XmlOfferDirector
     {
         $ciBlockResult = $this->catalogRepository->getProductPage($param, $catalogIblockInfo);
         $offers = [];
-        
+
         while ($offer = $ciBlockResult->Fetch()) {
             $categories = $this->catalogRepository->getProductCategories($offer['ID']);
             $offer['DETAIL_PAGE_URL'] = $this->replaceUrlTemplate($offer, $categories);
@@ -81,13 +81,13 @@ class XmlOfferDirector
             $this->setXmlOfferParams($param, $offer, $catalogIblockInfo);
             $this->xmlOfferBuilder
                 ->setCategories(array_column($categories, 'IBLOCK_SECTION_ELEMENT_IBLOCK_SECTION_ID'));
-            
+
             $offers[] = $this->xmlOfferBuilder->build();
         }
-        
+
         return $offers;
     }
-    
+
     /**
      * возвращает массив XmlOffers для конкретного продукта
      *
@@ -102,10 +102,10 @@ class XmlOfferDirector
         XmlOffer $product
     ): array {
         $xmlOffers = $this->getXmlOffersPart($paramsForOffer, $catalogIblockInfo);
-        
+
         return $this->addProductInfo($xmlOffers, $product);
     }
-    
+
     /**
      * Декорирует оферы информацией из товаров
      *
@@ -129,10 +129,10 @@ class XmlOfferDirector
             $offer->productName = $product->productName;
             $offer->url = $this->mergeUrls($product->url, $offer->url);
         }
-        
+
         return $xmlOffers;
     }
-    
+
     /**
      * Получение настраиваемых параметров, если они лежат в HL-блоке
      *
@@ -145,23 +145,23 @@ class XmlOfferDirector
     private function getHlParams(int $iblockId, array $productProps, array $configurableParams, array $hls): array
     {
         $params = [];
-        
+
         foreach ($hls as $hlName => $hlBlockProduct) {
             if (isset($hlBlockProduct[$iblockId])) {
                 reset($hlBlockProduct[$iblockId]);
                 $firstKey     = key($hlBlockProduct[$iblockId]);
                 $hlRepository = new HlRepository($hlName);
-                
+
                 if ($hlRepository->getHl() === null) {
                     continue;
                 }
 
                 $result = $hlRepository->getDataByXmlId($productProps[$configurableParams[$firstKey] . '_VALUE']);
-                
+
                 if ($result === null) {
                     continue;
                 }
-                
+
                 foreach ($hlBlockProduct[$iblockId] as $hlPropCodeKey => $hlPropCode) {
                     if (isset($result[$hlPropCode])) {
                         $params[$hlPropCodeKey] = $result[$hlPropCode];
@@ -169,10 +169,10 @@ class XmlOfferDirector
                 }
             }
         }
-        
+
         return $params;
     }
-    
+
     /**
      * @param \Intaro\RetailCrm\Model\Bitrix\Xml\SelectParams      $param
      * @param array                                                $product
@@ -188,7 +188,7 @@ class XmlOfferDirector
         } else {
             $pictureProperty = $this->setup->properties->sku->pictures[$catalogIblockInfo->productIblockId];
         }
-    
+
         //достаем значения из HL блоков товаров
         $this->xmlOfferBuilder->setProductHlParams($this->getHlParams(
             $catalogIblockInfo->productIblockId,
@@ -196,7 +196,7 @@ class XmlOfferDirector
             $param->configurable,
             $this->setup->properties->highloadblockProduct
         ));
-    
+
         //достаем значения из HL блоков торговых предложений
         $this->xmlOfferBuilder->setSkuHlParams($this->getHlParams(
             $catalogIblockInfo->productIblockId,
@@ -214,7 +214,7 @@ class XmlOfferDirector
                 ->getProductPicture($product, $pictureProperty ?? '')
         );
     }
-    
+
     /**
      * @param array $offer
      * @param array $categories
@@ -226,7 +226,7 @@ class XmlOfferDirector
         if (strpos($offer['DETAIL_PAGE_URL'], '#PRODUCT_URL#')) {
             return $offer['DETAIL_PAGE_URL'];
         }
-        
+
         $replaceableUrlParts = [
             '#SITE_DIR#'=> 'LANG_DIR',
             '#ID#' => 'ID',
@@ -258,7 +258,7 @@ class XmlOfferDirector
                 $resultUrl
             );
         }
-        
+
         if (
             isset($categories[0]['IBLOCK_SECTION_ELEMENT_IBLOCK_SECTION_CODE'])
             && strpos($offer['DETAIL_PAGE_URL'], '#SECTION_CODE#') !== false
@@ -269,7 +269,7 @@ class XmlOfferDirector
                 $resultUrl
             );
         }
-    
+
         if (
             isset(
                 $categories[0]['IBLOCK_SECTION_ELEMENT_IBLOCK_SECTION_CODE'],
@@ -283,10 +283,10 @@ class XmlOfferDirector
                 $resultUrl
             );
         }
-        
+
         return str_replace('//', '/', $resultUrl);
     }
-    
+
     /**
      * @param string $productUrl
      * @param string $offerUrl
@@ -298,10 +298,10 @@ class XmlOfferDirector
         if (strpos($offerUrl, '#PRODUCT_URL#') !== false) {
             return $productUrl;
         }
-        
+
         return $offerUrl;
     }
-    
+
     /**
      * @param array $offerParams
      * @param array $productParams
@@ -309,7 +309,7 @@ class XmlOfferDirector
     private function mergeParams(array $offerParams, array $productParams): array
     {
         $offerCodes = [];
-        
+
         /** @var \Intaro\RetailCrm\Model\Bitrix\Xml\OfferParam $offerParam */
         foreach ($offerParams as $offerParam) {
             $offerCodes[] = $offerParam->code;
@@ -320,10 +320,10 @@ class XmlOfferDirector
             if (in_array($productParam->code, $offerCodes, true)) {
                 continue;
             }
-        
+
             $offerParams[] = $productParam;
         }
-        
+
         return $offerParams;
     }
 }

@@ -30,7 +30,7 @@ class CatalogRepository
      * @var \Intaro\RetailCrm\Icml\QueryParamsMolder
      */
     private $builder;
-    
+
     /**
      * CatalogRepository constructor.
      */
@@ -38,7 +38,7 @@ class CatalogRepository
     {
         $this->builder = new QueryParamsMolder();
     }
-    
+
     /**
      * Получение категорий, к которым относится товар
      *
@@ -56,10 +56,10 @@ class CatalogRepository
         } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
             return [];
         }
-        
+
         return $categories;
     }
-    
+
     /**
      * Returns products IDs with barcodes by infoblock id
      *
@@ -68,7 +68,7 @@ class CatalogRepository
     public function getBarcodes(): array
     {
         $barcodes  = [];
-        
+
         try {
             $arBarCodes = StoreBarcodeTable::query()
                 ->addSelect('PRODUCT_ID')
@@ -77,14 +77,14 @@ class CatalogRepository
         } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
             return [];
         }
-        
+
         foreach ($arBarCodes as $arBarCode){
             $barcodes[$arBarCode['PRODUCT_ID']] = $arBarCode['BARCODE'];
         }
-        
+
         return $barcodes;
     }
-    
+
     /**
      * @param \Intaro\RetailCrm\Model\Bitrix\Xml\SelectParams      $param
      * @param \Intaro\RetailCrm\Model\Bitrix\Orm\CatalogIblockInfo $catalogIblockInfo
@@ -100,7 +100,7 @@ class CatalogRepository
             $param->allParams
         );
     }
-    
+
     /**
      * @param int $iblockId
      * @return  \Bitrix\Main\ORM\Objectify\Collection|null
@@ -116,7 +116,7 @@ class CatalogRepository
             return null;
         }
     }
-    
+
     /**
      * @param $iblockId
      * @return EntityObject|null
@@ -131,7 +131,7 @@ class CatalogRepository
             return null;
         }
     }
-    
+
     /**
      * Возвращает информацию об инфоблоке торговых предложений по ID инфоблока товаров
      *
@@ -142,20 +142,20 @@ class CatalogRepository
     {
         $catalogIblockInfo = new CatalogIblockInfo();
         $info              = CCatalogSKU::GetInfoByProductIBlock($productIblockId);
-        
+
         if ($info === false) {
             $catalogIblockInfo->productIblockId = $productIblockId;
-            
+
             return $catalogIblockInfo;
         }
-        
+
         $catalogIblockInfo->skuIblockId     = $info['IBLOCK_ID'];
         $catalogIblockInfo->productIblockId = $info['PRODUCT_IBLOCK_ID'];
         $catalogIblockInfo->skuPropertyId   = $info['SKU_PROPERTY_ID'];
-        
+
         return $catalogIblockInfo;
     }
-    
+
     /**
      * @param int|null $profileId
      * @return int
@@ -163,7 +163,7 @@ class CatalogRepository
     public static function getBasePriceId(?int $profileId): int
     {
         $basePriceId = RetailcrmConfigProvider::getCatalogBasePriceByProfile($profileId);
-    
+
         if (!$basePriceId) {
             $dbPriceType = CCatalogGroup::GetList(
                 [],
@@ -172,11 +172,11 @@ class CatalogRepository
                 false,
                 ['ID']
             );
-    
+
             $result = $dbPriceType->GetNext();
             return $result['ID'];
         }
-        
+
         return $basePriceId;
     }
 }

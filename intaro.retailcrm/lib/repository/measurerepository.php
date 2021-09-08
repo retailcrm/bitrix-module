@@ -21,7 +21,7 @@ class MeasureRepository
     public static function getMeasures(): array
     {
         $measures    = [];
-    
+
         try {
             $resMeasures = MeasureTable::query()
                 ->addSelect('ID')
@@ -32,7 +32,7 @@ class MeasureRepository
         } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
             return [];
         }
-    
+
         foreach ($resMeasures as $resMeasure) {
             $measures[$resMeasure['ID']] = $resMeasure;
         }
