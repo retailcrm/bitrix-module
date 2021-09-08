@@ -6,13 +6,17 @@
  * Class name:  intaro_retailcrm
  */
 global $MESS;
+
+use Bitrix\Highloadblock\HighloadBlockTable;
 use Bitrix\Main\Context;
+use Bitrix\Sale\EventActions;
 use Intaro\RetailCrm\Icml\IcmlDirector;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupProps;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupPropsCategories;
 use Intaro\RetailCrm\Repository\CatalogRepository;
 use Intaro\RetailCrm\Vendor\Symfony\Component\Process\PhpExecutableFinder;
+use RetailCrm\ApiClient;
 use RetailCrm\Exception\CurlException;
 use RetailCrm\Response\ApiResponse;
 
@@ -138,7 +142,9 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../classes/general/RCrmActions.php');
         include($this->INSTALL_PATH . '/../classes/general/user/RetailCrmUser.php');
         include($this->INSTALL_PATH . '/../classes/general/events/RetailCrmEvent.php');
+        include($this->INSTALL_PATH . '/../classes/general/RetailcrmConfigProvider.php');
         include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/offerparam.php');
+        include($this->INSTALL_PATH . '/../lib/icml/settingsservice.php');
         include($this->INSTALL_PATH . '/../lib/component/agent.php');
         include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/selectparams.php');
         include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/unit.php');
@@ -346,7 +352,7 @@ class intaro_retailcrm extends CModule
                     return;
                 }
 
-                $this->RETAIL_CRM_API = new \RetailCrm\ApiClient($api_host, $api_key);
+                $this->RETAIL_CRM_API = new ApiClient($api_host, $api_key);
                 COption::SetOptionString($this->MODULE_ID, $this->CRM_SITES_LIST, serialize($siteCode));
             } else {
                 $api_host = htmlspecialchars(trim($_POST[$this->CRM_API_HOST_OPTION]));
@@ -380,7 +386,7 @@ class intaro_retailcrm extends CModule
                     return;
                 }
 
-                $this->RETAIL_CRM_API = new \RetailCrm\ApiClient($api_host, $api_key);
+                $this->RETAIL_CRM_API = new ApiClient($api_host, $api_key);
                 COption::SetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, $api_host);
                 COption::SetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, $api_key);
                 COption::SetOptionString($this->MODULE_ID, $this->CRM_SITES_LIST, serialize(array()));
@@ -473,7 +479,7 @@ class intaro_retailcrm extends CModule
             // api load
             $api_host = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, 0);
             $api_key = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, 0);
-            $this->RETAIL_CRM_API = new \RetailCrm\ApiClient($api_host, $api_key);
+            $this->RETAIL_CRM_API = new ApiClient($api_host, $api_key);
 
             //bitrix orderTypesList
             $arResult['arSites'] = RCrmActions::SitesList();
@@ -714,10 +720,10 @@ class intaro_retailcrm extends CModule
                 && $_POST['ajax'] == 1
             ) {
                 CModule::IncludeModule('highloadblock');
-                $rsData = \Bitrix\Highloadblock\HighloadBlockTable::getList(array('filter' => array('TABLE_NAME' => $_POST['table'])));
+                $rsData = HighloadBlockTable::getList(array('filter' => array('TABLE_NAME' => $_POST['table'])));
                 $hlblockArr = $rsData->Fetch();
-                $hlblock = \Bitrix\Highloadblock\HighloadBlockTable::getById($hlblockArr["ID"])->fetch();
-                $entity = \Bitrix\Highloadblock\HighloadBlockTable::compileEntity($hlblock);
+                $hlblock = HighloadBlockTable::getById($hlblockArr["ID"])->fetch();
+                $entity = HighloadBlockTable::compileEntity($hlblock);
                 $hbFields = $entity->getFields();
                 $hlblockList['table'] = $hlblockArr["TABLE_NAME"];
 
@@ -741,7 +747,7 @@ class intaro_retailcrm extends CModule
 
             $api_host = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, 0);
             $api_key = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, 0);
-            $api = new \RetailCrm\ApiClient($api_host, $api_key);
+            $api = new ApiClient($api_host, $api_key);
 
             $customerH = self::historyLoad($api, 'customersHistory');
             COption::SetOptionString($this->MODULE_ID, $this->CRM_CUSTOMER_HISTORY, $customerH);
@@ -839,10 +845,10 @@ class intaro_retailcrm extends CModule
                 );
             }
 
-            if (!isset($_POST['IBLOCK_EXPORT'])) {
+            if (!isset($_POST['iblockExport'])) {
                 $arResult['errCode'] = 'ERR_FIELDS_IBLOCK';
             } else {
-                $iblocks = $_POST['IBLOCK_EXPORT'];
+                $iblocks = $_POST['iblockExport'];
             }
 
             $hlblockModule = false;
@@ -850,11 +856,11 @@ class intaro_retailcrm extends CModule
             if (CModule::IncludeModule('highloadblock')) {
                 $hlblockModule = true;
                 $hlblockList = array();
-                $hlblockListDb = \Bitrix\Highloadblock\HighloadBlockTable::getList();
+                $hlblockListDb = HighloadBlockTable::getList();
 
                 while ($hlblockArr = $hlblockListDb->Fetch()) {
-                    $hlblock = \Bitrix\Highloadblock\HighloadBlockTable::getById($hlblockArr["ID"])->fetch();
-                    $entity = \Bitrix\Highloadblock\HighloadBlockTable::compileEntity($hlblock);
+                    $hlblock = HighloadBlockTable::getById($hlblockArr["ID"])->fetch();
+                    $entity = HighloadBlockTable::compileEntity($hlblock);
                     $hbFields = $entity->getFields();
                     $hlblockList[$hlblockArr["TABLE_NAME"]]['LABEL'] = $hlblockArr["NAME"];
 
@@ -875,16 +881,16 @@ class intaro_retailcrm extends CModule
                 "height"       => "height",
                 "picture"      => "picture",
             );
-
-            $propertiesSKU = array();
-            $propertiesUnitSKU = array();
-            $propertiesHbSKU = array();
-
+    
+            $propertiesSKU = [];
+            $propertiesUnitSKU = [];
+            $propertiesHbSKU = [];
+    
             foreach ($iblockProperties as $prop) {
-                foreach ($_POST['IBLOCK_PROPERTY_SKU'. '_' . $prop] as $iblock => $val) {
+                foreach ($_POST['iblockPropertySku'. '_' . $prop] as $iblock => $val) {
                     $propertiesSKU[$iblock][$prop] = $val;
                 }
-                foreach ($_POST['IBLOCK_PROPERTY_UNIT_SKU'. '_' . $prop] as $iblock => $val) {
+                foreach ($_POST['iblockPropertyUnitSku'. '_' . $prop] as $iblock => $val) {
                     $propertiesUnitSKU[$iblock][$prop] = $val;
                 }
 
@@ -897,15 +903,15 @@ class intaro_retailcrm extends CModule
                 }
             }
 
-            $propertiesProduct = array();
-            $propertiesUnitProduct = array();
-            $propertiesHbProduct = array();
+            $propertiesProduct = [];
+            $propertiesUnitProduct = [];
+            $propertiesHbProduct = [];
 
             foreach ($iblockProperties as $prop) {
-                foreach ($_POST['IBLOCK_PROPERTY_PRODUCT'. '_' . $prop] as $iblock => $val) {
+                foreach ($_POST['iblockPropertyProduct'. '_' . $prop] as $iblock => $val) {
                     $propertiesProduct[$iblock][$prop] = $val;
                 }
-                foreach ($_POST['IBLOCK_PROPERTY_UNIT_PRODUCT'. '_' . $prop] as $iblock => $val) {
+                foreach ($_POST['iblockPropertyUnitProduct'. '_' . $prop] as $iblock => $val) {
                     $propertiesUnitProduct[$iblock][$prop] = $val;
                 }
 
@@ -930,14 +936,14 @@ class intaro_retailcrm extends CModule
                 $typeLoading = $_POST['TYPE_LOADING'];
             }
 
-            if (!isset($_POST['MAX_OFFERS_VALUE'])) {
+            if (!isset($_POST['maxOffersValue'])) {
                 $maxOffers = null;
             } else {
-                $maxOffers = (int) $_POST['MAX_OFFERS_VALUE'];
+                $maxOffers = (int) $_POST['maxOffersValue'];
             }
 
             if (!isset($_POST['SETUP_PROFILE_NAME'])) {
-                $profileName = "";
+                $profileName = '';
             } else {
                 $profileName = $_POST['SETUP_PROFILE_NAME'];
             }
@@ -946,22 +952,24 @@ class intaro_retailcrm extends CModule
                 $arResult['errCode'] = 'ERR_FIELDS_PROFILE';
             }
 
-            if ($filename == "") {
+            if ($filename === '') {
                 $arResult['errCode'] = 'ERR_FIELDS_FILE';
             }
 
             if (isset($arResult['errCode']) && $arResult['errCode']) {
-                $arOldValues = array(
-                    'IBLOCK_EXPORT' => $iblocks,
-                    'IBLOCK_PROPERTY_SKU' => $propertiesSKU,
-                    'IBLOCK_PROPERTY_UNIT_SKU' => $propertiesUnitSKU,
-                    'IBLOCK_PROPERTY_PRODUCT' => $propertiesProduct,
-                    'IBLOCK_PROPERTY_UNIT_PRODUCT' => $propertiesUnitProduct,
+                $arOldValues = [
+                    'iblockExport' => $iblocks,
+                    'iblockPropertySku' => $propertiesSKU,
+                    'iblockPropertyUnitSku' => $propertiesUnitSKU,
+                    'iblockPropertyProduct' => $propertiesProduct,
+                    'iblockPropertyUnitProduct' => $propertiesUnitProduct,
                     'SETUP_FILE_NAME' => $filename,
                     'SETUP_PROFILE_NAME' => $profileName,
-                    'MAX_OFFERS_VALUE' => $maxOffers
-                );
+                    'maxOffersValue' => $maxOffers,
+                ];
+                
                 global $oldValues;
+                
                 $oldValues = $arOldValues;
                 $APPLICATION->IncludeAdminFile(
                     GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step5.php'
@@ -973,7 +981,7 @@ class intaro_retailcrm extends CModule
             RegisterModule($this->MODULE_ID);
             RegisterModuleDependences("sale", "OnOrderUpdate", $this->MODULE_ID, "RetailCrmEvent", "onUpdateOrder");
             RegisterModuleDependences("main", "OnAfterUserUpdate", $this->MODULE_ID, "RetailCrmEvent", "OnAfterUserUpdate");
-            RegisterModuleDependences("sale", \Bitrix\Sale\EventActions::EVENT_ON_ORDER_SAVED, $this->MODULE_ID, "RetailCrmEvent", "orderSave");
+            RegisterModuleDependences("sale", EventActions::EVENT_ON_ORDER_SAVED, $this->MODULE_ID, "RetailCrmEvent", "orderSave");
             RegisterModuleDependences("sale", "OnSaleOrderDeleted", $this->MODULE_ID, "RetailCrmEvent", "orderDelete");
             RegisterModuleDependences("sale", "OnSalePaymentEntitySaved", $this->MODULE_ID, "RetailCrmEvent", "paymentSave");
             RegisterModuleDependences("sale", "OnSalePaymentEntityDeleted", $this->MODULE_ID, "RetailCrmEvent", "paymentDelete");
@@ -1014,13 +1022,16 @@ class intaro_retailcrm extends CModule
         
                 }
             }
-    
+
+
             $setupVars = $this->getProfileSetupVars(
                 $iblocks,
-                $propertiesProduct,
-                $propertiesUnitProduct,
-                $propertiesSKU,
-                $propertiesUnitSKU,
+                [
+                    'iblockPropertySku' => $propertiesSKU,
+                    'iblockPropertyUnitSku' => $propertiesUnitSKU,
+                    'iblockPropertyProduct' => $propertiesProduct,
+                    'iblockPropertyUnitProduct' => $propertiesUnitProduct,
+                ],
                 $propertiesHbSKU,
                 $propertiesHbProduct,
                 $filename,
@@ -1166,7 +1177,7 @@ class intaro_retailcrm extends CModule
             $api_host = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, 0);
             $api_key = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, 0);
             $api_version = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_VERSION, 0);
-            $this->RETAIL_CRM_API = new \RetailCrm\ApiClient($api_host, $api_key);
+            $this->RETAIL_CRM_API = new ApiClient($api_host, $api_key);
 
             RCrmActions::sendConfiguration($this->RETAIL_CRM_API, $api_version);
 
@@ -1202,7 +1213,7 @@ class intaro_retailcrm extends CModule
             include($this->INSTALL_PATH . '/../classes/general/history/RetailCrmHistory_v5.php');
         }
 
-        $retail_crm_api = new \RetailCrm\ApiClient($api_host, $api_key);
+        $retail_crm_api = new ApiClient($api_host, $api_key);
 
         CAgent::RemoveAgent("RCrmActions::orderAgent();", $this->MODULE_ID);
         CAgent::RemoveAgent("RetailCrmInventories::inventoriesUpload();", $this->MODULE_ID);
@@ -1256,7 +1267,7 @@ class intaro_retailcrm extends CModule
         if (CModule::IncludeModule('sale')) {
             UnRegisterModuleDependences(
                 "sale",
-                \Bitrix\Sale\EventActions::EVENT_ON_ORDER_SAVED,
+                EventActions::EVENT_ON_ORDER_SAVED,
                 $this->MODULE_ID,
                 "RetailCrmEvent",
                 "orderSave"
@@ -1313,8 +1324,9 @@ class intaro_retailcrm extends CModule
 
     function DeleteFiles()
     {
-        $rsSites = CSite::GetList($by, $sort, array('DEF' => 'Y'));
-        $defaultSite = array();
+        $rsSites = CSite::GetList($by, $sort, ['DEF' => 'Y']);
+        $defaultSite = [];
+
         while ($ar = $rsSites->Fetch()) {
             $defaultSite = $ar;
             break;
@@ -1328,45 +1340,54 @@ class intaro_retailcrm extends CModule
 
     function getProfileSetupVars(
         $iblocks,
-        $propertiesProduct,
-        $propertiesUnitProduct,
-        $propertiesSKU,
-        $propertiesUnitSKU,
+        $simpleProps,
         $propertiesHbSKU,
         $propertiesHbProduct,
         $filename,
         $maxOffers
-    ) {
-        $strVars = "";
-        foreach ($iblocks as $key => $val)
-            $strVars .= 'IBLOCK_EXPORT[' . $key . ']=' . $val . '&';
-        foreach ($propertiesSKU as $iblock => $arr)
-            foreach ($arr as $id => $val)
-                $strVars .= 'IBLOCK_PROPERTY_SKU_' . $id . '[' . $iblock . ']=' . $val . '&';
-        foreach ($propertiesUnitSKU as $iblock => $arr)
-            foreach ($arr as $id => $val)
-                $strVars .= 'IBLOCK_PROPERTY_UNIT_SKU_' . $id . '[' . $iblock . ']=' . $val . '&';
-        foreach ($propertiesProduct as $iblock => $arr)
-            foreach ($arr as $id => $val)
-                $strVars .= 'IBLOCK_PROPERTY_PRODUCT_' . $id . '[' . $iblock . ']=' . $val . '&';
-        foreach ($propertiesUnitProduct as $iblock => $arr)
-            foreach ($arr as $id => $val)
-                $strVars .= 'IBLOCK_PROPERTY_UNIT_PRODUCT_' . $id . '[' . $iblock . ']=' . $val . '&';
-        if ($propertiesHbSKU) {
-            foreach ($propertiesHbSKU as $table => $arr)
-                foreach ($arr as $iblock => $val)
-                    foreach ($val as $id => $value)
-                        $strVars .= 'highloadblock' . $table . '_' . $id . '[' . $iblock . ']=' . $value . '&';
+    ): string {
+        $strVars = '';
+
+        foreach ($iblocks as $key => $val) {
+            $strVars .= 'iblockExport[' . $key . ']=' . $val . '&';
         }
+
+        foreach ($simpleProps as $propType => $props) {
+            $strVars = $this->addToStrVars($strVars, $propType, $props);
+        }
+
+        if ($propertiesHbSKU) {
+            foreach ($propertiesHbSKU as $table => $arr) {
+                $strVars = $this->addToStrVars($strVars, 'highloadblock' . $table, $arr);
+            }
+        }
+
         if ($propertiesHbProduct) {
-            foreach ($propertiesHbProduct as $table => $arr)
-                foreach ($arr as $iblock => $val)
-                    foreach ($val as $id => $value)
-                        $strVars .= 'highloadblock_product' . $table . '_' . $id . '[' . $iblock . ']=' . $value . '&';
+            foreach ($propertiesHbProduct as $table => $arr) {
+                $strVars = $this->addToStrVars($strVars, 'highloadblock_product' . $table, $arr);
+            }
         }
 
         $strVars .= 'SETUP_FILE_NAME=' . urlencode($filename);
-        $strVars .= '&MAX_OFFERS_VALUE=' . urlencode($maxOffers);
+        $strVars .= '&maxOffersValue=' . urlencode($maxOffers);
+
+        return $strVars;
+    }
+
+    /**
+     * @param string $strVars
+     * @param string $propType
+     * @param array  $props
+     *
+     * @return string
+     */
+    public function addToStrVars(string $strVars, string $propType, array $props): string
+    {
+        foreach ($props as $iblock => $arr) {
+            foreach ($arr as $id => $val) {
+                $strVars .= $propType . '_' . $id . '[' . $iblock . ']=' . $val . '&';
+            }
+        }
 
         return $strVars;
     }
