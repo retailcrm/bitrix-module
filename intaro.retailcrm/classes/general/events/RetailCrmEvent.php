@@ -1,5 +1,6 @@
 <?php
 
+use Bitrix\Main\Context\Culture;
 use Intaro\RetailCrm\Service\ManagerService;
 use Bitrix\Sale\Payment;
 use RetailCrm\ApiClient;
@@ -496,17 +497,20 @@ class RetailCrmEvent
             if (!empty($arPayment['ID'])) {
                 $paymentToCrm['externalId'] = RCrmActions::generatePaymentExternalId($arPayment['ID']);
             }
-            
-            if (!empty($arPayment['DATE_PAID'])) {
+    
+            $isIntegrationPayment
+                = RetailCrmService::isIntegrationPayment($arPayment['PAY_SYSTEM_ID'] ?? null);
+
+            if (!empty($arPayment['DATE_PAID']) && !$isIntegrationPayment) {
                 if (is_object($arPayment['DATE_PAID'])) {
-                    $culture = new Bitrix\Main\Context\Culture(['FORMAT_DATETIME' => 'YYYY-MM-DD HH:MI:SS']);
+                    $culture = new Culture(['FORMAT_DATETIME' => 'YYYY-MM-DD HH:MI:SS']);
                     $paymentToCrm['paidAt'] = $arPayment['DATE_PAID']->toString($culture);
                 } elseif (is_string($arPayment['DATE_PAID'])) {
                     $paymentToCrm['paidAt'] = $arPayment['DATE_PAID'];
                 }
             }
             
-            if (!empty($optionsPayStatuses[$arPayment['PAID']])) {
+            if (!empty($optionsPayStatuses[$arPayment['PAID']]) && !$isIntegrationPayment) {
                 $paymentToCrm['status'] = $optionsPayStatuses[$arPayment['PAID']];
             }
             

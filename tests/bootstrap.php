@@ -38,3 +38,4 @@ VALUES ('2020-05-08 19:04:03', 'iblock', '500', '500', '23791', 'image/jpeg', 'i
 $DB->Query($strSql);
 
 require_once 'BitrixTestCase.php';
+

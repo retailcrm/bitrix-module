@@ -13,3 +13,4 @@
 .env
 .phpunit.result.cache
 /release/
+coverage.xml
