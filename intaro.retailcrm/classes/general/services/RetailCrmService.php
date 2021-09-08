@@ -109,4 +109,17 @@ class RetailCrmService
 
         return $result;
     }
+    
+    /**
+     * @param int|null $paySystemId
+     *
+     * @return bool
+     */
+    public static function isIntegrationPayment(?int $paySystemId): bool {
+        return in_array(
+            RetailcrmConfigProvider::getPaymentTypes()[$paySystemId] ?? null,
+            RetailcrmConfigProvider::getIntegrationPaymentTypes(),
+            true
+        );
+    }
 }
