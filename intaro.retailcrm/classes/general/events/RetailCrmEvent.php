@@ -6,6 +6,7 @@ use Bitrix\Sale\Order;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Model\Api\Response\OrdersCreateResponse;
 use Intaro\RetailCrm\Model\Api\Response\OrdersEditResponse;
+use Bitrix\Main\Context\Culture;
 use Intaro\RetailCrm\Service\ManagerService;
 use Bitrix\Sale\Payment;
 use RetailCrm\ApiClient;
@@ -564,7 +565,7 @@ class RetailCrmEvent
             return;
         }
 
-        $optionsSitesList = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_SITES_LIST, 0));
+        $optionsSitesList = RetailcrmConfigProvider::getSitesList();
 
         $arPayment = [
             'ID'       => $event->getId(),
