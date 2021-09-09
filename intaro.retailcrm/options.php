@@ -2,6 +2,8 @@
 
 use Bitrix\Currency\CurrencyManager;
 use Bitrix\Main\Application;
+use Bitrix\Main\LoaderException;
+use Bitrix\Main\UI\Extension;
 use Bitrix\Sale\Delivery\Services\Manager;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Constants;
@@ -299,7 +301,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     // 0 - agent
     // 1 - event
     $orderDischarge = (int) htmlspecialchars(trim($_POST['order-discharge']));
-    
+
     if (($orderDischarge != $previousDischarge) && ($orderDischarge === 0)) {
         // remove depenedencies
         UnRegisterModuleDependences("sale", \Bitrix\Sale\EventActions::EVENT_ON_ORDER_SAVED, $mid, "RetailCrmEvent", "orderSave");
@@ -831,14 +833,13 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             'intaro.retailcrm/options.php', 'RetailCrm\ApiClient::*List::CurlException',
             $e->getCode() . ': ' . $e->getMessage()
         );
-
-        echo CAdminMessage::ShowMessage(GetMessage('ERR_' . $e->getCode()));
+        CAdminMessage::ShowMessage(GetMessage('ERR_' . $e->getCode()));
     } catch (InvalidArgumentException $e) {
         $badKey = true;
-        echo CAdminMessage::ShowMessage(GetMessage('ERR_403'));
+        CAdminMessage::ShowMessage(GetMessage('ERR_403'));
     } catch (\RetailCrm\Exception\InvalidJsonException $e) {
         $badJson = true;
-        echo CAdminMessage::ShowMessage(GetMessage('ERR_JSON'));
+        CAdminMessage::ShowMessage(GetMessage('ERR_JSON'));
     }
 
     $deliveryTypes = array();
@@ -980,16 +981,15 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     ];
     $tabControl = new CAdminTabControl("tabControl", $aTabs);
     $tabControl->Begin();
-    ?>
-    <?php
-    CJSCore::Init(array("jquery"));
+
+    CJSCore::Init(['jquery']);
 
     try {
-        Extension::load("ui.notification");
+        Extension::load('ui.notification');
     } catch (LoaderException $exception) {
         RCrmActions::eventLog(
             'intaro.retailcrm/options.php', 'Extension::load',
-            $e->getCode() . ': ' . $exception->getMessage()
+            $exception->getCode() . ': ' . $exception->getMessage()
         );
     }
     ?>
