@@ -12,8 +12,6 @@ use RetailCrm\ApiClient;
 use Intaro\RetailCrm\Service\ManagerService;
 use Intaro\RetailCrm\Service\LoyaltyAccountService;
 use RetailCrm\Response\ApiResponse;
-
-
 use Intaro\RetailCrm\Component\ConfigProvider;
 
 IncludeModuleLangFile(__FILE__);

@@ -87,7 +87,7 @@ class ServiceLocator
     {
         return static::$services[$name] ?? null;
     }
-    
+
     /**
      * Get or create service (instantiates service if it wasn't created earlier; $name must be FQN).
      *

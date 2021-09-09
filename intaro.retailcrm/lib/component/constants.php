@@ -20,6 +20,9 @@ namespace Intaro\RetailCrm\Component;
  */
 class Constants
 {
+    public const BITRIX_USER_ID_PREFIX = 'bitrixUserId-';
+    public const CRM_USERS_MAP = 'crm_users_map';
+    public const CRM_INTEGRATION_PAYMENT = 'integration_payment';
     public const MODULE_ID = 'intaro.retailcrm';
     public const CRM_API_HOST_OPTION = 'api_host';
     public const CRM_API_KEY_OPTION = 'api_key';

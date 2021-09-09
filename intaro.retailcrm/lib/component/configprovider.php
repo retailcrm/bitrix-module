@@ -30,6 +30,9 @@ class ConfigProvider
     /** @var bool|null|string */
     protected static $apiUrl;
 
+    /** @var array $integrationPayment */
+    private static $integrationPayment;
+
     /** @var bool|null|string */
     protected static $apiKey;
 
@@ -107,6 +110,115 @@ class ConfigProvider
 
     /** @var bool|null|string $loyaltyProgramStatus */
     protected static $loyaltyProgramStatus;
+
+    /**
+     * @param $profileId
+     *
+     * @return false|string|null
+     */
+    public static function getCatalogBasePriceByProfile($profileId)
+    {
+        return COption::GetOptionString(
+            Constants::MODULE_ID,
+            Constants::CRM_CATALOG_BASE_PRICE . '_' . $profileId,
+            0
+        );
+    }
+
+    /**
+     * @return string
+     */
+    public static function getDefaultIcmlPath(): string
+    {
+        return (COption::GetOptionString(
+                'catalog',
+                'export_default_path',
+                '/bitrix/catalog_export/'))
+            . 'retailcrm.xml';
+    }
+
+    /**
+     * @return mixed
+     */
+    public static function getUsersMap()
+    {
+        return static::getUnserializedOption(Constants::CRM_USERS_MAP);
+    }
+
+    /**
+     * @param array|null $userMap
+     *
+     * @return void
+     * @throws \Bitrix\Main\ArgumentOutOfRangeException
+     */
+    public static function setUsersMap(?array $userMap): void
+    {
+        static::setOption(Constants::CRM_USERS_MAP, serialize($userMap));
+    }
+
+    /**
+     * @param $profileId
+     *
+     * @return false|string|null
+     */
+    public static function getCrmBasePrice($profileId)
+    {
+        return self::getOption(Constants::CRM_CATALOG_BASE_PRICE . '_' . $profileId, 1);
+    }
+
+    /**
+     * @param $profileId
+     * @param $priceTypes
+     *
+     * @throws \Bitrix\Main\ArgumentOutOfRangeException
+     */
+    public static function setProfileBasePrice($profileId, $priceTypes): void
+    {
+        self::setOption(
+            Constants::CRM_CATALOG_BASE_PRICE . '_' . $profileId,
+            htmlspecialchars(trim($priceTypes))
+        );
+    }
+
+    /**
+     * getIntegrationPaymentTypes
+     *
+     * @return array
+     */
+    public static function getIntegrationPaymentTypes(): array
+    {
+        if (self::isEmptyNotZero(static::$integrationPayment)) {
+            static::$integrationPayment = static::getUnserializedOption(Constants::CRM_INTEGRATION_PAYMENT);
+        }
+
+        return static::$integrationPayment;
+    }
+
+    /**
+     * setIntegrationPaymentTypes
+     *
+     * @param $integrationPayment
+     *
+     * @throws \Bitrix\Main\ArgumentOutOfRangeException
+     */
+    public static function setIntegrationPaymentTypes($integrationPayment): void
+    {
+        static::setOption(Constants::CRM_INTEGRATION_PAYMENT, serialize((new Utils())
+            ->clearArray($integrationPayment)));
+    }
+
+    /**
+     * setIntegrationDelivery
+     *
+     * @param $deliveryIntegrationCode
+     *
+     * @throws \Bitrix\Main\ArgumentOutOfRangeException
+     */
+    public static function setIntegrationDelivery($deliveryIntegrationCode): void
+    {
+        static::setOption(Constants::CRM_INTEGRATION_DELIVERY, serialize((new Utils())
+            ->clearArray($deliveryIntegrationCode)));
+    }
 
     /**
      * @return bool|string|null
@@ -878,7 +990,7 @@ class ConfigProvider
     {
         return ServiceLocator::get(Utils::class);
     }
-    
+
     /**
      * @return string|null
      */
@@ -886,7 +998,7 @@ class ConfigProvider
     {
         return static::getOption(Constants::CRM_PRICES);
     }
-    
+
     /**
      * @return false|string|null
      */
@@ -894,7 +1006,7 @@ class ConfigProvider
     {
         return COption::GetOptionString('main', 'agents_use_crontab', 'N');
     }
-    
+
     /**
      * @return false|string|null
      */
@@ -902,7 +1014,7 @@ class ConfigProvider
     {
         return COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_DISCOUNT_ROUND, 0);
     }
-    
+
     /**
      * @return void
      */
@@ -910,7 +1022,7 @@ class ConfigProvider
     {
         COption::SetOptionString(Constants::MODULE_ID, Constants::CRM_DISCOUNT_ROUND, $discount_round);
     }
-    
+
     /**
      * @param string $version
      *
