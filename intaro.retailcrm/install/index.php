@@ -10,45 +10,21 @@ global $MESS;
 use Bitrix\Highloadblock\HighloadBlockTable;
 use Bitrix\Main\Application;
 use Bitrix\Main\ArgumentException;
-use Bitrix\Main\Context;
 use Bitrix\Main\EventManager;
 use Bitrix\Main\Loader;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
 use Bitrix\Sale\Internals\OrderPropsGroupTable;
-use Bitrix\Sale\Internals\PaySystemActionTable;
-use Bitrix\Sale\Internals\PersonTypeTable;
-use Intaro\RetailCrm\Component\Constants;
-use Bitrix\Highloadblock\HighloadBlockTable;
-use Bitrix\Main\Application;
-use Bitrix\Main\ArgumentException;
-use Bitrix\Main\Context;
-use Bitrix\Main\EventManager;
-use Bitrix\Main\Loader;
-use Bitrix\Main\ObjectPropertyException;
-use Bitrix\Main\SystemException;
 use Bitrix\Sale\Delivery\Services\Manager;
 use Bitrix\Sale\Internals\OrderTable;
-use Intaro\RetailCrm\Component\Handlers\EventsHandlers;
-use Intaro\RetailCrm\Model\Bitrix\Agreement;
-use Intaro\RetailCrm\Repository\AgreementRepository;
-use Intaro\RetailCrm\Component\ConfigProvider;
-use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\Handlers\EventsHandlers;
 use Intaro\RetailCrm\Model\Bitrix\Agreement;
 use Intaro\RetailCrm\Repository\AgreementRepository;
 use Intaro\RetailCrm\Service\OrderLoyaltyDataService;
 use \RetailCrm\ApiClient;
 use RetailCrm\Exception\CurlException;
-use Intaro\RetailCrm\Icml\IcmlDirector;
-use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup;
-use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupProps;
-use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupPropsCategories;
-use Intaro\RetailCrm\Repository\CatalogRepository;
 use Intaro\RetailCrm\Vendor\Symfony\Component\Process\PhpExecutableFinder;
 use RetailCrm\Response\ApiResponse;
-use Intaro\RetailCrm\Repository\OrderPropsRepository;
-use Intaro\RetailCrm\Repository\PersonTypeRepository;
 use Intaro\RetailCrm\Repository\ToModuleRepository;
 use RetailCrm\Http\Client;
 
@@ -69,17 +45,7 @@ class intaro_retailcrm extends CModule
         ['EVENT_NAME' => 'OnSaleComponentOrderResultPrepared', 'FROM_MODULE' => 'sale'],
         ['EVENT_NAME' => 'OnAfterUserRegister', 'FROM_MODULE' => 'main'],
     ];
-    public const V5 = 'v5';
     public const BONUS_PAY_SYSTEM_CODE        = 'retailcrmbonus';
-
-    /**
-     * @var string[][]
-     */
-    private const SUBSCRIBE_LP_EVENTS = [
-        ['EVENT_NAME' => 'OnSaleOrderSaved', 'FROM_MODULE' => 'sale'],
-        ['EVENT_NAME' => 'OnSaleComponentOrderResultPrepared', 'FROM_MODULE' => 'sale'],
-        ['EVENT_NAME' => 'OnAfterUserRegister', 'FROM_MODULE' => 'main'],
-    ];
 
     public const V5                             = 'v5';
     public const AGREEMENT_LOYALTY_PROGRAM_CODE = 'AGREEMENT_LOYALTY_PROGRAM_CODE';
@@ -224,7 +190,7 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../classes/general/RCrmActions.php');
         include($this->INSTALL_PATH . '/../classes/general/user/RetailCrmUser.php');
         include($this->INSTALL_PATH . '/../classes/general/events/RetailCrmEvent.php');
-        include($this->INSTALL_PATH . '/../classes/general/RetailcrmConfigProvider.php');
+        require_once $this->INSTALL_PATH . '/../classes/general/RetailcrmConfigProvider.php';
         include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/offerparam.php');
         include($this->INSTALL_PATH . '/../lib/icml/settingsservice.php');
         include($this->INSTALL_PATH . '/../lib/component/agent.php');
@@ -252,7 +218,7 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../lib/service/hl.php');
         include($this->INSTALL_PATH . '/../lib/model/bitrix/orm/catalogiblockinfo.php');
         include($this->INSTALL_PATH . '/../lib/model/bitrix/orm/iblockcatalog.php');
-        include($this->INSTALL_PATH . '/../classes/general/RetailcrmConstants.php');
+        /*include($this->INSTALL_PATH . '/../classes/general/RetailcrmConstants.php');*/
         include($this->INSTALL_PATH . '/../classes/general/Exception/InvalidJsonException.php');
         include($this->INSTALL_PATH . '/../classes/general/Exception/CurlException.php');
         include($this->INSTALL_PATH . '/../classes/general/RestNormalizer.php');
@@ -302,7 +268,6 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../lib/repository/tomodulerepository.php');
         include($this->INSTALL_PATH . '/../lib/model/bitrix/orm/tomodule.php');
         include($this->INSTALL_PATH . '/../lib/model/bitrix/agreement.php');
-        include($this->INSTALL_PATH . '/../lib/component/configprovider.php');
         include($this->INSTALL_PATH . '/../lib/component/constants.php');
         include($this->INSTALL_PATH . '/../lib/repository/agreementrepository.php');
         include($this->INSTALL_PATH . '/../lib/service/orderloyaltydataservice.php');
@@ -1704,40 +1669,6 @@ class intaro_retailcrm extends CModule
         }
 
             }
-
-    /**
-     * create loyalty program events handlers
-     */
-    private function addLPEvents(): void
-    {
-        $eventManager = EventManager::getInstance();
-
-        foreach (self::SUBSCRIBE_LP_EVENTS as $event){
-            try {
-                $events = ToModuleRepository::getCollectionByWhere(
-                    ['ID'],
-                    [
-                        ['from_module_id', '=', $event['FROM_MODULE']],
-                        ['to_module_id', '=', $this->MODULE_ID],
-                        ['to_method', '=', $event['EVENT_NAME'] . 'Handler'],
-                        ['to_class', '=', EventsHandlers::class],
-                    ]
-                );
-
-                if ($events !== null && count($events) === 0) {
-                    $eventManager->registerEventHandler(
-                        $event['FROM_MODULE'],
-                        $event['EVENT_NAME'],
-                        $this->MODULE_ID,
-                        EventsHandlers::class,
-                        $event['EVENT_NAME'] . 'Handler'
-                    );
-                }
-            } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
-                AddMessage2Log($exception->getMessage(), $this->MODULE_ID);
-            }
-        }
-    }
 
     /**
      * create loyalty program events handlers
