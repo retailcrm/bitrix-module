@@ -15,7 +15,7 @@
     ],
     "require": {
         "ext-json": "*",
-        "ext-tokenizer": "*"
+        "ext-tokenizer": "*",
         "ext-mbstring": "*",
         "ext-xmlwriter": "*"
     },

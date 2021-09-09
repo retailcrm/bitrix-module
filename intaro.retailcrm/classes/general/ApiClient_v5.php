@@ -3072,28 +3072,4 @@ class ApiClient
             $request
         );
     }
-
-    /**
-     * @param array $request
-     * @return \RetailCrm\Response\ApiResponse
-     */
-    public function loyaltyOrderApply(array $request): ApiResponse
-    {
-        return $this->client->makeRequest(
-            "/api/v5/orders/loyalty/apply",
-            Client::METHOD_POST,
-            $request
-        );
-    }
-    
-    /**
-     * @return \RetailCrm\Response\ApiResponse
-     */
-    public function getCredentials(): ApiResponse
-    {
-        return $this->client->makeRequest(
-            "/api/credentials",
-            Client::METHOD_GET
-        );
-    }
 }
