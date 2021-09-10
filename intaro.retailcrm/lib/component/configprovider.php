@@ -112,6 +112,33 @@ class ConfigProvider
     protected static $loyaltyProgramStatus;
 
     /**
+     * @return bool|string|null
+     */
+    public static function getCrmPurchasePrice()
+    {
+        return static::getOption(Constants::CRM_PURCHASE_PRICE_NULL);
+    }
+
+    public static function getProtocol()
+    {
+        return static::getOption(Constants::PROTOCOL);
+    }
+
+    /**
+     * @return string
+     */
+    public static function getSiteName(): string
+    {
+        $siteName = COption::GetOptionString('main', 'site_name');
+
+        if (!$siteName) {
+            return '';
+        }
+
+        return $siteName;
+    }
+
+    /**
      * @param $profileId
      *
      * @return false|string|null
