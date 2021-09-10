@@ -979,40 +979,20 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     ];
     $tabControl = new CAdminTabControl("tabControl", $aTabs);
     $tabControl->Begin();
-
-    CJSCore::Init(['jquery']);
+    ?>
+    <?php
+    CJSCore::Init(array("jquery"));
 
     try {
-        Extension::load('ui.notification');
+        Extension::load("ui.notification");
     } catch (LoaderException $exception) {
         RCrmActions::eventLog(
             'intaro.retailcrm/options.php', 'Extension::load',
-            $exception->getCode() . ': ' . $exception->getMessage()
+            $e->getCode() . ': ' . $exception->getMessage()
         );
     }
     ?>
     <script type="text/javascript">
-
-        function switchPLStatus() {
-            BX.ajax.runAction('intaro:retailcrm.api.adminpanel.loyaltyprogramtoggle',
-                {
-                    data: {
-                        sessid: BX.bitrix_sessid()
-                    }
-                }
-            ).then(
-                function(data) {
-                    if (data.status === 'success') {
-                        if (data.data.newStatus === 'Y') {
-                            $('#loyalty_main_settings').show(500);
-                        } else {
-                            $('#loyalty_main_settings').hide(500);
-                        }
-                    }
-                }
-            );
-        }
-
         function createTemplates(donor) {
             BX.ajax.runAction('intaro:retailcrm.api.adminpanel.createTemplate',
                 {
@@ -1027,7 +1007,18 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                         donor:     donor
                     }
                 }
-            );
+            ).then(result => {
+                if (result.data.status !== undefined && result.data.status === true) {
+                    BX.UI.Notification.Center.notify({
+                        content: "<?= GetMessage('TEMPLATE_SUCCESS_COPING') ?>"
+                    });
+                } else {
+                    BX.UI.Notification.Center.notify({
+                        content: "<?= GetMessage('TEMPLATE_COPING_ERROR') ?>"
+                    });
+                }
+
+            });
         }
 
         function replaceDefaultTemplates(donor) {
@@ -1044,15 +1035,19 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 node = $('#lp-reg-templates input:checkbox:checked');
             }
 
+            if (donor === 'sale.basket.basket') {
+                node = $('#lp-basket-templates input:checkbox:checked');
+            }
+
             node.each(
-                    function(index, checkbox){
-                       templates[i] = {
-                           'name': $(checkbox).val(),
-                           'location': $(checkbox).attr('templateFolder')
-                       };
-                       i++;
-                    }
-                );
+                function(index, checkbox){
+                    templates[i] = {
+                        'name': $(checkbox).val(),
+                        'location': $(checkbox).attr('templateFolder')
+                    };
+                    i++;
+                }
+            );
 
             BX.ajax.runAction('intaro:retailcrm.api.adminpanel.createTemplate',
                 {
@@ -1063,44 +1058,28 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                         replaceDefaultTemplate: 'Y'
                     }
                 }
-            );
-        }
-
-        function replaceDefaultSaleTemplates() {
-            let templates = [];
-            let i = 0;
-
-            $('#lp-templates input:checkbox:checked').each(
-                    function(index, checkbox){
-                       templates[i] = {
-                           'name': $(checkbox).val(),
-                           'location': $(checkbox).attr('templateFolder')
-                       };
-                       i++;
-                    }
-                );
-
-            BX.ajax.runAction(
-                'intaro:retailcrm.api.adminpanel.createSaleTemplate',
-                {
-                    data: {
-                        sessid: BX.bitrix_sessid(),
-                        templates: templates,
-                        defreplace: 'Y'
-                    }
+            ).then(result => {
+                if (result.data.status !== undefined && result.data.status === true) {
+                    BX.UI.Notification.Center.notify({
+                        content: "<?= GetMessage('TEMPLATES_SUCCESS_COPING') ?>"
+                    });
+                } else {
+                    BX.UI.Notification.Center.notify({
+                        content: "<?= GetMessage('TEMPLATES_COPING_ERROR') ?>"
+                    });
                 }
-            );
+            });;
         }
 
-        function editSaleTemplates(method){
-
+        function editSaleTemplates(method) {
             let templates = [];
             let i = 0;
+
             $('#lp-templates input:checkbox:checked')
                 .each(
                     function(index, checkbox){
-                       templates[i] = $(checkbox).val();
-                       i++;
+                        templates[i] = $(checkbox).val();
+                        i++;
                     }
                 );
             let requestAdress = 'intaro:retailcrm.api.adminpanel.' + method;
@@ -1112,17 +1091,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                     }
                 }
             );
-        }
-
-        function replaceDefSaleTemplate() {
-            console.log($('#lp-templates').serializeArray());
-            BX.ajax.runAction('intaro:retailcrm.api.adminpanel.replaceDefSaleTemplate',
-                {
-                    data: {
-                        sessid: BX.bitrix_sessid()
-                    }
-                }
-            )
         }
 
         function replaceDefSaleTemplate() {
@@ -1165,7 +1133,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             $('tr.contragent-type select').change(function() {
                 splitName      = $(this).attr('name').split('-');
                 contragentType = $(this).val();
-                orderType      = splitName[2];
+                orderType = splitName[2];
 
                 $('tr.legal-detail-' + orderType).hide();
                 $('.legal-detail-title-' + orderType).hide();
@@ -1267,21 +1235,21 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             $(updButton).css('opacity', '0.5').attr('disabled', 'disabled');
 
             var handlerUrl = $(this).parents('form').attr('action');
-            var data       = 'ajax=1';
+            var data = 'ajax=1';
 
             $.ajax({
-                type:     'POST',
-                url:      handlerUrl,
-                data:     data,
+                type: 'POST',
+                url: handlerUrl,
+                data: data,
                 dataType: 'json',
-                success:  function(response) {
+                success: function(response) {
                     BX.closeWait();
                     $(updButton).css('opacity', '1').removeAttr('disabled');
 
                     if (!response.success)
                         alert('<?php echo GetMessage('MESS_1'); ?>');
                 },
-                error:    function() {
+                error: function () {
                     BX.closeWait();
                     $(updButton).css('opacity', '1').removeAttr('disabled');
 
@@ -1373,319 +1341,315 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             <tr class="heading">
                 <td colspan="2"><b><?php echo GetMessage('DELIVERY_TYPES_LIST'); ?></b></td>
             </tr>
-            <?php foreach ($arResult['bitrixDeliveryTypesList'] as $bitrixDeliveryType): ?>
-                <tr>
-                    <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $bitrixDeliveryType['ID']; ?>">
-                        <?php echo $bitrixDeliveryType['NAME']; ?>
-                    </td>
-                    <td width="50%" class="adm-detail-content-cell-r">
-                        <label>
-                            <select name="delivery-type-<?php echo $bitrixDeliveryType['ID']; ?>" class="typeselect">
-                                <option value=""></option>
-                                <?php foreach ($arResult['deliveryTypesList'] as $deliveryType): ?>
-                                    <?php if ($deliveryType['active'] === true) { ?>
-                                        <option value="<?php echo $deliveryType['code']; ?>" <?php if ($optionsDelivTypes[$bitrixDeliveryType['ID']] === $deliveryType['code']) {
-                                            echo 'selected';
-                                        } ?>>
-                                            <?php echo $APPLICATION->ConvertCharset($deliveryType['name'], 'utf-8', SITE_CHARSET); ?>
-                                        </option>
-                                    <?php } ?>
-                                <?php endforeach; ?>
-                            </select>
-                        </label>
-                    </td>
-                </tr>
-            <?php endforeach; ?>
+        <?php foreach ($arResult['bitrixDeliveryTypesList'] as $bitrixDeliveryType): ?>
+            <tr>
+                <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $bitrixDeliveryType['ID']; ?>">
+                    <?php echo $bitrixDeliveryType['NAME']; ?>
+                </td>
+                <td width="50%" class="adm-detail-content-cell-r">
+                    <label>
+                        <select name="delivery-type-<?php echo $bitrixDeliveryType['ID']; ?>" class="typeselect">
+                            <option value=""></option>
+                            <?php foreach ($arResult['deliveryTypesList'] as $deliveryType): ?>
+                                <?php if ($deliveryType['active'] === true) { ?>
+                                    <option value="<?php echo $deliveryType['code']; ?>" <?php if ($optionsDelivTypes[$bitrixDeliveryType['ID']] === $deliveryType['code']) {
+                                        echo 'selected';
+                                    } ?>>
+                                        <?php echo $APPLICATION->ConvertCharset($deliveryType['name'], 'utf-8', SITE_CHARSET); ?>
+                                    </option>
+                                <?php } ?>
+                            <?php endforeach; ?>
+                        </select>
+                    </label>
+                </td>
+            </tr>
+        <?php endforeach; ?>
             <tr class="heading">
                 <td colspan="2">
                     <input type="submit" name="update-delivery-services" value="<?php echo GetMessage('UPDATE_DELIVERY_SERVICES'); ?>" class="adm-btn-save">
                 </td>
             </tr>
             <tr class="heading">
-                <td colspan="2"><b><?php echo GetMessage('PAYMENT_TYPES_LIST'); ?></b>
-                    <p><small><?php echo GetMessage('INTEGRATION_PAYMENT_LIST');?></small></p></td>
+                <td colspan="2"><b><?php echo GetMessage('PAYMENT_TYPES_LIST'); ?></b></td>
             </tr>
-            <?php foreach ($arResult['bitrixPaymentTypesList'] as $bitrixPaymentType): ?>
-                <tr>
-                    <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $bitrixPaymentType['ID']; ?>">
-                        <?php echo $bitrixPaymentType['NAME']; ?>
-                    </td>
-                    <td width="50%" class="adm-detail-content-cell-r">
-                        <label>
-                            <select name="payment-type-<?php echo $bitrixPaymentType['ID']; ?>" class="typeselect">
-                                <option value="" selected=""></option>
-                                <?php foreach ($arResult['paymentTypesList'] as $paymentType): ?>
-                                    <option value="<?php echo $paymentType['code']; ?>" <?php if ($optionsPayTypes[$bitrixPaymentType['ID']] === $paymentType['code']) {
-                                        echo 'selected';
-                                    } ?>>
-                                        <?php
-                                    $nameType = isset($paymentType['integrationModule']) ? $APPLICATION->ConvertCharset($paymentType['name'] . GetMessage('INTEGRATIONS'), 'utf-8', SITE_CHARSET) : $APPLICATION->ConvertCharset($paymentType['name'], 'utf-8', SITE_CHARSET);
-                                    echo $nameType;?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </label>
-                    </td>
-                </tr>
-            <?php endforeach; ?>
+        <?php foreach ($arResult['bitrixPaymentTypesList'] as $bitrixPaymentType): ?>
+            <tr>
+                <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $bitrixPaymentType['ID']; ?>">
+                    <?php echo $bitrixPaymentType['NAME']; ?>
+                </td>
+                <td width="50%" class="adm-detail-content-cell-r">
+                    <label>
+                        <select name="payment-type-<?php echo $bitrixPaymentType['ID']; ?>" class="typeselect">
+                            <option value="" selected=""></option>
+                            <?php foreach ($arResult['paymentTypesList'] as $paymentType): ?>
+                                <option value="<?php echo $paymentType['code']; ?>" <?php if ($optionsPayTypes[$bitrixPaymentType['ID']] === $paymentType['code']) {
+                                    echo 'selected';
+                                } ?>>
+                                    <?php echo $APPLICATION->ConvertCharset($paymentType['name'], 'utf-8', SITE_CHARSET); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </label>
+                </td>
+            </tr>
+        <?php endforeach; ?>
             <tr class="heading">
                 <td colspan="2"><b><?php echo GetMessage('PAYMENT_STATUS_LIST'); ?></b></td>
             </tr>
-            <? if (empty($arResult['bitrixPaymentStatusesList'])) :?>
-                <td colspan="2" class="option-head option-other-top option-other-bottom">
-                    <b><label><?echo GetMessage('STATUS_NOT_SETTINGS');?></label></b>
+        <? if (empty($arResult['bitrixPaymentStatusesList'])) :?>
+            <td colspan="2" class="option-head option-other-top option-other-bottom">
+                <b><label><?echo GetMessage('STATUS_NOT_SETTINGS');?></label></b>
+            </td>
+        <?else:?>
+            <tr>
+                <td width="50%"></td>
+                <td width="50%">
+                    <table width="100%">
+                        <tr>
+                            <td width="50%"></td>
+                            <td width="50%" style="text-align: center;">
+                                <?php echo GetMessage('CANCELED'); ?>
+                            </td>
+                        </tr>
+                    </table>
                 </td>
-            <?else:?>
-                <tr>
-                    <td width="50%"></td>
-                    <td width="50%">
-                        <table width="100%">
-                            <tr>
-                                <td width="50%"></td>
-                                <td width="50%" style="text-align: center;">
-                                    <?php echo GetMessage('CANCELED'); ?>
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-            <?endif;?>
+            </tr>
+        <?endif;?>
 
-            <?php foreach($arResult['bitrixPaymentStatusesList'] as $bitrixPaymentStatus): ?>
-                <tr>
-                    <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $bitrixPaymentStatus['ID']; ?>">
-                        <?php echo $bitrixPaymentStatus['NAME']; ?>
-                    </td>
-                    <td width="50%" class="adm-detail-content-cell-r">
-                        <table width="100%">
-                            <tr>
-                                <td width="70%">
-                                    <select name="payment-status-<?php echo $bitrixPaymentStatus['ID']; ?>" class="typeselect">
-                                        <option value=""></option>
-                                        <?php foreach ($arResult['paymentGroupList'] as $orderStatusGroup): if (!empty($orderStatusGroup['statuses'])) : ?>
-                                            <optgroup label="<?php echo $APPLICATION->ConvertCharset($orderStatusGroup['name'], 'utf-8', SITE_CHARSET); ?>">
-                                                <?php foreach ($orderStatusGroup['statuses'] as $payment): ?>
-                                                    <?php if (isset($arResult['paymentList'][$payment])): ?>
-                                                        <option value="<?php echo $arResult['paymentList'][$payment]['code']; ?>" <?php if ($optionsPayStatuses[$bitrixPaymentStatus['ID']]
-                                                            === $arResult['paymentList'][$payment]['code']) {
-                                                            echo 'selected';
-                                                        } ?>>
-                                                            <?php echo $APPLICATION->ConvertCharset($arResult['paymentList'][$payment]['name'], 'utf-8', SITE_CHARSET); ?>
-                                                        </option>
-                                                    <?php endif; ?>
-                                                <?php endforeach; ?>
-                                            </optgroup>
-                                        <?php endif; endforeach; ?>
-                                    </select>
-                                </td>
-                                <td width="30%">
-                                    <label>
-                                        <input name="order-cansel-<?php echo $bitrixPaymentStatus['ID']; ?>" <?php if (in_array($bitrixPaymentStatus['ID'], $canselOrderArr)) {
-                                            echo "checked";
-                                        } ?> value="Y" type="checkbox"/>
-                                    </label>
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-            <?php endforeach; ?>
+        <?php foreach($arResult['bitrixPaymentStatusesList'] as $bitrixPaymentStatus): ?>
+            <tr>
+                <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $bitrixPaymentStatus['ID']; ?>">
+                    <?php echo $bitrixPaymentStatus['NAME']; ?>
+                </td>
+                <td width="50%" class="adm-detail-content-cell-r">
+                    <table width="100%">
+                        <tr>
+                            <td width="70%">
+                                <select name="payment-status-<?php echo $bitrixPaymentStatus['ID']; ?>" class="typeselect">
+                                    <option value=""></option>
+                                    <?php foreach ($arResult['paymentGroupList'] as $orderStatusGroup): if (!empty($orderStatusGroup['statuses'])) : ?>
+                                        <optgroup label="<?php echo $APPLICATION->ConvertCharset($orderStatusGroup['name'], 'utf-8', SITE_CHARSET); ?>">
+                                            <?php foreach ($orderStatusGroup['statuses'] as $payment): ?>
+                                                <?php if (isset($arResult['paymentList'][$payment])): ?>
+                                                    <option value="<?php echo $arResult['paymentList'][$payment]['code']; ?>" <?php if ($optionsPayStatuses[$bitrixPaymentStatus['ID']]
+                                                        === $arResult['paymentList'][$payment]['code']) {
+                                                        echo 'selected';
+                                                    } ?>>
+                                                        <?php echo $APPLICATION->ConvertCharset($arResult['paymentList'][$payment]['name'], 'utf-8', SITE_CHARSET); ?>
+                                                    </option>
+                                                <?php endif; ?>
+                                            <?php endforeach; ?>
+                                        </optgroup>
+                                    <?php endif; endforeach; ?>
+                                </select>
+                            </td>
+                            <td width="30%">
+                                <label>
+                                    <input name="order-cansel-<?php echo $bitrixPaymentStatus['ID']; ?>" <?php if (in_array($bitrixPaymentStatus['ID'], $canselOrderArr)) {
+                                        echo "checked";
+                                    } ?> value="Y" type="checkbox"/>
+                                </label>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        <?php endforeach; ?>
             <tr class="heading">
                 <td colspan="2"><b><?php echo GetMessage('PAYMENT_LIST'); ?></b></td>
             </tr>
-            <?php foreach ($arResult['bitrixPaymentList'] as $bitrixPayment): ?>
-                <tr>
-                    <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $bitrixPayment['ID']; ?>">
-                        <?php echo $bitrixPayment['NAME']; ?>
-                    </td>
-                    <td width="50%" class="adm-detail-content-cell-r">
-                        <select name="payment-<?php echo $bitrixPayment['ID']; ?>" class="typeselect">
-                            <option value=""></option>
-                            <?php foreach ($arResult['paymentStatusesList'] as $paymentStatus): ?>
-                                <option value="<?php echo $paymentStatus['code']; ?>" <?php if ($optionsPayment[$bitrixPayment['ID']] === $paymentStatus['code']) {
-                                    echo 'selected';
-                                } ?>>
-                                    <?php echo $APPLICATION->ConvertCharset($paymentStatus['name'], 'utf-8', SITE_CHARSET); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </td>
-                </tr>
-            <?php endforeach; ?>
+        <?php foreach ($arResult['bitrixPaymentList'] as $bitrixPayment): ?>
+            <tr>
+                <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $bitrixPayment['ID']; ?>">
+                    <?php echo $bitrixPayment['NAME']; ?>
+                </td>
+                <td width="50%" class="adm-detail-content-cell-r">
+                    <select name="payment-<?php echo $bitrixPayment['ID']; ?>" class="typeselect">
+                        <option value=""></option>
+                        <?php foreach ($arResult['paymentStatusesList'] as $paymentStatus): ?>
+                            <option value="<?php echo $paymentStatus['code']; ?>" <?php if ($optionsPayment[$bitrixPayment['ID']] === $paymentStatus['code']) {
+                                echo 'selected';
+                            } ?>>
+                                <?php echo $APPLICATION->ConvertCharset($paymentStatus['name'], 'utf-8', SITE_CHARSET); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </td>
+            </tr>
+        <?php endforeach; ?>
             <tr class="heading">
                 <td colspan="2"><b><?php echo GetMessage('ORDER_TYPES_LIST'); ?></b></td>
             </tr>
-            <?php if (isset($isCustomOrderType) && $isCustomOrderType): ?>
-                <tr>
-                    <td colspan="2" style="text-align: center!important; padding-bottom:10px;"><b style="color:#c24141;"><?php echo GetMessage('ORDER_TYPES_LIST_CUSTOM'); ?></b></td>
-                </tr>
-            <?php endif; ?>
-            <?php foreach ($arResult['bitrixOrderTypesList'] as $bitrixOrderType): ?>
-                <tr>
-                    <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $bitrixOrderType['ID']; ?>">
-                        <?php echo $bitrixOrderType['NAME']; ?>
-                    </td>
-                    <td width="50%" class="adm-detail-content-cell-r">
-                        <select name="order-type-<?php echo $bitrixOrderType['ID']; ?>" class="typeselect">
-                            <option value=""></option>
-                            <?php foreach ($arResult['orderTypesList'] as $orderType): ?>
-                                <option value="<?php echo $orderType['code']; ?>"
-                                    <?php if ($optionsOrderTypes[$bitrixOrderType['ID']] === $orderType['code']) {
+        <?php if (isset($isCustomOrderType) && $isCustomOrderType): ?>
+            <tr>
+                <td colspan="2" style="text-align: center!important; padding-bottom:10px;"><b style="color:#c24141;"><?php echo GetMessage('ORDER_TYPES_LIST_CUSTOM'); ?></b></td>
+            </tr>
+        <?php endif; ?>
+        <?php foreach ($arResult['bitrixOrderTypesList'] as $bitrixOrderType): ?>
+            <tr>
+                <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $bitrixOrderType['ID']; ?>">
+                    <?php echo $bitrixOrderType['NAME']; ?>
+                </td>
+                <td width="50%" class="adm-detail-content-cell-r">
+                    <select name="order-type-<?php echo $bitrixOrderType['ID']; ?>" class="typeselect">
+                        <option value=""></option>
+                        <?php foreach ($arResult['orderTypesList'] as $orderType): ?>
+                            <option value="<?php echo $orderType['code']; ?>"
+                                <?php if ($optionsOrderTypes[$bitrixOrderType['ID']] === $orderType['code']) {
                                     echo 'selected';
                                 } ?>>
-                                    <?= $APPLICATION
-                                        ->ConvertCharset($orderType['name'], 'utf-8', SITE_CHARSET)
-                                    ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </td>
-                </tr>
-            <?php endforeach; ?>
-            <?php $tabControl->BeginNextTab(); ?>
+                                <?= $APPLICATION
+                                    ->ConvertCharset($orderType['name'], 'utf-8', SITE_CHARSET)
+                                ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </td>
+            </tr>
+        <?php endforeach; ?>
+        <?php $tabControl->BeginNextTab(); ?>
             <input type="hidden" name="tab" value="catalog">
             <tr class="option-head">
                 <td colspan="2"><b><?php echo GetMessage('INFO_2'); ?></b></td>
             </tr>
-            <?php foreach ($arResult['bitrixOrderTypesList'] as $bitrixOrderType): ?>
-                <tr class="heading">
-                    <td colspan="2"><b><?php echo GetMessage('ORDER_TYPE_INFO') . ' ' . $bitrixOrderType['NAME']; ?></b></td>
-                </tr>
-                <tr class="contragent-type">
-                    <td width="50%" class="adm-detail-content-cell-l">
-                        <?php echo GetMessage('CONTRAGENTS_TYPES_LIST'); ?>
-                    </td>
-                    <td width="50%" class="adm-detail-content-cell-r">
-                        <select name="contragent-type-<?php echo $bitrixOrderType['ID']; ?>" class="typeselect">
-                            <?php foreach ($arResult['contragentType'] as $contragentType): ?>
-                                <option value="<?php echo $contragentType["ID"]; ?>" <?php if ($optionsContragentType[$bitrixOrderType['ID']] === $contragentType['ID']) {
-                                    echo 'selected';
-                                } ?>>
-                                    <?php echo $contragentType["NAME"]; ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </td>
-                </tr>
-                <?php $countProps = 1;
-                foreach ($arResult['orderProps'] as $orderProp): ?>
-                    <?php if ($orderProp['ID'] === 'text'): ?>
-                        <tr class="heading">
-                            <td colspan="2" style="background-color: transparent;">
-                                <b>
-                                    <label>
-                                        <input class="addr" type="radio" name="address-detail-<?php echo $bitrixOrderType['ID']; ?>" value="0"
-                                            <?php
-                                            if ($addressOptions[$bitrixOrderType['ID']] === '0') {
-                                                echo 'checked';
-                                            }
-                                        ?>>
-                                        <?= GetMessage('ADDRESS_SHORT')?>
-                                    </label>
-                                    <label>
-                                        <input class="addr" type="radio" name="address-detail-<?php echo $bitrixOrderType['ID']; ?>" value="1"
-                                            <?php
-                                            if ($addressOptions[$bitrixOrderType['ID']] === '1') {
-                                                echo 'checked';
-                                            }
-                                            ?>>
-                                        <?= GetMessage('ADDRESS_FULL')?>
-                                    </label>
-                                </b>
-                            </td>
-                        </tr>
-                    <?php endif; ?>
-                    <tr <?php if ($countProps > 4) {
-                        echo 'class="address-detail-' . $bitrixOrderType['ID'] . '"';
-                    }
-                    if (($countProps > 4) && ($addressOptions[$bitrixOrderType['ID']] === 0)) {
-                        echo 'style="display:none;"';
-                    } ?>>
-                        <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $orderProp['ID']; ?>">
-                            <?php echo $orderProp['NAME']; ?>
-                        </td>
-                        <td width="50%" class="adm-detail-content-cell-r">
-                            <select name="order-prop-<?php echo $orderProp['ID'] . '-' . $bitrixOrderType['ID']; ?>" class="typeselect">
-                                <option value=""></option>
-                                <?php foreach ($arResult['arProp'][$bitrixOrderType['ID']] as $arProp): ?>
-                                    <option value="<?php echo $arProp['CODE']; ?>" <?php if ($optionsOrderProps[$bitrixOrderType['ID']][$orderProp['ID']] === $arProp['CODE']) {
-                                        echo 'selected';
-                                    } ?>>
-                                        <?php echo $arProp['NAME']; ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </td>
-                    </tr>
-                    <?php $countProps++; endforeach; ?>
+        <?php foreach ($arResult['bitrixOrderTypesList'] as $bitrixOrderType): ?>
+            <tr class="heading">
+                <td colspan="2"><b><?php echo GetMessage('ORDER_TYPE_INFO') . ' ' . $bitrixOrderType['NAME']; ?></b></td>
+            </tr>
+            <tr class="contragent-type">
+                <td width="50%" class="adm-detail-content-cell-l">
+                    <?php echo GetMessage('CONTRAGENTS_TYPES_LIST'); ?>
+                </td>
+                <td width="50%" class="adm-detail-content-cell-r">
+                    <select name="contragent-type-<?php echo $bitrixOrderType['ID']; ?>" class="typeselect">
+                        <?php foreach ($arResult['contragentType'] as $contragentType): ?>
+                            <option value="<?php echo $contragentType["ID"]; ?>" <?php if ($optionsContragentType[$bitrixOrderType['ID']] === $contragentType['ID']) {
+                                echo 'selected';
+                            } ?>>
+                                <?php echo $contragentType["NAME"]; ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </td>
+            </tr>
+            <?php $countProps = 1;
+        foreach ($arResult['orderProps'] as $orderProp): ?>
+            <?php if ($orderProp['ID'] === 'text'): ?>
+            <tr class="heading">
+                <td colspan="2" style="background-color: transparent;">
+                    <b>
+                        <label>
+                            <input class="addr" type="radio" name="address-detail-<?php echo $bitrixOrderType['ID']; ?>" value="0"
+                                <?php
+                                if ($addressOptions[$bitrixOrderType['ID']] === '0') {
+                                    echo 'checked';
+                                }
+                                ?>>
+                            <?= GetMessage('ADDRESS_SHORT')?>
+                        </label>
+                        <label>
+                            <input class="addr" type="radio" name="address-detail-<?php echo $bitrixOrderType['ID']; ?>" value="1"
+                                <?php
+                                if ($addressOptions[$bitrixOrderType['ID']] === '1') {
+                                    echo 'checked';
+                                }
+                                ?>>
+                            <?= GetMessage('ADDRESS_FULL')?>
+                        </label>
+                    </b>
+                </td>
+            </tr>
+        <?php endif; ?>
+            <tr <?php if ($countProps > 4) {
+                echo 'class="address-detail-' . $bitrixOrderType['ID'] . '"';
+            }
+            if (($countProps > 4) && ($addressOptions[$bitrixOrderType['ID']] === 0)) {
+                echo 'style="display:none;"';
+            } ?>>
+                <td width="50%" class="adm-detail-content-cell-l" name="<?php echo $orderProp['ID']; ?>">
+                    <?php echo $orderProp['NAME']; ?>
+                </td>
+                <td width="50%" class="adm-detail-content-cell-r">
+                    <select name="order-prop-<?php echo $orderProp['ID'] . '-' . $bitrixOrderType['ID']; ?>" class="typeselect">
+                        <option value=""></option>
+                        <?php foreach ($arResult['arProp'][$bitrixOrderType['ID']] as $arProp): ?>
+                            <option value="<?php echo $arProp['CODE']; ?>" <?php if ($optionsOrderProps[$bitrixOrderType['ID']][$orderProp['ID']] === $arProp['CODE']) {
+                                echo 'selected';
+                            } ?>>
+                                <?php echo $arProp['NAME']; ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </td>
+            </tr>
+            <?php $countProps++; endforeach; ?>
+            <? if (isset($arResult['customFields']) && count($arResult['customFields']) > 0): ?>
+            <tr class="heading custom-detail-title">
+                <td colspan="2" style="background-color: transparent;">
+                    <b>
+                        <?=GetMessage("ORDER_CUSTOM");?>
+                    </b>
+                </td>
+            </tr>
+            <? foreach ($arResult['customFields'] as $customFields): ?>
+            <tr class="custom-detail-<?=$customFields['ID'];?>">
+                <td width="50%" class="" name="">
+                    <?=$customFields['NAME'];?>
+                </td>
+                <td width="50%" class="">
+                    <select name="custom-fields-<?=$customFields['ID'] . '-' . $bitrixOrderType['ID'];?>" class="typeselect">
+                        <option value=""></option>
+                        <? foreach ($arResult['arProp'][$bitrixOrderType['ID']] as $arProp): ?>
+                            <option value="<?=$arProp['CODE']?>" <?php if ($optionsCustomFields[$bitrixOrderType['ID']][$customFields['ID']] === $arProp['CODE']) {
+                                echo 'selected';
+                            } ?>>
+                                <?=$arProp['NAME'];?>
+                            </option>
+                        <? endforeach; ?>
+                    </select>
+                </td>
+            </tr>
+        <? endforeach; ?>
+        <? endif; ?>
+            <tr class="heading legal-detail-title-<?php echo $bitrixOrderType['ID']; ?>" <?php if (count($optionsLegalDetails[$bitrixOrderType['ID']]) < 1) {
+                echo 'style="display:none"';
+            } ?>>
+                <td colspan="2" style="background-color: transparent;">
+                    <b>
+                        <?php echo GetMessage('LEGAL_DETAIL'); ?>
+                    </b>
+                </td>
+            </tr>
+            <?php foreach ($arResult['legalDetails'] as $legalDetails): ?>
+            <tr class="legal-detail-<?php echo $bitrixOrderType['ID']; ?> <?php foreach ($legalDetails['GROUP'] as $gr) {
+                echo $gr . ' ';
+            } ?>" <?php if (!in_array($optionsContragentType[$bitrixOrderType['ID']], $legalDetails['GROUP'], true)) {
+                echo 'style="display:none"';
+            } ?>>
+                <td width="50%" class="" name="<?php ?>">
+                    <?php echo $legalDetails['NAME']; ?>
+                </td>
+                <td width="50%" class="">
+                    <select name="legal-detail-<?php echo $legalDetails['ID'] . '-' . $bitrixOrderType['ID']; ?>" class="typeselect">
+                        <option value=""></option>
+                        <?php foreach ($arResult['arProp'][$bitrixOrderType['ID']] as $arProp): ?>
+                            <option value="<?php echo $arProp['CODE']; ?>" <?php if ($optionsLegalDetails[$bitrixOrderType['ID']][$legalDetails['ID']] === $arProp['CODE']) {
+                                echo 'selected';
+                            } ?>>
+                                <?php echo $arProp['NAME']; ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </td>
+            </tr>
+        <?php endforeach; ?>
+        <?php endforeach; ?>
 
-                <? if (isset($arResult['customFields']) && count($arResult['customFields']) > 0): ?>
-                    <tr class="heading custom-detail-title">
-                        <td colspan="2" style="background-color: transparent;">
-                            <b>
-                               <?=GetMessage("ORDER_CUSTOM");?>
-                            </b>
-                        </td>
-                    </tr>
-                    <? foreach ($arResult['customFields'] as $customFields): ?>
-                        <tr class="custom-detail-<?=$customFields['ID'];?>">
-                            <td width="50%" class="" name="">
-                                <?=$customFields['NAME'];?>
-                            </td>
-                            <td width="50%" class="">
-                                <select name="custom-fields-<?=$customFields['ID'] . '-' . $bitrixOrderType['ID'];?>" class="typeselect">
-                                    <option value=""></option>
-                                    <? foreach ($arResult['arProp'][$bitrixOrderType['ID']] as $arProp): ?>
-                                        <option value="<?=$arProp['CODE']?>" <?php if ($optionsCustomFields[$bitrixOrderType['ID']][$customFields['ID']] === $arProp['CODE']) {
-                                            echo 'selected';
-                                        } ?>>
-                                            <?=$arProp['NAME'];?>
-                                        </option>
-                                    <? endforeach; ?>
-                                </select>
-                            </td>
-                        </tr>
-                    <? endforeach; ?>
-                <? endif; ?>
-                <tr class="heading legal-detail-title-<?php echo $bitrixOrderType['ID']; ?>" <?php if (count($optionsLegalDetails[$bitrixOrderType['ID']]) < 1) {
-                    echo 'style="display:none"';
-                } ?>>
-                    <td colspan="2" style="background-color: transparent;">
-                        <b>
-                            <?php echo GetMessage('LEGAL_DETAIL'); ?>
-                        </b>
-                    </td>
-                </tr>
-                <?php foreach ($arResult['legalDetails'] as $legalDetails): ?>
-                    <tr class="legal-detail-<?php echo $bitrixOrderType['ID']; ?> <?php foreach ($legalDetails['GROUP'] as $gr) {
-                        echo $gr . ' ';
-                    } ?>" <?php if (!in_array($optionsContragentType[$bitrixOrderType['ID']], $legalDetails['GROUP'], true)) {
-                        echo 'style="display:none"';
-                    } ?>>
-                        <td width="50%" class="" name="<?php ?>">
-                            <?php echo $legalDetails['NAME']; ?>
-                        </td>
-                        <td width="50%" class="">
-                            <select name="legal-detail-<?php echo $legalDetails['ID'] . '-' . $bitrixOrderType['ID']; ?>" class="typeselect">
-                                <option value=""></option>
-                                <?php foreach ($arResult['arProp'][$bitrixOrderType['ID']] as $arProp): ?>
-                                    <option value="<?php echo $arProp['CODE']; ?>" <?php if ($optionsLegalDetails[$bitrixOrderType['ID']][$legalDetails['ID']] === $arProp['CODE']) {
-                                        echo 'selected';
-                                    } ?>>
-                                        <?php echo $arProp['NAME']; ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            <?php endforeach; ?>
-
-            <?php $tabControl->BeginNextTab(); ?>
-            <?php
-            //loyalty program options
-            $loyaltyProgramToggle = ConfigProvider::getLoyaltyProgramStatus();
-            ?>
+        <?php $tabControl->BeginNextTab(); ?>
+        <?php
+        //loyalty program options
+        $loyaltyProgramToggle = ConfigProvider::getLoyaltyProgramStatus();
+        ?>
             <tr class="heading">
                 <td colspan="2" class="option-other-heading">
                     <b>
@@ -1731,7 +1695,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                     </div>
                                     <?= sprintf(GetMessage('LP_DEF_TEMP_CREATE_MSG'), 'sale.order.ajax') ?>
                                     <hr>
-                                        <?php echo GetMessage('LP_TEMP_CHOICE_MSG'); ?>
+                                    <?php echo GetMessage('LP_TEMP_CHOICE_MSG'); ?>
                                 </td>
                             </tr>
                             <tr>
@@ -1786,8 +1750,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                     <input type="button" onclick="replaceDefaultTemplates('main.register')" class="adm-btn-save" value="<?php echo GetMessage('LP_REPLACE_TEMPLATE'); ?>" />
                                 </td>
                                 <td width="50%" >
-                                    <?php echo GetMessage('LP_TEMP_CHOICE_MSG'); ?>
-                                    <hr>
                                     <div id="lp-reg-templates">
                                         <?php
                                         $templates = TemplateRepository::getAllIds();
@@ -1862,7 +1824,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                     <input type="button" onclick="replaceDefaultTemplates('sale.basket.basket')" class="adm-btn-save" value="<?php echo GetMessage('LP_REPLACE_TEMPLATE'); ?>" />
                                 </td>
                                 <td width="50%" >
-                                    <div id="lp-reg-templates">
+                                    <div id="lp-basket-templates">
                                         <?php
                                         $templates = TemplateRepository::getAllIds();
                                         foreach ($templates as $template) {
@@ -1880,76 +1842,76 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         <?php // Manual orders upload. ?>
         <?php $tabControl->BeginNextTab(); ?>
             <style type="text/css">
-                .install-load-label {
-                    color: #000;
-                    margin-bottom: 15px;
-                }
+				.install-load-label {
+					color: #000;
+					margin-bottom: 15px;
+				}
 
-                .install-progress-bar-outer {
-                    height: 32px;
-                    border: 1px solid;
-                    border-color: #9ba6a8 #b1bbbe #bbc5c9 #b1bbbe;
-                    -webkit-box-shadow: 1px 1px 0 #fff, inset 0 2px 2px #c0cbce;
-                    box-shadow: 1px 1px 0 #fff, inset 0 2px 2px #c0cbce;
-                    background-color: #cdd8da;
-                    background-image: -webkit-linear-gradient(top, #cdd8da, #c3ced1);
-                    background-image: -moz-linear-gradient(top, #cdd8da, #c3ced1);
-                    background-image: -ms-linear-gradient(top, #cdd8da, #c3ced1);
-                    background-image: -o-linear-gradient(top, #cdd8da, #c3ced1);
-                    background-image: linear-gradient(top, #ced9db, #c3ced1);
-                    border-radius: 2px;
-                    text-align: center;
-                    color: #6a808e;
-                    text-shadow: 0 1px rgba(255, 255, 255, 0.85);
-                    font-size: 18px;
-                    line-height: 35px;
-                    font-weight: bold;
-                }
+				.install-progress-bar-outer {
+					height: 32px;
+					border: 1px solid;
+					border-color: #9ba6a8 #b1bbbe #bbc5c9 #b1bbbe;
+					-webkit-box-shadow: 1px 1px 0 #fff, inset 0 2px 2px #c0cbce;
+					box-shadow: 1px 1px 0 #fff, inset 0 2px 2px #c0cbce;
+					background-color: #cdd8da;
+					background-image: -webkit-linear-gradient(top, #cdd8da, #c3ced1);
+					background-image: -moz-linear-gradient(top, #cdd8da, #c3ced1);
+					background-image: -ms-linear-gradient(top, #cdd8da, #c3ced1);
+					background-image: -o-linear-gradient(top, #cdd8da, #c3ced1);
+					background-image: linear-gradient(top, #ced9db, #c3ced1);
+					border-radius: 2px;
+					text-align: center;
+					color: #6a808e;
+					text-shadow: 0 1px rgba(255, 255, 255, 0.85);
+					font-size: 18px;
+					line-height: 35px;
+					font-weight: bold;
+				}
 
-                .install-progress-bar-alignment {
-                    height: 28px;
-                    margin: 0;
-                    position: relative;
-                }
+				.install-progress-bar-alignment {
+					height: 28px;
+					margin: 0;
+					position: relative;
+				}
 
-                .install-progress-bar-inner {
-                    height: 28px;
-                    border-radius: 2px;
-                    border-top: solid 1px #52b9df;
-                    background-color: #2396ce;
-                    background-image: -webkit-linear-gradient(top, #27a8d7, #2396ce, #1c79c0);
-                    background-image: -moz-linear-gradient(top, #27a8d7, #2396ce, #1c79c0);
-                    background-image: -ms-linear-gradient(top, #27a8d7, #2396ce, #1c79c0);
-                    background-image: -o-linear-gradient(top, #27a8d7, #2396ce, #1c79c0);
-                    background-image: linear-gradient(top, #27a8d7, #2396ce, #1c79c0);
-                    position: absolute;
-                    overflow: hidden;
-                    top: 1px;
-                    left: 0;
-                }
+				.install-progress-bar-inner {
+					height: 28px;
+					border-radius: 2px;
+					border-top: solid 1px #52b9df;
+					background-color: #2396ce;
+					background-image: -webkit-linear-gradient(top, #27a8d7, #2396ce, #1c79c0);
+					background-image: -moz-linear-gradient(top, #27a8d7, #2396ce, #1c79c0);
+					background-image: -ms-linear-gradient(top, #27a8d7, #2396ce, #1c79c0);
+					background-image: -o-linear-gradient(top, #27a8d7, #2396ce, #1c79c0);
+					background-image: linear-gradient(top, #27a8d7, #2396ce, #1c79c0);
+					position: absolute;
+					overflow: hidden;
+					top: 1px;
+					left: 0;
+				}
 
-                .install-progress-bar-inner-text {
-                    color: #fff;
-                    text-shadow: 0 1px rgba(0, 0, 0, 0.2);
-                    font-size: 18px;
-                    line-height: 32px;
-                    font-weight: bold;
-                    text-align: center;
-                    position: absolute;
-                    left: -2px;
-                    top: -2px;
-                }
+				.install-progress-bar-inner-text {
+					color: #fff;
+					text-shadow: 0 1px rgba(0, 0, 0, 0.2);
+					font-size: 18px;
+					line-height: 32px;
+					font-weight: bold;
+					text-align: center;
+					position: absolute;
+					left: -2px;
+					top: -2px;
+				}
 
-                .order-upload-button {
-                    padding: 1px 13px 2px;
-                    height: 28px;
-                }
+				.order-upload-button {
+					padding: 1px 13px 2px;
+					height: 28px;
+				}
 
-                .order-upload-button div {
-                    float: right;
-                    position: relative;
-                    visible: none;
-                }
+				.order-upload-button div {
+					float: right;
+					position: relative;
+					visible: none;
+				}
             </style>
 
             <script type="text/javascript">
@@ -2035,7 +1997,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 </div>
             </form>
 
-            <?php $tabControl->BeginNextTab(); ?>
+        <?php $tabControl->BeginNextTab(); ?>
             <input type="hidden" name="tab" value="catalog">
             <tr class="heading">
                 <td colspan="2" class="option-other-bottom"><b><?php echo GetMessage('ORDERS_OPTIONS'); ?></b></td>
@@ -2114,160 +2076,160 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                     </select>
                 </td>
             </tr>
-            <?php if ($optionInventotiesUpload === 'Y' || count($arResult['bitrixStoresExportList']) > 0) : ?>
-                <tr class="heading inventories-batton">
-                    <td colspan="2" class="option-other-heading">
-                        <b>
-                            <label><input class="addr" type="checkbox" name="inventories-upload" value="Y" <?php if ($optionInventotiesUpload === 'Y') {
-                                    echo "checked";
-                                } ?>><?php echo GetMessage('INVENTORIES_UPLOAD'); ?></label>
-                        </b>
-                    </td>
-                </tr>
-                <tr class="inventories" <?php if ($optionInventotiesUpload !== 'Y') {
-                    echo 'style="display: none;"';
-                } ?>>
-                    <td colspan="2" class="option-head option-other-top option-other-bottom">
-                        <b><label><?php echo GetMessage('INVENTORIES'); ?></label></b>
-                    </td>
-                </tr>
-                <?php foreach ($arResult['bitrixStoresExportList'] as $catalogExportStore): ?>
-                    <tr class="inventories" <?php if ($optionInventotiesUpload !== 'Y') {
-                        echo 'style="display: none;"';
-                    } ?>>
-                        <td width="50%" class="adm-detail-content-cell-l"><?php echo $catalogExportStore['TITLE'] ?></td>
-                        <td width="50%" class="adm-detail-content-cell-r">
-                            <select class="typeselect" name="stores-export-<?php echo $catalogExportStore['ID'] ?>">
-                                <option value=""></option>
-                                <?php foreach ($arResult['inventoriesList'] as $inventoriesList): ?>
-                                    <option value="<?php echo $inventoriesList['code'] ?>" <?php if ($optionStores[$catalogExportStore['ID']] === $inventoriesList['code']) {
-                                        echo 'selected="selected"';
-                                    } ?>><?php echo $inventoriesList['name'] ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-                <tr class="inventories" <?php if ($optionInventotiesUpload !== 'Y') {
-                    echo 'style="display: none;"';
-                } ?>>
-                    <td colspan="2" class="option-head option-other-top option-other-bottom">
-                        <b>
-                            <label><?php echo GetMessage('SHOPS_INVENTORIES_UPLOAD'); ?></label>
-                        </b>
-                    </td>
-                </tr>
-                <?php foreach ($arResult['sitesList'] as $sitesList): ?>
-                    <tr class="inventories" align="center" <?php if ($optionInventotiesUpload !== 'Y') {
-                        echo 'style="display: none;"';
-                    } ?>>
-                        <td colspan="2" class="option-other-center">
-                            <label><input class="addr" type="checkbox" name="shops-exoprt-<? echo $sitesList['code']; ?>" value="Y" <?php if (in_array($sitesList['code'], $optionShops)) {
-                                    echo "checked";
-                                } ?>> <?php echo $sitesList['name'] . ' (' . $sitesList['code'] . ')'; ?></label>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-                <tr class="inventories" <?php if ($optionInventotiesUpload !== 'Y') {
-                    echo 'style="display: none;"';
-                } ?>>
-                    <td colspan="2" class="option-head option-other-top option-other-bottom">
-                        <b>
-                            <label><?php echo GetMessage('IBLOCKS_UPLOAD'); ?></label>
-                        </b>
-                    </td>
-                </tr>
-                <?php foreach ($arResult['bitrixIblocksExportList'] as $catalogExportIblock) : ?>
-                    <tr class="inventories" align="center" <?php if ($optionInventotiesUpload !== 'Y') {
-                        echo 'style="display: none;"';
-                    } ?>>
-                        <td colspan="2" class="option-other-center">
-                            <label><input class="addr" type="checkbox" name="iblocks-stores-<? echo $catalogExportIblock['ID']; ?>" value="Y" <?php if (in_array($catalogExportIblock['ID'],
-                                    $optionIblocksInventories)) {
-                                    echo "checked";
-                                } ?>> <?php echo '[' . $catalogExportIblock['CODE'] . '] ' . $catalogExportIblock['NAME'] . ' (' . $catalogExportIblock['LID'] . ')'; ?></label>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            <?php endif; ?>
-            <?php if ($optionPricesUpload === 'Y' || count($arResult['bitrixPricesExportList']) > 0) : ?>
-                <tr class="heading prices-batton">
-                    <td colspan="2" class="option-other-heading">
-                        <b>
-                            <label><input class="addr" type="checkbox" name="prices-upload" value="Y" <?php if ($optionPricesUpload === 'Y') {
-                                    echo "checked";
-                                } ?>><?php echo GetMessage('PRICES_UPLOAD'); ?></label>
-                        </b>
-                    </td>
-                </tr>
-                <tr class="prices" <?php if ($optionPricesUpload !== 'Y') {
-                    echo 'style="display: none;"';
-                } ?>>
-                    <td colspan="2" class="option-head option-other-top option-other-bottom">
-                        <b>
-                            <label><?php echo GetMessage('PRICE_TYPES'); ?></label>
-                        </b>
-                    </td>
-                </tr>
-                <?php foreach ($arResult['bitrixPricesExportList'] as $catalogExportPrice) : ?>
-                    <tr class="prices" <?php if ($optionPricesUpload !== 'Y') {
-                        echo 'style="display: none;"';
-                    } ?>>
-                        <td width="50%" class="adm-detail-content-cell-l"><?php echo $catalogExportPrice['NAME_LANG'] . ' (' . $catalogExportPrice['NAME'] . ')'; ?></td>
-                        <td width="50%" class="adm-detail-content-cell-r">
-                            <select class="typeselect" name="price-type-export-<?php echo $catalogExportPrice['ID']; ?>">
-                                <option value=""></option>
-                                <?php foreach ($arResult['priceTypeList'] as $priceTypeList): ?>
-                                    <option value="<?php echo $priceTypeList['code'] ?>" <?php if ($optionPrices[$catalogExportPrice['ID']] === $priceTypeList['code']) {
-                                        echo 'selected="selected"';
-                                    } ?>><?php echo $priceTypeList['name'] ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-                <tr class="prices" <?php if ($optionPricesUpload !== 'Y') {
-                    echo 'style="display: none;"';
-                } ?>>
-                    <td colspan="2" class="option-head option-other-top option-other-bottom">
-                        <b>
-                            <label><?php echo GetMessage('SHOPS_PRICES_UPLOAD'); ?></label>
-                        </b>
-                    </td>
-                </tr>
-                <?php foreach ($arResult['sitesList'] as $sitesList): ?>
-                    <tr class="prices" align="center" <?php if ($optionPricesUpload !== 'Y') {
-                        echo 'style="display: none;"';
-                    } ?>>
-                        <td colspan="2" class="option-other-center">
-                            <label><input class="addr" type="checkbox" name="shops-price-<? echo $sitesList['code']; ?>" value="Y" <?php if (in_array($sitesList['code'], $optionPriceShops)) {
-                                    echo "checked";
-                                } ?>> <?php echo $sitesList['name'] . ' (' . $sitesList['code'] . ')'; ?></label>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-                <tr class="prices" <?php if ($optionPricesUpload !== 'Y') {
-                    echo 'style="display: none;"';
-                } ?>>
-                    <td colspan="2" class="option-head option-other-top option-other-bottom">
-                        <b>
-                            <label><?php echo GetMessage('IBLOCKS_UPLOAD'); ?></label>
-                        </b>
-                    </td>
-                </tr>
-                <?php foreach ($arResult['bitrixIblocksExportList'] as $catalogExportIblock) : ?>
-                    <tr class="prices" align="center" <?php if ($optionPricesUpload !== 'Y') {
-                        echo 'style="display: none;"';
-                    } ?>>
-                        <td colspan="2" class="option-other-center">
-                            <label><input class="addr" type="checkbox" name="iblocks-prices-<? echo $catalogExportIblock['ID']; ?>" value="Y" <?php if (in_array($catalogExportIblock['ID'],
-                                    $optionIblocksPrices)) {
-                                    echo "checked";
-                                } ?>> <?php echo '[' . $catalogExportIblock['CODE'] . '] ' . $catalogExportIblock['NAME'] . ' (' . $catalogExportIblock['LID'] . ')'; ?></label>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            <?php endif; ?>
+        <?php if ($optionInventotiesUpload === 'Y' || count($arResult['bitrixStoresExportList']) > 0) : ?>
+            <tr class="heading inventories-batton">
+                <td colspan="2" class="option-other-heading">
+                    <b>
+                        <label><input class="addr" type="checkbox" name="inventories-upload" value="Y" <?php if ($optionInventotiesUpload === 'Y') {
+                                echo "checked";
+                            } ?>><?php echo GetMessage('INVENTORIES_UPLOAD'); ?></label>
+                    </b>
+                </td>
+            </tr>
+            <tr class="inventories" <?php if ($optionInventotiesUpload !== 'Y') {
+                echo 'style="display: none;"';
+            } ?>>
+                <td colspan="2" class="option-head option-other-top option-other-bottom">
+                    <b><label><?php echo GetMessage('INVENTORIES'); ?></label></b>
+                </td>
+            </tr>
+            <?php foreach ($arResult['bitrixStoresExportList'] as $catalogExportStore): ?>
+            <tr class="inventories" <?php if ($optionInventotiesUpload !== 'Y') {
+                echo 'style="display: none;"';
+            } ?>>
+                <td width="50%" class="adm-detail-content-cell-l"><?php echo $catalogExportStore['TITLE'] ?></td>
+                <td width="50%" class="adm-detail-content-cell-r">
+                    <select class="typeselect" name="stores-export-<?php echo $catalogExportStore['ID'] ?>">
+                        <option value=""></option>
+                        <?php foreach ($arResult['inventoriesList'] as $inventoriesList): ?>
+                            <option value="<?php echo $inventoriesList['code'] ?>" <?php if ($optionStores[$catalogExportStore['ID']] === $inventoriesList['code']) {
+                                echo 'selected="selected"';
+                            } ?>><?php echo $inventoriesList['name'] ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </td>
+            </tr>
+        <?php endforeach; ?>
+            <tr class="inventories" <?php if ($optionInventotiesUpload !== 'Y') {
+                echo 'style="display: none;"';
+            } ?>>
+                <td colspan="2" class="option-head option-other-top option-other-bottom">
+                    <b>
+                        <label><?php echo GetMessage('SHOPS_INVENTORIES_UPLOAD'); ?></label>
+                    </b>
+                </td>
+            </tr>
+            <?php foreach ($arResult['sitesList'] as $sitesList): ?>
+            <tr class="inventories" align="center" <?php if ($optionInventotiesUpload !== 'Y') {
+                echo 'style="display: none;"';
+            } ?>>
+                <td colspan="2" class="option-other-center">
+                    <label><input class="addr" type="checkbox" name="shops-exoprt-<? echo $sitesList['code']; ?>" value="Y" <?php if (in_array($sitesList['code'], $optionShops)) {
+                            echo "checked";
+                        } ?>> <?php echo $sitesList['name'] . ' (' . $sitesList['code'] . ')'; ?></label>
+                </td>
+            </tr>
+        <?php endforeach; ?>
+            <tr class="inventories" <?php if ($optionInventotiesUpload !== 'Y') {
+                echo 'style="display: none;"';
+            } ?>>
+                <td colspan="2" class="option-head option-other-top option-other-bottom">
+                    <b>
+                        <label><?php echo GetMessage('IBLOCKS_UPLOAD'); ?></label>
+                    </b>
+                </td>
+            </tr>
+            <?php foreach ($arResult['bitrixIblocksExportList'] as $catalogExportIblock) : ?>
+            <tr class="inventories" align="center" <?php if ($optionInventotiesUpload !== 'Y') {
+                echo 'style="display: none;"';
+            } ?>>
+                <td colspan="2" class="option-other-center">
+                    <label><input class="addr" type="checkbox" name="iblocks-stores-<? echo $catalogExportIblock['ID']; ?>" value="Y" <?php if (in_array($catalogExportIblock['ID'],
+                            $optionIblocksInventories)) {
+                            echo "checked";
+                        } ?>> <?php echo '[' . $catalogExportIblock['CODE'] . '] ' . $catalogExportIblock['NAME'] . ' (' . $catalogExportIblock['LID'] . ')'; ?></label>
+                </td>
+            </tr>
+        <?php endforeach; ?>
+        <?php endif; ?>
+        <?php if ($optionPricesUpload === 'Y' || count($arResult['bitrixPricesExportList']) > 0) : ?>
+            <tr class="heading prices-batton">
+                <td colspan="2" class="option-other-heading">
+                    <b>
+                        <label><input class="addr" type="checkbox" name="prices-upload" value="Y" <?php if ($optionPricesUpload === 'Y') {
+                                echo "checked";
+                            } ?>><?php echo GetMessage('PRICES_UPLOAD'); ?></label>
+                    </b>
+                </td>
+            </tr>
+            <tr class="prices" <?php if ($optionPricesUpload !== 'Y') {
+                echo 'style="display: none;"';
+            } ?>>
+                <td colspan="2" class="option-head option-other-top option-other-bottom">
+                    <b>
+                        <label><?php echo GetMessage('PRICE_TYPES'); ?></label>
+                    </b>
+                </td>
+            </tr>
+            <?php foreach ($arResult['bitrixPricesExportList'] as $catalogExportPrice) : ?>
+            <tr class="prices" <?php if ($optionPricesUpload !== 'Y') {
+                echo 'style="display: none;"';
+            } ?>>
+                <td width="50%" class="adm-detail-content-cell-l"><?php echo $catalogExportPrice['NAME_LANG'] . ' (' . $catalogExportPrice['NAME'] . ')'; ?></td>
+                <td width="50%" class="adm-detail-content-cell-r">
+                    <select class="typeselect" name="price-type-export-<?php echo $catalogExportPrice['ID']; ?>">
+                        <option value=""></option>
+                        <?php foreach ($arResult['priceTypeList'] as $priceTypeList): ?>
+                            <option value="<?php echo $priceTypeList['code'] ?>" <?php if ($optionPrices[$catalogExportPrice['ID']] === $priceTypeList['code']) {
+                                echo 'selected="selected"';
+                            } ?>><?php echo $priceTypeList['name'] ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </td>
+            </tr>
+        <?php endforeach; ?>
+            <tr class="prices" <?php if ($optionPricesUpload !== 'Y') {
+                echo 'style="display: none;"';
+            } ?>>
+                <td colspan="2" class="option-head option-other-top option-other-bottom">
+                    <b>
+                        <label><?php echo GetMessage('SHOPS_PRICES_UPLOAD'); ?></label>
+                    </b>
+                </td>
+            </tr>
+            <?php foreach ($arResult['sitesList'] as $sitesList): ?>
+            <tr class="prices" align="center" <?php if ($optionPricesUpload !== 'Y') {
+                echo 'style="display: none;"';
+            } ?>>
+                <td colspan="2" class="option-other-center">
+                    <label><input class="addr" type="checkbox" name="shops-price-<? echo $sitesList['code']; ?>" value="Y" <?php if (in_array($sitesList['code'], $optionPriceShops)) {
+                            echo "checked";
+                        } ?>> <?php echo $sitesList['name'] . ' (' . $sitesList['code'] . ')'; ?></label>
+                </td>
+            </tr>
+        <?php endforeach; ?>
+            <tr class="prices" <?php if ($optionPricesUpload !== 'Y') {
+                echo 'style="display: none;"';
+            } ?>>
+                <td colspan="2" class="option-head option-other-top option-other-bottom">
+                    <b>
+                        <label><?php echo GetMessage('IBLOCKS_UPLOAD'); ?></label>
+                    </b>
+                </td>
+            </tr>
+            <?php foreach ($arResult['bitrixIblocksExportList'] as $catalogExportIblock) : ?>
+            <tr class="prices" align="center" <?php if ($optionPricesUpload !== 'Y') {
+                echo 'style="display: none;"';
+            } ?>>
+                <td colspan="2" class="option-other-center">
+                    <label><input class="addr" type="checkbox" name="iblocks-prices-<? echo $catalogExportIblock['ID']; ?>" value="Y" <?php if (in_array($catalogExportIblock['ID'],
+                            $optionIblocksPrices)) {
+                            echo "checked";
+                        } ?>> <?php echo '[' . $catalogExportIblock['CODE'] . '] ' . $catalogExportIblock['NAME'] . ' (' . $catalogExportIblock['LID'] . ')'; ?></label>
+                </td>
+            </tr>
+        <?php endforeach; ?>
+        <?php endif; ?>
 
             <tr class="heading r-coll-button">
                 <td colspan="2" class="option-other-heading">
@@ -2285,18 +2247,18 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                     <b><?php echo GetMessage('ICRM_SITES'); ?></b>
                 </td>
             </tr>
-            <?php foreach ($arResult['arSites'] as $sitesList): ?>
-                <tr class="r-coll" <?php if ($optionCollector !== 'Y') {
-                    echo 'style="display: none;"';
-                } ?>>
-                    <td class="adm-detail-content-cell-l" width="50%"><?php echo GetMessage('DEMON_KEY'); ?> <?php echo $sitesList['NAME']; ?> (<?php echo $sitesList['LID']; ?>)</td>
-                    <td class="adm-detail-content-cell-r" width="50%">
-                        <label>
-                            <input name="collector-id-<? echo $sitesList['LID']; ?>" value="<?php echo $optionCollectorKeys[$sitesList['LID']]; ?>" type="text">
-                        </label>
-                    </td>
-                </tr>
-            <?php endforeach; ?>
+        <?php foreach ($arResult['arSites'] as $sitesList): ?>
+            <tr class="r-coll" <?php if ($optionCollector !== 'Y') {
+                echo 'style="display: none;"';
+            } ?>>
+                <td class="adm-detail-content-cell-l" width="50%"><?php echo GetMessage('DEMON_KEY'); ?> <?php echo $sitesList['NAME']; ?> (<?php echo $sitesList['LID']; ?>)</td>
+                <td class="adm-detail-content-cell-r" width="50%">
+                    <label>
+                        <input name="collector-id-<? echo $sitesList['LID']; ?>" value="<?php echo $optionCollectorKeys[$sitesList['LID']]; ?>" type="text">
+                    </label>
+                </td>
+            </tr>
+        <?php endforeach; ?>
             <tr class="heading r-ua-button">
                 <td colspan="2" class="option-other-heading">
                     <b>
@@ -2306,31 +2268,32 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                     </b>
                 </td>
             </tr>
-            <?php foreach ($arResult['arSites'] as $sitesList): ?>
-                <tr class="r-ua" <?php if ($optionUa !== 'Y') {
-                    echo 'style="display: none;"';
-                } ?>>
-                    <td class="option-head" colspan="2">
-                        <b><?php echo $sitesList['NAME']; ?> (<?php echo $sitesList['LID']; ?>)</b>
-                    </td>
-                </tr>
-                <tr class="r-ua" <?php if ($optionUa !== 'Y') {
-                    echo 'style="display: none;"';
-                } ?>>
-                    <td class="adm-detail-content-cell-l" width="50%"><?php echo GetMessage('ID_UA'); ?></td>
-                    <td class="adm-detail-content-cell-r" width="50%">
-                        <input name="ua-id-<? echo $sitesList['LID']; ?>" value="<?php echo $optionUaKeys[$sitesList['LID']]['ID']; ?>" type="text">
-                    </td>
-                </tr>
-                <tr class="r-ua" <?php if ($optionUa !== 'Y') {
-                    echo 'style="display: none;"';
-                } ?>>
-                    <td class="adm-detail-content-cell-l" width="50%"><?php echo GetMessage('INDEX_UA'); ?></td>
-                    <td class="adm-detail-content-cell-r" width="50%">
-                        <input name="ua-index-<? echo $sitesList['LID']; ?>" value="<?php echo $optionUaKeys[$sitesList['LID']]['INDEX']; ?>" type="text">
-                    </td>
-                </tr>
-            <?php endforeach; ?>
+        <?php foreach ($arResult['arSites'] as $sitesList): ?>
+            <tr class="r-ua" <?php if ($optionUa !== 'Y') {
+                echo 'style="display: none;"';
+            } ?>>
+                <td class="option-head" colspan="2">
+                    <b><?php echo $sitesList['NAME']; ?> (<?php echo $sitesList['LID']; ?>)</b>
+                </td>
+            </tr>
+            <tr class="r-ua" <?php if ($optionUa !== 'Y') {
+                echo 'style="display: none;"';
+            } ?>>
+                <td class="adm-detail-content-cell-l" width="50%"><?php echo GetMessage('ID_UA'); ?></td>
+                <td class="adm-detail-content-cell-r" width="50%">
+                    <input name="ua-id-<? echo $sitesList['LID']; ?>" value="<?php echo $optionUaKeys[$sitesList['LID']]['ID']; ?>" type="text">
+                </td>
+            </tr>
+            <tr class="r-ua" <?php if ($optionUa !== 'Y') {
+                echo 'style="display: none;"';
+            } ?>>
+                <td class="adm-detail-content-cell-l" width="50%"><?php echo GetMessage('INDEX_UA'); ?></td>
+                <td class="adm-detail-content-cell-r" width="50%">
+                    <input name="ua-index-<? echo $sitesList['LID']; ?>" value="<?php echo $optionUaKeys[$sitesList['LID']]['INDEX']; ?>" type="text">
+                </td>
+            </tr>
+        <?php endforeach; ?>
+
             <tr class="heading r-consultant-button">
                 <td colspan="2" class="option-other-heading">
                     <b>
