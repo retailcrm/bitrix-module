@@ -2,12 +2,19 @@
 
 use Bitrix\Currency\CurrencyManager;
 use Bitrix\Main\Application;
+use Bitrix\Main\EventManager;
 use Bitrix\Main\LoaderException;
+use Bitrix\Main\SystemException;
 use Bitrix\Main\UI\Extension;
 use Bitrix\Sale\Delivery\Services\Manager;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Constants;
+use Intaro\RetailCrm\Component\Handlers\EventsHandlers;
+use Intaro\RetailCrm\Repository\AgreementRepository;
+use Intaro\RetailCrm\Repository\TemplateRepository;
+use Intaro\RetailCrm\Service\OrderLoyaltyDataService;
 use RetailCrm\Exception\CurlException;
+use \Intaro\RetailCrm\Service\Utils as RetailcrmUtils;
 
 IncludeModuleLangFile(__FILE__);
 $mid = 'intaro.retailcrm';
@@ -20,7 +27,7 @@ $CRM_DELIVERY_TYPES_ARR    = 'deliv_types_arr';
 $CRM_DELIVERY_SERVICES_ARR = 'deliv_services_arr';
 $CRM_PAYMENT_TYPES         = 'pay_types_arr';
 $CRM_PAYMENT_STATUSES      = 'pay_statuses_arr';
-$CRM_PAYMENT               = 'payment_arr'; //order payment Y/N
+$CRM_PAYMENT               = 'payment_arr';
 $CRM_ORDER_LAST_ID         = 'order_last_id';
 $CRM_ORDER_SITES           = 'sites_ids';
 $CRM_ORDER_DISCHARGE       = 'order_discharge';
@@ -31,37 +38,27 @@ $CRM_CONTRAGENT_TYPE       = 'contragent_type';
 $CRM_SITES_LIST            = 'sites_list';
 $CRM_ORDER_NUMBERS         = 'order_numbers';
 $CRM_CANSEL_ORDER          = 'cansel_order';
-
 $CRM_INVENTORIES_UPLOAD  = 'inventories_upload';
 $CRM_STORES              = 'stores';
 $CRM_SHOPS               = 'shops';
 $CRM_IBLOCKS_INVENTORIES = 'iblocks_inventories';
-
 $CRM_PRICES_UPLOAD  = 'prices_upload';
 $CRM_PRICES         = 'prices';
 $CRM_PRICE_SHOPS    = 'price_shops';
 $CRM_IBLOCKS_PRICES = 'iblock_prices';
-
 $CRM_COLLECTOR = 'collector';
 $CRM_COLL_KEY  = 'coll_key';
-
 $CRM_UA      = 'ua';
 $CRM_UA_KEYS = 'ua_keys';
-
-$CRM_DISCOUNT_ROUND = 'discount_round';
-
 $CRM_CC         = 'cc';
 $CRM_CORP_SHOPS = 'shops-corporate';
 $CRM_CORP_NAME  = 'nickName-corporate';
 $CRM_CORP_ADRES = 'adres-corporate';
-
 $CRM_API_VERSION = 'api_version';
-
 $CRM_CURRENCY        = 'currency';
 $CRM_ADDRESS_OPTIONS = 'address_options';
 $CRM_DIMENSIONS      = 'order_dimensions';
 $PROTOCOL            = 'protocol';
-
 $CRM_PURCHASE_PRICE_NULL = 'purchasePrice_null';
 
 if (!CModule::IncludeModule('intaro.retailcrm') || !CModule::IncludeModule('sale') || !CModule::IncludeModule('iblock') || !CModule::IncludeModule('catalog')) {
@@ -87,22 +84,22 @@ $arResult = [];
 if (file_exists($_SERVER["DOCUMENT_ROOT"] . '/bitrix/modules/intaro.retailcrm/classes/general/config/options.xml')) {
     $options = simplexml_load_file($_SERVER["DOCUMENT_ROOT"] . '/bitrix/modules/intaro.retailcrm/classes/general/config/options.xml');
 
-    foreach ($options->contragents->contragent as $contragent) {
-        $type["NAME"]                 = $APPLICATION->ConvertCharset((string)$contragent, 'utf-8', SITE_CHARSET);
-        $type["ID"]                   = (string)$contragent["id"];
+    foreach($options->contragents->contragent as $contragent) {
+        $type["NAME"] = $APPLICATION->ConvertCharset((string)$contragent, 'utf-8', SITE_CHARSET);
+        $type["ID"] = (string)$contragent["id"];
         $arResult['contragentType'][] = $type;
         unset ($type);
     }
     foreach ($options->fields->field as $field) {
-        $type["NAME"] = $APPLICATION->ConvertCharset((string)$field, 'utf-8', SITE_CHARSET);
-        $type["ID"]   = (string)$field["id"];
+        $type["NAME"] = $APPLICATION->ConvertCharset((string) $field, 'utf-8', SITE_CHARSET);
+        $type["ID"]   = (string) $field["id"];
 
         if ($field["group"] === 'custom') {
             $arResult['customFields'][] = $type;
         } elseif (!$field["group"]) {
             $arResult['orderProps'][] = $type;
         } else {
-            $groups = explode(",", (string)$field["group"]);
+            $groups = explode(",", (string) $field["group"]);
             foreach ($groups as $group) {
                 $type["GROUP"][] = trim($group);
             }
@@ -116,8 +113,8 @@ $arResult['arSites'] = RCrmActions::getSitesList();
 //ajax update deliveryServices
 if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') && isset($_POST['ajax']) && ($_POST['ajax'] === 1)) {
     $api_host = COption::GetOptionString($mid, $CRM_API_HOST_OPTION, 0);
-    $api_key  = COption::GetOptionString($mid, $CRM_API_KEY_OPTION, 0);
-    $api      = new RetailCrm\ApiClient($api_host, $api_key);
+    $api_key = COption::GetOptionString($mid, $CRM_API_KEY_OPTION, 0);
+    $api = new RetailCrm\ApiClient($api_host, $api_key);
 
     try {
         $api->paymentStatusesList();
@@ -174,7 +171,7 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_RE
         foreach ($ordersArr as $_ordersArr) {
             $ordersList = explode('-', trim($_ordersArr));
             if (count($ordersList) > 1) {
-                for ($i = (int)trim($ordersList[0]); $i <= (int)trim($ordersList[count($ordersList) - 1]); $i++) {
+                for ($i = (int) trim($ordersList[0]); $i <= (int) trim($ordersList[count($ordersList) - 1]); $i++) {
                     $orders[] = $i;
                 }
             } else {
@@ -183,7 +180,7 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_RE
         }
 
         $splitedOrders = array_chunk($orders, $countStep);
-        $stepOrders    = $splitedOrders[$step];
+        $stepOrders = $splitedOrders[$step];
 
         RetailCrmOrder::uploadOrders($countStep, false, $stepOrders);
 
@@ -223,10 +220,11 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_RE
 //update connection settings
 if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $api_host = htmlspecialchars(trim($_POST['api_host']));
-    $api_key  = htmlspecialchars(trim($_POST['api_key']));
+    $api_key = htmlspecialchars(trim($_POST['api_key']));
 
     //bitrix site list
     $siteListArr = [];
+
     foreach ($arResult['arSites'] as $arSites) {
         if (count($arResult['arSites']) > 1) {
             if ($_POST['sites-id-' . $arSites['LID']]) {
@@ -304,14 +302,12 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
     if (($orderDischarge != $previousDischarge) && ($orderDischarge === 0)) {
         // remove depenedencies
-        UnRegisterModuleDependences("sale", \Bitrix\Sale\EventActions::EVENT_ON_ORDER_SAVED, $mid, "RetailCrmEvent", "orderSave");
-        UnRegisterModuleDependences("sale", "OnOrderUpdate", $mid, "RetailCrmEvent", "onUpdateOrder");
-        UnRegisterModuleDependences("sale", "OnSaleOrderDeleted", $mid, "RetailCrmEvent", "orderDelete");
+        UnRegisterModuleDependences('sale', 'OnOrderUpdate', $mid, 'RetailCrmEvent', "onUpdateOrder");
+        UnRegisterModuleDependences('sale', 'OnSaleOrderDeleted', $mid, 'RetailCrmEvent', "orderDelete");
     } elseif (($orderDischarge != $previousDischarge) && ($orderDischarge === 1)) {
         // event dependencies
-        RegisterModuleDependences("sale", \Bitrix\Sale\EventActions::EVENT_ON_ORDER_SAVED, $mid, "RetailCrmEvent", "orderSave");
-        RegisterModuleDependences("sale", "OnOrderUpdate", $mid, "RetailCrmEvent", "onUpdateOrder");
-        RegisterModuleDependences("sale", "OnSaleOrderDeleted", $mid, "RetailCrmEvent", "orderDelete");
+        RegisterModuleDependences('sale', 'OnOrderUpdate', $mid, 'RetailCrmEvent', "onUpdateOrder");
+        RegisterModuleDependences('sale', 'OnSaleOrderDeleted', $mid, 'RetailCrmEvent', "orderDelete");
     }
 
     $orderPropsArr = [];
@@ -378,8 +374,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
     if (htmlspecialchars(trim($_POST['inventories-upload'])) === 'Y') {
         $inventoriesUpload = 'Y';
-        $dateAgent         = new DateTime();
-        $intAgent          = new DateInterval('PT60S'); // PT60S - 60 sec;
+        $dateAgent = new DateTime();
+        $intAgent = new DateInterval('PT60S'); // PT60S - 60 sec;
         $dateAgent->add($intAgent);
 
         CAgent::AddAgent(
@@ -395,14 +391,13 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             $bitrixStoresArr[$bitrixStores['ID']] = htmlspecialchars(trim($_POST['stores-export-' . $bitrixStores['ID']]));
         }
 
-        function maskInv($var)
-        {
+        function maskInv($var) {
             return preg_match("/^shops-exoprt/", $var);
         }
 
         $bitrixShopsArr = str_replace('shops-exoprt-', '', array_filter(array_keys($_POST), 'maskInv'));
-
         $arResult['bitrixIblocksExportList'] = RCrmActions::IblocksExportList();
+
         foreach ($arResult['bitrixIblocksExportList'] as $bitrixIblocks) {
             if (htmlspecialchars(trim($_POST['iblocks-stores-' . $bitrixIblocks['ID']])) === 'Y') {
                 $bitrixIblocksInventories[] = $bitrixIblocks['ID'];
@@ -422,7 +417,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         $pricesUpload = 'Y';
 
         $dateAgent = new DateTime();
-        $intAgent  = new DateInterval('PT60S'); // PT60S - 60 sec;
+        $intAgent = new DateInterval('PT60S'); // PT60S - 60 sec;
         $dateAgent->add($intAgent);
 
         CAgent::AddAgent(
@@ -434,18 +429,18 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         );
 
         $arResult['bitrixPricesExportList'] = RCrmActions::PricesExportList();
+
         foreach ($arResult['bitrixPricesExportList'] as $bitrixPrices) {
             $bitrixPricesArr[$bitrixPrices['ID']] = htmlspecialchars(trim($_POST['price-type-export-' . $bitrixPrices['ID']]));
         }
 
-        function maskPrice($var)
-        {
+        function maskPrice($var) {
             return preg_match("/^shops-price/", $var);
         }
 
         $bitrixPriceShopsArr = str_replace('shops-price-', '', array_filter(array_keys($_POST), 'maskPrice'));
-
         $arResult['bitrixIblocksExportList'] = RCrmActions::IblocksExportList();
+
         foreach ($arResult['bitrixIblocksExportList'] as $bitrixIblocks) {
             if (htmlspecialchars(trim($_POST['iblocks-prices-' . $bitrixIblocks['ID']])) === 'Y') {
                 $bitrixIblocksPrices[] = $bitrixIblocks['ID'];
@@ -474,7 +469,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     if (htmlspecialchars(trim($_POST['ua-integration'])) === 'Y') {
         $ua = 'Y';
         foreach ($arResult['arSites'] as $site) {
-            $uaKeys[$site['LID']]['ID']    = trim($_POST['ua-id-' . $site['LID']]);
+            $uaKeys[$site['LID']]['ID'] = trim($_POST['ua-id-' . $site['LID']]);
             $uaKeys[$site['LID']]['INDEX'] = trim($_POST['ua-index-' . $site['LID']]);
         }
         RegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmUa", "add");
@@ -484,7 +479,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     }
 
     //online_consultant
-    if (htmlspecialchars(trim($_POST['online_consultant'] == 'Y'))) {
+    if (htmlspecialchars(trim($_POST['online_consultant'] === 'Y'))) {
         $onlineConsultant = 'Y';
         $onlineConsultantScript = trim($_POST['online_consultant_script']);
         RegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmOnlineConsultant", "add");
@@ -515,6 +510,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         $cc              = 'Y';
         $bitrixCorpName  = htmlspecialchars(trim($_POST['nickName-corporate']));
         $bitrixCorpAdres = htmlspecialchars(trim($_POST['adres-corporate']));
+
         function maskCorp($var)
         {
             return preg_match("/^shops-corporate/", $var);
@@ -585,10 +581,10 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             if (empty($hlName)) {
                 OrderLoyaltyDataService::createLoyaltyHlBlock();
             }
-        } catch (LoaderException | SystemException $e) {
+        } catch (LoaderException | SystemException $exception) {
             RCrmActions::eventLog(
                 'intaro.retailcrm/options.php', 'OrderLoyaltyDataService::createLoyaltyHlBlock',
-                $e->getCode() . ': ' . $e->getMessage()
+                $e->getCode() . ': ' . $exception->getMessage()
             );
         }
 
@@ -613,6 +609,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     } else {
         ConfigProvider::setLoyaltyProgramStatus('N');
     }
+
     try {
         $arResult['paymentTypesList'] = $api->paymentTypesList()->paymentTypes;
         $arResult['deliveryTypesList'] = $api->deliveryTypesList()->deliveryTypes;
@@ -622,7 +619,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             $e->getCode() . ': ' . $e->getMessage()
         );
 
-        echo CAdminMessage::ShowMessage(GetMessage('ERR_' . $e->getCode()));
+        CAdminMessage::ShowMessage(GetMessage('ERR_' . $e->getCode()));
     }
 
     $integrationPayments = RetailCrmService::selectIntegrationPayments($arResult['paymentTypesList']);
@@ -630,6 +627,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
     RetailcrmConfigProvider::setIntegrationPaymentTypes($integrationPayments);
     RetailcrmConfigProvider::setIntegrationDelivery($integrationDeliveries);
+
     COption::SetOptionString(
         $mid,
         $CRM_ADDRESS_OPTIONS,
@@ -674,7 +672,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         $mid,
         $CRM_ORDER_PROPS,
         serialize(RCrmActions::clearArr(is_array($orderPropsArr) ? $orderPropsArr : []))
-        );
+    );
     COption::SetOptionString(
         $mid,
         $CRM_CONTRAGENT_TYPE,
@@ -684,12 +682,12 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         $mid,
         $CRM_LEGAL_DETAILS,
         serialize(RCrmActions::clearArr(is_array($legalDetailsArr) ? $legalDetailsArr : []))
-        );
+    );
     COption::SetOptionString(
         $mid,
         $CRM_CUSTOM_FIELDS,
         serialize(RCrmActions::clearArr(is_array($customFieldsArr) ? $customFieldsArr : []))
-        );
+    );
     COption::SetOptionString(
         $mid,
         $CRM_ORDER_NUMBERS,
@@ -699,7 +697,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         $mid,
         $CRM_CANSEL_ORDER,
         serialize(RCrmActions::clearArr(is_array($canselOrderArr) ? $canselOrderArr : []))
-        );
+    );
     COption::SetOptionString(
         $mid,
         $CRM_INVENTORIES_UPLOAD,
@@ -709,17 +707,17 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         $mid,
         $CRM_STORES,
         serialize(RCrmActions::clearArr(is_array($bitrixStoresArr) ? $bitrixStoresArr : []))
-        );
+    );
     COption::SetOptionString(
         $mid,
         $CRM_SHOPS,
         serialize(RCrmActions::clearArr(is_array($bitrixShopsArr) ? $bitrixShopsArr : []))
-        );
+    );
     COption::SetOptionString(
         $mid,
         $CRM_IBLOCKS_INVENTORIES,
         serialize(RCrmActions::clearArr(is_array($bitrixIblocksInventories) ? $bitrixIblocksInventories : []))
-        );
+    );
     COption::SetOptionString(
         $mid,
         $CRM_PRICES_UPLOAD,
@@ -729,17 +727,17 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         $mid,
         $CRM_PRICES,
         serialize(RCrmActions::clearArr(is_array($bitrixPricesArr) ? $bitrixPricesArr : []))
-        );
+    );
     COption::SetOptionString(
         $mid,
         $CRM_PRICE_SHOPS,
         serialize(RCrmActions::clearArr(is_array($bitrixPriceShopsArr) ? $bitrixPriceShopsArr : []))
-        );
+    );
     COption::SetOptionString(
         $mid,
         $CRM_IBLOCKS_PRICES,
         serialize(RCrmActions::clearArr(is_array($bitrixIblocksPrices) ? $bitrixIblocksPrices : []))
-        );
+    );
     COption::SetOptionString(
         $mid,
         $CRM_COLLECTOR,
@@ -749,7 +747,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         $mid,
         $CRM_COLL_KEY,
         serialize(RCrmActions::clearArr(is_array($collectorKeys) ? $collectorKeys : []))
-        );
+    );
+
     RetailCrmConfigProvider::setOnlineConsultant($onlineConsultant);
     RetailCrmConfigProvider::setOnlineConsultantScript($onlineConsultantScript);
 
@@ -762,15 +761,14 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         $mid,
         $CRM_UA_KEYS,
         serialize(RCrmActions::clearArr(is_array($uaKeys) ? $uaKeys : []))
-        );
+    );
     COption::SetOptionString(
         $mid,
         $CRM_DIMENSIONS,
         $orderDimensions
     );
     RetailcrmConfigProvider::setSendPaymentAmount($sendPaymentAmount);
-
-    COption::SetOptionString($mid, $CRM_DISCOUNT_ROUND, $discount_round);
+    RetailCrmConfigProvider::setDiscountRound($discount_round);
     COption::SetOptionString(
         $mid,
         $CRM_PURCHASE_PRICE_NULL,
@@ -779,7 +777,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     COption::SetOptionString(
         $mid,
         RetailcrmConstants::CRM_SHIPMENT_DEDUCTED, $shipment_deducted);
-
     COption::SetOptionString(
         $mid,
         $CRM_CC,
@@ -789,17 +786,17 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         $mid,
         $CRM_CORP_SHOPS,
         serialize(RCrmActions::clearArr(is_array($bitrixCorpShopsArr) ? $bitrixCorpShopsArr : []))
-        );
+    );
     COption::SetOptionString(
         $mid,
         $CRM_CORP_NAME,
         serialize(RCrmActions::clearArr(is_array($bitrixCorpName) ? $bitrixCorpName : []))
-        );
+    );
     COption::SetOptionString(
         $mid,
         $CRM_CORP_ADRES,
         serialize(RCrmActions::clearArr(is_array($bitrixCorpAdres) ? $bitrixCorpAdres : []))
-        );
+    );
 
     $request = Application::getInstance()->getContext()->getRequest();
 
@@ -813,40 +810,41 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     LocalRedirect($uri);
 } else {
     $api_host = COption::GetOptionString($mid, $CRM_API_HOST_OPTION, 0);
-    $api_key  = COption::GetOptionString($mid, $CRM_API_KEY_OPTION, 0);
-    $api      = new RetailCrm\ApiClient($api_host, $api_key);
+    $api_key = COption::GetOptionString($mid, $CRM_API_KEY_OPTION, 0);
+    $api = new RetailCrm\ApiClient($api_host, $api_key);
 
     //prepare crm lists
     try {
-        $arResult['orderTypesList']       = $api->orderTypesList()->orderTypes;
-        $arResult['deliveryTypesList']    = $api->deliveryTypesList()->deliveryTypes;
+        $arResult['orderTypesList'] = $api->orderTypesList()->orderTypes;
+        $arResult['deliveryTypesList'] = $api->deliveryTypesList()->deliveryTypes;
         $arResult['deliveryServicesList'] = $api->deliveryServicesList()->deliveryServices;
-        $arResult['paymentTypesList']     = $api->paymentTypesList()->paymentTypes;
-        $arResult['paymentStatusesList']  = $api->paymentStatusesList()->paymentStatuses; // --statuses
-        $arResult['paymentList']          = $api->statusesList()->statuses;
-        $arResult['paymentGroupList']     = $api->statusGroupsList()->statusGroups; // -- statuses groups
-        $arResult['sitesList']            = $APPLICATION->ConvertCharsetArray($api->sitesList()->sites, 'utf-8', SITE_CHARSET);
-        $arResult['inventoriesList']      = $APPLICATION->ConvertCharsetArray($api->storesList()->stores, 'utf-8', SITE_CHARSET);
-        $arResult['priceTypeList']        = $APPLICATION->ConvertCharsetArray($api->pricesTypes()->priceTypes, 'utf-8', SITE_CHARSET);
-    } catch (CurlException $e) {
+        $arResult['paymentTypesList'] = $api->paymentTypesList()->paymentTypes;
+        $arResult['paymentStatusesList'] = $api->paymentStatusesList()->paymentStatuses; // --statuses
+        $arResult['paymentList'] = $api->statusesList()->statuses;
+        $arResult['paymentGroupList'] = $api->statusGroupsList()->statusGroups; // -- statuses groups
+        $arResult['sitesList'] = $APPLICATION->ConvertCharsetArray($api->sitesList()->sites, 'utf-8', SITE_CHARSET);
+        $arResult['inventoriesList'] = $APPLICATION->ConvertCharsetArray($api->storesList()->stores, 'utf-8', SITE_CHARSET);
+        $arResult['priceTypeList'] = $APPLICATION->ConvertCharsetArray($api->pricesTypes()->priceTypes, 'utf-8', SITE_CHARSET);
+    } catch (\RetailCrm\Exception\CurlException $e) {
         RCrmActions::eventLog(
             'intaro.retailcrm/options.php', 'RetailCrm\ApiClient::*List::CurlException',
             $e->getCode() . ': ' . $e->getMessage()
         );
-        CAdminMessage::ShowMessage(GetMessage('ERR_' . $e->getCode()));
+
+        echo CAdminMessage::ShowMessage(GetMessage('ERR_' . $e->getCode()));
     } catch (InvalidArgumentException $e) {
         $badKey = true;
-        CAdminMessage::ShowMessage(GetMessage('ERR_403'));
+        echo CAdminMessage::ShowMessage(GetMessage('ERR_403'));
     } catch (\RetailCrm\Exception\InvalidJsonException $e) {
         $badJson = true;
-        CAdminMessage::ShowMessage(GetMessage('ERR_JSON'));
+        echo CAdminMessage::ShowMessage(GetMessage('ERR_JSON'));
     }
 
-    $deliveryTypes = array();
-    $deliveryIntegrationCode = array();
+    $deliveryTypes           = [];
+    $deliveryIntegrationCode = [];
     foreach ($arResult['deliveryTypesList'] as $deliveryType) {
         if ($deliveryType['active'] === true) {
-            $deliveryTypes[$deliveryType['code']] = $deliveryType;
+            $deliveryTypes[$deliveryType['code']]           = $deliveryType;
             $deliveryIntegrationCode[$deliveryType['code']] = $deliveryType['integrationCode'];
         }
     }
@@ -872,44 +870,44 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
     //bitrix pyament Y/N
     $arResult['bitrixPaymentList'][0]['NAME'] = GetMessage('PAYMENT_Y');
-    $arResult['bitrixPaymentList'][0]['ID']   = 'Y';
+    $arResult['bitrixPaymentList'][0]['ID'] = 'Y';
     $arResult['bitrixPaymentList'][1]['NAME'] = GetMessage('PAYMENT_N');
-    $arResult['bitrixPaymentList'][1]['ID']   = 'N';
+    $arResult['bitrixPaymentList'][1]['ID'] = 'N';
 
     //bitrix orderPropsList
     $arResult['arProp'] = RCrmActions::OrderPropsList();
 
     $arResult['bitrixIblocksExportList'] = RCrmActions::IblocksExportList();
-    $arResult['bitrixStoresExportList']  = RCrmActions::StoresExportList();
-    $arResult['bitrixPricesExportList']  = RCrmActions::PricesExportList();
+    $arResult['bitrixStoresExportList'] = RCrmActions::StoresExportList();
+    $arResult['bitrixPricesExportList'] = RCrmActions::PricesExportList();
 
     //saved cat params
-    $optionsOrderTypes     = unserialize(COption::GetOptionString($mid, $CRM_ORDER_TYPES_ARR, 0));
-    $optionsDelivTypes     = unserialize(COption::GetOptionString($mid, $CRM_DELIVERY_TYPES_ARR, 0));
-    $optionsPayTypes       = unserialize(COption::GetOptionString($mid, $CRM_PAYMENT_TYPES, 0));
-    $optionsPayStatuses    = unserialize(COption::GetOptionString($mid, $CRM_PAYMENT_STATUSES, 0)); // --statuses
-    $optionsPayment        = unserialize(COption::GetOptionString($mid, $CRM_PAYMENT, 0));
-    $optionsSitesList      = unserialize(COption::GetOptionString($mid, $CRM_SITES_LIST, 0));
-    $optionsDischarge      = (int) COption::GetOptionString($mid, $CRM_ORDER_DISCHARGE, 0);
-    $optionsOrderProps     = unserialize(COption::GetOptionString($mid, $CRM_ORDER_PROPS, 0));
+    $optionsOrderTypes = unserialize(COption::GetOptionString($mid, $CRM_ORDER_TYPES_ARR, 0));
+    $optionsDelivTypes = unserialize(COption::GetOptionString($mid, $CRM_DELIVERY_TYPES_ARR, 0));
+    $optionsPayTypes = unserialize(COption::GetOptionString($mid, $CRM_PAYMENT_TYPES, 0));
+    $optionsPayStatuses = unserialize(COption::GetOptionString($mid, $CRM_PAYMENT_STATUSES, 0)); // --statuses
+    $optionsPayment = unserialize(COption::GetOptionString($mid, $CRM_PAYMENT, 0));
+    $optionsSitesList = unserialize(COption::GetOptionString($mid, $CRM_SITES_LIST, 0));
+    $optionsDischarge = (int) COption::GetOptionString($mid, $CRM_ORDER_DISCHARGE, 0);
+    $optionsOrderProps = unserialize(COption::GetOptionString($mid, $CRM_ORDER_PROPS, 0));
     $optionsContragentType = unserialize(COption::GetOptionString($mid, $CRM_CONTRAGENT_TYPE, 0));
-    $optionsLegalDetails   = unserialize(COption::GetOptionString($mid, $CRM_LEGAL_DETAILS, 0));
-    $optionsCustomFields   = unserialize(COption::GetOptionString($mid, $CRM_CUSTOM_FIELDS, 0));
-    $optionsOrderNumbers   = COption::GetOptionString($mid, $CRM_ORDER_NUMBERS, 0);
-    $canselOrderArr        = unserialize(COption::GetOptionString($mid, $CRM_CANSEL_ORDER, 0));
+    $optionsLegalDetails = unserialize(COption::GetOptionString($mid, $CRM_LEGAL_DETAILS, 0));
+    $optionsCustomFields = unserialize(COption::GetOptionString($mid, $CRM_CUSTOM_FIELDS, 0));
+    $optionsOrderNumbers = COption::GetOptionString($mid, $CRM_ORDER_NUMBERS, 0);
+    $canselOrderArr = unserialize(COption::GetOptionString($mid, $CRM_CANSEL_ORDER, 0));
 
-    $optionInventotiesUpload  = COption::GetOptionString($mid, $CRM_INVENTORIES_UPLOAD, 0);
-    $optionStores             = unserialize(COption::GetOptionString($mid, $CRM_STORES, 0));
-    $optionShops              = unserialize(COption::GetOptionString($mid, $CRM_SHOPS, 0));
+    $optionInventotiesUpload = COption::GetOptionString($mid, $CRM_INVENTORIES_UPLOAD, 0);
+    $optionStores = unserialize(COption::GetOptionString($mid, $CRM_STORES, 0));
+    $optionShops = unserialize(COption::GetOptionString($mid, $CRM_SHOPS, 0));
     $optionIblocksInventories = unserialize(COption::GetOptionString($mid, $CRM_IBLOCKS_INVENTORIES, 0));
-    $optionShopsCorporate     = unserialize(COption::GetOptionString($mid, $CRM_SHOPS, 0));
+    $optionShopsCorporate = unserialize(COption::GetOptionString($mid, $CRM_SHOPS, 0));
 
-    $optionPricesUpload  = COption::GetOptionString($mid, $CRM_PRICES_UPLOAD, 0);
-    $optionPrices        = unserialize(COption::GetOptionString($mid, $CRM_PRICES, 0));
-    $optionPriceShops    = unserialize(COption::GetOptionString($mid, $CRM_PRICE_SHOPS, 0));
+    $optionPricesUpload = COption::GetOptionString($mid, $CRM_PRICES_UPLOAD, 0);
+    $optionPrices = unserialize(COption::GetOptionString($mid, $CRM_PRICES, 0));
+    $optionPriceShops = unserialize(COption::GetOptionString($mid, $CRM_PRICE_SHOPS, 0));
     $optionIblocksPrices = unserialize(COption::GetOptionString($mid, $CRM_IBLOCKS_PRICES, 0));
 
-    $optionCollector     = COption::GetOptionString($mid, $CRM_COLLECTOR, 0);
+    $optionCollector = COption::GetOptionString($mid, $CRM_COLLECTOR, 0);
     $optionCollectorKeys = unserialize(COption::GetOptionString($mid, $CRM_COLL_KEY));
 
     $optionOnlineConsultant = RetailcrmConfigProvider::isOnlineConsultantEnabled();
@@ -918,25 +916,25 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $optionUa = COption::GetOptionString($mid, $CRM_UA, 0);
     $optionUaKeys = unserialize(COption::GetOptionString($mid, $CRM_UA_KEYS));
 
-    $optionDiscRound        = COption::GetOptionString($mid, $CRM_DISCOUNT_ROUND, 0);
+    $optionDiscRound = COption::GetOptionString($mid, $CRM_DISCOUNT_ROUND, 0);
     $optionPricePrchaseNull = COption::GetOptionString($mid, $CRM_PURCHASE_PRICE_NULL, 0);
     $optionShipmentDeducted = RetailcrmConfigProvider::getShipmentDeducted();
 
     //corporate-cliente
-    $optionCorpClient   = COption::GetOptionString($mid, $CRM_CC, 0);
-    $optionCorpShops    = unserialize(COption::GetOptionString($mid, $CRM_CORP_SHOPS, 0));
+    $optionCorpClient = COption::GetOptionString($mid, $CRM_CC, 0);
+    $optionCorpShops = unserialize(COption::GetOptionString($mid, $CRM_CORP_SHOPS, 0));
     $optionsCorpComName = unserialize(COption::GetOptionString($mid, $CRM_CORP_NAME, 0));
-    $optionsCorpAdres   = unserialize(COption::GetOptionString($mid, $CRM_CORP_ADRES, 0));
+    $optionsCorpAdres = unserialize(COption::GetOptionString($mid, $CRM_CORP_ADRES, 0));
 
     $version = COption::GetOptionString($mid, $CRM_API_VERSION, 0);
 
     //currency
-    $baseCurrency   = CurrencyManager::getBaseCurrency();
-    $currencyOption = COption::GetOptionString($mid, $CRM_CURRENCY, 0) ?: $baseCurrency;
-    $currencyList   = CurrencyManager::getCurrencyList();
+    $baseCurrency = \Bitrix\Currency\CurrencyManager::getBaseCurrency();
+    $currencyOption = COption::GetOptionString($mid, $CRM_CURRENCY, 0) ? COption::GetOptionString($mid, $CRM_CURRENCY, 0) : $baseCurrency;
+    $currencyList = \Bitrix\Currency\CurrencyManager::getCurrencyList();
 
     $optionsOrderDimensions = COption::GetOptionString($mid, $CRM_DIMENSIONS, 'N');
-    $addressOptions         = unserialize(COption::GetOptionString($mid, $CRM_ADDRESS_OPTIONS, 0));
+    $addressOptions = unserialize(COption::GetOptionString($mid, $CRM_ADDRESS_OPTIONS, 0));
 
     //loyalty program options
     $loyaltyProgramToggle = ConfigProvider::getLoyaltyProgramStatus();

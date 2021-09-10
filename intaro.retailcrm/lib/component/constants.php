@@ -20,6 +20,7 @@ namespace Intaro\RetailCrm\Component;
  */
 class Constants
 {
+    public const CRM_PURCHASE_PRICE_NULL = 'purchasePrice_null';
     public const BITRIX_USER_ID_PREFIX = 'bitrixUserId-';
     public const CRM_USERS_MAP = 'crm_users_map';
     public const CRM_INTEGRATION_PAYMENT = 'integration_payment';
