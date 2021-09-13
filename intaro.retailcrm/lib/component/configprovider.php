@@ -31,7 +31,7 @@ class ConfigProvider
     protected static $apiUrl;
 
     /** @var array $integrationPayment */
-    private static $integrationPayment;
+    public static $integrationPayment;
 
     /** @var bool|null|string */
     protected static $apiKey;

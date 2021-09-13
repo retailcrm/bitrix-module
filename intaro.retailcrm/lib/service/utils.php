@@ -130,7 +130,7 @@ class Utils
 
         return $result;
     }
-    
+
     /**
      * @param \Intaro\RetailCrm\Model\Api\Response\AbstractApiResponseModel $response
      *
@@ -139,14 +139,14 @@ class Utils
     public static function getResponseErrors(AbstractApiResponseModel $response): string
     {
         $errorDetails= '';
-        
+
         foreach ($response->errors as $error) {
             $errorDetails .= $error . ' ';
         }
-        
+
         return $errorDetails;
     }
-    
+
     /**
      * @param \Intaro\RetailCrm\Model\Api\Response\AbstractApiResponseModel|null $response
      * @return string|null
@@ -158,21 +158,21 @@ class Utils
             && !empty($response->errorMsg)
         ) {
             $errorDetails = '';
-            
+
             if (isset($response->errors) && is_array($response->errors)) {
                 $errorDetails = self::getResponseErrors($response);
             }
-            
+
             $msg = sprintf('%s (%s %s)', GetMessage('REGISTER_ERROR'), $response->errorMsg, $errorDetails);
-            
+
             Logger::getInstance()->write($msg);
-            
+
             return $msg;
         }
-        
+
         return null;
     }
-    
+
     /**
      * @param \Intaro\RetailCrm\Model\Api\Response\AbstractApiResponseModel|null $response
      * @param string                                                             $errorMsg
@@ -185,17 +185,17 @@ class Utils
             && !empty($response->errorMsg)
         ) {
             $errorDetails = '';
-        
+
             if (isset($response->errors) && is_array($response->errors)) {
                 $errorDetails = self::getResponseErrors($response);
             }
-        
+
             $msg = sprintf('%s (%s %s)', $errorMsg, $response->errorMsg, $errorDetails);
-    
+
             Logger::getInstance()->write($msg, Constants::API_ERRORS_LOG);
         }
     }
-    
+
     /**
      * Валидирует телефон
      *
@@ -206,7 +206,7 @@ class Utils
     {
         return preg_replace('/\s|\+|-|\(|\)/', '', $phoneNumber);
     }
-    
+
     /**
      * Получение DataManager класса управления HLBlock
      *
@@ -220,18 +220,18 @@ class Utils
     public static function getHlClassById($HlBlockId): ?DataManager
     {
         Loader::includeModule('highloadblock');
-        
+
         $hlblock = Highloadblock\HighloadBlockTable::getById($HlBlockId)->fetch();
-        
+
         if (!$hlblock) {
             return null;
         }
-        
+
         $entity = Highloadblock\HighloadBlockTable::compileEntity($hlblock);
-    
+
         return $entity->getDataClass();
     }
-    
+
     /**
      * Получение DataManager класса управления HLBlock
      *
@@ -243,13 +243,13 @@ class Utils
     public static function getHlClassByName(string $name)
     {
         Loader::includeModule('highloadblock');
-        
+
         $hlblock = Highloadblock\HighloadBlockTable::query()
             ->addSelect('*')
             ->addFilter('NAME', $name)
             ->exec()
             ->fetch();
-        
+
         if (!$hlblock) {
             return null;
         }
