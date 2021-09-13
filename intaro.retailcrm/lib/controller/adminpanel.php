@@ -4,6 +4,7 @@ namespace Intaro\RetailCrm\Controller;
 
 use Bitrix\Main\Engine\ActionFilter\Authentication;
 use Bitrix\Main\Engine\Controller;
+use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Constants;
 
 class AdminPanel extends Controller
@@ -30,8 +31,8 @@ class AdminPanel extends Controller
     {
         $templateName = $replaceDefaultTemplate === 'Y' ? '.default' : Constants::DEFAULT_LOYALTY_TEMPLATE;
         $donor = str_replace(['../', './'], '', $donor);
-        foreach ($templates as $template) {
 
+        foreach ($templates as $template) {
             $template['location'] = str_replace(['../', './'], '', $template['location']);
             $template['name'] = str_replace(['../', './'], '', $template['name']);
 
