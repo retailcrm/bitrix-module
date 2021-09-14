@@ -675,6 +675,7 @@ class intaro_retailcrm extends CModule
                     GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step2.php'
                 );
             }
+
             //order upload
             if (!empty($_SERVER['HTTP_X_REQUESTED_WITH'])
                 && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
