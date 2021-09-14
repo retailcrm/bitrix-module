@@ -218,7 +218,7 @@ class ConfigProvider
             static::$integrationPayment = static::getUnserializedOption(Constants::CRM_INTEGRATION_PAYMENT);
         }
 
-        return static::$integrationPayment;
+        return is_array(static::$integrationPayment) ? static::$integrationPayment : [];
     }
 
     /**
