@@ -38,5 +38,5 @@ $strSql = "INSERT INTO b_file (TIMESTAMP_X, MODULE_ID, HEIGHT, WIDTH, FILE_SIZE,
 VALUES ('2020-05-08 19:04:03', 'iblock', '500', '500', '23791', 'image/jpeg', 'iblock/c44', 'test.jpg', '788c4cf58bd93a5f75f2e3f2034023db.jpg', '', '', 'c570f175b3f74ccfa62c4a10d8e44b5c');";
 $DB->Query($strSql);
 
-require_once __DIR__ . 'BitrixTestCase.php';
+require_once __DIR__ . '/BitrixTestCase.php';
 require_once __DIR__ . '/helpers/Helpers.php';

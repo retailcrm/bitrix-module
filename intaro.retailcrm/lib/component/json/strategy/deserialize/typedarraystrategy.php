@@ -51,14 +51,13 @@ class TypedArrayStrategy implements DeserializeStrategyInterface
 
         foreach (array_keys($value) as $key) {
             $deserializedKey = $key;
-
             if ('' !== $keyType) {
                 $deserializedKey = $simpleStrategy->deserialize($keyType, $key, new PropertyAnnotations());
             }
 
             $result[$deserializedKey] = StrategyFactory::deserializeStrategyByType($valueType)->deserialize(
                 $valueType,
-                count($value[$key]) > 1 ? $value[$key] : $value,
+                is_array($value[$key]) ? $value[$key] : $value,
                 new PropertyAnnotations()
             );
         }

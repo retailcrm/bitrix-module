@@ -4,7 +4,9 @@ namespace Tests\Intaro\RetailCrm\Component\Builder\Bitrix;
 
 use Intaro\RetailCrm\Component\Builder\Bitrix\CustomerBuilder;
 use Intaro\RetailCrm\Component\Json\Deserializer;
+use Intaro\RetailCrm\Component\Json\Serializer;
 use Intaro\RetailCrm\Model\Api\Customer;
+use Intaro\RetailCrm\Model\Api\Phone;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -85,7 +87,7 @@ class CustomerBuilderTest extends TestCase
             "sex"=> "female",
             "email"=> "mm@mm.mmm",
             "phones"=> [
-                "0" => [
+                [
                     "number"=> "474747856878",
                 ]
             ],
