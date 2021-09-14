@@ -387,7 +387,7 @@ class RetailCrmOrder
      * @param bool       $failed -- flag to export failed orders
      * @param array|null $orderList
      *
-     * @return boolean
+     * @return bool
      * @throws \Bitrix\Main\ArgumentException
      * @throws \Bitrix\Main\ArgumentNullException
      * @throws \Bitrix\Main\ObjectPropertyException
@@ -529,7 +529,7 @@ class RetailCrmOrder
 
             if ($failed == true && $failedIds !== false && count($failedIds) > 0) {
                 RetailcrmConfigProvider::setFailedOrdersIds(array_diff($failedIds, $recOrders));
-            } elseif ($lastUpOrderId < max($recOrders) && $orderList === false) {
+            } elseif (count($orderList) === 0 && $lastUpOrderId < max($recOrders)) {
                 RetailcrmConfigProvider::setLastOrderId(max($recOrders));
             }
         }
