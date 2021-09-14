@@ -25,7 +25,6 @@ $builder->setDisableNamespaces(true)
     ->setVersion($version)
     ->build();
 
-Loader::switchAutoLoad(true);
 Loader::registerAutoLoadClasses('intaro.retailcrm', $builder->getResult());
 AnnotationRegistry::registerLoader('class_exists');
 
