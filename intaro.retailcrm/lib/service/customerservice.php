@@ -47,8 +47,11 @@ class CustomerService
     public function __construct()
     {
         IncludeModuleLangFile(__FILE__);
-        $this->client      = ClientFactory::createClientAdapter();
-        $this->credentials = $this->client->getCredentials();
+        $this->client = ClientFactory::createClientAdapter();
+
+        if ($this->client !== null) {
+            $this->credentials = $this->client->getCredentials();
+        }
     }
 
     /**
