@@ -11,10 +11,10 @@ class DateTimeConverterTest extends TestCase
     /**
      * Better rely on preconfigured format & data
      */
-    const FORMAT = 'Y-m-d\TH:i:s';
+    public const FORMAT = 'Y-m-d\TH:i:s';
 
     /** @var string */
-    const FORMAT_DATE = '1970-01-01T12:30:45';
+    public const FORMAT_DATE = '1970-01-01T12:30:45';
 
     public function testPhpToBitrix(): void
     {
@@ -29,7 +29,8 @@ class DateTimeConverterTest extends TestCase
 
     public function testBitrixToPhp(): void
     {
-        $dateTime = \DateTime::createFromFormat(self::FORMAT, self::FORMAT_DATE);
+        $timeZone = new \DateTimeZone('+00:00');
+        $dateTime = \DateTime::createFromFormat(self::FORMAT, self::FORMAT_DATE, $timeZone);
         $bitrixDateTime = DateTime::createFromPhp($dateTime);
         $dateTime = DateTimeConverter::bitrixToPhp($bitrixDateTime);
 

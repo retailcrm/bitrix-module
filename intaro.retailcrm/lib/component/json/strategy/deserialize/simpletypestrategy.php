@@ -26,6 +26,12 @@ class SimpleTypeStrategy implements DeserializeStrategyInterface
 
     /**
      * @inheritDoc
+     *
+     * @param string                                               $type
+     * @param mixed                                                $value
+     * @param \Intaro\RetailCrm\Component\Json\PropertyAnnotations $annotations
+     *
+     * @return array|bool|float|int|string|null
      */
     public function deserialize(string $type, $value, $annotations)
     {
