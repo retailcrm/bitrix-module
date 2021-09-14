@@ -592,6 +592,8 @@ class ConfigProvider
      * setFailedOrdersIds
      *
      * @param $ids
+     *
+     * @throws \Bitrix\Main\ArgumentOutOfRangeException
      */
     public static function setFailedOrdersIds($ids): void
     {
