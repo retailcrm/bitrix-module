@@ -23,7 +23,7 @@ use Intaro\RetailCrm\Component\Json\Mapping;
 class LoyaltyAccount
 {
     /**
-     * Номер телефона
+     * Активность аккаунта
      *
      * @var bool $active
      *
@@ -31,7 +31,7 @@ class LoyaltyAccount
      * @Mapping\SerializedName("active")
      */
     public $active;
-    
+
     /**
      * Id участия в программе лояльности
      *
@@ -41,7 +41,17 @@ class LoyaltyAccount
      * @Mapping\SerializedName("id")
      */
     public $id;
-    
+
+    /**
+     * Программа лояльности
+     *
+     * @var \Intaro\RetailCrm\Model\Api\Loyalty
+     *
+     * @Mapping\Type("\Intaro\RetailCrm\Model\Api\Loyalty")
+     * @Mapping\SerializedName("$loyalty")
+     */
+    public $loyalty;
+
     /**
      * Номер телефона
      *
@@ -51,7 +61,7 @@ class LoyaltyAccount
      * @Mapping\SerializedName("phoneNumber")
      */
     public $phoneNumber;
-    
+
     /**
      * Номер карты
      *
@@ -61,7 +71,7 @@ class LoyaltyAccount
      * @Mapping\SerializedName("cardNumber")
      */
     public $cardNumber;
-    
+
     /**
      * Количество бонусов
      *
@@ -71,7 +81,7 @@ class LoyaltyAccount
      * @Mapping\SerializedName("amount")
      */
     public $amount;
-    
+
     /**
      * Дата создания
      *
@@ -81,7 +91,7 @@ class LoyaltyAccount
      * @Mapping\SerializedName("createdAt")
      */
     public $createdAt;
-    
+
     /**
      * @var \DateTime $activatedAt
      *
@@ -89,7 +99,7 @@ class LoyaltyAccount
      * @Mapping\SerializedName("activatedAt")
      */
     public $activatedAt;
-    
+
     /**
      * Идентификатор последней смс-верификации
      *
@@ -99,7 +109,7 @@ class LoyaltyAccount
      * @Mapping\SerializedName("lastCheckId")
      */
     public $lastCheckId;
-    
+
     /**
      * Сумма покупок
      *
@@ -109,7 +119,7 @@ class LoyaltyAccount
      * @Mapping\SerializedName("ordersSum")
      */
     public $ordersSum;
-    
+
     /**
      * Необходимая сумма покупок для перехода на след уровень
      *
@@ -119,7 +129,7 @@ class LoyaltyAccount
      * @Mapping\SerializedName("nextLevelSum")
      */
     public $nextLevelSum;
-    
+
     /**
      * Дата верификации номера телефона
      *
@@ -129,7 +139,7 @@ class LoyaltyAccount
      * @Mapping\SerializedName("confirmedPhoneAt")
      */
     public $confirmedPhoneAt;
-    
+
     /**
      * @var \Intaro\RetailCrm\Model\Api\LoyaltyLevel
      *
@@ -137,7 +147,7 @@ class LoyaltyAccount
      * @Mapping\SerializedName("level")
      */
     public $loyaltyLevel;
-    
+
     /**
      * @var \Intaro\RetailCrm\Model\Api\Customer
      *
@@ -145,7 +155,7 @@ class LoyaltyAccount
      * @Mapping\SerializedName("customer")
      */
     public $customer;
-    
+
     /**
      * @var array $customFields
      *

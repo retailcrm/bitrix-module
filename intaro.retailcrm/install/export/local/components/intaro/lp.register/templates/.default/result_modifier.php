@@ -24,21 +24,21 @@ function checkLoadIntaro(): bool
 
 if (checkLoadIntaro()) {
     $arResult['LOYALTY_STATUS'] = ConfigProvider::getLoyaltyProgramStatus();
-    
+
     global $USER;
-    
+
     if ('Y' === $arResult['LOYALTY_STATUS'] && $USER->IsAuthorized()) {
         /** @var CustomerService $customerService */
         $customerService = ServiceLocator::get(CustomerService::class);
         $customer = $customerService->createModel($USER->GetID());
-        
+
         $customerService->createCustomer($customer);
-        
+
         /* @var LoyaltyAccountService $service */
         $service = ServiceLocator::get(LoyaltyAccountService::class);
         $arResult['LP_REGISTER'] = $service->checkRegInLp();
     }
-    
+
     try {
         $agreementPersonalData = AgreementRepository::getFirstByWhere(
             ['AGREEMENT_TEXT'],
@@ -46,7 +46,7 @@ if (checkLoadIntaro()) {
                 ['CODE', '=', 'AGREEMENT_PERSONAL_DATA_CODE'],
             ]
         );
-        
+
         $agreementLoyaltyProgram = AgreementRepository::getFirstByWhere(
             ['AGREEMENT_TEXT'],
             [
@@ -56,7 +56,7 @@ if (checkLoadIntaro()) {
     } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
         Logger::getInstance()->write($exception->getMessage(), Constants::TEMPLATES_ERROR);
     }
-    
+
     $arResult['AGREEMENT_PERSONAL_DATA'] = $agreementPersonalData['AGREEMENT_TEXT'];
     $arResult['AGREEMENT_LOYALTY_PROGRAM'] = $agreementLoyaltyProgram['AGREEMENT_TEXT'];
 } else {
