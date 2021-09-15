@@ -3048,6 +3048,18 @@ class ApiClient
     }
 
     /**
+     * @param int $loyaltyId
+     * @return \RetailCrm\Response\ApiResponse
+     */
+    public function getLoyaltyLoyalty(int $loyaltyId): ApiResponse
+    {
+        return $this->client->makeRequest(
+            '/loyalty/loyalties/' . $loyaltyId,
+            Client::METHOD_GET
+        );
+    }
+
+    /**
      * @param array $request
      * @return \RetailCrm\Response\ApiResponse
      */
