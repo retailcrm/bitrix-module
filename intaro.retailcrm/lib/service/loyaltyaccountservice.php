@@ -15,7 +15,9 @@ namespace Intaro\RetailCrm\Service;
 
 use CUser;
 use DateTime;
+use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
+use Intaro\RetailCrm\Component\Json\Deserializer;
 use Intaro\RetailCrm\Component\Json\Serializer;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountActivateRequest;
@@ -42,7 +44,7 @@ class LoyaltyAccountService
         'UF_PD_PROC_PL_INTARO' => 'checkbox',
         'PERSONAL_PHONE'       => 'text',
     ];
-    
+
     /**
      * @var \Intaro\RetailCrm\Model\Bitrix\User|null
      */
@@ -123,16 +125,6 @@ class LoyaltyAccountService
     }
 
     /**
-     * @param $isExternalRegister
-     * @return array
-     */
-    public function getExtFields($isExternalRegister): array
-    {
-        //TODO Реализовать метод, когда появится возможность получить обязательные поля
-        return [];
-    }
-
-    /**
      * @param \Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountCreateResponse|null $createResponse
      * @param int                                                                                    $userId
      */
@@ -178,7 +170,7 @@ class LoyaltyAccountService
 
         return $response;
     }
-    
+
     /**
      * Возвращает статус пользователя в системе лояльности
      *
@@ -188,27 +180,28 @@ class LoyaltyAccountService
     {
         global $USER;
         $userFields = CUser::GetByID($USER->GetID())->Fetch();
-        
+
         return isset($userFields['UF_EXT_REG_PL_INTARO']) && $userFields['UF_EXT_REG_PL_INTARO'] === '1';
     }
-    
+
     /**
      * @return array|null
+     * @throws \ReflectionException
      */
     public function checkRegInLp(): ?array
     {
         global $USER;
-        
+
         if ($USER->IsAuthorized()) {
             $this->user = UserRepository::getById($USER->GetID());
         }
-        
+
         if (!$this->user) {
             return [];
         }
-        
+
         $loyalty = $this->user->getLoyalty();
-        
+
         //Изъявлял ли ранее пользователь желание участвовать в ПЛ?
         if ($loyalty->getIsAgreeRegisterInLoyaltyProgram() === 1) {
             //ДА. Существует ли у него аккаунт?
@@ -218,13 +211,25 @@ class LoyaltyAccountService
                     //ДА. Отображаем сообщение "Вы зарегистрированы в Программе лояльности"
                     return ['msg' => GetMessage('REG_COMPLETE')];
                 }
-                
+
                 //НЕТ. Аккаунт не активен
-                $extFields   = $this->getExtFields($loyalty->getIdInLoyalty());
-                
-                //Есть ли обязательные поля, которые нужно заполнить для завершения активации?
-                if (!empty($extFields)) {
-                    //Да, есть незаполненные обязательные поля
+                //Пробуем активировать аккаунт
+                $activateResponse = $this->activateLoyaltyAccount($loyalty->getIdInLoyalty());
+
+                if ($activateResponse === null) {
+                    return  ['msg' => GetMessage('ACTIVATE_ERROR')];
+                }
+
+                if ($activateResponse->success && $activateResponse->loyaltyAccount->active === true) {
+                    return ['msg' => GetMessage('REG_COMPLETE')];
+                }
+
+                $requiredFields = $this->checkErrors($activateResponse);
+
+                //если есть незаполненные обязательные поля
+                if (count($requiredFields) > 0) {
+                    $extFields = $this->getExternalFields($requiredFields);
+
                     return [
                         'msg'  => GetMessage('ACTIVATE_YOUR_ACCOUNT'),
                         'form' => [
@@ -232,29 +237,28 @@ class LoyaltyAccountService
                                 'name'   => GetMessage('ACTIVATE'),
                                 'action' => 'activateAccount',
                             ],
-                            'fields' => $extFields,
+                            'fields' => $this->getStandardFields($this->user),
+                            'externalFields' => $extFields,
                         ],
                     ];
                 }
-                
+
                 return $this->tryActivate($loyalty->getIdInLoyalty());
             }
-            
-            //Аккаунт не существует. Выясняем, каких полей не хватает для СОЗДАНИЯ аккаунта, выводим форму
-            $fields = $this->getFields($this->user);
-            
+
+            // Аккаунт не существует. Выясняем, каких полей не хватает для СОЗДАНИЯ аккаунта, выводим форму
             //Если все необходимые поля заполнены, то пытаемся его еще раз зарегистрировать
-            if (count($fields) === 0) {
-                $customFields   = $this->getExternalFields();
+            if (count($this->getStandardFields($this->user)) === 0) {
+                $customFields   = []; //TODO надо передать сюда поля
                 $createResponse = $this->registerAndActivateUser($this->user->getId(), $this->user->getPersonalPhone(), $customFields, $loyalty);
-                
+
                 if ($createResponse === false) {
                     header('Refresh 0');
                 }
-                
+
                 return $createResponse;
             }
-            
+
             return [
                 'msg'  => GetMessage('COMPLETE_YOUR_REGISTRATION'),
                 'form' => [
@@ -262,11 +266,12 @@ class LoyaltyAccountService
                         'name'   => GetMessage('CREATE'),
                         'action' => 'createAccount',
                     ],
-                    'fields' => $this->getFields($this->user),
+                    'fields' => $this->getStandardFields($this->user),
+                    'externalFields' => (array) json_decode(ConfigProvider::getLoyaltyFields(), true),
                 ],
             ];
         }
-        
+
         //НЕТ. Отображаем форму на создание новой регистрации в ПЛ
         return [
             'msg'  => GetMessage('INVITATION_TO_REGISTER'),
@@ -275,11 +280,12 @@ class LoyaltyAccountService
                     'name'   => GetMessage('CREATE'),
                     'action' => 'createAccount',
                 ],
-                'fields' => $this->getFields($this->user),
+                'fields' => $this->getStandardFields($this->user),
+                'externalFields' => (array) json_decode(ConfigProvider::getLoyaltyFields(), true),
             ],
         ];
     }
-    
+
     /**
      * @param int $idInLoyalty
      *
@@ -289,10 +295,10 @@ class LoyaltyAccountService
     {
         /** @var \Intaro\RetailCrm\Service\CookieService $service */
         $service = ServiceLocator::get(CookieService::class);
-        
+
         $smsCookie   = $service->getSmsCookie('lpRegister');
         $nowTime     = new DateTime();
-        
+
         if ($smsCookie !== null
             && isset($smsCookie->resendAvailable)
             && $smsCookie->resendAvailable > $nowTime
@@ -318,24 +324,24 @@ class LoyaltyAccountService
                 'idInLoyalty'     => $idInLoyalty,
             ];
         }
-        
+
         //Пробуем активировать аккаунт
         $activateResponse = $this->activateLoyaltyAccount($idInLoyalty);
-        
+
         if ($activateResponse !== null
             && isset($activateResponse->loyaltyAccount->active)
             && $activateResponse->loyaltyAccount->active === true
         ) {
             return ['msg' => GetMessage('REG_COMPLETE')];
         }
-        
+
         //нужна смс верификация
         if (isset($activateResponse->verification, $activateResponse->verification->checkId)
             && $activateResponse !== null
             && !isset($activateResponse->verification->verifiedAt)
         ) {
             $smsCookie = $service->setSmsCookie('lpRegister', $activateResponse->verification);
-            
+
             return [
                 'msg'             => GetMessage('SMS_VERIFICATION'),
                 'form'            => [
@@ -357,56 +363,67 @@ class LoyaltyAccountService
                 'idInLoyalty'     => $idInLoyalty,
             ];
         }
-        
+
+        if (
+            count($activateResponse->errors) === 1
+            && strpos(current($activateResponse->errors), GetMessage('FIELD_ERROR')) !== false
+        ) {
+            /** @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter $client */
+            $client = ClientFactory::createClientAdapter();
+            $client->getLoyaltyLoyalty((int) ConfigProvider::getLoyaltyProgramId());
+        }
+
         return ['msg' => GetMessage('ACTIVATE_ERROR') . ' ' . $activateResponse->errorMsg ?? ''];
     }
-    
+
     /**
-     * @param \Intaro\RetailCrm\Model\Bitrix\User $user
+     * @param array $requireFields
+     *
      * @return array
      */
-    private function getFields(User $user): array
+    private function getExternalFields(array $requireFields): array
     {
-        $standardFields = $this->getStandardFields($user);
-        $externalFields = $this->getExternalFields();
-        
-        return array_merge($standardFields, $externalFields);
+        $fieldSettings = json_decode(ConfigProvider::getLoyaltyFields(), true);
+
+        $missingFields = $this->compareFields(
+            $requireFields,
+            (array) $fieldSettings
+        );
+
+        if (count($missingFields) > 0) {
+            $fieldSettings = $this->updateLoyaltyFieldsSettings();
+        }
+
+        return $this->getRequireFieldsSettings($requireFields, $fieldSettings);
     }
-    
-    /**
-     * TODO реализовать получение кастомных полей из CRM (когда это появится в API)
-     * @return array
-     */
-    private function getExternalFields(): array
-    {
-        return [];
-    }
-    
+
     /**
      * @param \Intaro\RetailCrm\Model\Bitrix\User $user
+     *
      * @return array
+     * @throws \ReflectionException
      */
     private function getStandardFields(User $user): array
     {
-        
+
         $resultFields                 = [];
         $userFields                   = Serializer::serializeArray($user->getLoyalty());
         $userFields['PERSONAL_PHONE'] = $user->getPersonalPhone();
-        
+
         foreach (self::STANDARD_FIELDS as $key => $value) {
             if ($value === 'text' && empty($userFields[$key])) {
                 $resultFields[$key] = [
                     'type' => $value,
                 ];
             }
-            
+
             if ($value === 'checkbox' && $userFields[$key] !== 1) {
                 $resultFields[$key] = [
                     'type' => $value,
                 ];
             }
         }
-        
+
         return $resultFields;
     }
 
@@ -426,17 +443,17 @@ class LoyaltyAccountService
         $phone      = $userPhone ?? '';
         $card       = $loyalty->getBonusCardNumber() ?? '';
         $customerId = (string)$userId;
-        
+
         $createResponse = $this->createLoyaltyAccount($phone, $card, $customerId, $customFields);
-    
+
         $this->activateLpUserInBitrix($createResponse, $userId);
-        
+
         $errorMsg = Utils::getErrorMsg($createResponse);
-        
+
         if ($errorMsg !== null) {
             return ['msg' => $errorMsg];
         }
-        
+
         /**
          * создать получилось, но аккаунт не активен
          */
@@ -448,10 +465,76 @@ class LoyaltyAccountService
         ) {
             return $this->tryActivate($createResponse->loyaltyAccount->id);
         }
-        
+
         if ($createResponse !== null && $createResponse->success === true) {
             //Повторная регистрация оказалась удачной
             return ['msg' => GetMessage('REG_COMPLETE')];
         }
+
+        return [];
+    }
+
+    /**
+     * @return array
+     */
+    private function updateLoyaltyFieldsSettings(): array
+    {
+        /** @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter $client */
+        $client = ClientFactory::createClientAdapter();
+        $loyaltiesResponse = $client->getLoyaltyLoyalties();
+
+        if ($loyaltiesResponse !== null && isset($loyaltiesResponse->loyalties[0])) {
+            ConfigProvider::setLoyaltyProgramId($loyaltiesResponse->loyalties[0]->id);
+            $loyalty = $client->getLoyaltyLoyalty((int)$loyaltiesResponse->loyalties[0]->id);
+
+            if (null !== $loyalty) {
+                $json = json_encode($loyalty->requiredFields);
+                ConfigProvider::setLoyaltyFields($json);
+            }
+        }
+
+        return (array)json_decode($json, true);
+    }
+
+    /**
+     * @param array $requireFields
+     * @param array $fieldSettings
+     *
+     * @return array
+     */
+    private function compareFields(array $requireFields, array $fieldSettings): array
+    {
+        return array_diff($requireFields, array_column($fieldSettings, 'code'));
+    }
+
+    /**
+     * @param \Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountActivateResponse $activateResponse
+     *
+     * @return array
+     */
+    private function checkErrors(LoyaltyAccountActivateResponse $activateResponse): array
+    {
+        if (
+            count($activateResponse->errors) > 0
+            && strpos(current($activateResponse->errors), GetMessage('LOYALTY_FIELD_ERROR')) !== false
+        ) {
+            return (array) explode(
+                ', ',
+                trim(str_replace(GetMessage('LOYALTY_FIELD_ERROR'), '', current($activateResponse->errors)))
+            );
+        }
+
+        return [];
+    }
+
+    /**
+     * @param array $requireFields
+     * @param array $fieldSettings
+     *
+     * @return array
+     */
+    private function getRequireFieldsSettings(array $requireFields, array $fieldSettings): array
+    {
+        return [];
     }
 }

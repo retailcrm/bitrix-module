@@ -29,7 +29,7 @@ class SimpleTypeStrategy implements SerializeStrategyInterface
     /**
      * @inheritDoc
      */
-    public function serialize($value, $annotations)
+    public function serialize($value, $annotations = null)
     {
         switch (gettype($value)) {
             case 'bool':
