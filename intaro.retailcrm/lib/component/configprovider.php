@@ -1061,4 +1061,35 @@ class ConfigProvider
     {
         return COption::SetOptionString(Constants::MODULE_ID, Constants::CRM_API_VERSION, $version);
     }
+
+    public static function getLoyaltyProgramId()
+    {
+        return COption::GetOptionString(Constants::MODULE_ID, Constants::LOYALTY_PROGRAM_ID, 0);
+    }
+
+    /**
+     * @param int $loyaltyId
+     *
+     * @return false|string|null
+     */
+    public static function setLoyaltyProgramId(int $loyaltyId)
+    {
+        COption::SetOptionString(Constants::MODULE_ID, Constants::LOYALTY_PROGRAM_ID, $loyaltyId);
+    }
+
+    /**
+     * @param string $loyaltyFields
+     */
+    public static function setLoyaltyFields(string $loyaltyFields): void
+    {
+        COption::SetOptionString(Constants::MODULE_ID, Constants::LOYALTY_FIELDS, $loyaltyFields);
+    }
+
+    /**
+     * @return false|string|null
+     */
+    public static function getLoyaltyFields()
+    {
+        return COption::GetOptionString(Constants::MODULE_ID, Constants::LOYALTY_FIELDS, 0);
+    }
 }

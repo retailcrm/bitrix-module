@@ -25,6 +25,7 @@ use Intaro\RetailCrm\Model\Api\Request\SmsVerification\SmsVerificationConfirmReq
 use Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountActivateResponse;
 use Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountCreateResponse;
 use Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse;
+use Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyLoyaltiesResponse;
 use Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyLoyaltyResponse;
 use Intaro\RetailCrm\Model\Api\Response\Order\Loyalty\OrderLoyaltyApplyResponse;
 use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationConfirmResponse;
@@ -122,10 +123,25 @@ trait LoyaltyTrait
         return Deserializer::deserializeArray($response->getResponseBody(), LoyaltyAccountResponse::class);
     }
 
+    /**
+     * @param int $loyaltyId
+     *
+     * @return \Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyLoyaltyResponse|null
+     */
     public function getLoyaltyLoyalty(int $loyaltyId): ?LoyaltyLoyaltyResponse
     {
         $response = $this->client->getLoyaltyLoyalty($loyaltyId);
 
         return Deserializer::deserializeArray($response->getResponseBody(), LoyaltyLoyaltyResponse::class);
+    }
+
+    /**
+     * @return \Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyLoyaltiesResponse|null
+     */
+    public function getLoyaltyLoyalties(): ?LoyaltyLoyaltiesResponse
+    {
+        $response = $this->client->getLoyaltyLoyalties();
+
+        return Deserializer::deserializeArray($response->getResponseBody(), LoyaltyLoyaltiesResponse::class);
     }
 }

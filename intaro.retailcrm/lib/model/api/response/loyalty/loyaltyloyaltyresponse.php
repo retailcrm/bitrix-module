@@ -10,7 +10,7 @@ class LoyaltyLoyaltyResponse extends AbstractApiResponseModel
     /**
      * Результат запроса (успешный/неуспешный)
      *
-     * @var boolean $success
+     * @var bool $success
      *
      * @Mapping\Type("boolean")
      * @Mapping\SerializedName("success")
@@ -20,10 +20,20 @@ class LoyaltyLoyaltyResponse extends AbstractApiResponseModel
     /**
      * Программа лояльности
      *
-     * @var \Intaro\RetailCrm\Model\Api\Loyalty
+     * @var \Intaro\RetailCrm\Model\Api\Loyalty $loyalty
      *
      * @Mapping\Type("\Intaro\RetailCrm\Model\Api\Loyalty")
-     * @Mapping\SerializedName("$loyalty")
+     * @Mapping\SerializedName("loyalty")
      */
     public $loyalty;
+
+    /**
+     * Требуемые при регистрации поля
+     *
+     * @var \Intaro\RetailCrm\Model\Api\RequiredFields[] $requiredFields
+     *
+     * @Mapping\Type("array<Intaro\RetailCrm\Model\Api\RequiredFields>")
+     * @Mapping\SerializedName("requiredFields")
+     */
+    public $requiredFields;
 }
