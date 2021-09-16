@@ -32,6 +32,7 @@ class Serializer
      * @param string $type
      *
      * @return string
+     * @throws \ReflectionException
      */
     public static function serialize($object, string $type = ''): string
     {
@@ -49,6 +50,7 @@ class Serializer
      * @param string $type
      *
      * @return array
+     * @throws \ReflectionException
      */
     public static function serializeArray($object, string $type = ''): array
     {
@@ -65,6 +67,7 @@ class Serializer
      * @param array  $result
      *
      * @return array
+     * @throws \ReflectionException
      */
     private static function processPostSerialize($object, array $result): array
     {
