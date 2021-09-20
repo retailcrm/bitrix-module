@@ -5,12 +5,17 @@ namespace Intaro\RetailCrm\Controller\Loyalty;
 use Bitrix\Main\Engine\ActionFilter\Authentication;
 use Bitrix\Main\Engine\Controller;
 use Bitrix\Main\Request;
+use Intaro\RetailCrm\Component\Builder\Api\Request\LoyaltyAccountEditRequestBuilder;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\DataProvider\CurrentUserProvider;
+use Intaro\RetailCrm\Model\Api\LoyaltyAccount;
+use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountActivateRequest;
+use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountEditRequest;
 use Intaro\RetailCrm\Model\Api\Request\SmsVerification\SmsVerificationConfirmRequest;
 use Intaro\RetailCrm\Model\Api\SmsVerificationConfirm;
 use Intaro\RetailCrm\Model\Bitrix\User;
+use Intaro\RetailCrm\Repository\UserRepository;
 use Intaro\RetailCrm\Service\LoyaltyService;
 use Intaro\RetailCrm\Service\LoyaltyAccountService;
 use Intaro\RetailCrm\Service\Utils;
@@ -19,7 +24,7 @@ class Register extends Controller
 {
     public const MIN_CODE_LENGTH = 3;
     public const MAX_CODE_LENGTH = 11;
-    
+
     /**
      * Register constructor.
      * @param \Bitrix\Main\Request|null $request
@@ -29,7 +34,7 @@ class Register extends Controller
         IncludeModuleLangFile(__FILE__);
         parent::__construct($request);
     }
-    
+
     /**
      * @return \array[][]
      */
@@ -43,7 +48,7 @@ class Register extends Controller
             ],
         ];
     }
-    
+
     /**
      * Сохраняет информацию о регистрации пользователя в ПЛ в профиле пользователя
      *
@@ -55,7 +60,7 @@ class Register extends Controller
     public function saveUserLpFieldsAction(array $request): array
     {
         global $USER_FIELD_MANAGER;
-    
+
         $msg          = '';
         $cardNumber   = htmlspecialchars(trim($request['UF_CARD_NUM_INTARO'] ?? ''));
         $userProvider = new CurrentUserProvider();
@@ -67,7 +72,7 @@ class Register extends Controller
             'UF_AGREE_PL_INTARO' => true,
             'UF_PD_PROC_PL_INTARO' => true,
         ];
-        
+
         if ($customer === null) {
            return [
                 'result' => false,
@@ -84,7 +89,7 @@ class Register extends Controller
                 'msg'    => GetMessage('NOT_AGREE_LP_RULES'),
             ];
         }
-        
+
         if ((!isset($request['UF_PD_PROC_PL_INTARO'])
             || $request['UF_PD_PROC_PL_INTARO'] !== "on")
         && $customer->getLoyalty()->getIsAgreePersonalDataRules() !== 1
@@ -94,7 +99,7 @@ class Register extends Controller
                 'msg'    => GetMessage('NOT_AGREE_PERSONAL_DATA_RULES'),
             ];
         }
-    
+
         if (!isset($request['PERSONAL_PHONE'])
             && empty($customer->getPersonalPhone())
         ) {
@@ -103,20 +108,20 @@ class Register extends Controller
                 'msg'    => GetMessage('PHONE_EMPTY'),
             ];
         }
-    
+
         if (!empty($phoneNumber)) {
             $customer->setPersonalPhone($phoneNumber);
             $customer->save();
         }
 
         $result = $USER_FIELD_MANAGER->Update('USER', $customer->getId(), $updateFields);
-    
+
         return [
             'result' => $result,
             'msg'    => $msg,
         ];
     }
-    
+
     /**
      * Создает в CRM участие в ПЛ на основе регистрационных данных
      *
@@ -127,29 +132,31 @@ class Register extends Controller
      */
     public function accountCreateAction(array $request): array
     {
-        $phoneNumber = Utils::filterPhone($request['phone']);
-        
-        if (!is_numeric($phoneNumber)) {
-            return [
-                'status'   => 'error',
-                'msg'      => GetMessage('PHONE_ERROR'),
-                'msgColor' => 'brown',
-            ];
+        if (isset($request['phone'])) {
+            $phoneNumber = Utils::filterPhone($request['phone']);
+
+            if (!is_numeric($phoneNumber)) {
+                return [
+                    'status'   => 'error',
+                    'msg'      => GetMessage('PHONE_ERROR'),
+                    'msgColor' => 'brown',
+                ];
+            }
         }
-        
+
         $user = User::getEntityByPrimary($request['customerId']);
-        
+
         global $USER_FIELD_MANAGER;
-        
+
         $USER_FIELD_MANAGER->Update('USER', $request['customerId'], [
             'UF_CARD_NUM_INTARO' => $request['card'],
         ]);
-        
-        if (empty($user->getPersonalPhone())) {
+
+        if (empty($user->getPersonalPhone()) && isset($request['phone'])) {
             $user->setPersonalPhone($request['phone']);
             $user->save();
         }
-        
+
         //TODO когда станет известен формат карты ПЛ, то добавить валидацию ввода
         $service        = new LoyaltyAccountService();
         $createResponse = $service->createLoyaltyAccount(
@@ -158,7 +165,7 @@ class Register extends Controller
             (string) $request['customerId'],
             $request['customFields']
         );
-        
+
         //TODO добавить провеку на кастомные поля, когда будет готов метод запроса
         if ($createResponse !== null) {
             if ($createResponse->success === false) {
@@ -168,7 +175,7 @@ class Register extends Controller
                     'msgColor' => 'brown',
                 ];
             }
-            
+
             //если участник ПЛ создан и активирован
             if ($createResponse->loyaltyAccount->active) {
                 return [
@@ -177,21 +184,21 @@ class Register extends Controller
                     'msgColor' => 'green',
                 ];
             }
-            
+
             $activateResponse = $service->activateLoyaltyAccount($createResponse->loyaltyAccount->id);
-            
+
             if (isset($activateResponse->verification)) {
                 return ['status' => 'smsVerification'];
             }
         }
-        
+
         return [
             'status'   => 'error',
             'msg'      => GetMessage('REQUEST_ERROR'),
             'msgColor' => 'brown',
         ];
     }
-    
+
     /**
      * Повторно отправляет смс для активации участия в программе лояльности
      *
@@ -203,13 +210,13 @@ class Register extends Controller
         if (!is_numeric($idInLoyalty)) {
             return ['msg' => GetMessage('ARGUMENT_ERROR')];
         }
-        
+
         /** @var LoyaltyAccountService $service */
         $service = ServiceLocator::get(LoyaltyAccountService::class);
-        
+
         return $service->tryActivate((int) $idInLoyalty);
     }
-    
+
     /**
      * Активирует участие в ПЛ по коду из СМС
      *
@@ -222,7 +229,7 @@ class Register extends Controller
     {
         $verificationCode = trim($verificationCode);
         $lengthCode = strlen($verificationCode);
-        
+
         if (empty($verificationCode) && $lengthCode > self::MIN_CODE_LENGTH && $lengthCode < self::MAX_CODE_LENGTH) {
             return [
                 'status'   => 'error',
@@ -230,16 +237,16 @@ class Register extends Controller
                 'msgColor' => 'brown',
             ];
         }
-    
+
         $smsVerification                        = new SmsVerificationConfirmRequest();
         $smsVerification->verification          = new SmsVerificationConfirm();
         $smsVerification->verification->code    = $verificationCode;
         $smsVerification->verification->checkId = $checkId;
-        
+
         /** @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter $client */
         $client             = ClientFactory::createClientAdapter();
         $verificationResult = $client->sendVerificationCode($smsVerification);
-        
+
         if ($verificationResult === null) {
             return [
                 'status'   => 'error',
@@ -247,17 +254,17 @@ class Register extends Controller
                 'msgColor' => 'brown',
             ];
         }
-        
+
         if ($verificationResult->success === false) {
             $errMsg = $verificationResult->errorMsg ?? '';
-            
+
             return [
                 'status'   => 'error',
                 'msg'      => GetMessage('ERROR') . $errMsg,
                 'msgColor' => 'brown',
             ];
         }
-        
+
         if (
             $verificationResult->success === true
             && isset($verificationResult->verification->verifiedAt)
@@ -265,11 +272,11 @@ class Register extends Controller
         ) {
             global $USER_FIELD_MANAGER;
             global $USER;
-            
+
             $isUpdate = $USER_FIELD_MANAGER->Update('USER', $USER->GetID(), [
                 'UF_EXT_REG_PL_INTARO' => 'Y',
             ]);
-            
+
             if ($isUpdate) {
                 return [
                     'status'   => 'activate',
@@ -277,18 +284,46 @@ class Register extends Controller
                     'msgColor' => 'green',
                 ];
             }
-            
+
             return [
                 'status'   => 'error',
                 'msg'      => GetMessage('STATUS_ADD_ERROR'),
                 'msgColor' => 'brown',
             ];
         }
-        
+
         return [
             'status'   => 'error',
             'msg'      => GetMessage('ERROR'),
             'msgColor' => 'brown',
         ];
+    }
+
+    /**
+     * @param array $allFields
+     *
+     * @return array
+     * @throws \Intaro\RetailCrm\Component\Builder\Exception\BuilderException
+     * @throws \ReflectionException
+     */
+    public function activateAccountAction(array $allFields): array
+    {
+        /** @var LoyaltyAccountService $service */
+        $service = ServiceLocator::get(LoyaltyAccountService::class);
+        $editResponse = $service->editLoyaltyAccount($allFields);
+
+        if (
+            $editResponse === null
+            || (!$editResponse->success && !empty($editResponse->errorMsg))
+            ) {
+            return [
+                'status'   => 'error',
+                'msg'      => GetMessage('ERROR') . $editResponse->errorMsg ?? '',
+                'msgColor' => 'brown',
+            ];
+        }
+
+
+        return $service->tryActivate($editResponse->id);
     }
 }
