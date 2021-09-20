@@ -17,7 +17,9 @@ use Intaro\RetailCrm\Component\Json\Deserializer;
 use Intaro\RetailCrm\Component\Json\Serializer;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountActivateRequest;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountCreateRequest;
+use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountEditRequest;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountRequest;
+use Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountEditResponse;
 use Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountResponse;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\LoyaltyCalculateRequest;
 use Intaro\RetailCrm\Model\Api\Request\Order\Loyalty\OrderLoyaltyApplyRequest;
@@ -143,5 +145,19 @@ trait LoyaltyTrait
         $response = $this->client->getLoyaltyLoyalties();
 
         return Deserializer::deserializeArray($response->getResponseBody(), LoyaltyLoyaltiesResponse::class);
+    }
+
+    /**
+     * @param \Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountEditRequest $request
+     *
+     * @return \Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountEditResponse|null
+     * @throws \ReflectionException
+     */
+    public function editLoyaltyAccount(LoyaltyAccountEditRequest $request): ?LoyaltyAccountEditResponse
+    {
+        $serialized = Serializer::serializeArray($request);
+        $response = $this->client->editLoyaltyAccount($serialized, $request->id);
+
+        return Deserializer::deserializeArray($response->getResponseBody(), LoyaltyAccountEditResponse::class);
     }
 }

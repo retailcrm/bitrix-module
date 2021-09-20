@@ -1,5 +1,5 @@
 <?php $APPLICATION->IncludeComponent(
-    "intaro:lp.register",
-    "",
+    'intaro:lp.register',
+    '',
     []
 );

@@ -3072,6 +3072,24 @@ class ApiClient
 
     /**
      * @param array $request
+     * @param int   $accountId
+     *
+     * @return \RetailCrm\Response\ApiResponse
+     */
+    public function editLoyaltyAccount(array $request, int $accountId): ApiResponse
+    {
+         return $this->client->makeRequest(
+            '/loyalty/account/' . $accountId . '/edit',
+            Client::METHOD_POST,
+             [
+                 'loyaltyAccount'=> json_encode($request['loyaltyAccount']),
+                 'id' => $request['id']
+             ]
+        );
+    }
+
+    /**
+     * @param array $request
      * @return \RetailCrm\Response\ApiResponse
      */
     protected function confirmLpVerificationBySMS(array $request): ApiResponse

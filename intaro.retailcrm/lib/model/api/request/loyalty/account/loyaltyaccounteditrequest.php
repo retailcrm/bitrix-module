@@ -30,4 +30,14 @@ class LoyaltyAccountEditRequest extends AbstractApiModel
      * @Mapping\SerializedName("loyaltyAccount")
      */
     public $loyaltyAccount;
+
+    /**
+     * Id участия в программе лояльности
+     *
+     * @var int $id
+     *
+     * @Mapping\Type("integer")
+     * @Mapping\SerializedName("id")
+     */
+    public $id;
 }

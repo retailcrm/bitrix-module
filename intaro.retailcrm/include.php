@@ -2,6 +2,7 @@
 
 use Bitrix\Main\Context;
 use Bitrix\Main\Loader;
+use Intaro\RetailCrm\Component\Builder\Api\Request\LoyaltyAccountEditRequestBuilder;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Service\CookieService;
 use Intaro\RetailCrm\Service\OrderLoyaltyDataService;
@@ -36,7 +37,8 @@ ServiceLocator::registerServices([
     LoyaltyAccountService::class,
     LoyaltyService::class,
     CustomerService::class,
-    OrderLoyaltyDataService::class
+    OrderLoyaltyDataService::class,
+    LoyaltyAccountEditRequestBuilder::class
 ]);
 
 $arJsConfig = [

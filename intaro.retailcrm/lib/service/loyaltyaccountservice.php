@@ -15,6 +15,7 @@ namespace Intaro\RetailCrm\Service;
 
 use CUser;
 use DateTime;
+use Intaro\RetailCrm\Component\Builder\Api\Request\LoyaltyAccountEditRequestBuilder;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
 use Intaro\RetailCrm\Component\Json\Deserializer;
@@ -22,9 +23,11 @@ use Intaro\RetailCrm\Component\Json\Serializer;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountActivateRequest;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountCreateRequest;
+use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountEditRequest;
 use Intaro\RetailCrm\Model\Api\Request\SmsVerification\SmsVerificationConfirmRequest;
 use Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountActivateResponse;
 use Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountCreateResponse;
+use Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountEditResponse;
 use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationConfirmResponse;
 use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusRequest;
 use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusResponse;
@@ -54,13 +57,14 @@ class LoyaltyAccountService
      * Получает статус текущего состояния верификации
      *
      * @param string $checkId Идентификатор проверки кода
+     *
      * @return \Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusResponse|null
      */
     public function getSmsStatus(string $checkId): ?SmsVerificationStatusResponse
     {
         /** @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter $client */
-        $client           = ClientFactory::createClientAdapter();
-        $request          = new SmsVerificationStatusRequest();
+        $client = ClientFactory::createClientAdapter();
+        $request = new SmsVerificationStatusRequest();
         $request->checkId = $checkId;
 
         return $client->checkStatusPlVerification($request);
@@ -68,6 +72,7 @@ class LoyaltyAccountService
 
     /**
      * @param int $loyaltyId
+     *
      * @return \Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountActivateResponse|null
      */
     public function activateLoyaltyAccount(int $loyaltyId): ?LoyaltyAccountActivateResponse
@@ -75,7 +80,7 @@ class LoyaltyAccountService
         /** @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter $client */
         $client = ClientFactory::createClientAdapter();
 
-        $activateRequest            = new LoyaltyAccountActivateRequest();
+        $activateRequest = new LoyaltyAccountActivateRequest();
         $activateRequest->loyaltyId = $loyaltyId;
 
         $response = $client->activateLoyaltyAccount($activateRequest);
@@ -98,6 +103,7 @@ class LoyaltyAccountService
      * @param string $card
      * @param string $externalId
      * @param array  $customFields
+     *
      * @return \Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountCreateResponse|null
      */
     public function createLoyaltyAccount(string $phone, string $card, string $externalId, array $customFields = []): ?LoyaltyAccountCreateResponse
@@ -107,13 +113,13 @@ class LoyaltyAccountService
 
         $credentials = $client->getCredentials();
 
-        $createRequest                                       = new LoyaltyAccountCreateRequest();
-        $createRequest->site                                 = $credentials->sitesAvailable[0];
-        $createRequest->loyaltyAccount                       = new SerializedCreateLoyaltyAccount();
-        $createRequest->loyaltyAccount->phoneNumber          = $phone ?? '';
-        $createRequest->loyaltyAccount->cardNumber           = $card ?? '';
+        $createRequest = new LoyaltyAccountCreateRequest();
+        $createRequest->site = $credentials->sitesAvailable[0];
+        $createRequest->loyaltyAccount = new SerializedCreateLoyaltyAccount();
+        $createRequest->loyaltyAccount->phoneNumber = $phone ?? '';
+        $createRequest->loyaltyAccount->cardNumber = $card ?? '';
         $createRequest->loyaltyAccount->customer->externalId = $externalId;
-        $createRequest->loyaltyAccount->customFields         = $customFields ?? [];
+        $createRequest->loyaltyAccount->customFields = $customFields ?? [];
 
         $createResponse = $client->createLoyaltyAccount($createRequest);
 
@@ -150,6 +156,7 @@ class LoyaltyAccountService
      *
      * @param string $code    Проверочный код
      * @param string $checkId Идентификатор проверки кода
+     *
      * @return \Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationConfirmResponse|null
      */
     public function confirmVerification(string $code, string $checkId): ?SmsVerificationConfirmResponse
@@ -157,9 +164,9 @@ class LoyaltyAccountService
         /** @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter $client */
         $client = ClientFactory::createClientAdapter();
 
-        $request                        = new SmsVerificationConfirmRequest();
-        $request->verification          = new SmsVerificationConfirm();
-        $request->verification->code    = $code;
+        $request = new SmsVerificationConfirmRequest();
+        $request->verification = new SmsVerificationConfirm();
+        $request->verification->code = $code;
         $request->verification->checkId = $checkId;
 
         $response = $client->sendVerificationCode($request);
@@ -217,7 +224,7 @@ class LoyaltyAccountService
                 $activateResponse = $this->activateLoyaltyAccount($loyalty->getIdInLoyalty());
 
                 if ($activateResponse === null) {
-                    return  ['msg' => GetMessage('ACTIVATE_ERROR')];
+                    return ['msg' => GetMessage('ACTIVATE_ERROR')];
                 }
 
                 if ($activateResponse->success && $activateResponse->loyaltyAccount->active === true) {
@@ -233,12 +240,13 @@ class LoyaltyAccountService
                     return [
                         'msg'  => GetMessage('ACTIVATE_YOUR_ACCOUNT'),
                         'form' => [
-                            'button' => [
+                            'button'         => [
                                 'name'   => GetMessage('ACTIVATE'),
                                 'action' => 'activateAccount',
                             ],
-                            'fields' => $this->getStandardFields($this->user),
+                            'fields'         => $this->getStandardFields($this->user),
                             'externalFields' => $extFields,
+                            'idInLoyalty' => $loyalty->getIdInLoyalty(),
                         ],
                     ];
                 }
@@ -249,7 +257,7 @@ class LoyaltyAccountService
             // Аккаунт не существует. Выясняем, каких полей не хватает для СОЗДАНИЯ аккаунта, выводим форму
             //Если все необходимые поля заполнены, то пытаемся его еще раз зарегистрировать
             if (count($this->getStandardFields($this->user)) === 0) {
-                $customFields   = []; //TODO надо передать сюда поля
+                $customFields = []; //TODO надо передать сюда поля
                 $createResponse = $this->registerAndActivateUser($this->user->getId(), $this->user->getPersonalPhone(), $customFields, $loyalty);
 
                 if ($createResponse === false) {
@@ -262,12 +270,12 @@ class LoyaltyAccountService
             return [
                 'msg'  => GetMessage('COMPLETE_YOUR_REGISTRATION'),
                 'form' => [
-                    'button' => [
+                    'button'         => [
                         'name'   => GetMessage('CREATE'),
                         'action' => 'createAccount',
                     ],
-                    'fields' => $this->getStandardFields($this->user),
-                    'externalFields' => (array) json_decode(ConfigProvider::getLoyaltyFields(), true),
+                    'fields'         => $this->getStandardFields($this->user),
+                    'externalFields' => (array)json_decode(ConfigProvider::getLoyaltyFields(), true),
                 ],
             ];
         }
@@ -276,12 +284,12 @@ class LoyaltyAccountService
         return [
             'msg'  => GetMessage('INVITATION_TO_REGISTER'),
             'form' => [
-                'button' => [
+                'button'         => [
                     'name'   => GetMessage('CREATE'),
                     'action' => 'createAccount',
                 ],
-                'fields' => $this->getStandardFields($this->user),
-                'externalFields' => (array) json_decode(ConfigProvider::getLoyaltyFields(), true),
+                'fields'         => $this->getStandardFields($this->user),
+                'externalFields' => (array)json_decode(ConfigProvider::getLoyaltyFields(), true),
             ],
         ];
     }
@@ -296,8 +304,8 @@ class LoyaltyAccountService
         /** @var \Intaro\RetailCrm\Service\CookieService $service */
         $service = ServiceLocator::get(CookieService::class);
 
-        $smsCookie   = $service->getSmsCookie('lpRegister');
-        $nowTime     = new DateTime();
+        $smsCookie = $service->getSmsCookie('lpRegister');
+        $nowTime = new DateTime();
 
         if ($smsCookie !== null
             && isset($smsCookie->resendAvailable)
@@ -370,10 +378,31 @@ class LoyaltyAccountService
         ) {
             /** @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter $client */
             $client = ClientFactory::createClientAdapter();
-            $client->getLoyaltyLoyalty((int) ConfigProvider::getLoyaltyProgramId());
+            $client->getLoyaltyLoyalty((int)ConfigProvider::getLoyaltyProgramId());
         }
 
         return ['msg' => GetMessage('ACTIVATE_ERROR') . ' ' . $activateResponse->errorMsg ?? ''];
+    }
+
+    /**
+     * @param array $allFields
+     *
+     * @return \Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountEditResponse|null
+     * @throws \Intaro\RetailCrm\Component\Builder\Exception\BuilderException
+     * @throws \ReflectionException
+     */
+    public function editLoyaltyAccount(array $allFields): ?LoyaltyAccountEditResponse
+    {
+        /** @var LoyaltyAccountEditRequestBuilder $requestBuilder */
+        $requestBuilder = ServiceLocator::get(LoyaltyAccountEditRequestBuilder::class);
+        /** @var LoyaltyAccountEditRequest $editRequest */
+        $editRequest = $requestBuilder->setFormFields($allFields)->build()->getResult();
+        $requestBuilder->reset();
+
+        /** @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter $client */
+        $client = ClientFactory::createClientAdapter();
+
+        return $client->editLoyaltyAccount($editRequest);
     }
 
     /**
@@ -387,7 +416,7 @@ class LoyaltyAccountService
 
         $missingFields = $this->compareFields(
             $requireFields,
-            (array) $fieldSettings
+            (array)$fieldSettings
         );
 
         if (count($missingFields) > 0) {
@@ -406,8 +435,8 @@ class LoyaltyAccountService
     private function getStandardFields(User $user): array
     {
 
-        $resultFields                 = [];
-        $userFields                   = Serializer::serializeArray($user->getLoyalty());
+        $resultFields = [];
+        $userFields = Serializer::serializeArray($user->getLoyalty());
         $userFields['PERSONAL_PHONE'] = $user->getPersonalPhone();
 
         foreach (self::STANDARD_FIELDS as $key => $value) {
@@ -432,6 +461,7 @@ class LoyaltyAccountService
      * @param string                                         $userPhone
      * @param array                                          $customFields
      * @param \Intaro\RetailCrm\Model\Bitrix\UserLoyaltyData $loyalty
+     *
      * @return array|string[]|null
      */
     private function registerAndActivateUser(
@@ -440,8 +470,8 @@ class LoyaltyAccountService
         array $customFields,
         UserLoyaltyData $loyalty
     ): ?array {
-        $phone      = $userPhone ?? '';
-        $card       = $loyalty->getBonusCardNumber() ?? '';
+        $phone = $userPhone ?? '';
+        $card = $loyalty->getBonusCardNumber() ?? '';
         $customerId = (string)$userId;
 
         $createResponse = $this->createLoyaltyAccount($phone, $card, $customerId, $customFields);
@@ -518,7 +548,7 @@ class LoyaltyAccountService
             count($activateResponse->errors) > 0
             && strpos(current($activateResponse->errors), GetMessage('LOYALTY_FIELD_ERROR')) !== false
         ) {
-            return (array) explode(
+            return (array)explode(
                 ', ',
                 trim(str_replace(GetMessage('LOYALTY_FIELD_ERROR'), '', current($activateResponse->errors)))
             );
@@ -535,6 +565,14 @@ class LoyaltyAccountService
      */
     private function getRequireFieldsSettings(array $requireFields, array $fieldSettings): array
     {
-        return [];
+        $resultFieldsArray = [];
+        $codes = array_column($fieldSettings, 'code');
+
+        foreach ($requireFields as $requireField) {
+            $key = array_search($requireField, $codes);
+            $resultFieldsArray[] = $fieldSettings[$key];
+        }
+
+        return $resultFieldsArray;
     }
 }
