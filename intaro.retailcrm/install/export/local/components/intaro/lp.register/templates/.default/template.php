@@ -81,7 +81,7 @@ if ($arResult["SHOW_SMS_FIELD"] == true) {
             <?php if (isset($arResult['LP_REGISTER']['msg'])) { ?>
                 <div id="lpRegMsg" class="lpRegMsg"><?=$arResult['LP_REGISTER']['msg']?></div>
             <?php } ?>
-        
+
             <?php
             if (isset($arResult['LP_REGISTER']['form']['fields'])) { ?>
                 <div id="lpRegForm">
@@ -111,10 +111,94 @@ if ($arResult["SHOW_SMS_FIELD"] == true) {
                                         <?php
                                         if ($key === 'UF_PD_PROC_PL_INTARO' || $key === 'UF_AGREE_PL_INTARO') { ?></a><?php } ?>
                             </label>
+                            <br>
                         <?php
                         if ($field['type'] === 'checkbox') { ?>
                             <br>
                             <?php } ?>
+                        <?php } ?>
+
+                        <?php
+                        foreach ($arResult['LP_REGISTER']['form']['externalFields'] as $externalField) {
+                            ?>
+                            <lable>
+                                <?php
+                                if ($externalField['type'] === 'string' || $externalField['type'] === 'date') { ?>
+                                    <input
+                                        name="<?=$externalField['code']?>"
+                                        id="external_<?=$externalField['code']?>"
+                                        type="<?=$externalField['type']?>"
+                                    >
+                                    <?=$externalField['name']?>
+                                <?php } ?>
+
+                                <?php
+                                if ($externalField['type'] === 'boolean') { ?>
+                                    <input
+                                        name="<?=$externalField['code']?>"
+                                        id="external_<?=$externalField['code']?>"
+                                        type="checkbox"
+                                    >
+                                    <?=$externalField['name']?>
+                                <?php } ?>
+
+                                <?php
+                                if ($externalField['type'] === 'text') { ?>
+                                    <textarea
+                                        name="<?=$externalField['code']?>"
+                                        id="external_<?=$externalField['code']?>"
+                                        cols="30"
+                                        rows="10"
+                                    ></textarea>
+                                    <?=$externalField['name']?>
+                                <?php } ?>
+
+                                <?php
+                                if ($externalField['type'] === 'integer' || $externalField['type'] === 'numeric') { ?>
+                                    <input
+                                        name="<?=$externalField['code']?>"
+                                        id="external_<?=$externalField['code']?>"
+                                        type="number"
+                                    >
+                                    <?=$externalField['name']?>
+                                <?php } ?>
+
+                                <?php
+                                if ($externalField['type'] === 'email') { ?>
+                                    <input
+                                        name="<?=$externalField['code']?>"
+                                        id="external_<?=$externalField['code']?>"
+                                        type="email"
+                                    >
+                                    <?=$externalField['name']?>
+                                <?php } ?>
+
+                                <?php
+                                if ($externalField['type'] === 'dictionary') { ?>
+                                    <select name="<?=$externalField['code']?>">
+                                        <?php
+                                        foreach ($externalField['dictionaryElements'] as $dictionaryElement) {
+                                            ?>
+                                            <option value="<?=$dictionaryElement['code']?>"><?=$dictionaryElement['name']?> </option>
+                                        <?php
+                                        }
+                                        ?>
+                                    </select>
+                                    <?=$externalField['name']?>
+                                <?php } ?>
+                            </lable>
+                            <br>
+                            <?php
+                        }
+                        ?>
+                        <?php
+                        if (isset($arResult['LP_REGISTER']['form']['idInLoyalty'])) { ?>
+                                <input
+                                    name="idInLoyalty"
+                                    id="idInLoyalty"
+                                    type="number"
+                                    value="<?=$arResult['LP_REGISTER']['form']['idInLoyalty']?>"
+                                    hidden>
                         <?php } ?>
                     </form>
                     <?php

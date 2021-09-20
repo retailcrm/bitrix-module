@@ -21,8 +21,8 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
     <?php } ?>
     <?php if (isset($arResult['ACTIVE'])) { ?>
         <b><?=GetMessage('ACTIVE')?></b> <?=$arResult['ACTIVE'] ? GetMessage('YES') : GetMessage('NO')?>
-        <?php if ($arResult['ACTIVE'] === true) { ?>
-            <a href="/lp-personal"> Активировать</a>
+        <?php if ($arResult['ACTIVE'] === false) { ?>
+            <a href="/lp-register"> Активировать</a>
         <?php } ?>
         <br>
     <?php } ?>
