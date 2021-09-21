@@ -349,9 +349,8 @@ class Register extends Controller
         //Если отметка не стоит, но аккаунт активирован на стороне CRM
         if ($response !== null && $response->errorMsg === GetMessage('ALREADY_ACTIVE')) {
             $loyaltyAccountService->setLoyaltyActivateFlag($USER->GetID());
-            return [
-                'status'   => 'activate',
-            ];
+
+            return ['status'   => 'activate'];
         }
 
         if ($response !== null && $response->loyaltyAccount->active === true) {

@@ -229,12 +229,13 @@ class LoyaltyAccountService
                 //Если отметка не стоит, но аккаунт активирован на стороне CRM
                 if ($activateResponse->errorMsg === GetMessage('ALREADY_ACTIVE')) {
                     $this->setLoyaltyActivateFlag($USER->GetID());
-                    return [
-                        'msg' => GetMessage('REG_COMPLETE'),
-                    ];
+
+                    return ['msg' => GetMessage('REG_COMPLETE')];
                 }
 
                 if ($activateResponse->success && $activateResponse->loyaltyAccount->active === true) {
+                    $this->setLoyaltyActivateFlag($USER->GetID());
+
                     return ['msg' => GetMessage('REG_COMPLETE')];
                 }
 
@@ -404,7 +405,7 @@ class LoyaltyAccountService
 
         global $USER_FIELD_MANAGER;
 
-        $USER_FIELD_MANAGER->Update('USER', $userId, ['UF_REG_IN_PL_INTARO' => true]);
+        $USER_FIELD_MANAGER->Update('USER', $userId, ['UF_EXT_REG_PL_INTARO' => true]);
     }
 
     /**
@@ -461,7 +462,6 @@ class LoyaltyAccountService
     /**
      * @param int                                            $userId
      * @param string                                         $userPhone
-     * @param array                                          $customFields
      * @param \Intaro\RetailCrm\Model\Bitrix\UserLoyaltyData $loyalty
      *
      * @return array|string[]|null
@@ -485,9 +485,7 @@ class LoyaltyAccountService
             return ['msg' => $errorMsg];
         }
 
-        /**
-         * создать получилось, но аккаунт не активен
-         */
+        //Создать получилось, но аккаунт не активен
         if ($createResponse !== null
             && $createResponse->success === true
             && $createResponse->loyaltyAccount->active === false
