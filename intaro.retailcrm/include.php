@@ -2,7 +2,6 @@
 
 use Bitrix\Main\Context;
 use Bitrix\Main\Loader;
-use Intaro\RetailCrm\Component\Builder\Api\Request\LoyaltyAccountEditRequestBuilder;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Service\CookieService;
 use Intaro\RetailCrm\Service\OrderLoyaltyDataService;
@@ -11,6 +10,7 @@ use Intaro\RetailCrm\Service\LoyaltyAccountService;
 use Intaro\RetailCrm\Service\CustomerService;
 use Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\AnnotationReader;
 use Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\AnnotationRegistry;
+use \Intaro\RetailCrm\Component\Builder\Api\CustomerBuilder;
 
 require_once __DIR__ . '/RetailcrmClasspathBuilder.php';
 
@@ -38,7 +38,7 @@ ServiceLocator::registerServices([
     LoyaltyService::class,
     CustomerService::class,
     OrderLoyaltyDataService::class,
-    LoyaltyAccountEditRequestBuilder::class
+    CustomerBuilder::class
 ]);
 
 $arJsConfig = [

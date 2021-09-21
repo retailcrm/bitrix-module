@@ -36,3 +36,4 @@ $MESS['EACH_RUB'] = 'рублей покупки';
 $MESS['SIMPLE_PRODUCTS'] = 'Обычные товары:';
 $MESS['SALE_PRODUCTS'] = 'Акционные товары:';
 $MESS['REMAINING_SUM'] = 'Сумма, оставшаяся до перехода на следующий уровень:';
+$MESS['ACTIVATE'] = 'Активировать';
