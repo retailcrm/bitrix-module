@@ -11,3 +11,4 @@ $MESS["NOT_AGREE_PERSONAL_DATA_RULES"] = 'Необходимо согласие 
 $MESS["PHONE_EMPTY"]                   = 'Необходимо ввести номер телефона';
 $MESS["NOT_REGISTER"]                  = 'Пользователь не зарегистрирован';
 $MESS["ARGUMENT_ERROR"]                = 'Ошибка валидации: некорректный id аккаунта в программе лояльности';
+$MESS["ALREADY_ACTIVE"]                = 'LoyaltyAccount has been already activated';

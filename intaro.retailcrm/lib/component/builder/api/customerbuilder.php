@@ -13,6 +13,7 @@
 
 namespace Intaro\RetailCrm\Component\Builder\Api;
 
+use DateTime;
 use Intaro\RetailCrm\Component\Builder\Exception\BuilderException;
 use Intaro\RetailCrm\Service\CookieService;
 use Intaro\RetailCrm\Component\ConfigProvider;
@@ -48,6 +49,9 @@ class CustomerBuilder implements BuilderInterface
     /** @var bool */
     private $attachDaemonCollectorId = false;
 
+    /** @var array */
+    private $customFields;
+
     /**
      * CustomerBuilder constructor.
      */
@@ -61,16 +65,10 @@ class CustomerBuilder implements BuilderInterface
      */
     public function build(): BuilderInterface
     {
-        $contragentType = ConfigProvider::getContragentTypeForPersonType($this->personTypeId);
-
-        if (null === $contragentType) {
-            throw new BuilderException(sprintf(
-                'Cannot find corresponding contragent type for PERSON_TYPE_ID `%s`',
-                $this->personTypeId
-            ));
-        }
-
-        $this->buildBase($contragentType);
+        $this->buildBase(
+            ConfigProvider::getContragentTypeForPersonType($this->personTypeId ?? '')
+            ?? 'individual'
+        );
         $this->buildNames();
         $this->buildPhones();
         $this->buildAddress();
@@ -138,6 +136,18 @@ class CustomerBuilder implements BuilderInterface
     }
 
     /**
+     * @param array $customFields
+     *
+     * @return $this
+     */
+    public function setCustomFields(array $customFields): CustomerBuilder
+    {
+        $this->customFields = $customFields;
+
+        return $this;
+    }
+
+    /**
      * Create base customer with initial data.
      *
      * @param string $contragentType
@@ -152,6 +162,7 @@ class CustomerBuilder implements BuilderInterface
         $this->customer->email = $this->user->getEmail();
         $this->customer->createdAt = $this->user->getDateRegister();
         $this->customer->subscribed = false;
+        $this->customer->customFields = $this->handleFields();
     }
 
     /**
@@ -220,5 +231,61 @@ class CustomerBuilder implements BuilderInterface
         $phone = new Phone();
         $phone->number = $number;
         $this->customer->phones[] = $phone;
+    }
+
+    private function handleFields(): array
+    {
+        $resultFieldsArray = [];
+
+        foreach ($this->customFields as $type => $fields) {
+            $resultFieldsArray = array_merge(
+                $resultFieldsArray,
+                $this->handleFieldByType($type, $fields)
+            );
+        }
+
+        return $resultFieldsArray;
+    }
+
+    /**
+     * @param string $type
+     * @param array  $fields
+     *
+     * @return array
+     * @throws \Exception
+     */
+    private function handleFieldByType(string $type, array $fields): array
+    {
+        $newFields = [];
+
+        foreach ($fields as $field) {
+            if ($type === 'checkboxes') {
+                $newFields[$field['code']] = (bool) $field['value'];
+            }
+
+            if ($type === 'numbers') {
+                $newFields[$field['code']] = (int) $field['value'];
+            }
+
+            if ($type === 'strings') {
+                if ($field['code'] === 'PERSONAL_PHONE') {
+                    $this->addPhone(htmlspecialchars(trim($field['value'])));
+
+                    continue;
+                }
+
+                $newFields[$field['code']] = htmlspecialchars(trim($field['value']));
+            }
+
+            if ($type === 'dates') {
+                $newFields[$field['code']] = date('d.m.Y', strtotime($field['value']));
+            }
+
+            if ($type === 'options') {
+                $newFields[$field['code']] = htmlspecialchars(trim($field['value']));
+            }
+        }
+
+        return $newFields;
     }
 }

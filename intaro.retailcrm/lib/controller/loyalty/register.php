@@ -5,7 +5,7 @@ namespace Intaro\RetailCrm\Controller\Loyalty;
 use Bitrix\Main\Engine\ActionFilter\Authentication;
 use Bitrix\Main\Engine\Controller;
 use Bitrix\Main\Request;
-use Intaro\RetailCrm\Component\Builder\Api\Request\LoyaltyAccountEditRequestBuilder;
+use Intaro\RetailCrm\Component\Builder\Api\CustomerBuilder;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\DataProvider\CurrentUserProvider;
@@ -13,9 +13,11 @@ use Intaro\RetailCrm\Model\Api\LoyaltyAccount;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountActivateRequest;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountEditRequest;
 use Intaro\RetailCrm\Model\Api\Request\SmsVerification\SmsVerificationConfirmRequest;
+use Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountEditResponse;
 use Intaro\RetailCrm\Model\Api\SmsVerificationConfirm;
 use Intaro\RetailCrm\Model\Bitrix\User;
 use Intaro\RetailCrm\Repository\UserRepository;
+use Intaro\RetailCrm\Service\CustomerService;
 use Intaro\RetailCrm\Service\LoyaltyService;
 use Intaro\RetailCrm\Service\LoyaltyAccountService;
 use Intaro\RetailCrm\Service\Utils;
@@ -81,7 +83,7 @@ class Register extends Controller
         }
 
         if ((!isset($request['UF_AGREE_PL_INTARO'])
-                || $request['UF_AGREE_PL_INTARO'] !== "on")
+                || $request['UF_AGREE_PL_INTARO'] !== 'on')
             && $customer->getLoyalty()->getIsAgreeLoyaltyProgramRules() !== 1
         ) {
             return [
@@ -91,7 +93,7 @@ class Register extends Controller
         }
 
         if ((!isset($request['UF_PD_PROC_PL_INTARO'])
-            || $request['UF_PD_PROC_PL_INTARO'] !== "on")
+            || $request['UF_PD_PROC_PL_INTARO'] !== 'on')
         && $customer->getLoyalty()->getIsAgreePersonalDataRules() !== 1
         ) {
             return [
@@ -304,26 +306,66 @@ class Register extends Controller
      *
      * @return array
      * @throws \Intaro\RetailCrm\Component\Builder\Exception\BuilderException
-     * @throws \ReflectionException
      */
     public function activateAccountAction(array $allFields): array
     {
-        /** @var LoyaltyAccountService $service */
-        $service = ServiceLocator::get(LoyaltyAccountService::class);
-        $editResponse = $service->editLoyaltyAccount($allFields);
+        global $USER;
 
-        if (
-            $editResponse === null
-            || (!$editResponse->success && !empty($editResponse->errorMsg))
-            ) {
+        /** @var CustomerService $customerService */
+        $customerService = ServiceLocator::get(CustomerService::class);
+        /** @var \Intaro\RetailCrm\Component\Builder\Api\CustomerBuilder $customerBuilder */
+        $customerBuilder = ServiceLocator::get(CustomerBuilder::class);
+
+        /** @var LoyaltyAccountService $loyaltyAccountService */
+        $loyaltyAccountService = ServiceLocator::get(LoyaltyAccountService::class);
+        $userObject = UserRepository::getById($USER->GetID());
+
+        if ($userObject === null) {
             return [
                 'status'   => 'error',
-                'msg'      => GetMessage('ERROR') . $editResponse->errorMsg ?? '',
+                'msg'      => GetMessage('ERROR'),
                 'msgColor' => 'brown',
             ];
         }
 
+        $customer = $customerBuilder
+            ->setCustomFields($allFields)
+            ->setUser($userObject)
+            ->build()
+            ->getResult();
 
-        return $service->tryActivate($editResponse->id);
+        $customerBuilder->reset();
+
+        $editResponse = $customerService->editCustomer($customer);
+
+        if ($editResponse === false) {
+            return [
+                'status'   => 'error',
+                'msg'      => GetMessage('ERROR'),
+                'msgColor' => 'brown',
+            ];
+        }
+
+        $response = $loyaltyAccountService->activateLoyaltyAccount($userObject->getLoyalty()->getIdInLoyalty());
+
+        //Если отметка не стоит, но аккаунт активирован на стороне CRM
+        if ($response !== null && $response->errorMsg === GetMessage('ALREADY_ACTIVE')) {
+            $loyaltyAccountService->setLoyaltyActivateFlag($USER->GetID());
+            return [
+                'status'   => 'activate',
+            ];
+        }
+
+        if ($response !== null && $response->loyaltyAccount->active === true) {
+            $loyaltyAccountService->setLoyaltyActivateFlag($userObject->getId());
+
+            return [
+                'status'   => 'activate',
+                'msg'      => GetMessage('SUCCESS_REGISTER'),
+                'msgColor' => 'green',
+            ];
+        }
+
+        return $loyaltyAccountService->tryActivate($userObject->getLoyalty()->getIdInLoyalty());
     }
 }

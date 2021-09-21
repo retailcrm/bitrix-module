@@ -14,8 +14,7 @@ function serializeObject(array) {
 }
 
 
-//TODO переименовать в saveUserLpFields
-function createAccount() {
+function saveUserLpFields() {
     const formArray  = $('#lpRegFormInputs').serializeArray();
     const formObject = serializeObject(formArray);
 
@@ -65,7 +64,7 @@ function activateAccount() {
             }
         )
 
-    form.find(':input[type="string"], :input[type="text"], textarea')
+    form.find(':input[type="string"], :input[type="text"], :input[type="email"], textarea')
         .each(
             (index, value) => {
                 strings[index] = {
@@ -112,7 +111,7 @@ function activateAccount() {
         }
     ).then(
         function(response) {
-            if (response.data.result === true) {
+            if (response.data.status === 'activate') {
                 location.reload();
             } else {
                 $('#errMsg').text(response.data.msg)
