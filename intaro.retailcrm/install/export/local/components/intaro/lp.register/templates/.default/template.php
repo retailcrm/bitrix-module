@@ -119,87 +119,80 @@ if ($arResult["SHOW_SMS_FIELD"] == true) {
                         <?php } ?>
 
                         <?php
-                        foreach ($arResult['LP_REGISTER']['form']['externalFields'] as $externalField) {
-                            ?>
-                            <lable>
-                                <?php
-                                if ($externalField['type'] === 'string' || $externalField['type'] === 'date') { ?>
-                                    <input
-                                        name="<?=$externalField['code']?>"
-                                        id="external_<?=$externalField['code']?>"
-                                        type="<?=$externalField['type']?>"
-                                    >
-                                    <?=$externalField['name']?>
-                                <?php } ?>
+                        if ($arResult['ACTIVATE'] === true) {
+                            foreach ($arResult['LP_REGISTER']['form']['externalFields'] as $externalField) {
+                                ?>
+                                <lable>
+                                    <?php
+                                    if ($externalField['type'] === 'string' || $externalField['type'] === 'date') { ?>
+                                        <input
+                                            name="<?=$externalField['code']?>"
+                                            id="external_<?=$externalField['code']?>"
+                                            type="<?=$externalField['type']?>"
+                                        >
+                                        <?=$externalField['name']?>
+                                    <?php } ?>
 
-                                <?php
-                                if ($externalField['type'] === 'boolean') { ?>
-                                    <input
-                                        name="<?=$externalField['code']?>"
-                                        id="external_<?=$externalField['code']?>"
-                                        type="checkbox"
-                                    >
-                                    <?=$externalField['name']?>
-                                <?php } ?>
+                                    <?php
+                                    if ($externalField['type'] === 'boolean') { ?>
+                                        <input
+                                            name="<?=$externalField['code']?>"
+                                            id="external_<?=$externalField['code']?>"
+                                            type="checkbox"
+                                        >
+                                        <?=$externalField['name']?>
+                                    <?php } ?>
 
-                                <?php
-                                if ($externalField['type'] === 'text') { ?>
-                                    <textarea
-                                        name="<?=$externalField['code']?>"
-                                        id="external_<?=$externalField['code']?>"
-                                        cols="30"
-                                        rows="10"
-                                    ></textarea>
-                                    <?=$externalField['name']?>
-                                <?php } ?>
+                                    <?php
+                                    if ($externalField['type'] === 'text') { ?>
+                                        <textarea
+                                            name="<?=$externalField['code']?>"
+                                            id="external_<?=$externalField['code']?>"
+                                            cols="30"
+                                            rows="10"
+                                        ></textarea>
+                                        <?=$externalField['name']?>
+                                    <?php } ?>
 
-                                <?php
-                                if ($externalField['type'] === 'integer' || $externalField['type'] === 'numeric') { ?>
-                                    <input
-                                        name="<?=$externalField['code']?>"
-                                        id="external_<?=$externalField['code']?>"
-                                        type="number"
-                                    >
-                                    <?=$externalField['name']?>
-                                <?php } ?>
+                                    <?php
+                                    if ($externalField['type'] === 'integer' || $externalField['type'] === 'numeric') { ?>
+                                        <input
+                                            name="<?=$externalField['code']?>"
+                                            id="external_<?=$externalField['code']?>"
+                                            type="number"
+                                        >
+                                        <?=$externalField['name']?>
+                                    <?php } ?>
 
-                                <?php
-                                if ($externalField['type'] === 'email') { ?>
-                                    <input
-                                        name="<?=$externalField['code']?>"
-                                        id="external_<?=$externalField['code']?>"
-                                        type="email"
-                                    >
-                                    <?=$externalField['name']?>
-                                <?php } ?>
+                                    <?php
+                                    if ($externalField['type'] === 'email') { ?>
+                                        <input
+                                            name="<?=$externalField['code']?>"
+                                            id="external_<?=$externalField['code']?>"
+                                            type="email"
+                                        >
+                                        <?=$externalField['name']?>
+                                    <?php } ?>
 
-                                <?php
-                                if ($externalField['type'] === 'dictionary') { ?>
-                                    <select name="<?=$externalField['code']?>">
-                                        <?php
-                                        foreach ($externalField['dictionaryElements'] as $dictionaryElement) {
+                                    <?php
+                                    if ($externalField['type'] === 'dictionary') { ?>
+                                        <select name="<?=$externalField['code']?>">
+                                            <?php
+                                            foreach ($externalField['dictionaryElements'] as $dictionaryElement) {
+                                                ?>
+                                                <option value="<?=$dictionaryElement['code']?>"><?=$dictionaryElement['name']?> </option>
+                                                <?php
+                                            }
                                             ?>
-                                            <option value="<?=$dictionaryElement['code']?>"><?=$dictionaryElement['name']?> </option>
-                                        <?php
-                                        }
-                                        ?>
-                                    </select>
-                                    <?=$externalField['name']?>
-                                <?php } ?>
-                            </lable>
-                            <br>
-                            <?php
+                                        </select>
+                                        <?=$externalField['name']?>
+                                    <?php } ?>
+                                </lable>
+                                <br>
+                                <?php
+                            }
                         }
                         ?>
-                        <?php
-                        if (isset($arResult['LP_REGISTER']['form']['idInLoyalty'])) { ?>
-                                <input
-                                    name="idInLoyalty"
-                                    id="idInLoyalty"
-                                    type="number"
-                                    value="<?=$arResult['LP_REGISTER']['form']['idInLoyalty']?>"
-                                    hidden>
-                        <?php } ?>
                     </form>
                     <?php
                     if (isset($arResult['LP_REGISTER']['resendAvailable']) && !empty($arResult['LP_REGISTER']['resendAvailable'])) {

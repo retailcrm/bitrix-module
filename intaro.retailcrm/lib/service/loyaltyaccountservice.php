@@ -15,8 +15,8 @@ namespace Intaro\RetailCrm\Service;
 
 use CUser;
 use DateTime;
-use Intaro\RetailCrm\Component\Builder\Api\Request\LoyaltyAccountEditRequestBuilder;
 use Intaro\RetailCrm\Component\ConfigProvider;
+use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
 use Intaro\RetailCrm\Component\Json\Deserializer;
 use Intaro\RetailCrm\Component\Json\Serializer;
@@ -227,6 +227,14 @@ class LoyaltyAccountService
                     return ['msg' => GetMessage('ACTIVATE_ERROR')];
                 }
 
+                //Если отметка не стоит, но аккаунт активирован на стороне CRM
+                if ($activateResponse->errorMsg === GetMessage('ALREADY_ACTIVE')) {
+                    $this->setLoyaltyActivateFlag($USER->GetID());
+                    return [
+                        'msg' => GetMessage('REG_COMPLETE'),
+                    ];
+                }
+
                 if ($activateResponse->success && $activateResponse->loyaltyAccount->active === true) {
                     return ['msg' => GetMessage('REG_COMPLETE')];
                 }
@@ -235,8 +243,6 @@ class LoyaltyAccountService
 
                 //если есть незаполненные обязательные поля
                 if (count($requiredFields) > 0) {
-                    $extFields = $this->getExternalFields($requiredFields);
-
                     return [
                         'msg'  => GetMessage('ACTIVATE_YOUR_ACCOUNT'),
                         'form' => [
@@ -245,8 +251,7 @@ class LoyaltyAccountService
                                 'action' => 'activateAccount',
                             ],
                             'fields'         => $this->getStandardFields($this->user),
-                            'externalFields' => $extFields,
-                            'idInLoyalty' => $loyalty->getIdInLoyalty(),
+                            'externalFields' => $this->getExternalFields($requiredFields),
                         ],
                     ];
                 }
@@ -272,7 +277,7 @@ class LoyaltyAccountService
                 'form' => [
                     'button'         => [
                         'name'   => GetMessage('CREATE'),
-                        'action' => 'createAccount',
+                        'action' => 'saveUserLpFields',
                     ],
                     'fields'         => $this->getStandardFields($this->user),
                     'externalFields' => (array)json_decode(ConfigProvider::getLoyaltyFields(), true),
@@ -286,7 +291,7 @@ class LoyaltyAccountService
             'form' => [
                 'button'         => [
                     'name'   => GetMessage('CREATE'),
-                    'action' => 'createAccount',
+                    'action' => 'saveUserLpFields',
                 ],
                 'fields'         => $this->getStandardFields($this->user),
                 'externalFields' => (array)json_decode(ConfigProvider::getLoyaltyFields(), true),
@@ -385,24 +390,17 @@ class LoyaltyAccountService
     }
 
     /**
-     * @param array $allFields
-     *
-     * @return \Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountEditResponse|null
-     * @throws \Intaro\RetailCrm\Component\Builder\Exception\BuilderException
-     * @throws \ReflectionException
+     * @param int|null $userId
      */
-    public function editLoyaltyAccount(array $allFields): ?LoyaltyAccountEditResponse
+    public function setLoyaltyActivateFlag(?int $userId): void
     {
-        /** @var LoyaltyAccountEditRequestBuilder $requestBuilder */
-        $requestBuilder = ServiceLocator::get(LoyaltyAccountEditRequestBuilder::class);
-        /** @var LoyaltyAccountEditRequest $editRequest */
-        $editRequest = $requestBuilder->setFormFields($allFields)->build()->getResult();
-        $requestBuilder->reset();
+        if ($userId === null) {
+            return;
+        }
 
-        /** @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter $client */
-        $client = ClientFactory::createClientAdapter();
+        global $USER_FIELD_MANAGER;
 
-        return $client->editLoyaltyAccount($editRequest);
+        $USER_FIELD_MANAGER->Update('USER', $userId, ['UF_REG_IN_PL_INTARO' => true]);
     }
 
     /**
@@ -493,7 +491,9 @@ class LoyaltyAccountService
             && $createResponse->loyaltyAccount->activatedAt === null
             && isset($createResponse->loyaltyAccount->id)
         ) {
-            return $this->tryActivate($createResponse->loyaltyAccount->id);
+            return [
+                'msg' => GetMessage('GO_TO_PERSONAL')
+            ];
         }
 
         if ($createResponse !== null && $createResponse->success === true) {

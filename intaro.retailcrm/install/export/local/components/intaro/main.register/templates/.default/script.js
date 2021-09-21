@@ -13,7 +13,7 @@ function serializeObject(array) {
     return object;
 }
 
-function createAccount() {
+function saveUserLpFields() {
     const formArray  = $('#lpRegFormInputs').serializeArray();
     const formObject = serializeObject(formArray);
 
