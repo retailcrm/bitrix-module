@@ -164,11 +164,9 @@ class Register extends Controller
         $createResponse = $service->createLoyaltyAccount(
             $request['phone'],
             $request['card'],
-            (string) $request['customerId'],
-            $request['customFields']
+            (string) $request['customerId']
         );
 
-        //TODO добавить провеку на кастомные поля, когда будет готов метод запроса
         if ($createResponse !== null) {
             if ($createResponse->success === false) {
                 return [

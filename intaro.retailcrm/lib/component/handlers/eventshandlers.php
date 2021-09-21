@@ -39,7 +39,7 @@ use Throwable;
 class EventsHandlers
 {
     public static $disableSaleHandler = false;
-    
+
     /**
      * EventsHandlers constructor.
      */
@@ -47,7 +47,7 @@ class EventsHandlers
     {
         IncludeModuleLangFile(__FILE__);
     }
-    
+
     /**
      * Обработчик события, вызываемого при обновлении еще не сохраненного заказа
      *
@@ -73,19 +73,19 @@ class EventsHandlers
             $loyaltyDiscountInput = (float) $request->get('loyalty-discount-input');
             $calculateItemsInput  = $request->get('calculate-items-input');
             $bonusDiscount        = $bonusInput * $chargeRate;
-            
+
             if ($bonusInput > $availableBonuses) {
                 $arResult['LOYALTY']['ERROR'] = GetMessage('BONUS_ERROR_MSG');
-                
+
                 return;
             }
-            
+
             $jsDataTotal = &$arResult['JS_DATA']['TOTAL'];
-            
+
             $isWriteOffAvailable = $bonusInput > 0
                 && $availableBonuses > 0
                 && $jsDataTotal['ORDER_TOTAL_PRICE'] >= $bonusDiscount + $loyaltyDiscountInput;
-            
+
             if ($isWriteOffAvailable || $loyaltyDiscountInput > 0) {
                 $jsDataTotal['ORDER_TOTAL_PRICE']
                                                         -= round($bonusDiscount + $loyaltyDiscountInput, 2);
@@ -98,19 +98,19 @@ class EventsHandlers
                 $jsDataTotal['ORDER_PRICE_FORMATED']
                                                         = $jsDataTotal['ORDER_PRICE'] - $loyaltyDiscountInput . ' ' . GetMessage('RUB');
                 $oldItems                               = json_decode(htmlspecialchars_decode($calculateItemsInput), true);
-                
+
                 if ($calculateItemsInput !== null) {
                     foreach ($arResult['JS_DATA']['GRID']['ROWS'] as $key => &$item) {
                         $item['data']['SUM_NUM'] = $oldItems[$key]['SUM_NUM'];
                         $item['data']['SUM']     = $item['data']['SUM_NUM'] . GetMessage('RUB');
                     }
                 }
-                
+
                 unset($item);
             }
         }
     }
-    
+
     /**
      * Обновляет информацию о Программе лояльности в административной панели.
      * При каждом открытии заказа делает запрос к CRM и получает актуальную информацию.
@@ -120,7 +120,7 @@ class EventsHandlers
     public function OnAdminContextMenuShowHandler(&$items)
     {
         global $APPLICATION;
-        
+
         if (
             $_SERVER['REQUEST_METHOD'] === 'GET'
             && $_REQUEST['ID'] > 0
@@ -128,11 +128,11 @@ class EventsHandlers
         ) {
             /* @var OrderLoyaltyDataService $service */
             $service = ServiceLocator::get(OrderLoyaltyDataService::class);
-            
+
             $service->updateLoyaltyInfo($_REQUEST['ID']);
         }
     }
-    
+
     /**
      * Обработчик события, вызываемого ПОСЛЕ сохранения заказа (OnSaleOrderSaved)
      *
@@ -143,22 +143,22 @@ class EventsHandlers
         if (self::$disableSaleHandler === true) {
             return;
         }
-        
+
         try {
             /* @var LoyaltyService $loyaltyService */
             $loyaltyService = ServiceLocator::get(LoyaltyService::class);
-            
+
             /* @var OrderLoyaltyDataService $orderLoyaltyDataService */
             $orderLoyaltyDataService = ServiceLocator::get(OrderLoyaltyDataService::class);
             $retailCrmEvent = new RetailCrmEvent();
             /** @var Order $order */
             $order = $event->getParameter('ENTITY');
-    
+
             // TODO: Replace old call with a new one.
             $saveResult = $retailCrmEvent->orderSave($order);
-            
+
             Utils::handleApiErrors($saveResult);
-            
+
             $isBonusInput = (
                 !empty($_POST['bonus-input'])
                 && !empty($_POST['available-bonuses'])
@@ -169,24 +169,24 @@ class EventsHandlers
             $isDataForLoyaltyDiscount   = isset($_POST['calculate-items-input'], $_POST['loyalty-discount-input']);
             $isBonusesIssetAndAvailable = $isBonusInput
                 && (int) $_POST['available-bonuses'] >= (int) $_POST['bonus-input'];
-            
+
             /** @var array $calculateItemsInput */
             $calculateItemsInput        = $isDataForLoyaltyDiscount
                 ? json_decode(htmlspecialchars_decode($_POST['calculate-items-input']), true)
                 : [];
-    
+
             if ($isNewOrder && $isLoyaltyOn) {
                 self::$disableSaleHandler = true;
-                
+
                 $hlInfoBuilder = new LoyaltyDataBuilder();
                 $hlInfoBuilder->setOrder($order);
-                
+
                 $discountInput            = isset($_POST['loyalty-discount-input'])
                     ? (float) $_POST['loyalty-discount-input']
                     : 0;
-                
+
                 $loyaltyBonusMsg = 0;
-        
+
                 //Если есть бонусы
                 if ($isBonusesIssetAndAvailable) {
                     $hlInfoBuilder->setApplyResponse(
@@ -194,12 +194,12 @@ class EventsHandlers
                     );
                     $loyaltyBonusMsg = (int) $_POST['bonus-input'];
                 }
-        
+
                 //Если бонусов нет, но скидка по ПЛ есть
                 if ($isDataForLoyaltyDiscount && !$isBonusInput) {
                     $loyaltyService->saveDiscounts($order, $calculateItemsInput);
                 }
-    
+
                 $orderLoyaltyDataService->saveBonusAndDiscToOrderProps(
                     $order->getPropertyCollection(),
                     $discountInput,
@@ -207,14 +207,14 @@ class EventsHandlers
                 );
                 $hlInfoBuilder->setCalculateItemsInput($calculateItemsInput);
                 $orderLoyaltyDataService->saveLoyaltyInfoToHl($hlInfoBuilder->build()->getResult());
-    
+
                 self::$disableSaleHandler = false;
             }
         } catch (Throwable $exception) {
             Logger::getInstance()->write(GetMessage('CAN_NOT_SAVE_ORDER') . $exception->getMessage(), 'uploadApiErrors');
         }
     }
-    
+
     /**
      * Регистрирует пользователя в CRM системе после регистрации на сайте
      *
@@ -226,22 +226,22 @@ class EventsHandlers
     {
         if (isset($arFields['USER_ID']) && $arFields['USER_ID'] > 0) {
             $user = UserRepository::getById($arFields['USER_ID']);
-            
+
             if (isset($_POST['REGISTER']['PERSONAL_PHONE'])) {
                 $phone = htmlspecialchars($_POST['REGISTER']['PERSONAL_PHONE']);
-                
+
                 if ($user !== null) {
                     $user->setPersonalPhone($phone);
                     $user->save();
                 }
-                
+
                 $arFields['PERSONAL_PHONE'] = $phone;
             }
-    
+
             /* @var CustomerService $customerService */
             $customerService = ServiceLocator::get(CustomerService::class);
             $customer        = $customerService->createModel($arFields['USER_ID']);
-            
+
             $customerService->createOrUpdateCustomer($customer);
 
             //Если пользователь выразил желание зарегистрироваться в ПЛ и согласился со всеми правилами
@@ -252,11 +252,10 @@ class EventsHandlers
                 $phone          = $arFields['PERSONAL_PHONE'] ?? '';
                 $card           = $arFields['UF_CARD_NUM_INTARO'] ?? '';
                 $customerId     = (string) $arFields['USER_ID'];
-                $customFields   = $arFields['UF_CSTM_FLDS_INTARO'] ?? [];
-                
+
                 /** @var LoyaltyAccountService $service */
                 $service        = ServiceLocator::get(LoyaltyAccountService::class);
-                $createResponse = $service->createLoyaltyAccount($phone, $card, $customerId, $customFields);
+                $createResponse = $service->createLoyaltyAccount($phone, $card, $customerId);
 
                 $service->activateLpUserInBitrix($createResponse, $arFields['USER_ID']);
             }

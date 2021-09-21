@@ -102,11 +102,10 @@ class LoyaltyAccountService
      * @param string $phone
      * @param string $card
      * @param string $externalId
-     * @param array  $customFields
      *
      * @return \Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountCreateResponse|null
      */
-    public function createLoyaltyAccount(string $phone, string $card, string $externalId, array $customFields = []): ?LoyaltyAccountCreateResponse
+    public function createLoyaltyAccount(string $phone, string $card, string $externalId): ?LoyaltyAccountCreateResponse
     {
         /** @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter $client */
         $client = ClientFactory::createClientAdapter();
@@ -119,7 +118,7 @@ class LoyaltyAccountService
         $createRequest->loyaltyAccount->phoneNumber = $phone ?? '';
         $createRequest->loyaltyAccount->cardNumber = $card ?? '';
         $createRequest->loyaltyAccount->customer->externalId = $externalId;
-        $createRequest->loyaltyAccount->customFields = $customFields ?? [];
+        $createRequest->loyaltyAccount->customFields = [];
 
         $createResponse = $client->createLoyaltyAccount($createRequest);
 
@@ -242,7 +241,7 @@ class LoyaltyAccountService
                 $requiredFields = $this->checkErrors($activateResponse);
 
                 //если есть незаполненные обязательные поля
-                if (count($requiredFields) > 0) {
+                if ($_GET['activate'] === 'Y' && count($requiredFields) > 0) {
                     return [
                         'msg'  => GetMessage('ACTIVATE_YOUR_ACCOUNT'),
                         'form' => [
@@ -256,14 +255,19 @@ class LoyaltyAccountService
                     ];
                 }
 
+                if ($_GET['activate'] !== 'Y' && count($requiredFields) > 0) {
+                    return [
+                        'msg'  => GetMessage('GO_TO_PERSONAL'),
+                    ];
+                }
+
                 return $this->tryActivate($loyalty->getIdInLoyalty());
             }
 
             // Аккаунт не существует. Выясняем, каких полей не хватает для СОЗДАНИЯ аккаунта, выводим форму
             //Если все необходимые поля заполнены, то пытаемся его еще раз зарегистрировать
             if (count($this->getStandardFields($this->user)) === 0) {
-                $customFields = []; //TODO надо передать сюда поля
-                $createResponse = $this->registerAndActivateUser($this->user->getId(), $this->user->getPersonalPhone(), $customFields, $loyalty);
+                $createResponse = $this->registerAndActivateUser($this->user->getId(), $this->user->getPersonalPhone(), $loyalty);
 
                 if ($createResponse === false) {
                     header('Refresh 0');
@@ -280,7 +284,7 @@ class LoyaltyAccountService
                         'action' => 'saveUserLpFields',
                     ],
                     'fields'         => $this->getStandardFields($this->user),
-                    'externalFields' => (array)json_decode(ConfigProvider::getLoyaltyFields(), true),
+                    'externalFields' => (array) json_decode(ConfigProvider::getLoyaltyFields(), true),
                 ],
             ];
         }
@@ -294,7 +298,7 @@ class LoyaltyAccountService
                     'action' => 'saveUserLpFields',
                 ],
                 'fields'         => $this->getStandardFields($this->user),
-                'externalFields' => (array)json_decode(ConfigProvider::getLoyaltyFields(), true),
+                'externalFields' => (array) json_decode(ConfigProvider::getLoyaltyFields(), true),
             ],
         ];
     }
@@ -465,14 +469,13 @@ class LoyaltyAccountService
     private function registerAndActivateUser(
         int $userId,
         string $userPhone,
-        array $customFields,
         UserLoyaltyData $loyalty
     ): ?array {
         $phone = $userPhone ?? '';
         $card = $loyalty->getBonusCardNumber() ?? '';
         $customerId = (string)$userId;
 
-        $createResponse = $this->createLoyaltyAccount($phone, $card, $customerId, $customFields);
+        $createResponse = $this->createLoyaltyAccount($phone, $card, $customerId);
 
         $this->activateLpUserInBitrix($createResponse, $userId);
 
