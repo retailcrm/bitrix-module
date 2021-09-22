@@ -216,6 +216,7 @@ if ($arResult["SHOW_SMS_FIELD"] == true) {
         <?php else: ?>
             <?=GetMessage('LP_NOT_ACTIVE')?>
         <?php endif; ?>
+
     <?php else: ?>
         <?=GetMessage('NOT_AUTHORIZED')?>
     <?php endif; ?>
