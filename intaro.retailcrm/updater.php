@@ -22,8 +22,10 @@ function update()
         ->addSelect('*')
         ->where('FILE_NAME', 'retailcrm')
         ->fetchObject();
-    
-    replaceExportVars($exportSystem);
+
+    if ($exportSystem instanceof EntityObject) {
+        replaceExportVars($exportSystem);
+    }
 }
 
 /**
@@ -46,7 +48,7 @@ function replaceExportVars(EntityObject $exportSystem)
         array_column($replaceableVars, 'replace'),
         $setupVars
     );
-    
+
     $exportSystem->set('SETUP_VARS', $newSetupVars);
     $exportSystem->save();
 }
@@ -63,7 +65,7 @@ class UpdaterRetailExportTable extends Main\Entity\DataManager
     {
         return 'b_catalog_export';
     }
-    
+
     /**
      * Returns entity map definition.
      *
