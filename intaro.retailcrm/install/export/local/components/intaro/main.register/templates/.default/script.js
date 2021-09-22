@@ -35,7 +35,91 @@ function saveUserLpFields() {
     );
 }
 
-//TODO проверить - возможно мертвый метод
+function activateAccount() {
+    let checkboxes = [];
+    let numbers = [];
+    let strings = [];
+    let dates = [];
+    let options = [];
+    let form = $('#lpRegFormInputs');
+
+    form.find(':checkbox')
+        .each(
+            (index, value) => {
+                checkboxes[index] = {
+                    'code':  value.name,
+                    'value': value.checked,
+                }
+            }
+        )
+
+    form.find(':input[type="number"]')
+        .each(
+            (index, value) => {
+                numbers[index] = {
+                    'code':  value.name,
+                    'value': value.value,
+                }
+            }
+        )
+
+    form.find(':input[type="string"], :input[type="text"], :input[type="email"], textarea')
+        .each(
+            (index, value) => {
+                strings[index] = {
+                    'code':  value.name,
+                    'value': value.value,
+                }
+            }
+        )
+
+    form.find(':input[type="date"]')
+        .each(
+            (index, value) => {
+                dates[index] = {
+                    'code':  value.name,
+                    'value': value.value,
+                }
+            }
+        )
+
+    form.find('select')
+        .each(
+            (index, value) => {
+                options[index] = {
+                    'code':  value.name,
+                    'value': value.value,
+                }
+            }
+        )
+
+    let formObject = {
+        checkboxes: checkboxes,
+        numbers:    numbers,
+        strings:    strings,
+        dates:      dates,
+        options:    options
+    }
+
+    BX.ajax.runAction('intaro:retailcrm.api.loyalty.register.activateAccount',
+        {
+            data: {
+                sessid:  BX.bitrix_sessid(),
+                allFields: formObject
+            }
+        }
+    ).then(
+        function(response) {
+            if (response.data.status === 'activate') {
+                location.reload();
+            } else {
+                $('#errMsg').text(response.data.msg)
+            }
+        }
+    );
+}
+
+//TODO проверить - возможно, это мертвый метод
 function addTelNumber(customerId) {
     const phone = $('#loyaltyRegPhone').val();
     const card  = $('#loyaltyRegCard').val();
@@ -99,6 +183,7 @@ function sendVerificationCode() {
     )
 }
 
+/** Управляет отображением блока с полями программы лояльности на странице регистрации. */
 function lpFieldToggle() {
     if ($('#checkbox_UF_REG_IN_PL_INTARO').is(':checked')) {
         $('.lp_toggled_block').css('display', 'table-row');

@@ -83,14 +83,14 @@ if ($arResult["SHOW_SMS_FIELD"] == true) {
     <?php if ($USER->IsAuthorized()): ?>
 
         <p><?php echo GetMessage("MAIN_REGISTER_AUTH") ?></p>
-        
+
         <?php if ($arResult['LOYALTY_STATUS'] === 'Y'): ?>
         <?php $this->addExternalJs(SITE_TEMPLATE_PATH . '/script.js'); ?>
         <div id="regBody">
             <?php if (isset($arResult['LP_REGISTER']['msg'])) { ?>
                 <div id="lpRegMsg" class="lpRegMsg"><?=$arResult['LP_REGISTER']['msg']?></div>
             <?php } ?>
-        
+
             <?php
             if (isset($arResult['LP_REGISTER']['form']['fields'])) { ?>
                 <div id="lpRegForm">
@@ -120,11 +120,88 @@ if ($arResult["SHOW_SMS_FIELD"] == true) {
                                         <?php
                                         if ($key === 'UF_PD_PROC_PL_INTARO' || $key === 'UF_AGREE_PL_INTARO') { ?></a><?php } ?>
                             </label>
+                            <br>
                         <?php
                         if ($field['type'] === 'checkbox') { ?>
                             <br>
                             <?php } ?>
                         <?php } ?>
+
+                        <?php
+                        if ($arResult['ACTIVATE'] === true) {
+                            foreach ($arResult['LP_REGISTER']['form']['externalFields'] as $externalField) {
+                                ?>
+                                <lable>
+                                    <?php
+                                    if ($externalField['type'] === 'string' || $externalField['type'] === 'date') { ?>
+                                        <input
+                                            name="<?=$externalField['code']?>"
+                                            id="external_<?=$externalField['code']?>"
+                                            type="<?=$externalField['type']?>"
+                                        >
+                                        <?=$externalField['name']?>
+                                    <?php } ?>
+
+                                    <?php
+                                    if ($externalField['type'] === 'boolean') { ?>
+                                        <input
+                                            name="<?=$externalField['code']?>"
+                                            id="external_<?=$externalField['code']?>"
+                                            type="checkbox"
+                                        >
+                                        <?=$externalField['name']?>
+                                    <?php } ?>
+
+                                    <?php
+                                    if ($externalField['type'] === 'text') { ?>
+                                        <textarea
+                                            name="<?=$externalField['code']?>"
+                                            id="external_<?=$externalField['code']?>"
+                                            cols="30"
+                                            rows="10"
+                                        ></textarea>
+                                        <?=$externalField['name']?>
+                                    <?php } ?>
+
+                                    <?php
+                                    if ($externalField['type'] === 'integer' || $externalField['type'] === 'numeric') { ?>
+                                        <input
+                                            name="<?=$externalField['code']?>"
+                                            id="external_<?=$externalField['code']?>"
+                                            type="number"
+                                        >
+                                        <?=$externalField['name']?>
+                                    <?php } ?>
+
+                                    <?php
+                                    if ($externalField['type'] === 'email') { ?>
+                                        <input
+                                            name="<?=$externalField['code']?>"
+                                            id="external_<?=$externalField['code']?>"
+                                            type="email"
+                                        >
+                                        <?=$externalField['name']?>
+                                    <?php } ?>
+
+                                    <?php
+                                    if ($externalField['type'] === 'dictionary') { ?>
+                                        <select name="<?=$externalField['code']?>">
+                                            <?php
+                                            foreach ($externalField['dictionaryElements'] as $dictionaryElement) {
+                                                ?>
+                                                <option value="<?=$dictionaryElement['code']?>"><?=$dictionaryElement['name']?> </option>
+                                                <?php
+                                            }
+                                            ?>
+                                        </select>
+                                        <?=$externalField['name']?>
+                                    <?php } ?>
+                                </lable>
+                                <br>
+                                <?php
+                            }
+                        }
+                        ?>
                     </form>
                     <?php
                     if (isset($arResult['LP_REGISTER']['resendAvailable']) && !empty($arResult['LP_REGISTER']['resendAvailable'])) {
@@ -144,9 +221,11 @@ if ($arResult["SHOW_SMS_FIELD"] == true) {
                     <input type="button" onclick="<?=$arResult['LP_REGISTER']['form']['button']['action']?>()" value="<?=GetMessage('SEND')?>">
                 </div>
             <?php } ?>
-        </div>
-    <?php endif; ?>
-    
+    </div>
+        <?php else: ?>
+            <?=GetMessage('LP_NOT_ACTIVE')?>
+        <?php endif; ?>
+
     <?php else: ?>
     <?
     if (count($arResult["ERRORS"]) > 0):
@@ -155,14 +234,14 @@ if ($arResult["SHOW_SMS_FIELD"] == true) {
                 $arResult["ERRORS"][$key] = str_replace("#FIELD_NAME#", "&quot;" . GetMessage("REGISTER_FIELD_" . $key) . "&quot;", $error);
             }
         }
-        
+
         ShowError(implode("<br />", $arResult["ERRORS"]));
 
     elseif ($arResult["USE_EMAIL_CONFIRMATION"] === "Y"):
     ?>
         <p><? echo GetMessage("REGISTER_EMAIL_WILL_BE_SENT") ?></p>
     <? endif ?>
-    
+
     <? if ($arResult["SHOW_SMS_FIELD"] == true): ?>
 
         <form method="post" action="<?=POST_FORM_ACTION_URI?>" name="regform">
@@ -215,7 +294,7 @@ if ($arResult["SHOW_SMS_FIELD"] == true) {
         <div id="bx_register_error" style="display:none"><? ShowError("error") ?></div>
 
         <div id="bx_register_resend"></div>
-    
+
     <? else: ?>
 
         <form method="post" action="<?=POST_FORM_ACTION_URI?>" name="regform" enctype="multipart/form-data">
@@ -282,7 +361,7 @@ if ($arResult["SHOW_SMS_FIELD"] == true) {
                                     case "CONFIRM_PASSWORD":
                                         ?><input size="30" type="password" name="REGISTER[<?=$FIELD?>]" value="<?=$arResult["VALUES"][$FIELD]?>" autocomplete="off" /><?
                                         break;
-                                    
+
                                     case "PERSONAL_GENDER":
                                         ?><select name="REGISTER[<?=$FIELD?>]">
                                         <option value=""><?=GetMessage("USER_DONT_KNOW")?></option>
@@ -290,7 +369,7 @@ if ($arResult["SHOW_SMS_FIELD"] == true) {
                                         <option value="F"<?=$arResult["VALUES"][$FIELD] == "F" ? " selected=\"selected\"" : ""?>><?=GetMessage("USER_FEMALE")?></option>
                                         </select><?
                                         break;
-                                    
+
                                     case "PERSONAL_COUNTRY":
                                     case "WORK_COUNTRY":
                                         ?><select name="REGISTER[<?=$FIELD?>]"><?
@@ -302,12 +381,12 @@ if ($arResult["SHOW_SMS_FIELD"] == true) {
                                         }
                                         ?></select><?
                                         break;
-                                    
+
                                     case "PERSONAL_PHOTO":
                                     case "WORK_LOGO":
                                         ?><input size="30" type="file" name="REGISTER_FILES_<?=$FIELD?>" /><?
                                         break;
-                                    
+
                                     case "PERSONAL_NOTES":
                                     case "WORK_NOTES":
                                         ?><textarea cols="30" rows="5" name="REGISTER[<?=$FIELD?>]"><?=$arResult["VALUES"][$FIELD]?></textarea><?
@@ -440,10 +519,10 @@ if ($arResult["SHOW_SMS_FIELD"] == true) {
         </form>
 
         <p><? echo $arResult["GROUP_POLICY"]["PASSWORD_REQUIREMENTS"]; ?></p>
-    
+
     <? endif //$arResult["SHOW_SMS_FIELD"] == true ?>
 
         <p><span class="starrequired">*</span><?=GetMessage("AUTH_REQ")?></p>
-    
+
     <? endif ?>
 </div>
