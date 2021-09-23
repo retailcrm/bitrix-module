@@ -163,4 +163,14 @@ class LoyaltyAccount
      * @Mapping\SerializedName("customFields")
      */
     public $customFields;
+
+    /**
+     * Статус участия. Возможные значения: not_confirmed, activated, deactivated
+     *
+     * @var string $status
+     *
+     * @Mapping\Type("string")
+     * @Mapping\SerializedName("status")
+     */
+    public $status;
 }
