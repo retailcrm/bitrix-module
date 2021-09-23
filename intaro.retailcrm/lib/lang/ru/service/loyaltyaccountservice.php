@@ -5,4 +5,4 @@ $MESS['LOYALTY_FIELD_ERROR']
 $MESS['ALREADY_ACTIVE']
     = 'LoyaltyAccount has been already activated';
 $MESS['GO_TO_PERSONAL']
-    = 'Ваш аккаунт создан. Его можно активировать в личном кабинете';
+    = 'Ваш аккаунт в программе лояльности создан. Его можно активировать в личном кабинете';
