@@ -37,3 +37,7 @@ $MESS['SIMPLE_PRODUCTS'] = 'Обычные товары:';
 $MESS['SALE_PRODUCTS'] = 'Акционные товары:';
 $MESS['REMAINING_SUM'] = 'Сумма, оставшаяся до перехода на следующий уровень:';
 $MESS['ACTIVATE'] = 'Активировать';
+$MESS['STATUS'] = 'Статус участия';
+$MESS['STATUS_NOT_CONFIRMED'] = 'не подтверждено';
+$MESS['STATUS_DEACTIVATED'] = 'деактивировано';
+$MESS['STATUS_ACTIVE'] = 'активно';

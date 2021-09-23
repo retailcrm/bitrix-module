@@ -36,7 +36,7 @@ try {
 
         if ($response !== null) {
             $arResult['BONUS_COUNT'] = $response->amount;
-            $arResult['ACTIVE'] = $response->active;
+            $arResult['ACTIVE_STATUS'] = $response->status;
             $arResult['CARD'] = $response->cardNumber !== ''
                 ? $response->cardNumber
                 : GetMessage('CARD_NOT_LINKED');

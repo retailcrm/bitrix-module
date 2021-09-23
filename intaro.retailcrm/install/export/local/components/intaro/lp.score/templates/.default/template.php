@@ -19,10 +19,17 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
     <?php if (isset($arResult['LOYALTY_LEVEL_ID'])) { ?>
         <b><?=GetMessage('LOYALTY_LEVEL_ID')?></b> <?=$arResult['LOYALTY_LEVEL_ID']?><br>
     <?php } ?>
-    <?php if (isset($arResult['ACTIVE'])) { ?>
-        <b><?=GetMessage('ACTIVE')?></b> <?=$arResult['ACTIVE'] ? GetMessage('YES') : GetMessage('NO')?>
-        <?php if ($arResult['ACTIVE'] === false) { ?>
+    <?php if (isset($arResult['ACTIVE_STATUS'])) { ?>
+        <b><?=GetMessage('STATUS')?>: </b>
+        <?php if ($arResult['ACTIVE_STATUS'] === 'not_confirmed') { ?>
+            <?= GetMessage('STATUS_NOT_CONFIRMED')?>
             <a href="/lp-register?activate=Y"> <?= GetMessage('ACTIVATE') ?></a>
+        <?php } ?>
+        <?php if ($arResult['ACTIVE_STATUS'] === 'deactivated') { ?>
+            <?=GetMessage('STATUS_DEACTIVATED')?>
+        <?php } ?>
+        <?php if ($arResult['ACTIVE_STATUS'] === 'activated') { ?>
+            <?= GetMessage('STATUS_ACTIVE')?>
         <?php } ?>
         <br>
     <?php } ?>
