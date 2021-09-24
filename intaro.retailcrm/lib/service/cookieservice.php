@@ -42,7 +42,7 @@ class CookieService
 
         return (isset($_COOKIE['_rc']) && $_COOKIE['_rc'] != '') ? $_COOKIE['_rc'] : null;
     }
-    
+
     /**
      * Получает десерализованное содержимое куки
      *
@@ -53,42 +53,43 @@ class CookieService
     {
         try {
             $application = Application::getInstance();
-            
+
             if ($application === null) {
                 return null;
             }
-            
+
             $cookieJson = $application->getContext()->getRequest()->getCookie($cookieName);
-            
+
             if ($cookieJson !== null) {
                 return Deserializer::deserialize($cookieJson, SmsCookie::class);
             }
         } catch (SystemException | Exception $exception) {
             Logger::getInstance()->write($exception->getMessage());
         }
-        
+
         return null;
     }
-    
+
     /**
      * @param string                                      $cookieName
      * @param \Intaro\RetailCrm\Model\Api\SmsVerification $smsVerification
      *
      * @return \Intaro\RetailCrm\Model\Bitrix\SmsCookie
+     * @throws \ReflectionException
      */
     public function setSmsCookie(string $cookieName, SmsVerification $smsVerification): SmsCookie
     {
         $resendAvailable = $smsVerification->createdAt->modify('+1 minutes');
-        
+
         $smsCookie                  = new SmsCookie();
         $smsCookie->createdAt       = $smsVerification->createdAt;
         $smsCookie->resendAvailable = $resendAvailable;
         $smsCookie->isVerified      = !empty($smsVerification->verifiedAt);
         $smsCookie->expiredAt       = $smsVerification->expiredAt;
         $smsCookie->checkId         = $smsVerification->checkId;
-        
+
         $serializedArray = Serializer::serialize($smsCookie);
-        
+
         $cookie = new Cookie(
             $cookieName,
             $serializedArray,
@@ -97,9 +98,9 @@ class CookieService
                 'YYYY.MM.DD HH:MI:SS'
             )
         );
-        
+
         Context::getCurrent()->getResponse()->addCookie($cookie);
-        
+
         return $smsCookie;
     }
 }

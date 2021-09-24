@@ -148,7 +148,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $_REQUEST["register_submit_button"] 
 		{
 			$arError = $arResult["ERRORS"];
 			foreach($arError as $key => $error)
-				if(intval($key) == 0 && $key !== 0) 
+				if(intval($key) == 0 && $key !== 0)
 					$arError[$key] = str_replace("#FIELD_NAME#", '"'.$key.'"', $error);
 			CEventLog::Log("SECURITY", "USER_REGISTER_FAIL", "main", false, implode("<br>", $arError));
 		}
@@ -172,7 +172,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $_REQUEST["register_submit_button"] 
 
 		$arResult['VALUES']["USER_IP"] = $_SERVER["REMOTE_ADDR"];
 		$arResult['VALUES']["USER_HOST"] = @gethostbyaddr($_SERVER["REMOTE_ADDR"]);
-		
+
 		if($arResult["VALUES"]["AUTO_TIME_ZONE"] <> "Y" && $arResult["VALUES"]["AUTO_TIME_ZONE"] <> "N")
 			$arResult["VALUES"]["AUTO_TIME_ZONE"] = "";
 
@@ -198,7 +198,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $_REQUEST["register_submit_button"] 
 			$ID = $user->Add($arResult["VALUES"]);
 		}
 
-		if (intval($ID) > 0)
+		if ((int) $ID > 0)
 		{
 			if($arResult["PHONE_REGISTRATION"] == true && $arResult['VALUES']["PHONE_NUMBER"] <> '')
 			{
@@ -322,11 +322,11 @@ foreach ($arResult["REQUIRED_FIELDS"] as $field)
 $arResult["BACKURL"] = htmlspecialcharsbx($_REQUEST["backurl"]);
 
 // get countries list
-if (in_array("PERSONAL_COUNTRY", $arResult["SHOW_FIELDS"]) || in_array("WORK_COUNTRY", $arResult["SHOW_FIELDS"])) 
+if (in_array("PERSONAL_COUNTRY", $arResult["SHOW_FIELDS"]) || in_array("WORK_COUNTRY", $arResult["SHOW_FIELDS"]))
 	$arResult["COUNTRIES"] = GetCountryArray();
 
 // get date format
-if (in_array("PERSONAL_BIRTHDAY", $arResult["SHOW_FIELDS"])) 
+if (in_array("PERSONAL_BIRTHDAY", $arResult["SHOW_FIELDS"]))
 	$arResult["DATE_FORMAT"] = CLang::GetDateFormat("SHORT");
 
 // ********************* User properties ***************************************************
@@ -360,7 +360,7 @@ if ($arResult["USE_CAPTCHA"] == "Y")
 	$arResult["CAPTCHA_CODE"] = htmlspecialcharsbx($APPLICATION->CaptchaGetCode());
 
 // set title
-if ($arParams["SET_TITLE"] == "Y") 
+if ($arParams["SET_TITLE"] == "Y")
 	$APPLICATION->SetTitle(GetMessage("REGISTER_DEFAULT_TITLE"));
 
 //time zones
