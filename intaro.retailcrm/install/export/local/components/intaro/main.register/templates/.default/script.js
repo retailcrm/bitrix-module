@@ -43,6 +43,23 @@ function activateAccount() {
     let options = [];
     let form = $('#lpRegFormInputs');
 
+    let emailViolation = false;
+
+    form.find(':input[type="email"]')
+        .each(
+            (index, value) => {
+                if (/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/.test(value.value) !== true) {
+                    emailViolation = true;
+                }
+            }
+        )
+
+    if (emailViolation) {
+        $('#errMsg').text('Проверьте правильность заполнения email')
+
+        return;
+    }
+
     form.find(':checkbox')
         .each(
             (index, value) => {
