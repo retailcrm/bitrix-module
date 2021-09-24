@@ -16,18 +16,14 @@ namespace Intaro\RetailCrm\Service;
 use CUser;
 use DateTime;
 use Intaro\RetailCrm\Component\ConfigProvider;
-use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
-use Intaro\RetailCrm\Component\Json\Deserializer;
 use Intaro\RetailCrm\Component\Json\Serializer;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountActivateRequest;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountCreateRequest;
-use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountEditRequest;
 use Intaro\RetailCrm\Model\Api\Request\SmsVerification\SmsVerificationConfirmRequest;
 use Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountActivateResponse;
 use Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountCreateResponse;
-use Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountEditResponse;
 use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationConfirmResponse;
 use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusRequest;
 use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusResponse;
@@ -219,49 +215,6 @@ class LoyaltyAccountService
                 }
 
                 //НЕТ. Аккаунт не активен
-                //Пробуем активировать аккаунт
-                $activateResponse = $this->activateLoyaltyAccount($loyalty->getIdInLoyalty());
-
-                if ($activateResponse === null) {
-                    return ['msg' => GetMessage('ACTIVATE_ERROR')];
-                }
-
-                //Если отметка не стоит, но аккаунт активирован на стороне CRM
-                if ($activateResponse->errorMsg === GetMessage('ALREADY_ACTIVE')) {
-                    $this->setLoyaltyActivateFlag($USER->GetID());
-
-                    return ['msg' => GetMessage('REG_COMPLETE')];
-                }
-
-                if ($activateResponse->success && $activateResponse->loyaltyAccount->active === true) {
-                    $this->setLoyaltyActivateFlag($USER->GetID());
-
-                    return ['msg' => GetMessage('REG_COMPLETE')];
-                }
-
-                $requiredFields = $this->checkErrors($activateResponse);
-
-                //если есть незаполненные обязательные поля
-                if ($_GET['activate'] === 'Y' && count($requiredFields) > 0) {
-                    return [
-                        'msg'  => GetMessage('ACTIVATE_YOUR_ACCOUNT'),
-                        'form' => [
-                            'button'         => [
-                                'name'   => GetMessage('ACTIVATE'),
-                                'action' => 'activateAccount',
-                            ],
-                            'fields'         => $this->getStandardFields($this->user),
-                            'externalFields' => $this->getExternalFields($requiredFields),
-                        ],
-                    ];
-                }
-
-                if ($_GET['activate'] !== 'Y' && count($requiredFields) > 0) {
-                    return [
-                        'msg'  => GetMessage('GO_TO_PERSONAL'),
-                    ];
-                }
-
                 return $this->tryActivate($loyalty->getIdInLoyalty());
             }
 
@@ -308,9 +261,12 @@ class LoyaltyAccountService
      * @param int $idInLoyalty
      *
      * @return array
+     * @throws \ReflectionException
      */
     public function tryActivate(int $idInLoyalty): array
     {
+        global $USER;
+
         /** @var \Intaro\RetailCrm\Service\CookieService $service */
         $service = ServiceLocator::get(CookieService::class);
 
@@ -345,6 +301,43 @@ class LoyaltyAccountService
 
         //Пробуем активировать аккаунт
         $activateResponse = $this->activateLoyaltyAccount($idInLoyalty);
+
+        if ($activateResponse === null) {
+            return ['msg' => GetMessage('ACTIVATE_ERROR')];
+        }
+
+        //Если отметка не стоит, но аккаунт активирован на стороне CRM
+        if (
+            ($activateResponse->success && $activateResponse->loyaltyAccount->active === true)
+            || $activateResponse->errorMsg === GetMessage('ALREADY_ACTIVE')
+        ) {
+            $this->setLoyaltyActivateFlag($USER->GetID());
+
+            return ['msg' => GetMessage('REG_COMPLETE')];
+        }
+
+        $requiredFields = $this->checkErrors($activateResponse);
+
+        //если есть незаполненные обязательные поля
+        if ($_GET['activate'] === 'Y' && count($requiredFields) > 0) {
+            return [
+                'msg'  => GetMessage('ACTIVATE_YOUR_ACCOUNT'),
+                'form' => [
+                    'button'         => [
+                        'name'   => GetMessage('ACTIVATE'),
+                        'action' => 'activateAccount',
+                    ],
+                    'fields'         => $this->getStandardFields($this->user),
+                    'externalFields' => $this->getExternalFields($requiredFields),
+                ],
+            ];
+        }
+
+        if ($_GET['activate'] !== 'Y' && count($requiredFields) > 0) {
+            return [
+                'msg'  => GetMessage('GO_TO_PERSONAL'),
+            ];
+        }
 
         if ($activateResponse !== null
             && isset($activateResponse->loyaltyAccount->active)
@@ -437,7 +430,6 @@ class LoyaltyAccountService
      */
     private function getStandardFields(User $user): array
     {
-
         $resultFields = [];
         $userFields = Serializer::serializeArray($user->getLoyalty());
         $userFields['PERSONAL_PHONE'] = $user->getPersonalPhone();
