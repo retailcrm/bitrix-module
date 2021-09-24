@@ -180,7 +180,7 @@ function sendVerificationCode() {
         {
             data: {
                 sessid:  BX.bitrix_sessid(),
-                code:    verificationCode,
+                verificationCode:    verificationCode,
                 checkId: checkId
             }
         }
