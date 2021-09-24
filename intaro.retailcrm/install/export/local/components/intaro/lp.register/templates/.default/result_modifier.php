@@ -39,7 +39,9 @@ if (checkLoadIntaro()) {
         $arResult['LP_REGISTER'] = $service->checkRegInLp();
     }
 
-    $arResult['ACTIVATE'] = isset($_GET['activate']) && $_GET['activate'] === 'Y';
+    $arResult['ACTIVATE'] = isset($_GET['activate'])
+        && $_GET['activate'] === 'Y'
+        && $arResult['LP_REGISTER']['form']['button']['action'] === 'activateAccount';
 
     try {
         $agreementPersonalData = AgreementRepository::getFirstByWhere(
