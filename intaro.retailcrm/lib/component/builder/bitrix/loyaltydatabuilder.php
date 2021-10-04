@@ -37,19 +37,19 @@ class LoyaltyDataBuilder implements BuilderInterface
 {
     /** @var Order $order */
     private $order;
-    
+
     /** @var OrderLoyaltyApplyResponse $applyResponse */
     private $applyResponse;
-    
+
     /** @var array */
     private $calculateItemsInput;
-    
+
     /** @var Logger $logger */
     private $logger;
-    
+
     /** @var OrderLoyaltyData[] $data */
     private $data;
-    
+
     /**
      * LoyaltyDataBuilder constructor.
      */
@@ -57,7 +57,7 @@ class LoyaltyDataBuilder implements BuilderInterface
     {
         $this->logger = Logger::getInstance();
     }
-    
+
     /**
      * @return \Intaro\RetailCrm\Component\Builder\BuilderInterface
      */
@@ -67,27 +67,26 @@ class LoyaltyDataBuilder implements BuilderInterface
             /** @var BasketItemBase $basketItem */
             foreach ($this->order->getBasket() as $key => $basketItem) {
                 $loyaltyHl = new OrderLoyaltyData();
-            
                 $loyaltyHl->orderId = $this->order->getId();
                 $loyaltyHl->itemId= $basketItem->getProductId();
                 $loyaltyHl->basketItemPositionId = $basketItem->getId();
                 $loyaltyHl->quantity = $basketItem->getQuantity();
                 $loyaltyHl->name = $basketItem->getField('NAME');
-    
+
                 $loyaltyHl->defaultDiscount
                     = $this->calculateItemsInput[$loyaltyHl->basketItemPositionId]['SHOP_ITEM_DISCOUNT'] ?? null;
-            
+
                 $this->addBonusInfo($loyaltyHl, $key);
-                
+
                 $this->data[] = $loyaltyHl;
             }
         } catch (ArgumentNullException | Exception $exception) {
             $this->logger->write($exception->getMessage(), Constants::LOYALTY_ERROR);
         }
-        
+
         return $this;
     }
-    
+
     /**
      * @return \Intaro\RetailCrm\Component\Builder\BuilderInterface
      */
@@ -96,10 +95,10 @@ class LoyaltyDataBuilder implements BuilderInterface
         $this->data = null;
         $this->order = null;
         $this->applyResponse = null;
-        
+
         return $this;
     }
-    
+
     /**
      * @return \Intaro\RetailCrm\Model\Bitrix\OrderLoyaltyData[]
      */
@@ -107,7 +106,7 @@ class LoyaltyDataBuilder implements BuilderInterface
     {
         return $this->data;
     }
-    
+
     /**
      * @param \Bitrix\Sale\Order $order
      *
@@ -116,10 +115,10 @@ class LoyaltyDataBuilder implements BuilderInterface
     public function setOrder(Order $order): LoyaltyDataBuilder
     {
         $this->order = $order;
-    
+
         return $this;
     }
-    
+
     /**
      * @param \Intaro\RetailCrm\Model\Api\Response\Order\Loyalty\OrderLoyaltyApplyResponse $applyResponse
      *
@@ -128,10 +127,10 @@ class LoyaltyDataBuilder implements BuilderInterface
     public function setApplyResponse(OrderLoyaltyApplyResponse $applyResponse): LoyaltyDataBuilder
     {
         $this->applyResponse = $applyResponse;
-        
+
         return $this;
     }
-    
+
     /**
      * @param array $calculateItemsInput
      *
@@ -140,10 +139,10 @@ class LoyaltyDataBuilder implements BuilderInterface
     public function setCalculateItemsInput(array $calculateItemsInput): LoyaltyDataBuilder
     {
         $this->calculateItemsInput = $calculateItemsInput;
-        
+
         return $this;
     }
-    
+
     /**
      * @param \Intaro\RetailCrm\Model\Bitrix\OrderLoyaltyData $loyaltyHl
      * @param int                                             $key
@@ -153,12 +152,12 @@ class LoyaltyDataBuilder implements BuilderInterface
         if (null === $this->applyResponse) {
             return;
         }
-        
+
         /** @var \Intaro\RetailCrm\Service\CookieService $service */
         $service   = ServiceLocator::get(CookieService::class);
         $isDebited = false;
         $checkId   = '';
-        
+
         //если верификация необходима, но не пройдена
         if (
             isset($this->applyResponse->verification, $this->applyResponse->verification->checkId)
@@ -168,15 +167,15 @@ class LoyaltyDataBuilder implements BuilderInterface
             $service->setSmsCookie('lpOrderBonusConfirm', $this->applyResponse->verification);
             $checkId = $this->applyResponse->verification->checkId;
         }
-        
+
         //если верификация не нужна
         if (!isset($this->applyResponse->verification)) {
             $isDebited = true;
         }
-        
+
         /** @var OrderProduct $item */
         $item = $this->applyResponse->order->items[$key];
-        
+
         $loyaltyHl->checkId    = $checkId;
         $loyaltyHl->isDebited  = $isDebited;
         $loyaltyHl->bonusCount = $item->bonusesChargeTotal;

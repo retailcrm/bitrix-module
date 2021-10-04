@@ -18,7 +18,6 @@ use Bitrix\Main\ArgumentException;
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
-use Bitrix\Sale\BasketItemBase;
 use Bitrix\Sale\Internals\OrderPropsGroupTable;
 use Bitrix\Sale\Order;
 use Bitrix\Sale\PropertyValue;
@@ -29,10 +28,8 @@ use Exception;
 use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
 use Intaro\RetailCrm\Component\Handlers\EventsHandlers;
-use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Model\Api\CodeValueModel;
 use Intaro\RetailCrm\Model\Api\Order\OrderProduct;
-use Intaro\RetailCrm\Model\Api\Response\Order\Loyalty\OrderLoyaltyApplyResponse;
 use Intaro\RetailCrm\Model\Bitrix\OrderLoyaltyData;
 use Intaro\RetailCrm\Repository\OrderLoyaltyDataRepository;
 use Intaro\RetailCrm\Repository\OrderPropsRepository;
@@ -49,7 +46,7 @@ class OrderLoyaltyDataService
      * @var \Logger
      */
     private $logger;
-    
+
     /**
      * OrderLoyaltyDataService constructor.
      */
@@ -68,7 +65,7 @@ class OrderLoyaltyDataService
     public function addCustomersLoyaltyFields(): void
     {
         $persons = PersonTypeRepository::getCollectionByWhere(['ID']);
-        
+
         foreach ($persons as $person) {
             $personId = $person->getID();
             $groupId  = $this->getGroupId($personId);
@@ -90,15 +87,15 @@ class OrderLoyaltyDataService
             'NAME'       => Constants::HL_LOYALTY_CODE,
             'TABLE_NAME' => Constants::HL_LOYALTY_TABLE_NAME,
         ]);
-        
+
         $arLangs = [
             'ru' => Loc::GetMessage('LP_ORDER_GROUP_NAME', null, 'ru'),
             'en' => Loc::GetMessage('LP_ORDER_GROUP_NAME', null, 'en'),
         ];
-        
+
         if ($result->isSuccess()) {
             $hlId = $result->getId();
-            
+
             foreach ($arLangs as $langKey => $langVal) {
                 HL\HighloadBlockLangTable::add([
                     'ID'   => $hlId,
@@ -111,20 +108,20 @@ class OrderLoyaltyDataService
                 Logger::getInstance()->write($error);
             }
         }
-        
+
         if (!isset($hlId)) {
             return;
         }
-        
+
         $ufObject     = 'HLBLOCK_' . $hlId;
         $arCartFields = self::getHlFields($ufObject);
-        
+
         foreach ($arCartFields as $arCartField) {
             $obUserField = new CUserTypeEntity();
             $obUserField->Add($arCartField);
         }
     }
-    
+
     /**
      * Добавляет информацию о списанных бонусах и скидках программы лояльности в св-ва заказа
      *
@@ -142,13 +139,13 @@ class OrderLoyaltyDataService
             if ($prop->getField('CODE') === 'LP_DISCOUNT_INFO') {
                 $this->saveLpInfoToField($prop, $loyaltyDiscountInput);
             }
-            
+
             if ($prop->getField('CODE') === 'LP_BONUS_INFO') {
                 $this->saveLpInfoToField($prop, $loyaltyBonus);
             }
         }
     }
-    
+
     /**
      * Обновляет данные о начисленных бонусах и скидках в полях заказа
      *
@@ -158,20 +155,20 @@ class OrderLoyaltyDataService
     {
         /** @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter $client */
         $client = ClientFactory::createClientAdapter();
-        
+
         $response = $client->getOrder($orderId);
-        
+
         if ($response === null || !is_array($response->order->items)) {
             return;
         }
-        
+
         try {
             $order = Order::load($orderId);
-            
+
             if ($order === null) {
                 return;
             }
-            
+
             $repository = new OrderLoyaltyDataRepository();
             $bitrixItems = $repository->getProductsByOrderId($orderId);
             $loyaltyDiscount  = 0;
@@ -191,7 +188,7 @@ class OrderLoyaltyDataService
                 $loyaltyDiscount ?? 0.0,
                 $response->order->bonusesChargeTotal
             );
-            
+
             EventsHandlers::$disableSaleHandler = true;
             $order->save();
             EventsHandlers::$disableSaleHandler = false;
@@ -199,7 +196,7 @@ class OrderLoyaltyDataService
             $this->logger->write($exception->getMessage(), Constants::LOYALTY_ERROR);
         }
     }
-    
+
     /**
      * Записывает данные о ПЛ в HL-блок
      *
@@ -208,26 +205,13 @@ class OrderLoyaltyDataService
      */
     public function saveLoyaltyInfoToHl(array $loyaltyHls): void
     {
-        /** @var OrderLoyaltyDataService $hlService */
-        $hlService = ServiceLocator::get(OrderLoyaltyDataService::class);
-        
+        $repository = new OrderLoyaltyDataRepository();
+
         foreach ($loyaltyHls as $loyaltyData) {
-            $hlService->addDataInLoyaltyHl($loyaltyData);
+            $repository->add($loyaltyData);
         }
     }
-    
-    /**
-     * Записывает информацию о скидках по программе лояльности в HL блок
-     *
-     * @param \Intaro\RetailCrm\Model\Bitrix\OrderLoyaltyData $loyaltyHl
-     */
-    private function addDataInLoyaltyHl(OrderLoyaltyData $loyaltyHl): void
-    {
-        $repository = new OrderLoyaltyDataRepository();
-        
-        $repository->add($loyaltyHl);
-    }
-    
+
     /**
      * @param $personId
      * @param $groupId
@@ -241,7 +225,7 @@ class OrderLoyaltyDataService
                     ['PROPS_GROUP_ID', '=', $groupId],
                 ]
             );
-            
+
             if ($bonusProp === null) {
                 $fields = [
                     [
@@ -281,7 +265,7 @@ class OrderLoyaltyDataService
                         'UTIL'            => 'Y',
                     ],
                 ];
-                
+
                 foreach ($fields as $field) {
                     CSaleOrderProps::Add($field);
                 }
@@ -290,7 +274,7 @@ class OrderLoyaltyDataService
             $this->logger->write($exception->getMessage(), Constants::LOYALTY_ERROR);
         }
     }
-    
+
     /**
      * @param $personId
      * @return int
@@ -307,11 +291,11 @@ class OrderLoyaltyDataService
                     ]
                 )
                 ->fetch();
-            
+
             if (is_array($lpGroup)) {
                 return $lpGroup['ID'];
             }
-            
+
             if ($lpGroup === false) {
                 return OrderPropsGroupTable::add([
                     'PERSON_TYPE_ID' => $personId,
@@ -320,13 +304,13 @@ class OrderLoyaltyDataService
             }
         } catch (Exception $exception) {
             $this->logger->write($exception->getMessage(), Constants::LOYALTY_ERROR);
-            
+
             return null;
         }
-        
+
         return null;
     }
-    
+
     /**
      * Возвращает настройки для генерации полей HL блока
      *
@@ -500,7 +484,7 @@ class OrderLoyaltyDataService
             ],
         ];
     }
-    
+
     /**
      * @param \Bitrix\Sale\PropertyValue $prop
      * @param float|null                 $loyaltyBonus
@@ -509,7 +493,7 @@ class OrderLoyaltyDataService
     {
         try {
             $result = $prop->setField('VALUE', (string) $loyaltyBonus);
-            
+
             if (!$result->isSuccess()) {
                 $this->logger->write($result->getErrorMessages(), Constants::LOYALTY_ERROR);
             }
