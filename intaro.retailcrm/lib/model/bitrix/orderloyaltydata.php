@@ -33,7 +33,7 @@ class OrderLoyaltyData
      * @Mapping\SerializedName("ID")
      */
     public $id;
-    
+
     /**
      * ID заказа
      *
@@ -43,7 +43,7 @@ class OrderLoyaltyData
      * @Mapping\SerializedName("UF_ORDER_ID")
      */
     public $orderId;
-   
+
     /**
      * ID товара
      *
@@ -59,11 +59,11 @@ class OrderLoyaltyData
      *
      * @var string
      *
-     * @Mapping\Type("integer")
+     * @Mapping\Type("string")
      * @Mapping\SerializedName("UF_CHECK_ID")
      */
     public $checkId;
-    
+
     /**
      * Списаны ли бонусы
      *
@@ -73,7 +73,7 @@ class OrderLoyaltyData
      * @Mapping\SerializedName("UF_IS_DEBITED")
      */
     public $isDebited;
-    
+
     /**
      * Количество в корзине
      *
@@ -83,7 +83,7 @@ class OrderLoyaltyData
      * @Mapping\SerializedName("UF_QUANTITY")
      */
     public $quantity;
-    
+
     /**
      * ID позиции товара в корзине
      *
@@ -93,7 +93,7 @@ class OrderLoyaltyData
      * @Mapping\SerializedName("UF_ITEM_POS_ID")
      */
     public $basketItemPositionId;
-    
+
     /**
      * Размер обычной скидки на единицу товара в позиции
      *
@@ -105,7 +105,7 @@ class OrderLoyaltyData
      * @Mapping\SerializedName("UF_DEF_DISCOUNT")
      */
     public $defaultDiscount;
-    
+
     /**
      * Название товара
      *
@@ -115,7 +115,7 @@ class OrderLoyaltyData
      * @Mapping\SerializedName("UF_NAME")
      */
     public $name;
-    
+
     /**
      * Количество списываемых бонусов
      *
