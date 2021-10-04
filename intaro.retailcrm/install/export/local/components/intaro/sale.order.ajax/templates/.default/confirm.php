@@ -14,30 +14,29 @@ use Intaro\RetailCrm\Service\LoyaltyAccountService;
  * @var       $APPLICATION CMain
  */
 
-if ($arParams["SET_TITLE"] === "Y") {
-    $APPLICATION->SetTitle(Loc::getMessage("SOA_ORDER_COMPLETE"));
+if ($arParams['SET_TITLE'] === 'Y') {
+    $APPLICATION->SetTitle(Loc::getMessage('SOA_ORDER_COMPLETE'));
 }
 ?>
-<?php if (!empty($arResult["ORDER"])): ?>
+<?php if (!empty($arResult['ORDER'])): ?>
     <?php
     if ($arResult['LOYALTY_STATUS'] === 'Y' && $arResult['PERSONAL_LOYALTY_STATUS'] === true) {
         /** @var LoyaltyService $loyaltyService */
         $loyaltyService = ServiceLocator::get(LoyaltyService::class);
-    
+
         /** @var CookieService $cookieService */
         $cookieService = ServiceLocator::get(CookieService::class);
-        $isDebited     = $loyaltyService->isBonusDebited($arResult["ORDER"]['ID']);
-        
+        $isDebited = $loyaltyService->isBonusDebited($arResult['ORDER']['ID']);
+
         //если есть бонусная оплата и она не оплачена, то отрисовываем форму введения кода верификации
         if ($isDebited !== null && $isDebited === false) {
-            
             $smsCookie = $cookieService->getSmsCookie('lpOrderBonusConfirm');
 
             //если куки пустые (страница обновляется после длительного перерыва), то пробуем снова отправить бонусы
             if ($smsCookie === null || empty($smsCookie->checkId)) {
                 $smsCookie = $loyaltyService->resendBonusPayment($arResult["ORDER"]['ID']);
             }
-            
+
             if ($smsCookie === false) { ?>
                 <div><?=GetMessage('BONUS_ERROR')?></div>
             <?php } elseif ($smsCookie === true) { ?>
@@ -89,7 +88,7 @@ if ($arParams["SET_TITLE"] === "Y") {
             </td>
         </tr>
     </table>
-    
+
     <?php
     if ($arResult["ORDER"]["IS_ALLOW_PAY"] === 'Y') {
         if (!empty($arResult["PAYMENT"])) {
@@ -99,7 +98,7 @@ if ($arParams["SET_TITLE"] === "Y") {
                         && array_key_exists($payment["PAY_SYSTEM_ID"], $arResult['PAY_SYSTEM_LIST'])
                     ) {
                         $arPaySystem = $arResult['PAY_SYSTEM_LIST_BY_PAYMENT_ID'][$payment["ID"]];
-                        
+
                         if (empty($arPaySystem["ERROR"])) {
                             ?>
                             <br/><br/>
@@ -134,7 +133,7 @@ if ($arParams["SET_TITLE"] === "Y") {
                                     </td>
                                 </tr>
                             </table>
-    
+
                             <?php
                         } else {
                             ?>

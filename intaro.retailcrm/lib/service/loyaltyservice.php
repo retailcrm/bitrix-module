@@ -462,7 +462,7 @@ class LoyaltyService
         }
 
         foreach ($products as $product) {
-            if ($product->bonusCount > 0 && $product->isDebited === false) {
+            if (!empty($product->checkId) && $product->isDebited === false) {
                 return false;
             }
         }
