@@ -452,7 +452,16 @@ if ($arResult["SHOW_SMS_FIELD"] == true) {
                             <?=GetMessage("REGISTER_FIELD_PERSONAL_PHONE")?>
                         </td>
                         <td>
-                            <input size="30" type="text" name="REGISTER[PERSONAL_PHONE]" value>
+                            <input
+                                id="personalPhone"
+                                autofocus="autofocus" required="required"
+                                value="+_(___)___-__-__"
+                                pattern="([\+]*[0-9]{1}\s?[\(]*[0-9]{3}[\)]*\s?\d{3}[-]*\d{2}[-]*\d{2})"
+                                placeholder="+_(___)___-__-__"
+                                size="30"
+                                type="tel"
+                                name="REGISTER[PERSONAL_PHONE]"
+                            >
                         </td>
                     </tr>
                     <tr class="lp_toggled_block" style="display: none">
