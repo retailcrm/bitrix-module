@@ -45,14 +45,15 @@ class Deserializer
     }
 
     /**
-     * @param string $type
-     * @param array  $value
+     * @param array|null $value
+     *
+     * @param string     $type
      *
      * @return mixed
      */
-    public static function deserializeArray(array $value, string $type)
+    public static function deserializeArray(?array $value, string $type)
     {
-        $result = StrategyFactory::deserializeStrategyByType($type)->deserialize($type, $value);
+        $result = StrategyFactory::deserializeStrategyByType($type)->deserialize($type, $value ?? []);
 
         static::processPostDeserialize($result);
 
