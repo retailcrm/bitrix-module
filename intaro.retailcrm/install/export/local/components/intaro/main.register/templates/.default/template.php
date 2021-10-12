@@ -98,7 +98,25 @@ if ($arResult["SHOW_SMS_FIELD"] == true) {
                     <form id="lpRegFormInputs">
                         <?php
                         foreach ($arResult['LP_REGISTER']['form']['fields'] as $key => $field) {
-                            ?>
+
+                            if ($key === 'PERSONAL_PHONE') { ?>
+                                <label>
+                                    <?=GetMessage($key)?>:
+                                    <input
+                                        id="personalPhone"
+                                        autofocus="autofocus"
+                                        required="required"
+                                        pattern="([\+]*[0-9]{1}\s?[\(]*[0-9]{3}[\)]*\s?\d{3}[-]*\d{2}[-]*\d{2})"
+                                        placeholder="+_(___)___-__-__"
+                                        value="+_(___)___-__-__"
+                                        size="30"
+                                        type="tel"
+                                    >
+                                </label>
+                            <?php
+                            continue;
+                            } ?>
+
                             <label>
                                 <input
                                     name="<?=$key?>"
@@ -454,13 +472,13 @@ if ($arResult["SHOW_SMS_FIELD"] == true) {
                         <td>
                             <input
                                 id="personalPhone"
-                                autofocus="autofocus" required="required"
-                                value="+_(___)___-__-__"
+                                autofocus="autofocus"
+                                required="required"
                                 pattern="([\+]*[0-9]{1}\s?[\(]*[0-9]{3}[\)]*\s?\d{3}[-]*\d{2}[-]*\d{2})"
                                 placeholder="+_(___)___-__-__"
+                                value="+_(___)___-__-__"
                                 size="30"
-                                type="tel"
-                                name="REGISTER[PERSONAL_PHONE]"
+                                type="hidden"
                             >
                         </td>
                     </tr>
