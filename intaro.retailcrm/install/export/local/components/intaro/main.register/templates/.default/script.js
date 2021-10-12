@@ -202,10 +202,15 @@ function sendVerificationCode() {
 
 /** Управляет отображением блока с полями программы лояльности на странице регистрации. */
 function lpFieldToggle() {
+    let phone = $('#personalPhone');
     if ($('#checkbox_UF_REG_IN_PL_INTARO').is(':checked')) {
         $('.lp_toggled_block').css('display', 'table-row');
         $('.lp_agree_checkbox').prop('checked', true);
+        phone.prop('type', 'tel');
+        phone.attr('name', 'REGISTER[PERSONAL_PHONE]');
     } else {
+        phone.removeAttr('name');
+        phone.prop('type', 'hidden');
         $('.lp_agree_checkbox').prop('checked', false);
         $('.lp_toggled_block').css('display', 'none');
     }
@@ -240,6 +245,11 @@ function mask(e) {
 
 window.addEventListener("DOMContentLoaded", function() {
     const input = document.querySelector("#personalPhone");
+
+    if (input === null) {
+        return
+    }
+
     input.addEventListener("input", mask, false);
     input.focus();
     setCursorPosition(3, input);
