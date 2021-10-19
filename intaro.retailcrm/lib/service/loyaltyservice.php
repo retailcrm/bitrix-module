@@ -99,10 +99,10 @@ class LoyaltyService
         $request->order->externalId = $orderId;
         $request->bonuses = $bonusCount;
         $request->site = $this->site;
-
         $result = $this->client->loyaltyOrderApply($request);
 
         Utils::handleApiErrors($result);
+
         return $result;
     }
 
@@ -203,16 +203,15 @@ class LoyaltyService
      *
      * Используется при необходимости еще раз отправить смс
      *
-     * @param $orderId
+     * @param int $orderId
      *
      * @return \Intaro\RetailCrm\Model\Bitrix\SmsCookie|bool
      */
-    public function resendBonusPayment($orderId)
+    public function resendBonusPayment(int $orderId)
     {
         /** @var CookieService $service */
         $service = ServiceLocator::get(CookieService::class);
-
-        $bonusCount = $this->getBonusCount($orderId);
+        $bonusCount = $this->getTotalBonusCount($orderId);
 
         if ($bonusCount === false || $bonusCount === 0) {
             return false;
@@ -233,7 +232,9 @@ class LoyaltyService
         }
 
         if (!empty($response->verification->verifiedAt)) {
+            $this->saveBonusDiscounts(Order::load($orderId), $response);
             $this->setDebitedStatus($orderId, true);
+
             return true;
         }
 
@@ -433,6 +434,38 @@ class LoyaltyService
         }
     }
 
+
+    /**
+     * @param \Bitrix\Sale\Order                                                           $order
+     * @param \Intaro\RetailCrm\Model\Api\Response\Order\Loyalty\OrderLoyaltyApplyResponse $response
+     *
+     * @return void|null
+     */
+    public function saveBonusDiscounts(Order $order, OrderLoyaltyApplyResponse $response): void
+    {
+        try {
+            $basketItems = $order->getBasket();
+
+            if ($basketItems === null) {
+                $this->logger->write('No item in basket', Constants::LOYALTY_ERROR);
+            }
+
+            /** @var BasketItemBase $basketItem */
+            foreach ($basketItems as $key => $basketItem) {
+                /** @var OrderProduct $item */
+                $item = $response->order->items[$key];
+                $basePrice = $basketItem->getField('BASE_PRICE');
+                $basketItem->setField('CUSTOM_PRICE', 'Y');
+                $basketItem->setField('DISCOUNT_PRICE', $item->discountTotal);
+                $basketItem->setField('PRICE', $basePrice - $item->discountTotal);
+            }
+
+            $order->save();
+        } catch (Exception $exception) {
+            $this->logger->write($exception->getMessage(), Constants::LOYALTY_ERROR);
+        }
+    }
+
     /**
      * @param int $externalId
      *
@@ -480,61 +513,38 @@ class LoyaltyService
      */
     public function applyBonusesInOrder(Order $order, int $bonusCount): ?OrderLoyaltyApplyResponse
     {
-        $orderId = $order->getId();
-        $response = $this->sendBonusPayment($orderId, $bonusCount);
+        $response = $this->sendBonusPayment($order->getId(), $bonusCount);
 
         if ($response->success) {
-            try {
-                $basketItems = $order->getBasket();
-
-                if ($basketItems === null) {
-                    return null;
-                }
-
-                /** @var BasketItemBase $basketItem */
-                foreach ($basketItems as $key => $basketItem) {
-                    /** @var OrderProduct $item */
-                    $item = $response->order->items[$key];
-                    $basePrice = $basketItem->getField('BASE_PRICE');
-                    $basketItem->setField('CUSTOM_PRICE', 'Y');
-                    $basketItem->setField('DISCOUNT_PRICE', $item->discountTotal);
-                    $basketItem->setField('PRICE', $basePrice - $item->discountTotal);
-                }
-
-                $order->save();
-
-                return $response;
-            } catch (Exception $exception) {
-                $this->logger->write($exception->getMessage(), Constants::LOYALTY_ERROR);
-
-                return null;
-            }
+           $this->saveBonusDiscounts($order, $response);
         } else {
             Utils::handleApiErrors($response);
             return null;
         }
+
+        return $response;
     }
 
     /**
      * @param $orderId
      *
-     * @return false|int
+     * @return int|null
      */
-    private function getBonusCount($orderId)
+    private function getTotalBonusCount($orderId): ?int
     {
         $repository = new OrderLoyaltyDataRepository();
         $products = $repository->getProductsByOrderId($orderId);
 
         if ($products === null || count($products) === 0) {
-            return false;
+            return null;
         }
-
-        $bonusCount = 0;
 
         foreach ($products as $product) {
-            $bonusCount += $product->bonusCount * $product->quantity;
+            if ($product->bonusCountTotal > 0) {
+                return $product->bonusCountTotal;
+            }
         }
 
-        return (int)round($bonusCount);
+        return null;
     }
 }

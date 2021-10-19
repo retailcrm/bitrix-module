@@ -77,6 +77,8 @@ class CustomerBuilder implements BuilderInterface
             $this->buildDaemonCollectorId();
         }
 
+        $this->customer->customFields = $this->handleFields($this->customFields ?? []);
+
         return $this;
     }
 
@@ -157,12 +159,10 @@ class CustomerBuilder implements BuilderInterface
         $this->customer = new Customer();
         $this->customer->contragent = new Contragent();
         $this->customer->contragent->contragentType = $contragentType;
-
         $this->customer->externalId = $this->user->getId();
         $this->customer->email = $this->user->getEmail();
         $this->customer->createdAt = $this->user->getDateRegister();
         $this->customer->subscribed = false;
-        $this->customer->customFields = $this->handleFields();
     }
 
     /**
@@ -233,59 +233,35 @@ class CustomerBuilder implements BuilderInterface
         $this->customer->phones[] = $phone;
     }
 
-    private function handleFields(): array
-    {
-        $resultFieldsArray = [];
-
-        foreach ($this->customFields as $type => $fields) {
-            $resultFieldsArray = array_merge(
-                $resultFieldsArray,
-                $this->handleFieldByType($type, $fields)
-            );
-        }
-
-        return $resultFieldsArray;
-    }
-
     /**
-     * @param string $type
-     * @param array  $fields
-     *
-     * @return array
-     * @throws \Exception
+     * @param array $customFields
      */
-    private function handleFieldByType(string $type, array $fields): array
+    private function handleFields(array $customFields): void
     {
-        $newFields = [];
-
-        foreach ($fields as $field) {
-            if ($type === 'checkboxes') {
-                $newFields[$field['code']] = (bool) $field['value'];
+        foreach ($customFields as $key => $fieldValue) {
+            if ($key === 'lastName') {
+                $this->customer->lastName = $fieldValue;
+                unset($field);
+                continue;
             }
 
-            if ($type === 'numbers') {
-                $newFields[$field['code']] = (int) $field['value'];
+            if ($key === 'email') {
+                $this->customer->email =$fieldValue;
+                unset($field);
+                continue;
             }
 
-            if ($type === 'strings') {
-                if ($field['code'] === 'PERSONAL_PHONE') {
-                    $this->addPhone(htmlspecialchars(trim($field['value'])));
-
-                    continue;
-                }
-
-                $newFields[$field['code']] = htmlspecialchars(trim($field['value']));
+            if ($key === 'firstName') {
+                $this->customer->firstName = $fieldValue;
+                unset($field);
+                continue;
             }
 
-            if ($type === 'dates') {
-                $newFields[$field['code']] = date('d.m.Y', strtotime($field['value']));
-            }
-
-            if ($type === 'options') {
-                $newFields[$field['code']] = htmlspecialchars(trim($field['value']));
+            if ($key === 'PERSONAL_PHONE' || $key === 'phoneNumber') {
+                $this->addPhone(htmlspecialchars(trim($fieldValue)));
+                unset($field);
+                continue;
             }
         }
-
-        return $newFields;
     }
 }

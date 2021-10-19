@@ -117,7 +117,7 @@ class OrderLoyaltyData
     public $name;
 
     /**
-     * Количество списываемых бонусов
+     * Количество списываемых бонусов по позиции
      *
      * @var integer
      *
@@ -125,6 +125,16 @@ class OrderLoyaltyData
      * @Mapping\SerializedName("UF_BONUS_COUNT")
      */
     public $bonusCount;
+
+    /**
+     * Количество списываемых бонусов по всему заказу
+     *
+     * @var integer
+     *
+     * @Mapping\Type("integer")
+     * @Mapping\SerializedName("UF_BONUS_COUNT_TOTAL")
+     */
+    public $bonusCountTotal;
 }
 
 

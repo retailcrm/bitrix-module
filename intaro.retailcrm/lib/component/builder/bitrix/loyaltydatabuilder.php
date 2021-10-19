@@ -49,6 +49,10 @@ class LoyaltyDataBuilder implements BuilderInterface
 
     /** @var OrderLoyaltyData[] $data */
     private $data;
+    /**
+     * @var int
+     */
+    private $bonusCountTotal;
 
     /**
      * LoyaltyDataBuilder constructor.
@@ -72,6 +76,7 @@ class LoyaltyDataBuilder implements BuilderInterface
                 $loyaltyHl->basketItemPositionId = $basketItem->getId();
                 $loyaltyHl->quantity = $basketItem->getQuantity();
                 $loyaltyHl->name = $basketItem->getField('NAME');
+                $loyaltyHl->bonusCountTotal = $this->bonusCountTotal ?? null;
 
                 $loyaltyHl->defaultDiscount
                     = $this->calculateItemsInput[$loyaltyHl->basketItemPositionId]['SHOP_ITEM_DISCOUNT'] ?? null;
@@ -141,6 +146,14 @@ class LoyaltyDataBuilder implements BuilderInterface
         $this->calculateItemsInput = $calculateItemsInput;
 
         return $this;
+    }
+
+    /**
+     * @param int $bonusCountTotal
+     */
+    public function setBonusInputTotal(int $bonusCountTotal): void
+    {
+        $this->bonusCountTotal = $bonusCountTotal;
     }
 
     /**

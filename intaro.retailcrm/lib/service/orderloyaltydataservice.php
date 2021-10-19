@@ -15,6 +15,7 @@ namespace Intaro\RetailCrm\Service;
 
 use Bitrix\Highloadblock as HL;
 use Bitrix\Main\ArgumentException;
+use Bitrix\Main\Loader;
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
@@ -28,6 +29,7 @@ use Exception;
 use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
 use Intaro\RetailCrm\Component\Handlers\EventsHandlers;
+use Intaro\RetailCrm\Component\Json\Serializer;
 use Intaro\RetailCrm\Model\Api\CodeValueModel;
 use Intaro\RetailCrm\Model\Api\Order\OrderProduct;
 use Intaro\RetailCrm\Model\Bitrix\OrderLoyaltyData;
@@ -155,7 +157,6 @@ class OrderLoyaltyDataService
     {
         /** @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter $client */
         $client = ClientFactory::createClientAdapter();
-
         $response = $client->getOrder($orderId);
 
         if ($response === null || !is_array($response->order->items)) {
@@ -188,6 +189,61 @@ class OrderLoyaltyDataService
                 $loyaltyDiscount ?? 0.0,
                 $response->order->bonusesChargeTotal
             );
+
+            EventsHandlers::$disableSaleHandler = true;
+            $order->save();
+            EventsHandlers::$disableSaleHandler = false;
+        } catch (Exception $exception) {
+            $this->logger->write($exception->getMessage(), Constants::LOYALTY_ERROR);
+        }
+    }
+
+    /**
+     * @param int $orderId
+     *
+     * @throws \Bitrix\Main\LoaderException
+     */
+    public function updateOrderFromCrm(int $orderId): void
+    {
+        if (!Loader::includeModule('sale')) {
+            return;
+        }
+
+        /** @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter $client */
+        $client = ClientFactory::createClientAdapter();
+        $response = $client->getOrder($orderId);
+
+        if ($response === null || !is_array($response->order->items)) {
+            return;
+        }
+
+        try {
+            $order = Order::load($orderId);
+
+            if ($order === null) {
+                return;
+            }
+
+            $basket = $order->getBasket();
+
+            /** @var OrderProduct $item */
+            foreach ($response->order->items as $item) {
+                $itemArray = Serializer::serializeArray($item);
+                $basketIdKey = array_search(
+                    'bitrixBasketId',
+                    array_column($itemArray['externalIds'], 'code'),
+                    true
+                );
+                $basketItem = $basket->getItemById($item->externalIds[$basketIdKey]->value);
+
+                if ($basketItem === null) {
+                    continue;
+                }
+
+                $basketItem->setField('CUSTOM_PRICE', 'Y');
+                $basketItem->setField('DISCOUNT_PRICE', $item->initialPrice - $item->discountTotal);
+                $basketItem->setField('PRICE', $item->initialPrice - $item->discountTotal);
+            }
 
             EventsHandlers::$disableSaleHandler = true;
             $order->save();
@@ -480,6 +536,24 @@ class OrderLoyaltyDataService
                 'LIST_FILTER_LABEL' => [
                     'ru' => Loc::GetMessage('UF_BONUS_COUNT', null, 'ru'),
                     'en' => Loc::GetMessage('UF_BONUS_COUNT', null, 'en'),
+                ],
+            ],
+            'UF_BONUS_COUNT_TOTAL'  => [
+                'ENTITY_ID'         => $ufObject,
+                'FIELD_NAME'        => 'UF_BONUS_COUNT_TOTAL',
+                'USER_TYPE_ID'      => 'integer',
+                'MANDATORY'         => 'N',
+                'EDIT_FORM_LABEL'   => [
+                    'ru' => Loc::GetMessage('UF_BONUS_COUNT_TOTAL', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_BONUS_COUNT_TOTAL', null, 'en'),
+                ],
+                'LIST_COLUMN_LABEL' => [
+                    'ru' => Loc::GetMessage('UF_BONUS_COUNT_TOTAL', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_BONUS_COUNT_TOTAL', null, 'en'),
+                ],
+                'LIST_FILTER_LABEL' => [
+                    'ru' => Loc::GetMessage('UF_BONUS_COUNT_TOTAL', null, 'ru'),
+                    'en' => Loc::GetMessage('UF_BONUS_COUNT_TOTAL', null, 'en'),
                 ],
             ],
         ];

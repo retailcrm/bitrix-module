@@ -10,4 +10,5 @@ $MESS ['LP_ORDER_GROUP_NAME'] = 'Loyalty program';
 $MESS ['UF_QUANTITY']         = 'Quantity in the basket';
 $MESS ['UF_NAME']             = 'Product name';
 $MESS ['UF_IS_DEBITED']       = 'Is debited';
-$MESS ['UF_BONUS_COUNT']      = 'Bonuses for writing off';
+$MESS ['UF_BONUS_COUNT']      = 'Bonuses for writing off in position';
+$MESS ['UF_BONUS_COUNT_TOTAL']      = 'Bonuses for writing off in order';

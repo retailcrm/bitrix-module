@@ -10,4 +10,5 @@ $MESS ['LP_ORDER_GROUP_NAME'] = 'Программа лояльности';
 $MESS ['UF_QUANTITY']         = 'Количество в корзине';
 $MESS ['UF_NAME']             = 'Название товара';
 $MESS ['UF_IS_DEBITED']       = 'Списаны ли бонусы';
-$MESS ['UF_BONUS_COUNT']      = 'Количество списываемых бонусов';
+$MESS ['UF_BONUS_COUNT']      = 'Количество списываемых бонусов в позиции';
+$MESS ['UF_BONUS_COUNT_TOTAL']      = 'Количество списываемых бонусов в заказе';
