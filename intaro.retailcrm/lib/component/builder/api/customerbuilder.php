@@ -76,8 +76,8 @@ class CustomerBuilder implements BuilderInterface
         if ($this->attachDaemonCollectorId) {
             $this->buildDaemonCollectorId();
         }
-
-        $this->customer->customFields = $this->handleFields($this->customFields ?? []);
+        $this->handleFields();
+        $this->customer->customFields = $this->customFields;
 
         return $this;
     }
@@ -233,33 +233,35 @@ class CustomerBuilder implements BuilderInterface
         $this->customer->phones[] = $phone;
     }
 
-    /**
-     * @param array $customFields
-     */
-    private function handleFields(array $customFields): void
+
+    private function handleFields(): void
     {
-        foreach ($customFields as $key => $fieldValue) {
+        if (count($this->customFields) === 0) {
+            return;
+        }
+
+        foreach ($this->customFields as $key => $fieldValue) {
             if ($key === 'lastName') {
                 $this->customer->lastName = $fieldValue;
-                unset($field);
+                unset($this->customFields[$key]);
                 continue;
             }
 
             if ($key === 'email') {
                 $this->customer->email =$fieldValue;
-                unset($field);
+                unset($this->customFields[$key]);
                 continue;
             }
 
             if ($key === 'firstName') {
                 $this->customer->firstName = $fieldValue;
-                unset($field);
+                unset($this->customFields[$key]);
                 continue;
             }
 
             if ($key === 'PERSONAL_PHONE' || $key === 'phoneNumber') {
                 $this->addPhone(htmlspecialchars(trim($fieldValue)));
-                unset($field);
+                unset($this->customFields[$key]);
                 continue;
             }
         }
