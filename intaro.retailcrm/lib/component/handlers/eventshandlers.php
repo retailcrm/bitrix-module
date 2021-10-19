@@ -21,6 +21,7 @@ use Bitrix\Sale\Order;
 use Intaro\RetailCrm\Component\Builder\Bitrix\LoyaltyDataBuilder;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\ServiceLocator;
+use Intaro\RetailCrm\Model\Api\Response\Order\Loyalty\OrderLoyaltyApplyResponse;
 use Intaro\RetailCrm\Repository\UserRepository;
 use Intaro\RetailCrm\Service\LoyaltyService;
 use Intaro\RetailCrm\Service\LoyaltyAccountService;
@@ -171,7 +172,7 @@ class EventsHandlers
                 && (int) $_POST['available-bonuses'] >= (int) $_POST['bonus-input'];
 
             /** @var array $calculateItemsInput */
-            $calculateItemsInput        = $isDataForLoyaltyDiscount
+            $calculateItemsInput = $isDataForLoyaltyDiscount
                 ? json_decode(htmlspecialchars_decode($_POST['calculate-items-input']), true)
                 : [];
 
@@ -186,17 +187,22 @@ class EventsHandlers
                     : 0;
 
                 $loyaltyBonusMsg = 0;
+                $applyBonusResponse = null;
 
                 //Если есть бонусы
                 if ($isBonusesIssetAndAvailable) {
-                    $hlInfoBuilder->setApplyResponse(
-                        $loyaltyService->applyBonusesInOrder($order, (int) $_POST['bonus-input'])
-                    );
+                    $applyBonusResponse = $loyaltyService->applyBonusesInOrder($order, (int) $_POST['bonus-input']);
+
+                    $hlInfoBuilder->setApplyResponse($applyBonusResponse);
                     $loyaltyBonusMsg = (int) $_POST['bonus-input'];
+                    $hlInfoBuilder->setBonusInputTotal((int) $_POST['bonus-input']);
                 }
 
                 //Если бонусов нет, но скидка по ПЛ есть
-                if ($isDataForLoyaltyDiscount && !$isBonusInput) {
+                if (
+                    ($isDataForLoyaltyDiscount && !$isBonusInput)
+                    || ($applyBonusResponse instanceof OrderLoyaltyApplyResponse && !$applyBonusResponse->order)
+                ) {
                     $loyaltyService->saveDiscounts($order, $calculateItemsInput);
                 }
 

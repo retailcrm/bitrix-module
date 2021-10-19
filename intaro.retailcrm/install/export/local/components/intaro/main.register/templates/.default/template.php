@@ -106,6 +106,7 @@ if ($arResult["SHOW_SMS_FIELD"] == true) {
                                         id="personalPhone"
                                         autofocus="autofocus"
                                         required="required"
+                                        name="PERSONAL_PHONE"
                                         pattern="([\+]*[0-9]{1}\s?[\(]*[0-9]{3}[\)]*\s?\d{3}[-]*\d{2}[-]*\d{2})"
                                         placeholder="+_(___)___-__-__"
                                         value="+_(___)___-__-__"

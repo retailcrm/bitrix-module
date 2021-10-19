@@ -16,11 +16,14 @@ namespace Intaro\RetailCrm\Controller\Loyalty;
 use Bitrix\Main\Engine\ActionFilter\Authentication;
 use Bitrix\Main\Engine\ActionFilter\HttpMethod;
 use Bitrix\Main\Engine\Controller;
+use Bitrix\Sale\Order as BitrixOrder;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse;
 use Intaro\RetailCrm\Service\LoyaltyService;
 use Intaro\RetailCrm\Service\LoyaltyAccountService;
+use Intaro\RetailCrm\Service\OrderLoyaltyDataService;
 use Intaro\RetailCrm\Service\Utils;
+use RetailCrmOrder;
 
 /**
  * Class Order
@@ -29,7 +32,7 @@ use Intaro\RetailCrm\Service\Utils;
  */
 class Order extends Controller
 {
-    
+
     /**
      * Возвращает результат расчета привилегий программы лояльности
      *
@@ -48,15 +51,15 @@ class Order extends Controller
             if ($response->success && count($response->order->items) > 0) {
                 return $response;
             }
-            
+
             Utils::handleApiErrors($response);
         }
-        
+
         return null;
     }
-    
+
     /**
-     * Отправляет код верификации из смс
+     * Отправляет код верификации из смс в систему
      *
      * @param string $verificationCode Проверочный код
      * @param int    $orderId id заказа
@@ -82,26 +85,29 @@ class Order extends Controller
             && isset($response->verification->verifiedAt)
             && !empty($response->verification->verifiedAt)
         ) {
-            $loyaltyService = new LoyaltyService();
-            
+            /** @var LoyaltyService $loyaltyService */
+            $loyaltyService = ServiceLocator::get(LoyaltyService::class);
+            /** @var OrderLoyaltyDataService $orderLoyaltyDataService */
+            $orderLoyaltyDataService = ServiceLocator::get(OrderLoyaltyDataService::class);
             $loyaltyService->setDebitedStatus($orderId, true);
-            
+            $orderLoyaltyDataService->updateOrderFromCrm($orderId);
+
             return [
                 'status'   => 'success',
                 'msg'      => GetMessage('BONUS_SUCCESS'),
                 'msgColor' => 'green',
             ];
         }
-        
+
         return [
             'status'   => 'error',
             'msg'      => GetMessage('BONUS_ERROR'),
             'msgColor' => 'brown',
         ];
     }
-    
+
     /**
-     * Повторно отправляет смс с кодом верификации
+     * Повторно отправляет смс с кодом верификации клиенту
      *
      * @param int $orderId id заказа
      * @return \Intaro\RetailCrm\Model\Bitrix\SmsCookie|array
@@ -110,21 +116,20 @@ class Order extends Controller
     {
         /** @var LoyaltyService $service */
         $service = ServiceLocator::get(LoyaltyService::class);
-    
-        $result = $service->resendBonusPayment((int)$orderId);
-        
+        $result = $service->resendBonusPayment($orderId);
+
         if ($result === true) {
             return ['msg' => GetMessage('BONUS_SUCCESS')];
         }
-    
+
         if ($result === false) {
             return ['msg' => GetMessage('BONUS_ERROR')];
         }
- 
+
         return $result;
     }
-    
-    
+
+
     /**
      * @return \array[][]
      */

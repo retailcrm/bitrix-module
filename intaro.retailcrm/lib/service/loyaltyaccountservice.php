@@ -19,11 +19,14 @@ use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
 use Intaro\RetailCrm\Component\Json\Serializer;
 use Intaro\RetailCrm\Component\ServiceLocator;
+use Intaro\RetailCrm\Model\Api\LoyaltyAccount;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountActivateRequest;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountCreateRequest;
+use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountEditRequest;
 use Intaro\RetailCrm\Model\Api\Request\SmsVerification\SmsVerificationConfirmRequest;
 use Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountActivateResponse;
 use Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountCreateResponse;
+use Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountEditResponse;
 use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationConfirmResponse;
 use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusRequest;
 use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusResponse;
@@ -402,6 +405,34 @@ class LoyaltyAccountService
     }
 
     /**
+     * @param int   $loyaltyId
+     * @param array $getEntityFields
+     *
+     * @return \Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountEditResponse|null
+     */
+    public function editLoyaltyAccount(int $loyaltyId, array $getEntityFields): ?LoyaltyAccountEditResponse
+    {
+        $request = new LoyaltyAccountEditRequest();
+        $request->id = $loyaltyId;
+        $request->loyaltyAccount = new LoyaltyAccount();
+        $request->loyaltyAccount->phoneNumber = $getEntityFields['phoneNumber'] ?? '';
+        $request->loyaltyAccount->cardNumber = $getEntityFields['cardNumber'] ?? '';
+
+        unset($getEntityFields['phoneNumber'], $getEntityFields['cardNumber']);
+
+        $request->loyaltyAccount->customFields = $getEntityFields;
+
+        /** @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter $client */
+        $client = ClientFactory::createClientAdapter();
+
+        try {
+            return $client->editLoyaltyAccount($request);
+        } catch (\ReflectionException $exception){
+            return null;
+        }
+    }
+
+    /**
      * @param array $requireFields
      *
      * @return array
@@ -468,7 +499,6 @@ class LoyaltyAccountService
         $customerId = (string)$userId;
 
         $createResponse = $this->createLoyaltyAccount($phone, $card, $customerId);
-
         $this->activateLpUserInBitrix($createResponse, $userId);
 
         $errorMsg = Utils::getErrorMsg($createResponse);
@@ -561,8 +591,19 @@ class LoyaltyAccountService
         $resultFieldsArray = [];
         $codes = array_column($fieldSettings, 'code');
 
+        $defaultFieldsCodes = ['Last name' => 'lastName', 'Email' => 'email', 'Phone number' => 'phoneNumber', 'First Name' => 'firstName'];
+
         foreach ($requireFields as $requireField) {
-            $key = array_search($requireField, $codes);
+            if (isset($defaultFieldsCodes[$requireField])) {
+                $requireField = $defaultFieldsCodes[$requireField];
+            }
+
+            $key = array_search($requireField, $codes, true);
+
+            if ($key === false) {
+                continue;
+            }
+
             $resultFieldsArray[] = $fieldSettings[$key];
         }
 
