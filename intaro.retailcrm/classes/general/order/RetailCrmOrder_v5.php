@@ -208,13 +208,31 @@ class RetailCrmOrder
                         'code' => 'bitrix',
                         'value' => $externalId,
                     ];
-                }
+                  }
+
+                $keyBasketId = array_search('bitrixBasketId', array_column($externalIds, 'code'));
+
+                if ($externalIds[$keyBasketId]['code'] === 'bitrixBasketId') {
+                    $externalIds[$keyBasketId] = [
+                        'code' => 'bitrixBasketId',
+                        'value' => $product['ID'],
+                    ];
+                } else {
+                    $externalIds[] = [
+                        'code' => 'bitrixBasketId',
+                        'value' => $product['ID'],
+                    ];
+                  }
             } else { //create
                 $externalIds = [
                     [
                         'code' => 'bitrix',
                         'value' => $externalId,
-                    ]
+                    ],
+                    [
+                        'code' => 'bitrixBasketId',
+                        'value' => $product['ID'],
+                    ],
                 ];
             }
 
@@ -263,6 +281,7 @@ class RetailCrmOrder
                 && $methodApi === 'ordersEdit'
                 && ConfigProvider::getLoyaltyProgramStatus() === 'Y'
             ) {
+                /** @var LoyaltyService $service */
                 $service = ServiceLocator::get(LoyaltyService::class);
                 $item['discountManualAmount'] = $service->getInitialDiscount((int) $externalId) ?? $discount;
             } elseif ($product['BASE_PRICE'] >= $product['PRICE']) {

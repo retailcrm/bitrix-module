@@ -6,6 +6,7 @@ use Bitrix\Main\Engine\ActionFilter\Authentication;
 use Bitrix\Main\Engine\Controller;
 use Bitrix\Main\Request;
 use Intaro\RetailCrm\Component\Builder\Api\CustomerBuilder;
+use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\DataProvider\CurrentUserProvider;
@@ -303,7 +304,7 @@ class Register extends Controller
      * @param array $allFields
      *
      * @return array
-     * @throws \Intaro\RetailCrm\Component\Builder\Exception\BuilderException
+     * @throws \Intaro\RetailCrm\Component\Builder\Exception\BuilderException|\ReflectionException
      */
     public function activateAccountAction(array $allFields): array
     {
@@ -326,8 +327,10 @@ class Register extends Controller
             ];
         }
 
+        $handledFields = $this->handleFields($allFields);
+
         $customer = $customerBuilder
-            ->setCustomFields($allFields)
+            ->setCustomFields($this->getEntityFields($handledFields, 'customer'))
             ->setUser($userObject)
             ->build()
             ->getResult();
@@ -342,6 +345,27 @@ class Register extends Controller
                 'msg'      => GetMessage('ERROR'),
                 'msgColor' => 'brown',
             ];
+        }
+
+        $loyaltyAccountFields = $this->getEntityFields($handledFields, 'loyalty_account');
+
+        if (!empty($loyaltyAccountFields)) {
+            $editLoyaltyAccountResponse = $loyaltyAccountService->editLoyaltyAccount(
+                $userObject->getLoyalty()->getIdInLoyalty(),
+                $loyaltyAccountFields
+            );
+
+            if ($editLoyaltyAccountResponse === null || $editLoyaltyAccountResponse->success !== true) {
+                {
+                    return [
+                        'status'   => 'error',
+                        'msg'      => empty($editLoyaltyAccountResponse->errorMsg)
+                            ? GetMessage('ERROR')
+                            : $editLoyaltyAccountResponse->errorMsg,
+                        'msgColor' => 'brown',
+                    ];
+                }
+            }
         }
 
         $response = $loyaltyAccountService->activateLoyaltyAccount($userObject->getLoyalty()->getIdInLoyalty());
@@ -364,5 +388,87 @@ class Register extends Controller
         }
 
         return $loyaltyAccountService->tryActivate($userObject->getLoyalty()->getIdInLoyalty());
+    }
+
+    /**
+     * @param array  $allFields
+     * @param string $entityName
+     *
+     * @return array
+     */
+    private function getEntityFields(array $allFields, string $entityName): array
+    {
+        $externalFields = json_decode(ConfigProvider::getLoyaltyFields(), true);
+        $filterResult = array_filter($externalFields, static function ($value) use ($entityName) {
+            return $value['entity'] === $entityName;
+        });
+
+        if (is_array($filterResult)) {
+            $codes = array_column($filterResult, 'code');
+
+            $resultFields = array_filter($allFields, static function ($key) use ($codes) {
+                return in_array($key, $codes, true);
+            }, ARRAY_FILTER_USE_KEY);
+
+
+            return is_array($resultFields) ? $resultFields : [];
+        }
+
+        return [];
+    }
+
+    private function handleFields(array  $allFields): array
+    {
+        $resultFieldsArray = [];
+
+        foreach ($allFields as $type => $fieldsByType) {
+            $resultFieldsArray = array_merge(
+                $resultFieldsArray,
+                $this->handleFieldByType($type, $fieldsByType)
+            );
+        }
+
+        return $resultFieldsArray;
+    }
+
+    /**
+     * @param string $type
+     * @param array  $fields
+     *
+     * @return array
+     * @throws \Exception
+     */
+    private function handleFieldByType(string $type, array $fields): array
+    {
+        $newFields = [];
+
+        foreach ($fields as $field) {
+            if ($type === 'checkboxes') {
+                $newFields[$field['code']] = (bool) $field['value'];
+                continue;
+            }
+
+            if ($type === 'numbers') {
+                $newFields[$field['code']] = (int) $field['value'];
+                continue;
+            }
+
+            if ($type === 'strings') {
+                $newFields[$field['code']] = htmlspecialchars(trim($field['value']));
+                continue;
+            }
+
+            if ($type === 'dates') {
+                $newFields[$field['code']] = date('d.m.Y', strtotime($field['value']));
+                continue;
+            }
+
+            if ($type === 'options') {
+                $newFields[$field['code']] = htmlspecialchars(trim($field['value']));
+                continue;
+            }
+        }
+
+        return $newFields;
     }
 }
