@@ -27,7 +27,7 @@ $(document).ready(function() {
         } else {
             $('#bonus-input-error').html(null);
         }
-        
+
         return false;
     }
 
@@ -36,7 +36,7 @@ $(document).ready(function() {
         let basketItemsHidden = window.__BASKET_ITEMS__;
         let inputBonuses = $('#bonus-input').val();
 
-        if (!isInt(inputBonuses) && !isFloat(inputBonuses)) {
+        if (!isInt(inputBonuses) && !isFloat(inputBonuses) && inputBonuses !== "") {
             $('#bonus-input-error').html(window.__MESS__.VALIDATE_BONUS_ERROR);
 
             return;
@@ -51,7 +51,7 @@ $(document).ready(function() {
                 data: {
                     sessid: BX.bitrix_sessid(),
                     basketItems: basketItemsHidden,
-                    inputBonuses: inputBonusesInt
+                    inputBonuses: inputBonusesInt ?? 0
                 }
             }
         )
