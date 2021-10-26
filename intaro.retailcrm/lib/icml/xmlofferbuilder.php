@@ -225,6 +225,7 @@ class XmlOfferBuilder
     {
         $this->xmlOffer->id = $item['ID'];
         $this->xmlOffer->productId = $item['ID'];
+        $this->xmlOffer->productType = $item['CATALOG_TYPE'];
         $this->xmlOffer->quantity = $item['CATALOG_QUANTITY'] ?? '';
         $this->xmlOffer->url = $item['DETAIL_PAGE_URL']
             ? $this->defaultServerName . $item['DETAIL_PAGE_URL']
