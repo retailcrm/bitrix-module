@@ -93,7 +93,7 @@ class CatalogRepository
     public function getProductPage(SelectParams $param, CatalogIblockInfo $catalogIblockInfo)
     {
         return CIBlockElement::GetList(
-            [],
+            ['ID' => 'ASC'],
             $this->builder->getWhereForOfferPart($param->parentId, $catalogIblockInfo),
             false,
             ['nPageSize' => $param->nPageSize, 'iNumPage' => $param->pageNumber, 'checkOutOfRange' => true],
