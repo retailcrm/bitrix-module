@@ -100,14 +100,11 @@ class IcmlWriter
      */
     public function writeOffers(array $offers): void
     {
-        \Bitrix\Main\Diag\Debug::writeToFile(memory_get_usage(), '', 'log.txt');
         foreach ($offers as $offer) {
             $this->writeOffer($offer);
         }
 
         file_put_contents($this->filePath, $this->writer->flush(true), FILE_APPEND);
-        \Bitrix\Main\Diag\Debug::writeToFile(memory_get_usage(), '', 'log.txt');
-        \Bitrix\Main\Diag\Debug::writeToFile('******', '', 'log.txt');
     }
 
     /**
