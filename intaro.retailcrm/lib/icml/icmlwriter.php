@@ -23,16 +23,23 @@ class IcmlWriter
      * @var \XMLWriter
      */
     private $writer;
+    /**
+     * @var string
+     */
+    private $filePath;
 
     /**
      * IcmlWriter constructor.
-     * @param $filePath
+     *
+     * @param string $filePath
      */
-    public function __construct($filePath)
+    public function __construct(string $filePath)
     {
+        $this->filePath = $filePath;
         $this->writer = new XMLWriter();
-        $this->writer->openURI($_SERVER['DOCUMENT_ROOT'] . $filePath);
-        $this->writer->setIndent(true);
+        $this->writer->openMemory();
+        $this->writer->setIndent(false);
+        $this->writer->startDocument('1.0', LANG_CHARSET);
     }
 
     /**
@@ -40,7 +47,6 @@ class IcmlWriter
      */
     public function writeToXmlTop(XmlData $data): void
     {
-        $this->writer->startDocument('1.0', LANG_CHARSET);
         $this->writer->startElement('yml_catalog');
         $this->writeSimpleAttribute('date', Date('Y-m-d H:i:s'));
 
@@ -53,7 +59,7 @@ class IcmlWriter
     {
         $this->writer->endElement();
         $this->writer->endElement();
-        $this->writer->flush();
+        file_put_contents($this->filePath, $this->writer->flush(true), FILE_APPEND);
         $this->writer->endDocument();
     }
 
@@ -71,12 +77,12 @@ class IcmlWriter
                 count($data->categories) === $key + 1
                 || is_int(count($data->categories) / self::CATEGORY_PART)
             ) {
-                $this->writer->flush();
+                file_put_contents($this->filePath, $this->writer->flush(true), FILE_APPEND);
             }
         }
 
         $this->writer->endElement();
-        $this->writer->flush();
+        file_put_contents($this->filePath, $this->writer->flush(true), FILE_APPEND);
     }
 
     public function startOffersBlock(): void
@@ -94,11 +100,14 @@ class IcmlWriter
      */
     public function writeOffers(array $offers): void
     {
+        \Bitrix\Main\Diag\Debug::writeToFile(memory_get_usage(), '', 'log.txt');
         foreach ($offers as $offer) {
             $this->writeOffer($offer);
         }
 
-        $this->writer->flush();
+        file_put_contents($this->filePath, $this->writer->flush(true), FILE_APPEND);
+        \Bitrix\Main\Diag\Debug::writeToFile(memory_get_usage(), '', 'log.txt');
+        \Bitrix\Main\Diag\Debug::writeToFile('******', '', 'log.txt');
     }
 
     /**
