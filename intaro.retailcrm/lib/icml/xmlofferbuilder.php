@@ -249,9 +249,9 @@ class XmlOfferBuilder
      * @param array     $product
      * @param bool|null $isLoadPrice
      * @param string    $purchasePriceNull
-     * @return int|null
+     * @return float|null
      */
-    private function getPurchasePrice(array $product, ?bool $isLoadPrice, string $purchasePriceNull): ?int
+    private function getPurchasePrice(array $product, ?bool $isLoadPrice, string $purchasePriceNull): ?float
     {
         if ($isLoadPrice) {
             if ($product['CATALOG_PURCHASING_PRICE']) {
