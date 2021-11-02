@@ -25,7 +25,7 @@ CModule::IncludeModule('intaro.retailcrm');
 
 //TODO заменить вызов на сервис-локатор, когда он приедет
 $settingsService = SettingsService::getInstance(
-    $arOldSetupVars,
+    $arOldSetupVars ?? [],
     $ACTION
 );
 

@@ -18,23 +18,30 @@ class IcmlWriter
 {
     public const INFO          = 'INFO';
     public const CATEGORY_PART = 1000;
-    
+
     /**
      * @var \XMLWriter
      */
     private $writer;
-    
+    /**
+     * @var string
+     */
+    private $filePath;
+
     /**
      * IcmlWriter constructor.
-     * @param $filePath
+     *
+     * @param string $filePath
      */
-    public function __construct($filePath)
+    public function __construct(string $filePath)
     {
+        $this->filePath = $filePath;
         $this->writer = new XMLWriter();
-        $this->writer->openURI($_SERVER['DOCUMENT_ROOT'] . $filePath);
-        $this->writer->setIndent(true);
+        $this->writer->openMemory();
+        $this->writer->setIndent(false);
+        $this->writer->startDocument('1.0', LANG_CHARSET);
     }
-    
+
     /**
      * @param \Intaro\RetailCrm\Model\Bitrix\Xml\XmlData $data
      */
@@ -42,51 +49,52 @@ class IcmlWriter
     {
         $this->writer->startElement('yml_catalog');
         $this->writeSimpleAttribute('date', Date('Y-m-d H:i:s'));
-        
+
         $this->writer->startElement('shop');
         $this->writeSimpleElement('name', $data->shopName);
         $this->writeSimpleElement('company', $data->company);
     }
-    
+
     public function writeToXmlBottom(): void
     {
         $this->writer->endElement();
         $this->writer->endElement();
-        $this->writer->flush();
+        file_put_contents($this->filePath, $this->writer->flush(true), FILE_APPEND);
+        $this->writer->endDocument();
     }
-    
+
     /**
      * @param \Intaro\RetailCrm\Model\Bitrix\Xml\XmlData $data
      */
     public function writeToXmlHeaderAndCategories(XmlData $data): void
     {
         $this->writer->startElement('categories');
-        
+
         foreach ($data->categories as $key => $category) {
             $this->writeCategory($category);
-            
+
             if (
                 count($data->categories) === $key + 1
                 || is_int(count($data->categories) / self::CATEGORY_PART)
             ) {
-                $this->writer->flush();
+                file_put_contents($this->filePath, $this->writer->flush(true), FILE_APPEND);
             }
         }
-        
+
         $this->writer->endElement();
-        $this->writer->flush();
+        file_put_contents($this->filePath, $this->writer->flush(true), FILE_APPEND);
     }
-    
+
     public function startOffersBlock(): void
     {
         $this->writer->startElement('offers');
     }
-    
+
     public function endBlock(): void
     {
         $this->writer->endElement();
     }
-    
+
     /**
      * @param XmlOffer[] $offers
      */
@@ -95,10 +103,10 @@ class IcmlWriter
         foreach ($offers as $offer) {
             $this->writeOffer($offer);
         }
-        
-        $this->writer->flush();
+
+        file_put_contents($this->filePath, $this->writer->flush(true), FILE_APPEND);
     }
-    
+
     /**
      * @param \Intaro\RetailCrm\Model\Bitrix\Xml\XmlOffer $offer
      */
@@ -108,15 +116,15 @@ class IcmlWriter
         $this->writeSimpleAttribute('id', $offer->id);
         $this->writeSimpleAttribute('productId', $offer->productId);
         $this->writeSimpleAttribute('quantity', $offer->quantity);
-        
+
         foreach ($offer->categoryIds as $categoryId) {
             $this->writeSimpleElement('categoryId', $categoryId);
         }
-        
+
         if (!empty($offer->picture)) {
             $this->writeSimpleElement('picture', $offer->picture);
         }
-        
+
         if (!empty($offer->unitCode->code)) {
             $this->writer->startElement('unit');
             $this->writeSimpleAttribute('code', $offer->unitCode->code);
@@ -124,11 +132,11 @@ class IcmlWriter
             $this->writeSimpleAttribute('sym', $offer->unitCode->sym);
             $this->writer->endElement();
         }
-        
+
         foreach ($offer->params as $param) {
             $this->writeParam($param);
         }
-        
+
         $this->writeSimpleElement('url', $offer->url);
         $this->writeSimpleElement('price', $offer->price);
         $this->writeSimpleElement('name', $offer->name);
@@ -142,7 +150,7 @@ class IcmlWriter
         $this->writeOptionalSimpleElement('purchasePrice', $offer->purchasePrice);
         $this->writer->endElement();
     }
-    
+
     /**
      * Создает ноду, если значение не пустое
      *
@@ -155,7 +163,7 @@ class IcmlWriter
             $this->writeSimpleElement($name, $value);
         }
     }
-    
+
     /**
      * @param string     $name
      * @param            $value
@@ -166,7 +174,7 @@ class IcmlWriter
         $this->writer->text($this->prepareValue($value));
         $this->writer->endElement();
     }
-    
+
     /**
      * @param string     $name
      * @param            $value
@@ -177,7 +185,7 @@ class IcmlWriter
         $this->writer->text($this->prepareValue($value));
         $this->writer->endAttribute();
     }
-    
+
     /**
      * @param $text
      *
@@ -189,7 +197,7 @@ class IcmlWriter
 
         return strip_tags($APPLICATION->ConvertCharset($text, 'utf-8', 'utf-8'));
     }
-    
+
     /**
      * @param \Intaro\RetailCrm\Model\Bitrix\Xml\XmlCategory $category
      */
@@ -202,7 +210,7 @@ class IcmlWriter
         $this->writeSimpleElement('picture', $category->picture);
         $this->writer->endElement();
     }
-    
+
     /**
      * @param \Intaro\RetailCrm\Model\Bitrix\Xml\OfferParam $param
      */
@@ -214,7 +222,7 @@ class IcmlWriter
         $this->writer->text($this->prepareValue($param->value));
         $this->writer->endElement();
     }
-    
+
     /**
      * @param string $parentId
      */

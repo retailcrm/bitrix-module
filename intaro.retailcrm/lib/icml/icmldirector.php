@@ -2,8 +2,7 @@
 
 namespace Intaro\RetailCrm\Icml;
 
-use COption;
-use Intaro\RetailCrm\Icml\Utils\IcmlUtils;
+use Bitrix\Catalog\ProductTable;
 use Intaro\RetailCrm\Model\Bitrix\Orm\CatalogIblockInfo;
 use Intaro\RetailCrm\Model\Bitrix\Xml\SelectParams;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlData;
@@ -178,6 +177,7 @@ class IcmlDirector
             $this->setup->properties->products->names[$productIblockId],
             $this->setup->basePriceId
         );
+
         $paramsForOffer
             = $this->queryBuilder->getSelectParams(
             $this->setup->properties->sku->names[$productIblockId],
@@ -249,6 +249,12 @@ class IcmlDirector
         $paramsForOffer->allParams = array_merge($paramsForOffer->configurable, $paramsForOffer->main);
 
         do {
+            //Если каталог проиндексирован, у товара есть Тип и это простой товар, то просто записываем его
+            if ($product->productType = ProductTable::TYPE_PRODUCT) {
+                $this->icmlWriter->writeOffers([$product]);
+                break;
+            }
+
             $xmlOffersPart
                 = $this->xmlOfferDirector->getXmlOffersBySingleProduct($paramsForOffer, $catalogIblockInfo, $product);
 
