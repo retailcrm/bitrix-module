@@ -55,22 +55,3 @@ $MESS ['UF_LP_ID_INTARO_TITLE'] = 'Номер аккаунта в програм
 $MESS['IBLOCK_NOT_SELECTED'] = 'Не выбрано ни одного инфоблока для экспорта';
 $MESS['TARGET_DIR_DOESNT_EXIST'] = 'Целевая директория не существует';
 
-/*
-$MESS ['ORDER_PROPS'] = 'Настройки соответствия полей заказа RetailCRM свойствам заказа 1С-Битрикс';
-$MESS ['FIO'] = 'Ф.И.О.';
-$MESS ['ZIP'] = 'Индекс';
-$MESS ['ADDRESS'] = 'Адрес (строкой)';
-$MESS ['PHONE'] = 'Телефон';
-$MESS ['EMAIL'] = 'E-mail';
-$MESS ['COUNTRY'] = 'Страна';
-$MESS ['REGION'] = 'Область / Край';
-$MESS ['CITY'] = 'Город';
-$MESS ['STREET'] = 'Улица';
-$MESS ['BUILDING'] = 'Строение';
-$MESS ['FLAT'] = 'Квартира';
-$MESS ['INTERCOMCODE'] = 'Домофон';
-$MESS ['FLOOR'] = 'Этаж';
-$MESS ['BLOCK'] = 'Подъезд';
-$MESS ['HOUSE'] = 'Строение / корпус';
-$MESS ['ADDRESS_SHORT'] = 'Краткий адрес';
-$MESS ['ADDRESS_FULL'] = 'Детальный адрес';*/
