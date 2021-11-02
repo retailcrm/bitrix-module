@@ -50,6 +50,7 @@ class QueryParamsMolder
             'PREVIEW_PICTURE',
             'DETAIL_PAGE_URL',
             'CATALOG_QUANTITY',
+            'CATALOG_TYPE',
             'CATALOG_PRICE_' . $basePriceId,
             'CATALOG_PURCHASING_PRICE',
             'EXTERNAL_ID',
