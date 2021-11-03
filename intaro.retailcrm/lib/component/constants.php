@@ -84,13 +84,20 @@ class Constants
     public const AGREEMENT_PERSONAL_DATA  = 'agreement_personal_data';
     public const HL_LOYALTY_CODE          = 'LoyaltyProgramRetailCRM';
     public const HL_LOYALTY_TABLE_NAME    = 'loyalty_program';
-    public const LP_BONUS_INFO            = 'LP_BONUS_INFO';
-    public const API_ERRORS_LOG           = 'apiErrors';
-    public const LOYALTY_ERROR            = 'loyaltyErrors';
-    public const HISTORY_ERRORS           = 'historyErrors';
-    public const REPOSITORY_ERRORS        = 'repositoryErrors';
-    public const TEMPLATES_ERROR          = 'templatesErrors';
-    public const DEFAULT_LOYALTY_TEMPLATE = 'default_loyalty';
-    public const LOYALTY_PROGRAM_ID       = 'LOYALTY_PROGRAM_ID';
-    public const LOYALTY_FIELDS = 'loyalty_fields';
+    public const LP_BONUS_INFO                  = 'LP_BONUS_INFO';
+    public const API_ERRORS_LOG                 = 'apiErrors';
+    public const LOYALTY_ERROR                  = 'loyaltyErrors';
+    public const HISTORY_ERRORS                 = 'historyErrors';
+    public const REPOSITORY_ERRORS              = 'repositoryErrors';
+    public const TEMPLATES_ERROR                = 'templatesErrors';
+    public const DEFAULT_LOYALTY_TEMPLATE       = 'default_loyalty';
+    public const LOYALTY_PROGRAM_ID             = 'LOYALTY_PROGRAM_ID';
+    public const LOYALTY_FIELDS                 = 'loyalty_fields';
+    public const AGREEMENT_PERSONAL_DATA_CODE   = 'AGREEMENT_PERSONAL_DATA_CODE';
+    public const AGREEMENT_LOYALTY_PROGRAM_CODE = 'AGREEMENT_LOYALTY_PROGRAM_CODE';
+    public const subscribeLpEvents = [
+        ['EVENT_NAME' => 'OnSaleOrderSaved', 'FROM_MODULE' => 'sale'],
+        ['EVENT_NAME' => 'OnSaleComponentOrderResultPrepared', 'FROM_MODULE' => 'sale'],
+        ['EVENT_NAME' => 'OnAfterUserRegister', 'FROM_MODULE' => 'main'],
+    ];
 }

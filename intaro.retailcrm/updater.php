@@ -3,6 +3,8 @@
 use Bitrix\Main;
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\ORM\Objectify\EntityObject;
+use Intaro\RetailCrm\Component\Installer\LoyaltyInstallerTrait;
+use Intaro\RetailCrm\Service\OrderLoyaltyDataService;
 
 try {
     update();
@@ -26,6 +28,24 @@ function update()
     if ($exportSystem instanceof EntityObject) {
         replaceExportVars($exportSystem);
     }
+
+    //updates fo 6.0.0
+    $updater = new LoyaltyProgramUpdater();
+
+    $updater->addLPEvents();
+    $updater->CopyFiles();
+    $updater->addLPUserFields();
+    $updater->addAgreement();
+
+    OrderLoyaltyDataService::createLoyaltyHlBlock();
+
+    $service = new OrderLoyaltyDataService();
+    $service->addCustomersLoyaltyFields();
+}
+
+class LoyaltyProgramUpdater
+{
+    use LoyaltyInstallerTrait;
 }
 
 /**
@@ -52,7 +72,6 @@ function replaceExportVars(EntityObject $exportSystem)
     $exportSystem->set('SETUP_VARS', $newSetupVars);
     $exportSystem->save();
 }
-
 
 class UpdaterRetailExportTable extends Main\Entity\DataManager
 {
