@@ -279,13 +279,13 @@ if (strlen($request->get('ORDER_ID')) > 0) {
     include(Main\Application::getDocumentRoot() . $templateFolder . '/empty.php');
 } else {
     Main\UI\Extension::load('phone_auth');
-    
+
     $hideDelivery = empty($arResult['DELIVERY']);
     ?>
     <form action="<?=POST_FORM_ACTION_URI?>" method="POST" name="ORDER_FORM" id="bx-soa-order-form" enctype="multipart/form-data">
         <?
         echo bitrix_sessid_post();
-        
+
         if (strlen($arResult['PREPAY_ADIT_FIELDS']) > 0) {
             echo $arResult['PREPAY_ADIT_FIELDS'];
         }
@@ -312,7 +312,7 @@ if (strlen($request->get('ORDER_ID')) > 0) {
 
                 <!--	DUPLICATE MOBILE ORDER SAVE BLOCK	-->
                 <div id="bx-soa-total-mobile" style="margin-bottom: 6px;"></div>
-                
+
                 <? if ($arParams['BASKET_POSITION'] === 'before'): ?>
                     <!--	BASKET ITEMS BLOCK	-->
                     <div id="bx-soa-basket" data-visited="false" class="bx-soa-section bx-active">
@@ -336,7 +336,7 @@ if (strlen($request->get('ORDER_ID')) > 0) {
                     </div>
                     <div class="bx-soa-section-content container-fluid"></div>
                 </div>
-                
+
                 <? if ($arParams['DELIVERY_TO_PAYSYSTEM'] === 'p2d'): ?>
                     <!--	PAY SYSTEMS BLOCK	-->
                     <div id="bx-soa-paysystem" data-visited="false" class="bx-soa-section bx-active">
@@ -410,7 +410,7 @@ if (strlen($request->get('ORDER_ID')) > 0) {
                     </div>
                     <div class="bx-soa-section-content container-fluid"></div>
                 </div>
-                
+
                 <? if ($arParams['BASKET_POSITION'] === 'after'): ?>
                     <!--	BASKET ITEMS BLOCK	-->
                     <div id="bx-soa-basket" data-visited="false" class="bx-soa-section bx-active">
@@ -469,8 +469,8 @@ if (strlen($request->get('ORDER_ID')) > 0) {
                                         <div>
                                             <?=sprintf(
                                                 Loc::getMessage('CHARGE_RATE'),
-                                                $arResult['BONUS_CURRENCY'] ?: Loc::getMessage('RUB'),
-                                                $arResult['CHARGERATE']
+                                                $arResult['CHARGERATE'],
+                                                $arResult['BONUS_CURRENCY'] ?: Loc::getMessage('RUB')
                                             )?>
                                         </div>
                                     </div>
@@ -563,18 +563,18 @@ if (strlen($request->get('ORDER_ID')) > 0) {
         $arServices                              = false;
         $arResult['ALLOW_SOCSERV_AUTHORIZATION'] = Main\Config\Option::get('main', 'allow_socserv_authorization', 'Y') != 'N' ? 'Y' : 'N';
         $arResult['FOR_INTRANET']                = false;
-        
+
         if (Main\ModuleManager::isModuleInstalled('intranet') || Main\ModuleManager::isModuleInstalled('rest')) {
             $arResult['FOR_INTRANET'] = true;
         }
-        
+
         if (Main\Loader::includeModule('socialservices') && $arResult['ALLOW_SOCSERV_AUTHORIZATION'] === 'Y') {
             $oAuthManager = new CSocServAuthManager();
             $arServices   = $oAuthManager->GetActiveAuthServices([
                 'BACKURL'      => $this->arParams['~CURRENT_PAGE'],
                 'FOR_INTRANET' => $arResult['FOR_INTRANET'],
             ]);
-            
+
             if (!empty($arServices)) {
                 $APPLICATION->IncludeComponent(
                     'bitrix:socserv.auth.form',
@@ -696,7 +696,7 @@ if (strlen($request->get('ORDER_ID')) > 0) {
             </script>
             <?
         }
-        
+
         if ($arParams['PICKUP_MAP_TYPE'] === 'google') {
             $this->addExternalJs($templateFolder . '/scripts/google_maps.js');
             $apiKey = htmlspecialcharsbx(Main\Config\Option::get('fileman', 'google_map_api_key', ''));
@@ -715,7 +715,7 @@ if (strlen($request->get('ORDER_ID')) > 0) {
             <?
         }
     }
-    
+
     if ($arParams['USE_YM_GOALS'] === 'Y') {
         ?>
         <script>
