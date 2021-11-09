@@ -34,19 +34,9 @@ class intaro_retailcrm extends CModule
 {
     use LoyaltyInstallerTrait;
 
-    /**
-     * @var string[][]
-     */
-    private const SUBSCRIBE_LP_EVENTS = [
-        ['EVENT_NAME' => 'OnSaleOrderSaved', 'FROM_MODULE' => 'sale'],
-        ['EVENT_NAME' => 'OnSaleComponentOrderResultPrepared', 'FROM_MODULE' => 'sale'],
-        ['EVENT_NAME' => 'OnAfterUserRegister', 'FROM_MODULE' => 'main'],
-    ];
-
-    public const BONUS_PAY_SYSTEM_CODE        = 'retailcrmbonus';
-    public const V5                             = 'v5';
-    public $MODULE_ID           = 'intaro.retailcrm';
-    public $OLD_MODULE_ID       = 'intaro.intarocrm';
+    public const V5 = 'v5';
+    public $MODULE_ID = 'intaro.retailcrm';
+    public $OLD_MODULE_ID = 'intaro.intarocrm';
     public $MODULE_VERSION;
     public $MODULE_VERSION_DATE;
     public $MODULE_NAME;

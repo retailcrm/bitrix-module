@@ -37,7 +37,7 @@ trait LoyaltyInstallerTrait
     {
         $eventManager = EventManager::getInstance();
 
-        foreach (Constants::subscribeLpEvents as $event){
+        foreach (Constants::LP_EVENTS as $event) {
             try {
                 $events = ToModuleRepository::getCollectionByWhere(
                     ['ID'],
@@ -238,7 +238,7 @@ trait LoyaltyInstallerTrait
     {
         $eventManager = EventManager::getInstance();
 
-        foreach (Constants::subscribeLpEvents as $event){
+        foreach (Constants::LP_EVENTS as $event){
             $eventManager->unRegisterEventHandler(
                 $event['FROM_MODULE'],
                 $event['EVENT_NAME'],
