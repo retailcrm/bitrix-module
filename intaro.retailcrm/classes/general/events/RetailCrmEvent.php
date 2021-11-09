@@ -107,13 +107,13 @@ class RetailCrmEvent
      * @throws \Bitrix\Main\SystemException
      * @throws \Exception
      */
-    public function orderSave($event)
+    public static function orderSave($event)
     {
-        if (!$this->checkConfig()) {
+        if (!static::checkConfig()) {
             return null;
         }
 
-        $arOrder = $this->getOrderArray($event);
+        $arOrder = static::getOrderArray($event);
         $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
 
         //params
@@ -609,7 +609,7 @@ class RetailCrmEvent
     /**
      * @return bool
      */
-    private function checkConfig(): bool
+    private static function checkConfig(): bool
     {
         if (true == $GLOBALS['ORDER_DELETE_USER_ADMIN']) {
             return false;
@@ -637,7 +637,7 @@ class RetailCrmEvent
      *
      * @throws \Bitrix\Main\SystemException
      */
-    private function getOrderArray($event): ?array
+    private static function getOrderArray($event): ?array
     {
         if ($event instanceof Order) {
             $obOrder = $event;

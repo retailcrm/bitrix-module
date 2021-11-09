@@ -151,12 +151,11 @@ class EventsHandlers
 
             /* @var OrderLoyaltyDataService $orderLoyaltyDataService */
             $orderLoyaltyDataService = ServiceLocator::get(OrderLoyaltyDataService::class);
-            $retailCrmEvent = new RetailCrmEvent();
             /** @var Order $order */
             $order = $event->getParameter('ENTITY');
 
             // TODO: Replace old call with a new one.
-            $saveResult = $retailCrmEvent->orderSave($order);
+            $saveResult = RetailCrmEvent::orderSave($order);
 
             Utils::handleApiErrors($saveResult);
 
