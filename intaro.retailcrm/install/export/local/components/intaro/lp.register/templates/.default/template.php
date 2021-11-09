@@ -82,6 +82,10 @@ if ($arResult["SHOW_SMS_FIELD"] == true) {
                 <div id="lpRegMsg" class="lpRegMsg"><?=$arResult['LP_REGISTER']['msg']?></div>
             <?php } ?>
 
+            <?php if (isset($arResult['LP_REGISTER']['form']['button']) && !isset($arResult['LP_REGISTER']['form']['fields'])) { ?>
+                <input type="button" onclick="<?=$arResult['LP_REGISTER']['form']['button']['action']?>()" value="<?=GetMessage('TRY_AGAIN')?>">
+            <?php } ?>
+
             <?php
             if (isset($arResult['LP_REGISTER']['form']['fields'])) { ?>
                 <div id="lpRegForm">

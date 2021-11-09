@@ -49,6 +49,42 @@ class Register extends Controller
                     new Authentication,
                 ],
             ],
+            'resetUserLpFields' => [
+                '-prefilters' => [
+                    new Authentication,
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * Сбрасывает информацию о регистрации пользователя в ПЛ. Позволяет пройти регистрацию заново.
+     *
+     * @return array
+     */
+    public function resetUserLpFieldsAction(): array
+    {
+        global $USER_FIELD_MANAGER;
+
+        $customer = (new CurrentUserProvider())->get();
+
+        if ($customer === null) {
+            return [
+                'result' => false,
+                'msg'    => GetMessage('NOT_REGISTER'),
+            ];
+        }
+
+        $result = $USER_FIELD_MANAGER->Update('USER', $customer->getId(), [
+            'UF_CARD_NUM_INTARO'  => '',
+            'UF_REG_IN_PL_INTARO' => false,
+            'UF_AGREE_PL_INTARO' => false,
+            'UF_PD_PROC_PL_INTARO' => false
+        ]);
+
+        return [
+            'result' => $result,
+            'msg'    => GetMessage('NOT_REGISTER'),
         ];
     }
 

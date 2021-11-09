@@ -230,6 +230,13 @@ class LoyaltyAccountService
                     header('Refresh 0');
                 }
 
+                if (isset($createResponse['error']) && $createResponse['error']) {
+                    $createResponse['form']['button'] = [
+                        'name' => GetMessage('TRY_AGAIN'),
+                        'action' => 'resetUserLpFields'
+                    ];
+                }
+
                 return $createResponse;
             }
 
@@ -504,7 +511,7 @@ class LoyaltyAccountService
         $errorMsg = Utils::getErrorMsg($createResponse);
 
         if ($errorMsg !== null) {
-            return ['msg' => $errorMsg];
+            return ['msg' => $errorMsg, 'error' => true];
         }
 
         //Создать получилось, но аккаунт не активен
@@ -515,13 +522,14 @@ class LoyaltyAccountService
             && isset($createResponse->loyaltyAccount->id)
         ) {
             return [
-                'msg' => GetMessage('GO_TO_PERSONAL')
+                'msg' => GetMessage('GO_TO_PERSONAL'),
+                'error' => false
             ];
         }
 
         if ($createResponse !== null && $createResponse->success === true) {
             //Повторная регистрация оказалась удачной
-            return ['msg' => GetMessage('REG_COMPLETE')];
+            return ['msg' => GetMessage('REG_COMPLETE'), 'error' => false];
         }
 
         return [];

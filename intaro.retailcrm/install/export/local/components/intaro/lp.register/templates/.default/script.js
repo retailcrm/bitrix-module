@@ -35,6 +35,18 @@ function saveUserLpFields() {
     );
 }
 
+function resetUserLpFields() {
+    BX.ajax.runAction('intaro:retailcrm.api.loyalty.register.resetUserLpFields').then(
+        function(response) {
+            if (response.data.result === true) {
+                location.reload();
+            } else {
+                $('#errMsg').text(response.data.msg)
+            }
+        }
+    );
+}
+
 function activateAccount() {
     let checkboxes = [];
     let numbers = [];
