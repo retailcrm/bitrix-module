@@ -18,8 +18,17 @@ if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true || !$USER->IsAut
 }
 
 try {
-    Loader::includeModule('intaro.retailcrm');
+    if (!Loader::includeModule('intaro.retailcrm')) {
+        die(GetMessage('MODULE_NOT_INSTALL'));
+    }
+} catch (Throwable $exception) {
+    die(GetMessage('MODULE_NOT_INSTALL') . ': ' . $exception->getMessage());
+}
 
+require_once $_SERVER['DOCUMENT_ROOT']
+    . '/bitrix/modules/intaro.retailcrm/lib/service/exception/lpaccountsavailableexception.php';
+
+try {
     $arResult['LOYALTY_STATUS']          = ConfigProvider::getLoyaltyProgramStatus();
     $arResult['PERSONAL_LOYALTY_STATUS'] = LoyaltyAccountService::getLoyaltyPersonalStatus();
 
@@ -66,5 +75,5 @@ try {
 
     $this->IncludeComponentTemplate();
 } catch (Throwable $exception) {
-    die(GetMessage('MODULE_NOT_INSTALL'));
+    die(GetMessage('MODULE_NOT_INSTALL') . ': ' . $exception->getMessage());
 }
