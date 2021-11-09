@@ -142,6 +142,17 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/exp
         $xmlProps->highloadblockProduct = $iblockPropertyProductHl;
     }
 
+    $logger = Logger::getInstance('/bitrix/catalog_export/');
+
+    if (!file_exists(dirname($SETUP_FILE_NAME))) {
+        $SETUP_FILE_NAME = $_SERVER['DOCUMENT_ROOT'] . $SETUP_FILE_NAME;
+
+        if (!file_exists(dirname($SETUP_FILE_NAME))) {
+            $logger->write(GetMessage('TARGET_DIR_DOESNT_EXIST'), 'i_crm_load_log');
+            return;
+        }
+    }
+
     $fileSetup = new XmlSetup($xmlProps);
     $fileSetup->profileId = $profile_id;
     $fileSetup->iblocksForExport = $iblockExport;
@@ -149,7 +160,6 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/exp
     $fileSetup->filePath = $SETUP_FILE_NAME;
     $fileSetup->loadPurchasePrice = $loadPurchasePrice === 'Y';
     $fileSetup->basePriceId = CatalogRepository::getBasePriceId($fileSetup->profileId);
-    $logger = Logger::getInstance('/bitrix/catalog_export/');
 
     if (!is_array($fileSetup->iblocksForExport) || count($fileSetup->iblocksForExport) === 0) {
         $logger->write(GetMessage("IBLOCK_NOT_SELECTED"), 'i_crm_load_log');
