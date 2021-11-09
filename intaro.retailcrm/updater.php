@@ -4,6 +4,7 @@ use Bitrix\Highloadblock as HL;
 use Bitrix\Main;
 use Bitrix\Main\Context;
 use Bitrix\Main\EventManager;
+use Bitrix\Main\Loader;
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\ORM\Fields\DatetimeField;
 use Bitrix\Main\ORM\Fields\IntegerField;
@@ -626,7 +627,9 @@ class LoyaltyProgramUpdater
                 ]);
             }
         } else {
-            throw new RuntimeException(implode(', ', $result->getErrorMessages()));
+            foreach ($result->getErrorMessages() as $message) {
+                AddMessage2Log($message, 'intaro.retailcrm');
+            }
         }
 
         if (!isset($hlId)) {
@@ -913,9 +916,13 @@ class LoyaltyProgramUpdater
  * @throws \Bitrix\Main\ArgumentException
  * @throws \Bitrix\Main\ObjectPropertyException
  * @throws \Bitrix\Main\SystemException
+ * @throws \Bitrix\Main\LoaderException
  */
 function update()
 {
+    Loader::includeModule('sale');
+    Loader::includeModule('highloadblock');
+
     (new LoyaltyProgramUpdater())
         ->tryReplaceExportVars()
         ->addLoyaltyProgramEvents()
