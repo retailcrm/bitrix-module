@@ -92,6 +92,7 @@ class IcmlDirector
      */
     public function generateXml(): void
     {
+        unlink($this->setup->filePath);
         $this->setXmlData();
         $this->icmlWriter->writeToXmlTop($this->xmlData);
         $this->logger->write(
