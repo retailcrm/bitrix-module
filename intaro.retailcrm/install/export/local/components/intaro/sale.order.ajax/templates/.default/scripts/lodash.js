@@ -14173,10 +14173,6 @@
      * @category String
      * @param {string} [string=''] The string to deburr.
      * @returns {string} Returns the deburred string.
-     * @example
-     *
-     * _.deburr('déjà vu');
-     * // => 'deja vu'
      */
     function deburr(string) {
       string = toString(string);
