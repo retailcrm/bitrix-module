@@ -1462,7 +1462,7 @@ class intaro_retailcrm extends CModule
     }
 
     /**
-     * Возвращает список магазинов, связанных с текущим ключом API
+     * Returns all sites connected to the current API key
      *
      * @param string $api_host
      * @param string $api_key
@@ -1504,7 +1504,7 @@ class intaro_retailcrm extends CModule
     }
 
     /**
-     * Удаляет профили экспорта icml каталага и агент, запускавший этот экспорт
+     * Remove ICML export profiles and the agent which ran that export.
      *
      * @param \CDBResult $dbProfile
      */
