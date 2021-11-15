@@ -1,5 +1,6 @@
 <?php
 
+use Intaro\RetailCrm\Component\ServiceLocator;
 use Bitrix\Sale\Delivery\Services\EmptyDeliveryService;
 use Bitrix\Sale\Internals\OrderPropsTable;
 use Bitrix\Sale\Internals\StatusTable;
@@ -9,13 +10,17 @@ use RetailCrm\Exception\InvalidJsonException;
 use Intaro\RetailCrm\Service\ManagerService;
 
 IncludeModuleLangFile(__FILE__);
+
+require_once __DIR__ . '/../../lib/component/servicelocator.php';
+require_once __DIR__ . '/../../lib/service/utils.php';
+
 class RCrmActions
 {
     public static $MODULE_ID = 'intaro.retailcrm';
     public static $CRM_ORDER_FAILED_IDS = 'order_failed_ids';
     public static $CRM_API_VERSION = 'api_version';
     public const CANCEL_PROPERTY_CODE = 'INTAROCRM_IS_CANCELED';
-    
+
     /**
      * @return array
      */
@@ -23,7 +28,7 @@ class RCrmActions
     {
         $arSites = [];
         $rsSites = CSite::GetList($by, $sort, ['ACTIVE' => 'Y']);
-        
+
         while ($ar = $rsSites->Fetch()) {
             $arSites[] = $ar;
         }
@@ -183,13 +188,13 @@ class RCrmActions
 
     public static function eventLog($auditType, $itemId, $description)
     {
-        CEventLog::Add(array(
+        CEventLog::Add([
             'SEVERITY'      => 'SECURITY',
             'AUDIT_TYPE_ID' => $auditType,
             'MODULE_ID'     => self::$MODULE_ID,
             'ITEM_ID'       => $itemId,
             'DESCRIPTION'   => $description,
-        ));
+        ]);
     }
 
     /**
@@ -202,7 +207,7 @@ class RCrmActions
     {
         RetailCrmOrder::uploadOrders();
         $failedIds = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_FAILED_IDS, 0));
-        
+
         if (is_array($failedIds) && !empty($failedIds)) {
             RetailCrmOrder::uploadOrders(50, true);
         }
@@ -237,23 +242,14 @@ class RCrmActions
      * working with nested arrs
      *
      * @param array $arr
+     *
      * @return array
      */
-    public static function clearArr($arr)
+    public static function clearArr(array $arr): array
     {
-        if (is_array($arr) === false) {
-            return $arr;
-        }
-
-        $result = array();
-        foreach ($arr as $index => $node ) {
-            $result[ $index ] = is_array($node) === true ? self::clearArr($node) : trim($node);
-            if ($result[ $index ] == '' || $result[ $index ] === null || count($result[ $index ]) < 1) {
-                unset($result[ $index ]);
-            }
-        }
-
-        return $result;
+        /** @var \Intaro\RetailCrm\Service\Utils $utils */
+        $utils = ServiceLocator::getOrCreate(\Intaro\RetailCrm\Service\Utils::class);
+        return $utils->clearArray($arr);
     }
 
     /**
@@ -261,13 +257,12 @@ class RCrmActions
      * @param array|bool|\SplFixedArray|string $str in SITE_CHARSET
      *
      * @return array|bool|\SplFixedArray|string $str in utf-8
-     * @global                                 $APPLICATION
      */
     public static function toJSON($str)
     {
-        global $APPLICATION;
-
-        return $APPLICATION->ConvertCharset($str, SITE_CHARSET, 'utf-8');
+        /** @var \Intaro\RetailCrm\Service\Utils $utils */
+        $utils = ServiceLocator::getOrCreate(\Intaro\RetailCrm\Service\Utils::class);
+        return $utils->toUTF8($str);
     }
 
     /**
@@ -275,13 +270,12 @@ class RCrmActions
      * @param string|array|\SplFixedArray $str in utf-8
      *
      * @return array|bool|\SplFixedArray|string $str in SITE_CHARSET
-     * @global                            $APPLICATION
      */
     public static function fromJSON($str)
     {
-        global $APPLICATION;
-
-        return $APPLICATION->ConvertCharset($str, 'utf-8', SITE_CHARSET);
+        /** @var \Intaro\RetailCrm\Service\Utils $utils */
+        $utils = ServiceLocator::getOrCreate(\Intaro\RetailCrm\Service\Utils::class);
+        return $utils->fromUTF8($str);
     }
 
     /**

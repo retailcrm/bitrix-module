@@ -14,30 +14,29 @@ class RetailUser extends CUser
 
         if ($arUser = $rsUser->Fetch()) {
             return $arUser['ID'];
-        } else {
-            $retailUser = new CUser;
-
-            $userPassword = uniqid();
-
-            $arFields = [
-                "NAME"             => 'retailcrm',
-                "LAST_NAME"        => 'retailcrm',
-                "EMAIL"            => 'retailcrm@retailcrm.com',
-                "LOGIN"            => 'retailcrm',
-                "LID"              => "ru",
-                "ACTIVE"           => "Y",
-                "GROUP_ID"         => [2],
-                "PASSWORD"         => $userPassword,
-                "CONFIRM_PASSWORD" => $userPassword,
-            ];
-
-            $id = $retailUser->Add($arFields);
-
-            if (!$id) {
-                return null;
-            } else {
-                return $id;
-            }
         }
+
+        $retailUser = new CUser;
+        $userPassword = uniqid();
+
+        $arFields = [
+            'NAME'             => 'retailcrm',
+            'LAST_NAME'        => 'retailcrm',
+            'EMAIL'            => 'retailcrm@retailcrm.com',
+            'LOGIN'            => 'retailcrm',
+            'LID'              => 'ru',
+            'ACTIVE'           => 'Y',
+            'GROUP_ID'         => [2],
+            'PASSWORD'         => $userPassword,
+            'CONFIRM_PASSWORD' => $userPassword,
+        ];
+
+        $id = $retailUser->Add($arFields);
+
+        if (!$id) {
+            return null;
+        }
+
+        return $id;
     }
 }

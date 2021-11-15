@@ -9,7 +9,7 @@ class RetailCrmOrder
     public static $CRM_DELIVERY_TYPES_ARR = 'deliv_types_arr';
     public static $CRM_PAYMENT_TYPES = 'pay_types_arr';
     public static $CRM_PAYMENT_STATUSES = 'pay_statuses_arr';
-    public static $CRM_PAYMENT = 'payment_arr'; //order payment Y/N
+    public static $CRM_PAYMENT = 'payment_arr';
     public static $CRM_ORDER_LAST_ID = 'order_last_id';
     public static $CRM_SITES_LIST = 'sites_list';
     public static $CRM_ORDER_PROPS = 'order_props';

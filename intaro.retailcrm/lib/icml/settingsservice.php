@@ -150,7 +150,7 @@ class SettingsService
         if ($this->arOldSetupVars[$fieldGroup . $selected . '_' . $key][$iblockId] === $field) {
             return ' selected';
         }
-        
+
         return '';
     }
 
@@ -173,7 +173,7 @@ class SettingsService
             $this->arOldSetupVars['highloadblock' . $catalogType . $tableName . '_' .$key][$iblockId]
         );
     }
-    
+
     /**
      * @param string $key
      *
@@ -478,7 +478,7 @@ class SettingsService
                 . $prop['USER_TYPE_SETTINGS']['TABLE_NAME']
                 . '"';
         }
-    
+
         return 'class="not-highloadblock"';
     }
 
@@ -524,7 +524,7 @@ class SettingsService
 
         return $siteList;
     }
-    
+
     /**
      * @param int $iblockId
      *
@@ -648,7 +648,7 @@ class SettingsService
         $arIBlockList = [];
         $intCountChecked = 0;
         $intCountAvailIBlock = 0;
-        
+
         $dbRes = CIBlock::GetList(
             ['IBLOCK_TYPE' => 'ASC', 'NAME' => 'ASC'],
             ['CHECK_PERMISSIONS' => 'Y', 'MIN_PERMISSION' => 'W']
@@ -677,7 +677,7 @@ class SettingsService
                     'iblockPropertyUnitSku'
                 );
             }
-            
+
             $arIBlockList[] = [
                 'ID' => $iblock['ID'],
                 'NAME' => $iblock['NAME'],
@@ -699,7 +699,7 @@ class SettingsService
                 ),
                 'SITE_LIST' => '(' . implode(' ', $this->getSiteList($iblock['ID'])) . ')',
             ];
-            
+
             if ($arIBlockList['iblockExport']) {
                 $intCountChecked++;
             }
@@ -708,7 +708,7 @@ class SettingsService
 
             unset($propertiesSKU, $oldPropertySKU, $oldPropertyUnitSKU);
         }
-        
+
         return [$arIBlockList, $intCountChecked, $intCountAvailIBlock, $arIBlockList['iblockExport'] ?? false];
     }
 }
