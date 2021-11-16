@@ -24,9 +24,7 @@ if (!$handle) {
 $modifiedFiles = [];
 
 while (($buffer = fgets($handle)) !== false) {
-    $file = explode("\t", trim($buffer));
-    $modifiedFile = new ModifiedFile($file[1], $file[0]{0});
-    $modifiedFiles[] = $modifiedFile;
+    $modifiedFiles[] = new ModifiedFile($buffer);
 }
 
 try {

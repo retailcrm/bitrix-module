@@ -25,8 +25,8 @@ class Logger
     public static function getInstance($logPath = '/bitrix/modules/intaro.retailcrm/log', $files = 3)
     {
         if (empty(self::$instance)
-            || self::$instance instanceof Logger
-            && (self::$instance->logPath != $logPath || self::$instance->files != $files)
+            || (self::$instance instanceof self
+                && (self::$instance->logPath !== $logPath || self::$instance->files !== $files))
         ) {
             self::$instance = new Logger($logPath, $files);
         }
@@ -40,12 +40,12 @@ class Logger
      * @param string $logPath
      * @param int    $files
      */
-    private function __construct($logPath = '/bitrix/modules/intaro.retailcrm/log', $files = 3)
+    public function __construct($logPath = '/bitrix/modules/intaro.retailcrm/log', $files = 3)
     {
         $this->logPath = $logPath;
         $this->files = $files;
     }
-    
+
     public function write($dump, $file = 'info')
     {
         $rsSites = CSite::GetList($by, $sort, array('DEF' => 'Y'));
@@ -53,19 +53,19 @@ class Logger
         if (!is_dir($ar['ABS_DOC_ROOT'] . $this->logPath . '/')) {
             mkdir($ar['ABS_DOC_ROOT'] . $this->logPath . '/');
         }
-        $file = $ar['ABS_DOC_ROOT'] . $this->logPath . '/' . $file . '.log';  
+        $file = $ar['ABS_DOC_ROOT'] . $this->logPath . '/' . $file . '.log';
 
         $data['TIME'] = date('Y-m-d H:i:s');
         $data['DATA'] = $dump;
 
         $f = fopen($file, "a+");
         fwrite($f, print_r($data, true));
-        fclose($f); 
+        fclose($f);
 
         // if filesize more than 5 Mb rotate it
         if (filesize($file) > 5242880) {
             $this->rotate($file);
-        } 
+        }
     }
 
     private function rotate($file)
@@ -105,5 +105,4 @@ class Logger
     {
         file_put_contents($file, '');
     }
-
 }
