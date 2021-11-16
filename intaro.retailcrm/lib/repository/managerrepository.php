@@ -5,9 +5,7 @@ namespace Intaro\RetailCrm\Repository;
 
 use Bitrix\Main\ORM\Objectify\EntityObject;
 use Bitrix\Main\UserTable;
-use RetailCrm\Component\Exception\FailedDbOperationException;
 use RetailcrmConfigProvider;
-use RetailcrmConstants;
 
 /**
  * Class ManagerRepository
@@ -20,7 +18,7 @@ class ManagerRepository
      * @param array $newMatches
      *
      * @return void
-     * @throws \RetailCrm\Component\Exception\FailedDbOperationException
+     * @throws \Bitrix\Main\ArgumentOutOfRangeException
      */
     public function addManagersToMapping(array $newMatches): void
     {
@@ -32,9 +30,7 @@ class ManagerRepository
             $recordData = $newMatches;
         }
 
-        if (!RetailcrmConfigProvider::setUsersMap($recordData)) {
-            throw new FailedDbOperationException();
-        }
+        RetailcrmConfigProvider::setUsersMap($recordData);
     }
 
     /**

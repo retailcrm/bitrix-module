@@ -30,17 +30,33 @@ class ModifiedFile
     protected $filename;
 
     /** @var string */
+    protected $oldFilename;
+
+    /** @var string */
     protected $modificator;
+
+    /** @var int */
+    protected $percent;
 
     /**
      * ModifiedFile constructor.
-     * @param string $filename
-     * @param string $modificator
+     * @param string $source
      */
-    public function __construct($filename, $modificator = self::Modified)
+    public function __construct($source)
     {
-        $this->filename = $filename;
-        $this->modificator = $modificator;
+        $params = explode("\t", trim($source));
+
+        $this->filename = $params[1];
+        $this->modificator = $params[0][0];
+
+        if (strlen($params[0]) > 1) {
+            $this->percent = (int) substr($params[0], 1);
+        }
+
+        if (count($params) >= 3) {
+            $this->filename = $params[2];
+            $this->oldFilename = $params[1];
+        }
     }
 
     /**
@@ -89,5 +105,21 @@ class ModifiedFile
     public function getFilename()
     {
         return $this->filename;
+    }
+
+    /**
+     * @return string
+     */
+    public function getOldFilename()
+    {
+        return $this->oldFilename;
+    }
+
+    /**
+     * @return int
+     */
+    public function getPercent()
+    {
+        return $this->percent;
     }
 }

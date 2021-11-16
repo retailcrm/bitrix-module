@@ -5,6 +5,7 @@
         "tests": "php vendor/bin/phpunit -c phpunit.xml.dist --whitelist=$BITRIX_PATH/bitrix/modules/intaro.retailcrm"
     },
     "description": "Integration module for Bitrix & RetailCRM",
+    "license": "MIT",
     "type": "bitrix-module",
     "authors": [
         {
@@ -15,6 +16,7 @@
     "require": {
         "ext-json": "*",
         "ext-mbstring": "*",
+        "ext-tokenizer": "*",
         "ext-xmlwriter": "*"
     },
     "require-dev": {

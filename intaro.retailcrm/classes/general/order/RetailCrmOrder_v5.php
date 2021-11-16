@@ -8,9 +8,14 @@ use Bitrix\Sale\Internals\Fields;
 use Bitrix\Sale\Internals\OrderTable;
 use Bitrix\Sale\Location\LocationTable;
 use Bitrix\Sale\Order;
+use Intaro\RetailCrm\Component\Factory\ClientFactory;
+use Intaro\RetailCrm\Component\ServiceLocator;
+use Intaro\RetailCrm\Service\LoyaltyService;
 use RetailCrm\ApiClient;
 use Intaro\RetailCrm\Service\ManagerService;
+use Intaro\RetailCrm\Service\LoyaltyAccountService;
 use RetailCrm\Response\ApiResponse;
+use Intaro\RetailCrm\Component\ConfigProvider;
 
 IncludeModuleLangFile(__FILE__);
 
@@ -29,7 +34,7 @@ class RetailCrmOrder
      * @param null   $site
      * @param string $methodApi
      *
-     * @return boolean|array
+     * @return array|false|\Intaro\RetailCrm\Model\Api\Response\OrdersCreateResponse|\Intaro\RetailCrm\Model\Api\Response\OrdersEditResponse|null
      * @throws \Bitrix\Main\ArgumentException
      * @throws \Bitrix\Main\ObjectPropertyException
      * @throws \Bitrix\Main\SystemException
@@ -43,12 +48,12 @@ class RetailCrmOrder
         string $methodApi = 'ordersEdit'
     ) {
         if (!$api || empty($arParams)) { // add cond to check $arParams
-            return false;
+            return null;
         }
 
         if (empty($arOrder)) {
             RCrmActions::eventLog('RetailCrmOrder::orderSend', 'empty($arFields)', 'incorrect order');
-            return false;
+            return null;
         }
 
         $dimensionsSetting = RetailcrmConfigProvider::getOrderDimensions();
@@ -161,7 +166,7 @@ class RetailCrmOrder
         //deliverys
         if (array_key_exists($arOrder['DELIVERYS'][0]['id'], $arParams['optionsDelivTypes'])) {
             $order['delivery']['code'] = $arParams['optionsDelivTypes'][$arOrder['DELIVERYS'][0]['id']];
-            
+
             if (isset($arOrder['DELIVERYS'][0]['service']) && $arOrder['DELIVERYS'][0]['service'] != '') {
                 $order['delivery']['service']['code'] = $arOrder['DELIVERYS'][0]['service'];
             }
@@ -176,7 +181,7 @@ class RetailCrmOrder
             $response = RCrmActions::apiMethod($api, 'ordersGet', __METHOD__, $order['externalId']);
             if (isset($response['order'])) {
                 foreach ($response['order']['items'] as $k => $item) {
-                    $externalId = $k ."_". $item['offer']['externalId'];
+                    $externalId = $k .'_'. $item['offer']['externalId'];
                     $orderItems[$externalId] = $item;
                 }
             }
@@ -192,7 +197,7 @@ class RetailCrmOrder
                 $itemId = $orderItems[$externalId]['id'];
 
                 $key = array_search('bitrix', array_column($externalIds, 'code'));
-                
+
                 if ($externalIds[$key]['code'] === 'bitrix') {
                     $externalIds[$key] = [
                         'code' => 'bitrix',
@@ -203,13 +208,31 @@ class RetailCrmOrder
                         'code' => 'bitrix',
                         'value' => $externalId,
                     ];
-                }
+                  }
+
+                $keyBasketId = array_search('bitrixBasketId', array_column($externalIds, 'code'));
+
+                if ($externalIds[$keyBasketId]['code'] === 'bitrixBasketId') {
+                    $externalIds[$keyBasketId] = [
+                        'code' => 'bitrixBasketId',
+                        'value' => $product['ID'],
+                    ];
+                } else {
+                    $externalIds[] = [
+                        'code' => 'bitrixBasketId',
+                        'value' => $product['ID'],
+                    ];
+                  }
             } else { //create
                 $externalIds = [
                     [
                         'code' => 'bitrix',
                         'value' => $externalId,
-                    ]
+                    ],
+                    [
+                        'code' => 'bitrixBasketId',
+                        'value' => $product['ID'],
+                    ],
                 ];
             }
 
@@ -228,7 +251,7 @@ class RetailCrmOrder
             }
 
             $catalogProduct = CCatalogProduct::GetByID($product['PRODUCT_ID']);
-            
+
             if (is_null($catalogProduct['PURCHASING_PRICE']) === false) {
                 if ($catalogProduct['PURCHASING_CURRENCY'] && $currency != $catalogProduct['PURCHASING_CURRENCY']) {
                     $purchasePrice = CCurrencyRates::ConvertCurrency(
@@ -243,9 +266,25 @@ class RetailCrmOrder
                 $item['purchasePrice'] = $purchasePrice;
             }
 
+            $discount = (double) $product['DISCOUNT_PRICE'];
+            $dpItem = $product['BASE_PRICE'] - $product['PRICE'];
+
+            if ( $dpItem > 0 && $discount <= 0) {
+                $discount = $dpItem;
+            }
+
             $item['discountManualPercent'] = 0;
-            
-            if ($product['BASE_PRICE'] >= $product['PRICE']) {
+            $item['initialPrice'] = (double) $product['BASE_PRICE'];
+
+            if (
+                $product['BASE_PRICE'] >= $product['PRICE']
+                && $methodApi === 'ordersEdit'
+                && ConfigProvider::getLoyaltyProgramStatus() === 'Y'
+            ) {
+                /** @var LoyaltyService $service */
+                $service = ServiceLocator::get(LoyaltyService::class);
+                $item['discountManualAmount'] = $service->getInitialDiscount((int) $externalId) ?? $discount;
+            } elseif ($product['BASE_PRICE'] >= $product['PRICE']) {
                 $item['discountManualAmount'] = self::getDiscountManualAmount($product);
                 $item['initialPrice'] = (double) $product['BASE_PRICE'];
             } else {
@@ -276,7 +315,7 @@ class RetailCrmOrder
 
         //payments
         $payments = [];
-        
+
         foreach ($arOrder['PAYMENTS'] as $payment) {
             $isIntegrationPayment = RetailCrmService::isIntegrationPayment($payment['PAY_SYSTEM_ID'] ?? null);
 
@@ -340,8 +379,21 @@ class RetailCrmOrder
 
         Logger::getInstance()->write($order, 'orderSend');
 
-        if ($send && !RCrmActions::apiMethod($api, $methodApi, __METHOD__, $order, $site)) {
-            return false;
+        if (ConfigProvider::getLoyaltyProgramStatus() === 'Y' && LoyaltyAccountService::getLoyaltyPersonalStatus()) {
+            $order['privilegeType'] = 'loyalty_level';
+        }
+
+        /** @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter $client */
+        $client = ClientFactory::createClientAdapter();
+
+        if ($send) {
+            if ($methodApi === 'ordersCreate') {
+                return $client->createOrder($order, $site);
+            }
+
+            if ($methodApi === 'ordersEdit') {
+                return $client->editOrder($order, $site);
+            }
         }
 
         return $order;
@@ -354,7 +406,7 @@ class RetailCrmOrder
      * @param bool       $failed -- flag to export failed orders
      * @param array|null $orderList
      *
-     * @return boolean
+     * @return bool
      * @throws \Bitrix\Main\ArgumentException
      * @throws \Bitrix\Main\ArgumentNullException
      * @throws \Bitrix\Main\ObjectPropertyException
@@ -381,7 +433,7 @@ class RetailCrmOrder
             $orderIds = $orderList;
         } else {
             $dbOrder = OrderTable::GetList([
-                'order' => ["ID" => "ASC"],
+                'order' => ['ID' => 'ASC'],
                 'filter' => ['>ID' => $lastUpOrderId],
                 'limit' => $pSize,
                 'select' => ['ID'],
@@ -433,7 +485,6 @@ class RetailCrmOrder
             $arCustomer = [];
             $arCustomerCorporate = [];
             $order = self::orderObjToArr($bitrixOrder);
-            $user = UserTable::getById($order['USER_ID'])->fetch();
             $site = self::getCrmShopCodeByLid($order['LID'], $arParams['optionsSitesList']);
 
             if (null === $site && count($arParams['optionsSitesList']) > 0) {
@@ -474,7 +525,7 @@ class RetailCrmOrder
                 return false;
             }
 
-            if ('Y' == RetailcrmConfigProvider::getCorporateClientStatus()) {
+            if ('Y' === RetailcrmConfigProvider::getCorporateClientStatus()) {
                 $cachedCorporateIds = [];
 
                 foreach ($ordersPack as $lid => $lidOrdersList) {
@@ -497,7 +548,7 @@ class RetailCrmOrder
 
             if ($failed == true && $failedIds !== false && count($failedIds) > 0) {
                 RetailcrmConfigProvider::setFailedOrdersIds(array_diff($failedIds, $recOrders));
-            } elseif ($lastUpOrderId < max($recOrders) && $orderList === false) {
+            } elseif (count($orderList) === 0 && $lastUpOrderId < max($recOrders)) {
                 RetailcrmConfigProvider::setLastOrderId(max($recOrders));
             }
         }
@@ -709,7 +760,7 @@ class RetailCrmOrder
 
         foreach ($pack as $key => $itemLoad) {
             $site = self::getCrmShopCodeByLid($key, $optionsSitesList);
-    
+
             if (null === $site && count($optionsSitesList) > 0) {
                 continue;
             }
@@ -839,14 +890,14 @@ class RetailCrmOrder
             $sumDifference = $product->get('BASE_PRICE') - $product->get('PRICE');
             return $sumDifference > 0 ? $sumDifference : 0.0;
         }
-        
+
         $discount = (double) $product->get('DISCOUNT_PRICE');
         $dpItem = $product->get('BASE_PRICE') - $product->get('PRICE');
-        
+
         if ($dpItem > 0 && $discount <= 0) {
             return $dpItem;
         }
-        
+
         return $discount;
     }
 }
