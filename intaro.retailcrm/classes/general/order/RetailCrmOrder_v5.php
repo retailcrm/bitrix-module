@@ -16,6 +16,7 @@ use Intaro\RetailCrm\Service\ManagerService;
 use Intaro\RetailCrm\Service\LoyaltyAccountService;
 use RetailCrm\Response\ApiResponse;
 use Intaro\RetailCrm\Component\ConfigProvider;
+use \Bitrix\Sale\Location\Name\LocationTable as LocationTableName;
 
 IncludeModuleLangFile(__FILE__);
 
@@ -140,12 +141,12 @@ class RetailCrmOrder
                                 }
                             }
 
-                            $location = LocationTable::getList([
+                            $location = LocationTableName::getList([
                                 'filter' => ['=LOCATION_ID' => $arLoc['CITY_ID'], 'LANGUAGE_ID' => 'ru']
                             ])->fetch();
 
                             if (count($countrys) > 0) {
-                                $countryOrder = LocationTable::getList([
+                                $countryOrder = LocationTableName::getList([
                                     'filter' => ['=LOCATION_ID' => $arLoc['COUNTRY_ID'], 'LANGUAGE_ID' => 'ru']
                                 ])->fetch();
                                 if(isset($countrys[$countryOrder['NAME']])){
