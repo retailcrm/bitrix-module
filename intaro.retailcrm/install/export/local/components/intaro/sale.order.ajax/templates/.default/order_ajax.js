@@ -8339,7 +8339,9 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
                 this.totalInfoBlockNode.appendChild(this.createTotalUnit('Оплата бонусами:', bonusPayment));
             }
 
-            if (this.willBeCredited > 0) {
+            if (this.result.TOTAL.WILL_BE_CREDITED !== undefined && this.result.TOTAL.WILL_BE_CREDITED > 0) {
+                this.totalInfoBlockNode.appendChild(this.createTotalUnit('Будет начислено бонусов: ', String(this.result.TOTAL.WILL_BE_CREDITED), {highlighted: true}));
+            } else if (this.willBeCredited > 0) {
                 this.totalInfoBlockNode.appendChild(this.createTotalUnit('Будет начислено бонусов:', this.willBeCredited, {highlighted: true}));
             }
         }

@@ -100,6 +100,14 @@ class EventsHandlers
                                                         = $jsDataTotal['ORDER_PRICE'] - $loyaltyDiscountInput . ' ' . GetMessage('RUB');
                 $oldItems                               = json_decode(htmlspecialchars_decode($calculateItemsInput), true);
 
+                /** @var LoyaltyService $service */
+                $service = ServiceLocator::get(LoyaltyService::class);
+                $calculate = $service->getLoyaltyCalculate($arResult['BASKET_ITEMS'], $bonusInput);
+
+                if ($calculate->success) {
+                    $jsDataTotal['WILL_BE_CREDITED'] = $calculate->order->bonusesCreditTotal;
+                }
+
                 if ($calculateItemsInput !== null) {
                     foreach ($arResult['JS_DATA']['GRID']['ROWS'] as $key => &$item) {
                         $item['data']['SUM_NUM'] = $oldItems[$key]['SUM_NUM'];
