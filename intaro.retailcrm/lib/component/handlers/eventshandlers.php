@@ -68,8 +68,8 @@ class EventsHandlers
         array &$arResult
     ): void {
         if (ConfigProvider::getLoyaltyProgramStatus() === 'Y') {
-            $bonusInput           = (int) $request->get('bonus-input');
-            $availableBonuses     = (int) $request->get('available-bonuses');
+            $bonusInput           = (float) $request->get('bonus-input');
+            $availableBonuses     = (float) $request->get('available-bonuses');
             $chargeRate           = (int) $request->get('charge-rate');
             $loyaltyDiscountInput = (float) $request->get('loyalty-discount-input');
             $calculateItemsInput  = $request->get('calculate-items-input');
@@ -163,12 +163,14 @@ class EventsHandlers
                 !empty($_POST['bonus-input'])
                 && !empty($_POST['available-bonuses'])
             );
+
+            $bonusFloat = (float) $_POST['bonus-input'];
+
             /** @var bool $isNewOrder */
             $isNewOrder                 = $event->getParameter('IS_NEW');
             $isLoyaltyOn                = ConfigProvider::getLoyaltyProgramStatus() === 'Y';
             $isDataForLoyaltyDiscount   = isset($_POST['calculate-items-input'], $_POST['loyalty-discount-input']);
-            $isBonusesIssetAndAvailable = $isBonusInput
-                && (int) $_POST['available-bonuses'] >= (int) $_POST['bonus-input'];
+            $isBonusesIssetAndAvailable = $isBonusInput && (float) $_POST['available-bonuses'] >= $bonusFloat;
 
             /** @var array $calculateItemsInput */
             $calculateItemsInput = $isDataForLoyaltyDiscount
@@ -190,11 +192,11 @@ class EventsHandlers
 
                 //Если есть бонусы
                 if ($isBonusesIssetAndAvailable) {
-                    $applyBonusResponse = $loyaltyService->applyBonusesInOrder($order, (int) $_POST['bonus-input']);
+                    $applyBonusResponse = $loyaltyService->applyBonusesInOrder($order, $bonusFloat);
 
                     $hlInfoBuilder->setApplyResponse($applyBonusResponse);
-                    $loyaltyBonusMsg = (int) $_POST['bonus-input'];
-                    $hlInfoBuilder->setBonusInputTotal((int) $_POST['bonus-input']);
+                    $loyaltyBonusMsg = $bonusFloat;
+                    $hlInfoBuilder->setBonusInputTotal($bonusFloat);
                 }
 
                 //Если бонусов нет, но скидка по ПЛ есть

@@ -1,7 +1,6 @@
 $(document).ready(function() {
 
-    function isInt(n)
-    {
+    function isInt(n) {
         return n !== ""
             && !isNaN(n)
             && n.charAt(0) !== "0"
@@ -9,17 +8,17 @@ $(document).ready(function() {
             && parseInt(n) > 0;
     }
 
-    function isFloat(n){
+    function isFloat(n) {
         return n !== ""
             && !isNaN(n)
-            && parseFloat(n)>0
+            && parseFloat(n) > 0
             && (n.split(".").length - 1) === 1
             && Math.round(n) !== n;
     }
 
     function isErrorsInInputBonuses() {
-        let availableBonuses = Number.parseInt($('#available-bonus-input').val());
-        let inputBonuses     = Number.parseInt($('#bonus-input').val());
+        let availableBonuses = Number.parseFloat($('#available-bonus-input').val());
+        let inputBonuses     = Number.parseFloat($('#bonus-input').val());
         if (inputBonuses > availableBonuses) {
             $('#bonus-input-error')
                 .text(window.__MESS__.YOU_CANT_SPEND_MORE + ' ' + availableBonuses + ' ' + window.__MESS__.BONUSES);
@@ -44,14 +43,14 @@ $(document).ready(function() {
 
         $('#bonus-input').change(isErrorsInInputBonuses());
 
-        let inputBonusesInt = Number.parseInt(inputBonuses);
+        let inputBonusesFloat = Number.parseFloat(inputBonuses);
 
         BX.ajax.runAction('intaro:retailcrm.api.loyalty.order.loyaltyCalculate',
             {
                 data: {
                     sessid: BX.bitrix_sessid(),
                     basketItems: basketItemsHidden,
-                    inputBonuses: inputBonusesInt ?? 0
+                    inputBonuses: inputBonusesFloat ?? 0
                 }
             }
         )
