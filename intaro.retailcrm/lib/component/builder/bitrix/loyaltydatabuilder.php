@@ -49,8 +49,9 @@ class LoyaltyDataBuilder implements BuilderInterface
 
     /** @var OrderLoyaltyData[] $data */
     private $data;
+
     /**
-     * @var int
+     * @var float
      */
     private $bonusCountTotal;
 
@@ -149,9 +150,9 @@ class LoyaltyDataBuilder implements BuilderInterface
     }
 
     /**
-     * @param int $bonusCountTotal
+     * @param float $bonusCountTotal
      */
-    public function setBonusInputTotal(int $bonusCountTotal): void
+    public function setBonusInputTotal(float $bonusCountTotal): void
     {
         $this->bonusCountTotal = $bonusCountTotal;
     }

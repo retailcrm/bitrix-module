@@ -87,12 +87,12 @@ class LoyaltyService
      *
      * @link https://docs.retailcrm.ru/Developers/API/APIVersions/APIv5#post--api-v5-orders-loyalty-apply
      *
-     * @param int $orderId ID заказа
-     * @param int $bonusCount количество бонусов для списания
+     * @param int   $orderId    ID заказа
+     * @param float $bonusCount количество бонусов для списания
      *
      * @return \Intaro\RetailCrm\Model\Api\Response\Order\Loyalty\OrderLoyaltyApplyResponse|mixed|null
      */
-    public function sendBonusPayment(int $orderId, int $bonusCount): ?OrderLoyaltyApplyResponse
+    public function sendBonusPayment(int $orderId, float $bonusCount): ?OrderLoyaltyApplyResponse
     {
         $request = new OrderLoyaltyApplyRequest();
         $request->order = new SerializedOrderReference();
@@ -507,11 +507,11 @@ class LoyaltyService
      * Добавляет оплату бонусами в заказ Битрикс (устанавливает кастомные цены)
      *
      * @param \Bitrix\Sale\Order $order
-     * @param int                $bonusCount /бонусная скидка в рублях
+     * @param float              $bonusCount /бонусная скидка в рублях
      *
      * @return \Intaro\RetailCrm\Model\Api\Response\Order\Loyalty\OrderLoyaltyApplyResponse|null
      */
-    public function applyBonusesInOrder(Order $order, int $bonusCount): ?OrderLoyaltyApplyResponse
+    public function applyBonusesInOrder(Order $order, float $bonusCount): ?OrderLoyaltyApplyResponse
     {
         $response = $this->sendBonusPayment($order->getId(), $bonusCount);
 
