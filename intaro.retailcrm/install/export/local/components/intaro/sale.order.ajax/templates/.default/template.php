@@ -461,7 +461,7 @@ if (strlen($request->get('ORDER_ID')) > 0) {
                                         <div id="bonus-msg"><?=Loc::getMessage('HOW_MANY_BONUSES_TO_SPEND')?></div>
                                         <div class="bx-soa-coupon-block">
                                             <div class="bx-input">
-                                                <input name='bonus-input' class="form-control" type="number" max="<?=$arResult['AVAILABLE_BONUSES']?>" id='bonus-input'>
+                                                <input name='bonus-input' class="form-control" type="number" step="any" max="<?=$arResult['AVAILABLE_BONUSES']?>" id='bonus-input'>
                                                 <input name="available-bonuses" class="form-control" type="hidden" id='available-bonus-input' value="<?=$arResult['AVAILABLE_BONUSES']?>">
                                                 <input name="charge-rate" class="form-control" type="hidden" id='charge-rate-input' value="<?=$arResult['CHARGERATE']?>">
                                                 <script id="data-basket-items">
