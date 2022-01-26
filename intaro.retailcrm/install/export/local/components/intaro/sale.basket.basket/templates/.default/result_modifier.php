@@ -12,10 +12,12 @@ use Bitrix\Main\Config\Option;
 use Bitrix\Main\Loader;
 use Bitrix\Main\LoaderException;
 use Intaro\RetailCrm\Component\ConfigProvider;
+use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse;
 use Intaro\RetailCrm\Service\LoyaltyService;
 use Intaro\RetailCrm\Service\LoyaltyAccountService;
+use RetailCrm\Exception\CurlException;
 
 /** RetailCRM loyalty program  start*/
 function checkLoadIntaro(): bool
@@ -34,16 +36,22 @@ if (checkLoadIntaro()) {
     /** @var LoyaltyService $service */
     $service = ServiceLocator::get(LoyaltyService::class);
 
-    if ($arResult['LOYALTY_STATUS'] === 'Y' && $arResult['PERSONAL_LOYALTY_STATUS'] === true) {
-        $calculate = $service->getLoyaltyCalculate($arResult['BASKET_ITEM_RENDER_DATA']);
+    try {
+        if ($arResult['LOYALTY_STATUS'] === 'Y' && $arResult['PERSONAL_LOYALTY_STATUS'] === true) {
+            $calculate = $service->getLoyaltyCalculate($arResult['BASKET_ITEM_RENDER_DATA']);
 
-        if (
-            $calculate instanceof LoyaltyCalculateResponse
-            && $calculate->success
-            && null !== $calculate->order->loyaltyAccount
-        ) {
-            $arResult = $service->addLoyaltyToBasket($arResult, $calculate);
+            if (
+                $calculate instanceof LoyaltyCalculateResponse
+                && $calculate->success
+                && null !== $calculate->order->loyaltyAccount
+            ) {
+                $arResult = $service->addLoyaltyToBasket($arResult, $calculate);
+            }
         }
+    } catch (CurlException $exception) {
+        Logger::getInstance()->write($exception->getMessage(), Constants::TEMPLATES_ERROR);
+
+        $arResult['ERROR_MESSAGE'] = GetMessage('LOYALTY_CONNECTION_ERROR');
     }
 } else {
     AddMessage2Log(GetMessage('INTARO_NOT_INSTALLED'));
