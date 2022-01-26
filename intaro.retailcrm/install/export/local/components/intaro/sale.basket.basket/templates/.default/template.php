@@ -156,6 +156,10 @@ foreach ($jsTemplates->getChildren() as $jsTemplate)
 
 $displayModeClass = $arParams['DISPLAY_MODE'] === 'compact' ? ' basket-items-list-wrapper-compact' : '';
 
+if (isset($arResult['LOYALTY_ERROR_MESSAGE']) && !empty($arResult['LOYALTY_ERROR_MESSAGE'])) {
+    ShowError($arResult['LOYALTY_ERROR_MESSAGE']);
+}
+
 if (empty($arResult['ERROR_MESSAGE']))
 {
 	if ($arParams['USE_GIFTS'] === 'Y' && $arParams['GIFTS_PLACE'] === 'TOP')

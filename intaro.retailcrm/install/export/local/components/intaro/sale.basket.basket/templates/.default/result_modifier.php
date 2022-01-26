@@ -51,7 +51,7 @@ if (checkLoadIntaro()) {
     } catch (CurlException $exception) {
         Logger::getInstance()->write($exception->getMessage(), Constants::TEMPLATES_ERROR);
 
-        $arResult['ERROR_MESSAGE'] = GetMessage('LOYALTY_CONNECTION_ERROR');
+        $arResult['LOYALTY_ERROR_MESSAGE'] = GetMessage('LOYALTY_CONNECTION_ERROR');
     }
 } else {
     AddMessage2Log(GetMessage('INTARO_NOT_INSTALLED'));
