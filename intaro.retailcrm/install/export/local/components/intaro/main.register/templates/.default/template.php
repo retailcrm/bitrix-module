@@ -27,7 +27,7 @@ if ($arResult["SHOW_SMS_FIELD"] == true) {
 if ($arResult["LOYALTY_CONNECTION_ERROR"] === true) {
     ?>
     <div>
-        <?=GetMessage('LOYALTY_CONNECTION_ERROR')?>
+       <p><b><?=GetMessage('LOYALTY_CONNECTION_ERROR')?></b></p>
     </div>
 <?php
 }

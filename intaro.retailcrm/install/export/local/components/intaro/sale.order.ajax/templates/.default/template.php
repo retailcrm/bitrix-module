@@ -281,7 +281,17 @@ if (strlen($request->get('ORDER_ID')) > 0) {
     Main\UI\Extension::load('phone_auth');
 
     $hideDelivery = empty($arResult['DELIVERY']);
+    if (true === $arResult['LOYALTY_CONNECTION_ERROR']) {
+        ?>
+        <div class="basket-items-list-item-warning-container">
+            <div class="alert alert-warning text-center">
+                <?=GetMessage('LOYALTY_CONNECTION_ERROR')?>
+            </div>
+        </div>
+        <?php
+    }
     ?>
+
     <form action="<?=POST_FORM_ACTION_URI?>" method="POST" name="ORDER_FORM" id="bx-soa-order-form" enctype="multipart/form-data">
         <?
         echo bitrix_sessid_post();
