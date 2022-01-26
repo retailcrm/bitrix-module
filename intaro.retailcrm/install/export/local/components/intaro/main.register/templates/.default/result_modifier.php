@@ -11,6 +11,7 @@ use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Repository\AgreementRepository;
 use Intaro\RetailCrm\Service\CustomerService;
 use Intaro\RetailCrm\Service\LoyaltyAccountService;
+use RetailCrm\Exception\CurlException;
 
 /** RetailCRM loyalty program start */
 function checkLoadIntaro(): bool
@@ -28,15 +29,21 @@ if (checkLoadIntaro()) {
     global $USER;
 
     if ('Y' === $arResult['LOYALTY_STATUS'] && $USER->IsAuthorized()) {
-        /** @var CustomerService $customerService */
-        $customerService = ServiceLocator::get(CustomerService::class);
-        $customer = $customerService->createModel($USER->GetID());
+        try {
+            /** @var CustomerService $customerService */
+            $customerService = ServiceLocator::get(CustomerService::class);
+            $customer = $customerService->createModel($USER->GetID());
 
-        $customerService->createCustomer($customer);
+            $customerService->createCustomer($customer);
 
-        /* @var LoyaltyAccountService $service */
-        $service = ServiceLocator::get(LoyaltyAccountService::class);
-        $arResult['LP_REGISTER'] = $service->checkRegInLp();
+            /* @var LoyaltyAccountService $service */
+            $service = ServiceLocator::get(LoyaltyAccountService::class);
+            $arResult['LP_REGISTER'] = $service->checkRegInLp();
+        } catch (CurlException $exception) {
+            Logger::getInstance()->write($exception->getMessage(), Constants::TEMPLATES_ERROR);
+
+            $arResult['LOYALTY_CONNECTION_ERROR'] = true;
+        }
     }
 
     $arResult['ACTIVATE'] = isset($_GET['activate'])

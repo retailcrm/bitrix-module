@@ -2891,7 +2891,7 @@ class ApiClient
      *
      * @return bool
      * @throws \InvalidArgumentException
-     *
+     * @throws \RetailCrm\Exception\CurlException
      */
     protected function checkIdParameter(string $by): bool
     {
@@ -2920,6 +2920,7 @@ class ApiClient
      * @param array  $params input parameters
      *
      * @return array
+     * @throws \RetailCrm\Exception\CurlException
      */
     protected function fillSite($site, array $params)
     {
@@ -2936,6 +2937,7 @@ class ApiClient
      * @param array $request
      * @param int   $checkId
      * @return \RetailCrm\Response\ApiResponse
+     * @throws \RetailCrm\Exception\CurlException
      */
     public function checkStatusPlVerification(array $request, int $checkId): ApiResponse
     {
@@ -2949,6 +2951,7 @@ class ApiClient
     /**
      * @param array $request
      * @return \RetailCrm\Response\ApiResponse
+     * @throws \RetailCrm\Exception\CurlException
      */
     public function loyaltyOrderApply(array $request): ApiResponse
     {
@@ -2966,6 +2969,7 @@ class ApiClient
     /**
      * @param array $request
      * @return \RetailCrm\Response\ApiResponse
+     * @throws \RetailCrm\Exception\CurlException
      */
     public function loyaltyOrderCalculate(array $request): ApiResponse
     {
@@ -2982,6 +2986,7 @@ class ApiClient
 
     /**
      * @return \RetailCrm\Response\ApiResponse
+     * @throws \RetailCrm\Exception\CurlException
      */
     public function getCredentials(): ApiResponse
     {
@@ -2994,6 +2999,7 @@ class ApiClient
     /**
      * @param array $request
      * @return \RetailCrm\Response\ApiResponse
+     * @throws \RetailCrm\Exception\CurlException
      */
     public function createLoyaltyAccount(array $request): ApiResponse
     {
@@ -3010,6 +3016,7 @@ class ApiClient
     /**
      * @param int $loyaltyId
      * @return \RetailCrm\Response\ApiResponse
+     * @throws \RetailCrm\Exception\CurlException
      */
     public function activateLoyaltyAccount(int $loyaltyId): ApiResponse
     {
@@ -3022,6 +3029,7 @@ class ApiClient
     /**
      * @param array $request
      * @return \RetailCrm\Response\ApiResponse
+     * @throws \RetailCrm\Exception\CurlException
      */
     public function sendVerificationCode(array $request): ApiResponse
     {
@@ -3037,6 +3045,7 @@ class ApiClient
     /**
      * @param array $request
      * @return \RetailCrm\Response\ApiResponse
+     * @throws \RetailCrm\Exception\CurlException
      */
     public function getLoyaltyAccounts(array $request): ApiResponse
     {
@@ -3050,6 +3059,7 @@ class ApiClient
     /**
      * @param int $loyaltyId
      * @return \RetailCrm\Response\ApiResponse
+     * @throws \RetailCrm\Exception\CurlException
      */
     public function getLoyaltyLoyalty(int $loyaltyId): ApiResponse
     {
@@ -3061,6 +3071,7 @@ class ApiClient
 
     /**
      * @return \RetailCrm\Response\ApiResponse
+     * @throws \RetailCrm\Exception\CurlException
      */
     public function getLoyaltyLoyalties(): ApiResponse
     {
@@ -3075,6 +3086,7 @@ class ApiClient
      * @param int   $accountId
      *
      * @return \RetailCrm\Response\ApiResponse
+     * @throws \RetailCrm\Exception\CurlException
      */
     public function editLoyaltyAccount(array $request, int $accountId): ApiResponse
     {
@@ -3091,6 +3103,7 @@ class ApiClient
     /**
      * @param array $request
      * @return \RetailCrm\Response\ApiResponse
+     * @throws \RetailCrm\Exception\CurlException
      */
     protected function confirmLpVerificationBySMS(array $request): ApiResponse
     {
@@ -3104,6 +3117,7 @@ class ApiClient
     /**
      * @param array $request
      * @return \RetailCrm\Response\ApiResponse
+     * @throws \RetailCrm\Exception\CurlException
      */
     public function sendSmsForLpVerification(array $request): ApiResponse
     {

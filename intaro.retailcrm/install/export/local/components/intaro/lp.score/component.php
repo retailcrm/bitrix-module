@@ -8,6 +8,7 @@ use Intaro\RetailCrm\Repository\UserRepository;
 use Intaro\RetailCrm\Service\LoyaltyService;
 use Bitrix\Main\Loader;
 use Intaro\RetailCrm\Service\LoyaltyAccountService;
+use RetailCrm\Exception\CurlException;
 
 global $USER;
 
@@ -72,6 +73,10 @@ try {
     }
 } catch (LpAccountsUnavailableException $exception) {
     $arResult['ERRORS'] = GetMessage('LP_NOT_ACTUAL');
+
+    $this->IncludeComponentTemplate();
+} catch (CurlException $exception) {
+    $arResult['ERRORS'] = GetMessage('LOYALTY_CONNECTION_ERROR');
 
     $this->IncludeComponentTemplate();
 } catch (Throwable $exception) {
