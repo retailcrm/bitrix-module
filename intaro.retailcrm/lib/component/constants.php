@@ -95,9 +95,10 @@ class Constants
     public const LOYALTY_FIELDS                 = 'loyalty_fields';
     public const AGREEMENT_PERSONAL_DATA_CODE   = 'AGREEMENT_PERSONAL_DATA_CODE';
     public const AGREEMENT_LOYALTY_PROGRAM_CODE = 'AGREEMENT_LOYALTY_PROGRAM_CODE';
-    public const LP_EVENTS = [
+    public const LP_EVENTS                      = [
         ['EVENT_NAME' => 'OnSaleOrderSaved', 'FROM_MODULE' => 'sale'],
         ['EVENT_NAME' => 'OnSaleComponentOrderResultPrepared', 'FROM_MODULE' => 'sale'],
         ['EVENT_NAME' => 'OnAfterUserRegister', 'FROM_MODULE' => 'main'],
     ];
+    public const SITES_AVAILABLE = 'sites_available';
 }
