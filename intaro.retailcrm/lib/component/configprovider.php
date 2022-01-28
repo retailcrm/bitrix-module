@@ -1092,4 +1092,24 @@ class ConfigProvider
     {
         return COption::GetOptionString(Constants::MODULE_ID, Constants::LOYALTY_FIELDS, 0);
     }
+
+    /**
+     * setSitesAvailable
+     *
+     * @param string $siteCode
+     *
+     * @throws \Bitrix\Main\ArgumentOutOfRangeException
+     */
+    public static function setSitesAvailable(string $siteCode): void
+    {
+        static::setOption(Constants::SITES_AVAILABLE, $siteCode);
+    }
+
+    /**
+     * getSitesAvailable
+     */
+    public static function getSitesAvailable()
+    {
+        return COption::GetOptionString(Constants::MODULE_ID, Constants::SITES_AVAILABLE, null);
+    }
 }

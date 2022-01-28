@@ -1,7 +1,10 @@
 <?php
 
+use Bitrix\Main\ArgumentOutOfRangeException;
 use Bitrix\Main\Context;
 use Bitrix\Main\Loader;
+use Intaro\RetailCrm\Component\ConfigProvider;
+use Intaro\RetailCrm\Component\Factory\ClientFactory;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Service\CookieService;
 use Intaro\RetailCrm\Service\OrderLoyaltyDataService;
@@ -50,4 +53,15 @@ $arJsConfig = [
 
 foreach ($arJsConfig as $ext => $arExt) {
     CJSCore::RegisterExt($ext, $arExt);
+}
+
+if (empty(ConfigProvider::getSitesAvailable())) {
+    $client = ClientFactory::createClientAdapter();
+    $credentials = $client->getCredentials();
+
+    try {
+        ConfigProvider::setSitesAvailable($credentials->sitesAvailable[0] ?? '');
+    } catch (ArgumentOutOfRangeException $exception) {
+        Logger::getInstance()->write($exception->getMessage());
+    }
 }

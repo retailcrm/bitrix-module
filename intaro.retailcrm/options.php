@@ -7,6 +7,7 @@ use Bitrix\Main\LoaderException;
 use Bitrix\Main\SystemException;
 use Bitrix\Main\UI\Extension;
 use Bitrix\Sale\Delivery\Services\Manager;
+use Intaro\RetailCrm\Component\ApiClient\ClientAdapter;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\Handlers\EventsHandlers;
@@ -237,9 +238,19 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     }
 
     if ($api_host && $api_key) {
-        $api = new RetailCrm\ApiClient($api_host, $api_key);
+        $api = new ClientAdapter($api_host, $api_key);
+
         try {
-            $api->paymentStatusesList();
+            $credentials = $api->getCredentials();
+
+            if (!empty($credentials->errorMsg)) {
+                $uri .= '&errc=ERR_' . $credentials->errorMsg;
+                LocalRedirect($uri);
+            }
+
+            ConfigProvider::setSitesAvailable(
+                count($credentials->sitesAvailable) > 0 ? $credentials->sitesAvailable[0] : ''
+            );
         } catch (CurlException $e) {
             RCrmActions::eventLog(
                 'intaro.retailcrm/options.php', 'RetailCrm\ApiClient::paymentStatusesList::CurlException',

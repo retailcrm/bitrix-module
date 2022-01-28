@@ -73,11 +73,7 @@ class LoyaltyService
 
         $this->logger = Logger::getInstance();
         $this->client = ClientFactory::createClientAdapter();
-
-        if ($this->client !== null) {
-            $credentials = $this->client->getCredentials();
-            $this->site = $credentials->sitesAvailable[0];
-        }
+        $this->site = ConfigProvider::getSitesAvailable();
 
         Loader::includeModule('Catalog');
     }
