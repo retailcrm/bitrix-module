@@ -1638,19 +1638,21 @@ class RetailCrmHistory
                 $shipment = $shipmentColl->createItem($delivery);
                 $shipment->setFields(array(
                     'BASE_PRICE_DELIVERY'   => $crmOrder['delivery']['cost'],
+                    'PRICE_DELIVERY'        => $crmOrder['delivery']['cost'],
                     'CURRENCY'              => $bitrixOrder->getCurrency(),
                     'DELIVERY_NAME'         => $delivery->getName(),
-                    'CUSTOM_PRICE_DELIVERY' => 'Y'
+                    'CUSTOM_PRICE_DELIVERY' => 'Y',
                 ));
             } else {
                 foreach ($shipmentColl as $shipment) {
                     if (!$shipment->isSystem()) {
                         $shipment->setFields(array(
                             'BASE_PRICE_DELIVERY'   => $crmOrder['delivery']['cost'],
+                            'PRICE_DELIVERY'        => $crmOrder['delivery']['cost'],
                             'CURRENCY'              => $bitrixOrder->getCurrency(),
                             'DELIVERY_ID'           => $deliveryId,
                             'DELIVERY_NAME'         => $delivery->getName(),
-                            'CUSTOM_PRICE_DELIVERY' => 'Y'
+                            'CUSTOM_PRICE_DELIVERY' => 'Y',
                         ));
                     }
                 }
