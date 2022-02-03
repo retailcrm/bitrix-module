@@ -1623,7 +1623,9 @@ class RetailCrmHistory
         $shipmentColl = $order->getShipmentCollection();
 
         if ($delivery) {
-            if (!$update) {
+            //В коллекции всегда есть одна скрытая системная доставка, к которой относятся нераспределенные товары
+            //Поэтому, если есть только системная доставка, то нужно создать новую
+            if (!$update || $shipmentColl->count() === 1) {
                 $shipment = $shipmentColl->createItem($delivery);
                 $shipment->setFields([
                     'BASE_PRICE_DELIVERY'   => $orderCrm['delivery']['cost'],
