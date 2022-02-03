@@ -14,6 +14,7 @@ use Intaro\RetailCrm\Service\CustomerService;
 use Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\AnnotationReader;
 use Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\AnnotationRegistry;
 use \Intaro\RetailCrm\Component\Builder\Api\CustomerBuilder;
+use RetailCrm\Exception\CurlException;
 
 require_once __DIR__ . '/RetailcrmClasspathBuilder.php';
 
@@ -57,11 +58,14 @@ foreach ($arJsConfig as $ext => $arExt) {
 
 if (empty(ConfigProvider::getSitesAvailable())) {
     $client = ClientFactory::createClientAdapter();
-    $credentials = $client->getCredentials();
 
     try {
-        ConfigProvider::setSitesAvailable($credentials->sitesAvailable[0] ?? '');
-    } catch (ArgumentOutOfRangeException $exception) {
+        $credentials = $client->getCredentials();
+
+        ConfigProvider::setSitesAvailable(
+            count($credentials->sitesAvailable) > 0 ? $credentials->sitesAvailable[0] : ''
+        );
+    } catch (ArgumentOutOfRangeException | CurlException $exception) {
         Logger::getInstance()->write($exception->getMessage());
     }
 }
