@@ -458,14 +458,14 @@ class RetailCrmOrder
                 $resCustomersCorporate[$arCustomerCorporate['nickName']] = $arCustomerCorporate;
             }
 
-            $email = $arCustomer['email'] ?? '';
-
-            if (!in_array($email, $resCustomersAdded)) {
-                $resCustomersAdded[] = $email;
+            if (
+                array_key_exists('externalId', $arCustomer)
+                && !in_array($arCustomer['externalId'], $resCustomersAdded, true)
+            ) {
+                $resCustomersAdded[] = $arCustomer['externalId'];
                 $resCustomers[$order['LID']][] = $arCustomer;
             }
 
-            $resCustomers[$order['LID']][] = $arCustomer;
             $ordersPack[$order['LID']][] = $arOrders;
             $recOrders[] = $orderId;
         }
