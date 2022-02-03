@@ -125,7 +125,7 @@ class XmlOffer
      * \Bitrix\Catalog\ProductTable::TYPE_SKU – товар с торговыми предложениями
      * \Bitrix\Catalog\ProductTable::TYPE_OFFER – торговое предложение
      *
-     * @var mixed
+     * @var int
      */
     public $productType;
 

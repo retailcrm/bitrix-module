@@ -532,7 +532,7 @@ class RetailCrmHistory
 
                         continue;
                     }
-    
+
                     $site = self::getSite($order['site']);
 
                     if (null === $site) {
@@ -1229,7 +1229,7 @@ class RetailCrmHistory
 
         return false;
     }
-    
+
     /**
      * @param string $shopCode
      *
@@ -1238,18 +1238,18 @@ class RetailCrmHistory
     public static function getSite(string $shopCode): ?string
     {
         $optionsSitesList = RetailcrmConfigProvider::getSitesList();
-        
+
         if ($optionsSitesList) {
             $searchResult = array_search($shopCode, $optionsSitesList, true);
-            
+
             return is_string($searchResult) ? $searchResult : null;
         }
-    
+
         $defaultSite = CSite::GetDefSite();
-        
+
         return is_string($defaultSite) ? $defaultSite : null;
     }
-    
+
     /**
      * @param $array
      * @param $value
@@ -1493,7 +1493,7 @@ class RetailCrmHistory
 
         return $orders;
     }
-    
+
     /**
      * Filters out history by these terms:
      *  - Changes from current API key will be added only if CMS changes are more actual than history.
@@ -1512,7 +1512,7 @@ class RetailCrmHistory
         $history          = [];
         $organizedHistory = [];
         $notOurChanges    = [];
-        
+
         foreach ($historyEntries as $entry) {
             if (!isset($entry[$recordType]['externalId'])) {
                 if ($entry['source'] == 'api'
@@ -1522,23 +1522,23 @@ class RetailCrmHistory
                 ) {
                     continue;
                 }
-                
+
                 $history[] = $entry;
-                
+
                 continue;
             }
-            
+
             $externalId = $entry[$recordType]['externalId'];
             $field      = $entry['field'];
-            
+
             if (!isset($organizedHistory[$externalId])) {
                 $organizedHistory[$externalId] = [];
             }
-            
+
             if (!isset($notOurChanges[$externalId])) {
                 $notOurChanges[$externalId] = [];
             }
-            
+
             if ($entry['source'] == 'api'
                 && isset($entry['apiKey']['current'])
                 && $entry['apiKey']['current'] == true
@@ -1553,16 +1553,16 @@ class RetailCrmHistory
                 $notOurChanges[$externalId][$field] = true;
             }
         }
-        
+
         unset($notOurChanges);
-        
+
         foreach ($organizedHistory as $historyChunk) {
             $history = array_merge($history, $historyChunk);
         }
-        
+
         return $history;
     }
-    
+
     /**
      * Update shipment in order
      *
@@ -1623,24 +1623,28 @@ class RetailCrmHistory
         $shipmentColl = $order->getShipmentCollection();
 
         if ($delivery) {
-            if (!$update) {
+            //В коллекции всегда есть одна скрытая системная доставка, к которой относятся нераспределенные товары
+            //Поэтому, если есть только системная доставка, то нужно создать новую
+            if (!$update || $shipmentColl->count() === 1) {
                 $shipment = $shipmentColl->createItem($delivery);
-                $shipment->setFields(array(
-                    'BASE_PRICE_DELIVERY' => $orderCrm['delivery']['cost'],
-                    'CURRENCY' => $order->getCurrency(),
-                    'DELIVERY_NAME' => $delivery->getName(),
+                $shipment->setFields([
+                    'BASE_PRICE_DELIVERY'   => $orderCrm['delivery']['cost'],
+                    'PRICE_DELIVERY'        => $orderCrm['delivery']['cost'],
+                    'CURRENCY'              => $order->getCurrency(),
+                    'DELIVERY_NAME'         => $delivery->getName(),
                     'CUSTOM_PRICE_DELIVERY' => 'Y'
-                ));
+                ]);
             } else {
                 foreach ($shipmentColl as $shipment) {
                     if (!$shipment->isSystem()) {
-                        $shipment->setFields(array(
-                            'BASE_PRICE_DELIVERY' => $orderCrm['delivery']['cost'],
-                            'CURRENCY' => $order->getCurrency(),
-                            'DELIVERY_ID' => $deliveryId,
-                            'DELIVERY_NAME' => $delivery->getName(),
+                        $shipment->setFields([
+                            'BASE_PRICE_DELIVERY'   => $orderCrm['delivery']['cost'],
+                            'PRICE_DELIVERY'        => $orderCrm['delivery']['cost'],
+                            'CURRENCY'              => $order->getCurrency(),
+                            'DELIVERY_ID'           => $deliveryId,
+                            'DELIVERY_NAME'         => $delivery->getName(),
                             'CUSTOM_PRICE_DELIVERY' => 'Y'
-                        ));
+                        ]);
                     }
                 }
             }

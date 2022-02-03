@@ -212,7 +212,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
 
     //bitrix site list
     $siteListArr = [];
-    
+
     foreach ($arResult['arSites'] as $arSites) {
         if (count($arResult['arSites']) > 1) {
             if ($_POST['sites-id-' . $arSites['LID']]) {
@@ -414,8 +414,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         function maskPrice($var){
             return preg_match("/^shops-price/", $var);
         }
-        $bitrixPriceShopsArr = str_replace('shops-price-', '', array_filter(array_keys($_POST), 'maskPrice'));
 
+        $bitrixPriceShopsArr = array_values(array_filter($_POST, 'maskPrice', ARRAY_FILTER_USE_KEY));
         $arResult['bitrixIblocksExportList'] = RCrmActions::IblocksExportList();
         foreach($arResult['bitrixIblocksExportList'] as $bitrixIblocks){
             if(htmlspecialchars(trim($_POST['iblocks-prices-' . $bitrixIblocks['ID']])) === 'Y'){
@@ -486,10 +486,12 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
         $cc = 'Y';
         $bitrixCorpName = htmlspecialchars(trim($_POST['nickName-corporate']));
         $bitrixCorpAdres = htmlspecialchars(trim($_POST['adres-corporate']));
+
         function maskCorp($var) {
             return preg_match("/^shops-corporate/", $var);
         }
-        $bitrixCorpShopsArr = str_replace('shops-corporate-', '', array_filter(array_keys($_POST), 'maskCorp'));
+
+        $bitrixCorpShopsArr = array_values(array_filter($_POST, 'maskCorp', ARRAY_FILTER_USE_KEY));
 
         RegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmCc", "add");
     } else  {
@@ -1394,7 +1396,10 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                 <?php foreach ($arResult['sitesList'] as $sitesList): ?>
                     <tr class="prices" align="center" <?php if($optionPricesUpload !== 'Y') echo 'style="display: none;"'; ?>>
                         <td colspan="2" class="option-other-center">
-                            <label><input class="addr" type="checkbox" name="shops-price-<?echo $sitesList['code'];?>" value="Y" <?php if(in_array($sitesList['code'], $optionPriceShops)) echo "checked"; ?>> <?php echo $sitesList['name'].' ('.$sitesList['code'].')'; ?></label>
+                            <label><input class="addr" type="checkbox" name="shops-price-<? echo $sitesList['code']; ?>" value="<? echo $sitesList['code']; ?>" <?php if (in_array($sitesList['code'], $optionPriceShops)) {
+                                    echo "checked";
+                                } ?>> <?php echo $sitesList['name'] . ' (' . $sitesList['code'] . ')'; ?>
+                            </label>
                         </td>
                     </tr>
                 <?php endforeach;?>
@@ -1541,7 +1546,10 @@ if (isset($_POST['Update']) && ($_POST['Update'] == 'Y')) {
                 <td width="50%" class="" name="<?php ?>" align="center">
                     <?php foreach ($arResult['sitesList'] as $sitesList): ?>
                 <td colspan="2" class="option-other-center">
-                    <label><input class="addr" type="checkbox" name="shops-corporate-<?echo $sitesList['code'];?>" value="Y" <?php if(in_array($sitesList['code'], $optionCorpShops)) echo "checked"; ?>> <?php echo $sitesList['name'].' ('.$sitesList['code'].')'; ?></label>
+                    <label><input class="addr" type="checkbox" name="shops-corporate-<? echo $sitesList['code']; ?>" value="<? echo $sitesList['code']; ?>" <?php if (in_array($sitesList['code'], $optionCorpShops)) {
+                            echo "checked";
+                        } ?>> <?php echo $sitesList['name'] . ' (' . $sitesList['code'] . ')'; ?>
+                    </label>
                 </td>
                 <?php endforeach;?>
                 </td>
