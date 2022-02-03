@@ -11,6 +11,7 @@ use Bitrix\Sale\Order;
 use RetailCrm\ApiClient;
 use Intaro\RetailCrm\Service\ManagerService;
 use RetailCrm\Response\ApiResponse;
+use \Bitrix\Sale\Location\Name\LocationTable as LocationTableName;
 
 IncludeModuleLangFile(__FILE__);
 
@@ -135,12 +136,12 @@ class RetailCrmOrder
                                 }
                             }
 
-                            $location = LocationTable::getList([
+                            $location = LocationTableName::getList([
                                 'filter' => ['=LOCATION_ID' => $arLoc['CITY_ID'], 'LANGUAGE_ID' => 'ru']
                             ])->fetch();
 
                             if (count($countrys) > 0) {
-                                $countryOrder = LocationTable::getList([
+                                $countryOrder = LocationTableName::getList([
                                     'filter' => ['=LOCATION_ID' => $arLoc['COUNTRY_ID'], 'LANGUAGE_ID' => 'ru']
                                 ])->fetch();
                                 if(isset($countrys[$countryOrder['NAME']])){
@@ -161,7 +162,7 @@ class RetailCrmOrder
         //deliverys
         if (array_key_exists($arOrder['DELIVERYS'][0]['id'], $arParams['optionsDelivTypes'])) {
             $order['delivery']['code'] = $arParams['optionsDelivTypes'][$arOrder['DELIVERYS'][0]['id']];
-            
+
             if (isset($arOrder['DELIVERYS'][0]['service']) && $arOrder['DELIVERYS'][0]['service'] != '') {
                 $order['delivery']['service']['code'] = $arOrder['DELIVERYS'][0]['service'];
             }
@@ -192,7 +193,7 @@ class RetailCrmOrder
                 $itemId = $orderItems[$externalId]['id'];
 
                 $key = array_search('bitrix', array_column($externalIds, 'code'));
-                
+
                 if ($externalIds[$key]['code'] === 'bitrix') {
                     $externalIds[$key] = [
                         'code' => 'bitrix',
@@ -228,7 +229,7 @@ class RetailCrmOrder
             }
 
             $catalogProduct = CCatalogProduct::GetByID($product['PRODUCT_ID']);
-            
+
             if (is_null($catalogProduct['PURCHASING_PRICE']) === false) {
                 if ($catalogProduct['PURCHASING_CURRENCY'] && $currency != $catalogProduct['PURCHASING_CURRENCY']) {
                     $purchasePrice = CCurrencyRates::ConvertCurrency(
@@ -244,7 +245,7 @@ class RetailCrmOrder
             }
 
             $item['discountManualPercent'] = 0;
-            
+
             if ($product['BASE_PRICE'] >= $product['PRICE']) {
                 $item['discountManualAmount'] = self::getDiscountManualAmount($product);
                 $item['initialPrice'] = (double) $product['BASE_PRICE'];
@@ -276,7 +277,7 @@ class RetailCrmOrder
 
         //payments
         $payments = [];
-        
+
         foreach ($arOrder['PAYMENTS'] as $payment) {
             $isIntegrationPayment = RetailCrmService::isIntegrationPayment($payment['PAY_SYSTEM_ID'] ?? null);
 
@@ -709,7 +710,7 @@ class RetailCrmOrder
 
         foreach ($pack as $key => $itemLoad) {
             $site = self::getCrmShopCodeByLid($key, $optionsSitesList);
-    
+
             if (null === $site && count($optionsSitesList) > 0) {
                 continue;
             }
@@ -839,14 +840,14 @@ class RetailCrmOrder
             $sumDifference = $product->get('BASE_PRICE') - $product->get('PRICE');
             return $sumDifference > 0 ? $sumDifference : 0.0;
         }
-        
+
         $discount = (double) $product->get('DISCOUNT_PRICE');
         $dpItem = $product->get('BASE_PRICE') - $product->get('PRICE');
-        
+
         if ($dpItem > 0 && $discount <= 0) {
             return $dpItem;
         }
-        
+
         return $discount;
     }
 }
