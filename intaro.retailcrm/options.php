@@ -396,7 +396,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             return preg_match("/^shops-exoprt/", $var);
         }
 
-        $bitrixShopsArr = str_replace('shops-exoprt-', '', array_filter(array_keys($_POST), 'maskInv'));
+        $bitrixShopsArr = array_values(array_filter($_POST, 'maskInv', ARRAY_FILTER_USE_KEY));
         $arResult['bitrixIblocksExportList'] = RCrmActions::IblocksExportList();
 
         foreach ($arResult['bitrixIblocksExportList'] as $bitrixIblocks) {
@@ -2124,9 +2124,10 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 echo 'style="display: none;"';
             } ?>>
                 <td colspan="2" class="option-other-center">
-                    <label><input class="addr" type="checkbox" name="shops-exoprt-<? echo $sitesList['code']; ?>" value="Y" <?php if (in_array($sitesList['code'], $optionShops)) {
+                    <label><input class="addr" type="checkbox" name="shops-exoprt-<?= $sitesList['code']; ?>" value="<?= $sitesList['code']?>" <?php if (in_array($sitesList['code'], $optionShops)) {
                             echo "checked";
-                        } ?>> <?php echo $sitesList['name'] . ' (' . $sitesList['code'] . ')'; ?></label>
+                        } ?>> <?php echo $sitesList['name'] . ' (' . $sitesList['code'] . ')'; ?>
+                    </label>
                 </td>
             </tr>
         <?php endforeach; ?>
