@@ -134,7 +134,7 @@ class RetailCrmEventTest extends PHPUnit\Framework\TestCase
 
         $event = $this->createMock(\Bitrix\Main\Event::class);
 
-        $result = $this->retailcrmEvent->orderSave($event);
+        $result = RetailCrmEvent::orderSave($event);
 
         $this->assertEquals(false, $result);
     }

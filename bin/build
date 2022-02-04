@@ -29,7 +29,8 @@ echo "Update version and date in the file \"version.php\""
 
 for i in `find ./"$version" -type f -name '*.*'`; do
     encoding=`file -b --mime-encoding "$i"`
-    if [ "$encoding" != "iso-8859-1" ] && [ "$encoding" != "binary" ]; then
+    if [ "$encoding" != "iso-8859-1" ] && [ "$encoding" != "us-ascii" ] && [ "$encoding" != "binary" ]; then
+        echo "$i: converting from $encoding to cp1251"
         result=$(iconv -f $encoding -t "cp1251" $i -o $i.cp1251 2>&1 > /dev/null)
         if [ ! -z "$result" ]; then
             echo "Errors in file $i"

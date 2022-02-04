@@ -2,7 +2,10 @@
 
 use Bitrix\Main\ArgumentException;
 use Bitrix\Main\ArgumentNullException;
+use Bitrix\Main\ArgumentOutOfRangeException;
 use Bitrix\Main\Context;
+use Bitrix\Main\NotSupportedException;
+use Bitrix\Main\SystemException;
 use Bitrix\Sale\Basket;
 use Bitrix\Sale\Delivery\Services\EmptyDeliveryService;
 use Bitrix\Sale\Delivery\Services\Manager;
@@ -11,7 +14,11 @@ use Bitrix\Sale\Internals\PaymentTable;
 use Bitrix\Sale\Location\Search\Finder;
 use Bitrix\Sale\Order;
 use Bitrix\Sale\OrderUserProperties;
+use Bitrix\Sale\Payment;
 use Intaro\RetailCrm\Service\ManagerService;
+use Intaro\RetailCrm\Component\ConfigProvider;
+use Intaro\RetailCrm\Component\Constants;
+use Intaro\RetailCrm\Component\Handlers\EventsHandlers;
 
 IncludeModuleLangFile(__FILE__);
 class RetailCrmHistory
@@ -1566,25 +1573,29 @@ class RetailCrmHistory
     /**
      * Update shipment in order
      *
-     * @param order object
-     * @param options delivery types
-     * @param order from crm
+     * @param \Bitrix\Sale\Order $bitrixOrder
+     * @param array              $optionsDelivTypes
+     * @param array              $crmOrder
      *
-     * @return void
+     * @return bool|null
+     * @throws \Bitrix\Main\ArgumentException
+     * @throws \Bitrix\Main\ArgumentNullException
+     * @throws \Bitrix\Main\ObjectNotFoundException
+     * @throws \Bitrix\Main\SystemException
      */
-    public static function deliveryUpdate(Bitrix\Sale\Order $order, $optionsDelivTypes, $orderCrm)
+    public static function deliveryUpdate(Bitrix\Sale\Order $bitrixOrder, $optionsDelivTypes, $crmOrder)
     {
-        if (!$order instanceof Bitrix\Sale\Order) {
+        if (!$bitrixOrder instanceof Bitrix\Sale\Order) {
             return false;
         }
 
-        if ($order->getId()) {
+        if ($bitrixOrder->getId()) {
             $update = true;
         } else {
             $update = false;
         }
 
-        $crmCode = $orderCrm['delivery']['code'] ?? false;
+        $crmCode = $crmOrder['delivery']['code'] ?? false;
         $noDeliveryId = EmptyDeliveryService::getEmptyDeliveryServiceId();
 
         if ($crmCode === false || !isset($optionsDelivTypes[$crmCode])) {
@@ -1592,9 +1603,9 @@ class RetailCrmHistory
         } else {
             $deliveryId = $optionsDelivTypes[$crmCode];
 
-            if (isset($orderCrm['delivery']['service']['code'])) {
+            if (isset($crmOrder['delivery']['service']['code'])) {
                 $deliveryCode = Manager::getCodeById($deliveryId);
-                $serviceCode = $orderCrm['delivery']['service']['code'];
+                $serviceCode = $crmOrder['delivery']['service']['code'];
 
                 $service = Manager::getService($deliveryId);
                 if (is_object($service)) {
@@ -1608,7 +1619,7 @@ class RetailCrmHistory
                 if ($deliveryCode) {
                     try {
                         $deliveryService = Manager::getObjectByCode($deliveryCode . ':' . $serviceCode);
-                    } catch (Bitrix\Main\SystemException $systemException) {
+                    } catch (SystemException $systemException) {
                         RCrmActions::eventLog('RetailCrmHistory::deliveryEdit', '\Bitrix\Sale\Delivery\Services\Manager::getObjectByCode', $systemException->getMessage());
                     }
 
@@ -1620,7 +1631,7 @@ class RetailCrmHistory
         }
 
         $delivery = Manager::getObjectById($deliveryId);
-        $shipmentColl = $order->getShipmentCollection();
+        $shipmentColl = $bitrixOrder->getShipmentCollection();
 
         if ($delivery) {
             //В коллекции всегда есть одна скрытая системная доставка, к которой относятся нераспределенные товары
@@ -1628,9 +1639,9 @@ class RetailCrmHistory
             if (!$update || $shipmentColl->count() === 1) {
                 $shipment = $shipmentColl->createItem($delivery);
                 $shipment->setFields([
-                    'BASE_PRICE_DELIVERY'   => $orderCrm['delivery']['cost'],
-                    'PRICE_DELIVERY'        => $orderCrm['delivery']['cost'],
-                    'CURRENCY'              => $order->getCurrency(),
+                    'BASE_PRICE_DELIVERY'   => $crmOrder['delivery']['cost'],
+                    'PRICE_DELIVERY'        => $crmOrder['delivery']['cost'],
+                    'CURRENCY'              => $bitrixOrder->getCurrency(),
                     'DELIVERY_NAME'         => $delivery->getName(),
                     'CUSTOM_PRICE_DELIVERY' => 'Y'
                 ]);
@@ -1638,9 +1649,9 @@ class RetailCrmHistory
                 foreach ($shipmentColl as $shipment) {
                     if (!$shipment->isSystem()) {
                         $shipment->setFields([
-                            'BASE_PRICE_DELIVERY'   => $orderCrm['delivery']['cost'],
-                            'PRICE_DELIVERY'        => $orderCrm['delivery']['cost'],
-                            'CURRENCY'              => $order->getCurrency(),
+                            'BASE_PRICE_DELIVERY'   => $crmOrder['delivery']['cost'],
+                            'PRICE_DELIVERY'        => $crmOrder['delivery']['cost'],
+                            'CURRENCY'              => $bitrixOrder->getCurrency(),
                             'DELIVERY_ID'           => $deliveryId,
                             'DELIVERY_NAME'         => $delivery->getName(),
                             'CUSTOM_PRICE_DELIVERY' => 'Y'
@@ -1649,6 +1660,8 @@ class RetailCrmHistory
                 }
             }
         }
+
+        return true;
     }
 
     /**
@@ -1707,11 +1720,11 @@ class RetailCrmHistory
             if (!$shipment->isSystem()) {
                 try {
                     $shipment->tryUnreserve();
-                } catch (Main\ArgumentOutOfRangeException $ArgumentOutOfRangeException) {
+                } catch (ArgumentOutOfRangeException $ArgumentOutOfRangeException) {
                     RCrmActions::eventLog('RetailCrmHistory::unreserveShipment', '\Bitrix\Sale\Shipment::tryUnreserve()', $ArgumentOutOfRangeException->getMessage());
 
                     return false;
-                } catch (Main\NotSupportedException $NotSupportedException) {
+                } catch (NotSupportedException $NotSupportedException) {
                     RCrmActions::eventLog('RetailCrmHistory::unreserveShipment', '\Bitrix\Sale\Shipment::tryUnreserve()', $NotSupportedException->getMessage());
 
                     return false;
@@ -1752,7 +1765,7 @@ class RetailCrmHistory
                 $nowPaymentId = RCrmActions::getFromPaymentExternalId($paymentCrm['externalId']);
                 $nowPayment = $paymentsList[$nowPaymentId];
                 //update data
-                if ($nowPayment instanceof \Bitrix\Sale\Payment) {
+                if ($nowPayment instanceof Payment) {
                     $nowPayment->setField('SUM', $paymentCrm['amount']);
                     if ($optionsPayTypes[$paymentCrm['type']] != $nowPayment->getField('PAY_SYSTEM_ID')) {
                         $nowPayment->setField('PAY_SYSTEM_ID', $optionsPayTypes[$paymentCrm['type']]);
