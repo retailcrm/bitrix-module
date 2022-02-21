@@ -282,7 +282,7 @@ class XmlOfferBuilder
                 continue;
             }
 
-            $codeWithValue = $params . '_VALUE';
+            $codeWithValue = strtoupper($params) . '_VALUE';
 
             if (isset($productProps[$codeWithValue])) {
                 $resultParams[$key] = $productProps[$codeWithValue];
