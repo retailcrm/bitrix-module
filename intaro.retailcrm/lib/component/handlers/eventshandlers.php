@@ -70,10 +70,10 @@ class EventsHandlers
         if (ConfigProvider::getLoyaltyProgramStatus() === 'Y') {
             $bonusInput           = (float) $request->get('bonus-input');
             $availableBonuses     = (float) $request->get('available-bonuses');
-            $chargeRate           = (int) $request->get('charge-rate');
+            $chargeRate           = (float) $request->get('charge-rate');
             $loyaltyDiscountInput = (float) $request->get('loyalty-discount-input');
             $calculateItemsInput  = $request->get('calculate-items-input');
-            $bonusDiscount        = $bonusInput * $chargeRate;
+            $bonusDiscount        = round($bonusInput * $chargeRate, 2);
 
             if ($bonusInput > $availableBonuses) {
                 $arResult['LOYALTY']['ERROR'] = GetMessage('BONUS_ERROR_MSG');
