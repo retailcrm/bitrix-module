@@ -137,20 +137,17 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_RE
     foreach ($optionsDelivTypes as $key => $deliveryType) {
         foreach ($arDeliveryServiceAll as $deliveryService) {
             if ($deliveryService['PARENT_ID'] != 0 && $deliveryService['PARENT_ID'] === $key) {
-                $srv = explode(':', $deliveryService['CODE']);
-                if (count($srv) === 2) {
-                    try {
-                        $api->deliveryServicesEdit(RCrmActions::clearArr([
-                            'code'         => $srv[1],
-                            'name'         => RCrmActions::toJSON($deliveryService['NAME']),
-                            'deliveryType' => $deliveryType,
-                        ]));
-                    } catch (CurlException $e) {
-                        RCrmActions::eventLog(
-                            'intaro.retailcrm/options.php', 'RetailCrm\ApiClient::deliveryServiceEdit::CurlException',
-                            $e->getCode() . ': ' . $e->getMessage()
-                        );
-                    }
+                try {
+                    $api->deliveryServicesEdit(RCrmActions::clearArr([
+                        'code'         => 'bitrix-' . $deliveryService['ID'],
+                        'name'         => RCrmActions::toJSON($deliveryService['NAME']),
+                        'deliveryType' => $deliveryType,
+                    ]));
+                } catch (CurlException $e) {
+                    RCrmActions::eventLog(
+                        'intaro.retailcrm/options.php', 'RetailCrm\ApiClient::deliveryServiceEdit::CurlException',
+                        $e->getCode() . ': ' . $e->getMessage()
+                    );
                 }
             }
         }

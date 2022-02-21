@@ -557,11 +557,9 @@ class intaro_retailcrm extends CModule
                         $deliveryTypesArr[$deliveryType['ID']] = $deliveryType['ID'];
                         foreach ($arDeliveryServiceAll as $deliveryService) {
                             if ($deliveryService['PARENT_ID'] != 0 && $deliveryService['PARENT_ID'] == $deliveryType['ID']) {
-                                $srv = explode(':', $deliveryService['CODE']);
-                                if (count($srv) == 2) {
                                     try {
                                         $this->RETAIL_CRM_API->deliveryServicesEdit(RCrmActions::clearArr([
-                                            'code'         => $srv[1],
+                                            'code'         => 'bitrix-' . $deliveryService['ID'],
                                             'name'         => RCrmActions::toJSON($deliveryService['NAME']),
                                             'deliveryType' => $deliveryType['ID'],
                                         ]));
@@ -571,7 +569,6 @@ class intaro_retailcrm extends CModule
                                             $e->getCode() . ': ' . $e->getMessage()
                                         );
                                     }
-                                }
                             }
                         }
                     }
