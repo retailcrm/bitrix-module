@@ -251,7 +251,7 @@ class IcmlDirector
 
         do {
             //Если каталог проиндексирован, у товара есть Тип и это простой товар, то просто записываем его
-            if ($product->productType == ProductTable::TYPE_PRODUCT) {
+            if ($product->productType = ProductTable::TYPE_PRODUCT) {
                 $this->icmlWriter->writeOffers([$product]);
                 break;
             }
