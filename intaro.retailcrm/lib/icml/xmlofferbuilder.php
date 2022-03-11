@@ -225,7 +225,7 @@ class XmlOfferBuilder
     {
         $this->xmlOffer->id = $item['ID'];
         $this->xmlOffer->productId = $item['ID'];
-        $this->xmlOffer->productType = $item['CATALOG_TYPE'];
+        $this->xmlOffer->productType = (int) $item['CATALOG_TYPE'];
         $this->xmlOffer->quantity = $item['CATALOG_QUANTITY'] ?? '';
         $this->xmlOffer->url = $item['DETAIL_PAGE_URL']
             ? $this->defaultServerName . $item['DETAIL_PAGE_URL']
@@ -282,7 +282,7 @@ class XmlOfferBuilder
                 continue;
             }
 
-            $codeWithValue = $params . '_VALUE';
+            $codeWithValue = strtoupper($params) . '_VALUE';
 
             if (isset($productProps[$codeWithValue])) {
                 $resultParams[$key] = $productProps[$codeWithValue];

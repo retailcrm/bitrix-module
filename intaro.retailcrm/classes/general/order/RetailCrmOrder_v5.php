@@ -15,6 +15,7 @@ use RetailCrm\ApiClient;
 use Intaro\RetailCrm\Service\ManagerService;
 use Intaro\RetailCrm\Service\LoyaltyAccountService;
 use RetailCrm\Response\ApiResponse;
+use \Bitrix\Sale\Location\Name\LocationTable as LocationTableName;
 use Intaro\RetailCrm\Component\ConfigProvider;
 
 IncludeModuleLangFile(__FILE__);
@@ -140,12 +141,12 @@ class RetailCrmOrder
                                 }
                             }
 
-                            $location = LocationTable::getList([
+                            $location = LocationTableName::getList([
                                 'filter' => ['=LOCATION_ID' => $arLoc['CITY_ID'], 'LANGUAGE_ID' => 'ru']
                             ])->fetch();
 
                             if (count($countrys) > 0) {
-                                $countryOrder = LocationTable::getList([
+                                $countryOrder = LocationTableName::getList([
                                     'filter' => ['=LOCATION_ID' => $arLoc['COUNTRY_ID'], 'LANGUAGE_ID' => 'ru']
                                 ])->fetch();
                                 if(isset($countrys[$countryOrder['NAME']])){
@@ -508,14 +509,14 @@ class RetailCrmOrder
                 $resCustomersCorporate[$arCustomerCorporate['nickName']] = $arCustomerCorporate;
             }
 
-            $email = $arCustomer['email'] ?? '';
-
-            if (!in_array($email, $resCustomersAdded)) {
-                $resCustomersAdded[] = $email;
+            if (
+                array_key_exists('externalId', $arCustomer)
+                && !in_array($arCustomer['externalId'], $resCustomersAdded, true)
+            ) {
+                $resCustomersAdded[] = $arCustomer['externalId'];
                 $resCustomers[$order['LID']][] = $arCustomer;
             }
 
-            $resCustomers[$order['LID']][] = $arCustomer;
             $ordersPack[$order['LID']][] = $arOrders;
             $recOrders[] = $orderId;
         }

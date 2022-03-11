@@ -281,7 +281,17 @@ if (strlen($request->get('ORDER_ID')) > 0) {
     Main\UI\Extension::load('phone_auth');
 
     $hideDelivery = empty($arResult['DELIVERY']);
+    if (true === $arResult['LOYALTY_CONNECTION_ERROR']) {
+        ?>
+        <div class="basket-items-list-item-warning-container">
+            <div class="alert alert-warning text-center">
+                <?=GetMessage('LOYALTY_CONNECTION_ERROR')?>
+            </div>
+        </div>
+        <?php
+    }
     ?>
+
     <form action="<?=POST_FORM_ACTION_URI?>" method="POST" name="ORDER_FORM" id="bx-soa-order-form" enctype="multipart/form-data">
         <?
         echo bitrix_sessid_post();
@@ -426,8 +436,11 @@ if (strlen($request->get('ORDER_ID')) > 0) {
 
                 <!--	INTARO BONUS BLOCK	-->
                 <?php
-                if ($arResult['LOYALTY_STATUS'] === 'Y'
-                    && $arResult['PERSONAL_LOYALTY_STATUS'] === true):
+                if (
+                    $arResult['LOYALTY_STATUS'] === 'Y'
+                    && $arResult['PERSONAL_LOYALTY_STATUS'] === true
+                    && $arResult['LOYALTY_CONNECTION_ERROR'] !== true
+                ):
                     ?>
                     <script id="data-basket-items">
                         window.__MESS__= <?=$arResult['JS_MESS']?>;
@@ -448,7 +461,7 @@ if (strlen($request->get('ORDER_ID')) > 0) {
                                         <div id="bonus-msg"><?=Loc::getMessage('HOW_MANY_BONUSES_TO_SPEND')?></div>
                                         <div class="bx-soa-coupon-block">
                                             <div class="bx-input">
-                                                <input name='bonus-input' class="form-control" type="number" max="<?=$arResult['AVAILABLE_BONUSES']?>" id='bonus-input'>
+                                                <input name='bonus-input' class="form-control" type="number" step="any" max="<?=$arResult['AVAILABLE_BONUSES']?>" id='bonus-input'>
                                                 <input name="available-bonuses" class="form-control" type="hidden" id='available-bonus-input' value="<?=$arResult['AVAILABLE_BONUSES']?>">
                                                 <input name="charge-rate" class="form-control" type="hidden" id='charge-rate-input' value="<?=$arResult['CHARGERATE']?>">
                                                 <script id="data-basket-items">

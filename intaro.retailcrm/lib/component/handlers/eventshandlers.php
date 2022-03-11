@@ -68,12 +68,12 @@ class EventsHandlers
         array &$arResult
     ): void {
         if (ConfigProvider::getLoyaltyProgramStatus() === 'Y') {
-            $bonusInput           = (int) $request->get('bonus-input');
-            $availableBonuses     = (int) $request->get('available-bonuses');
-            $chargeRate           = (int) $request->get('charge-rate');
+            $bonusInput           = (float) $request->get('bonus-input');
+            $availableBonuses     = (float) $request->get('available-bonuses');
+            $chargeRate           = (float) $request->get('charge-rate');
             $loyaltyDiscountInput = (float) $request->get('loyalty-discount-input');
             $calculateItemsInput  = $request->get('calculate-items-input');
-            $bonusDiscount        = $bonusInput * $chargeRate;
+            $bonusDiscount        = round($bonusInput * $chargeRate, 2);
 
             if ($bonusInput > $availableBonuses) {
                 $arResult['LOYALTY']['ERROR'] = GetMessage('BONUS_ERROR_MSG');
@@ -99,6 +99,14 @@ class EventsHandlers
                 $jsDataTotal['ORDER_PRICE_FORMATED']
                                                         = $jsDataTotal['ORDER_PRICE'] - $loyaltyDiscountInput . ' ' . GetMessage('RUB');
                 $oldItems                               = json_decode(htmlspecialchars_decode($calculateItemsInput), true);
+
+                /** @var LoyaltyService $service */
+                $service = ServiceLocator::get(LoyaltyService::class);
+                $calculate = $service->getLoyaltyCalculate($arResult['BASKET_ITEMS'], $bonusInput);
+
+                if ($calculate->success) {
+                    $jsDataTotal['WILL_BE_CREDITED'] = $calculate->order->bonusesCreditTotal;
+                }
 
                 if ($calculateItemsInput !== null) {
                     foreach ($arResult['JS_DATA']['GRID']['ROWS'] as $key => &$item) {
@@ -163,12 +171,14 @@ class EventsHandlers
                 !empty($_POST['bonus-input'])
                 && !empty($_POST['available-bonuses'])
             );
+
+            $bonusFloat = (float) $_POST['bonus-input'];
+
             /** @var bool $isNewOrder */
             $isNewOrder                 = $event->getParameter('IS_NEW');
             $isLoyaltyOn                = ConfigProvider::getLoyaltyProgramStatus() === 'Y';
             $isDataForLoyaltyDiscount   = isset($_POST['calculate-items-input'], $_POST['loyalty-discount-input']);
-            $isBonusesIssetAndAvailable = $isBonusInput
-                && (int) $_POST['available-bonuses'] >= (int) $_POST['bonus-input'];
+            $isBonusesIssetAndAvailable = $isBonusInput && (float) $_POST['available-bonuses'] >= $bonusFloat;
 
             /** @var array $calculateItemsInput */
             $calculateItemsInput = $isDataForLoyaltyDiscount
@@ -190,11 +200,11 @@ class EventsHandlers
 
                 //Если есть бонусы
                 if ($isBonusesIssetAndAvailable) {
-                    $applyBonusResponse = $loyaltyService->applyBonusesInOrder($order, (int) $_POST['bonus-input']);
+                    $applyBonusResponse = $loyaltyService->applyBonusesInOrder($order, $bonusFloat);
 
                     $hlInfoBuilder->setApplyResponse($applyBonusResponse);
-                    $loyaltyBonusMsg = (int) $_POST['bonus-input'];
-                    $hlInfoBuilder->setBonusInputTotal((int) $_POST['bonus-input']);
+                    $loyaltyBonusMsg = $bonusFloat;
+                    $hlInfoBuilder->setBonusInputTotal($bonusFloat);
                 }
 
                 //Если бонусов нет, но скидка по ПЛ есть

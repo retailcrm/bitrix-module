@@ -7,6 +7,7 @@ use Bitrix\Main\LoaderException;
 use Bitrix\Main\SystemException;
 use Bitrix\Main\UI\Extension;
 use Bitrix\Sale\Delivery\Services\Manager;
+use Intaro\RetailCrm\Component\ApiClient\ClientAdapter;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\Handlers\EventsHandlers;
@@ -50,9 +51,10 @@ $CRM_COLLECTOR = 'collector';
 $CRM_COLL_KEY  = 'coll_key';
 $CRM_UA      = 'ua';
 $CRM_UA_KEYS = 'ua_keys';
-$CRM_CC         = 'cc';
+$CRM_DISCOUNT_ROUND = 'discount_round';
+$CRM_CC = 'cc';
 $CRM_CORP_SHOPS = 'shops-corporate';
-$CRM_CORP_NAME  = 'nickName-corporate';
+$CRM_CORP_NAME = 'nickName-corporate';
 $CRM_CORP_ADRES = 'adres-corporate';
 $CRM_API_VERSION = 'api_version';
 $CRM_CURRENCY        = 'currency';
@@ -66,7 +68,7 @@ if (!CModule::IncludeModule('intaro.retailcrm') || !CModule::IncludeModule('sale
 }
 
 $_GET['errc'] = htmlspecialchars(trim($_GET['errc']));
-$_GET['ok']   = htmlspecialchars(trim($_GET['ok']));
+$_GET['ok'] = htmlspecialchars(trim($_GET['ok']));
 
 if (RetailcrmConfigProvider::isPhoneRequired()) {
     echo ShowMessage(["TYPE" => "ERROR", "MESSAGE" => GetMessage('PHONE_REQUIRED')]);
@@ -135,20 +137,17 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_RE
     foreach ($optionsDelivTypes as $key => $deliveryType) {
         foreach ($arDeliveryServiceAll as $deliveryService) {
             if ($deliveryService['PARENT_ID'] != 0 && $deliveryService['PARENT_ID'] === $key) {
-                $srv = explode(':', $deliveryService['CODE']);
-                if (count($srv) === 2) {
-                    try {
-                        $api->deliveryServicesEdit(RCrmActions::clearArr([
-                            'code'         => $srv[1],
-                            'name'         => RCrmActions::toJSON($deliveryService['NAME']),
-                            'deliveryType' => $deliveryType,
-                        ]));
-                    } catch (CurlException $e) {
-                        RCrmActions::eventLog(
-                            'intaro.retailcrm/options.php', 'RetailCrm\ApiClient::deliveryServiceEdit::CurlException',
-                            $e->getCode() . ': ' . $e->getMessage()
-                        );
-                    }
+                try {
+                    $api->deliveryServicesEdit(RCrmActions::clearArr([
+                        'code'         => 'bitrix-' . $deliveryService['ID'],
+                        'name'         => RCrmActions::toJSON($deliveryService['NAME']),
+                        'deliveryType' => $deliveryType,
+                    ]));
+                } catch (CurlException $e) {
+                    RCrmActions::eventLog(
+                        'intaro.retailcrm/options.php', 'RetailCrm\ApiClient::deliveryServiceEdit::CurlException',
+                        $e->getCode() . ': ' . $e->getMessage()
+                    );
                 }
             }
         }
@@ -236,9 +235,19 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     }
 
     if ($api_host && $api_key) {
-        $api = new RetailCrm\ApiClient($api_host, $api_key);
+        $api = new ClientAdapter($api_host, $api_key);
+
         try {
-            $api->paymentStatusesList();
+            $credentials = $api->getCredentials();
+
+            if (!empty($credentials->errorMsg)) {
+                $uri .= '&errc=ERR_' . $credentials->errorMsg;
+                LocalRedirect($uri);
+            }
+
+            ConfigProvider::setSitesAvailable(
+                count($credentials->sitesAvailable) > 0 ? $credentials->sitesAvailable[0] : ''
+            );
         } catch (CurlException $e) {
             RCrmActions::eventLog(
                 'intaro.retailcrm/options.php', 'RetailCrm\ApiClient::paymentStatusesList::CurlException',
@@ -395,7 +404,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             return preg_match("/^shops-exoprt/", $var);
         }
 
-        $bitrixShopsArr = str_replace('shops-exoprt-', '', array_filter(array_keys($_POST), 'maskInv'));
+        $bitrixShopsArr = array_values(array_filter($_POST, 'maskInv', ARRAY_FILTER_USE_KEY));
         $arResult['bitrixIblocksExportList'] = RCrmActions::IblocksExportList();
 
         foreach ($arResult['bitrixIblocksExportList'] as $bitrixIblocks) {
@@ -438,7 +447,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             return preg_match("/^shops-price/", $var);
         }
 
-        $bitrixPriceShopsArr = str_replace('shops-price-', '', array_filter(array_keys($_POST), 'maskPrice'));
+        $bitrixPriceShopsArr = array_values(array_filter($_POST, 'maskPrice', ARRAY_FILTER_USE_KEY));
         $arResult['bitrixIblocksExportList'] = RCrmActions::IblocksExportList();
 
         foreach ($arResult['bitrixIblocksExportList'] as $bitrixIblocks) {
@@ -511,12 +520,11 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         $bitrixCorpName  = htmlspecialchars(trim($_POST['nickName-corporate']));
         $bitrixCorpAdres = htmlspecialchars(trim($_POST['adres-corporate']));
 
-        function maskCorp($var)
-        {
+        function maskCorp($var) {
             return preg_match("/^shops-corporate/", $var);
         }
 
-        $bitrixCorpShopsArr = str_replace('shops-corporate-', '', array_filter(array_keys($_POST), 'maskCorp'));
+        $bitrixCorpShopsArr = array_values(array_filter($_POST, 'maskCorp', ARRAY_FILTER_USE_KEY));
 
         RegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmCc", "add");
     } else {
@@ -2124,9 +2132,10 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 echo 'style="display: none;"';
             } ?>>
                 <td colspan="2" class="option-other-center">
-                    <label><input class="addr" type="checkbox" name="shops-exoprt-<? echo $sitesList['code']; ?>" value="Y" <?php if (in_array($sitesList['code'], $optionShops)) {
+                    <label><input class="addr" type="checkbox" name="shops-exoprt-<?= $sitesList['code']; ?>" value="<?= $sitesList['code']?>" <?php if (in_array($sitesList['code'], $optionShops)) {
                             echo "checked";
-                        } ?>> <?php echo $sitesList['name'] . ' (' . $sitesList['code'] . ')'; ?></label>
+                        } ?>> <?php echo $sitesList['name'] . ' (' . $sitesList['code'] . ')'; ?>
+                    </label>
                 </td>
             </tr>
         <?php endforeach; ?>
@@ -2202,9 +2211,10 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 echo 'style="display: none;"';
             } ?>>
                 <td colspan="2" class="option-other-center">
-                    <label><input class="addr" type="checkbox" name="shops-price-<? echo $sitesList['code']; ?>" value="Y" <?php if (in_array($sitesList['code'], $optionPriceShops)) {
+                    <label><input class="addr" type="checkbox" name="shops-price-<? echo $sitesList['code']; ?>" value="<? echo $sitesList['code']; ?>" <?php if (in_array($sitesList['code'], $optionPriceShops)) {
                             echo "checked";
-                        } ?>> <?php echo $sitesList['name'] . ' (' . $sitesList['code'] . ')'; ?></label>
+                        } ?>> <?php echo $sitesList['name'] . ' (' . $sitesList['code'] . ')'; ?>
+                    </label>
                 </td>
             </tr>
         <?php endforeach; ?>
@@ -2390,9 +2400,10 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 <td width="50%" class="" name="<?php ?>" align="center">
                     <?php foreach ($arResult['sitesList'] as $sitesList): ?>
                 <td colspan="2" class="option-other-center">
-                    <label><input class="addr" type="checkbox" name="shops-corporate-<? echo $sitesList['code']; ?>" value="Y" <?php if (in_array($sitesList['code'], $optionCorpShops)) {
+                    <label><input class="addr" type="checkbox" name="shops-corporate-<? echo $sitesList['code']; ?>" value="<? echo $sitesList['code']; ?>" <?php if (in_array($sitesList['code'], $optionCorpShops)) {
                             echo "checked";
-                        } ?>> <?php echo $sitesList['name'] . ' (' . $sitesList['code'] . ')'; ?></label>
+                        } ?>> <?php echo $sitesList['name'] . ' (' . $sitesList['code'] . ')'; ?>
+                    </label>
                 </td>
                 <?php endforeach; ?>
                 </td>

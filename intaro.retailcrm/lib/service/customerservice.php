@@ -42,16 +42,20 @@ class CustomerService
     private $credentials;
 
     /**
+     * @var mixed|string
+     */
+    private $site;
+
+    /**
      * LoyaltyService constructor.
+     *
+     * @throws \Bitrix\Main\ArgumentOutOfRangeException
      */
     public function __construct()
     {
         IncludeModuleLangFile(__FILE__);
         $this->client = ClientFactory::createClientAdapter();
-
-        if ($this->client !== null) {
-            $this->credentials = $this->client->getCredentials();
-        }
+        $this->site = ConfigProvider::getSitesAvailable();
     }
 
     /**
@@ -62,7 +66,7 @@ class CustomerService
     public function createOrUpdateCustomer(Customer $customer)
     {
         $extCustomer = $this->getCustomer($customer->externalId);
-        $customer->site   = $this->credentials->sitesAvailable[0];
+        $customer->site   = $this->site;
 
         if ($extCustomer !== null) {
             return $this->editCustomer($customer);
@@ -80,7 +84,7 @@ class CustomerService
     {
         $customersEditRequest           = new CustomersEditRequest();
         $customersEditRequest->customer = $customer;
-        $customersEditRequest->site     = $this->credentials->sitesAvailable[0];
+        $customersEditRequest->site     = $this->site;
         $customersEditRequest->by       = 'externalId';
 
         $response = $this->client->customersEdit($customersEditRequest);
@@ -108,7 +112,7 @@ class CustomerService
         }
 
         $customersUploadRequest           = new CustomersCreateRequest();
-        $customersUploadRequest->site     = $this->credentials->sitesAvailable[0];
+        $customersUploadRequest->site     = $this->site;
         $customersUploadRequest->customer = $customer;
         $response                         = $this->client->customersCreate($customersUploadRequest);
 
@@ -131,7 +135,7 @@ class CustomerService
         $customersGetRequest       = new CustomersGetRequest();
         $customersGetRequest->id   = $externalId;
         $customersGetRequest->by   = 'externalId';
-        $customersGetRequest->site = $this->credentials->sitesAvailable[0];
+        $customersGetRequest->site = $this->site;
 
         $response = $this->client->customersGet($customersGetRequest);
 

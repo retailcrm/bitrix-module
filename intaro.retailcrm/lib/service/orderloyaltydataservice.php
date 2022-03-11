@@ -523,7 +523,7 @@ class OrderLoyaltyDataService
             'UF_BONUS_COUNT'  => [
                 'ENTITY_ID'         => $ufObject,
                 'FIELD_NAME'        => 'UF_BONUS_COUNT',
-                'USER_TYPE_ID'      => 'integer',
+                'USER_TYPE_ID'      => 'double',
                 'MANDATORY'         => 'N',
                 'EDIT_FORM_LABEL'   => [
                     'ru' => Loc::GetMessage('UF_BONUS_COUNT', null, 'ru'),

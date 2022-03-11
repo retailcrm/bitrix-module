@@ -6,7 +6,7 @@
 Bitrix module
 =============
 
-Bitrix module for interaction with [RetailCRM](http://www.retailcrm.ru)
+Bitrix module for interaction with [RetailCRM](https://www.retailcrm.ru)
 
 Module allows:
 
@@ -19,4 +19,4 @@ Installation
 
 You should install module through [Bitrix.Marketplace](http://marketplace.1c-bitrix.ru/solutions/intaro.retailcrm/).
 
-[Setup guide](https://docs.retailcrm.ru/ru/Users/Integration/SiteModules/1CBitrix)
+[Setup guide](https://docs.retailcrm.ru/Users/Integration/SiteModules/1CBitrix)

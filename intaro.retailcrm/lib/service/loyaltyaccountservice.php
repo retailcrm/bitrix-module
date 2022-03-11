@@ -109,10 +109,10 @@ class LoyaltyAccountService
         /** @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter $client */
         $client = ClientFactory::createClientAdapter();
 
-        $credentials = $client->getCredentials();
+        $sitesAvailable = ConfigProvider::getSitesAvailable();
 
         $createRequest = new LoyaltyAccountCreateRequest();
-        $createRequest->site = $credentials->sitesAvailable[0];
+        $createRequest->site = $sitesAvailable;
         $createRequest->loyaltyAccount = new SerializedCreateLoyaltyAccount();
         $createRequest->loyaltyAccount->phoneNumber = $phone ?? '';
         $createRequest->loyaltyAccount->cardNumber = $card ?? '';

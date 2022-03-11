@@ -1634,24 +1634,28 @@ class RetailCrmHistory
         $shipmentColl = $bitrixOrder->getShipmentCollection();
 
         if ($delivery) {
-            if (!$update) {
+            //В коллекции всегда есть одна скрытая системная доставка, к которой относятся нераспределенные товары
+            //Поэтому, если есть только системная доставка, то нужно создать новую
+            if (!$update || $shipmentColl->count() === 1) {
                 $shipment = $shipmentColl->createItem($delivery);
-                $shipment->setFields(array(
+                $shipment->setFields([
                     'BASE_PRICE_DELIVERY'   => $crmOrder['delivery']['cost'],
+                    'PRICE_DELIVERY'        => $crmOrder['delivery']['cost'],
                     'CURRENCY'              => $bitrixOrder->getCurrency(),
                     'DELIVERY_NAME'         => $delivery->getName(),
                     'CUSTOM_PRICE_DELIVERY' => 'Y'
-                ));
+                ]);
             } else {
                 foreach ($shipmentColl as $shipment) {
                     if (!$shipment->isSystem()) {
-                        $shipment->setFields(array(
+                        $shipment->setFields([
                             'BASE_PRICE_DELIVERY'   => $crmOrder['delivery']['cost'],
+                            'PRICE_DELIVERY'        => $crmOrder['delivery']['cost'],
                             'CURRENCY'              => $bitrixOrder->getCurrency(),
                             'DELIVERY_ID'           => $deliveryId,
                             'DELIVERY_NAME'         => $delivery->getName(),
                             'CUSTOM_PRICE_DELIVERY' => 'Y'
-                        ));
+                        ]);
                     }
                 }
             }

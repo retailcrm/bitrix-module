@@ -1,7 +1,10 @@
 <?php
 
+use Bitrix\Main\ArgumentOutOfRangeException;
 use Bitrix\Main\Context;
 use Bitrix\Main\Loader;
+use Intaro\RetailCrm\Component\ConfigProvider;
+use Intaro\RetailCrm\Component\Factory\ClientFactory;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Service\CookieService;
 use Intaro\RetailCrm\Service\OrderLoyaltyDataService;
@@ -11,6 +14,7 @@ use Intaro\RetailCrm\Service\CustomerService;
 use Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\AnnotationReader;
 use Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\AnnotationRegistry;
 use \Intaro\RetailCrm\Component\Builder\Api\CustomerBuilder;
+use RetailCrm\Exception\CurlException;
 
 require_once __DIR__ . '/RetailcrmClasspathBuilder.php';
 
@@ -50,4 +54,18 @@ $arJsConfig = [
 
 foreach ($arJsConfig as $ext => $arExt) {
     CJSCore::RegisterExt($ext, $arExt);
+}
+
+if (empty(ConfigProvider::getSitesAvailable())) {
+    $client = ClientFactory::createClientAdapter();
+
+    try {
+        $credentials = $client->getCredentials();
+
+        ConfigProvider::setSitesAvailable(
+            count($credentials->sitesAvailable) > 0 ? $credentials->sitesAvailable[0] : ''
+        );
+    } catch (ArgumentOutOfRangeException | CurlException $exception) {
+        Logger::getInstance()->write($exception->getMessage());
+    }
 }

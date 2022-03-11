@@ -23,6 +23,14 @@ if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) {
 if ($arResult["SHOW_SMS_FIELD"] == true) {
     CJSCore::Init('phone_auth');
 }
+
+if ($arResult["LOYALTY_CONNECTION_ERROR"] === true) {
+    ?>
+    <div>
+       <p><b><?=GetMessage('LOYALTY_CONNECTION_ERROR')?></b></p>
+    </div>
+<?php
+}
 ?>
 <?php CUtil::InitJSCore(['ajax', 'jquery', 'popup']); ?>
 <div id="uf_agree_pl_intaro_popup" style="display:none;">
