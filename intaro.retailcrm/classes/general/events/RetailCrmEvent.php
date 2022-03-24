@@ -154,6 +154,8 @@ class RetailCrmEvent
             $site = null;
         }
 
+        $api->setSite($site);
+
         //new order?
         $orderCrm = RCrmActions::apiMethod($api, 'ordersGet', __METHOD__, $arOrder['ID'], $site);
 
