@@ -360,7 +360,7 @@ class RetailCrmEvent
                     $nickName,
                     $address,
                     $api,
-                    $site = null
+                    $site
                 );
 
                 $arParams['customerCorporate'] = $userCorp['customerCorporate'];
