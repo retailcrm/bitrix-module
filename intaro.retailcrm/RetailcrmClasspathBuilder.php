@@ -18,6 +18,16 @@ class RetailcrmClasspathBuilder
     protected $moduleId = 'intaro.retailcrm';
 
     /**
+     * @var string
+     */
+    protected $customizedFilesPath = '/bitrix/php_interface/retailcrm/';
+
+    /**
+     * @var string
+     */
+    protected $customizedClassesPath = '../../php_interface/retailcrm/';
+
+    /**
      * The topmost directory where recursion should begin. Default: `classes/general`. Relative to the __DIR__.
      * @var string
      */
@@ -115,10 +125,8 @@ class RetailcrmClasspathBuilder
     protected function buildCustomizableClasspath()
     {
         foreach (static::$customizableClasses as $className => $fileName) {
-            $customizedFile = $this->documentRoot . '/bitrix/php_interface/retailcrm/' . $fileName;
-
-            if (file_exists($customizedFile)) {
-                $this->result[$className] = '../../php_interface/retailcrm/' . $fileName;
+            if (file_exists($this->documentRoot . $this->customizedFilesPath . $fileName)) {
+                $this->result[$className] = $this->customizedClassesPath . $fileName;
             } else {
                 $this->notIncluded[$className] = $fileName;
             }
@@ -128,10 +136,8 @@ class RetailcrmClasspathBuilder
     protected function buildVersionedClasspath()
     {
         foreach (static::$versionedClasses as $className => $fileNames) {
-            $customizedFile = $this->documentRoot . '/bitrix/php_interface/retailcrm/' . $fileNames[0];
-
-            if (file_exists($customizedFile)) {
-                $this->result[$className] = '../../php_interface/retailcrm/' . $fileNames[0];
+            if (file_exists($this->documentRoot . $this->customizedFilesPath . $fileNames[0])) {
+                $this->result[$className] = $this->customizedClassesPath . $fileNames[0];
             } else {
                 $this->notIncluded[$className] = sprintf($fileNames[1], $this->version);
             }
