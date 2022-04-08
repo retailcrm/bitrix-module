@@ -118,7 +118,7 @@ class RetailcrmClasspathBuilder
             $customizedFile = $this->documentRoot . '/bitrix/php_interface/retailcrm/' . $fileName;
 
             if (file_exists($customizedFile)) {
-                $this->result[$className] = $customizedFile;
+                $this->result[$className] = '../../php_interface/retailcrm/' . $fileName;
             } else {
                 $this->notIncluded[$className] = $fileName;
             }
@@ -131,7 +131,7 @@ class RetailcrmClasspathBuilder
             $customizedFile = $this->documentRoot . '/bitrix/php_interface/retailcrm/' . $fileNames[0];
 
             if (file_exists($customizedFile)) {
-                $this->result[$className] = $customizedFile;
+                $this->result[$className] = '../../php_interface/retailcrm/' . $fileNames[0];
             } else {
                 $this->notIncluded[$className] = sprintf($fileNames[1], $this->version);
             }
