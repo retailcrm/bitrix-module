@@ -154,6 +154,8 @@ class RetailCrmEvent
             $site = null;
         }
 
+        $api->setSite($site);
+
         //new order?
         $orderCrm = RCrmActions::apiMethod($api, 'ordersGet', __METHOD__, $arOrder['ID'], $site);
 
@@ -360,7 +362,7 @@ class RetailCrmEvent
                     $nickName,
                     $address,
                     $api,
-                    $site = null
+                    $site
                 );
 
                 $arParams['customerCorporate'] = $userCorp['customerCorporate'];
