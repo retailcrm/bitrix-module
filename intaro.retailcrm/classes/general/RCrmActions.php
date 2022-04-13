@@ -273,6 +273,10 @@ class RCrmActions
      */
     public static function fromJSON($str)
     {
+        if ($str === null) { 
+            return ''; 
+        }
+
         /** @var \Intaro\RetailCrm\Service\Utils $utils */
         $utils = ServiceLocator::getOrCreate(\Intaro\RetailCrm\Service\Utils::class);
         return $utils->fromUTF8($str);
