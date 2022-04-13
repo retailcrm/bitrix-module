@@ -1863,7 +1863,7 @@ class RetailCrmHistory
         if (!isset($obj) || empty($obj)) {
             return false;
         }
-        if ($prop && $value) {
+        if ($prop && $value || $prop && !$value) {
             $obj->setField($prop, $value);
         } elseif ($value && !$prop) {
             $obj->setValue($value);
