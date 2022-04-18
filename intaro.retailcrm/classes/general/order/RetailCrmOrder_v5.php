@@ -179,7 +179,7 @@ class RetailCrmOrder
         $length = 0;
 
         if ('ordersEdit' === $methodApi) {
-            $response = RCrmActions::apiMethod($api, 'ordersGet', __METHOD__, $order['externalId']);
+            $response = RCrmActions::apiMethod($api, 'ordersGet', __METHOD__, $order['externalId'], $site);
             if (isset($response['order'])) {
                 foreach ($response['order']['items'] as $k => $item) {
                     $externalId = $k .'_'. $item['offer']['externalId'];
