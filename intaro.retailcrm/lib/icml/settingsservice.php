@@ -585,9 +585,9 @@ class SettingsService
     /**
      * @param int $iblockId
      *
-     * @return array
+     * @return array|null
      */
-    public function getProductProps(int $iblockId): array
+    public function getProductProps(int $iblockId): ?array
     {
         $propertiesProduct = null;
 
