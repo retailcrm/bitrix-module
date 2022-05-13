@@ -13,6 +13,7 @@
 
 namespace Intaro\RetailCrm\Model\Api\Order;
 
+use Intaro\RetailCrm\Model\Api\AbstractApiModel;
 use Intaro\RetailCrm\Component\Json\Mapping;
 
 /**
