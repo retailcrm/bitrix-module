@@ -358,7 +358,6 @@ if ($STEP === 1) {
                                                                     $arIBlock['OLD_PROPERTY_SKU_SELECT'],
                                                                     $propertyKey
                                                                 );
-            
                                                                 echo $isSelected ? ' selected' : '';
                                                                 ?>
                                                             >
@@ -378,7 +377,6 @@ if ($STEP === 1) {
                                                         <option value="<?=$prop['CODE']?>"
                                                             <?php
                                                             echo $settingsService->getOptionClass($prop, false);
-        
                                                             if (!$productSelected) {
                                                                 $isSelected = $settingsService->isOptionSelected(
                                                                     $prop,
@@ -780,7 +778,6 @@ if ($STEP === 1) {
 //Сохранение и выход
 if ($STEP === 2) {
     RetailcrmConfigProvider::setProfileBasePrice($_REQUEST['PROFILE_ID'], $_POST['price-types']);
-    
     $FINITE = true;
 }
 ?>
