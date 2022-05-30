@@ -533,14 +533,14 @@ if ($STEP === 1) {
             </label><br><br><br>
 
             <span class="text"><?=GetMessage('PROFILE_NAME')?><br><br></span>
-<!--<label>-->
+            <label>
                 <input
                     type="text"
                     name="SETUP_PROFILE_NAME"
                     value="<?=htmlspecialchars(strlen($SETUP_PROFILE_NAME) > 0 ?
                     $SETUP_PROFILE_NAME : $settingsService->setupProfileName)?>"
                     size="50">
-            <!--</label>--><br><br><br>
+            </label><br><br><br>
             <?php
         } 
 ?>
