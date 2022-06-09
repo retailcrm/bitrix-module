@@ -34,6 +34,11 @@ class RetailcrmClasspathBuilder
     protected $path = 'classes/general';
 
     /**
+     * @var string
+     */
+    protected $bitrixModulesPath = 'bitrix/modules';
+
+    /**
      * Do not include directory paths as namespaces.
      * @var bool
      */
@@ -272,7 +277,8 @@ class RetailcrmClasspathBuilder
      */
     protected function getSearchPath(): string
     {
-        return __DIR__ . DIRECTORY_SEPARATOR . $this->path;
+        return $this->documentRoot . DIRECTORY_SEPARATOR . $this->bitrixModulesPath . DIRECTORY_SEPARATOR
+            . $this->moduleId. DIRECTORY_SEPARATOR . $this->path;
     }
 
     /**
@@ -284,8 +290,7 @@ class RetailcrmClasspathBuilder
     {
         return (string) str_ireplace(implode(DIRECTORY_SEPARATOR, [
             $this->documentRoot,
-            'bitrix',
-            'modules',
+            $this->bitrixModulesPath,
             $this->moduleId
         ]) . DIRECTORY_SEPARATOR, '', $filePath);
     }
