@@ -52,8 +52,6 @@ $iblockFieldsName = $settingsService->getIblockFieldsNames();
 $iblockPropertiesHint = $settingsService->getHintProps();
 $units = $settingsService->getUnitsNames();
 $hintUnit = $settingsService->getHintUnit();
-$SETUP_FILE_NAME = $settingsService->setupFileName;
-$SETUP_PROFILE_NAME = $settingsService->setupProfileName;
 
 //highloadblock
 if (CModule::IncludeModule('highloadblock')) {
@@ -62,6 +60,9 @@ if (CModule::IncludeModule('highloadblock')) {
 }
 
 if (($ACTION === 'EXPORT' || $ACTION === 'EXPORT_EDIT' || $ACTION === 'EXPORT_COPY') && $STEP === 1) {
+	$SETUP_FILE_NAME = $settingsService->setupFileName;
+	$SETUP_PROFILE_NAME = $settingsService->setupProfileName;
+
     $iblockProperties = $settingsService->getIblockPropsPreset();
     $loadPurchasePrice = $settingsService->loadPurchasePrice;
     $iblockExport = $settingsService->iblockExport;
@@ -357,7 +358,6 @@ if ($STEP === 1) {
                                                                     $arIBlock['OLD_PROPERTY_SKU_SELECT'],
                                                                     $propertyKey
                                                                 );
-
                                                                 echo $isSelected ? ' selected' : '';
                                                                 ?>
                                                             >
@@ -377,7 +377,6 @@ if ($STEP === 1) {
                                                         <option value="<?=$prop['CODE']?>"
                                                             <?php
                                                             echo $settingsService->getOptionClass($prop, false);
-
                                                             if (!$productSelected) {
                                                                 $isSelected = $settingsService->isOptionSelected(
                                                                     $prop,
@@ -488,7 +487,8 @@ if ($STEP === 1) {
         <br>
         <h3><?=GetMessage('SETTINGS_EXPORT')?></h3>
         <span class="text"><?=GetMessage('FILENAME')?><br><br></span>
-        <input type="text" name="SETUP_FILE_NAME" value="<?=$settingsService->setupFileName?>" size="50"><br><br>
+        <input type="text" name="SETUP_FILE_NAME" value="<?=htmlspecialcharsbx(strlen($SETUP_FILE_NAME) > 0 ?
+                    $SETUP_FILE_NAME : $settingsService->setupFileName); ?>" size="50"><br><br>
         <span class="text"><?=GetMessage('LOAD_PURCHASE_PRICE')?>&nbsp;</span>
         <input type="checkbox" name="loadPurchasePrice" value="Y" <?=$loadPurchasePrice === 'Y' ? 'checked' : ''?>>
         <br><br><br>
@@ -535,11 +535,13 @@ if ($STEP === 1) {
                 <input
                     type="text"
                     name="SETUP_PROFILE_NAME"
-                    value="<?=htmlspecialchars($SETUP_PROFILE_NAME)?>"
+                    value="<?=htmlspecialchars(strlen($SETUP_PROFILE_NAME) > 0 ?
+                    $SETUP_PROFILE_NAME : $settingsService->setupProfileName)?>"
                     size="50">
             </label><br><br><br>
             <?php
-        } ?>
+        } 
+?>
         <?=bitrix_sessid_post()?>
         <?php
         if ($isSetupModulePage) { ?>
@@ -776,7 +778,6 @@ if ($STEP === 1) {
 //Сохранение и выход
 if ($STEP === 2) {
     RetailcrmConfigProvider::setProfileBasePrice($_REQUEST['PROFILE_ID'], $_POST['price-types']);
-
     $FINITE = true;
 }
 ?>
