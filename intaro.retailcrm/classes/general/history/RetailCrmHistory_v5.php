@@ -716,45 +716,30 @@ class RetailCrmHistory
                                 }
                             } elseif (array_key_exists($key, $order['delivery']['address'])) {
                                 if ($propsKey[$orderProp]['TYPE'] == 'LOCATION') {
-                                    if( $order['delivery']['address']['index'] ) {
-                                        $location = CSaleLocation::GetByZIP($order['delivery']['address']['index']);
-                                    }
 
-                                    $order['delivery']['address'][$key] = trim($order['delivery']['address'][$key]);
-                                    if(!empty($order['delivery']['address'][$key])){
-                                        $parameters = array();
+                                    if (!empty($order['delivery']['address'][$key])) {
+                                        $parameters['filter']['NAME.LANGUAGE_ID'] = 'ru';
+                                        $parameters['limit'] = 1;
+                                        $parameters['select'] = array('*');
+
+                                        // if address have a dot
                                         $loc = explode('.', $order['delivery']['address'][$key]);
                                         if (count($loc) == 1) {
-                                            $parameters['filter']['PHRASE'] = RCrmActions::fromJSON(trim($loc[0]));
-                                        } elseif (count($loc) == 2) {
-                                            $parameters['filter']['PHRASE'] = RCrmActions::fromJSON(trim($loc[1]));
+                                            $parameters['filter']['=NAME.NAME'] = RCrmActions::fromJSON(trim($loc[0]));
                                         } else {
-                                            RCrmActions::eventLog(
-                                                'RetailCrmHistory::orderHistory',
-                                                'RetailCrmHistory::setProp',
-                                                sprintf(
-                                                    'Error location. %s not found add in order number = %s',
-                                                    $order['delivery']['address'][$key],
-                                                    $order['number']
-                                                )
-                                            );
-
-                                            continue;
+                                            $parameters['filter']['=NAME.NAME'] = RCrmActions::fromJSON(trim($loc[1]));
                                         }
 
-                                        $parameters['filter']['NAME.LANGUAGE_ID'] = 'ru';
+                                        $location = Finder::find(
+                                            $parameters
+                                        )->fetch();
+                                    }
 
+                                    if (!empty($location)) {
+                                        $somePropValue = $propertyCollection
+                                            ->getItemByOrderPropertyId($propsKey[$orderProp]['ID'])
+                                        ;
                                         try {
-                                            if (!isset($location)) {
-                                                $location = Finder::find(
-                                                    $parameters,
-                                                    ['USE_INDEX' => false, 'USE_ORM' => false]
-                                                )->fetch();
-                                            }
-
-                                            $somePropValue = $propertyCollection
-                                                ->getItemByOrderPropertyId($propsKey[$orderProp]['ID']);
-
                                             self::setProp($somePropValue, $location['CODE']);
                                         } catch (ArgumentException $argumentException) {
                                             RCrmActions::eventLog(
@@ -773,8 +758,6 @@ class RetailCrmHistory
                                                 $order['number']
                                             )
                                         );
-
-                                        continue;
                                     }
                                 } else {
                                     $somePropValue = $propertyCollection
