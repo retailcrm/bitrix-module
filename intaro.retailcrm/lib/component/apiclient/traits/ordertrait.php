@@ -31,7 +31,7 @@ trait OrderTrait
      */
     public function createOrder(array $request, string $site = null): ?OrdersCreateResponse
     {
-        $response = $this->client->ordersCreate($request, 'externalId', $site);
+        $response = $this->client->ordersCreate($request, $site);
         
         return Deserializer::deserializeArray($response->getResponseBody(), OrdersCreateResponse::class);
     }
