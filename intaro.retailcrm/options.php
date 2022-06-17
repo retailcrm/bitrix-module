@@ -1236,7 +1236,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
         });
 
-        $('input[name="update-delivery-services"]').live('click', function() {
+        $('input[name="update-delivery-services"]').on('click', function() {
             BX.showWait();
             var updButton = this;
             // hide next step button
@@ -1966,7 +1966,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                         });
                     }
 
-                    $('input[name="start"]').live('click', function() {
+                    $('input[name="start"]').on('click', function() {
                         BX.showWait();
                         $('#indicator').css('width', 0);
                         $('#percent2').html('0%');

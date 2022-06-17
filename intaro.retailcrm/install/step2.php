@@ -127,7 +127,7 @@ if (isset($arResult['PAYMENT'])) {
 <script type="text/javascript" src="/bitrix/js/main/jquery/jquery-1.7.min.js"></script>
 <script type="text/javascript">
     $(document).ready(function() {
-        $('input[name="update"]').live('click', function() {
+        $('input[name="update"]').on('click', function() {
             $('input[name="step"]').val(2);
             BX.showWait();
             var updButton = this;

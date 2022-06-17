@@ -129,7 +129,7 @@ IncludeModuleLangFile(__FILE__);
             });
         }
         
-        $('input[name="start"]').live('click', function() {  
+        $('input[name="start"]').on('click', function() {
             BX.showWait();
             
             $(this).attr('name', 'stop');
@@ -147,7 +147,7 @@ IncludeModuleLangFile(__FILE__);
             return false;
         });
         
-        $('input[name="stop"]').live('click', function() {
+        $('input[name="stop"]').on('click', function() {
             BX.closeWait();
             
             // show next step button
