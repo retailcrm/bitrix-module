@@ -185,7 +185,7 @@ class EventsHandlers
                 ? json_decode(htmlspecialchars_decode($_POST['calculate-items-input']), true)
                 : [];
 
-            if ($isNewOrder && $isLoyaltyOn) {
+            if ($isNewOrder && $isLoyaltyOn && ($isDataForLoyaltyDiscount || $isBonusInput)) {
                 self::$disableSaleHandler = true;
 
                 $hlInfoBuilder = new LoyaltyDataBuilder();
@@ -204,7 +204,7 @@ class EventsHandlers
 
                     $hlInfoBuilder->setApplyResponse($applyBonusResponse);
                     $loyaltyBonusMsg = $bonusFloat;
-                    $hlInfoBuilder->setBonusInputTotal($bonusFloat);
+                    $hlInfoBuilder->setBonusCountTotal($bonusFloat);
                 }
 
                 //Если бонусов нет, но скидка по ПЛ есть

@@ -81,6 +81,8 @@
         <field id="order_product.quantity" group="item">quantity</field>
         <field id="order_product.status" group="item">status</field>
         <field id="order_product.discount_total" group="item">discountTotal</field>
+        <field id="order_product.bonuses_charge" group="item">bonusesCharge</field>
+        <field id="order_product.bonuses_credit" group="item">bonusesCredit</field>
 
         <field id="payments.status" group="payment">status</field>
         <field id="payments.type" group="payment">type</field>

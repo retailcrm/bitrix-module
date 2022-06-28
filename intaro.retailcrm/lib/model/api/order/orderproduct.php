@@ -74,6 +74,16 @@ class OrderProduct extends AbstractApiModel
     public $quantity;
 
     /**
+     * Набор итоговых скидок на товарную позицию
+     *
+     * @var array $discounts
+     *
+     * @Mapping\Type("array<Intaro\RetailCrm\Model\Api\Order\OrderProductDiscountItem>")
+     * @Mapping\SerializedName("discounts")
+     */
+    public $discounts;
+
+    /**
      * Итоговая денежная скидка на единицу товара c учетом всех скидок на товар и заказ
      *
      * @var double $discountTotal

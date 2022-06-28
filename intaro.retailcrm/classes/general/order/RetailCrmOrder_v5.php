@@ -98,11 +98,6 @@ class RetailCrmOrder
 
         $order['contragent']['contragentType'] = $arParams['optionsContragentType'][$arOrder['PERSON_TYPE_ID']];
 
-        if ($methodApi === 'ordersEdit') {
-            $order['discountManualAmount'] = 0;
-            $order['discountManualPercent'] = 0;
-        }
-
         //fields
         foreach ($arOrder['PROPS']['properties'] as $prop) {
             if (!empty($arParams['optionsLegalDetails'])
@@ -284,7 +279,7 @@ class RetailCrmOrder
             ) {
                 /** @var LoyaltyService $service */
                 $service = ServiceLocator::get(LoyaltyService::class);
-                $item['discountManualAmount'] = $service->getInitialDiscount((int) $externalId) ?? $discount;
+                $item['discountManualAmount'] = $service->getInitialDiscount((int) $product['ID']) ?? $discount;
             } elseif ($product['BASE_PRICE'] >= $product['PRICE']) {
                 $item['discountManualAmount'] = self::getDiscountManualAmount($product);
                 $item['initialPrice'] = (double) $product['BASE_PRICE'];
@@ -355,6 +350,14 @@ class RetailCrmOrder
             $order['payments'] = $payments;
         }
 
+        if (!empty($arParams['crmOrder']['privilegeType'])) {
+            $order['privilegeType'] = $arParams['crmOrder']['privilegeType'];
+        } elseif (ConfigProvider::getLoyaltyProgramStatus() === 'Y' && LoyaltyAccountService::getLoyaltyPersonalStatus()) {
+            $order['privilegeType'] = 'loyalty_level';
+        } else {
+            $order['privilegeType'] = 'none';
+        }
+
         //send
         if (function_exists('retailCrmBeforeOrderSend')) {
             $newResOrder = retailCrmBeforeOrderSend($order, $arOrder);
@@ -379,10 +382,6 @@ class RetailCrmOrder
         $order = $normalizer->normalize($order, 'orders');
 
         Logger::getInstance()->write($order, 'orderSend');
-
-        if (ConfigProvider::getLoyaltyProgramStatus() === 'Y' && LoyaltyAccountService::getLoyaltyPersonalStatus()) {
-            $order['privilegeType'] = 'loyalty_level';
-        }
 
         /** @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter $client */
         $client = ClientFactory::createClientAdapter();

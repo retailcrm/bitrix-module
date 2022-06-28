@@ -564,6 +564,9 @@
         },
         "content": {
             "type": "string"
+        },
+        "privilegeType": {
+            "type": "string"
         }
     }
 }
