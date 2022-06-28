@@ -910,6 +910,168 @@ class LoyaltyProgramUpdater
             }
         }
     }
+
+
+    public function updateBonusInfoFieldForLp(): self
+    {
+        $bonusProps = CSaleOrderProps::GetList([], ['CODE' => 'LP_BONUS_INFO']);
+        $lang = Context::getCurrent()->getLanguage();
+        $lpBonusInfo = [
+            'ru' => 'Бонусов списано',
+            'en' => 'Bonuses charged'
+        ][$lang];
+        $updateInfo = [
+            'NAME' => $lpBonusInfo,
+            'DESCRIPTION' => $lpBonusInfo,
+        ];
+
+        while ($bonusProp = $bonusProps->Fetch())
+        {
+            CSaleOrderProps::Update($bonusProp['ID'], $updateInfo);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Обновление типов полей с бонусами и перенос информации
+     *
+     * @throws Main\ArgumentException
+     * @throws Main\ObjectPropertyException
+     * @throws Main\SystemException
+     */
+    public function updateBonusFieldsTypeInHl(): self
+    {
+        $hlblock = HL\HighloadBlockTable::query()
+            ->addSelect('*')
+            ->addFilter('NAME', 'LoyaltyProgramRetailCRM')
+            ->exec()
+            ->fetch();
+
+        if (isset($hlblock['ID'])) {
+            $ufObject = 'HLBLOCK_' . $hlblock['ID'];
+            $bonusCountField = CUserTypeEntity::GetList([], [
+                "ENTITY_ID" => $ufObject,
+                "FIELD_NAME" => 'UF_BONUS_COUNT',
+            ])->fetch();
+            $bonusTotalCountField = CUserTypeEntity::GetList([], [
+                "ENTITY_ID" => $ufObject,
+                "FIELD_NAME" => 'UF_BONUS_COUNT_TOTAL',
+            ])->fetch();
+
+            if ('integer' === $bonusCountField['USER_TYPE_ID'] && 'integer' === $bonusTotalCountField['USER_TYPE_ID']) {
+                $hlblockEntity = HL\HighloadBlockTable::compileEntity($hlblock);
+                $manager = $hlblockEntity->getDataClass();
+
+                $bonusHlblockData = $manager::query()
+                    ->setSelect(['ID', 'UF_BONUS_COUNT', 'UF_BONUS_COUNT_TOTAL'])
+                    ->setFilter(['!=UF_BONUS_COUNT' => 'NULL', 'LOGIC' => 'OR', '!=UF_BONUS_COUNT_TOTAL' => 'NULL'])
+                    ->fetchAll();
+
+                $obUserField = new CUserTypeEntity();
+                $obUserField->Delete($bonusCountField['ID']);
+                $obUserField->Delete($bonusTotalCountField['ID']);
+
+                $newBonusFields = $this->getNewBonusHlFields($ufObject);
+
+                foreach ($newBonusFields as $newBonusField) {
+                    $obUserField->Add($newBonusField);
+                }
+
+                foreach ($bonusHlblockData as $field) {
+                    $manager::update($field['ID'], ['fields' => [
+                        'UF_BONUS_COUNT' => $field['UF_BONUS_COUNT'],
+                        'UF_BONUS_COUNT_TOTAL' => $field['UF_BONUS_COUNT_TOTAL'],
+                    ],]);
+                }
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Обновление поля скидки по товару
+     *
+     * @throws Main\ArgumentException
+     * @throws Main\ObjectPropertyException
+     * @throws Main\SystemException
+     */
+    public function updateDefDiscountFieldTypeInHl(): self
+    {
+        $hlblock = HL\HighloadBlockTable::query()
+            ->addSelect('*')
+            ->addFilter('NAME', 'LoyaltyProgramRetailCRM')
+            ->exec()
+            ->fetch();
+
+        if (isset($hlblock['ID'])) {
+            $ufObject = 'HLBLOCK_' . $hlblock['ID'];
+            $defDiscountField = CUserTypeEntity::GetList([], [
+                "ENTITY_ID" => $ufObject,
+                "FIELD_NAME" => 'UF_DEF_DISCOUNT',
+            ])->fetch();
+
+            if (false !== $defDiscountField) {
+                $obUserField = new CUserTypeEntity();
+                $obUserField->Update($defDiscountField['ID'], [
+                    'SETTINGS' => [
+                        'PRECISION' => 2,
+                    ],
+                ]);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getNewBonusHlFields(string $ufObject): array
+    {
+        return [
+            'UF_BONUS_COUNT' => [
+                'ENTITY_ID' => $ufObject,
+                'FIELD_NAME' => 'UF_BONUS_COUNT',
+                'USER_TYPE_ID' => 'double',
+                'MANDATORY' => 'N',
+                'EDIT_FORM_LABEL' => [
+                    'ru' => 'Количество списываемых бонусов в позиции',
+                    'en' => 'Bonuses for writing off in position',
+                ],
+                'LIST_COLUMN_LABEL' => [
+                    'ru' => 'Количество списываемых бонусов в позиции',
+                    'en' => 'Bonuses for writing off in position',
+                ],
+                'LIST_FILTER_LABEL' => [
+                    'ru' => 'Количество списываемых бонусов в позиции',
+                    'en' => 'Bonuses for writing off in position',
+                ],
+                'SETTINGS' => [
+                    'PRECISION' => 2,
+                ],
+            ],
+            'UF_BONUS_COUNT_TOTAL' => [
+                'ENTITY_ID' => $ufObject,
+                'FIELD_NAME' => 'UF_BONUS_COUNT_TOTAL',
+                'USER_TYPE_ID' => 'double',
+                'MANDATORY' => 'N',
+                'EDIT_FORM_LABEL' => [
+                    'ru' => 'Количество списываемых бонусов в заказе',
+                    'en' => 'Bonuses for writing off in order',
+                ],
+                'LIST_COLUMN_LABEL' => [
+                    'ru' => 'Количество списываемых бонусов в заказе',
+                    'en' => 'Bonuses for writing off in order',
+                ],
+                'LIST_FILTER_LABEL' => [
+                    'ru' => 'Количество списываемых бонусов в заказе',
+                    'en' => 'Bonuses for writing off in order',
+                ],
+                'SETTINGS' => [
+                    'PRECISION' => 2,
+                ],
+            ],
+        ];
+    }
 }
 
 /**
@@ -924,13 +1086,9 @@ function update()
     Loader::includeModule('highloadblock');
 
     (new LoyaltyProgramUpdater())
-        ->tryReplaceExportVars()
-        ->addLoyaltyProgramEvents()
-        ->CopyFiles()
-        ->addLpUserFields()
-        ->addAgreement()
-        ->createLoyaltyHlBlock()
-        ->addCustomersLoyaltyFields();
+        ->updateBonusInfoFieldForLp()
+        ->updateBonusFieldsTypeInHl()
+        ->updateDefDiscountFieldTypeInHl();
 }
 
 try {

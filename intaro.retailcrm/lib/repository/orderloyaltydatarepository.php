@@ -35,12 +35,12 @@ class OrderLoyaltyDataRepository extends AbstractRepository
      * @var \Bitrix\Main\Entity\DataManager|string|null
      */
     private $dataManager;
-    
+
     /**
      * @var \Logger
      */
     private $logger;
-    
+
     /**
      * OrderLoyaltyDataRepository constructor.
      * @throws \Bitrix\Main\LoaderException
@@ -51,7 +51,7 @@ class OrderLoyaltyDataRepository extends AbstractRepository
         $this->logger = Logger::getInstance();
         $this->dataManager = Utils::getHlClassByName(Constants::HL_LOYALTY_CODE);
     }
-   
+
     /**
      * @param \Intaro\RetailCrm\Model\Bitrix\OrderLoyaltyData $loyaltyHl
      * @return int|null
@@ -62,25 +62,25 @@ class OrderLoyaltyDataRepository extends AbstractRepository
             if ($this->dataManager === null) {
                 return null;
             }
-            
+
             $result = Serializer::serializeArray($loyaltyHl, OrderLoyaltyData::class);
-            
+
             unset($result['ID']);
-            
+
             $result = $this->dataManager::add($result);
-            
+
             if ($result->isSuccess()) {
                 return $result->getId();
             }
-            
+
             return null;
         } catch (Exception $exception) {
             $this->logger->write($exception->getMessage(), Constants::LOYALTY_ERROR);
         }
-        
+
         return null;
     }
-    
+
     /**
      * @param int $positionId
      * @return \Intaro\RetailCrm\Model\Bitrix\OrderLoyaltyData|null
@@ -90,20 +90,23 @@ class OrderLoyaltyDataRepository extends AbstractRepository
         if ($this->dataManager === null) {
             return null;
         }
-    
+
         try {
             $product = $this->dataManager::query()
                 ->setSelect(['*'])
                 ->where('UF_ITEM_POS_ID', '=', $positionId)
                 ->fetch();
-            
-            /** @var OrderLoyaltyData $result */
+
+            if (false === $product) {
+                return null;
+            }
+
             return Deserializer::deserializeArray($product, OrderLoyaltyData::class);
         } catch (ObjectPropertyException | ArgumentException | SystemException $exception) {
             $this->logger->write($exception->getMessage(), Constants::LOYALTY_ERROR);
         }
     }
-    
+
     /**
      * @param $orderId
      *
@@ -161,24 +164,55 @@ class OrderLoyaltyDataRepository extends AbstractRepository
             if ($this->dataManager === null) {
                 return false;
             }
-    
+
             $productAr = Serializer::serializeArray($position, OrderLoyaltyData::class);
-            
+
             unset($productAr['ID']);
-            
+
+            foreach ($productAr as $key => $value) {
+                if (null === $value) {
+                    unset($productAr[$key]);
+                }
+            }
+
             $result = $this->dataManager::update($position->id, $productAr);
-            
+
             if ($result->isSuccess()) {
                 return true;
             }
-            
+
         } catch (Exception $exception) {
             $this->logger->write($exception->getMessage(), Constants::LOYALTY_ERROR);
         }
-        
+
         return false;
     }
-    
+
+    /**
+     * @param mixed $primary
+     * @return bool
+     */
+    public function delete($primary): bool
+    {
+        try {
+            if ($this->dataManager === null) {
+                return false;
+            }
+
+            $result = $this->dataManager::delete($primary);
+
+            if ($result->isSuccess()) {
+                return true;
+            }
+
+        } catch (Exception $exception) {
+            $this->logger->write($exception->getMessage(), Constants::LOYALTY_ERROR);
+        }
+
+        return false;
+
+    }
+
     /**
      * @param int $externalId
      * @return float|null
@@ -189,22 +223,21 @@ class OrderLoyaltyDataRepository extends AbstractRepository
             if ($this->dataManager === null) {
                 return null;
             }
-        
+
             $result = $this->dataManager::query()
                 ->setSelect(['UF_DEF_DISCOUNT'])
                 ->where([
                     ['UF_ITEM_POS_ID', '=', $externalId]
                 ])
-            ->fetch();
-        
+                ->fetch();
+
             if ($result !== false) {
                 return (float) $result['UF_DEF_DISCOUNT'];
             }
-        
         } catch (SystemException | Exception $exception) {
             $this->logger->write($exception->getMessage(), Constants::LOYALTY_ERROR);
         }
-    
+
         return null;
     }
 }

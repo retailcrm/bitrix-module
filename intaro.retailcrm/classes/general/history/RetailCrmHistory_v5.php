@@ -15,7 +15,10 @@ use Bitrix\Sale\Location\Search\Finder;
 use Bitrix\Sale\Order;
 use Bitrix\Sale\OrderUserProperties;
 use Bitrix\Sale\Payment;
+use Intaro\RetailCrm\Component\ServiceLocator;
+use Intaro\RetailCrm\Component\Builder\Bitrix\LoyaltyDataBuilder;
 use Intaro\RetailCrm\Service\ManagerService;
+use Intaro\RetailCrm\Service\OrderLoyaltyDataService;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\Handlers\EventsHandlers;
@@ -250,6 +253,9 @@ class RetailCrmHistory
         $shipmentDeducted = RetailcrmConfigProvider::getShipmentDeducted();
 
         $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
+
+        /* @var OrderLoyaltyDataService $orderLoyaltyDataService */
+        $orderLoyaltyDataService = ServiceLocator::get(OrderLoyaltyDataService::class);
 
         $historyFilter = array();
         $historyStart = COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_HISTORY);
@@ -988,6 +994,10 @@ class RetailCrmHistory
 
                         $optionDiscRound = COption::GetOptionString(self::$MODULE_ID, self::$CRM_DISCOUNT_ROUND, 0);
 
+                        $editBasketInfo = [];
+                        $deleteBasketInfo = [];
+                        $bonusesChargeTotal = null;
+
                         foreach ($order['items'] as $product) {
                             if ($collectItems[$product['offer']['externalId']]['quantity']) {
                                 $product['quantity'] = $collectItems[$product['offer']['externalId']]['quantity'];
@@ -1029,12 +1039,11 @@ class RetailCrmHistory
                                 }
                             }
 
-                            if ($product['delete']) {
-                                if ($collectItems[$product['offer']['externalId']]['quantity'] <= 0) {
+                            if ($product['delete'] && $collectItems[$product['offer']['externalId']]['quantity'] <= 0) {
+                                    $deleteBasketInfo[] = $item->getBasketCode();
                                     $item->delete();
 
                                     continue;
-                                }
                             }
 
                             if ($product['quantity']) {
@@ -1064,6 +1073,25 @@ class RetailCrmHistory
                                 }
 
                                 $item->setField('PRICE', $price);
+                            }
+
+                            $manualProductDiscount = 0;
+                            $bonusesChargeProduct = $product['bonusesCharge'] ?? null;
+
+                            foreach ($product['discounts'] as $productDiscount) {
+                                if ('manual_product' === $productDiscount['type']) {
+                                    $manualProductDiscount = $productDiscount['amount'];
+                                }
+                            }
+
+                            $editBasketInfo[] = [
+                                'productId' => $item->getProductId(),
+                                'productDiscount' => $manualProductDiscount / $item->getQuantity(),
+                                'bonusesCharge' => $bonusesChargeProduct,
+                            ];
+
+                            if (null !== $bonusesChargeProduct) {
+                                $bonusesChargeTotal += $bonusesChargeProduct;
                             }
                         }
                     }
@@ -1150,6 +1178,32 @@ class RetailCrmHistory
                     if ($optionsOrderNumbers === 'Y' && isset($order['number'])) {
                         $newOrder->setField('ACCOUNT_NUMBER', $order['number']);
                         self::orderSave($newOrder);
+                    }
+
+                    //items loyalty info to HL
+                    if (!empty($editBasketInfo)) {
+                        $newBasket = $newOrder->getBasket();
+                        $calculateItemsInput = [];
+                        $basketItemIds = [];
+
+                        foreach ($editBasketInfo as $itemInfo) {
+                            $basketItem = self::getExistsItem($newBasket, 'catalog', $itemInfo['productId']);
+                            if (false !== $basketItem) {
+                                $calculateItemsInput[$basketItem->getId()]['SHOP_ITEM_DISCOUNT'] = $itemInfo['productDiscount'];
+                                $calculateItemsInput[$basketItem->getId()]['BONUSES_CHARGE'] = $itemInfo['bonusesCharge'];
+                                $basketItemIds[] = $basketItem->getId();
+                            }
+                        }
+
+                        $hlInfoBuilder = new LoyaltyDataBuilder();
+                        $hlInfoBuilder->setOrder($newOrder);
+                        $hlInfoBuilder->setCalculateItemsInput($calculateItemsInput);
+                        $hlInfoBuilder->setBonusCountTotal($bonusesChargeTotal);
+                        $orderLoyaltyDataService->saveLoyaltyInfoToHl($hlInfoBuilder->build($basketItemIds)->getResult());
+                    }
+
+                    if (!empty($deleteBasketInfo)) {
+                        $orderLoyaltyDataService->deleteLoyaltyInfoFromHl($deleteBasketInfo);
                     }
 
                     if (!empty($newHistoryPayments)) {

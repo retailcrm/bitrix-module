@@ -85,6 +85,17 @@ class OrderLoyaltyDataService
      */
     public static function createLoyaltyHlBlock(): void
     {
+        $checkHl = HL\HighloadBlockTable::query()
+            ->addSelect('*')
+            ->addFilter('NAME', Constants::HL_LOYALTY_CODE)
+            ->addFilter('TABLE_NAME', Constants::HL_LOYALTY_TABLE_NAME)
+            ->exec()
+            ->fetch();
+
+        if (false !== $checkHl) {
+            return;
+        }
+
         $result = HL\HighloadBlockTable::add([
             'NAME'       => Constants::HL_LOYALTY_CODE,
             'TABLE_NAME' => Constants::HL_LOYALTY_TABLE_NAME,
@@ -170,18 +181,15 @@ class OrderLoyaltyDataService
                 return;
             }
 
-            $repository = new OrderLoyaltyDataRepository();
-            $bitrixItems = $repository->getProductsByOrderId($orderId);
             $loyaltyDiscount  = 0;
 
             /** @var OrderProduct $item */
             foreach ($response->order->items as $item) {
-                /** @var CodeValueModel $itemBitrixId */
-                $itemBitrixId = $item->externalIds[0];
-                /** @var OrderLoyaltyData $bitrixItem */
-                $bitrixItem = $bitrixItems[$itemBitrixId->value];
-
-                $loyaltyDiscount += ($item->discountTotal - $bitrixItem->defaultDiscount) * $item->quantity;
+                foreach ($item->discounts as $discount) {
+                    if (in_array($discount->type, ['personal', 'loyalty_level'])) {
+                        $loyaltyDiscount += $discount->amount;
+                    }
+                }
             }
 
             $this->saveBonusAndDiscToOrderProps(
@@ -264,7 +272,33 @@ class OrderLoyaltyDataService
         $repository = new OrderLoyaltyDataRepository();
 
         foreach ($loyaltyHls as $loyaltyData) {
-            $repository->add($loyaltyData);
+            $positionLpData = $repository->getOrderLpDataByPosition($loyaltyData->basketItemPositionId);
+
+            if (null !== $positionLpData) {
+                $loyaltyData->id = $positionLpData->id;
+                $repository->edit($loyaltyData);
+            } else {
+                $repository->add($loyaltyData);
+            }
+        }
+    }
+
+    /**
+     * Удаляет данные о ПЛ из HL-блока
+     *
+     * @param int[] $basketItemIds
+     * @return void
+     */
+    public function deleteLoyaltyInfoFromHl(array $basketItemIds): void
+    {
+        $repository = new OrderLoyaltyDataRepository();
+
+        foreach ($basketItemIds as $basketItemId) {
+            $positionLpData = $repository->getOrderLpDataByPosition($basketItemId);
+
+            if (null !== $positionLpData) {
+                $repository->delete($positionLpData->id);
+            }
         }
     }
 
@@ -465,6 +499,9 @@ class OrderLoyaltyDataService
                     'ru' => Loc::GetMessage('UF_DEF_DISCOUNT', null, 'ru'),
                     'en' => Loc::GetMessage('UF_DEF_DISCOUNT', null, 'en'),
                 ],
+                'SETTINGS' => [
+                    'PRECISION' => 2,
+                ],
             ],
             'UF_CHECK_ID'     => [
                 'ENTITY_ID'         => $ufObject,
@@ -537,11 +574,14 @@ class OrderLoyaltyDataService
                     'ru' => Loc::GetMessage('UF_BONUS_COUNT', null, 'ru'),
                     'en' => Loc::GetMessage('UF_BONUS_COUNT', null, 'en'),
                 ],
+                'SETTINGS' => [
+                    'PRECISION' => 2,
+                ],
             ],
             'UF_BONUS_COUNT_TOTAL'  => [
                 'ENTITY_ID'         => $ufObject,
                 'FIELD_NAME'        => 'UF_BONUS_COUNT_TOTAL',
-                'USER_TYPE_ID'      => 'integer',
+                'USER_TYPE_ID'      => 'double',
                 'MANDATORY'         => 'N',
                 'EDIT_FORM_LABEL'   => [
                     'ru' => Loc::GetMessage('UF_BONUS_COUNT_TOTAL', null, 'ru'),
@@ -554,6 +594,9 @@ class OrderLoyaltyDataService
                 'LIST_FILTER_LABEL' => [
                     'ru' => Loc::GetMessage('UF_BONUS_COUNT_TOTAL', null, 'ru'),
                     'en' => Loc::GetMessage('UF_BONUS_COUNT_TOTAL', null, 'en'),
+                ],
+                'SETTINGS' => [
+                    'PRECISION' => 2,
                 ],
             ],
         ];

@@ -77,7 +77,7 @@ class OrderLoyaltyData
     /**
      * Количество в корзине
      *
-     * @var float
+     * @var integer
      *
      * @Mapping\Type("integer")
      * @Mapping\SerializedName("UF_QUANTITY")
@@ -119,9 +119,9 @@ class OrderLoyaltyData
     /**
      * Количество списываемых бонусов по позиции
      *
-     * @var integer
+     * @var float
      *
-     * @Mapping\Type("integer")
+     * @Mapping\Type("float")
      * @Mapping\SerializedName("UF_BONUS_COUNT")
      */
     public $bonusCount;
@@ -129,9 +129,9 @@ class OrderLoyaltyData
     /**
      * Количество списываемых бонусов по всему заказу
      *
-     * @var integer
+     * @var float
      *
-     * @Mapping\Type("integer")
+     * @Mapping\Type("float")
      * @Mapping\SerializedName("UF_BONUS_COUNT_TOTAL")
      */
     public $bonusCountTotal;

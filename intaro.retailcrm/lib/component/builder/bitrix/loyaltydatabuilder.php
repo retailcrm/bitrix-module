@@ -24,8 +24,6 @@ use Intaro\RetailCrm\Model\Api\OrderProduct;
 use Intaro\RetailCrm\Model\Api\Response\Order\Loyalty\OrderLoyaltyApplyResponse;
 use Intaro\RetailCrm\Model\Bitrix\OrderLoyaltyData;
 use Intaro\RetailCrm\Service\CookieService;
-use Intaro\RetailCrm\Service\LoyaltyService;
-use Intaro\RetailCrm\Service\OrderLoyaltyDataService;
 use Logger;
 
 /**
@@ -50,9 +48,7 @@ class LoyaltyDataBuilder implements BuilderInterface
     /** @var OrderLoyaltyData[] $data */
     private $data;
 
-    /**
-     * @var float
-     */
+    /** @var float|null */
     private $bonusCountTotal;
 
     /**
@@ -64,13 +60,19 @@ class LoyaltyDataBuilder implements BuilderInterface
     }
 
     /**
+     * @param int[] $basketItemIds
+     *
      * @return \Intaro\RetailCrm\Component\Builder\BuilderInterface
      */
-    public function build(): BuilderInterface
+    public function build(array $basketItemIds = []): BuilderInterface
     {
         try {
             /** @var BasketItemBase $basketItem */
             foreach ($this->order->getBasket() as $key => $basketItem) {
+                if (!empty($basketItemIds) && !in_array($basketItem->getId(), $basketItemIds)) {
+                    continue;
+                }
+
                 $loyaltyHl = new OrderLoyaltyData();
                 $loyaltyHl->orderId = $this->order->getId();
                 $loyaltyHl->itemId= $basketItem->getProductId();
@@ -81,6 +83,9 @@ class LoyaltyDataBuilder implements BuilderInterface
 
                 $loyaltyHl->defaultDiscount
                     = $this->calculateItemsInput[$loyaltyHl->basketItemPositionId]['SHOP_ITEM_DISCOUNT'] ?? null;
+
+                $loyaltyHl->bonusCount
+                    = $this->calculateItemsInput[$loyaltyHl->basketItemPositionId]['BONUSES_CHARGE'] ?? null;
 
                 $this->addBonusInfo($loyaltyHl, $key);
 
@@ -150,9 +155,9 @@ class LoyaltyDataBuilder implements BuilderInterface
     }
 
     /**
-     * @param float $bonusCountTotal
+     * @param float|null $bonusCountTotal
      */
-    public function setBonusInputTotal(float $bonusCountTotal): void
+    public function setBonusCountTotal(?float $bonusCountTotal): void
     {
         $this->bonusCountTotal = $bonusCountTotal;
     }
