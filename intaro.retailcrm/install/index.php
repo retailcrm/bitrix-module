@@ -52,9 +52,11 @@ class intaro_retailcrm extends CModule
     public $CRM_ORDER_TYPES_ARR = 'order_types_arr';
     public $CRM_DELIVERY_TYPES_ARR = 'deliv_types_arr';
     public $CRM_DELIVERY_SERVICES_ARR = 'deliv_services_arr';
+    public $CRM_INTEGRATION_DELIVERY = 'integration_delivery';
     public $CRM_PAYMENT_TYPES = 'pay_types_arr';
     public $CRM_PAYMENT_STATUSES = 'pay_statuses_arr';
     public $CRM_PAYMENT = 'payment_arr';
+    public $CRM_INTEGRATION_PAYMENT = 'integration_payment';
     public $CRM_ORDER_LAST_ID = 'order_last_id';
     public $CRM_ORDER_PROPS = 'order_props';
     public $CRM_LEGAL_DETAILS = 'legal_details';
@@ -557,18 +559,18 @@ class intaro_retailcrm extends CModule
                         $deliveryTypesArr[$deliveryType['ID']] = $deliveryType['ID'];
                         foreach ($arDeliveryServiceAll as $deliveryService) {
                             if ($deliveryService['PARENT_ID'] != 0 && $deliveryService['PARENT_ID'] == $deliveryType['ID']) {
-                                    try {
-                                        $this->RETAIL_CRM_API->deliveryServicesEdit(RCrmActions::clearArr([
-                                            'code'         => 'bitrix-' . $deliveryService['ID'],
-                                            'name'         => RCrmActions::toJSON($deliveryService['NAME']),
-                                            'deliveryType' => $deliveryType['ID'],
-                                        ]));
-                                    } catch (CurlException $e) {
-                                        RCrmActions::eventLog(
-                                            'intaro.crm/install/index.php', 'RetailCrm\ApiClient::deliveryServiceEdit::CurlException',
-                                            $e->getCode() . ': ' . $e->getMessage()
-                                        );
-                                    }
+                                try {
+                                    $this->RETAIL_CRM_API->deliveryServicesEdit(RCrmActions::clearArr([
+                                        'code'         => 'bitrix-' . $deliveryService['ID'],
+                                        'name'         => RCrmActions::toJSON($deliveryService['NAME']),
+                                        'deliveryType' => $deliveryType['ID'],
+                                    ]));
+                                } catch (CurlException $e) {
+                                    RCrmActions::eventLog(
+                                        'intaro.crm/install/index.php', 'RetailCrm\ApiClient::deliveryServiceEdit::CurlException',
+                                        $e->getCode() . ': ' . $e->getMessage()
+                                    );
+                                }
                             }
                         }
                     }
@@ -1236,6 +1238,7 @@ class intaro_retailcrm extends CModule
         require_once($this->INSTALL_PATH . '/../classes/general/ApiClient_v5.php');
         require_once($this->INSTALL_PATH . '/../classes/general/order/RetailCrmOrder_v5.php');
         require_once($this->INSTALL_PATH . '/../classes/general/history/RetailCrmHistory_v5.php');
+        require_once($this->INSTALL_PATH . '/../lib/component/constants.php');
 
         $retail_crm_api = new ApiClient($api_host, $api_key);
 
@@ -1246,12 +1249,14 @@ class intaro_retailcrm extends CModule
         COption::RemoveOption($this->MODULE_ID, $this->CRM_API_HOST_OPTION);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_API_KEY_OPTION);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_DELIVERY_TYPES_ARR);
+        COption::RemoveOption($this->MODULE_ID, $this->CRM_INTEGRATION_DELIVERY);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_PAYMENT_TYPES);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_PAYMENT_STATUSES);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_PAYMENT);
+        COption::RemoveOption($this->MODULE_ID, $this->CRM_INTEGRATION_PAYMENT);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_LAST_ID);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_SITES);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_PROPS);
+        COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_TYPES_ARR);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_LEGAL_DETAILS);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_CONTRAGENT_TYPE);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_CUSTOM_FIELDS);
