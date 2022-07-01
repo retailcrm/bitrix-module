@@ -279,7 +279,7 @@ class ConfigProvider
     public static function getCorporateClientName()
     {
         if (self::isEmptyNotZero(static::$corporateClientName)) {
-            static::$corporateClientName = static::getUnserializedOption(Constants::CRM_CORP_NAME);
+            static::$corporateClientName = static::getOption(Constants::CRM_CORP_NAME);
         }
 
         return static::$corporateClientName;
@@ -293,7 +293,7 @@ class ConfigProvider
     public static function getCorporateClientAddress()
     {
         if (self::isEmptyNotZero(static::$corporateClientAddress)) {
-            static::$corporateClientAddress = static::getUnserializedOption(Constants::CRM_CORP_ADDRESS);
+            static::$corporateClientAddress = static::getOption(Constants::CRM_CORP_ADDRESS);
         }
 
         return static::$corporateClientAddress;
