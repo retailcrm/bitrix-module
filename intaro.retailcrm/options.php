@@ -798,12 +798,12 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     COption::SetOptionString(
         $mid,
         $CRM_CORP_NAME,
-        serialize(RCrmActions::clearArr(is_array($bitrixCorpName) ? $bitrixCorpName : []))
+        $bitrixCorpName
     );
     COption::SetOptionString(
         $mid,
         $CRM_CORP_ADRES,
-        serialize(RCrmActions::clearArr(is_array($bitrixCorpAdres) ? $bitrixCorpAdres : []))
+        $bitrixCorpAdres
     );
 
     $request = Application::getInstance()->getContext()->getRequest();
@@ -931,8 +931,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     //corporate-cliente
     $optionCorpClient = COption::GetOptionString($mid, $CRM_CC, 0);
     $optionCorpShops = unserialize(COption::GetOptionString($mid, $CRM_CORP_SHOPS, 0));
-    $optionsCorpComName = unserialize(COption::GetOptionString($mid, $CRM_CORP_NAME, 0));
-    $optionsCorpAdres = unserialize(COption::GetOptionString($mid, $CRM_CORP_ADRES, 0));
+    $optionsCorpComName = COption::GetOptionString($mid, $CRM_CORP_NAME, 0);
+    $optionsCorpAdres = COption::GetOptionString($mid, $CRM_CORP_ADRES, 0);
 
     $version = COption::GetOptionString($mid, $CRM_API_VERSION, 0);
 
