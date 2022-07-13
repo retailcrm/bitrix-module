@@ -19,6 +19,7 @@ services:
     volumes:
       - ./:/bitrix-module
       - ./.docker/php.ini:/usr/local/etc/php/conf.d/z-bitrix.ini
+      - ./tmp:/tmp
   mysql:
     env_file:
       - .env

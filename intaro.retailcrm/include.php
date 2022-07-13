@@ -58,7 +58,6 @@ foreach ($arJsConfig as $ext => $arExt) {
 
 if (empty(ConfigProvider::getSitesAvailable())) {
     $client = ClientFactory::createClientAdapter();
-
     try {
         $credentials = $client->getCredentials();
 

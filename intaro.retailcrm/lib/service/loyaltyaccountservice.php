@@ -20,6 +20,8 @@ use Intaro\RetailCrm\Component\Factory\ClientFactory;
 use Intaro\RetailCrm\Component\Json\Serializer;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Model\Api\LoyaltyAccount;
+use Intaro\RetailCrm\Model\Api\LoyaltyAccountApiFilterType;
+use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountRequest;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountActivateRequest;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountCreateRequest;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountEditRequest;
@@ -144,9 +146,34 @@ class LoyaltyAccountService
                 'UF_EXT_REG_PL_INTARO' => $createResponse->loyaltyAccount->active === true ? 'Y' : '',
                 'UF_LP_ID_INTARO'      => $createResponse->loyaltyAccount->id,
             ]);
-        }
 
-        Utils::handleApiErrors($createResponse, GetMessage('REGISTER_ERROR'));
+            Utils::handleApiErrors($createResponse, GetMessage('REGISTER_ERROR'));
+        } elseif ($this->proveUserInLpExists($createResponse)) {
+            global $USER_FIELD_MANAGER;
+
+            /** @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter $client */
+            $client = ClientFactory::createClientAdapter();
+
+            $sitesAvailable = ConfigProvider::getSitesAvailable();
+
+            $getRequest = new LoyaltyAccountRequest();
+
+            $getRequest->filter = new LoyaltyAccountApiFilterType();
+            $getRequest->filter->sites = $sitesAvailable;
+            $getRequest->filter->customerExternalId = (string)$userId;
+
+
+            $getResponse = $client->getLoyaltyAccounts($getRequest);
+
+            if ($getResponse instanceof LoyaltyAccountCreateResponse) {
+                Utils::handleApiErrors($getResponse, GetMessage('REGISTER_ERROR'));
+            }
+
+            $USER_FIELD_MANAGER->Update('USER', $userId, [
+                'UF_EXT_REG_PL_INTARO' => ($getResponse->loyaltyAccounts)[0]->active === true ? 'Y' : '',
+                'UF_LP_ID_INTARO'      => ($getResponse->loyaltyAccounts)[0]->id,
+            ]);
+        }
     }
 
     /**
@@ -510,6 +537,20 @@ class LoyaltyAccountService
 
         $errorMsg = Utils::getErrorMsg($createResponse);
 
+        if ($this->proveUserInLpExists($createResponse)) {
+            if (
+                $createResponse->loyaltyAccount->active === false
+                && $createResponse->loyaltyAccount->activatedAt === null
+            ) {
+                return [
+                    'msg' => GetMessage('GO_TO_PERSONAL'),
+                    'error' => false
+                ];
+            } else {
+                return ['msg' => GetMessage('REG_COMPLETE'), 'error' => false];
+            }
+        }
+
         if ($errorMsg !== null) {
             return ['msg' => $errorMsg, 'error' => true];
         }
@@ -616,5 +657,27 @@ class LoyaltyAccountService
         }
 
         return $resultFieldsArray;
+    }
+
+    /**
+     * @param \Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountCreateResponse|null $createResponse
+     * 
+     * @return bool
+     */
+    public function proveUserInLpExists(?LoyaltyAccountCreateResponse $createResponse): bool
+    {
+        if (
+            $createResponse !== null
+            && $createResponse->success !== true
+            && isset($createResponse->errors)
+            && isset(($createResponse->errors)['loyalty'])
+            && ($createResponse->errors)['loyalty'] === 'The customer is in this loyalty program already'
+        ) {
+            $response = true;
+        } else {
+            $response = false;
+        }
+
+        return $response;
     }
 }

@@ -25,12 +25,16 @@ require($_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/main/include/prolog_before.
 global $USER;
 $USER->Authorize(1);
 
-if (!IsModuleInstalled('intaro.retailcrm')) {
-    RegisterModule('intaro.retailcrm');
+$retailcrmModuleId = 'intaro.retailcrm';
+
+if (!IsModuleInstalled($retailcrmModuleId)) {
+    RegisterModule($retailcrmModuleId);
 }
 
-COption::SetOptionString('intaro.retailcrm', 'api_version', 'v5');
-CModule::IncludeModule('intaro.retailcrm');
+COption::SetOptionString($retailcrmModuleId, 'api_host', 'https://test.retailcrm.ru');
+COption::SetOptionString($retailcrmModuleId, 'api_key', 'nvwhebvwevboihbwvoijn');
+COption::SetOptionString($retailcrmModuleId, 'api_version', 'v5');
+CModule::IncludeModule($retailcrmModuleId);
 
 CModule::IncludeModule("main");
 global $DB;
