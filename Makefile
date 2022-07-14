@@ -26,8 +26,8 @@ install_bitrix: download_bitrix
 download_bitrix:
 ifeq ("$(wildcard $(BITRIX_PATH)/bitrix/php_interface/dbconn.php)","")
 	wget --progress=dot -e dotbytes=10M -O /tmp/$(BITRIX_EDITION).tar.gz https://www.1c-bitrix.ru/download/$(BITRIX_EDITION).tar.gz
-	@mkdir -p $(BITRIX_PATH)
-	@chmod -R 777 $(BITRIX_PATH)
+	mkdir -p $(BITRIX_PATH)
+	chmod -R 777 $(BITRIX_PATH)
 	tar -xf /tmp/$(BITRIX_EDITION).tar.gz -C $(BITRIX_PATH)
 	rm /tmp/$(BITRIX_EDITION).tar.gz
 endif

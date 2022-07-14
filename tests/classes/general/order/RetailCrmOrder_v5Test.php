@@ -113,7 +113,9 @@ class RetailCrmOrder_v5Test extends BitrixTestCase {
                 ],
                 'payments' => [[
                     'type' => $arParams['optionsPayTypes'][$arFields['PAYMENTS'][0]['PAY_SYSTEM_ID']],
-                    'externalId' => RCrmActions::generatePaymentExternalId($arFields['PAYMENTS'][0]['ID'])
+                    'externalId' => RCrmActions::generatePaymentExternalId($arFields['PAYMENTS'][0]['ID']),
+                    'status' => 'paid',
+                    'paidAt' => $this->getDateTime()->format('Y-m-d H:i:s')
                 ]],
                 'privilegeType' => 'none'
             ],

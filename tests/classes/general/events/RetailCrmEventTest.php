@@ -151,7 +151,7 @@ class RetailCrmEventTest extends PHPUnit\Framework\TestCase
 
         $result = $this->retailcrmEvent->OrderDelete($event);
 
-        $this->assertEquals(null, $result);
+        $this->assertEquals(true, $GLOBALS['RETAILCRM_ORDER_DELETE']);
     }
 
     /**
@@ -160,11 +160,17 @@ class RetailCrmEventTest extends PHPUnit\Framework\TestCase
      */
     public function testOnUpdateOrder()
     {
-        $arFields = [];
+        $arFields = [
+            'CANCELED' => 'Y',
+            'BASKET_ITEMS' => [],
+            'ORDER_PROP' => []
+        ];
 
         $result = $this->retailcrmEvent->OnUpdateOrder(1, $arFields);
 
-        $this->assertEquals(null, $result);
+        $this->assertEquals(true, $GLOBALS['RETAILCRM_ORDER_OLD_EVENT']);
+
+        $this->assertEquals(true, $GLOBALS['ORDER_DELETE_USER_ADMIN']);
     }
 
     /**
