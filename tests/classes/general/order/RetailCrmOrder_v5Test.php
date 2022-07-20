@@ -116,7 +116,8 @@ class RetailCrmOrder_v5Test extends BitrixTestCase {
                     'externalId' => RCrmActions::generatePaymentExternalId($arFields['PAYMENTS'][0]['ID']),
                     'status' => 'paid',
                     'paidAt' => $this->getDateTime()->format('Y-m-d H:i:s')
-                ]]
+                ]],
+                'privilegeType' => 'none'
             ],
         ]];
     }

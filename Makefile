@@ -11,7 +11,7 @@ ifneq ($(NOT_USE_VENDOR),1)
 	composer install
 endif
 
-bitrix_install: download_bitrix
+install_bitrix: download_bitrix
 	@echo "===== Installing Bitrix..."
 	@php bin/bitrix-install db_type
 	@php bin/bitrix-install requirement
@@ -44,10 +44,3 @@ endif
 cleanup:
 	@rm -rf $(ROOT_DIR)/release/$(CURRENT_VERSION)
 	@rm $(ROOT_DIR)/release/$(CURRENT_VERSION).tar.gz
-
-# docker commands
-install:
-	docker-compose exec bitrix make bitrix_install
-
-run_tests:
-	docker-compose exec bitrix make test

@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        php-version: ['7.1', '7.2', '7.3']
+        php-version: ['7.3']
         bitrix-edition: ['small_business_encode', 'business_encode']
     services:
       mysql:
@@ -42,7 +42,7 @@ jobs:
       - name: Install Bitrix
         env:
           BITRIX_EDITION: ${{ matrix.bitrix-edition }}
-        run: make bitrix_install
+        run: make install_bitrix
       - name: Enable debug mode for tests
         run: php bin/enable_debugging "${{ env.BITRIX_PATH }}"
       - name: Validate composer.json and composer.lock
