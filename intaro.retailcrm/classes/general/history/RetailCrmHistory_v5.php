@@ -932,6 +932,10 @@ class RetailCrmHistory
                         }
                     }
 
+                    $editBasketInfo = [];
+                    $deleteBasketInfo = [];
+                    $bonusesChargeTotal = null;
+
                     if (isset($order['items'])) {
                         $itemUpdate = true;
                         $response = RCrmActions::apiMethod($api, 'orderGet', __METHOD__, $order['id']);
@@ -993,10 +997,6 @@ class RetailCrmHistory
                         Logger::getInstance()->write($collectItems, 'collectItemsOrderHistory');
 
                         $optionDiscRound = COption::GetOptionString(self::$MODULE_ID, self::$CRM_DISCOUNT_ROUND, 0);
-
-                        $editBasketInfo = [];
-                        $deleteBasketInfo = [];
-                        $bonusesChargeTotal = null;
 
                         foreach ($order['items'] as $product) {
                             if ($collectItems[$product['offer']['externalId']]['quantity']) {
