@@ -46,7 +46,7 @@ class LoyaltyDataBuilder implements BuilderInterface
     private $logger;
 
     /** @var OrderLoyaltyData[] $data */
-    private $data;
+    private $data = [];
 
     /** @var float|null */
     private $bonusCountTotal;
