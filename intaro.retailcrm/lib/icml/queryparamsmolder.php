@@ -57,6 +57,7 @@ class QueryParamsMolder
             'CATALOG_GROUP_' . $basePriceId,
             'ID',
             'LID',
+            'VAT_ID',
         ];
 
         return $params;

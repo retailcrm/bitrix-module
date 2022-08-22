@@ -6,6 +6,7 @@ use Bitrix\Highloadblock\HighloadBlockTable;
 use CCatalog;
 use CCatalogGroup;
 use CCatalogSku;
+use CCatalogVat;
 use CIBlock;
 use Intaro\RetailCrm\Service\Hl;
 use RetailcrmConfigProvider;
@@ -79,12 +80,17 @@ class SettingsService
     /**
      * @var string
      */
-    public  $setupProfileName = '';
+    public $setupProfileName = '';
 
     /**
      * @var array
      */
-    public         $priceTypes = [];
+    public $priceTypes = [];
+
+    /**
+     * @var array
+     */
+    public $vatRates = [];
 
     /**
      * @var \Intaro\RetailCrm\Icml\SettingsService|null
@@ -110,6 +116,7 @@ class SettingsService
             = $this->getSingleSetting('SETUP_PROFILE_NAME') ?? GetMessage('PROFILE_NAME_EXAMPLE');
 
         $this->getPriceTypes();
+        $this->getVatRates();
     }
 
     /**
@@ -133,6 +140,15 @@ class SettingsService
 
         while ($arPriceType = $dbPriceType->Fetch()) {
             $this->priceTypes[$arPriceType['ID']] = $arPriceType;
+        }
+    }
+
+    public function getVatRates()
+    {
+        $dbVatRate = CCatalogVat::GetListEx(['SORT' => 'ASC'], ['ACTIVE' => 'Y'], false, false, ['ID', 'NAME', 'RATE']);
+
+        while ($arVatRate = $dbVatRate->Fetch()) {
+            $this->vatRates[$arVatRate['ID']] = $arVatRate;
         }
     }
 
