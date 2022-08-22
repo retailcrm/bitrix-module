@@ -4,6 +4,7 @@ namespace Intaro\RetailCrm\Icml;
 
 use Bitrix\Catalog\ProductTable;
 use Bitrix\Main\ArgumentException;
+use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Icml\Utils\IcmlUtils;
 use Intaro\RetailCrm\Model\Bitrix\Orm\CatalogIblockInfo;
 use Intaro\RetailCrm\Model\Bitrix\Xml\OfferParam;
@@ -82,10 +83,16 @@ class XmlOfferBuilder
      * @var \Intaro\RetailCrm\Model\Bitrix\Xml\XmlOffer
      */
     private $xmlOffer;
+
     /**
      * @var array
      */
     private $categories;
+
+    /**
+     * @var array
+     */
+    private $vatRates;
 
     /**
      * IcmlDataManager constructor.
@@ -100,6 +107,9 @@ class XmlOfferBuilder
     {
         $this->setup             = $setup;
         $this->purchasePriceNull = RetailcrmConfigProvider::getCrmPurchasePrice();
+        /** @var \Intaro\RetailCrm\Icml\SettingsService $settingsService */
+        $settingsService         = ServiceLocator::get(SettingsService::class);
+        $this->vatRates          = $settingsService->vatRates;
         $this->measures          = $this->prepareMeasures($measure);
         $this->defaultServerName = $defaultServerName;
      }
@@ -240,7 +250,7 @@ class XmlOfferBuilder
         $this->xmlOffer->name = $item['NAME'];
         $this->xmlOffer->xmlId = $item['EXTERNAL_ID'] ?? '';
         $this->xmlOffer->productName = $item['NAME'];
-        $this->xmlOffer->vatRate = $item['CATALOG_VAT'] ?? 'none';
+        $this->xmlOffer->vatRate = $this->getVatRate($item);
         $this->xmlOffer->unitCode = $this->getUnitCode($item['CATALOG_MEASURE'], $item['ID']);
     }
 
@@ -265,6 +275,25 @@ class XmlOfferBuilder
         }
 
         return null;
+    }
+
+    /**
+     * Возвращает значение активной ставки НДС, если она указана в товаре
+     *
+     * @param array $product
+     * @return string
+     */
+    private function getVatRate(array $product): string
+    {
+        if (!empty($product['VAT_ID']) && array_key_exists($product['VAT_ID'], $this->vatRates)) {
+            return $this->vatRates[$product['VAT_ID']]['RATE'];
+        }
+
+        if (!empty($product['CATALOG_VAT_ID']) && array_key_exists($product['CATALOG_VAT_ID'], $this->vatRates)) {
+            return $this->vatRates[$product['CATALOG_VAT_ID']]['RATE'];
+        }
+
+        return 'none';
     }
 
     /**
