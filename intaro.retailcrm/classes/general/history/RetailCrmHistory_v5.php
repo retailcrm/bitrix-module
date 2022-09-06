@@ -131,6 +131,7 @@ class RetailCrmHistory
                             case 0:
                                 $login = $customer['email'];
                                 $customerBuilder->setLogin($login);
+                                $customerBuilder->buildPassword();
                                 break;
                             case 1:
                                 $arUser = $dbUser->Fetch();
@@ -140,6 +141,7 @@ class RetailCrmHistory
                             default:
                                 $login = uniqid('user_' . time()) . '@example.com';
                                 $customerBuilder->setLogin($login);
+                                $customerBuilder->buildPassword();
                                 break;
                         }
                     }
@@ -158,15 +160,15 @@ class RetailCrmHistory
 
                             continue;
                         }
+                    }
 
-                        if(RCrmActions::apiMethod(
-                                $api,
-                                'customersFixExternalIds',
-                                __METHOD__,
-                                array(array('id' => $customer['id'], 'externalId' => $registeredUserID))) == false
-                        ) {
-                            continue;
-                        }
+                    if(RCrmActions::apiMethod(
+                            $api,
+                            'customersFixExternalIds',
+                            __METHOD__,
+                            array(array('id' => $customer['id'], 'externalId' => $registeredUserID))) == false
+                    ) {
+                        continue;
                     }
 
                     $customer['externalId'] = $registeredUserID;
@@ -856,13 +858,6 @@ class RetailCrmHistory
 
                     if (isset($order['contact']['id'])) {
                         $ExtId = null;
-                        $response = RCrmActions::apiMethod(
-                            $api,
-                            'customersGetById',
-                            __METHOD__,
-                            $order['contact']['id'],
-                            $order['site']
-                        );
 
                         if (isset($order['contact']['externalId'])) {
                             $ExtId = $order['contact']['externalId'];
@@ -871,6 +866,14 @@ class RetailCrmHistory
                         if (isset($ExtId)) {
                             $newOrder->setFieldNoDemand('USER_ID', $ExtId);
                         } else {
+                            $response = RCrmActions::apiMethod(
+                                $api,
+                                'customersGetById',
+                                __METHOD__,
+                                $order['contact']['id'],
+                                $order['site']
+                            );
+
                             $newUser = new CUser();
                             $customerBuilder = new CustomerBuilder();
                             $customerBuilder->setDataCrm($response['customer'])->build();
@@ -887,6 +890,7 @@ class RetailCrmHistory
                                     case 0:
                                         $login = $response['customer']['email'];
                                         $customerBuilder->setLogin($login);
+                                        $customerBuilder->buildPassword();
                                         break;
                                     case 1:
                                         $arUser = $dbUser->Fetch();
@@ -896,6 +900,7 @@ class RetailCrmHistory
                                     default:
                                         $login = uniqid('user_' . time()) . '@example.com';
                                         $customerBuilder->setLogin($login);
+                                        $customerBuilder->buildPassword();
                                         break;
                                 }
 
@@ -926,7 +931,6 @@ class RetailCrmHistory
                                         continue;
                                     }
                                 }
-
                                 $newOrder->setFieldNoDemand('USER_ID', $registeredUserID);
                             }
                         }
