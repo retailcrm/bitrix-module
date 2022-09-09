@@ -1044,10 +1044,13 @@ class RetailCrmHistory
                             }
 
                             if ($product['delete'] && $collectItems[$product['offer']['externalId']]['quantity'] <= 0) {
+                                if (is_int($item->getBasketCode())) {
                                     $deleteBasketInfo[] = $item->getBasketCode();
-                                    $item->delete();
+                                }
 
-                                    continue;
+                                $item->delete();
+
+                                continue;
                             }
 
                             if ($product['quantity']) {
