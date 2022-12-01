@@ -63,6 +63,20 @@ class RetailCrmOrder_v5Test extends BitrixTestCase {
         static::assertEquals($expected['payments'][0], $orderSend['payments'][0]);
     }
 
+    public function testFieldExists(): void
+    {
+        $order = \Bitrix\Sale\Order::create('s1', 1, 'RUB');
+        $flag = true;
+
+        try {
+            $order->setField('REASON_CANCELED', 'тестовый заказ');
+        } catch(\Exception $e) {
+            $flag = false;
+        }
+
+        $this->assertTrue($flag, 'Переменной не существует');
+    }
+
     public function initSystemData(): void
     {
         RetailcrmConfigProvider::setOrderTypes(['bitrixType' => 'crmType']);
@@ -117,7 +131,8 @@ class RetailCrmOrder_v5Test extends BitrixTestCase {
                     'status' => 'paid',
                     'paidAt' => $this->getDateTime()->format('Y-m-d H:i:s')
                 ]],
-                'privilegeType' => 'none'
+                'privilegeType' => 'none',
+                'statusComment' => $arFields['REASON_CANCELED']
             ],
         ]];
     }

@@ -59,7 +59,8 @@ class BitrixTestCase extends \PHPUnit\Framework\TestCase
                 'SUM' => 1000,
                 'DATE_PAID' => $this->getDateTime(),
                 'PAID' => 'Y'
-            ]]
+            ]],
+            'REASON_CANCELED' => 'test comment'
         ];
     }
 

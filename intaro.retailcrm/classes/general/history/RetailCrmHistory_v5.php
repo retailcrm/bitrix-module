@@ -131,7 +131,6 @@ class RetailCrmHistory
                             case 0:
                                 $login = $customer['email'];
                                 $customerBuilder->setLogin($login);
-                                $customerBuilder->buildPassword();
                                 break;
                             case 1:
                                 $arUser = $dbUser->Fetch();
@@ -141,12 +140,12 @@ class RetailCrmHistory
                             default:
                                 $login = uniqid('user_' . time()) . '@example.com';
                                 $customerBuilder->setLogin($login);
-                                $customerBuilder->buildPassword();
                                 break;
                         }
                     }
 
                     if ($registerNewUser === true) {
+                        $customerBuilder->buildPassword();
                         $registeredUserID = $newUser->Add(
                             $customerBuilder->getCustomer()->getObjectToArray()
                         );
