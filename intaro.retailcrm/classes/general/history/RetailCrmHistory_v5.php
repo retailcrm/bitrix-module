@@ -1995,11 +1995,11 @@ class RetailCrmHistory
     }
 
     /**
-     * @param int $externalId
+     * @param mixed $externalId
      *
      * @return void
      */
-    public static function cancelOrder(int $externalId)
+    public static function cancelOrder($externalId)
     {
         try {
             $newOrder = Order::load($externalId);
