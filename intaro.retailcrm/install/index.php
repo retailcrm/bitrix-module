@@ -966,12 +966,6 @@ class intaro_retailcrm extends CModule
                 $filename = $_POST['SETUP_FILE_NAME'];
             }
 
-            if (!isset($_POST['TYPE_LOADING'])) {
-                $typeLoading = 0;
-            } else {
-                $typeLoading = $_POST['TYPE_LOADING'];
-            }
-
             if (!isset($_POST['maxOffersValue'])) {
                 $maxOffers = null;
             } else {
@@ -982,10 +976,6 @@ class intaro_retailcrm extends CModule
                 $profileName = '';
             } else {
                 $profileName = $_POST['SETUP_PROFILE_NAME'];
-            }
-
-            if ($typeLoading !== 'none' && $profileName == '') {
-                $arResult['errCode'] = 'ERR_FIELDS_PROFILE';
             }
 
             if ($filename === '') {
@@ -1098,7 +1088,7 @@ class intaro_retailcrm extends CModule
 
             $agentId = null;
 
-            if ($typeLoading === 'agent') {
+            if (isset($_POST['TYPE_LOADING'])) {
                 $dateAgent = new DateTime();
                 $intAgent = new DateInterval('PT60S'); // PT60S - 60 sec;
                 $dateAgent->add($intAgent);
