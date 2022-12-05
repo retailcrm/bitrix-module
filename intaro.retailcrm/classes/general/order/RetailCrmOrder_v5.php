@@ -76,6 +76,10 @@ class RetailCrmOrder
             'delivery' => ['cost' => $arOrder['PRICE_DELIVERY']],
         ];
 
+        if (!empty($arOrder['REASON_CANCELED'])) {
+            $order['statusComment'] = $arOrder['REASON_CANCELED'];
+        }
+
         if (isset($arParams['contactExId'])) {
             $order['contact']['externalId'] = $arParams['contactExId'];
         }
