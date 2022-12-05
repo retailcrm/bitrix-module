@@ -496,7 +496,6 @@ if ($STEP === 1) {
         if ($isSetupModulePage) { ?>
         <font class="text"><?=GetMessage('LOAD_PERIOD');?><br><br></font>
         <input type="radio" name="TYPE_LOADING" value="none" onclick="checkProfile(this);"><?=GetMessage('NOT_LOADING')?><Br>
-        <input type="radio" name="TYPE_LOADING" value="cron" onclick="checkProfile(this);"><?=GetMessage('CRON_LOADING')?><Br>
         <input type="radio" name="TYPE_LOADING" value="agent"  checked  onclick="checkProfile(this);"><?=GetMessage('AGENT_LOADING')?><Br>
         <br>
         <br>
