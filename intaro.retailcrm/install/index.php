@@ -1088,7 +1088,7 @@ class intaro_retailcrm extends CModule
 
             $agentId = null;
 
-            if (isset($_POST['TYPE_LOADING'])) {
+            if (isset($_POST['NEED_CATALOG_AGENT'])) {
                 $dateAgent = new DateTime();
                 $intAgent = new DateInterval('PT60S'); // PT60S - 60 sec;
                 $dateAgent->add($intAgent);

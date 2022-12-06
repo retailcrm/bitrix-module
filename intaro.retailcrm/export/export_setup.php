@@ -495,7 +495,7 @@ if ($STEP === 1) {
         <?php
         if ($isSetupModulePage) { ?>
         <span class="text"><?=GetMessage('AGENT_LOADING')?>&nbsp;</span>
-        <input type="checkbox" name="TYPE_LOADING" value="agent" onclick="checkProfile(this);"><Br>
+        <input type="checkbox" name="NEED_CATALOG_AGENT" value="agent" onclick="checkProfile(this);"><Br>
         <br>
         <br>
         <span class="text"><?=GetMessage('LOAD_NOW')?>&nbsp;</span>
