@@ -978,6 +978,10 @@ class intaro_retailcrm extends CModule
                 $profileName = $_POST['SETUP_PROFILE_NAME'];
             }
 
+            if ($profileName == '') {
+                $arResult['errCode'] = 'ERR_FIELDS_PROFILE';
+            }
+
             if ($filename === '') {
                 $arResult['errCode'] = 'ERR_FIELDS_FILE';
             }
