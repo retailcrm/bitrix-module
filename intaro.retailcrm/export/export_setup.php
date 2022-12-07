@@ -494,10 +494,8 @@ if ($STEP === 1) {
         <br><br><br>
         <?php
         if ($isSetupModulePage) { ?>
-        <font class="text"><?=GetMessage('LOAD_PERIOD');?><br><br></font>
-        <input type="radio" name="TYPE_LOADING" value="none" onclick="checkProfile(this);"><?=GetMessage('NOT_LOADING')?><Br>
-        <input type="radio" name="TYPE_LOADING" value="cron" onclick="checkProfile(this);"><?=GetMessage('CRON_LOADING')?><Br>
-        <input type="radio" name="TYPE_LOADING" value="agent"  checked  onclick="checkProfile(this);"><?=GetMessage('AGENT_LOADING')?><Br>
+        <span class="text"><?=GetMessage('AGENT_LOADING')?>&nbsp;</span>
+        <input type="checkbox" name="NEED_CATALOG_AGENT" value="agent" onclick="checkProfile(this);"><Br>
         <br>
         <br>
         <span class="text"><?=GetMessage('LOAD_NOW')?>&nbsp;</span>

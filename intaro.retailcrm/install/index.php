@@ -966,12 +966,6 @@ class intaro_retailcrm extends CModule
                 $filename = $_POST['SETUP_FILE_NAME'];
             }
 
-            if (!isset($_POST['TYPE_LOADING'])) {
-                $typeLoading = 0;
-            } else {
-                $typeLoading = $_POST['TYPE_LOADING'];
-            }
-
             if (!isset($_POST['maxOffersValue'])) {
                 $maxOffers = null;
             } else {
@@ -984,7 +978,7 @@ class intaro_retailcrm extends CModule
                 $profileName = $_POST['SETUP_PROFILE_NAME'];
             }
 
-            if ($typeLoading !== 'none' && $profileName == '') {
+            if ($profileName == '') {
                 $arResult['errCode'] = 'ERR_FIELDS_PROFILE';
             }
 
@@ -1098,7 +1092,7 @@ class intaro_retailcrm extends CModule
 
             $agentId = null;
 
-            if ($typeLoading === 'agent') {
+            if (isset($_POST['NEED_CATALOG_AGENT'])) {
                 $dateAgent = new DateTime();
                 $intAgent = new DateInterval('PT60S'); // PT60S - 60 sec;
                 $dateAgent->add($intAgent);
@@ -1131,81 +1125,6 @@ class intaro_retailcrm extends CModule
                     'Y',
                     $dateAgent->format('d.m.Y H:i:s')
                 );
-            }
-
-            if ('cron' === $typeLoading) {
-                include($this->INSTALL_PATH . '/../lib/vendor/symfony/component/process/phpexecutablefinder.php');
-                include($this->INSTALL_PATH . '/../lib/vendor/symfony/component/process/executablefinder.php');
-
-                $agent_period = 24;
-                $finder = new PhpExecutableFinder();
-                $agent_php_path = $finder->find();
-
-                if (!file_exists($_SERVER['DOCUMENT_ROOT'] . CATALOG_PATH2EXPORTS . 'cron_frame.php')) {
-                    CheckDirPath($_SERVER['DOCUMENT_ROOT'] . CATALOG_PATH2EXPORTS);
-                    $tmp_file_size = filesize($_SERVER['DOCUMENT_ROOT'] . CATALOG_PATH2EXPORTS_DEF . 'cron_frame.php');
-                    $fp = fopen($_SERVER['DOCUMENT_ROOT'] . CATALOG_PATH2EXPORTS_DEF . 'cron_frame.php', 'rb');
-                    $tmp_data = fread($fp, $tmp_file_size);
-                    fclose($fp);
-
-                    $tmp_data = str_replace('#DOCUMENT_ROOT#', $_SERVER['DOCUMENT_ROOT'], $tmp_data);
-                    $tmp_data = str_replace('#PHP_PATH#', $agent_php_path, $tmp_data);
-
-                    $fp = fopen($_SERVER['DOCUMENT_ROOT'] . CATALOG_PATH2EXPORTS . 'cron_frame.php', 'ab');
-                    fwrite($fp, $tmp_data);
-                    fclose($fp);
-                }
-
-                $cfg_data = '';
-                if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/crontab/crontab.cfg')) {
-                    $cfg_file_size = filesize($_SERVER['DOCUMENT_ROOT'] . '/bitrix/crontab/crontab.cfg');
-                    $fp = fopen($_SERVER['DOCUMENT_ROOT'] . '/bitrix/crontab/crontab.cfg', 'rb');
-                    $cfg_data = fread($fp, $cfg_file_size);
-                    fclose($fp);
-                }
-
-                CheckDirPath($_SERVER['DOCUMENT_ROOT'] . CATALOG_PATH2EXPORTS . 'logs/');
-
-                if ($arProfile['IN_CRON'] == 'Y') {
-                    // remove
-                    $cfg_data = preg_replace('#^.*?'
-                        . preg_quote(CATALOG_PATH2EXPORTS)
-                        . 'cron_frame.php +'
-                        . $profileId
-                        . ' *>.*?$#im', '', $cfg_data);
-                } else {
-                    $strTime = '0 */' . $agent_period . ' * * * ';
-                    if (strlen($cfg_data) > 0) {
-                        $cfg_data .= "\n";
-                    }
-
-                    $cfg_data .= $strTime
-                        . $agent_php_path
-                        . ' -f '
-                        . $_SERVER['DOCUMENT_ROOT']
-                        . CATALOG_PATH2EXPORTS
-                        . 'cron_frame.php '
-                        . $profileId
-                        . ' >'
-                        . $_SERVER['DOCUMENT_ROOT']
-                        . CATALOG_PATH2EXPORTS
-                        . 'logs/'
-                        . $profileId
-                        . ".txt\n";
-                }
-
-                CCatalogExport::Update($profileId, [
-                    'IN_CRON' => 'Y',
-                ]);
-
-                CheckDirPath($_SERVER['DOCUMENT_ROOT'] . '/bitrix/crontab/');
-                $cfg_data = preg_replace("#[\r\n]{2,}#im", "\n", $cfg_data);
-                $fp = fopen($_SERVER['DOCUMENT_ROOT'] . '/bitrix/crontab/crontab.cfg', 'wb');
-                fwrite($fp, $cfg_data);
-                fclose($fp);
-
-                $arRetval = [];
-                @exec('crontab ' . $_SERVER['DOCUMENT_ROOT'] . '/bitrix/crontab/crontab.cfg', $arRetval, $return_var);
             }
 
             $api_host = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, 0);

@@ -12,10 +12,7 @@ $MESS ['PAYMENT_Y'] = 'Paid';
 $MESS ['PAYMENT_N'] = 'Not paid';
 $MESS ['CANCELED'] = 'Is «Cancelled»';
 $MESS ['INFO_1'] = ' Set the correspondence between 1C-Bitrix data books and RetailCRM data books.';
-$MESS ['LOAD_PERIOD'] = 'Export catalog periodically';
-$MESS ['NOT_LOADING'] = 'No';
-$MESS ['CRON_LOADING'] = 'By CRON every 24 hours';
-$MESS ['AGENT_LOADING'] = 'By Agent every 24 hours (by default)';
+$MESS ['AGENT_LOADING'] = 'Export catalog periodically (By Agent every 24 hours)';
 $MESS ['LOAD_NOW'] = 'Export now';
 $MESS ['LOAD_NOW_MSG'] = 'The generation will start after you click "Finish installation".
 This may take some time';
