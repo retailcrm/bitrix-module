@@ -358,7 +358,7 @@ if (isset($arResult['PAYMENT'])) {
                                     <?php if($defaultOrderTypes[$bitrixOrderType['ID']] == $orderType['code']) echo 'selected'; ?>>
                                     <?php echo $APPLICATION->ConvertCharset($orderType['name'], 'utf-8', SITE_CHARSET); ?>
                                 </option>
-                        <?php endif; ?>
+                            <?php endif; ?>
                         <?php endforeach; ?>
                     </select>
                 </td>
