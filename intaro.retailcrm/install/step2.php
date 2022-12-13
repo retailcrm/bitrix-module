@@ -331,7 +331,7 @@ if (isset($arResult['PAYMENT'])) {
                             <?php if($defaultPayment[$bitrixPayment['ID']] == $paymentStatus['code']) echo 'selected'; ?>>
                             <?php echo $APPLICATION->ConvertCharset($paymentStatus['name'], 'utf-8', SITE_CHARSET); ?>
                         </option>
-                        <?php endif; ?>
+                            <?php endif; ?>
                         <?php endforeach; ?>
                     </select>
                 </td>
