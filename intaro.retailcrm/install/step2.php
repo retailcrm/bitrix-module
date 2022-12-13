@@ -244,7 +244,7 @@ if (isset($arResult['PAYMENT'])) {
                     <select name="payment-type-<?php echo $bitrixPaymentType['ID']; ?>" class="typeselect">
                         <option value=""></option>
                         <?php foreach($arResult['paymentTypesList'] as $paymentType): ?>
-                        <?php if($paymentType['active'] == 1): ?>
+                            <?php if($paymentType['active'] == 1): ?>
                         <option value="<?php echo $paymentType['code']; ?>"
                             <?php if($defaultPayTypes[$bitrixPaymentType['ID']] == $paymentType['code']) echo 'selected'; ?>>
                             <?php
