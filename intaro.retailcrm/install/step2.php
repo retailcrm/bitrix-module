@@ -348,7 +348,8 @@ if (isset($arResult['PAYMENT'])) {
                 <td width="50%" class="adm-detail-content-cell-r">
                     <select name="order-type-<?php echo $bitrixOrderType['ID']; ?>" class="typeselect">
                         <option value=""></option>
-                        <?php foreach($arResult['orderTypesList'] as $orderType): if($orderType['active'] == 1): ?>
+                        <?php foreach($arResult['orderTypesList'] as $orderType): ?>
+                            <?php if($orderType['active'] == 1): ?>
                         <option value="<?php echo $orderType['code']; ?>"
                             <?php if($defaultOrderTypes[$bitrixOrderType['ID']] == $orderType['code']) echo 'selected'; ?>>
                             <?php echo $APPLICATION->ConvertCharset($orderType['name'], 'utf-8', SITE_CHARSET); ?>
