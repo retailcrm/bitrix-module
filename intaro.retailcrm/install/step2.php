@@ -325,7 +325,8 @@ if (isset($arResult['PAYMENT'])) {
                 <td width="50%" class="adm-detail-content-cell-r">
                     <select name="payment-<?php echo $bitrixPayment['ID']; ?>" class="typeselect">
                         <option value=""></option>
-                        <?php foreach($arResult['paymentStatusesList'] as $paymentStatus): if($paymentStatus['active'] == 1): ?>
+                        <?php foreach($arResult['paymentStatusesList'] as $paymentStatus): ?>
+                            <?php if($paymentStatus['active'] == 1): ?>
                         <option value="<?php echo $paymentStatus['code']; ?>"
                             <?php if($defaultPayment[$bitrixPayment['ID']] == $paymentStatus['code']) echo 'selected'; ?>>
                             <?php echo $APPLICATION->ConvertCharset($paymentStatus['name'], 'utf-8', SITE_CHARSET); ?>
