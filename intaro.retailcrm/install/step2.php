@@ -251,7 +251,7 @@ if (isset($arResult['PAYMENT'])) {
                             $nameType = isset($paymentType['integrationModule']) ? $APPLICATION->ConvertCharset($paymentType['name'] . GetMessage('INTEGRATIONS'), 'utf-8', SITE_CHARSET) : $APPLICATION->ConvertCharset($paymentType['name'], 'utf-8', SITE_CHARSET);
                             echo $nameType;?>
                         </option>
-                        <?php endif; ?>
+                            <?php endif; ?>
                         <?php endforeach; ?>
                     </select>
                 </td>
