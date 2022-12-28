@@ -495,7 +495,19 @@ class RetailCrmOrder
                 continue;
             }
 
-            self::createCustomerForOrder($api, $arCustomer, $arCustomerCorporate,$arParams, $order, $site);
+            $user = UserTable::getById($order['USER_ID'])->fetch();
+
+            if (!$user) {
+                RCrmActions::eventLog(
+                    'RetailCrmOrder::uploadOrders',
+                    'UserTable::getById',
+                    'Error find user: ' . $order['USER_ID'] . ' in order: ' . $order['ID']
+                );
+
+                continue;
+            }
+
+            self::createCustomerForOrder($api, $arCustomer, $arCustomerCorporate,$arParams, $order, $site, $user);
 
             if (isset($order['RESPONSIBLE_ID']) && !empty($order['RESPONSIBLE_ID'])) {
                 $managerService = ManagerService::getInstance();
@@ -579,10 +591,14 @@ class RetailCrmOrder
         array &$arCustomerCorporate,
         array &$arParams,
         array $order,
-        $site
+        $site,
+        array $user = null
     ): void {
         $optionsContragentType = RetailcrmConfigProvider::getContragentTypes();
-        $user = UserTable::getById($order['USER_ID'])->fetch();
+
+        if (empty($user)) {
+            $user = UserTable::getById($order['USER_ID'])->fetch();
+        }
 
         if ('Y' === RetailcrmConfigProvider::getCorporateClientStatus()) {
             if (true === RetailCrmCorporateClient::isCorpTookExternalId((string) $user['ID'], $api)) {

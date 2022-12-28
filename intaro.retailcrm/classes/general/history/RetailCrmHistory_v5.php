@@ -335,6 +335,7 @@ class RetailCrmHistory
                     ->setContragentTypes($contragentTypes)
                     ->setDataCrm($order)
                     ->build();
+                $corporateCustomerBuilder->getCustomerBuilder()->buildPassword();
 
                 if (RetailCrmOrder::isOrderCorporate($order)) {
                     // Fetch contact only if we think it's data is not fully present in order
