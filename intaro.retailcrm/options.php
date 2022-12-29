@@ -597,23 +597,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         }
 
         ConfigProvider::setLoyaltyProgramStatus('Y');
-
-        $eventManager = EventManager::getInstance();
-
-        $eventManager->unRegisterEventHandler('sale',
-            'OnSaleOrderSaved',
-            Constants::MODULE_ID,
-            'RetailCrmEvent',
-            'orderSave'
-        );
-
-        $eventManager->registerEventHandler(
-            'main',
-            'OnAdminContextMenuShow',
-            Constants::MODULE_ID,
-            EventsHandlers::class,
-            'OnAdminContextMenuShowHandler'
-        );
     } else {
         ConfigProvider::setLoyaltyProgramStatus('N');
     }

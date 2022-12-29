@@ -29,6 +29,7 @@ use Intaro\RetailCrm\Service\CustomerService;
 use Intaro\RetailCrm\Service\OrderLoyaltyDataService;
 use Intaro\RetailCrm\Service\Utils;
 use Logger;
+use RCrmActions;
 use RetailCrmEvent;
 use Throwable;
 
@@ -121,28 +122,6 @@ class EventsHandlers
     }
 
     /**
-     * Обновляет информацию о Программе лояльности в административной панели.
-     * При каждом открытии заказа делает запрос к CRM и получает актуальную информацию.
-     *
-     * @param $items
-     */
-    public function OnAdminContextMenuShowHandler(&$items)
-    {
-        global $APPLICATION;
-
-        if (
-            $_SERVER['REQUEST_METHOD'] === 'GET'
-            && $_REQUEST['ID'] > 0
-            && $APPLICATION->GetCurPage() === '/bitrix/admin/sale_order_view.php'
-        ) {
-            /* @var OrderLoyaltyDataService $service */
-            $service = ServiceLocator::get(OrderLoyaltyDataService::class);
-
-            $service->updateLoyaltyInfo($_REQUEST['ID']);
-        }
-    }
-
-    /**
      * Обработчик события, вызываемого ПОСЛЕ сохранения заказа (OnSaleOrderSaved)
      *
      * @param \Bitrix\Main\Event $event
@@ -164,7 +143,6 @@ class EventsHandlers
 
             // TODO: Replace old call with a new one.
             $saveResult = RetailCrmEvent::orderSave($order);
-
             Utils::handleApiErrors($saveResult);
 
             $isBonusInput = (
@@ -220,13 +198,20 @@ class EventsHandlers
                     $discountInput,
                     $loyaltyBonusMsg
                 );
+
                 $hlInfoBuilder->setCalculateItemsInput($calculateItemsInput);
                 $orderLoyaltyDataService->saveLoyaltyInfoToHl($hlInfoBuilder->build()->getResult());
+                $order->save();
 
                 self::$disableSaleHandler = false;
             }
         } catch (Throwable $exception) {
             Logger::getInstance()->write(GetMessage('CAN_NOT_SAVE_ORDER') . $exception->getMessage(), 'uploadApiErrors');
+            RCrmActions::eventLog(
+                'intaro.retailcrm/event', 'Event',
+                'error catch '. $exception
+            );
+
         }
     }
 
