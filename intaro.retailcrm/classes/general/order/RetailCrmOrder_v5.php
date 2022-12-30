@@ -600,6 +600,7 @@ class RetailCrmOrder
                 'UserTable::getById',
                 'Error find user: ' . $order['USER_ID'] . ' in order: ' . $order['ID']
             );
+
             return;
         }
 
