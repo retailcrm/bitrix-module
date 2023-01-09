@@ -495,6 +495,16 @@ class RetailCrmOrder
                 continue;
             }
 
+            if (empty($order['USER_ID'])) {
+                RCrmActions::eventLog(
+                    'RetailCrmOrder::uploadOrders',
+                    'Order::load',
+                    'The user does not exist in order: ' . $order['ID']
+                );
+
+                continue;
+            }
+
             self::createCustomerForOrder($api, $arCustomer, $arCustomerCorporate,$arParams, $order, $site);
 
             if (isset($order['RESPONSIBLE_ID']) && !empty($order['RESPONSIBLE_ID'])) {
@@ -583,6 +593,16 @@ class RetailCrmOrder
     ): void {
         $optionsContragentType = RetailcrmConfigProvider::getContragentTypes();
         $user = UserTable::getById($order['USER_ID'])->fetch();
+
+        if (!$user) {
+            RCrmActions::eventLog(
+                'RetailCrmOrder::createCustomerForOrder',
+                'UserTable::getById',
+                'Error find user: ' . $order['USER_ID'] . ' in order: ' . $order['ID']
+            );
+
+            return;
+        }
 
         if ('Y' === RetailcrmConfigProvider::getCorporateClientStatus()) {
             if (true === RetailCrmCorporateClient::isCorpTookExternalId((string) $user['ID'], $api)) {
