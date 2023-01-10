@@ -29,7 +29,6 @@ use Intaro\RetailCrm\Service\CustomerService;
 use Intaro\RetailCrm\Service\OrderLoyaltyDataService;
 use Intaro\RetailCrm\Service\Utils;
 use Logger;
-use RCrmActions;
 use RetailCrmEvent;
 use Throwable;
 
@@ -207,11 +206,6 @@ class EventsHandlers
             }
         } catch (Throwable $exception) {
             Logger::getInstance()->write(GetMessage('CAN_NOT_SAVE_ORDER') . $exception->getMessage(), 'uploadApiErrors');
-            RCrmActions::eventLog(
-                'intaro.retailcrm/event', 'Event',
-                'error catch '. $exception
-            );
-
         }
     }
 
