@@ -127,11 +127,18 @@ class EventsHandlers
      */
     public function OnSaleOrderSavedHandler(Event $event): void
     {
-        if (self::$disableSaleHandler === true) {
-            return;
-        }
-
         try {
+            $isBonusInput = (
+                !empty($_POST['bonus-input'])
+                && !empty($_POST['available-bonuses'])
+            );
+
+            $isDataForLoyaltyDiscount = isset($_POST['calculate-items-input'], $_POST['loyalty-discount-input']);
+
+            if (self::$disableSaleHandler === true || !($isDataForLoyaltyDiscount || $isBonusInput) ) {
+                return;
+            }
+
             /* @var LoyaltyService $loyaltyService */
             $loyaltyService = ServiceLocator::get(LoyaltyService::class);
 
@@ -144,17 +151,11 @@ class EventsHandlers
             $saveResult = RetailCrmEvent::orderSave($order);
             Utils::handleApiErrors($saveResult);
 
-            $isBonusInput = (
-                !empty($_POST['bonus-input'])
-                && !empty($_POST['available-bonuses'])
-            );
-
             $bonusFloat = (float) $_POST['bonus-input'];
 
             /** @var bool $isNewOrder */
             $isNewOrder                 = $event->getParameter('IS_NEW');
             $isLoyaltyOn                = ConfigProvider::getLoyaltyProgramStatus() === 'Y';
-            $isDataForLoyaltyDiscount   = isset($_POST['calculate-items-input'], $_POST['loyalty-discount-input']);
             $isBonusesIssetAndAvailable = $isBonusInput && (float) $_POST['available-bonuses'] >= $bonusFloat;
 
             /** @var array $calculateItemsInput */

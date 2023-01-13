@@ -1185,8 +1185,6 @@ class RetailCrmHistory
                         }
                     }
 
-                    EventsHandlers::$disableSaleHandler = true;
-
                     $newOrder->setField('PRICE', $orderSumm);
                     self::orderSave($newOrder);
 
@@ -1223,8 +1221,6 @@ class RetailCrmHistory
                         $orderLoyaltyDataService->saveLoyaltyInfoToHl($hlInfoBuilder->build($basketItemIds)->getResult());
                         self::orderSave($newOrder);
                     }
-
-                    EventsHandlers::$disableSaleHandler = false;
 
                     if (!empty($deleteBasketInfo)) {
                         $orderLoyaltyDataService->deleteLoyaltyInfoFromHl($deleteBasketInfo);
