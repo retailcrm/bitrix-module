@@ -151,58 +151,15 @@ class OrderLoyaltyDataService
         foreach ($props as $prop) {
             if ($prop->getField('CODE') === 'LP_DISCOUNT_INFO') {
                 $this->saveLpInfoToField($prop, $loyaltyDiscountInput);
+                break;
             }
+        }
 
+        foreach ($props as $prop) {
             if ($prop->getField('CODE') === 'LP_BONUS_INFO') {
                 $this->saveLpInfoToField($prop, $loyaltyBonus);
+                break;
             }
-        }
-    }
-
-    /**
-     * Обновляет данные о начисленных бонусах и скидках в полях заказа
-     *
-     * @param int $orderId
-     */
-    public function updateLoyaltyInfo(int $orderId): void
-    {
-        /** @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter $client */
-        $client = ClientFactory::createClientAdapter();
-        $response = $client->getOrder($orderId);
-
-        if ($response === null || !is_array($response->order->items)) {
-            return;
-        }
-
-        try {
-            $order = Order::load($orderId);
-
-            if ($order === null) {
-                return;
-            }
-
-            $loyaltyDiscount  = 0;
-
-            /** @var OrderProduct $item */
-            foreach ($response->order->items as $item) {
-                foreach ($item->discounts as $discount) {
-                    if (in_array($discount->type, ['personal', 'loyalty_level'])) {
-                        $loyaltyDiscount += $discount->amount;
-                    }
-                }
-            }
-
-            $this->saveBonusAndDiscToOrderProps(
-                $order->getPropertyCollection(),
-                $loyaltyDiscount ?? 0.0,
-                $response->order->bonusesChargeTotal
-            );
-
-            EventsHandlers::$disableSaleHandler = true;
-            $order->save();
-            EventsHandlers::$disableSaleHandler = false;
-        } catch (Exception $exception) {
-            $this->logger->write($exception->getMessage(), Constants::LOYALTY_ERROR);
         }
     }
 

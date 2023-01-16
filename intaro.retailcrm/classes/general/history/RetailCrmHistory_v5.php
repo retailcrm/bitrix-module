@@ -939,6 +939,7 @@ class RetailCrmHistory
                     $editBasketInfo = [];
                     $deleteBasketInfo = [];
                     $bonusesChargeTotal = null;
+                    $loyaltyDiscount = null;
 
                     if (isset($order['items'])) {
                         $itemUpdate = true;
@@ -1083,11 +1084,16 @@ class RetailCrmHistory
                             }
 
                             $manualProductDiscount = 0;
+
                             $bonusesChargeProduct = $product['bonusesCharge'] ?? null;
 
                             foreach ($product['discounts'] as $productDiscount) {
                                 if ('manual_product' === $productDiscount['type']) {
                                     $manualProductDiscount = $productDiscount['amount'];
+                                }
+
+                                if ('loyalty_level' === $productDiscount['type']) {
+                                    $loyaltyDiscount += $productDiscount['amount'];
                                 }
                             }
 
@@ -1202,11 +1208,18 @@ class RetailCrmHistory
                             }
                         }
 
+                        $orderLoyaltyDataService->saveBonusAndDiscToOrderProps(
+                            $newOrder->getPropertyCollection(),
+                            $loyaltyDiscount,
+                            $bonusesChargeTotal
+                        );
+
                         $hlInfoBuilder = new LoyaltyDataBuilder();
                         $hlInfoBuilder->setOrder($newOrder);
                         $hlInfoBuilder->setCalculateItemsInput($calculateItemsInput);
                         $hlInfoBuilder->setBonusCountTotal($bonusesChargeTotal);
                         $orderLoyaltyDataService->saveLoyaltyInfoToHl($hlInfoBuilder->build($basketItemIds)->getResult());
+                        self::orderSave($newOrder);
                     }
 
                     if (!empty($deleteBasketInfo)) {

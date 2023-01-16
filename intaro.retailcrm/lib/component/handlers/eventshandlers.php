@@ -121,39 +121,24 @@ class EventsHandlers
     }
 
     /**
-     * Обновляет информацию о Программе лояльности в административной панели.
-     * При каждом открытии заказа делает запрос к CRM и получает актуальную информацию.
-     *
-     * @param $items
-     */
-    public function OnAdminContextMenuShowHandler(&$items)
-    {
-        global $APPLICATION;
-
-        if (
-            $_SERVER['REQUEST_METHOD'] === 'GET'
-            && $_REQUEST['ID'] > 0
-            && $APPLICATION->GetCurPage() === '/bitrix/admin/sale_order_view.php'
-        ) {
-            /* @var OrderLoyaltyDataService $service */
-            $service = ServiceLocator::get(OrderLoyaltyDataService::class);
-
-            $service->updateLoyaltyInfo($_REQUEST['ID']);
-        }
-    }
-
-    /**
      * Обработчик события, вызываемого ПОСЛЕ сохранения заказа (OnSaleOrderSaved)
      *
      * @param \Bitrix\Main\Event $event
      */
     public function OnSaleOrderSavedHandler(Event $event): void
     {
-        if (self::$disableSaleHandler === true) {
-            return;
-        }
-
         try {
+            $isBonusInput = (
+                !empty($_POST['bonus-input'])
+                && !empty($_POST['available-bonuses'])
+            );
+
+            $isDataForLoyaltyDiscount = isset($_POST['calculate-items-input'], $_POST['loyalty-discount-input']);
+
+            if (self::$disableSaleHandler === true || !($isDataForLoyaltyDiscount || $isBonusInput) ) {
+                return;
+            }
+
             /* @var LoyaltyService $loyaltyService */
             $loyaltyService = ServiceLocator::get(LoyaltyService::class);
 
@@ -164,20 +149,13 @@ class EventsHandlers
 
             // TODO: Replace old call with a new one.
             $saveResult = RetailCrmEvent::orderSave($order);
-
             Utils::handleApiErrors($saveResult);
-
-            $isBonusInput = (
-                !empty($_POST['bonus-input'])
-                && !empty($_POST['available-bonuses'])
-            );
 
             $bonusFloat = (float) $_POST['bonus-input'];
 
             /** @var bool $isNewOrder */
             $isNewOrder                 = $event->getParameter('IS_NEW');
             $isLoyaltyOn                = ConfigProvider::getLoyaltyProgramStatus() === 'Y';
-            $isDataForLoyaltyDiscount   = isset($_POST['calculate-items-input'], $_POST['loyalty-discount-input']);
             $isBonusesIssetAndAvailable = $isBonusInput && (float) $_POST['available-bonuses'] >= $bonusFloat;
 
             /** @var array $calculateItemsInput */
@@ -220,8 +198,10 @@ class EventsHandlers
                     $discountInput,
                     $loyaltyBonusMsg
                 );
+
                 $hlInfoBuilder->setCalculateItemsInput($calculateItemsInput);
                 $orderLoyaltyDataService->saveLoyaltyInfoToHl($hlInfoBuilder->build()->getResult());
+                $order->save();
 
                 self::$disableSaleHandler = false;
             }
