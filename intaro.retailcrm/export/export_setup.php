@@ -236,28 +236,30 @@ if ($STEP === 1) {
                                                 }
 
                                                 $productHlTableName = '';
-
                                                 foreach ($arIBlock['PROPERTIES_PRODUCT'] as $prop) { ?>
-                                                    <option value="<?=$prop['CODE']?>"
-                                                        <?php
-                                                        echo $settingsService->getOptionClass($prop, true);
-
-                                                        $productSelected = $settingsService->isOptionSelected(
-                                                            $prop,
-                                                            $arIBlock['OLD_PROPERTY_PRODUCT_SELECT'],
-                                                            $propertyKey
-                                                        );
-
-                                                        $productHlTableName
-                                                            = $settingsService->getHlTableName($prop)
-                                                            ?? $productHlTableName;
-
-                                                        echo $productSelected ? ' selected' : '';
-                                                        ?>
-                                                    >
-                                                        <?=$prop['NAME']?>
-                                                    </option>
-                                                    <?php
+													<?php
+													if ($prop['MULTIPLE'] !== 'Y') { ?>
+														<option value="<?=$prop['CODE']?>"
+															<?php
+															echo $settingsService->getOptionClass($prop, true);
+		
+															$productSelected = $settingsService->isOptionSelected(
+																$prop,
+																$arIBlock['OLD_PROPERTY_PRODUCT_SELECT'],
+																$propertyKey
+															);
+		
+															$productHlTableName
+																= $settingsService->getHlTableName($prop)
+																?? $productHlTableName;
+		
+															echo $productSelected ? ' selected' : '';
+															?>
+														>
+															<?=$prop['NAME']?>
+														</option>
+														<?php
+													}
                                                 }
 
                                                 if ($settingsService->isOptionHasPreset($propertyKey)) {
@@ -372,29 +374,30 @@ if ($STEP === 1) {
                                                     }
 
                                                     $skuHlTableName = '';
-
-                                                    foreach ($arIBlock['PROPERTIES_SKU'] as $prop) { ?>
-                                                        <option value="<?=$prop['CODE']?>"
-                                                            <?php
-                                                            echo $settingsService->getOptionClass($prop, false);
-                                                            if (!$productSelected) {
-                                                                $isSelected = $settingsService->isOptionSelected(
-                                                                    $prop,
-                                                                    $arIBlock['OLD_PROPERTY_SKU_SELECT'],
-                                                                    $propertyKey
-                                                                );
-
-                                                                $skuHlTableName
-                                                                    = $settingsService->getHlTableName($prop)
-                                                                    ?? $skuHlTableName;
-
-                                                                echo $isSelected ? ' selected' : '';
-                                                            }
-                                                            ?>
-                                                        >
-                                                            <?=$prop['NAME']?>
-                                                        </option>
-                                                        <?php
+                                                    foreach ($arIBlock['PROPERTIES_SKU'] as $prop) {
+														if ($prop['MULTIPLE'] !== 'Y') { ?>
+															<option value="<?=$prop['CODE']?>"
+																<?php
+																echo $settingsService->getOptionClass($prop, false);
+																if (!$productSelected) {
+																	$isSelected = $settingsService->isOptionSelected(
+																		$prop,
+																		$arIBlock['OLD_PROPERTY_SKU_SELECT'],
+																		$propertyKey
+																	);
+	
+																	$skuHlTableName
+																		= $settingsService->getHlTableName($prop)
+																		?? $skuHlTableName;
+	
+																	echo $isSelected ? ' selected' : '';
+																}
+																?>
+															>
+																<?=$prop['NAME']?>
+															</option>
+                                                        	<?php
+														}
                                                     }
 
                                                     if ($settingsService->isOptionHasPreset($propertyKey)) {
