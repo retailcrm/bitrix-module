@@ -127,7 +127,18 @@ class EventsHandlers
      */
     public function OnSaleOrderSavedHandler(Event $event): void
     {
+        if (self::$disableSaleHandler === true) {
+            return;
+        }
+
         try {
+            /** @var Order $order */
+            $order = $event->getParameter('ENTITY');
+
+            // TODO: Replace old call with a new one.
+            $saveResult = RetailCrmEvent::orderSave($order);
+            Utils::handleApiErrors($saveResult);
+
             $isBonusInput = (
                 !empty($_POST['bonus-input'])
                 && !empty($_POST['available-bonuses'])
@@ -135,7 +146,7 @@ class EventsHandlers
 
             $isDataForLoyaltyDiscount = isset($_POST['calculate-items-input'], $_POST['loyalty-discount-input']);
 
-            if (self::$disableSaleHandler === true || !($isDataForLoyaltyDiscount || $isBonusInput) ) {
+            if (!($isDataForLoyaltyDiscount || $isBonusInput) ) {
                 return;
             }
 
@@ -144,12 +155,6 @@ class EventsHandlers
 
             /* @var OrderLoyaltyDataService $orderLoyaltyDataService */
             $orderLoyaltyDataService = ServiceLocator::get(OrderLoyaltyDataService::class);
-            /** @var Order $order */
-            $order = $event->getParameter('ENTITY');
-
-            // TODO: Replace old call with a new one.
-            $saveResult = RetailCrmEvent::orderSave($order);
-            Utils::handleApiErrors($saveResult);
 
             $bonusFloat = (float) $_POST['bonus-input'];
 
