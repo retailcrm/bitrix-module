@@ -1734,7 +1734,7 @@ class RetailCrmHistory
         $basket = $order->getBasket();
 
         foreach ($shipmentCollection as $shipment) {
-            if (!$shipment->isSystem()) {
+            if (!$shipment->isSystem() && !$shipment->isShipped()) {
                 $reserved = false;
 
                 if ($shipment->needReservation()) {

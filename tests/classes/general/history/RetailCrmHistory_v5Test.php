@@ -1,5 +1,6 @@
 <?php
 
+use Bitrix\Sale\Order;
 /**
  * Class RetailCrmHistory_v5Test
  */
@@ -48,6 +49,43 @@ class RetailCrmHistory_v5Test extends \BitrixTestCase
                 $this->assertNotEmpty($array["PASSWORD"]);
             }
         }
+    }
+
+    public function testShipmentItemReset(): void
+    {
+        $shipmentCollection = $this->createMock(\Bitrix\Sale\ShipmentCollection::class);
+        $shipmentCollection->method('resetCollection')
+            ->willReturn(true);
+        $shipmentCollection->method('tryUnreserve')
+            ->willReturn(true);
+        $shipmentCollection->method('tryReserve')
+            ->willReturn(true);
+
+        $shipment = $this->createMock(\Bitrix\Sale\Shipment::class);
+        $shipment->method('getShipmentItemCollection')
+            ->willReturn($shipmentCollection);
+        $shipment->method('needReservation')
+            ->willReturn(true);
+        $shipment->method('isShipped')
+            ->willReturn(true);
+        $shipment->method('isSystem')
+            ->willReturn(false);
+
+        $shipmentCollection->method('getIterator')
+            ->willReturn(new \ArrayObject([$shipment]));
+
+        $order = $this->createMock(\Bitrix\Sale\Order::class);
+        $order->method('getShipmentCollection')
+            ->willReturn($shipmentCollection);
+        $order->method('getBasket')
+            ->willReturn(true);
+
+        $this->assertEquals(null, RetailCrmHistory::shipmentItemReset($order));
+
+        $shipment->method('isShipped')
+            ->willReturn(false);
+
+        $this->assertEquals(null, RetailCrmHistory::shipmentItemReset($order));
     }
 
     private function getCustomers(): array
