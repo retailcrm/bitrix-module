@@ -1,6 +1,7 @@
 version: '3'
 services:
   bitrix:
+    container_name: app_test
     build: ./.docker
     env_file:
       - .env

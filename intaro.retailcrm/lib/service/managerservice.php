@@ -23,7 +23,7 @@ use RetailcrmConstants;
 class ManagerService
 {
     protected static $instance;
-    
+
     /**
      * @var \Intaro\RetailCrm\Repository\ManagerRepository
      */
@@ -59,17 +59,17 @@ class ManagerService
         if (self::$instance === null) {
             self::$instance = new self();
         }
-        
+
         return self::$instance;
     }
-    
+
     /**
      * Синхронизирует пользователей CRM и Битрикс
      */
     public function synchronizeManagers(): void
     {
         $currentPage = 1;
-    
+
         RetailcrmConfigProvider::setUsersMap([]);
 
         do {
@@ -135,7 +135,7 @@ class ManagerService
      */
     private function getCrmUsersPage(int $pageNumber): array
     {
-        $response = $this->client->usersList([], $pageNumber);
+        $response = $this->client->usersList(['active' => 1], $pageNumber);
 
         if (!$response->isSuccessful()) {
             return [];
