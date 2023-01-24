@@ -170,13 +170,14 @@ class RetailCrmCorporateClient
      *
      * @return bool
      */
-    public static function isCorpTookExternalId(string $bitrixUserId, ApiClient $api): bool
+    public static function isCorpTookExternalId(string $bitrixUserId, ApiClient $api, $site = null): bool
     {
         $response = RCrmActions::apiMethod(
             $api,
             'customersCorporateGet',
             __METHOD__,
-            $bitrixUserId
+            $bitrixUserId,
+            $site
         );
 
         if (false === $response) {
@@ -194,7 +195,7 @@ class RetailCrmCorporateClient
      * @param string               $externalId
      * @param \RetailCrm\ApiClient $api
      */
-    public static function setPrefixForExternalId(string $externalId, ApiClient $api)
+    public static function setPrefixForExternalId(string $externalId, ApiClient $api, $site = null)
     {
         $response = RCrmActions::apiMethod(
             $api,
@@ -203,7 +204,8 @@ class RetailCrmCorporateClient
             [
                 'urlId' => $externalId,
                 'externalId' => self::CORP_PREFIX . $externalId
-            ]
+            ],
+            $site
         );
 
         if (false === $response) {

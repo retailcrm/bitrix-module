@@ -605,8 +605,8 @@ class RetailCrmOrder
         }
 
         if ('Y' === RetailcrmConfigProvider::getCorporateClientStatus()) {
-            if (true === RetailCrmCorporateClient::isCorpTookExternalId((string) $user['ID'], $api)) {
-                RetailCrmCorporateClient::setPrefixForExternalId((string) $user['ID'], $api);
+            if (true === RetailCrmCorporateClient::isCorpTookExternalId((string) $user['ID'], $api, $site)) {
+                RetailCrmCorporateClient::setPrefixForExternalId((string) $user['ID'], $api, $site);
             }
         }
 
