@@ -44,3 +44,8 @@ endif
 cleanup:
 	@rm -rf $(ROOT_DIR)/release/$(CURRENT_VERSION)
 	@rm $(ROOT_DIR)/release/$(CURRENT_VERSION).tar.gz
+
+run_local_tests:
+	docker-compose up -d --build
+	docker exec app_test make install_bitrix deps test
+	docker-compose down
