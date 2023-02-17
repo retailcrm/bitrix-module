@@ -211,7 +211,6 @@ class OrderLoyaltyDataService
                 $basketItem->setField('DISCOUNT_PRICE', $item->initialPrice - $item->discountTotal);
                 $basketItem->setField('PRICE', $item->initialPrice - $item->discountTotal);
             }
-
             EventsHandlers::$disableSaleHandler = true;
             $order->save();
             EventsHandlers::$disableSaleHandler = false;

@@ -223,12 +223,12 @@ class RetailCrmOrder
                 ) {
                     $externalIds[$keyBasketId] = [
                         'code' => 'bitrixBasketId',
-                        'value' => $product['ID'] . "_" . $externalId,
+                        'value' => $product['ID'] . "_" . $product['PRODUCT_ID'],
                     ];
                 } else {
                     $externalIds[] = [
                         'code' => 'bitrixBasketId',
-                        'value' => $product['ID'] . "_" . $externalId,
+                        'value' => $product['ID'] . "_" . $product['PRODUCT_ID'],
                     ];
                 }
             } else { //create
@@ -239,7 +239,7 @@ class RetailCrmOrder
                     ],
                     [
                         'code' => 'bitrixBasketId',
-                        'value' => $product['ID'] . "_" . $externalId,
+                        'value' => $product['ID'] . "_" . $product['PRODUCT_ID'],
                     ],
                 ];
             }

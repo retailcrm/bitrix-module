@@ -1,5 +1,7 @@
 <?php
 
+use Bitrix\Sale\Internals\Fields;
+
 /**
  * Class RetailCrmOrder_v5Test
  */
@@ -38,7 +40,7 @@ class RetailCrmOrder_v5Test extends BitrixTestCase {
             $methodApi
         ));
 
-        $arFields['BASKET'][] = [
+        $arFields['BASKET'][] = new Fields([
             'ID' => 10,
             'PRODUCT_ID' => 1,
             'QUANTITY' => 1,
@@ -47,7 +49,7 @@ class RetailCrmOrder_v5Test extends BitrixTestCase {
             'DISCOUNT_PRICE' => 0,
             'BASE_PRICE' => 1000,
             'PRICE' => 1000
-        ];
+        ]);
 
         $expected['items'][] = [
             'externalIds' => [
@@ -60,16 +62,16 @@ class RetailCrmOrder_v5Test extends BitrixTestCase {
                     'value' => '10_1',
                 ],
             ],
-            'quantity' => 1,
+            'quantity' => 1.0,
             'offer' =>
             [
                 'externalId' => 1,
                 'xmlId' => 'xml_1'
             ],
             'productName' => 'Test',
-            'discountManualPercent' => 0,
-            'discountManualAmount' => 0,
-            'initialPrice' => 1000
+            'discountManualPercent' => 0.0,
+            'discountManualAmount' => 0.0,
+            'initialPrice' => 1000.0
         ];
 
         self::assertEquals($expected, RetailCrmOrder::orderSend(
