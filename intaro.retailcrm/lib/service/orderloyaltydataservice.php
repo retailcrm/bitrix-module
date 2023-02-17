@@ -199,7 +199,9 @@ class OrderLoyaltyDataService
                     array_column($itemArray['externalIds'], 'code'),
                     true
                 );
-                $basketItem = $basket->getItemById($item->externalIds[$basketIdKey]->value);
+
+				$basketItemId = explode('_', $item->externalIds[$basketIdKey]->value, 2);
+                $basketItem = $basket->getItemById($basketItemId[0]);
 
                 if ($basketItem === null) {
                     continue;

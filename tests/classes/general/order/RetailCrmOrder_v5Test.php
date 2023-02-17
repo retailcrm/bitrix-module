@@ -37,6 +37,49 @@ class RetailCrmOrder_v5Test extends BitrixTestCase {
             null,
             $methodApi
         ));
+
+        $arFields['BASKET'][] = [
+            'ID' => 10,
+            'PRODUCT_ID' => 1,
+            'QUANTITY' => 1,
+            'PRODUCT_XML_ID' => 'xml_1',
+            'NAME' => 'Test',
+            'DISCOUNT_PRICE' => 0,
+            'BASE_PRICE' => 1000,
+            'PRICE' => 1000
+        ];
+
+        $expected['items'][] = [
+            'externalIds' => [
+                [
+                    'code' => 'bitrix',
+                    'value' => '0_1',
+                ],
+                [
+                    'code' => 'bitrixBasketId',
+                    'value' => '10_1',
+                ],
+            ],
+            'quantity' => 1,
+            'offer' =>
+            [
+                'externalId' => 1,
+                'xmlId' => 'xml_1'
+            ],
+            'productName' => 'Test',
+            'discountManualPercent' => 0,
+            'discountManualAmount' => 0,
+            'initialPrice' => 1000
+        ];
+
+        self::assertEquals($expected, RetailCrmOrder::orderSend(
+            $arFields,
+            new stdClass(),
+            $arParams,
+            false,
+            null,
+            $methodApi
+        ));
     }
 
     /**
