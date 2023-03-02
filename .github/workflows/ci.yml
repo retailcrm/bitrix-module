@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        php-version: ['7.3']
+        php-version: ['7.4', '8.0']
         bitrix-edition: ['small_business_encode', 'business_encode']
     services:
       mysql:

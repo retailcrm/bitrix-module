@@ -138,7 +138,7 @@ class CustomerBuilder extends AbstractBuilder implements RetailcrmBuilderInterfa
 
         if (isset($this->dataCrm['phones'])) {
             foreach ($this->dataCrm['phones'] as $phone) {
-                if (isset($phone['old_number']) && in_array($phone['old_number'], $this->user)) {
+                if (is_array($this->user) && isset($phone['old_number']) && in_array($phone['old_number'], $this->user)) {
                     $key = array_search($phone['old_number'], $this->user);
 
                     if (isset($phone['number'])) {

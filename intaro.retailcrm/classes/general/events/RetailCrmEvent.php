@@ -40,7 +40,7 @@ class RetailCrmEvent
      * @return bool
      * @throws InvalidArgumentException
      */
-    public function OnAfterUserUpdate($arFields)
+    public static function OnAfterUserUpdate($arFields)
     {
         if (isset($GLOBALS['RETAIL_CRM_HISTORY']) && $GLOBALS['RETAIL_CRM_HISTORY']) {
             return false;
@@ -67,7 +67,7 @@ class RetailCrmEvent
      * @param mixed $ID       - Order id
      * @param mixed $arFields - Order arFields
      */
-    public function onUpdateOrder($ID, $arFields)
+    public static function onUpdateOrder($ID, $arFields)
     {
         if (isset($GLOBALS['RETAIL_CRM_HISTORY']) && $GLOBALS['RETAIL_CRM_HISTORY']) {
             $GLOBALS['RETAILCRM_ORDER_OLD_EVENT'] = false;
@@ -91,7 +91,7 @@ class RetailCrmEvent
      *
      * @param object $event - Order object
      */
-    public function orderDelete($event)
+    public static function orderDelete($event)
     {
         $GLOBALS['RETAILCRM_ORDER_DELETE'] = true;
 
@@ -426,7 +426,7 @@ class RetailCrmEvent
      * @throws InvalidArgumentException
      *
      */
-    public function paymentSave(Payment $event)
+    public static function paymentSave(Payment $event)
     {
         $apiVersion = COption::GetOptionString(self::$MODULE_ID, 'api_version', 0);
 
@@ -472,7 +472,9 @@ class RetailCrmEvent
             $payments = $orderCrm['order']['payments'];
         }
 
-        if ($payments) {
+        $paymentsExternalIds = [];
+
+        if (!empty($payments)) {
             foreach ($payments as $payment) {
                 if (isset($payment['externalId'])) {
                     if (RCrmActions::isNewExternalId($payment['externalId'])) {
@@ -524,9 +526,9 @@ class RetailCrmEvent
 
         $arPaymentExtId = RCrmActions::generatePaymentExternalId($arPayment['ID']);
 
-        if (array_key_exists($arPaymentExtId, $paymentsExternalIds)) {
+        if (!empty($paymentsExternalIds) && array_key_exists($arPaymentExtId, $paymentsExternalIds)) {
             $paymentData = $paymentsExternalIds[$arPaymentExtId];
-        } elseif (array_key_exists($arPayment['ID'], $paymentsExternalIds)) {
+        } elseif (!empty($paymentsExternalIds) && array_key_exists($arPayment['ID'], $paymentsExternalIds)) {
             $paymentData = $paymentsExternalIds[$arPayment['ID']];
         } else {
             $paymentData = [];
@@ -564,7 +566,7 @@ class RetailCrmEvent
      *
      * @throws InvalidArgumentException
      */
-    public function paymentDelete(Payment $event): void
+    public static function paymentDelete(Payment $event): void
     {
         $apiVersion = COption::GetOptionString(self::$MODULE_ID, 'api_version', 0);
 

@@ -14,7 +14,7 @@ class CustomerBuilderTest extends \PHPUnit\Framework\TestCase
     /**@var array $dataCrm */
     protected $dataCrm;
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
     }

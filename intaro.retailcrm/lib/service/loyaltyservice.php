@@ -22,6 +22,7 @@ use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Model\Api\LoyaltyAccount;
+use Intaro\RetailCrm\Model\Api\LoyaltyAccountApiFilterType;
 use Intaro\RetailCrm\Model\Api\OrderProduct;
 use Intaro\RetailCrm\Model\Api\PriceType;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountRequest;
@@ -176,6 +177,7 @@ class LoyaltyService
     public function getLoyaltyAccounts(int $idInLoyalty): ?LoyaltyAccount
     {
         $request = new LoyaltyAccountRequest();
+        $request->filter = new LoyaltyAccountApiFilterType();
         $request->filter->id = $idInLoyalty;
         $request->filter->sites = $this->site;
 

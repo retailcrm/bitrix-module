@@ -19,6 +19,7 @@ use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
 use Intaro\RetailCrm\Component\Json\Serializer;
 use Intaro\RetailCrm\Component\ServiceLocator;
+use Intaro\RetailCrm\Model\Api\IdentifiersPair;
 use Intaro\RetailCrm\Model\Api\LoyaltyAccount;
 use Intaro\RetailCrm\Model\Api\LoyaltyAccountApiFilterType;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountRequest;
@@ -118,8 +119,11 @@ class LoyaltyAccountService
         $createRequest->loyaltyAccount = new SerializedCreateLoyaltyAccount();
         $createRequest->loyaltyAccount->phoneNumber = $phone ?? '';
         $createRequest->loyaltyAccount->cardNumber = $card ?? '';
-        $createRequest->loyaltyAccount->customer->externalId = $externalId;
         $createRequest->loyaltyAccount->customFields = [];
+
+        $createRequest->loyaltyAccount->customer = new IdentifiersPair();
+        $createRequest->loyaltyAccount->customer->externalId = $externalId;
+
 
         $createResponse = $client->createLoyaltyAccount($createRequest);
 

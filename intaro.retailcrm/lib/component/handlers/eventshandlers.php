@@ -60,7 +60,7 @@ class EventsHandlers
      * @param array                    $arParams
      * @param array                    $arResult
      */
-    public function OnSaleComponentOrderResultPreparedHandler(
+    public static function OnSaleComponentOrderResultPreparedHandler(
         Order $order,
         array $arUserResult,
         HttpRequest $request,
@@ -125,7 +125,7 @@ class EventsHandlers
      *
      * @param \Bitrix\Main\Event $event
      */
-    public function OnSaleOrderSavedHandler(Event $event): void
+    public static function OnSaleOrderSavedHandler(Event $event): void
     {
         if (self::$disableSaleHandler === true) {
             return;
@@ -222,7 +222,7 @@ class EventsHandlers
      * @return mixed
      * @throws \ReflectionException
      */
-    public function OnAfterUserRegisterHandler(array $arFields): void
+    public static function OnAfterUserRegisterHandler(array $arFields): void
     {
         if (isset($arFields['USER_ID']) && $arFields['USER_ID'] > 0) {
             $user = UserRepository::getById($arFields['USER_ID']);

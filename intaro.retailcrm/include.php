@@ -61,9 +61,7 @@ if (empty(ConfigProvider::getSitesAvailable())) {
     try {
         $credentials = $client->getCredentials();
 
-        ConfigProvider::setSitesAvailable(
-            count($credentials->sitesAvailable) > 0 ? $credentials->sitesAvailable[0] : ''
-        );
+        ConfigProvider::setSitesAvailable($credentials->sitesAvailable[0] ?? '');
     } catch (ArgumentOutOfRangeException | CurlException $exception) {
         Logger::getInstance()->write($exception->getMessage());
     }

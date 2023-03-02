@@ -59,7 +59,6 @@ class RetailCrmOrder
 
         $dimensionsSetting = RetailcrmConfigProvider::getOrderDimensions();
         $currency = RetailcrmConfigProvider::getCurrencyOrDefault();
-        $optionCorpClient = RetailcrmConfigProvider::getCorporateClientStatus();
 
         $order = [
             'number' => $arOrder['NUMBER'],
@@ -105,6 +104,7 @@ class RetailCrmOrder
         //fields
         foreach ($arOrder['PROPS']['properties'] as $prop) {
             if (!empty($arParams['optionsLegalDetails'])
+                && is_array($arParams['optionsLegalDetails'][$arOrder['PERSON_TYPE_ID']])
                 && $search = array_search($prop['CODE'], $arParams['optionsLegalDetails'][$arOrder['PERSON_TYPE_ID']])
             ) {
                 $order['contragent'][$search] = $prop['VALUE'][0];//legal order data
@@ -112,7 +112,8 @@ class RetailCrmOrder
                 && $search = array_search($prop['CODE'], $arParams['optionsCustomFields'][$arOrder['PERSON_TYPE_ID']])
             ) {
                 $order['customFields'][$search] = $prop['VALUE'][0];//custom properties
-            } elseif ($search = array_search($prop['CODE'], $arParams['optionsOrderProps'][$arOrder['PERSON_TYPE_ID']])) {//other
+            } elseif (is_array($arParams['optionsOrderProps'][$arOrder['PERSON_TYPE_ID']])
+                && $search = array_search($prop['CODE'], $arParams['optionsOrderProps'][$arOrder['PERSON_TYPE_ID']])) {//other
                 if (in_array($search, ['fio', 'phone', 'email'])) {//fio, phone, email
                     if ($search === 'fio') {
                         $order = array_merge($order, RCrmActions::explodeFio($prop['VALUE'][0]));//add fio fields
@@ -188,6 +189,7 @@ class RetailCrmOrder
         }
 
         //basket
+
         foreach ($arOrder['BASKET'] as $position => $product) {
             $itemId = null;
             $externalId = $position . '_' . $product['PRODUCT_ID'];
@@ -196,9 +198,15 @@ class RetailCrmOrder
                 $externalIds = $orderItems[$externalId]['externalIds'];
                 $itemId = $orderItems[$externalId]['id'];
 
-                $key = array_search('bitrix', array_column($externalIds, 'code'));
+                $key = null;
+                $keyBasketId = null;
 
-                if ($externalIds[$key]['code'] === 'bitrix') {
+                if (is_array($externalIds)) {
+                    $key = array_search('bitrix', array_column($externalIds, 'code'));
+                    $keyBasketId = array_search('bitrixBasketId', array_column($externalIds, 'code'));
+                }
+
+                if (isset($externalIds[$key]['code']) && $externalIds[$key]['code'] === 'bitrix') {
                     $externalIds[$key] = [
                         'code' => 'bitrix',
                         'value' => $externalId,
@@ -208,11 +216,11 @@ class RetailCrmOrder
                         'code' => 'bitrix',
                         'value' => $externalId,
                     ];
-                  }
+                }
 
-                $keyBasketId = array_search('bitrixBasketId', array_column($externalIds, 'code'));
-
-                if ($externalIds[$keyBasketId]['code'] === 'bitrixBasketId') {
+                if (isset($externalIds[$keyBasketId]['code'])
+                    && $externalIds[$keyBasketId]['code'] === 'bitrixBasketId'
+                ) {
                     $externalIds[$keyBasketId] = [
                         'code' => 'bitrixBasketId',
                         'value' => $product['ID'],
@@ -222,7 +230,7 @@ class RetailCrmOrder
                         'code' => 'bitrixBasketId',
                         'value' => $product['ID'],
                     ];
-                  }
+                }
             } else { //create
                 $externalIds = [
                     [

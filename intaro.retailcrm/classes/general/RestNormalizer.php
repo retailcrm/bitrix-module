@@ -99,7 +99,7 @@ class RestNormalizer
                 $formatted[ $code ] = $this->formatting($value, true);
             }
 
-            if ($formatted[ $code ] === null || $formatted[ $code ] === '' || count($formatted[ $code ]) < 1) {
+            if (empty($formatted[$code])) {
                 if ($this->clear === true) {
                     unset($formatted[ $code ]);
                 }

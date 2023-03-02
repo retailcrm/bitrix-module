@@ -236,7 +236,7 @@ class CustomerBuilder implements BuilderInterface
 
     private function handleFields(): void
     {
-        if (count($this->customFields) === 0) {
+        if (is_array($this->customFields) && count($this->customFields) === 0) {
             return;
         }
 

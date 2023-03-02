@@ -5,7 +5,7 @@ use Bitrix\Main\EventManager;
 
 class EventsHandlersTest extends \BitrixTestCase
 {
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
 
@@ -27,8 +27,7 @@ class EventsHandlersTest extends \BitrixTestCase
 
         $spy = \Mockery::spy('overload:' .RetailCrmEvent::class);
 
-        $onSaleOrderSaved = new EventsHandlers();
-        $onSaleOrderSaved->OnSaleOrderSavedHandler($event);
+        EventsHandlers::OnSaleOrderSavedHandler($event);
 
         //Проверяет, был ли вызван метод класса. Если метод не вызывался, выдает ошибку теста
         //Если метод вызывался, ошибку не выдает, но phpunit выдает сообщение об отсутствии тестов
@@ -50,9 +49,9 @@ class EventsHandlersTest extends \BitrixTestCase
 
         $spy = \Mockery::spy('overload:' .RetailCrmEvent::class);
 
-        $onSaleOrderSaved = new EventsHandlers();
-        $onSaleOrderSaved::$disableSaleHandler = true;
-        $onSaleOrderSaved->OnSaleOrderSavedHandler($event);
+
+        EventsHandlers::$disableSaleHandler = true;
+        EventsHandlers::OnSaleOrderSavedHandler($event);
 
         $spy->shouldNotHaveReceived('orderSave');
         self::assertTrue(true);

@@ -46,12 +46,12 @@ class Register extends Controller
         return [
             'saveUserLpFields' => [
                 '-prefilters' => [
-                    new Authentication,
+                    Authentication::class,
                 ],
             ],
             'resetUserLpFields' => [
                 '-prefilters' => [
-                    new Authentication,
+                    Authentication::class,
                 ],
             ],
         ];
