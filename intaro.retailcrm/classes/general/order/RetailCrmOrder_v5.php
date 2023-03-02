@@ -543,12 +543,15 @@ class RetailCrmOrder
                 $cachedCorporateIds = [];
 
                 foreach ($ordersPack as $lid => $lidOrdersList) {
+                    $site = self::getCrmShopCodeByLid($lid, $arParams['optionsSitesList']);
+
                     foreach ($lidOrdersList as $key => $orderData) {
                         $lidOrdersList[$key] = self::addCorporateCustomerToOrder(
                             $orderData,
                             $api,
                             $resCustomersCorporate,
-                            $cachedCorporateIds
+                            $cachedCorporateIds,
+                            $site
                         );
                     }
 
@@ -605,8 +608,8 @@ class RetailCrmOrder
         }
 
         if ('Y' === RetailcrmConfigProvider::getCorporateClientStatus()) {
-            if (true === RetailCrmCorporateClient::isCorpTookExternalId((string) $user['ID'], $api)) {
-                RetailCrmCorporateClient::setPrefixForExternalId((string) $user['ID'], $api);
+            if (true === RetailCrmCorporateClient::isCorpTookExternalId((string) $user['ID'], $api, $site)) {
+                RetailCrmCorporateClient::setPrefixForExternalId((string) $user['ID'], $api, $site);
             }
         }
 
@@ -665,7 +668,8 @@ class RetailCrmOrder
         array $orderData,
         ApiClient $api,
         array $resCustomersCorporate,
-        array &$cachedCorporateIds
+        array &$cachedCorporateIds,
+        $site = null
     ): array {
         $customerLegalName = $orderData['contragent']['legalName'];
 
@@ -700,7 +704,8 @@ class RetailCrmOrder
                     );
                 } elseif (array_key_exists($customerLegalName, $resCustomersCorporate)) {
                     $createResponse = $api->customersCorporateCreate(
-                            $resCustomersCorporate[$customerLegalName]
+                            $resCustomersCorporate[$customerLegalName],
+                            $site
                         );
 
                     if ($createResponse && $createResponse->isSuccessful()) {

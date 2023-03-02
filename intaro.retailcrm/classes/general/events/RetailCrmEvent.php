@@ -170,9 +170,9 @@ class RetailCrmEvent
 
         if (
             ('Y' === $optionCorpClient)
-            && true === RetailCrmCorporateClient::isCorpTookExternalId((string)$arOrder['USER_ID'], $api)
+            && true === RetailCrmCorporateClient::isCorpTookExternalId((string)$arOrder['USER_ID'], $api, $site)
         ) {
-            RetailCrmCorporateClient::setPrefixForExternalId((string) $arOrder['USER_ID'], $api);
+            RetailCrmCorporateClient::setPrefixForExternalId((string) $arOrder['USER_ID'], $api, $site);
         }
 
         //TODO эта управляющая конструкция по функционалу дублирует RetailCrmOrder::createCustomerForOrder.
