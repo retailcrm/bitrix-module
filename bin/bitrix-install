@@ -18,14 +18,14 @@ if (!file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/main/install/wizar
 
 ob_start();
 require_once $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/main/install/wizard/wizard.php';
+ob_clean();
+
 require_once __DIR__ . '/../helpers/installation/ExtendedCreateModulesStep.php';
 require_once __DIR__ . '/../helpers/installation/Installer.php';
 
 $installer = new Installer();
 
 $step = $argv[1];
-
-ob_clean();
 
 switch ($step) {
     case 'db_type':

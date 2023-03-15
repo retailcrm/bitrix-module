@@ -89,7 +89,7 @@ class intaro_retailcrm extends CModule
     public $PROTOCOL  = 'protocol';
     public $INSTALL_PATH;
 
-    function intaro_retailcrm()
+    public function __construct()
     {
         $arModuleVersion    = [];
         $path               = str_replace("\\", '/', __FILE__);
@@ -615,15 +615,69 @@ class intaro_retailcrm extends CModule
                 COption::SetOptionString($this->MODULE_ID, $this->PROTOCOL, 'http://');
             }
 
-            COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_TYPES_ARR, serialize(RCrmActions::clearArr($orderTypesArr)));
-            COption::SetOptionString($this->MODULE_ID, $this->CRM_DELIVERY_TYPES_ARR, serialize(RCrmActions::clearArr($deliveryTypesArr)));
-            COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT_TYPES, serialize(RCrmActions::clearArr($paymentTypesArr)));
-            COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT_STATUSES, serialize(RCrmActions::clearArr($paymentStatusesArr)));
-            COption::SetOptionString($this->MODULE_ID, $this->CRM_PAYMENT, serialize(RCrmActions::clearArr($paymentArr)));
+            // Set order types
+            if (!empty($orderTypesArr)) {
+                COption::SetOptionString(
+                    $this->MODULE_ID,
+                    $this->CRM_ORDER_TYPES_ARR,
+                    serialize(RCrmActions::clearArr($orderTypesArr)
+                    )
+                );
+            }
+
+            // Set delivery types
+            if (!empty($deliveryTypesArr)) {
+                COption::SetOptionString(
+                    $this->MODULE_ID,
+                    $this->CRM_DELIVERY_TYPES_ARR,
+                    serialize(RCrmActions::clearArr($deliveryTypesArr)
+                    )
+                );
+            }
+
+            // Set payment types
+            if (!empty($paymentTypesArr)) {
+                COption::SetOptionString(
+                    $this->MODULE_ID,
+                    $this->CRM_PAYMENT_TYPES,
+                    serialize(RCrmActions::clearArr($paymentTypesArr)
+                    )
+                );
+            }
+
+            // Set payment statuses
+            if (!empty($paymentStatusesArr)) {
+                COption::SetOptionString(
+                    $this->MODULE_ID,
+                    $this->CRM_PAYMENT_STATUSES,
+                    serialize(RCrmActions::clearArr($paymentStatusesArr)
+                    )
+                );
+            }
+
+            // Set payments
+            if (!empty($paymentArr)) {
+                COption::SetOptionString(
+                    $this->MODULE_ID,
+                    $this->CRM_PAYMENT,
+                    serialize(RCrmActions::clearArr($paymentArr)
+                    )
+                );
+            }
+
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_LAST_ID, 0);
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_DISCHARGE, 1);
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_FAILED_IDS, serialize([]));
-            COption::SetOptionString($this->MODULE_ID, $this->CRM_CANSEL_ORDER, serialize(RCrmActions::clearArr($canselOrderArr)));
+
+            // Set cansel order
+            if (!empty($canselOrderArr)) {
+                COption::SetOptionString(
+                    $this->MODULE_ID,
+                    $this->CRM_CANSEL_ORDER,
+                    serialize(RCrmActions::clearArr($canselOrderArr)
+                    )
+                );
+            }
 
             if ($orderProps = COption::GetOptionString($this->OLD_MODULE_ID, $this->CRM_ORDER_PROPS, 0)) {
                 $arResult['ORDER_PROPS'] = unserialize($orderProps);

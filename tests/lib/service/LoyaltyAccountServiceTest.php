@@ -8,16 +8,18 @@ use Intaro\RetailCrm\Service\LoyaltyAccountService;
  */
 class LoyaltyAccountServiceTest extends BitrixTestCase
 {
-
+    private LoyaltyAccountService $loyaltyAccountService;
     /**
      * setUp method
      */
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
 
         COption::SetOptionString('intaro.retailcrm', 'api_version', 'v5');
         CModule::IncludeModule('intaro.retailcrm');
+
+        $this->loyaltyAccountService = new LoyaltyAccountService();
     }
 
     /**
@@ -28,7 +30,7 @@ class LoyaltyAccountServiceTest extends BitrixTestCase
      */
     public function testProveUserInLpExists(LoyaltyAccountCreateResponse $createResponse, $expected)
     {
-        self::assertEquals($expected,LoyaltyAccountService::proveUserInLpExists($createResponse));
+        self::assertEquals($expected, $this->loyaltyAccountService->proveUserInLpExists($createResponse));
     }
 
     /**
@@ -39,7 +41,7 @@ class LoyaltyAccountServiceTest extends BitrixTestCase
      */
     public function testNotProveUserInLpExists(LoyaltyAccountCreateResponse $createResponse, $expected)
     {
-        self::assertEquals($expected,LoyaltyAccountService::proveUserInLpExists($createResponse));
+        self::assertEquals($expected, $this->loyaltyAccountService->proveUserInLpExists($createResponse));
     }
 
     /**

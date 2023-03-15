@@ -525,11 +525,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         }
 
         $bitrixCorpShopsArr = array_values(array_filter($_POST, 'maskCorp', ARRAY_FILTER_USE_KEY));
-
-        RegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmCc", "add");
     } else {
         $cc = 'N';
-        UnRegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmCc", "add");
     }
 
     //purchasePrice_null
@@ -983,6 +980,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         );
     }
     ?>
+
+    <script type="text/javascript" src="/bitrix/js/main/jquery/jquery-1.7.min.js"></script>
     <script type="text/javascript">
         function createTemplates(donor) {
             BX.ajax.runAction('intaro:retailcrm.api.adminpanel.createTemplate',
@@ -1282,6 +1281,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 		}
 
     </style>
+
     <form method="POST" action="<?php echo $uri; ?>" id="FORMACTION">
         <?php
         echo bitrix_sessid_post();
@@ -1436,7 +1436,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                             </td>
                             <td width="30%">
                                 <label>
-                                    <input name="order-cansel-<?php echo $bitrixPaymentStatus['ID']; ?>" <?php if (in_array($bitrixPaymentStatus['ID'], $canselOrderArr)) {
+                                    <input name="order-cansel-<?php echo $bitrixPaymentStatus['ID']; ?>" <?php if (is_array($canselOrderArr) && in_array($bitrixPaymentStatus['ID'], $canselOrderArr)) {
                                         echo "checked";
                                     } ?> value="Y" type="checkbox"/>
                                 </label>
@@ -1602,7 +1602,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             </tr>
         <? endforeach; ?>
         <? endif; ?>
-            <tr class="heading legal-detail-title-<?php echo $bitrixOrderType['ID']; ?>" <?php if (count($optionsLegalDetails[$bitrixOrderType['ID']]) < 1) {
+            <tr class="heading legal-detail-title-<?php echo $bitrixOrderType['ID']; ?>" <?php if (is_array($optionsLegalDetails[$bitrixOrderType['ID']]) && count($optionsLegalDetails[$bitrixOrderType['ID']]) < 1) {
                 echo 'style="display:none"';
             } ?>>
                 <td colspan="2" style="background-color: transparent;">
@@ -2115,7 +2115,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 echo 'style="display: none;"';
             } ?>>
                 <td colspan="2" class="option-other-center">
-                    <label><input class="addr" type="checkbox" name="shops-exoprt-<?= $sitesList['code']; ?>" value="<?= $sitesList['code']?>" <?php if (in_array($sitesList['code'], $optionShops)) {
+                    <label><input class="addr" type="checkbox" name="shops-exoprt-<?= $sitesList['code']; ?>" value="<?= $sitesList['code']?>" <?php if (is_array($optionShops) && in_array($sitesList['code'], $optionShops)) {
                             echo "checked";
                         } ?>> <?php echo $sitesList['name'] . ' (' . $sitesList['code'] . ')'; ?>
                     </label>
@@ -2136,8 +2136,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 echo 'style="display: none;"';
             } ?>>
                 <td colspan="2" class="option-other-center">
-                    <label><input class="addr" type="checkbox" name="iblocks-stores-<? echo $catalogExportIblock['ID']; ?>" value="Y" <?php if (in_array($catalogExportIblock['ID'],
-                            $optionIblocksInventories)) {
+                    <label><input class="addr" type="checkbox" name="iblocks-stores-<? echo $catalogExportIblock['ID']; ?>" value="Y" <?php if (is_array($optionIblocksInventories) && in_array($catalogExportIblock['ID'], $optionIblocksInventories)) {
                             echo "checked";
                         } ?>> <?php echo '[' . $catalogExportIblock['CODE'] . '] ' . $catalogExportIblock['NAME'] . ' (' . $catalogExportIblock['LID'] . ')'; ?></label>
                 </td>
@@ -2194,7 +2193,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 echo 'style="display: none;"';
             } ?>>
                 <td colspan="2" class="option-other-center">
-                    <label><input class="addr" type="checkbox" name="shops-price-<? echo $sitesList['code']; ?>" value="<? echo $sitesList['code']; ?>" <?php if (in_array($sitesList['code'], $optionPriceShops)) {
+                    <label><input class="addr" type="checkbox" name="shops-price-<? echo $sitesList['code']; ?>" value="<? echo $sitesList['code']; ?>" <?php if (is_array($optionPriceShops) && in_array($sitesList['code'], $optionPriceShops)) {
                             echo "checked";
                         } ?>> <?php echo $sitesList['name'] . ' (' . $sitesList['code'] . ')'; ?>
                     </label>
@@ -2215,8 +2214,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 echo 'style="display: none;"';
             } ?>>
                 <td colspan="2" class="option-other-center">
-                    <label><input class="addr" type="checkbox" name="iblocks-prices-<? echo $catalogExportIblock['ID']; ?>" value="Y" <?php if (in_array($catalogExportIblock['ID'],
-                            $optionIblocksPrices)) {
+                    <label><input class="addr" type="checkbox" name="iblocks-prices-<? echo $catalogExportIblock['ID']; ?>" value="Y" <?php if (is_array($optionIblocksPrices) && in_array($catalogExportIblock['ID'], $optionIblocksPrices)) {
                             echo "checked";
                         } ?>> <?php echo '[' . $catalogExportIblock['CODE'] . '] ' . $catalogExportIblock['NAME'] . ' (' . $catalogExportIblock['LID'] . ')'; ?></label>
                 </td>
@@ -2383,7 +2381,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 <td width="50%" class="" name="<?php ?>" align="center">
                     <?php foreach ($arResult['sitesList'] as $sitesList): ?>
                 <td colspan="2" class="option-other-center">
-                    <label><input class="addr" type="checkbox" name="shops-corporate-<? echo $sitesList['code']; ?>" value="<? echo $sitesList['code']; ?>" <?php if (in_array($sitesList['code'], $optionCorpShops)) {
+                    <label><input class="addr" type="checkbox" name="shops-corporate-<? echo $sitesList['code']; ?>" value="<? echo $sitesList['code']; ?>" <?php if (is_array($optionCorpShops) && in_array($sitesList['code'], $optionCorpShops)) {
                             echo "checked";
                         } ?>> <?php echo $sitesList['name'] . ' (' . $sitesList['code'] . ')'; ?>
                     </label>

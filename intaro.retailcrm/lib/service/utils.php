@@ -46,7 +46,7 @@ class Utils
         foreach ($arr as $index => $node) {
             $result[$index] = is_array($node) === true ? $this->clearArray($node) : trim($node);
 
-            if ($result[$index] === '' || $result[$index] === null || count($result[$index]) < 1) {
+            if (empty($result[$index])) {
                 unset($result[$index]);
             }
         }

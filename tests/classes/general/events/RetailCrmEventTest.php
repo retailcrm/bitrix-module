@@ -5,12 +5,7 @@
  */
 class RetailCrmEventTest extends PHPUnit\Framework\TestCase
 {
-    /**
-     * @var RetailCrmEvent
-     */
-    private $retailcrmEvent;
-
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
 
@@ -44,7 +39,7 @@ class RetailCrmEventTest extends PHPUnit\Framework\TestCase
             $arFields['RESULT'] = [];
         }
 
-        $result = $this->retailcrmEvent->OnAfterUserUpdate($arFields);
+        $result = RetailCrmEvent::OnAfterUserUpdate($arFields);
 
         $this->assertEquals(false, $result);
     }
@@ -86,7 +81,7 @@ class RetailCrmEventTest extends PHPUnit\Framework\TestCase
             COption::SetOptionString('intaro.retailcrm', 'api_version', 'v4');
         }
 
-        $result = $this->retailcrmEvent->paymentSave($event);
+        $result = RetailCrmEvent::paymentSave($event);
 
         $this->assertEquals(false, $result);
     }
@@ -114,7 +109,7 @@ class RetailCrmEventTest extends PHPUnit\Framework\TestCase
             COption::SetOptionString('intaro.retailcrm', 'api_version', 'v4');
         }
 
-        $result = $this->retailcrmEvent->paymentDelete($event);
+        $result = RetailCrmEvent::paymentDelete($event);
 
         $this->assertEquals(false, $result);
     }
@@ -149,7 +144,7 @@ class RetailCrmEventTest extends PHPUnit\Framework\TestCase
     {
         $event = $this->createMock(\Bitrix\Main\Event::class);
 
-        $result = $this->retailcrmEvent->OrderDelete($event);
+        $result = RetailCrmEvent::OrderDelete($event);
 
         $this->assertEquals(true, $GLOBALS['RETAILCRM_ORDER_DELETE']);
     }
@@ -166,7 +161,7 @@ class RetailCrmEventTest extends PHPUnit\Framework\TestCase
             'ORDER_PROP' => []
         ];
 
-        $result = $this->retailcrmEvent->OnUpdateOrder(1, $arFields);
+        $result = RetailCrmEvent::OnUpdateOrder(1, $arFields);
 
         $this->assertEquals(true, $GLOBALS['RETAILCRM_ORDER_OLD_EVENT']);
 
@@ -235,7 +230,7 @@ class RetailCrmEventTest extends PHPUnit\Framework\TestCase
         ];
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         parent::tearDown();
 

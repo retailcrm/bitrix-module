@@ -18,8 +18,9 @@ class RetailCrmCollector
     {
         $keys = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_COLL_KEY, 0));
         $collector = COption::GetOptionString(self::$MODULE_ID, self::$CRM_COLL, 0);
+        $request = \Bitrix\Main\Context::getCurrent()->getRequest();
 
-        if ($collector === 'Y' && !empty($keys[SITE_ID]) && ADMIN_SECTION !== true) {
+        if ($collector === 'Y' && !empty($keys[SITE_ID]) && $request->isAdminSection() !== true) {
             global $USER;
 
             $params = array();

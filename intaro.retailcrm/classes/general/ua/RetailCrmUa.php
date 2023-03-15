@@ -9,8 +9,9 @@ class RetailCrmUa
     {
         $ua = COption::GetOptionString(self::$MODULE_ID, self::$CRM_UA, 0);
         $uaKeys = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_UA_KEYS, 0));
+        $request = \Bitrix\Main\Context::getCurrent()->getRequest();
 
-        if ($ua === 'Y' && !empty($uaKeys[SITE_ID]['ID']) && !empty($uaKeys[SITE_ID]['INDEX']) && ADMIN_SECTION !== true) {
+        if ($ua === 'Y' && !empty($uaKeys[SITE_ID]['ID']) && !empty($uaKeys[SITE_ID]['INDEX']) && $request->isAdminSection() !== true) {
             global $APPLICATION;
 
             $ua = "

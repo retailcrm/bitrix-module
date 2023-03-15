@@ -37,6 +37,10 @@ class TypedArrayStrategy implements DeserializeStrategyInterface
         $valueType = '';
         $result = [];
 
+        if (!is_array($value)) {
+            return $result;
+        }
+
         if (strpos($this->innerType, ',') !== false) {
             [$keyType, $valueType] = static::getInnerTypes($this->innerType);
 

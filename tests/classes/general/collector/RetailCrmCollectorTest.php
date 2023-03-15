@@ -4,7 +4,7 @@ class RetailCrmCollectorTest extends \PHPUnit\Framework\TestCase
 {
     const TEST_KEY = 'RC-XXXXXXXXXX-X';
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
 
@@ -26,7 +26,7 @@ class RetailCrmCollectorTest extends \PHPUnit\Framework\TestCase
         RetailCrmCollector::add();
         $strings = \Bitrix\Main\Page\Asset::getInstance()->getStrings();
 
-        $this->assertContains(self::TEST_KEY, $strings);
-        $this->assertContains('customerId', $strings);
+        $this->assertStringContainsString(self::TEST_KEY, $strings);
+        $this->assertStringContainsString('customerId', $strings);
     }
 }

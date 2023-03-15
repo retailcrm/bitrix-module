@@ -8,7 +8,7 @@ class RetailCrmOrder_v5Test extends BitrixTestCase {
     /**
      * setUp method
      */
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
 

@@ -99,14 +99,22 @@ class TokenParser
      */
     public function parseUseStatement()
     {
-
         $groupRoot = '';
         $class = '';
         $alias = '';
         $statements = [];
         $explicitAlias = false;
         while (($token = $this->next())) {
+            if (false !== strpos(PHP_VERSION, '8') && $token[0] === T_NAME_QUALIFIED) {
+                $fullAlias = explode('\\', $token[1]);
+                $alias = $fullAlias[array_key_last($fullAlias)];
+                $statements[strtolower($alias)] = $token[1];
+
+                break;
+            }
+
             $isNameToken = $token[0] === T_STRING || $token[0] === T_NS_SEPARATOR;
+
             if (!$explicitAlias && $isNameToken) {
                 $class .= $token[1];
                 $alias = $token[1];

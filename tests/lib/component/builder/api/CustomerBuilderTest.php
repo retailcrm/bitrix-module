@@ -17,7 +17,7 @@ use Tests\Intaro\RetailCrm\Helpers;
 
 class CustomerBuilderTest extends TestCase
 {
-    public function setUp()
+    public function setUp(): void
     {
         Helpers::setConfigProperty('contragentTypes', [
             'individual' => 'individual'

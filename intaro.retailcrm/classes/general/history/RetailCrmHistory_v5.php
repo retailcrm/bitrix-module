@@ -72,7 +72,7 @@ class RetailCrmHistory
 
             Logger::getInstance()->write($customerH, 'customerHistory');
 
-            if (count($customerH) == 0) {
+            if (is_array($customerH) && count($customerH) === 0) {
                 if ($customerHistory['history']['totalPageCount'] > $customerHistory['history']['currentPage']) {
                     $historyFilter['page'] = $customerHistory['history']['currentPage'] + 1;
 
@@ -271,7 +271,7 @@ class RetailCrmHistory
 
             Logger::getInstance()->write($orderH, 'orderHistory');
 
-            if (count($orderH) === 0) {
+            if (is_array($orderH) && count($orderH) === 0) {
                 if ($orderHistory['history']['totalPageCount'] > $orderHistory['history']['currentPage']) {
                     $historyFilter['page'] = $orderHistory['history']['currentPage'] + 1;
 
@@ -722,7 +722,7 @@ class RetailCrmHistory
                                 } else {
                                     self::setProp($somePropValue, RCrmActions::fromJSON($order[$key]));
                                 }
-                            } elseif (array_key_exists($key, $order['delivery']['address'])) {
+                            } elseif (is_array($order['delivery']['address']) && array_key_exists($key, $order['delivery']['address'])) {
                                 if ($propsKey[$orderProp]['TYPE'] == 'LOCATION') {
 
                                     if (!empty($order['delivery']['address'][$key])) {
@@ -793,7 +793,7 @@ class RetailCrmHistory
                                     ->getItemByOrderPropertyId($propsKey[$orderProp]['ID']);
 
                                 self::setProp($somePropValue, RCrmActions::fromJSON($order[$key]));
-                            } elseif(array_key_exists($key, $order['contragent'])) {
+                            } elseif(is_array($order['contragent']) && array_key_exists($key, $order['contragent'])) {
                                 $somePropValue = $propertyCollection
                                     ->getItemByOrderPropertyId($propsKey[$orderProp]['ID']);
                                 self::setProp($somePropValue, RCrmActions::fromJSON($order['contragent'][$key]));
@@ -1115,7 +1115,7 @@ class RetailCrmHistory
                         $orderSumm += $item->getFinalPrice();
                     }
 
-                    if (array_key_exists('cost', $order['delivery'])) {
+                    if (is_array($order['delivery']) && array_key_exists('cost', $order['delivery'])) {
                         $deliverySumm = $order['delivery']['cost'];
                     } else {
                         $deliverySumm = $newOrder->getDeliveryPrice();
@@ -1228,8 +1228,9 @@ class RetailCrmHistory
 
                     if (!empty($newHistoryPayments)) {
                         foreach ($newOrder->getPaymentCollection() as $orderPayment) {
-                            if (array_key_exists($orderPayment->getField('XML_ID'), $newHistoryPayments)) {
-
+                            if (is_array($newHistoryPayments)
+                                && array_key_exists($orderPayment->getField('XML_ID'), $newHistoryPayments)
+                            ) {
                                 $paymentId = $orderPayment->getId();
                                 $paymentExternalId = RCrmActions::generatePaymentExternalId($paymentId);
                                 if (is_null($paymentId)) {
@@ -1372,7 +1373,10 @@ class RetailCrmHistory
             }
 
             if ($fields['customer'][$change['field']] == 'phones') {
-                $key = count($customers[$change['customer']['id']]['phones']);
+                if (is_array($customers[$change['customer']['id']]['phones'])) {
+                    $key = count($customers[$change['customer']['id']]['phones']);
+                }
+
                 if (isset($change['oldValue'])) {
                     $customers[$change['customer']['id']]['phones'][$key]['old_number'] = $change['oldValue'];
                 }
@@ -1463,7 +1467,7 @@ class RetailCrmHistory
                 $change['order']['payments'] = $payments;
             }
 
-            if (isset($change['order']['contragent']) && count($change['order']['contragent']) > 0) {
+            if (is_array($change['order']['contragent']) && isset($change['order']['contragent']) && count($change['order']['contragent']) > 0) {
                 foreach ($change['order']['contragent'] as $name => $value) {
                     $change['order'][$name] = self::newValue($value);
                 }
@@ -1875,7 +1879,7 @@ class RetailCrmHistory
 
     public static function newValue($value)
     {
-        if (array_key_exists('code', $value)) {
+        if (is_array($value) && array_key_exists('code', $value)) {
             return $value['code'];
         } else {
             return $value;

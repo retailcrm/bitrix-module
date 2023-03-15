@@ -624,7 +624,7 @@ class SettingsService
      */
     public function isExport($iblockId, $iblockExport): bool
     {
-        if (count($iblockExport) !== 0) {
+        if (is_array($iblockExport) && count($iblockExport) !== 0) {
             return (in_array($iblockId, $iblockExport));
         }
 
