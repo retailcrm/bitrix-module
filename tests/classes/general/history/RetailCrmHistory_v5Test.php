@@ -1,6 +1,7 @@
 <?php
 
 use Bitrix\Sale\Order;
+use Bitrix\Currency\CurrencyManager;
 /**
  * Class RetailCrmHistory_v5Test
  */
@@ -86,6 +87,18 @@ class RetailCrmHistory_v5Test extends \BitrixTestCase
             ->willReturn(false);
 
         $this->assertEquals(null, RetailCrmHistory::shipmentItemReset($order));
+    }
+
+    public function testSetManager()
+    {
+        $currency = CurrencyManager::getBaseCurrency();
+        $cmsOrder = Order::create('bitrix', 1, $currency);
+        $crmManagerId = 123;
+
+        RetailcrmConfigProvider::setUsersMap(['bitrixUserId-1515' => $crmManagerId]);
+        RetailCrmHistory::setManager($cmsOrder, ['externalId' => 1, 'managerId' => $crmManagerId]);
+
+        $this->assertEquals(1515, $cmsOrder->getField('RESPONSIBLE_ID'));
     }
 
     private function getCustomers(): array

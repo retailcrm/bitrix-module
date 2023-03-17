@@ -494,11 +494,7 @@ class RetailCrmHistory
 
                     $newOrder = Order::create($site, $orderCustomerExtId, $currency);
 
-                    if (array_key_exists('managerId', $order)) {
-                        $service = ManagerService::getInstance();
-
-                        $newOrder->setField('RESPONSIBLE_ID', $service->getManagerBitrixId($order['managerId']));
-                    }
+                    self::setManager($newOrder, $order);
 
                     if (isset($buyerProfileToAppend['ID']) && isset($optionsLegalDetails['legalName'])) {
                         $newOrder->setFields([
@@ -564,6 +560,8 @@ class RetailCrmHistory
                         continue;
                     }
 
+                    self::setManager($newOrder, $order);
+
                     $propsRemove = false;
                     $personType = $newOrder->getField('PERSON_TYPE_ID');
 
@@ -608,7 +606,10 @@ class RetailCrmHistory
                     if ($optionsPayStatuses[$order['status']]) {
                         $newOrder->setField('STATUS_ID', $optionsPayStatuses[$order['status']]);
 
-                        if (in_array($optionsPayStatuses[$order['status']], $optionsCanselOrder)) {
+                        if (
+                            is_array($optionsCanselOrder)
+                            && in_array($optionsPayStatuses[$order['status']], $optionsCanselOrder)
+                        ) {
                             self::unreserveShipment($newOrder);
                             $newOrder->setFieldNoDemand('CANCELED', 'Y');
                         } else {
@@ -1946,6 +1947,20 @@ class RetailCrmHistory
         }
 
         return false;
+    }
+
+    public static function setManager($newOrder, $order)
+    {
+        if (array_key_exists('managerId', $order)) {
+            $service = ManagerService::getInstance();
+
+            $newOrder->setField('RESPONSIBLE_ID', $service->getManagerBitrixId($order['managerId']));
+
+            // If the order exists in CRM, need to save the changes in the CMS order
+            if (!empty($order['externalId'])) {
+                self::orderSave($newOrder);
+            }
+        }
     }
 
     public static function getInfoElement($offerId)
