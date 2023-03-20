@@ -21,7 +21,10 @@ jobs:
     strategy:
       matrix:
         php-version: ['7.4', '8.0']
-        bitrix-edition: ['small_business_encode', 'business_encode']
+        bitrix-link: ['https://www.1c-bitrix.ru/download/small_business_encode.tar.gz', 'https://www.1c-bitrix.ru/download/business_encode.tar.gz']
+        include:
+          - php-version: '7.3'
+            bitrix-link: 'http://download.retailcrm.pro/modules/bitrix/bitrix_staging_dump_small_business.tar.gz'
     services:
       mysql:
         image: mysql:5.7
@@ -41,7 +44,7 @@ jobs:
           coverage: xdebug
       - name: Install Bitrix
         env:
-          BITRIX_EDITION: ${{ matrix.bitrix-edition }}
+          BITRIX_DOWNLOAD_LINK: ${{ matrix.bitrix-link }}
         run: make install_bitrix
       - name: Enable debug mode for tests
         run: php bin/enable_debugging "${{ env.BITRIX_PATH }}"

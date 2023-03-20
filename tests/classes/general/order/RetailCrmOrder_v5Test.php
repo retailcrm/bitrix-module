@@ -69,8 +69,6 @@ class RetailCrmOrder_v5Test extends BitrixTestCase {
                 'xmlId' => 'xml_1'
             ],
             'productName' => 'Test',
-            'discountManualPercent' => 0.0,
-            'discountManualAmount' => 0.0,
             'initialPrice' => 1000.0
         ];
 
