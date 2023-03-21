@@ -17,11 +17,11 @@ install_bitrix: download_bitrix
 	@php bin/bitrix-install requirement
 	@php bin/bitrix-install db_create
 	@php bin/bitrix-install main_module
+	@php bin/enable_debugging $(BITRIX_PATH)
 	@php bin/bitrix-install module
 	@php bin/bitrix-install admin
 	@php bin/bitrix-install load_module
 	@php bin/bitrix-install load_module_action
-	@php bin/enable_debugging $(BITRIX_PATH)
 	@php bin/bitrix-install finish
 
 download_bitrix:
