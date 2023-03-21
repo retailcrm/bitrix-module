@@ -21,15 +21,16 @@ install_bitrix: download_bitrix
 	@php bin/bitrix-install admin
 	@php bin/bitrix-install load_module
 	@php bin/bitrix-install load_module_action
+	@php bin/enable_debugging $(BITRIX_PATH)
 	@php bin/bitrix-install finish
 
 download_bitrix:
 ifeq ("$(wildcard $(BITRIX_PATH)/bitrix/php_interface/dbconn.php)","")
-	wget --progress=dot -e dotbytes=10M -O /tmp/$(BITRIX_EDITION).tar.gz $(BITRIX_DOWNLOAD_LINK)
+	wget --progress=dot -e dotbytes=10M -O /tmp/bitrix.tar.gz $(BITRIX_DOWNLOAD_LINK)
 	mkdir -p $(BITRIX_PATH)
 	chmod -R 777 $(BITRIX_PATH)
-	tar -xf /tmp/$(BITRIX_EDITION).tar.gz -C $(BITRIX_PATH)
-	rm /tmp/$(BITRIX_EDITION).tar.gz
+	tar -xf /tmp/bitrix.tar.gz -C $(BITRIX_PATH)
+	rm /tmp/bitrix.tar.gz
 endif
 
 build_release:
