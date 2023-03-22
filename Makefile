@@ -12,12 +12,16 @@ ifneq ($(NOT_USE_VENDOR),1)
 endif
 
 install_bitrix: download_bitrix
+ifeq ("$(BITRIX_DOWNLOAD_LINK)","http://download.retailcrm.pro/modules/bitrix/bitrix_staging_dump_small_business.tar.gz")
+	@echo "===== Writing config"
+	@echo "<config><skipInstallModules>eshopapp</skipInstallModules><LANGUAGE_ID>ru</LANGUAGE_ID><INSTALL_CHARSET>windows-1251</INSTALL_CHARSET></config>" > install.config
+endif
 	@echo "===== Installing Bitrix..."
 	@php bin/bitrix-install db_type
 	@php bin/bitrix-install requirement
 	@php bin/bitrix-install db_create
-	@php bin/bitrix-install main_module
 	@php bin/enable_debugging $(BITRIX_PATH)
+	@php bin/bitrix-install main_module
 	@php bin/bitrix-install module
 	@php bin/bitrix-install admin
 	@php bin/bitrix-install load_module

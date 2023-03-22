@@ -145,6 +145,8 @@ class Installer
      */
     public function dbTypeStep()
     {
+        $this->println(LANGUAGE_ID);
+        $this->println(INSTALL_CHARSET);
         $this->setCurrentStepID('select_database');
         $this->setNextStepID('requirements');
 

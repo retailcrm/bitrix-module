@@ -12,6 +12,9 @@ $_SERVER['DOCUMENT_ROOT'] = getenv('BITRIX_PATH') ? getenv('BITRIX_PATH') : '/va
 define("B_PROLOG_INCLUDED", true);
 define("DEBUG_MODE", true);
 
+define("PRE_LANGUAGE_ID", 'ru');
+define("PRE_INSTALL_CHARSET", 'windows-1251');
+
 if (!file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/main/install/wizard/wizard.php')) {
     throw new \RuntimeException('Bitrix`s install files is not exists');
 }
