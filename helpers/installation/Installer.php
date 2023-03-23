@@ -205,6 +205,11 @@ class Installer
         );
 
         if ($isMain) {
+            $this->println(DEMO);
+            $this->println(OLDSITEEXPIREDATE);
+            $this->println(SITEEXPIREDATE);
+            $this->println(TIMELIMIT_EDITION);
+
             $modules = array(
                 'main' => $threeSteps
             );
