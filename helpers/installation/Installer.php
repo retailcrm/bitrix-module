@@ -207,6 +207,10 @@ class Installer
                 'main' => $threeSteps
             );
         } else {
+            if (defined(LICENSE_KEY)) {
+                $this->println(LICENSE_KEY);
+            }
+
             $modules = array(
                 'abtest' => $threeSteps,
                 'bitrix.eshop' => $threeSteps,
