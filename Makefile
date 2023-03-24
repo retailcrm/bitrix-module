@@ -15,6 +15,8 @@ install_bitrix: download_bitrix
 ifeq ("$(BITRIX_DOWNLOAD_LINK)","http://download.retailcrm.pro/modules/bitrix/bitrix_staging_dump_small_business.tar.gz")
 	@echo "===== Writing config"
 	@echo "<config><skipInstallModules>eshopapp</skipInstallModules><LANGUAGE_ID>ru</LANGUAGE_ID><INSTALL_CHARSET>windows-1251</INSTALL_CHARSET></config>" > install.config
+	rm $(BITRIX_PATH)/bitrix/footer.php
+	rm $(BITRIX_PATH)/bitrix/header.php
 endif
 	@echo "===== Installing Bitrix..."
 	@php bin/bitrix-install db_type

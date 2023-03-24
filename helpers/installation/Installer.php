@@ -145,8 +145,6 @@ class Installer
      */
     public function dbTypeStep()
     {
-        $this->println(LANGUAGE_ID);
-        $this->println(INSTALL_CHARSET);
         $this->setCurrentStepID('select_database');
         $this->setNextStepID('requirements');
 
@@ -205,11 +203,6 @@ class Installer
         );
 
         if ($isMain) {
-            $this->println(DEMO);
-            $this->println(OLDSITEEXPIREDATE);
-            $this->println(SITEEXPIREDATE);
-            $this->println(TIMELIMIT_EDITION);
-
             $modules = array(
                 'main' => $threeSteps
             );
