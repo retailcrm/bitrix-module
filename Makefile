@@ -17,6 +17,7 @@ ifeq ("$(BITRIX_DOWNLOAD_LINK)","http://download.retailcrm.pro/modules/bitrix/bi
 	@echo "<config><skipInstallModules>eshopapp</skipInstallModules><LANGUAGE_ID>ru</LANGUAGE_ID><INSTALL_CHARSET>windows-1251</INSTALL_CHARSET></config>" > install.config
 	rm $(BITRIX_PATH)/bitrix/footer.php
 	rm $(BITRIX_PATH)/bitrix/header.php
+	rm $(BITRIX_PATH)/bitrix/license_key.php
 endif
 	@echo "===== Installing Bitrix..."
 	@php bin/bitrix-install db_type
