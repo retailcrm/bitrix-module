@@ -1373,11 +1373,13 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                         <select name="payment-type-<?php echo $bitrixPaymentType['ID']; ?>" class="typeselect">
                             <option value="" selected=""></option>
                             <?php foreach ($arResult['paymentTypesList'] as $paymentType): ?>
-                                <option value="<?php echo $paymentType['code']; ?>" <?php if ($optionsPayTypes[$bitrixPaymentType['ID']] === $paymentType['code']) {
-                                    echo 'selected';
-                                } ?>>
-                                    <?php echo $APPLICATION->ConvertCharset($paymentType['name'], 'utf-8', SITE_CHARSET); ?>
-                                </option>
+                                <?php if($paymentType['active'] == 1): ?>
+                                    <option value="<?php echo $paymentType['code']; ?>" <?php if ($optionsPayTypes[$bitrixPaymentType['ID']] === $paymentType['code']) {
+                                        echo 'selected';
+                                    } ?>>
+                                        <?php echo $APPLICATION->ConvertCharset($paymentType['name'], 'utf-8', SITE_CHARSET); ?>
+                                    </option>
+                                <?php endif; ?>
                             <?php endforeach; ?>
                         </select>
                     </label>
@@ -1422,12 +1424,14 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                         <optgroup label="<?php echo $APPLICATION->ConvertCharset($orderStatusGroup['name'], 'utf-8', SITE_CHARSET); ?>">
                                             <?php foreach ($orderStatusGroup['statuses'] as $payment): ?>
                                                 <?php if (isset($arResult['paymentList'][$payment])): ?>
-                                                    <option value="<?php echo $arResult['paymentList'][$payment]['code']; ?>" <?php if ($optionsPayStatuses[$bitrixPaymentStatus['ID']]
-                                                        === $arResult['paymentList'][$payment]['code']) {
-                                                        echo 'selected';
-                                                    } ?>>
-                                                        <?php echo $APPLICATION->ConvertCharset($arResult['paymentList'][$payment]['name'], 'utf-8', SITE_CHARSET); ?>
-                                                    </option>
+                                                    <?php if($arResult['paymentList'][$payment]['active'] == 1): ?>
+                                                        <option value="<?php echo $arResult['paymentList'][$payment]['code']; ?>" <?php if ($optionsPayStatuses[$bitrixPaymentStatus['ID']]
+                                                            === $arResult['paymentList'][$payment]['code']) {
+                                                            echo 'selected';
+                                                        } ?>>
+                                                            <?php echo $APPLICATION->ConvertCharset($arResult['paymentList'][$payment]['name'], 'utf-8', SITE_CHARSET); ?>
+                                                        </option>
+                                                    <?php endif; ?>
                                                 <?php endif; ?>
                                             <?php endforeach; ?>
                                         </optgroup>
@@ -1458,11 +1462,13 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                     <select name="payment-<?php echo $bitrixPayment['ID']; ?>" class="typeselect">
                         <option value=""></option>
                         <?php foreach ($arResult['paymentStatusesList'] as $paymentStatus): ?>
-                            <option value="<?php echo $paymentStatus['code']; ?>" <?php if ($optionsPayment[$bitrixPayment['ID']] === $paymentStatus['code']) {
-                                echo 'selected';
-                            } ?>>
-                                <?php echo $APPLICATION->ConvertCharset($paymentStatus['name'], 'utf-8', SITE_CHARSET); ?>
-                            </option>
+                            <?php if($paymentStatus['active'] == 1): ?>
+                                <option value="<?php echo $paymentStatus['code']; ?>" <?php if ($optionsPayment[$bitrixPayment['ID']] === $paymentStatus['code']) {
+                                    echo 'selected';
+                                } ?>>
+                                    <?php echo $APPLICATION->ConvertCharset($paymentStatus['name'], 'utf-8', SITE_CHARSET); ?>
+                                </option>
+                            <?php endif; ?>
                         <?php endforeach; ?>
                     </select>
                 </td>
@@ -1485,14 +1491,16 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                     <select name="order-type-<?php echo $bitrixOrderType['ID']; ?>" class="typeselect">
                         <option value=""></option>
                         <?php foreach ($arResult['orderTypesList'] as $orderType): ?>
-                            <option value="<?php echo $orderType['code']; ?>"
-                                <?php if ($optionsOrderTypes[$bitrixOrderType['ID']] === $orderType['code']) {
-                                    echo 'selected';
-                                } ?>>
-                                <?= $APPLICATION
-                                    ->ConvertCharset($orderType['name'], 'utf-8', SITE_CHARSET)
-                                ?>
-                            </option>
+                            <?php if($orderType['active'] == 1): ?>
+                                <option value="<?php echo $orderType['code']; ?>"
+                                    <?php if ($optionsOrderTypes[$bitrixOrderType['ID']] === $orderType['code']) {
+                                        echo 'selected';
+                                    } ?>>
+                                    <?= $APPLICATION
+                                        ->ConvertCharset($orderType['name'], 'utf-8', SITE_CHARSET)
+                                    ?>
+                                </option>
+                            <?php endif; ?>
                         <?php endforeach; ?>
                     </select>
                 </td>

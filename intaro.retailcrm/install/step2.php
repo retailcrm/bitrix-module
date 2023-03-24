@@ -222,10 +222,12 @@ if (isset($arResult['PAYMENT'])) {
                     <select name="delivery-type-<?php echo $bitrixDeliveryType['ID']; ?>" class="typeselect">
                         <option value=""></option>
                         <?php foreach($arResult['deliveryTypesList'] as $deliveryType): ?>
-                        <option value="<?php echo $deliveryType['code']; ?>"
-                            <?php if($defaultDelivTypes[$bitrixDeliveryType['ID']] == $deliveryType['code']) echo 'selected'; ?>>
-                            <?php echo $APPLICATION->ConvertCharset($deliveryType['name'], 'utf-8', SITE_CHARSET); ?>
-                        </option>
+                            <?php if ($deliveryType['active'] === true): ?>
+                                <option value="<?php echo $deliveryType['code']; ?>"
+                                    <?php if($defaultDelivTypes[$bitrixDeliveryType['ID']] == $deliveryType['code']) echo 'selected'; ?>>
+                                    <?php echo $APPLICATION->ConvertCharset($deliveryType['name'], 'utf-8', SITE_CHARSET); ?>
+                                </option>
+                            <?php endif; ?>
                         <?php endforeach; ?>
                     </select>
                 </td>

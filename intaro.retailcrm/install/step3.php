@@ -39,6 +39,17 @@ if (!isset($arResult['LEGAL_DETAILS'])) {
 if (!isset($arResult['CONTRAGENT_TYPES'])) {
     $arResult['CONTRAGENT_TYPES'] = unserialize(COption::GetOptionString($MODULE_ID, $CRM_CONTRAGENT_TYPE, 0));
 
+    if ($arResult['CONTRAGENT_TYPES'] === false) {
+        foreach ($arResult['contragentType'] as $crmContrAgentType) {
+            if ($crmContrAgentType['ID'] === 'individual') {
+                $arResult['CONTRAGENT_TYPES']['1'] = 'individual';
+            }
+
+            if ($crmContrAgentType['ID'] === 'legal-entity') {
+                $arResult['CONTRAGENT_TYPES']['2'] = 'legal-entity';
+            }
+        }
+    }
 }
 
 if (isset($arResult['ORDER_PROPS'])) {
@@ -136,7 +147,6 @@ if (isset($arResult['ORDER_PROPS'])) {
                 <td colspan="2"><b><?= GetMessage('INFO_2')?></b></td>
             </tr>
             <?php foreach($arResult['bitrixOrderTypesList'] as $bitrixOrderType): ?>
-            <?php var_dump($arResult['contragentType'], $bitrixOrderType);?>
             <tr class="heading">
                 <td colspan="2"><b><?= GetMessage('ORDER_TYPE_INFO') . ' ' . $bitrixOrderType['NAME']?></b></td>
             </tr>
