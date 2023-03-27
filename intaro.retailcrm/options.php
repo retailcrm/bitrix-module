@@ -2101,9 +2101,11 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                     <select class="typeselect" name="stores-export-<?php echo $catalogExportStore['ID'] ?>">
                         <option value=""></option>
                         <?php foreach ($arResult['inventoriesList'] as $inventoriesList): ?>
-                            <option value="<?php echo $inventoriesList['code'] ?>" <?php if ($optionStores[$catalogExportStore['ID']] === $inventoriesList['code']) {
-                                echo 'selected="selected"';
-                            } ?>><?php echo $inventoriesList['name'] ?></option>
+                            <?php if ($inventoriesList['active'] == 1): ?>
+                                <option value="<?php echo $inventoriesList['code'] ?>" <?php if ($optionStores[$catalogExportStore['ID']] === $inventoriesList['code']) {
+                                    echo 'selected="selected"';
+                                } ?>><?php echo $inventoriesList['name'] ?></option>
+                            <?php endif; ?>
                         <?php endforeach; ?>
                     </select>
                 </td>
@@ -2179,9 +2181,11 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                     <select class="typeselect" name="price-type-export-<?php echo $catalogExportPrice['ID']; ?>">
                         <option value=""></option>
                         <?php foreach ($arResult['priceTypeList'] as $priceTypeList): ?>
-                            <option value="<?php echo $priceTypeList['code'] ?>" <?php if ($optionPrices[$catalogExportPrice['ID']] === $priceTypeList['code']) {
-                                echo 'selected="selected"';
-                            } ?>><?php echo $priceTypeList['name'] ?></option>
+                            <?php if ($priceTypeList['active'] == 1): ?>
+                                <option value="<?php echo $priceTypeList['code'] ?>" <?php if ($optionPrices[$catalogExportPrice['ID']] === $priceTypeList['code']) {
+                                    echo 'selected="selected"';
+                                } ?>><?php echo $priceTypeList['name'] ?></option>
+                            <?php endif; ?>
                         <?php endforeach; ?>
                     </select>
                 </td>
