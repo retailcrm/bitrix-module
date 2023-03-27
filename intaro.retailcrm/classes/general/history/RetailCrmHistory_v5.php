@@ -127,19 +127,6 @@ class RetailCrmHistory
 
                     if (!empty($customer['email'])) {
                         $dbUser = CUser::GetList(($by = 'ID'), ($sort = 'DESC'), array('=EMAIL' => $customer['email']));
-                      /*  RCrmActions::eventLog(
-                            'RetailCrmHistory::orderHistory',
-                            'CUser::Register',
-                            $dbUser->SelectedRowsCount()
-                        );
-                        RCrmActions::eventLog(
-                            'RetailCrmHistory::orderHistory',
-                            'CUser::Register',
-                            print_r($dbUser,true)
-                        );*/
-                        //$key = array_key_last($dbUser);
-                      /*  var_dump(print_r($dbUser->Fetch(),true));
-                        var_dump(print_r($dbUser->SelectedRowsCount(), true));*/
 
                         switch ($dbUser->SelectedRowsCount()) {
                             case 0:
@@ -152,18 +139,9 @@ class RetailCrmHistory
                                 $registerNewUser = false;
                                 break;
                             default:
-                             /*   $lastBitrixUser = null;
-
-                                while ($bitrixUser = $dbUser->Fetch()) {
-                                    $lastBitrixUser = $bitrixUser;
-                                }*/
                                 $lastBitrixUser = $dbUser->Fetch();
                                 $registeredUserID = $lastBitrixUser['ID'];
                                 $registerNewUser = false;
-
-
-                                /*$login = uniqid('user_' . time()) . '@example.com';
-                                $customerBuilder->setLogin($login);*/
                                 break;
                         }
                     }

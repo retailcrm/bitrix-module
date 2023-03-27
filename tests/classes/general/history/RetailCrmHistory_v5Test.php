@@ -18,6 +18,57 @@ class RetailCrmHistory_v5Test extends \BitrixTestCase
         CModule::IncludeModule('intaro.retailcrm');
     }
 
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function testRegisterUser(): void
+    {
+        $this->deleteTestingUser();
+        return;
+        $actionsMock = Mockery::mock('alias:' . RCrmActions::class);
+        $actionsMock->shouldReceive('apiMethod')->withAnyArgs()->andReturn($this->getCustomerHistory());
+
+        RetailCrmHistory::customerHistory();
+
+        $dbUser = CUser::GetList(($by = 'ID'), ($sort = 'DESC'), array('=EMAIL' => 'testbitrixreg@gmail.com'));
+
+        $this->assertEquals(1, $dbUser->SelectedRowsCount());
+    }
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+   /* public function testUnregisterDoubleUser(): void
+    {
+        $user = new CUser;
+        $arFields = [
+            'NAME' => 'test',
+            'LAST_NAME' => 'test',
+            'LOGIN' => 'test',
+            'EMAIL' => 'testbitrixreg@gmail.com',
+            'LID' => 'ru',
+            'ACTIVE' => 'Y',
+            'GROUP_ID' => [10,11],
+            'PASSWORD' => '123456',
+            'CONFIRM_PASSWORD' => '123456',
+        ];
+
+        $ID = $user->Add($arFields);
+
+        $this->assertTrue((int)$ID > 0);
+
+        $actionsMock = Mockery::mock('alias:' . RCrmActions::class);
+        $actionsMock->shouldReceive('apiMethod')->withAnyArgs()->andReturn($this->getCustomerHistory());
+        RetailCrmHistory::customerHistory();
+
+        $dbUser = CUser::GetList(($by = 'ID'), ($sort = 'DESC'), array('=EMAIL' => 'testbitrixreg@gmail.com'));
+
+        $this->assertEquals(1, $dbUser->SelectedRowsCount());
+
+    }*/
+
     public function testSetPasswordUser(): void
     {
         $customers = $this->getCustomers();
@@ -101,6 +152,17 @@ class RetailCrmHistory_v5Test extends \BitrixTestCase
         $this->assertEquals(1515, $cmsOrder->getField('RESPONSIBLE_ID'));
     }
 
+    private function deleteTestingUser()
+    {
+        $dbUser = CUser::GetList(($by = 'ID'), ($sort = 'DESC'), array('=EMAIL' => 'testbitrixreg@gmail.com'));
+
+        if ($dbUser->SelectedRowsCount() > 0) {
+            while ($user = $dbUser->Fetch()) {
+                CUser::Delete((int)$user['ID']);
+            }
+        }
+    }
+
     private function getCustomers(): array
     {
         return [
@@ -125,5 +187,15 @@ class RetailCrmHistory_v5Test extends \BitrixTestCase
                 'countRows' => 0
             ],
         ];
+    }
+
+    /**
+     * @throws JsonException
+     */
+    private function getCustomerHistory()
+    {
+        $jsonText = '{"success":true,"generatedAt":"2023-03-27 16:46:46","history":[{"id":6808,"createdAt":"2023-03-27 16:44:46","created":true,"source":"user","user":{"id":13},"field":"id","oldValue":null,"newValue":1821,"customer":{"type":"customer","id":1821,"isContact":false,"createdAt":"2023-03-27 16:44:46","vip":false,"bad":false,"site":"bitrix","customFields":{"reg_api":true},"marginSumm":0,"totalSumm":0,"averageSumm":0,"ordersCount":0,"personalDiscount":0,"cumulativeDiscount":0,"address":{"id":84,"countryIso":"RU"},"segments":[],"firstName":"TestBitrixMan","lastName":"TestBitrixMan","patronymic":"TestBitrixMan","sex":"male","email":"testbitrixreg@gmail.com","phones":[{"number":"89486541252"}]}},{"id":6809,"createdAt":"2023-03-27 16:44:46","source":"code","field":"loyalty_accounts","oldValue":null,"newValue":{"id":312},"customer":{"id":1821,"site":"bitrix"}}],"pagination":{"limit":100,"totalCount":2,"currentPage":1,"totalPageCount":1}}';
+       // $jsonText = json_encode($jsonText);
+        return json_decode($jsonText, true, 512, JSON_THROW_ON_ERROR);
     }
 }
