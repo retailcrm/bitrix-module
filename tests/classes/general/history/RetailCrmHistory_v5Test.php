@@ -176,7 +176,7 @@ class RetailCrmHistory_v5Test extends \BitrixTestCase
         $this->assertEquals(1515, $cmsOrder->getField('RESPONSIBLE_ID'));
     }
 
-    private function deleteTestingUser()
+    private function deleteTestingUser(): void
     {
         $dbUser = CUser::GetList(($by = 'ID'), ($sort = 'DESC'), array('=EMAIL' => 'testbitrixreg@gmail.com'));
 
