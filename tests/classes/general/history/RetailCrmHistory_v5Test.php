@@ -24,11 +24,10 @@ class RetailCrmHistory_v5Test extends \BitrixTestCase
      */
     public function testRegisterUser(): void
     {
-        $this->deleteTestingUser();
-        return;
         $actionsMock = Mockery::mock('alias:' . RCrmActions::class);
         $actionsMock->shouldReceive('apiMethod')->withAnyArgs()->andReturn($this->getCustomerHistory());
 
+        $this->deleteTestingUser();
         RetailCrmHistory::customerHistory();
 
         $dbUser = CUser::GetList(($by = 'ID'), ($sort = 'DESC'), array('=EMAIL' => 'testbitrixreg@gmail.com'));
@@ -40,8 +39,10 @@ class RetailCrmHistory_v5Test extends \BitrixTestCase
      * @runInSeparateProcess
      * @preserveGlobalState disabled
      */
-   /* public function testUnregisterDoubleUser(): void
+    public function testUnregisterDoubleUser(): void
     {
+        $this->deleteTestingUser();
+
         $user = new CUser;
         $arFields = [
             'NAME' => 'test',
@@ -50,7 +51,7 @@ class RetailCrmHistory_v5Test extends \BitrixTestCase
             'EMAIL' => 'testbitrixreg@gmail.com',
             'LID' => 'ru',
             'ACTIVE' => 'Y',
-            'GROUP_ID' => [10,11],
+            'GROUP_ID' => [10, 11],
             'PASSWORD' => '123456',
             'CONFIRM_PASSWORD' => '123456',
         ];
@@ -61,13 +62,36 @@ class RetailCrmHistory_v5Test extends \BitrixTestCase
 
         $actionsMock = Mockery::mock('alias:' . RCrmActions::class);
         $actionsMock->shouldReceive('apiMethod')->withAnyArgs()->andReturn($this->getCustomerHistory());
+
         RetailCrmHistory::customerHistory();
 
         $dbUser = CUser::GetList(($by = 'ID'), ($sort = 'DESC'), array('=EMAIL' => 'testbitrixreg@gmail.com'));
 
         $this->assertEquals(1, $dbUser->SelectedRowsCount());
 
-    }*/
+        $user = new CUser;
+        $arFields = [
+            'NAME' => 'test2',
+            'LAST_NAME' => 'test2',
+            'LOGIN' => 'test2',
+            'EMAIL' => 'testbitrixreg@gmail.com',
+            'LID' => 'ru',
+            'ACTIVE' => 'Y',
+            'GROUP_ID' => [10, 11],
+            'PASSWORD' => '123456',
+            'CONFIRM_PASSWORD' => '123456',
+        ];
+
+        $ID = $user->Add($arFields);
+
+        $this->assertTrue((int)$ID > 0);
+
+        RetailCrmHistory::customerHistory();
+
+        $dbUser = CUser::GetList(($by = 'ID'), ($sort = 'DESC'), array('=EMAIL' => 'testbitrixreg@gmail.com'));
+
+        $this->assertEquals(2, $dbUser->SelectedRowsCount());
+    }
 
     public function testSetPasswordUser(): void
     {

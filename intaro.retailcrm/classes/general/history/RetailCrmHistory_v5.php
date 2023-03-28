@@ -161,15 +161,15 @@ class RetailCrmHistory
 
                             continue;
                         }
-                    }
 
-                    if(RCrmActions::apiMethod(
-                            $api,
-                            'customersFixExternalIds',
-                            __METHOD__,
-                            array(array('id' => $customer['id'], 'externalId' => $registeredUserID))) == false
-                    ) {
-                        continue;
+                        if(RCrmActions::apiMethod(
+                                $api,
+                                'customersFixExternalIds',
+                                __METHOD__,
+                                array(array('id' => $customer['id'], 'externalId' => $registeredUserID))) == false
+                        ) {
+                            continue;
+                        }
                     }
 
                     $customer['externalId'] = $registeredUserID;
