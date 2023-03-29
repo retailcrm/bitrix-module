@@ -38,6 +38,18 @@ if (!isset($arResult['LEGAL_DETAILS'])) {
 
 if (!isset($arResult['CONTRAGENT_TYPES'])) {
     $arResult['CONTRAGENT_TYPES'] = unserialize(COption::GetOptionString($MODULE_ID, $CRM_CONTRAGENT_TYPE, 0));
+
+    if ($arResult['CONTRAGENT_TYPES'] === false) {
+        foreach ($arResult['contragentType'] as $crmContrAgentType) {
+            if ($crmContrAgentType['ID'] === 'individual') {
+                $arResult['CONTRAGENT_TYPES']['1'] = 'individual';
+            }
+
+            if ($crmContrAgentType['ID'] === 'legal-entity') {
+                $arResult['CONTRAGENT_TYPES']['2'] = 'legal-entity';
+            }
+        }
+    }
 }
 
 if (isset($arResult['ORDER_PROPS'])) {
@@ -167,13 +179,12 @@ if (isset($arResult['ORDER_PROPS'])) {
                     <b>
                         <label>
                             <input class="addr" type="radio" name="address-detail-<?= $bitrixOrderType['ID']?>" value="0"
-                                <?= (count($defaultOrderProps[$bitrixOrderType['ID']]) < 6) ? 'checked' : '' ?>>
+                                <?= (is_array($defaultOrderProps[$bitrixOrderType['ID']]) && count($defaultOrderProps[$bitrixOrderType['ID']]) < 6) ? 'checked' : '' ?>>
                             <?= GetMessage('ADDRESS_SHORT')?>
                         </label>
                         <label>
                             <input class="addr" type="radio" name="address-detail-<?= $bitrixOrderType['ID']?>" value="1"
-                                <?= (count($defaultOrderProps[$bitrixOrderType['ID']]) > 5) ? 'checked' : '' ?>
-                            >
+                                <?= (is_array($defaultOrderProps[$bitrixOrderType['ID']]) && count($defaultOrderProps[$bitrixOrderType['ID']]) > 5) ? 'checked' : '' ?>>
                             <?= GetMessage('ADDRESS_FULL')?>
                         </label>
                     </b>
@@ -182,7 +193,7 @@ if (isset($arResult['ORDER_PROPS'])) {
             <?php endif; ?>
             
             <tr <?= ($countProps > 3) ? 'class="address-detail-' . $bitrixOrderType['ID'] . '"' : ''?>
-            <?= (($countProps > 3) && (count($defaultOrderProps[$bitrixOrderType['ID']]) < 6))
+            <?= (is_array($defaultOrderProps[$bitrixOrderType['ID']] && ($countProps > 3) && (count($defaultOrderProps[$bitrixOrderType['ID']]) < 6)))
                 ? 'style="display:none;"'
                 : ''
             ?>
