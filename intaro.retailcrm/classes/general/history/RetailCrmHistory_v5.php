@@ -1308,7 +1308,7 @@ class RetailCrmHistory
         if ($optionsSitesList) {
             $searchResult = array_search($shopCode, $optionsSitesList, true);
 
-            return is_string($searchResult) ? $searchResult : null;
+            return !empty($searchResult) ? (string) $searchResult : null;
         }
 
         $defaultSite = CSite::GetDefSite();

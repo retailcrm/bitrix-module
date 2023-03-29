@@ -23,7 +23,10 @@ $arResult['arSites'] = RCrmActions::getSitesList();
 $RETAIL_CRM_API = new ApiClient($api_host, $api_key);
 COption::SetOptionString($MODULE_ID, $CRM_API_HOST_OPTION, $api_host);
 COption::SetOptionString($MODULE_ID, $CRM_API_KEY_OPTION, $api_key);
-COption::SetOptionString($MODULE_ID, $CRM_SITES_LIST, serialize([]));
+
+if (count($arResult['arSites']) === 1) {
+    COption::SetOptionString($MODULE_ID, $CRM_SITES_LIST, serialize([]));
+}
 
 if (!isset($arResult['PAYMENT'])) {
     $arResult['PAYMENT'] = unserialize(COption::GetOptionString($MODULE_ID, $CRM_PAYMENT, 0));

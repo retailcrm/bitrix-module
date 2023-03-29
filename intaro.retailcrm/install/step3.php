@@ -24,7 +24,10 @@ $arResult['arSites'] = RCrmActions::getSitesList();
 $RETAIL_CRM_API = new ApiClient($api_host, $api_key);
 COption::SetOptionString($MODULE_ID, $CRM_API_HOST_OPTION, $api_host);
 COption::SetOptionString($MODULE_ID, $CRM_API_KEY_OPTION, $api_key);
-COption::SetOptionString($MODULE_ID, $CRM_SITES_LIST, serialize([]));
+
+if (count($arResult['arSites']) === 1) {
+    COption::SetOptionString($MODULE_ID, $CRM_SITES_LIST, serialize([]));
+}
 
 if (!isset($arResult['bitrixOrderTypesList'])) {
     $arResult['bitrixOrderTypesList'] = RCrmActions::OrderTypesList($arResult['arSites']);
