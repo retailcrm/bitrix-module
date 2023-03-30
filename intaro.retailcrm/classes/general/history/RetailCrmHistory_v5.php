@@ -126,7 +126,7 @@ class RetailCrmHistory
                     $registerNewUser = true;
 
                     if (!empty($customer['email'])) {
-                        $dbUser = CUser::GetList(($by = 'ID'), ($sort = 'DESC'), array('=EMAIL' => $customer['email']));
+                        $dbUser = CUser::GetList(($by = 'ID'), ($sort = 'DESC'), ['=EMAIL' => $customer['email']]);
 
                         switch ($dbUser->SelectedRowsCount()) {
                             case 0:
@@ -162,11 +162,14 @@ class RetailCrmHistory
                             continue;
                         }
 
-                        if(RCrmActions::apiMethod(
+                        if (
+                            RCrmActions::apiMethod
+                            (
                                 $api,
                                 'customersFixExternalIds',
                                 __METHOD__,
-                                array(array('id' => $customer['id'], 'externalId' => $registeredUserID))) == false
+                                [['id' => $customer['id'], 'externalId' => $registeredUserID]]
+                            ) == false
                         ) {
                             continue;
                         }
@@ -417,7 +420,7 @@ class RetailCrmHistory
                         $dbUser = CUser::GetList(
                             ($by = 'ID'),
                             ($sort = 'DESC'),
-                            array('=EMAIL' => $order['customer']['email'])
+                            ['=EMAIL' => $order['customer']['email']]
                         );
 
                         switch ($dbUser->SelectedRowsCount()) {
@@ -887,7 +890,7 @@ class RetailCrmHistory
                                 $dbUser = CUser::GetList(
                                     ($by = 'ID'),
                                     ($sort = 'DESC'),
-                                    array('=EMAIL' => $response['customer']['email'])
+                                    ['=EMAIL' => $response['customer']['email']]
                                 );
 
                                 switch ($dbUser->SelectedRowsCount()) {
