@@ -2,6 +2,8 @@
 
 use Bitrix\Sale\Order;
 use Bitrix\Currency\CurrencyManager;
+use Tests\Intaro\RetailCrm\DataHistory;
+
 /**
  * Class RetailCrmHistory_v5Test
  */
@@ -16,6 +18,82 @@ class RetailCrmHistory_v5Test extends \BitrixTestCase
 
         COption::SetOptionString('intaro.retailcrm', 'api_version', 'v5');
         CModule::IncludeModule('intaro.retailcrm');
+    }
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function testRegisterUser(): void
+    {
+        $actionsMock = Mockery::mock('alias:' . RCrmActions::class);
+
+        $actionsMock->shouldReceive('apiMethod')->withAnyArgs()->andReturn(DataHistory::get_history_data_new_customer());
+
+        $this->deleteTestingUser();
+        RetailCrmHistory::customerHistory();
+
+        $dbUser = CUser::GetList(($by = 'ID'), ($sort = 'DESC'), array('=EMAIL' => 'testbitrixreg@gmail.com'));
+
+        $this->assertEquals(1, $dbUser->SelectedRowsCount());
+    }
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function testUnregisterDoubleUser(): void
+    {
+        $this->deleteTestingUser();
+
+        $user = new CUser;
+        $arFields = [
+            'NAME' => 'test',
+            'LAST_NAME' => 'test',
+            'LOGIN' => 'test',
+            'EMAIL' => 'testbitrixreg@gmail.com',
+            'LID' => 'ru',
+            'ACTIVE' => 'Y',
+            'GROUP_ID' => [10, 11],
+            'PASSWORD' => '123456',
+            'CONFIRM_PASSWORD' => '123456',
+        ];
+
+        $ID = $user->Add($arFields);
+
+        $this->assertTrue((int) $ID > 0);
+
+        $actionsMock = Mockery::mock('alias:' . RCrmActions::class);
+        $actionsMock->shouldReceive('apiMethod')->withAnyArgs()->andReturn(DataHistory::get_history_data_new_customer());
+
+        RetailCrmHistory::customerHistory();
+
+        $dbUser = CUser::GetList(($by = 'ID'), ($sort = 'DESC'), array('=EMAIL' => 'testbitrixreg@gmail.com'));
+
+        $this->assertEquals(1, $dbUser->SelectedRowsCount());
+
+        $user = new CUser;
+        $arFields = [
+            'NAME' => 'test2',
+            'LAST_NAME' => 'test2',
+            'LOGIN' => 'test2',
+            'EMAIL' => 'testbitrixreg@gmail.com',
+            'LID' => 'ru',
+            'ACTIVE' => 'Y',
+            'GROUP_ID' => [10, 11],
+            'PASSWORD' => '123456',
+            'CONFIRM_PASSWORD' => '123456',
+        ];
+
+        $ID = $user->Add($arFields);
+
+        $this->assertTrue((int) $ID > 0);
+
+        RetailCrmHistory::customerHistory();
+
+        $dbUser = CUser::GetList(($by = 'ID'), ($sort = 'DESC'), array('=EMAIL' => 'testbitrixreg@gmail.com'));
+
+        $this->assertEquals(2, $dbUser->SelectedRowsCount());
     }
 
     public function testSetPasswordUser(): void
@@ -99,6 +177,17 @@ class RetailCrmHistory_v5Test extends \BitrixTestCase
         RetailCrmHistory::setManager($cmsOrder, ['externalId' => 1, 'managerId' => $crmManagerId]);
 
         $this->assertEquals(1515, $cmsOrder->getField('RESPONSIBLE_ID'));
+    }
+
+    private function deleteTestingUser(): void
+    {
+        $dbUser = CUser::GetList(($by = 'ID'), ($sort = 'DESC'), array('=EMAIL' => 'testbitrixreg@gmail.com'));
+
+        if ($dbUser->SelectedRowsCount() > 0) {
+            while ($user = $dbUser->Fetch()) {
+                CUser::Delete((int) $user['ID']);
+            }
+        }
     }
 
     private function getCustomers(): array

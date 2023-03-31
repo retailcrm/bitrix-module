@@ -126,7 +126,8 @@ class RetailCrmHistory
                     $registerNewUser = true;
 
                     if (!empty($customer['email'])) {
-                        $dbUser = CUser::GetList(($by = 'ID'), ($sort = 'ASC'), array('=EMAIL' => $customer['email']));
+                        $dbUser = CUser::GetList(($by = 'ID'), ($sort = 'DESC'), ['=EMAIL' => $customer['email']]);
+
                         switch ($dbUser->SelectedRowsCount()) {
                             case 0:
                                 $login = $customer['email'];
@@ -138,8 +139,9 @@ class RetailCrmHistory
                                 $registerNewUser = false;
                                 break;
                             default:
-                                $login = uniqid('user_' . time()) . '@example.com';
-                                $customerBuilder->setLogin($login);
+                                $lastBitrixUser = $dbUser->Fetch();
+                                $registeredUserID = $lastBitrixUser['ID'];
+                                $registerNewUser = false;
                                 break;
                         }
                     }
@@ -159,15 +161,18 @@ class RetailCrmHistory
 
                             continue;
                         }
-                    }
 
-                    if(RCrmActions::apiMethod(
-                            $api,
-                            'customersFixExternalIds',
-                            __METHOD__,
-                            array(array('id' => $customer['id'], 'externalId' => $registeredUserID))) == false
-                    ) {
-                        continue;
+                        if (
+                            RCrmActions::apiMethod
+                            (
+                                $api,
+                                'customersFixExternalIds',
+                                __METHOD__,
+                                [['id' => $customer['id'], 'externalId' => $registeredUserID]]
+                            ) == false
+                        ) {
+                            continue;
+                        }
                     }
 
                     $customer['externalId'] = $registeredUserID;
@@ -414,8 +419,8 @@ class RetailCrmHistory
 
                         $dbUser = CUser::GetList(
                             ($by = 'ID'),
-                            ($sort = 'ASC'),
-                            array('=EMAIL' => $order['customer']['email'])
+                            ($sort = 'DESC'),
+                            ['=EMAIL' => $order['customer']['email']]
                         );
 
                         switch ($dbUser->SelectedRowsCount()) {
@@ -429,8 +434,9 @@ class RetailCrmHistory
                                 $registerNewUser = false;
                                 break;
                             default:
-                                $login = uniqid('user_' . time()) . '@example.com';
-                                $corporateCustomerBuilder->setLogin($login);
+                                $lastBitrixUser = $dbUser->Fetch();
+                                $registeredUserID = $lastBitrixUser['ID'];
+                                $registerNewUser = false;
                                 break;
                         }
 
@@ -883,8 +889,8 @@ class RetailCrmHistory
                                 $registerNewUser = true;
                                 $dbUser = CUser::GetList(
                                     ($by = 'ID'),
-                                    ($sort = 'ASC'),
-                                    array('=EMAIL' => $response['customer']['email'])
+                                    ($sort = 'DESC'),
+                                    ['=EMAIL' => $response['customer']['email']]
                                 );
 
                                 switch ($dbUser->SelectedRowsCount()) {
@@ -899,9 +905,9 @@ class RetailCrmHistory
                                         $registerNewUser = false;
                                         break;
                                     default:
-                                        $login = uniqid('user_' . time()) . '@example.com';
-                                        $customerBuilder->setLogin($login);
-                                        $customerBuilder->buildPassword();
+                                        $lastBitrixUser = $dbUser->Fetch();
+                                        $registeredUserID = $lastBitrixUser['ID'];
+                                        $registerNewUser = false;
                                         break;
                                 }
 
