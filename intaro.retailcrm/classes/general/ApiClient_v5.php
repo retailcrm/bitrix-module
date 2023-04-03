@@ -12,6 +12,7 @@
 namespace RetailCrm;
 
 use InvalidArgumentException;
+use RetailCrm\Exception\CurlException;
 use RetailCrm\Http\Client;
 use RetailCrm\Response\ApiResponse;
 
@@ -3123,6 +3124,56 @@ class ApiClient
     {
         return $this->client->makeRequest(
             '/verification/sms/send',
+            Client::METHOD_POST,
+            $request
+        );
+    }
+
+    /**
+     * @param int $customerId
+     * @param string $site
+     * @param string $by
+     *
+     * @return ApiResponse
+     */
+    public function cartGet(int $customerId, string $site, string $by = 'externalId'): ApiResponse
+    {
+        $this->checkIdParameter($by);
+
+        return $this->client->makeRequest(
+            '/customer-interaction/' . $site . '/cart/' . $customerId,
+            Client::METHOD_GET,
+            $this->fillSite($site, array('by' => $by))
+        );
+    }
+
+    /**
+     * @param array $request
+     * @param string $site
+     * @throws CurlException
+     *
+     * @return ApiResponse
+     */
+    public function cartSet(array $request, string $site): ApiResponse
+    {
+        return $this->client->makeRequest(
+            '/customer-interaction/' . $site . '/cart/set',
+            Client::METHOD_POST,
+            $request
+        );
+    }
+
+    /**
+     * @param array $request
+     * @param string $site
+     * @throws CurlException
+     *
+     * @return ApiResponse
+     */
+    public function cartClear(array $request, string $site): ApiResponse
+    {
+        return $this->client->makeRequest(
+            '/customer-interaction/' . $site . '/cart/clear',
             Client::METHOD_POST,
             $request
         );
