@@ -485,6 +485,8 @@ class RCrmActions
                 return self::proxy($api, 'ordersPaymentEdit', $method, [$params, 'externalId', $site]);
             case 'customersCorporateEdit':
                 return self::proxy($api, 'customersCorporateEdit', $method, [$params, 'externalId', $site]);
+            case 'cartGet':
+                return self::proxy($api, $methodApi, $method, [$params, $site, 'externalId']);
             default:
             return self::proxy($api, $methodApi, $method, array($params, $site));
         }

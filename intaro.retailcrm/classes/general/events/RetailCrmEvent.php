@@ -105,11 +105,19 @@ class RetailCrmEvent
      */
     public  static function onChangeBasket($event)
     {
-        if (\Bitrix\Main\Engine\CurrentUser::get->getId()) {
+        $id = \Bitrix\Main\Engine\CurrentUser::get()->getId();
 
+        if ($id) {
+            $arBasket = RetailCrmCart::getBasketArray($event);
+
+            if ($arBasket === null) {
+                return;
+            }
+
+            $arBasket['USER_ID'] = $id;
+
+            RetailCrmCart::prepareCart($arBasket);
         }
-
-        return;
     }
 
     /**
@@ -648,25 +656,5 @@ class RetailCrmEvent
         }
 
         return true;
-    }
-
-    /**
-     * @param \Bitrix\Sale\Order|\Bitrix\Main\Event $event
-     *
-     * @throws \Bitrix\Main\SystemException
-     */
-    private static function getOrderArray($event): ?array
-    {
-        if ($event instanceof Order) {
-            $obOrder = $event;
-        } elseif ($event instanceof Event) {
-            $obOrder = $event->getParameter('ENTITY');
-        } else {
-            RCrmActions::eventLog('RetailCrmEvent::orderSave', 'events', 'event error');
-
-            return null;
-        }
-
-        return RetailCrmOrder::orderObjToArr($obOrder);
     }
 }

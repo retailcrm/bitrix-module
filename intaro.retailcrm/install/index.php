@@ -198,6 +198,7 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../classes/general/ApiClient_v5.php');
         include($this->INSTALL_PATH . '/../classes/general/order/RetailCrmOrder_v5.php');
         include($this->INSTALL_PATH . '/../classes/general/history/RetailCrmHistory_v5.php');
+        include($this->INSTALL_PATH . '/../classes/general/cart/RetailCrmCart_v5.php');
 
         $step = (int) $_REQUEST['step'];
 
@@ -1213,6 +1214,7 @@ class intaro_retailcrm extends CModule
         require_once($this->INSTALL_PATH . '/../classes/general/order/RetailCrmOrder_v5.php');
         require_once($this->INSTALL_PATH . '/../classes/general/history/RetailCrmHistory_v5.php');
         require_once($this->INSTALL_PATH . '/../lib/component/constants.php');
+        include($this->INSTALL_PATH . '/../classes/general/cart/RetailCrmCart_v5.php');
 
         $retail_crm_api = new ApiClient($api_host, $api_key);
 
