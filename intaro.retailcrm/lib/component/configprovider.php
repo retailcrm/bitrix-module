@@ -1053,6 +1053,14 @@ class ConfigProvider
     }
 
     /**
+     * @return void
+     */
+    public static function setAbandonedCart($optionCart)
+    {
+        COption::SetOptionString(Constants::MODULE_ID, Constants::ABANDONED_CART, $optionCart);
+    }
+
+    /**
      * @param string $version
      *
      * @return mixed

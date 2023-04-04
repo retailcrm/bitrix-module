@@ -320,15 +320,17 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         RegisterModuleDependences('sale', 'OnSaleOrderDeleted', $mid, 'RetailCrmEvent', "orderDelete");
     }
 
-    $optionCart = COption::GetOptionString($mid, $CRM_ABANDONED_CART, 0);
+    $optionCart = COption::GetOptionString($mid, $CRM_ABANDONED_CART, 'N');
 
     $abandonedCart = htmlspecialchars(trim($_POST['abandoned_cart']));
 
     if ($abandonedCart != $optionCart) {
-        if ($abandonedCart === 'N') {
-            UnRegisterModuleDependences('sale', 'OnSaleBasketSaved', $mid, 'RetailCrmEvent', 'onChangeBasket');
-        } elseif ($abandonedCart === 'Y') {
+        if ($abandonedCart === 'Y') {
+            $optionCart = 'Y';
             RegisterModuleDependences('sale', 'OnSaleBasketSaved', $mid, 'RetailCrmEvent', 'onChangeBasket');
+        } else {
+            $optionCart = 'N';
+            UnRegisterModuleDependences('sale', 'OnSaleBasketSaved', $mid, 'RetailCrmEvent', 'onChangeBasket');
         }
     }
 
@@ -770,6 +772,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     );
     RetailcrmConfigProvider::setSendPaymentAmount($sendPaymentAmount);
     RetailCrmConfigProvider::setDiscountRound($discount_round);
+    RetailcrmConfigProvider::setAbandonedCart($optionCart);
     COption::SetOptionString(
         $mid,
         $CRM_PURCHASE_PRICE_NULL,
@@ -937,7 +940,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $optionsOrderDimensions = COption::GetOptionString($mid, $CRM_DIMENSIONS, 'N');
     $addressOptions = unserialize(COption::GetOptionString($mid, $CRM_ADDRESS_OPTIONS, 0));
 
-    $optionCart = COption::GetOptionString($mid, $CRM_ABANDONED_CART, 0);
+    $optionCart = COption::GetOptionString($mid, $CRM_ABANDONED_CART, 'N');
 
     //loyalty program options
     $loyaltyProgramToggle = ConfigProvider::getLoyaltyProgramStatus();
