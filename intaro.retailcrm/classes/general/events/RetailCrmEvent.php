@@ -99,6 +99,20 @@ class RetailCrmEvent
     }
 
     /**
+     * событие изменения корзины
+     *
+     * @param object $event
+     */
+    public  static function onChangeBasket($event)
+    {
+        if (\Bitrix\Main\Engine\CurrentUser::get->getId()) {
+
+        }
+
+        return;
+    }
+
+    /**
      * @param $event
      *
      * @return array|bool|OrdersCreateResponse|OrdersEditResponse|null
