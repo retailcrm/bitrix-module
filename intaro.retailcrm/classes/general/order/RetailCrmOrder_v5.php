@@ -48,9 +48,19 @@ class RetailCrmOrder
         $site = null,
         string $methodApi = 'ordersEdit'
     ) {
+        RCrmActions::eventLog(
+            'RetailCrmOrder::orderSend',
+            'retailCrmBeforeOrderSend()',
+            'Before api check'
+        );
         if (!$api || empty($arParams)) { // add cond to check $arParams
             return null;
         }
+        RCrmActions::eventLog(
+            'RetailCrmOrder::orderSend',
+            'retailCrmBeforeOrderSend()',
+            'beginSend'
+        );
 
         if (empty($arOrder)) {
             RCrmActions::eventLog('RetailCrmOrder::orderSend', 'empty($arFields)', 'incorrect order');
@@ -400,6 +410,27 @@ class RetailCrmOrder
 
         if ($send) {
             if ($methodApi === 'ordersCreate') {
+                RCrmActions::eventLog(
+                    'RetailCrmOrder::orderSend',
+                    'retailCrmBeforeOrderSend()',
+                    'lolSend'
+                );
+                if (isset($arParams['customerCorporate']) && !empty($order['contact']['externalId'])) {
+                    $externalId = $order['contact']['externalId'];
+                } else {
+                    $externalId = $order['customer']['externalId'];
+                }
+
+                if ($site === null) {
+                    $site = RetailcrmConfigProvider::getSitesAvailable();
+                }
+
+                $crmBasket = RCrmActions::apiMethod($api, 'cartGet', __METHOD__, $externalId, $site);
+
+                if (!empty($crmBasket)) {
+                    $order['isFromCart'] = true;
+                }
+
                 return $client->createOrder($order, $site);
             }
 

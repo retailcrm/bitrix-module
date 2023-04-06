@@ -12,6 +12,7 @@
 namespace RetailCrm;
 
 use InvalidArgumentException;
+use RCrmActions;
 use RetailCrm\Exception\CurlException;
 use RetailCrm\Http\Client;
 use RetailCrm\Response\ApiResponse;
@@ -3148,34 +3149,53 @@ class ApiClient
     }
 
     /**
-     * @param array $request
+     * @param array $cart
      * @param string $site
      * @throws CurlException
      *
      * @return ApiResponse
      */
-    public function cartSet(array $request, string $site): ApiResponse
+    public function cartSet(array $cart, string $site): ApiResponse
     {
-        return $this->client->makeRequest(
+
+        /*RCrmActions::eventLog(
+            'RetailCrmCart::prepareCart',
+            'RetailcrmConfigProvider::getSitesList',
+            print_r($cart, true)
+        );*/
+
+        $response = $this->client->makeRequest(
             '/customer-interaction/' . $site . '/cart/set',
             Client::METHOD_POST,
-            $request
+            ['cart' => json_encode($cart)]
         );
+       /* RCrmActions::eventLog(
+            'RetailCrmCart::prepareCart',
+            'RetailcrmConfigProvider::getSitesList',
+            print_r($response, true)
+        );*/
+
+        return $response;
+        /*return $this->client->makeRequest(
+            '/customer-interaction/' . $site . '/cart/set',
+            Client::METHOD_POST,
+            ['cart' => json_encode($cart)]
+        );*/
     }
 
     /**
-     * @param array $request
+     * @param array $cart
      * @param string $site
      * @throws CurlException
      *
      * @return ApiResponse
      */
-    public function cartClear(array $request, string $site): ApiResponse
+    public function cartClear(array $cart, string $site): ApiResponse
     {
         return $this->client->makeRequest(
             '/customer-interaction/' . $site . '/cart/clear',
             Client::METHOD_POST,
-            $request
+            ['cart' => json_encode($cart)]
         );
     }
 }

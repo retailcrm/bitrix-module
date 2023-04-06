@@ -41,14 +41,14 @@ trait CartTrait
     /**
      * Создание или перезапись данных корзины
      *
-     * @param array $request
+     * @param array $cart
      * @param string $site
      *
      * @return CartResponse|null
      */
-    public function cartSet(array $request, string $site): ?CartResponse
+    public function cartSet(array $cart, string $site): ?CartResponse
     {
-        $response = $this->client->cartSet($request, $site);
+        $response = $this->client->cartSet($cart, $site);
 
         return Deserializer::deserializeArray($response->getResponseBody(), CartResponse::class);
     }
@@ -56,14 +56,14 @@ trait CartTrait
     /**
      * Очистка текущей корзины клиента
      *
-     * @param array $request
+     * @param array $cart
      * @param string $site
      *
      * @return CartResponse|null
      */
-    public function cartClear(array $request, string $site): ?CartResponse
+    public function cartClear(array $cart, string $site): ?CartResponse
     {
-        $response = $this->client->cartClear($request, $site);
+        $response = $this->client->cartClear($cart, $site);
 
         return Deserializer::deserializeArray($response->getResponseBody(), CartResponse::class);
     }

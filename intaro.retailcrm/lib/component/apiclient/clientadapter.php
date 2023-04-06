@@ -20,6 +20,8 @@ use Intaro\RetailCrm\Component\ApiClient\Traits\CustomersTrait;
 use Intaro\RetailCrm\Component\ApiClient\Traits\LoyaltyTrait;
 use Intaro\RetailCrm\Component\ApiClient\Traits\OrderTrait;
 use Intaro\RetailCrm\Component\Json\Deserializer;
+use Intaro\RetailCrm\Model\Api\Response\Cart\CartGetResponse;
+use Intaro\RetailCrm\Model\Api\Response\Cart\CartResponse;
 use Intaro\RetailCrm\Model\Api\Response\Settings\CredentialsResponse;
 use RetailCrm\Response\ApiResponse;
 
@@ -103,6 +105,9 @@ use RetailCrm\Response\ApiResponse;
  * @method ApiResponse statisticUpdate()
  * @method ApiResponse getSite()
  * @method ApiResponse setSite($site)
+ * @method ApiResponse cartGet(int $id, string $site, string $by = 'externalId')
+ * @method ApiResponse cartSet(array $cart, string $site)
+ * @method ApiResponse cartClear(array $cart, string $site)
  */
 class ClientAdapter
 {

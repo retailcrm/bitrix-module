@@ -134,6 +134,11 @@ class RetailCrmEvent
         if (!static::checkConfig()) {
             return null;
         }
+        RCrmActions::eventLog(
+            'RetailCrmOrder::orderSend',
+            'retailCrmBeforeOrderSend()',
+            'beginSave'
+        );
 
         $arOrder = static::getOrderArray($event);
         $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
@@ -170,6 +175,11 @@ class RetailCrmEvent
             if (array_key_exists($arOrder['LID'], $optionsSitesList) && $optionsSitesList[$arOrder['LID']] !== null) {
                 $site = $optionsSitesList[$arOrder['LID']];
             } else {
+                RCrmActions::eventLog(
+                    'RetailCrmOrder::orderSend',
+                    'retailCrmBeforeOrderSend()',
+                    'nullSite'
+                );
                 return null;
             }
         } elseif (!$optionsSitesList) {

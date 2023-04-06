@@ -19,6 +19,8 @@ class RetailCrmCart
         if ($optionsSitesList) {
             if (array_key_exists($arBasket['LID'], $optionsSitesList) && $optionsSitesList[$arBasket['LID']] !== null) {
                 $site = $optionsSitesList[$arBasket['LID']];
+
+                $api->setSite($site);
             } else {
                 RCrmActions::eventLog(
                     'RetailCrmCart::prepareCart',
@@ -31,18 +33,59 @@ class RetailCrmCart
         } else {
             $site = RetailcrmConfigProvider::getSitesAvailable();
         }
-        //метод апи работает
-        //if (!empty($arBasket['BASKET'])) {
-            $crmBasket = RCrmActions::apiMethod($api, 'cartGet', __METHOD__, $arBasket['USER_ID'], $site);
-            RCrmActions::eventLog(
-                'RetailCrmCart::prepareCart',
-                'RetailcrmConfigProvider::getSitesList',
-                print_r($crmBasket, true)
-            );
-      //  }
-        //$crmBasket конверт в массив нужен или юзать объект
-       /* if (empty($arBasket['BASKET']) && $crmBasket) если не пустой, очищать.*/
-        //$api->setSite($site);
+
+        $crmBasket = RCrmActions::apiMethod($api, 'cartGet', __METHOD__, $arBasket['USER_ID'], $site);
+
+        if (empty($arBasket['BASKET'])) {
+            if (!empty($crmBasket['cart']['items'])) {
+                RCrmActions::apiMethod(
+                    $api,
+                    'cartClear',
+                    __METHOD__,
+                    [
+                        'customer' => [
+                            'externalId' => $arBasket['USER_ID']
+                        ]
+                    ],
+                    $site
+                );
+
+                return;
+            }
+
+            return;
+        }
+
+        $date = 'createdAt';
+        $items = [];
+
+        foreach ($arBasket['BASKET'] as $itemBitrix) {
+            $item['quantity'] = $itemBitrix['QUANTITY'];
+            $item['price'] =  $itemBitrix['PRICE'];
+            $item['createdAt'] = $itemBitrix['DATE_INSERT']->format('Y-m-d H:i:sP');
+            $item['updateAt'] = $itemBitrix['DATE_UPDATE']->format('Y-m-d H:i:sP');
+            $item['offer']['externalId'] = $itemBitrix['PRODUCT_ID'];
+            $items[] = $item;
+        }
+
+        if (!empty($crmBasket['cart']['items'])) {
+            $date = 'updatedAt';
+        }
+
+        RCrmActions::apiMethod(
+            $api,
+            'cartSet',
+            __METHOD__,
+            [
+                'customer' => [
+                    'externalId' => $arBasket['USER_ID'],
+                    'site' => $site,
+                    $date => date("Y-m-d H-i-sP"),
+                ],
+                'items' => $items,
+            ],
+            $site
+        );
     }
 
     /**
@@ -57,12 +100,11 @@ class RetailCrmCart
         } elseif ($event instanceof Event) {
             $obBasket = $event->getParameter('ENTITY');
         } else {
-            RCrmActions::eventLog('RetailCrmEvent::onChangeBasket', 'events', 'event error');
+            RCrmActions::eventLog('RetailCrmEvent::onChangeBasket', 'getBasketArray', 'event error');
 
             return null;
         }
 
-        $culture = new Culture(['FORMAT_DATETIME' => 'Y-m-d HH:i:s']);
         $arBasket = [
             'LID' => $obBasket->getSiteId(),
         ];
