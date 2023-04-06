@@ -11,7 +11,9 @@ IncludeModuleLangFile(__FILE__);
  */
 class RetailCrmCart
 {
-    public static function prepareCart(array $arBasket)
+    private static string $dateFormat = "Y-m-d H:i:sP";
+
+    public static function prepareCart(array $arBasket): void
     {
         $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
         $optionsSitesList = RetailcrmConfigProvider::getSitesList();
@@ -28,7 +30,7 @@ class RetailCrmCart
                     'Error set site'
                 );
 
-                return null;
+                return;
             }
         } else {
             $site = RetailcrmConfigProvider::getSitesAvailable();
@@ -43,6 +45,7 @@ class RetailCrmCart
                     'cartClear',
                     __METHOD__,
                     [
+                        'clearedAt' => date(self::$dateFormat),
                         'customer' => [
                             'externalId' => $arBasket['USER_ID']
                         ]
@@ -62,8 +65,8 @@ class RetailCrmCart
         foreach ($arBasket['BASKET'] as $itemBitrix) {
             $item['quantity'] = $itemBitrix['QUANTITY'];
             $item['price'] =  $itemBitrix['PRICE'];
-            $item['createdAt'] = $itemBitrix['DATE_INSERT']->format('Y-m-d H:i:sP');
-            $item['updateAt'] = $itemBitrix['DATE_UPDATE']->format('Y-m-d H:i:sP');
+            $item['createdAt'] = $itemBitrix['DATE_INSERT']->format(self::$dateFormat);
+            $item['updateAt'] = $itemBitrix['DATE_UPDATE']->format(self::$dateFormat);
             $item['offer']['externalId'] = $itemBitrix['PRODUCT_ID'];
             $items[] = $item;
         }
@@ -80,7 +83,7 @@ class RetailCrmCart
                 'customer' => [
                     'externalId' => $arBasket['USER_ID'],
                     'site' => $site,
-                    $date => date("Y-m-d H-i-sP"),
+                    $date => date(self::$dateFormat),
                 ],
                 'items' => $items,
             ],

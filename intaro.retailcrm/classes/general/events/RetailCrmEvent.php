@@ -134,11 +134,6 @@ class RetailCrmEvent
         if (!static::checkConfig()) {
             return null;
         }
-        RCrmActions::eventLog(
-            'RetailCrmOrder::orderSend',
-            'retailCrmBeforeOrderSend()',
-            'beginSave'
-        );
 
         $arOrder = static::getOrderArray($event);
         $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
@@ -666,5 +661,25 @@ class RetailCrmEvent
         }
 
         return true;
+    }
+
+    /**
+     * @param \Bitrix\Sale\Order|\Bitrix\Main\Event $event
+     *
+     * @throws \Bitrix\Main\SystemException
+     */
+    private static function getOrderArray($event): ?array
+    {
+        if ($event instanceof Order) {
+            $obOrder = $event;
+        } elseif ($event instanceof Event) {
+            $obOrder = $event->getParameter('ENTITY');
+        } else {
+            RCrmActions::eventLog('RetailCrmEvent::orderSave', 'events', 'event error');
+
+            return null;
+        }
+
+        return RetailCrmOrder::orderObjToArr($obOrder);
     }
 }
