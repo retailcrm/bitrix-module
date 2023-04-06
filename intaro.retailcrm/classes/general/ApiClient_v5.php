@@ -3157,30 +3157,11 @@ class ApiClient
      */
     public function cartSet(array $cart, string $site): ApiResponse
     {
-
-        /*RCrmActions::eventLog(
-            'RetailCrmCart::prepareCart',
-            'RetailcrmConfigProvider::getSitesList',
-            print_r($cart, true)
-        );*/
-
-        $response = $this->client->makeRequest(
+        return $this->client->makeRequest(
             '/customer-interaction/' . $site . '/cart/set',
             Client::METHOD_POST,
             ['cart' => json_encode($cart)]
         );
-       /* RCrmActions::eventLog(
-            'RetailCrmCart::prepareCart',
-            'RetailcrmConfigProvider::getSitesList',
-            print_r($response, true)
-        );*/
-
-        return $response;
-        /*return $this->client->makeRequest(
-            '/customer-interaction/' . $site . '/cart/set',
-            Client::METHOD_POST,
-            ['cart' => json_encode($cart)]
-        );*/
     }
 
     /**

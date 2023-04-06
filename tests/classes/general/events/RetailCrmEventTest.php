@@ -169,6 +169,60 @@ class RetailCrmEventTest extends PHPUnit\Framework\TestCase
     }
 
     /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function testSetBasket(): void
+    {
+        $arBasket = $this->getBasket();
+        $crmBasket = $this->getCrmCart();
+
+        $actionsMock = Mockery::mock('alias:' . RCrmActions::class);
+
+        $actionsMock->shouldReceive('apiMethod')->withAnyArgs()->andReturn($crmBasket, ['success' => true]);
+
+        $result = RetailCrmCart::prepareCart($arBasket);
+
+        self::assertTrue($result['success']);
+    }
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function testClearBasket(): void
+    {
+        $arBasket = ['LID' => 's1', 'USER_ID' => '1',];
+        $crmBasket = $this->getCrmCart();
+
+        $actionsMock = Mockery::mock('alias:' . RCrmActions::class);
+
+        $actionsMock->shouldReceive('apiMethod')->withAnyArgs()->andReturn($crmBasket, ['success' => true]);
+
+        $result = RetailCrmCart::prepareCart($arBasket);
+
+        self::assertTrue($result['success']);
+    }
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function testIgnoreChangeBasket()
+    {
+        $arBasket = ['LID' => 's1', 'USER_ID' => '1',];
+        $crmBasket = [];
+
+        $actionsMock = Mockery::mock('alias:' . RCrmActions::class);
+
+        $actionsMock->shouldReceive('apiMethod')->withAnyArgs()->andReturn($crmBasket);
+
+        $result = RetailCrmCart::prepareCart($arBasket);
+
+        self::assertNull($result);
+    }
+
+    /**
      * @return array
      */
     public function userUpdateDataProvider()
@@ -237,5 +291,44 @@ class RetailCrmEventTest extends PHPUnit\Framework\TestCase
         $GLOBALS['RETAIL_CRM_HISTORY'] = false;
         $GLOBALS['RETAILCRM_ORDER_OLD_EVENT'] = true;
         $GLOBALS['RETAILCRM_ORDER_DELETE'] = false;
+    }
+
+    /**
+     * @return array
+     */
+    public function getBasket(): array
+    {
+        return [
+            'LID' => 's1',
+            'USER_ID' => '1',
+            'BASKET' => [
+                [
+                    'QUANTITY' => 2,
+                    'PRICE' => 100,
+                    'DATE_INSERT' => new DateTime('now'),
+                    'DATE_UPDATE' => new DateTime('now'),
+                    'PRODUCT_ID' => '10'
+                ],
+                [
+                    'QUANTITY' => 1,
+                    'PRICE' => 300,
+                    'DATE_INSERT' => new DateTime('now'),
+                    'DATE_UPDATE' => new DateTime('now'),
+                    'PRODUCT_ID' => '2'
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * @return array
+     */
+    public function getCrmCart(): array
+    {
+        return [
+            'cart' => [
+                'items' => 'items'
+            ]
+        ];
     }
 }

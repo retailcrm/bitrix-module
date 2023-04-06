@@ -48,19 +48,9 @@ class RetailCrmOrder
         $site = null,
         string $methodApi = 'ordersEdit'
     ) {
-        RCrmActions::eventLog(
-            'RetailCrmOrder::orderSend',
-            'retailCrmBeforeOrderSend()',
-            'Before api check'
-        );
         if (!$api || empty($arParams)) { // add cond to check $arParams
             return null;
         }
-        RCrmActions::eventLog(
-            'RetailCrmOrder::orderSend',
-            'retailCrmBeforeOrderSend()',
-            'beginSend'
-        );
 
         if (empty($arOrder)) {
             RCrmActions::eventLog('RetailCrmOrder::orderSend', 'empty($arFields)', 'incorrect order');

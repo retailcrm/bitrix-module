@@ -13,7 +13,15 @@ class RetailCrmCart
 {
     private static string $dateFormat = "Y-m-d H:i:sP";
 
-    public static function prepareCart(array $arBasket): void
+    /**
+     * @param array $arBasket
+     * @throws \Bitrix\Main\ArgumentException
+     * @throws \Bitrix\Main\ObjectPropertyException
+     * @throws \Bitrix\Main\SystemException
+     *
+     * @return array|null
+     */
+    public static function prepareCart(array $arBasket)
     {
         $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
         $optionsSitesList = RetailcrmConfigProvider::getSitesList();
@@ -30,7 +38,7 @@ class RetailCrmCart
                     'Error set site'
                 );
 
-                return;
+                return null;
             }
         } else {
             $site = RetailcrmConfigProvider::getSitesAvailable();
@@ -40,7 +48,7 @@ class RetailCrmCart
 
         if (empty($arBasket['BASKET'])) {
             if (!empty($crmBasket['cart']['items'])) {
-                RCrmActions::apiMethod(
+                return RCrmActions::apiMethod(
                     $api,
                     'cartClear',
                     __METHOD__,
@@ -52,11 +60,9 @@ class RetailCrmCart
                     ],
                     $site
                 );
-
-                return;
             }
 
-            return;
+            return null;
         }
 
         $date = 'createdAt';
@@ -75,7 +81,7 @@ class RetailCrmCart
             $date = 'updatedAt';
         }
 
-        RCrmActions::apiMethod(
+        return RCrmActions::apiMethod(
             $api,
             'cartSet',
             __METHOD__,
