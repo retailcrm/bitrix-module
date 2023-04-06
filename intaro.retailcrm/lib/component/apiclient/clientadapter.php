@@ -20,8 +20,6 @@ use Intaro\RetailCrm\Component\ApiClient\Traits\CustomersTrait;
 use Intaro\RetailCrm\Component\ApiClient\Traits\LoyaltyTrait;
 use Intaro\RetailCrm\Component\ApiClient\Traits\OrderTrait;
 use Intaro\RetailCrm\Component\Json\Deserializer;
-use Intaro\RetailCrm\Model\Api\Response\Cart\CartGetResponse;
-use Intaro\RetailCrm\Model\Api\Response\Cart\CartResponse;
 use Intaro\RetailCrm\Model\Api\Response\Settings\CredentialsResponse;
 use RetailCrm\Response\ApiResponse;
 

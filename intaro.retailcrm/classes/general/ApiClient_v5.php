@@ -12,7 +12,6 @@
 namespace RetailCrm;
 
 use InvalidArgumentException;
-use RCrmActions;
 use RetailCrm\Exception\CurlException;
 use RetailCrm\Http\Client;
 use RetailCrm\Response\ApiResponse;

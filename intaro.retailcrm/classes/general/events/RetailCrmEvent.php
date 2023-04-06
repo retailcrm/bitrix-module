@@ -170,11 +170,6 @@ class RetailCrmEvent
             if (array_key_exists($arOrder['LID'], $optionsSitesList) && $optionsSitesList[$arOrder['LID']] !== null) {
                 $site = $optionsSitesList[$arOrder['LID']];
             } else {
-                RCrmActions::eventLog(
-                    'RetailCrmOrder::orderSend',
-                    'retailCrmBeforeOrderSend()',
-                    'nullSite'
-                );
                 return null;
             }
         } elseif (!$optionsSitesList) {
