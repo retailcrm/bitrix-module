@@ -62,7 +62,7 @@ $CRM_ADDRESS_OPTIONS = 'address_options';
 $CRM_DIMENSIONS      = 'order_dimensions';
 $PROTOCOL            = 'protocol';
 $CRM_PURCHASE_PRICE_NULL = 'purchasePrice_null';
-$CRM_ABANDONED_CART = 'abandoned_cart';
+$CRM_CART = 'cart';
 
 if (!CModule::IncludeModule('intaro.retailcrm') || !CModule::IncludeModule('sale') || !CModule::IncludeModule('iblock') || !CModule::IncludeModule('catalog')) {
     return;
@@ -320,12 +320,12 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         RegisterModuleDependences('sale', 'OnSaleOrderDeleted', $mid, 'RetailCrmEvent', "orderDelete");
     }
 
-    $optionCart = COption::GetOptionString($mid, $CRM_ABANDONED_CART, 'N');
+    $optionCart = COption::GetOptionString($mid, $CRM_CART, 'N');
 
-    $abandonedCart = htmlspecialchars(trim($_POST['abandoned_cart']));
+    $cart = htmlspecialchars(trim($_POST['cart']));
 
-    if ($abandonedCart != $optionCart) {
-        if ($abandonedCart === 'Y') {
+    if ($cart != $optionCart) {
+        if ($cart === 'Y') {
             $optionCart = 'Y';
             RegisterModuleDependences('sale', 'OnSaleBasketSaved', $mid, 'RetailCrmEvent', 'onChangeBasket');
         } else {
@@ -772,7 +772,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     );
     RetailcrmConfigProvider::setSendPaymentAmount($sendPaymentAmount);
     RetailCrmConfigProvider::setDiscountRound($discount_round);
-    RetailcrmConfigProvider::setAbandonedCart($optionCart);
+    RetailcrmConfigProvider::setCart($optionCart);
     COption::SetOptionString(
         $mid,
         $CRM_PURCHASE_PRICE_NULL,
@@ -940,7 +940,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $optionsOrderDimensions = COption::GetOptionString($mid, $CRM_DIMENSIONS, 'N');
     $addressOptions = unserialize(COption::GetOptionString($mid, $CRM_ADDRESS_OPTIONS, 0));
 
-    $optionCart = COption::GetOptionString($mid, $CRM_ABANDONED_CART, 'N');
+    $optionCart = COption::GetOptionString($mid, $CRM_CART, 'N');
 
     //loyalty program options
     $loyaltyProgramToggle = ConfigProvider::getLoyaltyProgramStatus();
@@ -2359,7 +2359,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             <tr class="heading r-ac-button">
                 <td colspan="2" class="option-other-heading">
                     <b>
-                        <label><input class="addr" type="checkbox" name="abandoned_cart" value="Y" <?php if ($optionCart === 'Y') echo "checked"; ?>><?php echo GetMessage('ABANDONED_CART'); ?></label>
+                        <label><input class="addr" type="checkbox" name="cart" value="Y" <?php if ($optionCart === 'Y') echo "checked"; ?>><?php echo GetMessage('CART'); ?></label>
                     </b>
                 </td>
             </tr>
@@ -2368,7 +2368,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 echo 'style="display: none;"';
             } ?>>
                 <td class="option-head" colspan="2">
-                    <b><?php echo GetMessage('ABANDONED_CART_LABEL'); ?></b>
+                    <b><?php echo GetMessage('CART_DESCRIPTION'); ?></b>
                 </td>
             </tr>
 
