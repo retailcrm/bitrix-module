@@ -556,6 +556,10 @@ class SettingsService
             $dbSkuProperties = CIBlock::GetProperties($iblockOffer['IBLOCK_ID'], []);
 
             while ($prop = $dbSkuProperties->Fetch()) {
+                if ($prop['PROPERTY_TYPE'] === 'L' && $prop['MULTIPLE'] === 'Y') {
+                    continue;
+                }
+
                 $propertiesSKU[] = $prop;
             }
         }
@@ -610,6 +614,10 @@ class SettingsService
         $iblockResult = CIBlock::GetProperties($iblockId, []);
 
         while ($prop = $iblockResult->Fetch()) {
+            if ($prop['PROPERTY_TYPE'] === 'L' && $prop['MULTIPLE'] === 'Y') {
+                continue;
+            }
+
             $propertiesProduct[] = $prop;
         }
 
