@@ -3143,7 +3143,7 @@ class ApiClient
         return $this->client->makeRequest(
             '/customer-interaction/' . $site . '/cart/' . $customerId,
             Client::METHOD_GET,
-            $this->fillSite($site, array('by' => $by))
+            $this->fillSite($site, ['by' => $by])
         );
     }
 

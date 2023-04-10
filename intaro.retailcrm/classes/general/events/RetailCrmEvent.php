@@ -116,7 +116,7 @@ class RetailCrmEvent
 
             $arBasket['USER_ID'] = $id;
 
-            RetailCrmCart::prepareCart($arBasket);
+            RetailCrmCart::interactionCart($arBasket);
         }
     }
 

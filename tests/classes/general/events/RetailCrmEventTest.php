@@ -181,7 +181,7 @@ class RetailCrmEventTest extends PHPUnit\Framework\TestCase
 
         $actionsMock->shouldReceive('apiMethod')->withAnyArgs()->andReturn($crmBasket, ['success' => true]);
 
-        $result = RetailCrmCart::prepareCart($arBasket);
+        $result = RetailCrmCart::interactionCart($arBasket);
 
         self::assertTrue($result['success']);
     }
@@ -192,14 +192,14 @@ class RetailCrmEventTest extends PHPUnit\Framework\TestCase
      */
     public function testClearBasket(): void
     {
-        $arBasket = ['LID' => 's1', 'USER_ID' => '1',];
+        $arBasket = ['LID' => 's1', 'USER_ID' => '1'];
         $crmBasket = $this->getCrmCart();
 
         $actionsMock = Mockery::mock('alias:' . RCrmActions::class);
 
         $actionsMock->shouldReceive('apiMethod')->withAnyArgs()->andReturn($crmBasket, ['success' => true]);
 
-        $result = RetailCrmCart::prepareCart($arBasket);
+        $result = RetailCrmCart::interactionCart($arBasket);
 
         self::assertTrue($result['success']);
     }
@@ -210,14 +210,14 @@ class RetailCrmEventTest extends PHPUnit\Framework\TestCase
      */
     public function testIgnoreChangeBasket()
     {
-        $arBasket = ['LID' => 's1', 'USER_ID' => '1',];
+        $arBasket = ['LID' => 's1', 'USER_ID' => '1'];
         $crmBasket = [];
 
         $actionsMock = Mockery::mock('alias:' . RCrmActions::class);
 
         $actionsMock->shouldReceive('apiMethod')->withAnyArgs()->andReturn($crmBasket);
 
-        $result = RetailCrmCart::prepareCart($arBasket);
+        $result = RetailCrmCart::interactionCart($arBasket);
 
         self::assertNull($result);
     }

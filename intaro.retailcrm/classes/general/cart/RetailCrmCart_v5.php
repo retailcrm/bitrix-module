@@ -21,7 +21,7 @@ class RetailCrmCart
      *
      * @return array|null
      */
-    public static function prepareCart(array $arBasket)
+    public static function interactionCart(array $arBasket)
     {
         $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
         $optionsSitesList = RetailcrmConfigProvider::getSitesList();
@@ -33,7 +33,7 @@ class RetailCrmCart
                 $api->setSite($site);
             } else {
                 RCrmActions::eventLog(
-                    'RetailCrmCart::prepareCart',
+                    'RetailCrmCart::interactionCart',
                     'RetailcrmConfigProvider::getSitesList',
                     'Error set site'
                 );
