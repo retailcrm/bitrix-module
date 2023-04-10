@@ -164,8 +164,7 @@ class IcmlDirector
             $selectParams->allParams = array_merge($selectParams->configurable, $selectParams->main);
 
             while ($xmlOffers = $this->xmlOfferDirector->getXmlOffersPart($selectParams, $catalogIblockInfo)) {
-                $this->icmlWriter->writeOffers($xmlOffers);
-
+                $this->icmlWriter->writeOffers($xmlOffers, $xmlOffers->activity === 'N');
                 $selectParams->pageNumber++;
             }
 
@@ -250,9 +249,15 @@ class IcmlDirector
         $paramsForOffer->allParams = array_merge($paramsForOffer->configurable, $paramsForOffer->main);
 
         do {
+            $productIsNotActive = false;
+
+            if ($product->activity === 'N') {
+                $productIsNotActive = true;
+            }
+
             //Если каталог проиндексирован, у товара есть Тип и это простой товар, то просто записываем его
             if ($product->productType === ProductTable::TYPE_PRODUCT) {
-                $this->icmlWriter->writeOffers([$product]);
+                $this->icmlWriter->writeOffers([$product], $productIsNotActive);
                 break;
             }
 
@@ -261,7 +266,7 @@ class IcmlDirector
 
             // если это "простой товар", у которого нет ТП, то просто записываем его
             if ($paramsForOffer->pageNumber === 1 && count($xmlOffersPart) === 0) {
-                $this->icmlWriter->writeOffers([$product]);
+                $this->icmlWriter->writeOffers([$product], $productIsNotActive);
                 break;
             }
 
@@ -269,7 +274,7 @@ class IcmlDirector
                 $xmlOffersPart
                     = $this->trimOffersList($writingOffersCount, $xmlOffersPart);
 
-                $this->icmlWriter->writeOffers($xmlOffersPart);
+                $this->icmlWriter->writeOffers($xmlOffersPart, $productIsNotActive);
 
                 $writingOffersCount += count($xmlOffersPart);
                 $paramsForOffer->pageNumber++;

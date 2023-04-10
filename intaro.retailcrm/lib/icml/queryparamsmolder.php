@@ -58,6 +58,7 @@ class QueryParamsMolder
             'ID',
             'LID',
             'VAT_ID',
+            'ACTIVE'
         ];
 
         return $params;
@@ -66,20 +67,27 @@ class QueryParamsMolder
     /**
      * @param int|null                                             $parentId
      * @param \Intaro\RetailCrm\Model\Bitrix\Orm\CatalogIblockInfo $info
+     * @param boolean $loadNonActivity
      * @return array
      */
-    public function getWhereForOfferPart(?int $parentId, CatalogIblockInfo $info): array
+    public function getWhereForOfferPart(?int $parentId, CatalogIblockInfo $info, bool $loadNonActivity): array
     {
+        $active = "";
+
+        if (!$loadNonActivity) {
+            $active = "Y";
+        }
+
         if ($parentId === null) {
             return [
                 'IBLOCK_ID' => $info->productIblockId,
-                'ACTIVE'    => 'Y',
+                'ACTIVE'    => $active,
             ];
         }
 
         return [
             'IBLOCK_ID'                        => $info->skuIblockId,
-            'ACTIVE'                           => 'Y',
+            'ACTIVE'                           => $active,
             'PROPERTY_' . $info->skuPropertyId => $parentId,
         ];
     }

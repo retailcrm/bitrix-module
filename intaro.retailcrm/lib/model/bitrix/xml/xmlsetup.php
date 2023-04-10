@@ -71,4 +71,10 @@ class XmlSetup
      * @var int|null
      */
     public $basePriceId;
+
+    /**
+     *
+     * @var bool
+     */
+    public $loadNonActivity;
 }
