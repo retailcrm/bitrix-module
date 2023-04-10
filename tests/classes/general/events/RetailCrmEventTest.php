@@ -181,7 +181,7 @@ class RetailCrmEventTest extends PHPUnit\Framework\TestCase
 
         $actionsMock->shouldReceive('apiMethod')->withAnyArgs()->andReturn($crmBasket, ['success' => true]);
 
-        $result = RetailCrmCart::interactionCart($arBasket);
+        $result = RetailCrmCart::handlerCart($arBasket);
 
         self::assertTrue($result['success']);
     }
@@ -199,7 +199,7 @@ class RetailCrmEventTest extends PHPUnit\Framework\TestCase
 
         $actionsMock->shouldReceive('apiMethod')->withAnyArgs()->andReturn($crmBasket, ['success' => true]);
 
-        $result = RetailCrmCart::interactionCart($arBasket);
+        $result = RetailCrmCart::handlerCart($arBasket);
 
         self::assertTrue($result['success']);
     }
@@ -217,7 +217,7 @@ class RetailCrmEventTest extends PHPUnit\Framework\TestCase
 
         $actionsMock->shouldReceive('apiMethod')->withAnyArgs()->andReturn($crmBasket);
 
-        $result = RetailCrmCart::interactionCart($arBasket);
+        $result = RetailCrmCart::handlerCart($arBasket);
 
         self::assertNull($result);
     }
