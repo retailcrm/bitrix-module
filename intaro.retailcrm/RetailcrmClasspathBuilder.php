@@ -103,7 +103,8 @@ class RetailcrmClasspathBuilder
     protected static $versionedClasses = [
         'RetailCrm\ApiClient' => ['ApiClient.php', 'ApiClient_%s.php'],
         'RetailCrmOrder' => ['RetailCrmOrder.php', 'RetailCrmOrder_%s.php'],
-        'RetailCrmHistory' => ['RetailCrmHistory.php', 'RetailCrmHistory_%s.php']
+        'RetailCrmHistory' => ['RetailCrmHistory.php', 'RetailCrmHistory_%s.php'],
+        'RetailCrmCart' => ['RetailCrmCart.php', 'RetailCrmCart_%s.php']
     ];
 
     /**
@@ -116,6 +117,7 @@ class RetailcrmClasspathBuilder
         'RetailCrmOrder_v5.php',
         'RetailCrmHistory_v4.php',
         'RetailCrmHistory_v5.php',
+        'RetailCrmCart_v5.php',
     ];
 
     /**

@@ -14,6 +14,7 @@
 namespace Intaro\RetailCrm\Component\ApiClient;
 
 use Intaro\RetailCrm\Component\ApiClient\Traits\BaseClientTrait;
+use Intaro\RetailCrm\Component\ApiClient\Traits\CartTrait;
 use Intaro\RetailCrm\Component\ApiClient\Traits\CustomersCorporateTrait;
 use Intaro\RetailCrm\Component\ApiClient\Traits\CustomersTrait;
 use Intaro\RetailCrm\Component\ApiClient\Traits\LoyaltyTrait;
@@ -102,6 +103,9 @@ use RetailCrm\Response\ApiResponse;
  * @method ApiResponse statisticUpdate()
  * @method ApiResponse getSite()
  * @method ApiResponse setSite($site)
+ * @method ApiResponse cartGet(int $id, string $site, string $by = 'externalId')
+ * @method ApiResponse cartSet(array $cart, string $site)
+ * @method ApiResponse cartClear(array $cart, string $site)
  */
 class ClientAdapter
 {
@@ -110,6 +114,7 @@ class ClientAdapter
     use CustomersCorporateTrait;
     use LoyaltyTrait;
     use OrderTrait;
+    use CartTrait;
 
     /** @var string */
     public const ID = 'id';

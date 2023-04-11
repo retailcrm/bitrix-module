@@ -400,6 +400,22 @@ class RetailCrmOrder
 
         if ($send) {
             if ($methodApi === 'ordersCreate') {
+                if (isset($arParams['customerCorporate']) && !empty($order['contact']['externalId'])) {
+                    $externalId = $order['contact']['externalId'];
+                } else {
+                    $externalId = $order['customer']['externalId'];
+                }
+
+                if ($site === null) {
+                    $site = RetailcrmConfigProvider::getSitesAvailable();
+                }
+
+                $crmBasket = RCrmActions::apiMethod($api, 'cartGet', __METHOD__, $externalId, $site);
+
+                if (!empty($crmBasket['cart'])) {
+                    $order['isFromCart'] = true;
+                }
+
                 return $client->createOrder($order, $site);
             }
 

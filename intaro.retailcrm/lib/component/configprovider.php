@@ -1053,6 +1053,14 @@ class ConfigProvider
     }
 
     /**
+     * @return void
+     */
+    public static function setCart($optionCart)
+    {
+        COption::SetOptionString(Constants::MODULE_ID, Constants::CART, $optionCart);
+    }
+
+    /**
      * @param string $version
      *
      * @return mixed

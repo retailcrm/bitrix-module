@@ -62,6 +62,7 @@ $CRM_ADDRESS_OPTIONS = 'address_options';
 $CRM_DIMENSIONS      = 'order_dimensions';
 $PROTOCOL            = 'protocol';
 $CRM_PURCHASE_PRICE_NULL = 'purchasePrice_null';
+$CRM_CART = 'cart';
 
 if (!CModule::IncludeModule('intaro.retailcrm') || !CModule::IncludeModule('sale') || !CModule::IncludeModule('iblock') || !CModule::IncludeModule('catalog')) {
     return;
@@ -317,6 +318,20 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         // event dependencies
         RegisterModuleDependences('sale', 'OnOrderUpdate', $mid, 'RetailCrmEvent', "onUpdateOrder");
         RegisterModuleDependences('sale', 'OnSaleOrderDeleted', $mid, 'RetailCrmEvent', "orderDelete");
+    }
+
+    $optionCart = COption::GetOptionString($mid, $CRM_CART, 'N');
+
+    $cart = htmlspecialchars(trim($_POST['cart']));
+
+    if ($cart != $optionCart) {
+        if ($cart === 'Y') {
+            $optionCart = 'Y';
+            RegisterModuleDependences('sale', 'OnSaleBasketSaved', $mid, 'RetailCrmEvent', 'onChangeBasket');
+        } else {
+            $optionCart = 'N';
+            UnRegisterModuleDependences('sale', 'OnSaleBasketSaved', $mid, 'RetailCrmEvent', 'onChangeBasket');
+        }
     }
 
     $orderPropsArr = [];
@@ -757,6 +772,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     );
     RetailcrmConfigProvider::setSendPaymentAmount($sendPaymentAmount);
     RetailCrmConfigProvider::setDiscountRound($discount_round);
+    RetailcrmConfigProvider::setCart($optionCart);
     COption::SetOptionString(
         $mid,
         $CRM_PURCHASE_PRICE_NULL,
@@ -923,6 +939,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
     $optionsOrderDimensions = COption::GetOptionString($mid, $CRM_DIMENSIONS, 'N');
     $addressOptions = unserialize(COption::GetOptionString($mid, $CRM_ADDRESS_OPTIONS, 0));
+
+    $optionCart = COption::GetOptionString($mid, $CRM_CART, 'N');
 
     //loyalty program options
     $loyaltyProgramToggle = ConfigProvider::getLoyaltyProgramStatus();
@@ -1175,6 +1193,16 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
                 return true;
             });
+
+            $('.r-ac-button label').change(function() {
+                if ($(this).find('input').is(':checked') === true) {
+                    $('tr.r-ac').show('slow');
+                } else if ($(this).find('input').is(':checked') === false) {
+                    $('tr.r-ac').hide('slow');
+                }
+
+                return true;
+            })
 
             $('.r-cc-button label').change(function() {
                 if ($(this).find('input').is(':checked') === true) {
@@ -2325,6 +2353,22 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             } ?>>
                 <td class="option-head" colspan="2">
                     <b><?php echo GetMessage('ROUND_LABEL'); ?></b>
+                </td>
+            </tr>
+
+            <tr class="heading r-ac-button">
+                <td colspan="2" class="option-other-heading">
+                    <b>
+                        <label><input class="addr" type="checkbox" name="cart" value="Y" <?php if ($optionCart === 'Y') echo "checked"; ?>><?php echo GetMessage('CART'); ?></label>
+                    </b>
+                </td>
+            </tr>
+
+            <tr class="r-ac" <?php if ($optionCart !== 'Y') {
+                echo 'style="display: none;"';
+            } ?>>
+                <td class="option-head" colspan="2">
+                    <b><?php echo GetMessage('CART_DESCRIPTION'); ?></b>
                 </td>
             </tr>
 

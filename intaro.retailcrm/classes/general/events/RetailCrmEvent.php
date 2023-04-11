@@ -99,6 +99,28 @@ class RetailCrmEvent
     }
 
     /**
+     * событие изменения корзины
+     *
+     * @param object $event
+     */
+    public  static function onChangeBasket($event)
+    {
+        $id = \Bitrix\Main\Engine\CurrentUser::get()->getId();
+
+        if ($id) {
+            $arBasket = RetailCrmCart::getBasketArray($event);
+
+            if ($arBasket === null) {
+                return;
+            }
+
+            $arBasket['USER_ID'] = $id;
+
+            RetailCrmCart::handlerCart($arBasket);
+        }
+    }
+
+    /**
      * @param $event
      *
      * @return array|bool|OrdersCreateResponse|OrdersEditResponse|null
