@@ -97,12 +97,12 @@ class IcmlWriter
 
     /**
      * @param XmlOffer[] $offers
-     * @param bool $productIsNotActive
+     * @param bool $isNotActiveProduct
      */
-    public function writeOffers(array $offers, $productIsNotActive = false): void
+    public function writeOffers(array $offers, $isNotActiveProduct = false): void
     {
         foreach ($offers as $offer) {
-            $this->writeOffer($offer, $productIsNotActive);
+            $this->writeOffer($offer, $isNotActiveProduct);
         }
 
         file_put_contents($this->filePath, $this->writer->flush(true), FILE_APPEND);
@@ -110,16 +110,16 @@ class IcmlWriter
 
     /**
      * @param \Intaro\RetailCrm\Model\Bitrix\Xml\XmlOffer $offer
-     * @param bool $productIsNotActive
+     * @param bool $isNotActiveProduct
      */
-    private function writeOffer(XmlOffer $offer, $productIsNotActive): void
+    private function writeOffer(XmlOffer $offer, $isNotActiveProduct): void
     {
         $this->writer->startElement('offer');
         $this->writeSimpleAttribute('id', $offer->id);
         $this->writeSimpleAttribute('productId', $offer->productId);
         $this->writeSimpleAttribute('quantity', $offer->quantity);
 
-        if ($productIsNotActive) {
+        if ($isNotActiveProduct) {
             $this->writeSimpleElement('productActivity', 'N');
         } else {
             $this->writeSimpleElement('activity', $offer->activity);

@@ -249,15 +249,15 @@ class IcmlDirector
         $paramsForOffer->allParams = array_merge($paramsForOffer->configurable, $paramsForOffer->main);
 
         do {
-            $productIsNotActive = false;
+            $isNotActiveProduct = false;
 
             if ($product->activity === 'N') {
-                $productIsNotActive = true;
+                $isNotActiveProduct = true;
             }
 
             //Если каталог проиндексирован, у товара есть Тип и это простой товар, то просто записываем его
             if ($product->productType === ProductTable::TYPE_PRODUCT) {
-                $this->icmlWriter->writeOffers([$product], $productIsNotActive);
+                $this->icmlWriter->writeOffers([$product], $isNotActiveProduct);
                 break;
             }
 
@@ -266,7 +266,7 @@ class IcmlDirector
 
             // если это "простой товар", у которого нет ТП, то просто записываем его
             if ($paramsForOffer->pageNumber === 1 && count($xmlOffersPart) === 0) {
-                $this->icmlWriter->writeOffers([$product], $productIsNotActive);
+                $this->icmlWriter->writeOffers([$product], $isNotActiveProduct);
                 break;
             }
 
@@ -274,7 +274,7 @@ class IcmlDirector
                 $xmlOffersPart
                     = $this->trimOffersList($writingOffersCount, $xmlOffersPart);
 
-                $this->icmlWriter->writeOffers($xmlOffersPart, $productIsNotActive);
+                $this->icmlWriter->writeOffers($xmlOffersPart, $isNotActiveProduct);
 
                 $writingOffersCount += count($xmlOffersPart);
                 $paramsForOffer->pageNumber++;
