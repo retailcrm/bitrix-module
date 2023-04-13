@@ -252,6 +252,7 @@ class XmlOfferBuilder
         $this->xmlOffer->productName = $item['NAME'];
         $this->xmlOffer->vatRate = $this->getVatRate($item);
         $this->xmlOffer->unitCode = $this->getUnitCode($item['CATALOG_MEASURE'], $item['ID']);
+        $this->xmlOffer->activity = $item['ACTIVE'];
     }
 
     /**

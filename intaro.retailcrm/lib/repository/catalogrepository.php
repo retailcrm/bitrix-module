@@ -88,13 +88,14 @@ class CatalogRepository
     /**
      * @param \Intaro\RetailCrm\Model\Bitrix\Xml\SelectParams      $param
      * @param \Intaro\RetailCrm\Model\Bitrix\Orm\CatalogIblockInfo $catalogIblockInfo
+     * @param boolean $loadNonActivity
      * @return \CIBlockResult|int
      */
-    public function getProductPage(SelectParams $param, CatalogIblockInfo $catalogIblockInfo)
+    public function getProductPage(SelectParams $param, CatalogIblockInfo $catalogIblockInfo, bool $loadNonActivity)
     {
         return CIBlockElement::GetList(
             ['ID' => 'ASC'],
-            $this->builder->getWhereForOfferPart($param->parentId, $catalogIblockInfo),
+            $this->builder->getWhereForOfferPart($param->parentId, $catalogIblockInfo, $loadNonActivity),
             false,
             ['nPageSize' => $param->nPageSize, 'iNumPage' => $param->pageNumber, 'checkOutOfRange' => true],
             $param->allParams

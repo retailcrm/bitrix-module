@@ -71,7 +71,7 @@ class XmlOfferDirector
      */
     public function getXmlOffersPart(SelectParams $param, CatalogIblockInfo $catalogIblockInfo): array
     {
-        $ciBlockResult = $this->catalogRepository->getProductPage($param, $catalogIblockInfo);
+        $ciBlockResult = $this->catalogRepository->getProductPage($param, $catalogIblockInfo, $this->setup->loadNonActivity);
         $offers = [];
 
         while ($offer = $ciBlockResult->Fetch()) {

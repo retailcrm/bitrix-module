@@ -66,6 +66,7 @@ if (($ACTION === 'EXPORT' || $ACTION === 'EXPORT_EDIT' || $ACTION === 'EXPORT_CO
     $iblockProperties = $settingsService->getIblockPropsPreset();
     $loadPurchasePrice = $settingsService->loadPurchasePrice;
     $iblockExport = $settingsService->iblockExport;
+    $loadNonActivity = $settingsService->loadNonActivity;
 
     if ($iblockExport) {
         $maxOffersValue = $settingsService->getSingleSetting('maxOffersValue');
@@ -491,6 +492,9 @@ if ($STEP === 1) {
                     $SETUP_FILE_NAME : $settingsService->setupFileName); ?>" size="50"><br><br>
         <span class="text"><?=GetMessage('LOAD_PURCHASE_PRICE')?>&nbsp;</span>
         <input type="checkbox" name="loadPurchasePrice" value="Y" <?=$loadPurchasePrice === 'Y' ? 'checked' : ''?>>
+        <br>
+        <span class="text"><?=GetMessage('LOAD_NON_ACTIVITY')?>&nbsp;</span>
+        <input type="checkbox" name="loadNonActivity" value="Y" <?=$loadNonActivity === 'Y' ? 'checked' : ''?>>
         <br><br><br>
         <?php
         if ($isSetupModulePage) { ?>

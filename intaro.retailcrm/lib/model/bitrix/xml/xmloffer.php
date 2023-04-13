@@ -130,6 +130,13 @@ class XmlOffer
     public $productType;
 
     /**
+     * Активность товара/торгового предложения (N|Y)
+     *
+     * @var string
+     */
+    public $activity;
+
+    /**
      * @param $productValue
      * @param $offerValue
      * @return mixed
