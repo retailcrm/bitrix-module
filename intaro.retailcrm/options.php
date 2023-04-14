@@ -999,7 +999,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     }
     ?>
 
-    <script type="text/javascript" src="/bitrix/js/main/jquery/jquery-1.7.min.js"></script>
+    <?php CJSCore::Init(['jquery']);?>
+
     <script type="text/javascript">
         function createTemplates(donor) {
             BX.ajax.runAction('intaro:retailcrm.api.adminpanel.createTemplate',
