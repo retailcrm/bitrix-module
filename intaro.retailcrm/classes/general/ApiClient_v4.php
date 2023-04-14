@@ -34,6 +34,8 @@ class ApiClient
      */
     protected $siteCode;
 
+    protected $unversionedClient;
+
     /**
      * Client creating
      *
@@ -51,10 +53,13 @@ class ApiClient
             $url .= '/';
         }
 
-        $url = $url . 'api/' . self::VERSION;
+        $versionedUrl = $url . 'api/' . self::VERSION;
+        $unversionedUrl = $url . 'api';
 
-        $this->client = new Client($url, array('apiKey' => $apiKey));
+        $this->client = new Client($versionedUrl, ['apiKey' => $apiKey]);
         $this->siteCode = $site;
+
+        $this->unversionedClient = new Client($unversionedUrl, ['apiKey' => $apiKey]);
     }
 
     /**
@@ -1820,9 +1825,9 @@ class ApiClient
      */
     public function getCredentials(): ApiResponse
     {
-        return $this->client->makeRequest(
+        return $this->unversionedClient->makeRequest(
             '/credentials',
-            Client::METHOD_GET
+            Client::METHOD_GET,
         );
     }
     
