@@ -177,7 +177,6 @@ trait CustomersTrait
     {
         $response = $this->client->customersHistory(
             Serializer::serializeArray($request->filter),
-            $request->page,
             $request->limit
         );
 

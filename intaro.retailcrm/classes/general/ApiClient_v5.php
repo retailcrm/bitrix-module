@@ -345,34 +345,21 @@ class ApiClient
         );
     }
 
-    /*
+    /**
      * Get customers  corporate history
      *
      * @param array $filter
-     * @param null $page
-     * @param null $limit
+     * @param int|null $limit
      *
      * @return ApiResponse
      *
      */
-    public function customersCorporateHistory(array $filter = array(), $page = null, $limit = null)
+    public function customersCorporateHistory(array $filter = [], ?int $limit = 100)
     {
-        $parameters = array();
-
-        if (count($filter)) {
-            $parameters['filter'] = $filter;
-        }
-        if (null !== $page) {
-            $parameters['page'] = (int) $page;
-        }
-        if (null !== $limit) {
-            $parameters['limit'] = (int) $limit;
-        }
-
         return $this->client->makeRequest(
             '/customers-corporate/history',
             Client::METHOD_GET,
-            $parameters
+            ['filter' => $filter, 'limit' => $limit]
         );
     }
 
@@ -994,30 +981,18 @@ class ApiClient
 
     /**
      * Get orders history
+     *
      * @param array $filter
-     * @param null $page
-     * @param null $limit
+     * @param int|null $limit
      *
      * @return ApiResponse
      */
-    public function ordersHistory(array $filter = array(), $page = null, $limit = null)
+    public function ordersHistory(array $filter = [], ?int $limit = 100)
     {
-        $parameters = array();
-
-        if (count($filter)) {
-            $parameters['filter'] = $filter;
-        }
-        if (null !== $page) {
-            $parameters['page'] = (int) $page;
-        }
-        if (null !== $limit) {
-            $parameters['limit'] = (int) $limit;
-        }
-
         return $this->client->makeRequest(
             '/orders/history',
             Client::METHOD_GET,
-            $parameters
+            ['filter' => $filter, 'limit' => $limit]
         );
     }
 
@@ -1200,30 +1175,18 @@ class ApiClient
 
     /**
      * Get customers history
+     *
      * @param array $filter
-     * @param null $page
-     * @param null $limit
+     * @param int|null $limit
      *
      * @return ApiResponse
      */
-    public function customersHistory(array $filter = array(), $page = null, $limit = null)
+    public function customersHistory(array $filter = [], ?int $limit = 100)
     {
-        $parameters = array();
-
-        if (count($filter)) {
-            $parameters['filter'] = $filter;
-        }
-        if (null !== $page) {
-            $parameters['page'] = (int) $page;
-        }
-        if (null !== $limit) {
-            $parameters['limit'] = (int) $limit;
-        }
-
         return $this->client->makeRequest(
             '/customers/history',
             Client::METHOD_GET,
-            $parameters
+            ['filter' => $filter, 'limit' => $limit]
         );
     }
 
@@ -1851,34 +1814,17 @@ class ApiClient
     /**
      * Get orders assembly history
      *
-     * @param array $filter (default: array())
-     * @param int   $page   (default: null)
-     * @param int   $limit  (default: null)
-     *
-     * @throws \InvalidArgumentException
-     * @throws \RetailCrm\Exception\CurlException
-     * @throws \RetailCrm\Exception\InvalidJsonException
+     * @param array $filter
+     * @param int|null $limit
      *
      * @return ApiResponse
      */
-    public function ordersPacksHistory(array $filter = array(), $page = null, $limit = null)
+    public function ordersPacksHistory(array $filter = [], ?int $limit = 100)
     {
-        $parameters = array();
-
-        if (count($filter)) {
-            $parameters['filter'] = $filter;
-        }
-        if (null !== $page) {
-            $parameters['page'] = (int) $page;
-        }
-        if (null !== $limit) {
-            $parameters['limit'] = (int) $limit;
-        }
-
         return $this->client->makeRequest(
             '/orders/packs/history',
             Client::METHOD_GET,
-            $parameters
+            ['filter' => $filter, 'limit' => $limit]
         );
     }
 
