@@ -2,6 +2,7 @@
 
 use Bitrix\Sale\Order;
 use Bitrix\Currency\CurrencyManager;
+use RetailCrm\Response\ApiResponse;
 use Tests\Intaro\RetailCrm\DataHistory;
 
 /**
@@ -27,13 +28,14 @@ class RetailCrmHistory_v5Test extends \BitrixTestCase
     public function testRegisterUser(): void
     {
         $actionsMock = Mockery::mock('alias:' . RCrmActions::class);
+        $apiResponse = new ApiResponse(200, DataHistory::get_history_data_new_customer());
 
-        $actionsMock->shouldReceive('apiMethod')->withAnyArgs()->andReturn(DataHistory::get_history_data_new_customer());
+        $actionsMock->shouldReceive('apiMethod')->withAnyArgs()->andReturn($apiResponse);
 
         $this->deleteTestingUser();
         RetailCrmHistory::customerHistory();
 
-        $dbUser = CUser::GetList(($by = 'ID'), ($sort = 'DESC'), array('=EMAIL' => 'testbitrixreg@gmail.com'));
+        $dbUser = CUser::GetList(($by = 'ID'), ($sort = 'DESC'), ['=EMAIL' => 'testbitrixreg@gmail.com']);
 
         $this->assertEquals(1, $dbUser->SelectedRowsCount());
     }
@@ -64,11 +66,13 @@ class RetailCrmHistory_v5Test extends \BitrixTestCase
         $this->assertTrue((int) $ID > 0);
 
         $actionsMock = Mockery::mock('alias:' . RCrmActions::class);
-        $actionsMock->shouldReceive('apiMethod')->withAnyArgs()->andReturn(DataHistory::get_history_data_new_customer());
+        $apiResponse = new ApiResponse(200, DataHistory::get_history_data_new_customer());
+
+        $actionsMock->shouldReceive('apiMethod')->withAnyArgs()->andReturn($apiResponse);
 
         RetailCrmHistory::customerHistory();
 
-        $dbUser = CUser::GetList(($by = 'ID'), ($sort = 'DESC'), array('=EMAIL' => 'testbitrixreg@gmail.com'));
+        $dbUser = CUser::GetList(($by = 'ID'), ($sort = 'DESC'), ['=EMAIL' => 'testbitrixreg@gmail.com']);
 
         $this->assertEquals(1, $dbUser->SelectedRowsCount());
 
@@ -91,7 +95,7 @@ class RetailCrmHistory_v5Test extends \BitrixTestCase
 
         RetailCrmHistory::customerHistory();
 
-        $dbUser = CUser::GetList(($by = 'ID'), ($sort = 'DESC'), array('=EMAIL' => 'testbitrixreg@gmail.com'));
+        $dbUser = CUser::GetList(($by = 'ID'), ($sort = 'DESC'), ['=EMAIL' => 'testbitrixreg@gmail.com']);
 
         $this->assertEquals(2, $dbUser->SelectedRowsCount());
     }
@@ -181,7 +185,7 @@ class RetailCrmHistory_v5Test extends \BitrixTestCase
 
     private function deleteTestingUser(): void
     {
-        $dbUser = CUser::GetList(($by = 'ID'), ($sort = 'DESC'), array('=EMAIL' => 'testbitrixreg@gmail.com'));
+        $dbUser = CUser::GetList(($by = 'ID'), ($sort = 'DESC'), ['=EMAIL' => 'testbitrixreg@gmail.com']);
 
         if ($dbUser->SelectedRowsCount() > 0) {
             while ($user = $dbUser->Fetch()) {
