@@ -22,6 +22,7 @@ use Intaro\RetailCrm\Service\OrderLoyaltyDataService;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\Handlers\EventsHandlers;
+use RetailCrm\Response\ApiResponse;
 
 IncludeModuleLangFile(__FILE__);
 class RetailCrmHistory
@@ -49,6 +50,7 @@ class RetailCrmHistory
     public static $CRM_CURRENCY = 'currency';
     public static $CRM_DISCOUNT_ROUND = 'discount_round';
 
+    const PAGE_LIMIT = 25;
     const CANCEL_PROPERTY_CODE = 'INTAROCRM_IS_CANCELED';
 
     public static function customerHistory()
@@ -57,7 +59,8 @@ class RetailCrmHistory
             return false;
         }
 
-        $historyFilter = array();
+        $page = 1;
+        $historyFilter = [];
         $historyStart = RetailcrmConfigProvider::getCustomersHistorySinceId();
         $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
 
@@ -65,26 +68,30 @@ class RetailCrmHistory
             $historyFilter['sinceId'] = $historyStart;
         }
 
-        while (true) {
-            $customerHistory = RCrmActions::apiMethod($api, 'customersHistory', __METHOD__, $historyFilter);
+        do {
+            $historyResponse = RCrmActions::apiMethod($api, 'customersHistory', __METHOD__, $historyFilter);
 
-            $customerH = isset($customerHistory['history']) ? $customerHistory['history'] : array();
-
-            Logger::getInstance()->write($customerH, 'customerHistory');
-
-            if (is_array($customerH) && count($customerH) === 0) {
-                if ($customerHistory['history']['totalPageCount'] > $customerHistory['history']['currentPage']) {
-                    $historyFilter['page'] = $customerHistory['history']['currentPage'] + 1;
-
-                    continue;
-                }
-
-                return true;
+            if (
+                !$historyResponse instanceof ApiResponse
+                || !$historyResponse->isSuccessful()
+                || empty($historyResponse['history'])
+                || empty($historyResponse['pagination'])
+            ) {
+                return false;
             }
 
-            $customers = self::assemblyCustomer($customerH);
+            $customerHistory = $historyResponse['history'];
 
+            Logger::getInstance()->write($customerHistory, 'customerHistory');
+
+            $customers = self::assemblyCustomer($customerHistory);
             $GLOBALS['RETAIL_CRM_HISTORY'] = true;
+
+            // Set sinceId for customer history
+            $lastId = array_pop($customerHistory);
+            $historyFilter['sinceId'] = $lastId['id'];
+
+            RetailcrmConfigProvider::setCustomersHistorySinceId($lastId['id']);
 
             $newUser = new CUser();
             $customerBuilder = new CustomerBuilder();
@@ -210,16 +217,12 @@ class RetailCrmHistory
 
             $GLOBALS['RETAIL_CRM_HISTORY'] = false;
 
-            //last id
-            $end = array_pop($customerH);
-            RetailcrmConfigProvider::setCustomersHistorySinceId($end['id']);
+            $page++;
 
-            if ($customerHistory['pagination']['totalPageCount'] == 1) {
-                return true;
+            if ($page > self::PAGE_LIMIT) {
+                break;
             }
-            //new filter
-            $historyFilter['sinceId'] = $end['id'];
-        }
+        } while ($historyResponse['pagination']['currentPage'] < $historyResponse['pagination']['totalPageCount']);
     }
 
     /**
@@ -259,7 +262,7 @@ class RetailCrmHistory
         $shipmentDeducted = RetailcrmConfigProvider::getShipmentDeducted();
 
         $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
-
+        $page = 1;
         /* @var OrderLoyaltyDataService $orderLoyaltyDataService */
         $orderLoyaltyDataService = ServiceLocator::get(OrderLoyaltyDataService::class);
 
@@ -270,24 +273,30 @@ class RetailCrmHistory
             $historyFilter['sinceId'] = $historyStart;
         }
 
-        while (true) {
-            $orderHistory = RCrmActions::apiMethod($api, 'ordersHistory', __METHOD__, $historyFilter);
-            $orderH = $orderHistory['history'] ?? [];
+        do {
+            $historyResponse = RCrmActions::apiMethod($api, 'ordersHistory', __METHOD__, $historyFilter);
 
-            Logger::getInstance()->write($orderH, 'orderHistory');
-
-            if (is_array($orderH) && count($orderH) === 0) {
-                if ($orderHistory['history']['totalPageCount'] > $orderHistory['history']['currentPage']) {
-                    $historyFilter['page'] = $orderHistory['history']['currentPage'] + 1;
-
-                    continue;
-                }
-
-                return true;
+            if (
+                !$historyResponse instanceof ApiResponse
+                || !$historyResponse->isSuccessful()
+                || empty($historyResponse['history'])
+                || empty($historyResponse['pagination'])
+            ) {
+                return false;
             }
 
-            $orders = self::assemblyOrder($orderH);
+            $orderHistory = $historyResponse['history'];
+
+            Logger::getInstance()->write($orderHistory, 'orderHistory');
+
+            $orders = self::assemblyOrder($orderHistory);
             $GLOBALS['RETAIL_CRM_HISTORY'] = true;
+
+            // Set sinceId for order history
+            $lastId = array_pop($orderHistory);
+            $historyFilter['sinceId'] = $lastId['id'];
+
+            COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_HISTORY, $lastId['id']);
 
             //orders with changes
             foreach ($orders as $order) {
@@ -1288,16 +1297,12 @@ class RetailCrmHistory
 
             $GLOBALS['RETAIL_CRM_HISTORY'] = false;
 
-            //end id
-            $end = array_pop($orderH);
-            COption::SetOptionString(self::$MODULE_ID, self::$CRM_ORDER_HISTORY, $end['id']);
+            $page++;
 
-            if ($orderHistory['pagination']['totalPageCount'] == 1) {
-                return true;
+            if ($page > self::PAGE_LIMIT) {
+                break;
             }
-            //new filter
-            $historyFilter['sinceId'] = $end['id'];
-        }
+        } while ($historyResponse['pagination']['currentPage'] < $historyResponse['pagination']['totalPageCount']);
 
         return false;
     }

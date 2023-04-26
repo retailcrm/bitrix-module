@@ -130,7 +130,6 @@ trait CustomersCorporateTrait
     {
         $response = $this->client->customersCorporateHistory(
             Serializer::serializeArray($request->filter),
-            $request->page,
             $request->limit
         );
 

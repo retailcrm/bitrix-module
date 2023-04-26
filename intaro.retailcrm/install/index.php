@@ -20,6 +20,7 @@ use Intaro\RetailCrm\Vendor\Symfony\Component\Process\PhpExecutableFinder;
 use RetailCrm\ApiClient;
 use RetailCrm\Exception\CurlException;
 use RetailCrm\Http\Client;
+use RetailCrm\Response\ApiResponse;
 
 Loader::IncludeModule('highloadblock');
 
@@ -1379,64 +1380,49 @@ class intaro_retailcrm extends CModule
 
     public function historyLoad($api, $method)
     {
-        $page = null;
-        $end['id'] = 0;
+        $lastSinceId = 0;
+        $startDate = new DateTime('-1 days');
 
         try {
-            $history = $api->$method([], $page);
+            $historyResponse = $api->$method(['startDate' => $startDate->format('Y-m-d H:i:s')]);
         } catch (CurlException $e) {
             RCrmActions::eventLog(
-                'RetailCrmHistory::' . $method, 'RetailCrm\RestApi::' . $method . '::CurlException',
+                'RetailCrmHistory::m' . $method, 'RetailCrm\RestApi::' . $method . '::CurlException',
                 $e->getCode() . ': ' . $e->getMessage()
             );
 
-            return $end['id'];
+            return $lastSinceId;
         } catch (InvalidArgumentException $e) {
             RCrmActions::eventLog(
                 'RetailCrmHistory::' . $method, 'RetailCrm\RestApi::' . $method . '::InvalidArgumentException',
                 $e->getCode() . ': ' . $e->getMessage()
             );
 
-            return $end['id'];
+            return $lastSinceId;
         }
-        if ($history['pagination']['totalPageCount'] > $history['pagination']['currentPage']) {
-            $page = $history['pagination']['totalPageCount'];
-            while (true) {
-                try {
-                    $history = $api->$method([], $page);
-                } catch (CurlException $e) {
-                    RCrmActions::eventLog(
-                        'RetailCrmHistory::' . $method, 'RetailCrm\RestApi::' . $method . '::CurlException',
-                        $e->getCode() . ': ' . $e->getMessage()
-                    );
 
-                    return $end['id'];
-                } catch (InvalidArgumentException $e) {
-                    RCrmActions::eventLog(
-                        'RetailCrmHistory::' . $method, 'RetailCrm\RestApi::' . $method . '::InvalidArgumentException',
-                        $e->getCode() . ': ' . $e->getMessage()
-                    );
+        if (
+            !$historyResponse instanceof ApiResponse
+            || !$historyResponse->isSuccessful()
+            || empty($historyResponse['history'])
+            || empty($historyResponse['pagination'])
+        ) {
+            return $lastSinceId;
+        }
 
-                    return $end['id'];
-                }
+        $startPage = $historyResponse['pagination']['currentPage'];
+        $lastPage = $historyResponse['pagination']['totalPageCount'];
 
-                if (isset($history['history'])) {
-                    $end = array_pop($history['history']);
+        for ($startPage; $startPage <= $lastPage; ++$startPage) {
+            if ($historyResponse instanceof ApiResponse && !empty($historyResponse['history'])) {
+                $history = $historyResponse['history'];
+                $lastSinceId = end($history)['id'];
 
-                    break;
-                } else {
-                    $page--;
-                }
-            }
-        } else {
-            if (isset($history['history']) && count($history['history']) > 0) {
-                $end = array_pop($history['history']);
-            } else {
-                $end['id'] = 0;
+                $historyResponse = $api->$method(['sinceId' => $lastSinceId]);
             }
         }
 
-        return $end['id'];
+        return $lastSinceId;
     }
 
     /**
