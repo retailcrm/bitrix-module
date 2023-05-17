@@ -48,7 +48,7 @@ class Logger
 
     public function write($dump, $file = 'info')
     {
-        $rsSites = CSite::GetList($by, $sort, array('DEF' => 'Y'));
+        $rsSites = CSite::GetList($by, $sort, array('DEFAULT' => 'Y'));
         $ar = $rsSites->Fetch();
         if (!is_dir($ar['ABS_DOC_ROOT'] . $this->logPath . '/')) {
             mkdir($ar['ABS_DOC_ROOT'] . $this->logPath . '/');
