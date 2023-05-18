@@ -1,30 +1,17 @@
 <?php
 
+use Tests\Intaro\RetailCrm\DataService;
+
 /**
  * Class RetailCrmServiceTest
  */
 class RetailCrmServiceTest extends PHPUnit\Framework\TestCase
 {
-    private $paramsExample = [
-        'delivery'      => [
-            'code'    => 'boxberry',
-            'cost'    => 'test',
-            'address' => 'test',
-            'data'    => 'test',
-        ],
-        'weight'        => 'test',
-        'firstName'     => 'test',
-        'lastName'      => 'test',
-        'phone'         => 'test',
-        'paymentType'   => 'test',
-        'shipmentStore' => 'test',
-    ];
-    
     public function testOnUnsetIntegrationDeliveryFields()
     {
         $value = serialize(['boxberry' => 'test']);
         COption::SetOptionString(RetailcrmConstants::MODULE_ID, RetailcrmConstants::CRM_INTEGRATION_DELIVERY, $value);
-        $newParams     = RetailCrmService::unsetIntegrationDeliveryFields($this->paramsExample);
+        $newParams     = RetailCrmService::unsetIntegrationDeliveryFields(DataService::deliveryDataForValidation());
         $expectedArray = [
             'delivery' => [
                 'code' => 'boxberry',
@@ -32,6 +19,15 @@ class RetailCrmServiceTest extends PHPUnit\Framework\TestCase
         ];
         
         $this->assertEquals($newParams, $expectedArray);
+    }
+
+    public function testOnUnsetIntegrationDeliveryFieldsWithCourier()
+    {
+        $value = serialize(['test' => 'courier']);
+        COption::SetOptionString(RetailcrmConstants::MODULE_ID, RetailcrmConstants::CRM_INTEGRATION_DELIVERY, $value);
+        $result = RetailCrmService::unsetIntegrationDeliveryFields(DataService::deliveryDataCourier());
+
+        $this->assertEquals(DataService::deliveryDataCourier(), $result);
     }
 
     /**

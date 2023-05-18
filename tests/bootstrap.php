@@ -45,3 +45,4 @@ $DB->Query($strSql);
 require_once __DIR__ . '/BitrixTestCase.php';
 require_once __DIR__ . '/helpers/Helpers.php';
 require_once __DIR__ . '/datasets/DataHistory.php';
+require_once __DIR__ . '/datasets/DataService.php';
