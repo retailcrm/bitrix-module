@@ -156,3 +156,5 @@ $MESS ['TEMPLATES_SUCCESS_COPING'] = 'Шаблоны успешно скопир
 $MESS ['TEMPLATES_COPING_ERROR'] = 'Ошибка копирования шаблонов';
 $MESS ['TEMPLATE_COPING_ERROR'] = 'Ошибка копирования шаблона';
 
+$MESS ['ACTIVITY_SETTINGS'] = 'Настройки активности модуля';
+$MESS ['DEACTIVATE_MODULE'] = 'Деактивировать модуль';
