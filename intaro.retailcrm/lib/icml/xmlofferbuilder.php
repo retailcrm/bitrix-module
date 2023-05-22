@@ -108,7 +108,7 @@ class XmlOfferBuilder
         $this->setup             = $setup;
         $this->purchasePriceNull = RetailcrmConfigProvider::getCrmPurchasePrice();
         /** @var \Intaro\RetailCrm\Icml\SettingsService $settingsService */
-        $settingsService         = ServiceLocator::get(SettingsService::class);
+        $settingsService         = SettingsService::getInstance([], '');
         $this->vatRates          = $settingsService->vatRates;
         $this->measures          = $this->prepareMeasures($measure);
         $this->defaultServerName = $defaultServerName;
