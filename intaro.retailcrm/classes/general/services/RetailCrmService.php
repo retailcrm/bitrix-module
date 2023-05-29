@@ -13,6 +13,7 @@ class RetailCrmService
     public static function unsetIntegrationDeliveryFields(array $order): array
     {
         $integrationDelivery = RetailcrmConfigProvider::getCrmIntegrationDelivery();
+
         if (isset($order['delivery']['code'])) {
             $deliveryCode = $order['delivery']['code'];
 
@@ -20,6 +21,7 @@ class RetailCrmService
                 && $integrationDelivery[$deliveryCode] !== 'sdek'
                 && $integrationDelivery[$deliveryCode] !== 'dpd'
                 && $integrationDelivery[$deliveryCode] !== 'newpost'
+                && $integrationDelivery[$deliveryCode] !== 'courier'
             ) {
                 unset($order['weight']);
                 unset($order['firstName']);
