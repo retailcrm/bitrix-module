@@ -63,6 +63,9 @@ $CRM_DIMENSIONS      = 'order_dimensions';
 $PROTOCOL            = 'protocol';
 $CRM_PURCHASE_PRICE_NULL = 'purchasePrice_null';
 $CRM_CART = 'cart';
+$MODULE_DEACTIVATE = 'module_deactivate';
+$AGENTS_DEACTIVATE = 'agents_deactivate';
+$EVENTS_DEACTIVATE = 'events_deactivate';
 
 if (!CModule::IncludeModule('intaro.retailcrm') || !CModule::IncludeModule('sale') || !CModule::IncludeModule('iblock') || !CModule::IncludeModule('catalog')) {
     return;
@@ -386,6 +389,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     foreach ($orderTypesList as $orderType) {
         $contragentTypeArr[$orderType['ID']] = htmlspecialchars(trim($_POST['contragent-type-' . $orderType['ID']]));
     }
+
     //order numbers
     $orderNumbers = htmlspecialchars(trim($_POST['order-numbers'])) ? htmlspecialchars(trim($_POST['order-numbers'])) : 'N';
     $orderDimensions = htmlspecialchars(trim($_POST[$CRM_DIMENSIONS])) ? htmlspecialchars(trim($_POST[$CRM_DIMENSIONS])) : 'N';
@@ -631,6 +635,100 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     RetailcrmConfigProvider::setIntegrationPaymentTypes($integrationPayments);
     RetailcrmConfigProvider::setIntegrationDelivery($integrationDeliveries);
 
+    $moduleDeactivateParam =  htmlspecialchars(trim($_POST['module-deactivate'])) ?? 'N';
+
+    if ('Y' === $moduleDeactivateParam) {
+        global $DB;
+
+        $agents = $DB->Query("SELECT * FROM `b_agent` WHERE `MODULE_ID` = 'intaro.retailcrm';");
+        $events = $DB->Query("SELECT * FROM `b_module_to_module` WHERE `TO_MODULE_ID` = 'intaro.retailcrm';");
+        $deactivateAgents = [];
+        $deactivateEvents = [];
+
+        // Fetch - If the last record is reached (or there are no records as a result), the method returns false
+        while ($agent = $agents->Fetch()) {
+            $deactivateAgents[] = $agent;
+
+            CAgent::RemoveAgent($agent['NAME'], $agent['MODULE_ID'], $agent['USER_ID']);
+        }
+
+        // Fetch - If the last record is reached (or there are no records as a result), the method returns false
+        while ($event = $events->Fetch()) {
+            $deactivateEvents[] = $event;
+
+            UnRegisterModuleDependences(
+                $event['FROM_MODULE_ID'],
+                $event['MESSAGE_ID'],
+                $event['TO_MODULE_ID'],
+                $event['TO_CLASS'],
+                $event['TO_METHOD']
+            );
+        }
+
+        if ($deactivateAgents !== []) {
+            COption::SetOptionString($mid, $AGENTS_DEACTIVATE, serialize($deactivateAgents));
+        }
+
+        if ($deactivateEvents !== []) {
+            COption::SetOptionString($mid, $EVENTS_DEACTIVATE, serialize($deactivateEvents));
+        }
+    } else {
+        $deactivateAgents = unserialize(COption::GetOptionString($mid, $AGENTS_DEACTIVATE, []));
+        $deactivateEvents = unserialize(COption::GetOptionString($mid, $EVENTS_DEACTIVATE, []));
+
+        if (!empty($deactivateAgents)) {
+            $dateAgent = new DateTime();
+
+            // PT60S - 60 sec;
+            $dateAgent->add(new DateInterval('PT60S'));
+
+            foreach ($deactivateAgents as $agent) {
+                CAgent::AddAgent(
+                        $agent['NAME'],
+                        $agent['MODULE_ID'],
+                        'N',
+                        $agent['AGENT_INTERVAL'],
+                        $dateAgent->format('d.m.Y H:i:s'),
+                        $agent['ACTIVE'],
+                        $dateAgent->format('d.m.Y H:i:s')
+                );
+            }
+
+            COption::SetOptionString($mid, $AGENTS_DEACTIVATE, serialize([]));
+        }
+
+        if (!empty($deactivateEvents)) {
+            $eventManager = EventManager::getInstance();
+
+            foreach ($deactivateEvents as $event) {
+                if (strpos($event['TO_METHOD'], 'Handler') !== false) {
+                    $eventManager->registerEventHandler(
+                        $event['FROM_MODULE_ID'],
+                        $event['MESSAGE_ID'],
+                        $event['TO_MODULE_ID'],
+                        $event['TO_CLASS'],
+                        $event['TO_METHOD']
+                    );
+                } else {
+                    RegisterModuleDependences(
+                        $event['FROM_MODULE_ID'],
+                        $event['MESSAGE_ID'],
+                        $event['TO_MODULE_ID'],
+                        $event['TO_CLASS'],
+                        $event['TO_METHOD']
+                    );
+                }
+            }
+
+            COption::SetOptionString($mid, $EVENTS_DEACTIVATE, serialize([]));
+        }
+    }
+
+    COption::SetOptionString(
+        $mid,
+        $MODULE_DEACTIVATE,
+        serialize($moduleDeactivateParam)
+    );
     COption::SetOptionString(
         $mid,
         $CRM_ADDRESS_OPTIONS,
@@ -885,7 +983,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $arResult['bitrixStoresExportList'] = RCrmActions::StoresExportList();
     $arResult['bitrixPricesExportList'] = RCrmActions::PricesExportList();
 
-    //saved cat params
+    //saved params
+    $moduleDeactivate = unserialize(COption::GetOptionString($mid, $MODULE_DEACTIVATE, 'N'));
     $optionsOrderTypes = unserialize(COption::GetOptionString($mid, $CRM_ORDER_TYPES_ARR, 0));
     $optionsDelivTypes = unserialize(COption::GetOptionString($mid, $CRM_DELIVERY_TYPES_ARR, 0));
     $optionsPayTypes = unserialize(COption::GetOptionString($mid, $CRM_PAYMENT_TYPES, 0));
@@ -2457,6 +2556,19 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 </td>
             </tr>
         <?php endif; ?>
+
+        <tr class="heading">
+            <td colspan="2" class="option-other-bottom"><b><?php echo GetMessage('ACTIVITY_SETTINGS'); ?></b></td>
+        </tr>
+        <tr>
+            <td colspan="2" class="option-head option-other-top option-other-bottom">
+                <b>
+                    <label><input class="addr" type="checkbox" name="module-deactivate" value="Y" <?php if ($moduleDeactivate === 'Y') {
+                            echo "checked";
+                        } ?>> <?php echo GetMessage('DEACTIVATE_MODULE'); ?></label>
+                </b>
+            </td>
+        </tr>
 
         <?php $tabControl->Buttons(); ?>
         <input type="hidden" name="Update" value="Y"/>

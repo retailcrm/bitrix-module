@@ -96,3 +96,6 @@ $MESS ['ONLINE_CONSULTANT'] = 'Activate Online Consultant';
 $MESS ['ONLINE_CONSULTANT_LABEL'] = 'Online Consultant script';
 $MESS ['INTEGRATION_PAYMENT_LIST'] = 'The status will not be transferred for integration payments';
 $MESS ['INTEGRATIONS'] = ' (integration)';
+
+$MESS ['ACTIVITY_SETTINGS'] = 'Module activity settings';
+$MESS ['DEACTIVATE_MODULE'] = 'Deactivate the module';
