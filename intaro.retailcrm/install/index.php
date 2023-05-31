@@ -938,14 +938,8 @@ class intaro_retailcrm extends CModule
                 );
             }
 
-            if (!isset($_POST['iblockExport'])) {
-                $arResult['errCode'] = 'ERR_FIELDS_IBLOCK';
-            } else {
-                $iblocks = $_POST['iblockExport'];
-            }
-
             $hlblockModule = false;
-            //highloadblock
+
             if (CModule::IncludeModule('highloadblock')) {
                 $hlblockModule = true;
                 $hlblockList   = [];
@@ -1017,29 +1011,22 @@ class intaro_retailcrm extends CModule
                 }
             }
 
-            if (!isset($_POST['SETUP_FILE_NAME'])) {
-                $arResult['errCode'] = 'ERR_FIELDS_FILE';
-            } else {
-                $filename = $_POST['SETUP_FILE_NAME'];
+            $iblocks = $_POST['iblockExport'] ?? null;
+            $filename = $_POST['SETUP_FILE_NAME'] ?? null;
+            $maxOffers = $_POST['maxOffersValue'] ?? null;
+            $profileName = $_POST['SETUP_PROFILE_NAME'] ?? null;
+            $loadPurchasePrice = $_POST['loadPurchasePrice'] ?? null;
+            $loadInactiveProduct = $_POST['loadNonActivity'] ?? null;
+
+            if ($iblocks === null) {
+                $arResult['errCode'] = 'ERR_FIELDS_IBLOCK';
             }
 
-            if (!isset($_POST['maxOffersValue'])) {
-                $maxOffers = null;
-            } else {
-                $maxOffers = (int) $_POST['maxOffersValue'];
-            }
-
-            if (!isset($_POST['SETUP_PROFILE_NAME'])) {
-                $profileName = '';
-            } else {
-                $profileName = $_POST['SETUP_PROFILE_NAME'];
-            }
-
-            if ($profileName == '') {
+            if ($profileName === null) {
                 $arResult['errCode'] = 'ERR_FIELDS_PROFILE';
             }
 
-            if ($filename === '') {
+            if ($filename === null) {
                 $arResult['errCode'] = 'ERR_FIELDS_FILE';
             }
 
@@ -1053,6 +1040,8 @@ class intaro_retailcrm extends CModule
                     'SETUP_FILE_NAME' => $filename,
                     'SETUP_PROFILE_NAME' => $profileName,
                     'maxOffersValue' => $maxOffers,
+                    'loadPurchasePrice' => $loadPurchasePrice,
+                    'loadNonActivity' => $loadInactiveProduct,
                 ];
 
                 global $oldValues;
@@ -1121,8 +1110,11 @@ class intaro_retailcrm extends CModule
                 $propertiesHbSKU,
                 $propertiesHbProduct,
                 $filename,
-                $maxOffers
+                $maxOffers,
+                $loadPurchasePrice,
+                $loadInactiveProduct
             );
+
             $profileId = CCatalogExport::Add([
                 'LAST_USE'        => false,
                 'FILE_NAME'       => $this->RETAIL_CRM_EXPORT,
@@ -1150,18 +1142,10 @@ class intaro_retailcrm extends CModule
             $agentId = null;
 
             if (isset($_POST['NEED_CATALOG_AGENT'])) {
-                $dateAgent = new DateTime();
-                $intAgent = new DateInterval('PT60S'); // PT60S - 60 sec;
-                $dateAgent->add($intAgent);
                 $agentId = CAgent::AddAgent(
                     'CCatalogExport::PreGenerateExport(' . $profileId . ');',
                     'catalog',
                     'N',
-                    86400,
-                    $dateAgent->format('d.m.Y H:i:s'),
-                    'Y',
-                    $dateAgent->format('d.m.Y H:i:s'),
-                    30
                 );
 
                 CCatalogExport::Update($profileId, [
@@ -1169,19 +1153,8 @@ class intaro_retailcrm extends CModule
                 ]);
             }
 
-            if (
-                isset($_POST['LOAD_NOW'])
-                && $agentId === null
-            ) {
-                CAgent::AddAgent(
-                    '\Intaro\RetailCrm\Component\Agent::preGenerateExport(' . $profileId . ');',
-                    $this->MODULE_ID,
-                    'N',
-                    86400,
-                    $dateAgent->format('d.m.Y H:i:s'),
-                    'Y',
-                    $dateAgent->format('d.m.Y H:i:s')
-                );
+            if (isset($_POST['LOAD_NOW']) && $agentId === null) {
+                CCatalogExport::PreGenerateExport($profileId);
             }
 
             $api_host = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, 0);
@@ -1330,7 +1303,9 @@ class intaro_retailcrm extends CModule
         $propertiesHbSKU,
         $propertiesHbProduct,
         $filename,
-        $maxOffers
+        $maxOffers,
+        $loadPurchasePrice,
+        $loadInactiveProduct
     ): string {
         $strVars = '';
 
@@ -1354,10 +1329,15 @@ class intaro_retailcrm extends CModule
             }
         }
 
-        $strVars .= 'SETUP_FILE_NAME=' . urlencode($filename);
-        $strVars .= '&maxOffersValue=' . urlencode($maxOffers);
+        $additionalProperties = sprintf(
+            'SETUP_FILE_NAME=%s&maxOffersValue=%s&loadPurchasePrice=%s&loadNonActivity=%s',
+            $filename,
+            $maxOffers,
+            $loadPurchasePrice,
+            $loadInactiveProduct
+        );
 
-        return $strVars;
+        return $strVars . $additionalProperties;
     }
 
     /**
