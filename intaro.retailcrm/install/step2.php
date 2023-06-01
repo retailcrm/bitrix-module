@@ -24,6 +24,15 @@ $RETAIL_CRM_API = new ApiClient($api_host, $api_key);
 COption::SetOptionString($MODULE_ID, $CRM_API_HOST_OPTION, $api_host);
 COption::SetOptionString($MODULE_ID, $CRM_API_KEY_OPTION, $api_key);
 
+$availableSites = RetailcrmConfigProvider::getSitesList();
+
+if (!empty($availableSites)) {
+    $availableSites = array_flip($availableSites);
+} else {
+    $site = RetailcrmConfigProvider::getSitesAvailable();
+    $availableSites[$site] = $site;
+}
+
 if (count($arResult['arSites']) === 1) {
     COption::SetOptionString($MODULE_ID, $CRM_SITES_LIST, serialize([]));
 }
@@ -39,6 +48,21 @@ if (!isset($arResult['ORDER_TYPES'])) {
 if (!isset($arResult['paymentTypesList'])) {
     $arResult['bitrixPaymentTypesList'] = RCrmActions::PaymentList();
     $arResult['paymentTypesList'] = $RETAIL_CRM_API->paymentTypesList()->paymentTypes;
+
+    foreach ($arResult['paymentTypesList'] as $paymentType) {
+        if (empty($paymentType['sites'])) {
+            $paymentTypes[] = $paymentType;
+        } else {
+            foreach ($paymentType['sites'] as $site) {
+                if (!empty($availableSites[$site])) {
+                    $paymentTypes[] = $paymentType;
+                    break;
+                }
+            }
+        }
+    }
+
+    $arResult['paymentTypesList'] = $paymentTypes;
     $arResult['PAYMENT_TYPES'] = unserialize(COption::GetOptionString($MODULE_ID, $CRM_PAYMENT_TYPES, 0));
 }
 
@@ -61,6 +85,23 @@ if (!isset($arResult['paymentStatusesList'])) {
 if (!isset($arResult['bitrixDeliveryTypesList'])) {
     $arResult['bitrixDeliveryTypesList'] = RCrmActions::DeliveryList();
     $arResult['deliveryTypesList'] = $RETAIL_CRM_API->deliveryTypesList()->deliveryTypes;
+
+    foreach ($arResult['deliveryTypesList'] as $delivType) {
+        if ($delivType['active'] === true) {
+            if (empty($delivType['sites'])) {
+                $delivTypes[$delivType['code']] = $delivType;
+            } else {
+                foreach ($delivType['sites'] as $site) {
+                    if (!empty($availableSites[$site])) {
+                        $delivTypes[$delivType['code']] = $delivType;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    $arResult['deliveryTypesList'] = $delivTypes;
     $arResult['DELIVERY_TYPES'] = unserialize(COption::GetOptionString($MODULE_ID, $CRM_DELIVERY_TYPES_ARR, 0));
 }
 

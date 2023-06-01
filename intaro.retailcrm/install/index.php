@@ -455,13 +455,6 @@ class intaro_retailcrm extends CModule
                 return false;
             }
 
-            $delivTypes = [];
-            foreach ($arResult['deliveryTypesList'] as $delivType) {
-                if ($delivType['active'] === true) {
-                    $delivTypes[$delivType['code']] = $delivType;
-                }
-            }
-
             $this->loadDeps();
 
             RetailcrmConfigProvider::setIntegrationDelivery(
@@ -471,6 +464,47 @@ class intaro_retailcrm extends CModule
             RetailcrmConfigProvider::setIntegrationPaymentTypes(
                 RetailCrmService::selectIntegrationPayments($arResult['paymentTypesList'])
             );
+
+            $delivTypes = [];
+            $paymentTypes = [];
+            $availableSites = RetailcrmConfigProvider::getSitesList();
+
+            if (!empty($availableSites)) {
+                $availableSites = array_flip($availableSites);
+            } else {
+                $site = RetailcrmConfigProvider::getSitesAvailable();
+                $availableSites[$site] = $site;
+            }
+
+            foreach ($arResult['deliveryTypesList'] as $delivType) {
+                if ($delivType['active'] === true) {
+                    if (empty($delivType['sites'])) {
+                        $delivTypes[$delivType['code']] = $delivType;
+                    } else {
+                        foreach ($delivType['sites'] as $site) {
+                            if (!empty($availableSites[$site])) {
+                                $delivTypes[$delivType['code']] = $delivType;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            foreach ($arResult['paymentTypesList'] as $paymentType) {
+                if (empty($paymentType['sites'])) {
+                    $paymentTypes[] = $paymentType;
+                } else {
+                    foreach ($paymentType['sites'] as $site) {
+                        if (!empty($availableSites[$site])) {
+                            $paymentTypes[] = $paymentType;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            $arResult['paymentTypesList'] = $paymentTypes;
 
             $arResult['deliveryTypesList'] = $delivTypes;
 

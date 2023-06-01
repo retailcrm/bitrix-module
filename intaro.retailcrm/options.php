@@ -618,8 +618,17 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     }
 
     try {
-        $arResult['paymentTypesList'] = $api->paymentTypesList()->paymentTypes;
-        $arResult['deliveryTypesList'] = $api->deliveryTypesList()->deliveryTypes;
+        $availableSites = RetailcrmConfigProvider::getSitesList();
+
+        if (!empty($availableSites)) {
+            $availableSites = array_flip($availableSites);
+        } else {
+            $site = RetailcrmConfigProvider::getSitesAvailable();
+            $availableSites[$site] = $site;
+        }
+
+        $arResult['paymentTypesList'] = getAvailableTypes($availableSites, $api->paymentTypesList()->paymentTypes);
+        $arResult['deliveryTypesList'] = getAvailableTypes($availableSites, $api->deliveryTypesList()->deliveryTypes);
     } catch (\RetailCrm\Exception\CurlException $e) {
         RCrmActions::eventLog(
             'intaro.retailcrm/options.php', 'RetailCrm\ApiClient::*List::CurlException',
@@ -2575,4 +2584,10 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         <input type="submit" title="<?php echo GetMessage('ICRM_OPTIONS_SUBMIT_TITLE'); ?>" value="<?php echo GetMessage('ICRM_OPTIONS_SUBMIT_VALUE'); ?>" name="btn-update" class="adm-btn-save"/>
         <?php $tabControl->End(); ?>
     </form>
-<?php } ?>
+<?php }
+$test = 0;
+function getAvailableTypes($availableSites, $types) {
+
+}
+
+?>
