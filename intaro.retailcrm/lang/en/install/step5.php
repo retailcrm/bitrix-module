@@ -13,9 +13,8 @@ $MESS ['PAYMENT_N'] = 'Not paid';
 $MESS ['CANCELED'] = 'Is «Cancelled»';
 $MESS ['INFO_1'] = ' Set the correspondence between 1C-Bitrix data books and RetailCRM data books.';
 $MESS ['AGENT_LOADING'] = 'Export catalog periodically (By Agent every 24 hours)';
-$MESS ['LOAD_NOW'] = 'Export now';
-$MESS ['LOAD_NOW_MSG'] = 'The generation will start after you click "Finish installation".
-This may take some time';
+$MESS ['LOAD_NOW'] = 'Generate ICML catalog now';
+$MESS ['LOAD_NOW_MSG'] = 'The generation will start after you click "Finish installation". This may take some time';
 $MESS ['PROFILE_NAME'] = 'Profile name:';
 $MESS ['PROFILE_NAME_EXAMPLE'] = 'RetailCRM catalog export';
 $MESS ['ERR_FIELDS_PROFILE'] = 'Invalid profile name field';

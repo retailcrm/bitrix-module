@@ -492,20 +492,18 @@ if ($STEP === 1) {
                     $SETUP_FILE_NAME : $settingsService->setupFileName); ?>" size="50"><br><br>
         <span class="text"><?=GetMessage('LOAD_PURCHASE_PRICE')?>&nbsp;</span>
         <input type="checkbox" name="loadPurchasePrice" value="Y" <?=$loadPurchasePrice === 'Y' ? 'checked' : ''?>>
-        <br>
+        <br><br>
         <span class="text"><?=GetMessage('LOAD_NON_ACTIVITY')?>&nbsp;</span>
         <input type="checkbox" name="loadNonActivity" value="Y" <?=$loadNonActivity === 'Y' ? 'checked' : ''?>>
-        <br><br><br>
+        <br><br>
         <?php
         if ($isSetupModulePage) { ?>
         <span class="text"><?=GetMessage('AGENT_LOADING')?>&nbsp;</span>
-        <input type="checkbox" name="NEED_CATALOG_AGENT" value="agent" onclick="checkProfile(this);"><br>
+        <input id="add-agent" type="checkbox" name="NEED_CATALOG_AGENT" value="agent"><br><br>
+        <span class="text" style="font-weight: bold; font-size: 14px"><?=GetMessage('LOAD_NOW')?>&nbsp;</span>
+        <input id="load-now" type="checkbox" onchange="checkLoadStatus(this)" name="LOAD_NOW" value="now"><br>
         <br>
-        <br>
-        <span class="text"><?=GetMessage('LOAD_NOW')?>&nbsp;</span>
-        <input id="load-now" onchange="checkLoadStatus(this)" type="checkbox" name="LOAD_NOW" value="now">
-        <br>
-        <div id="loadMessage" hidden><?=GetMessage('LOAD_NOW_MSG')?></div>
+            <div id="loadMessageNow" hidden><?=GetMessage('LOAD_NOW_MSG')?></div>
         <br>
             <?php
         }?>
@@ -586,9 +584,9 @@ if ($STEP === 1) {
         function checkLoadStatus(object)
         {
             if (object.checked) {
-                $('#loadMessage').show();
+                $('#loadMessageNow').show();
             } else {
-                $('#loadMessage').hide();
+                $('#loadMessageNow').hide();
             }
         }
 
