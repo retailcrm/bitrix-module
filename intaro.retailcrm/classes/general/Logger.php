@@ -50,9 +50,11 @@ class Logger
     {
         $rsSites = CSite::GetList($by, $sort, array('DEFAULT' => 'Y'));
         $ar = $rsSites->Fetch();
+
         if (!is_dir($ar['ABS_DOC_ROOT'] . $this->logPath . '/')) {
             mkdir($ar['ABS_DOC_ROOT'] . $this->logPath . '/');
         }
+        
         $file = $ar['ABS_DOC_ROOT'] . $this->logPath . '/' . $file . '.log';
 
         $data['TIME'] = date('Y-m-d H:i:s');
