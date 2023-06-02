@@ -47,22 +47,10 @@ if (!isset($arResult['ORDER_TYPES'])) {
 
 if (!isset($arResult['paymentTypesList'])) {
     $arResult['bitrixPaymentTypesList'] = RCrmActions::PaymentList();
-    $arResult['paymentTypesList'] = $RETAIL_CRM_API->paymentTypesList()->paymentTypes;
-
-    foreach ($arResult['paymentTypesList'] as $paymentType) {
-        if (empty($paymentType['sites'])) {
-            $paymentTypes[] = $paymentType;
-        } else {
-            foreach ($paymentType['sites'] as $site) {
-                if (!empty($availableSites[$site])) {
-                    $paymentTypes[] = $paymentType;
-                    break;
-                }
-            }
-        }
-    }
-
-    $arResult['paymentTypesList'] = $paymentTypes;
+    $arResult['paymentTypesList'] = getAvailableTypes(
+            $availableSites,
+            $RETAIL_CRM_API->paymentTypesList()->paymentTypes
+    );
     $arResult['PAYMENT_TYPES'] = unserialize(COption::GetOptionString($MODULE_ID, $CRM_PAYMENT_TYPES, 0));
 }
 
@@ -84,24 +72,10 @@ if (!isset($arResult['paymentStatusesList'])) {
 
 if (!isset($arResult['bitrixDeliveryTypesList'])) {
     $arResult['bitrixDeliveryTypesList'] = RCrmActions::DeliveryList();
-    $arResult['deliveryTypesList'] = $RETAIL_CRM_API->deliveryTypesList()->deliveryTypes;
-
-    foreach ($arResult['deliveryTypesList'] as $delivType) {
-        if ($delivType['active'] === true) {
-            if (empty($delivType['sites'])) {
-                $delivTypes[$delivType['code']] = $delivType;
-            } else {
-                foreach ($delivType['sites'] as $site) {
-                    if (!empty($availableSites[$site])) {
-                        $delivTypes[$delivType['code']] = $delivType;
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
-    $arResult['deliveryTypesList'] = $delivTypes;
+    $arResult['deliveryTypesList'] = getAvailableTypes(
+            $availableSites,
+            $RETAIL_CRM_API->deliveryTypesList()->deliveryTypes
+    );
     $arResult['DELIVERY_TYPES'] = unserialize(COption::GetOptionString($MODULE_ID, $CRM_DELIVERY_TYPES_ARR, 0));
 }
 
@@ -157,6 +131,28 @@ if (isset($arResult['PAYMENT'])) {
         'Y' => 'paid',
         'N' => 'not-paid',
     ];
+}
+
+function getAvailableTypes($availableSites, $types)
+{
+    $result = [];
+
+    foreach ($types as $type) {
+        if ($type['active'] === true) {
+            if (empty($type['sites'])) {
+                $result[] = $type;
+            } else {
+                foreach ($type['sites'] as $site) {
+                    if (!empty($availableSites[$site])) {
+                        $result[] = $type;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    return $result;
 }
 ?>
 
@@ -267,12 +263,10 @@ if (isset($arResult['PAYMENT'])) {
                     <select name="delivery-type-<?php echo $bitrixDeliveryType['ID']; ?>" class="typeselect">
                         <option value=""></option>
                         <?php foreach($arResult['deliveryTypesList'] as $deliveryType): ?>
-                            <?php if ($deliveryType['active'] === true): ?>
-                                <option value="<?php echo $deliveryType['code']; ?>"
-                                    <?php if($defaultDelivTypes[$bitrixDeliveryType['ID']] == $deliveryType['code']) echo 'selected'; ?>>
-                                    <?php echo $APPLICATION->ConvertCharset($deliveryType['name'], 'utf-8', SITE_CHARSET); ?>
-                                </option>
-                            <?php endif; ?>
+                            <option value="<?php echo $deliveryType['code']; ?>"
+                                <?php if($defaultDelivTypes[$bitrixDeliveryType['ID']] == $deliveryType['code']) echo 'selected'; ?>>
+                                <?php echo $APPLICATION->ConvertCharset($deliveryType['name'], 'utf-8', SITE_CHARSET); ?>
+                            </option>
                         <?php endforeach; ?>
                     </select>
                 </td>
@@ -291,14 +285,12 @@ if (isset($arResult['PAYMENT'])) {
                     <select name="payment-type-<?php echo $bitrixPaymentType['ID']; ?>" class="typeselect">
                         <option value=""></option>
                         <?php foreach($arResult['paymentTypesList'] as $paymentType): ?>
-                            <?php if($paymentType['active'] === true): ?>
-                                <option value="<?php echo $paymentType['code']; ?>"
-                                    <?php if($defaultPayTypes[$bitrixPaymentType['ID']] == $paymentType['code']) echo 'selected'; ?>>
-                                    <?php
-                                    $nameType = isset($paymentType['integrationModule']) ? $APPLICATION->ConvertCharset($paymentType['name'] . GetMessage('INTEGRATIONS'), 'utf-8', SITE_CHARSET) : $APPLICATION->ConvertCharset($paymentType['name'], 'utf-8', SITE_CHARSET);
-                                    echo $nameType;?>
-                                </option>
-                            <?php endif; ?>
+                            <option value="<?php echo $paymentType['code']; ?>"
+                                <?php if($defaultPayTypes[$bitrixPaymentType['ID']] == $paymentType['code']) echo 'selected'; ?>>
+                                <?php
+                                $nameType = isset($paymentType['integrationModule']) ? $APPLICATION->ConvertCharset($paymentType['name'] . GetMessage('INTEGRATIONS'), 'utf-8', SITE_CHARSET) : $APPLICATION->ConvertCharset($paymentType['name'], 'utf-8', SITE_CHARSET);
+                                echo $nameType;?>
+                            </option>
                         <?php endforeach; ?>
                     </select>
                 </td>
