@@ -47,9 +47,9 @@ if (!isset($arResult['ORDER_TYPES'])) {
 
 if (!isset($arResult['paymentTypesList'])) {
     $arResult['bitrixPaymentTypesList'] = RCrmActions::PaymentList();
-    $arResult['paymentTypesList'] = getAvailableTypes(
-            $availableSites,
-            $RETAIL_CRM_API->paymentTypesList()->paymentTypes
+    $arResult['paymentTypesList'] = RetailCrmService::getAvailableTypes(
+        $availableSites,
+        $RETAIL_CRM_API->paymentTypesList()->paymentTypes
     );
     $arResult['PAYMENT_TYPES'] = unserialize(COption::GetOptionString($MODULE_ID, $CRM_PAYMENT_TYPES, 0));
 }
@@ -72,9 +72,9 @@ if (!isset($arResult['paymentStatusesList'])) {
 
 if (!isset($arResult['bitrixDeliveryTypesList'])) {
     $arResult['bitrixDeliveryTypesList'] = RCrmActions::DeliveryList();
-    $arResult['deliveryTypesList'] = getAvailableTypes(
-            $availableSites,
-            $RETAIL_CRM_API->deliveryTypesList()->deliveryTypes
+    $arResult['deliveryTypesList'] = RetailCrmService::getAvailableTypes(
+        $availableSites,
+        $RETAIL_CRM_API->deliveryTypesList()->deliveryTypes
     );
     $arResult['DELIVERY_TYPES'] = unserialize(COption::GetOptionString($MODULE_ID, $CRM_DELIVERY_TYPES_ARR, 0));
 }
@@ -131,28 +131,6 @@ if (isset($arResult['PAYMENT'])) {
         'Y' => 'paid',
         'N' => 'not-paid',
     ];
-}
-
-function getAvailableTypes($availableSites, $types)
-{
-    $result = [];
-
-    foreach ($types as $type) {
-        if ($type['active'] === true) {
-            if (empty($type['sites'])) {
-                $result[] = $type;
-            } else {
-                foreach ($type['sites'] as $site) {
-                    if (!empty($availableSites[$site])) {
-                        $result[] = $type;
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
-    return $result;
 }
 ?>
 

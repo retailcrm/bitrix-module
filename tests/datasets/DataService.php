@@ -42,4 +42,46 @@ class DataService
             'shipmentStore' => 'test',
         ];
     }
+
+    public static function availableSitesAndTypesData()
+    {
+        return [
+            'sites' => [
+                'bitrix' => 's1',
+                'bitrix2' => 's2'
+            ],
+            'types' => [
+                'test1' => [
+                    'code' => 'test1',
+                    'active' => true,
+                    'sites' => []
+                ],
+                'test2' => [
+                    'code' => 'test2',
+                    'active' => false,
+                    'sites' => []
+                ],
+                'test3' => [
+                    'code' => 'test3',
+                    'active' => true,
+                    'sites' => ['crm', 'crm1']
+                ],
+                'test4' => [
+                    'code' => 'test4',
+                    'active' => true,
+                    'sites' => ['bitrix', 'crm']
+                ],
+                'test5' => [
+                    'code' => 'test5',
+                    'active' => false,
+                    'sites' => ['bitrix', 'bitrix2']
+                ],
+                'test6' => [
+                    'code' => 'test6',
+                    'active' => true,
+                    'sites' => ['bitrix', 'bitrix2']
+                ]
+            ]
+        ];
+    }
 }

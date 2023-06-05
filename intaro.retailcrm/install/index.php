@@ -466,8 +466,14 @@ class intaro_retailcrm extends CModule
                 $availableSites[$site] = $site;
             }
 
-            $arResult['deliveryTypesList'] = $this->getAvailableTypes($availableSites, $arResult['deliveryTypesList']);
-            $arResult['paymentTypesList'] = $this->getAvailableTypes($availableSites, $arResult['paymentTypesList']);
+            $arResult['deliveryTypesList'] = RetailCrmService::getAvailableTypes(
+                $availableSites,
+                $arResult['deliveryTypesList']
+            );
+            $arResult['paymentTypesList'] = RetailCrmService::getAvailableTypes(
+                $availableSites,
+                $arResult['paymentTypesList']
+            );
 
             RetailcrmConfigProvider::setIntegrationDelivery(
                 RetailCrmService::selectIntegrationDeliveries($arResult['deliveryTypesList'])
@@ -1463,27 +1469,5 @@ class intaro_retailcrm extends CModule
                 CCatalogExport::Delete($arProfile['ID']);
             }
         }
-    }
-
-    private function getAvailableTypes($availableSites, $types)
-    {
-        $result = [];
-
-        foreach ($types as $type) {
-            if ($type['active'] === true) {
-                if (empty($type['sites'])) {
-                    $result[] = $type;
-                } else {
-                    foreach ($type['sites'] as $site) {
-                        if (!empty($availableSites[$site])) {
-                            $result[] = $type;
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        return $result;
     }
 }

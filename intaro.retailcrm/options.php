@@ -627,8 +627,14 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     }
 
     try {
-        $arResult['paymentTypesList'] = getAvailableTypes($availableSites, $api->paymentTypesList()->paymentTypes);
-        $arResult['deliveryTypesList'] = getAvailableTypes($availableSites, $api->deliveryTypesList()->deliveryTypes);
+        $arResult['paymentTypesList'] = RetailCrmService::getAvailableTypes(
+            $availableSites,
+            $api->paymentTypesList()->paymentTypes
+        );
+        $arResult['deliveryTypesList'] = RetailCrmService::getAvailableTypes(
+            $availableSites,
+            $api->deliveryTypesList()->deliveryTypes
+        );
     } catch (\RetailCrm\Exception\CurlException $e) {
         RCrmActions::eventLog(
             'intaro.retailcrm/options.php', 'RetailCrm\ApiClient::*List::CurlException',
@@ -951,8 +957,14 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         echo CAdminMessage::ShowMessage(GetMessage('ERR_JSON'));
     }
 
-    $arResult['paymentTypesList'] = getAvailableTypes($availableSites, $api->paymentTypesList()->paymentTypes);
-    $arResult['deliveryTypesList'] = getAvailableTypes($availableSites, $api->deliveryTypesList()->deliveryTypes);
+    $arResult['paymentTypesList'] = RetailCrmService::getAvailableTypes(
+        $availableSites,
+        $api->paymentTypesList()->paymentTypes
+    );
+    $arResult['deliveryTypesList'] = RetailCrmService::getAvailableTypes(
+        $availableSites,
+        $api->deliveryTypesList()->deliveryTypes
+    );
 
     $integrationPayments = RetailCrmService::selectIntegrationPayments($arResult['paymentTypesList']);
     $integrationDeliveries = RetailCrmService::selectIntegrationDeliveries($arResult['deliveryTypesList']);
@@ -2573,28 +2585,4 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         <input type="submit" title="<?php echo GetMessage('ICRM_OPTIONS_SUBMIT_TITLE'); ?>" value="<?php echo GetMessage('ICRM_OPTIONS_SUBMIT_VALUE'); ?>" name="btn-update" class="adm-btn-save"/>
         <?php $tabControl->End(); ?>
     </form>
-<?php }
-$test = 0;
-function getAvailableTypes($availableSites, $types)
-{
-    $result = [];
-
-    foreach ($types as $type) {
-        if ($type['active'] === true) {
-            if (empty($type['sites'])) {
-                $result[] = $type;
-            } else {
-                foreach ($type['sites'] as $site) {
-                    if (!empty($availableSites[$site])) {
-                        $result[] = $type;
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
-    return $result;
-}
-
-?>
+<?php } ?>
