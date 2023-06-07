@@ -136,15 +136,17 @@ class RetailCrmService
         $result = [];
 
         foreach ($types as $type) {
-            if ($type['active'] === true) {
-                if (empty($type['sites'])) {
-                    $result[] = $type;
-                } else {
-                    foreach ($type['sites'] as $site) {
-                        if (!empty($availableSites[$site])) {
-                            $result[] = $type;
-                            break;
-                        }
+            if ($type['active'] !== true) {
+                continue;
+            }
+
+            if (empty($type['sites'])) {
+                $result[] = $type;
+            } else {
+                foreach ($type['sites'] as $site) {
+                    if (!empty($availableSites[$site])) {
+                        $result[] = $type;
+                        break;
                     }
                 }
             }
