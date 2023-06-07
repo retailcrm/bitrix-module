@@ -124,4 +124,34 @@ class RetailCrmService
             true
         );
     }
+
+    /**
+     * @param array|null $availableSites
+     * @param array|null $types
+     *
+     * @return array
+     */
+    public static function getAvailableTypes(?array $availableSites, ?array $types)
+    {
+        $result = [];
+
+        foreach ($types as $type) {
+            if ($type['active'] !== true) {
+                continue;
+            }
+
+            if (empty($type['sites'])) {
+                $result[] = $type;
+            } else {
+                foreach ($type['sites'] as $site) {
+                    if (!empty($availableSites[$site])) {
+                        $result[] = $type;
+                        break;
+                    }
+                }
+            }
+        }
+
+        return $result;
+    }
 }

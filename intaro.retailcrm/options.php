@@ -220,6 +220,15 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_RE
     die(json_encode($res));
 }
 
+$availableSites = RetailcrmConfigProvider::getSitesList();
+
+if (!empty($availableSites)) {
+    $availableSites = array_flip($availableSites);
+} else {
+    $site = RetailcrmConfigProvider::getSitesAvailable();
+    $availableSites[$site] = $site;
+}
+
 //update connection settings
 if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $api_host = htmlspecialchars(trim($_POST['api_host']));
@@ -618,8 +627,14 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     }
 
     try {
-        $arResult['paymentTypesList'] = $api->paymentTypesList()->paymentTypes;
-        $arResult['deliveryTypesList'] = $api->deliveryTypesList()->deliveryTypes;
+        $arResult['paymentTypesList'] = RetailCrmService::getAvailableTypes(
+            $availableSites,
+            $api->paymentTypesList()->paymentTypes
+        );
+        $arResult['deliveryTypesList'] = RetailCrmService::getAvailableTypes(
+            $availableSites,
+            $api->deliveryTypesList()->deliveryTypes
+        );
     } catch (\RetailCrm\Exception\CurlException $e) {
         RCrmActions::eventLog(
             'intaro.retailcrm/options.php', 'RetailCrm\ApiClient::*List::CurlException',
@@ -942,21 +957,20 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         echo CAdminMessage::ShowMessage(GetMessage('ERR_JSON'));
     }
 
-    $deliveryTypes           = [];
-    $deliveryIntegrationCode = [];
-    foreach ($arResult['deliveryTypesList'] as $deliveryType) {
-        if ($deliveryType['active'] === true) {
-            $deliveryTypes[$deliveryType['code']]           = $deliveryType;
-            $deliveryIntegrationCode[$deliveryType['code']] = $deliveryType['integrationCode'];
-        }
-    }
-
-    $arResult['deliveryTypesList'] = $deliveryTypes;
-    COption::SetOptionString(
-        $mid,
-        RetailcrmConstants::CRM_INTEGRATION_DELIVERY,
-        serialize(RCrmActions::clearArr(is_array($deliveryIntegrationCode) ? $deliveryIntegrationCode : []))
+    $arResult['paymentTypesList'] = RetailCrmService::getAvailableTypes(
+        $availableSites,
+        $api->paymentTypesList()->paymentTypes
     );
+    $arResult['deliveryTypesList'] = RetailCrmService::getAvailableTypes(
+        $availableSites,
+        $api->deliveryTypesList()->deliveryTypes
+    );
+
+    $integrationPayments = RetailCrmService::selectIntegrationPayments($arResult['paymentTypesList']);
+    $integrationDeliveries = RetailCrmService::selectIntegrationDeliveries($arResult['deliveryTypesList']);
+
+    RetailcrmConfigProvider::setIntegrationPaymentTypes($integrationPayments);
+    RetailcrmConfigProvider::setIntegrationDelivery($integrationDeliveries);
 
     //bitrix orderTypesList -- personTypes
     $arResult['bitrixOrderTypesList'] = RCrmActions::OrderTypesList($arResult['arSites']);
@@ -1470,13 +1484,11 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                         <select name="delivery-type-<?php echo $bitrixDeliveryType['ID']; ?>" class="typeselect">
                             <option value=""></option>
                             <?php foreach ($arResult['deliveryTypesList'] as $deliveryType): ?>
-                                <?php if ($deliveryType['active'] === true) { ?>
-                                    <option value="<?php echo $deliveryType['code']; ?>" <?php if ($optionsDelivTypes[$bitrixDeliveryType['ID']] === $deliveryType['code']) {
-                                        echo 'selected';
-                                    } ?>>
-                                        <?php echo $APPLICATION->ConvertCharset($deliveryType['name'], 'utf-8', SITE_CHARSET); ?>
-                                    </option>
-                                <?php } ?>
+                                <option value="<?php echo $deliveryType['code']; ?>" <?php if ($optionsDelivTypes[$bitrixDeliveryType['ID']] === $deliveryType['code']) {
+                                    echo 'selected';
+                                } ?>>
+                                    <?php echo $APPLICATION->ConvertCharset($deliveryType['name'], 'utf-8', SITE_CHARSET); ?>
+                                </option>
                             <?php endforeach; ?>
                         </select>
                     </label>
@@ -1501,13 +1513,11 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                         <select name="payment-type-<?php echo $bitrixPaymentType['ID']; ?>" class="typeselect">
                             <option value="" selected=""></option>
                             <?php foreach ($arResult['paymentTypesList'] as $paymentType): ?>
-                                <?php if($paymentType['active'] === true): ?>
-                                    <option value="<?php echo $paymentType['code']; ?>" <?php if ($optionsPayTypes[$bitrixPaymentType['ID']] === $paymentType['code']) {
-                                        echo 'selected';
-                                    } ?>>
-                                        <?php echo $APPLICATION->ConvertCharset($paymentType['name'], 'utf-8', SITE_CHARSET); ?>
-                                    </option>
-                                <?php endif; ?>
+                                <option value="<?php echo $paymentType['code']; ?>" <?php if ($optionsPayTypes[$bitrixPaymentType['ID']] === $paymentType['code']) {
+                                    echo 'selected';
+                                } ?>>
+                                    <?php echo $APPLICATION->ConvertCharset($paymentType['name'], 'utf-8', SITE_CHARSET); ?>
+                                </option>
                             <?php endforeach; ?>
                         </select>
                     </label>

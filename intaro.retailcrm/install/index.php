@@ -455,14 +455,25 @@ class intaro_retailcrm extends CModule
                 return false;
             }
 
-            $delivTypes = [];
-            foreach ($arResult['deliveryTypesList'] as $delivType) {
-                if ($delivType['active'] === true) {
-                    $delivTypes[$delivType['code']] = $delivType;
-                }
+            $this->loadDeps();
+
+            $availableSites = RetailcrmConfigProvider::getSitesList();
+
+            if (!empty($availableSites)) {
+                $availableSites = array_flip($availableSites);
+            } else {
+                $site = RetailcrmConfigProvider::getSitesAvailable();
+                $availableSites[$site] = $site;
             }
 
-            $this->loadDeps();
+            $arResult['deliveryTypesList'] = RetailCrmService::getAvailableTypes(
+                $availableSites,
+                $arResult['deliveryTypesList']
+            );
+            $arResult['paymentTypesList'] = RetailCrmService::getAvailableTypes(
+                $availableSites,
+                $arResult['paymentTypesList']
+            );
 
             RetailcrmConfigProvider::setIntegrationDelivery(
                 RetailCrmService::selectIntegrationDeliveries($arResult['deliveryTypesList'])
@@ -471,8 +482,6 @@ class intaro_retailcrm extends CModule
             RetailcrmConfigProvider::setIntegrationPaymentTypes(
                 RetailCrmService::selectIntegrationPayments($arResult['paymentTypesList'])
             );
-
-            $arResult['deliveryTypesList'] = $delivTypes;
 
             //bitrix personTypes
             $arResult['bitrixOrderTypesList'] = RCrmActions::OrderTypesList($arResult['arSites']);
