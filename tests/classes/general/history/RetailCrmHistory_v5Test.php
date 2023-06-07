@@ -175,6 +175,7 @@ class RetailCrmHistory_v5Test extends \BitrixTestCase
     {
         $currency = CurrencyManager::getBaseCurrency();
         $cmsOrder = Order::create('bitrix', 1, $currency);
+        $cmsOrder->setPersonTypeId('bitrixType');
         $crmManagerId = 123;
 
         RetailcrmConfigProvider::setUsersMap(['bitrixUserId-1515' => $crmManagerId]);
