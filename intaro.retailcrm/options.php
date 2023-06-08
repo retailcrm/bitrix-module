@@ -688,8 +688,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             COption::SetOptionString($mid, $EVENTS_DEACTIVATE, serialize($deactivateEvents));
         }
     } else {
-        $deactivateAgents = unserialize(COption::GetOptionString($mid, $AGENTS_DEACTIVATE, []));
-        $deactivateEvents = unserialize(COption::GetOptionString($mid, $EVENTS_DEACTIVATE, []));
+        $deactivateAgents = unserialize(COption::GetOptionString($mid, $AGENTS_DEACTIVATE, ''));
+        $deactivateEvents = unserialize(COption::GetOptionString($mid, $EVENTS_DEACTIVATE, ''));
 
         if (!empty($deactivateAgents)) {
             $dateAgent = new DateTime();

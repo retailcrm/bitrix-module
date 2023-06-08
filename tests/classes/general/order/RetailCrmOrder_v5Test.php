@@ -66,6 +66,7 @@ class RetailCrmOrder_v5Test extends BitrixTestCase {
     public function testFieldExists(): void
     {
         $order = \Bitrix\Sale\Order::create('s1', 1, 'RUB');
+        $order->setPersonTypeId('bitrixType');
         $flag = true;
 
         try {
@@ -135,5 +136,24 @@ class RetailCrmOrder_v5Test extends BitrixTestCase {
                 'statusComment' => $arFields['REASON_CANCELED']
             ],
         ]];
+    }
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function testUploadOrders(): void
+    {
+        $dependencyLoader = Mockery::mock('alias:' . RetailcrmDependencyLoader::class);
+        $dependencyLoader->shouldReceive('loadDependencies')->withAnyArgs()->andReturn(true);
+
+        COption::SetOptionString('intaro.retailcrm', \Intaro\RetailCrm\Component\Constants::CRM_SITES_LIST, serialize([]));
+
+        $rcrmActions = Mockery::mock('alias:' . RCrmActions::class);
+        $rcrmActions->shouldReceive('apiMethod')->withAnyArgs()->andReturn(true);
+
+        $result = RetailCrmOrder::uploadOrders();
+
+        self::assertTrue($result);
     }
 }
