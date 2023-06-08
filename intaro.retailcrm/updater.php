@@ -1089,6 +1089,10 @@ function update()
         ->updateBonusInfoFieldForLp()
         ->updateBonusFieldsTypeInHl()
         ->updateDefDiscountFieldTypeInHl();
+
+    UnRegisterModuleDependences("main", "OnBeforeProlog", 'intaro.retailcrm', "RetailCrmPricePrchase", "add");
+    UnRegisterModuleDependences("main", "OnBeforeProlog", 'intaro.retailcrm', "RetailCrmDc", "add");
+    UnRegisterModuleDependences("main", "OnBeforeProlog", 'intaro.retailcrm', "RetailCrmCc", "add");
 }
 
 try {

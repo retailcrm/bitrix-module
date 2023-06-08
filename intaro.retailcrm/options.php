@@ -529,10 +529,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     //discount_round
     if (htmlspecialchars(trim($_POST['discount_round'])) === 'Y') {
         $discount_round = 'Y';
-        RegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmDc", "add");
     } else {
         $discount_round = 'N';
-        UnRegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmDc", "add");
     }
 
     //shipment
@@ -560,10 +558,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     //purchasePrice_null
     if (htmlspecialchars(trim($_POST['purchasePrice_null'])) === 'Y') {
         $purchasePrice_null = 'Y';
-        RegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmPricePrchase", "add");
     } else {
         $purchasePrice_null = 'N';
-        UnRegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmPricePrchase", "add");
     }
 
     //version
