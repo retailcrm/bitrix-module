@@ -1154,7 +1154,7 @@ class intaro_retailcrm extends CModule
                 $agentId = CAgent::AddAgent(
                     'CCatalogExport::PreGenerateExport(' . $profileId . ');',
                     'catalog',
-                    'N',
+                    'N'
                 );
 
                 CCatalogExport::Update($profileId, [
