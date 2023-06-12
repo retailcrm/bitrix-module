@@ -286,11 +286,19 @@ class XmlOfferBuilder
      */
     private function getVatRate(array $product): string
     {
-        if (!empty($product['VAT_ID']) && array_key_exists($product['VAT_ID'], $this->vatRates)) {
+        if (
+            !empty($product['VAT_ID'])
+            && array_key_exists($product['VAT_ID'], $this->vatRates)
+            && is_string($this->vatRates[$product['VAT_ID']]['RATE'])
+        ) {
             return $this->vatRates[$product['VAT_ID']]['RATE'];
         }
 
-        if (!empty($product['CATALOG_VAT_ID']) && array_key_exists($product['CATALOG_VAT_ID'], $this->vatRates)) {
+        if (
+            !empty($product['CATALOG_VAT_ID'])
+            && array_key_exists($product['CATALOG_VAT_ID'], $this->vatRates)
+            && is_string($this->vatRates[$product['CATALOG_VAT_ID']]['RATE'])
+        ) {
             return $this->vatRates[$product['CATALOG_VAT_ID']]['RATE'];
         }
 
