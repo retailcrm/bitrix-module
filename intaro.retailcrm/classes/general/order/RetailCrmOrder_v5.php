@@ -180,6 +180,7 @@ class RetailCrmOrder
 
         if ('ordersEdit' === $methodApi) {
             $response = RCrmActions::apiMethod($api, 'ordersGet', __METHOD__, $order['externalId'], $site);
+
             if (isset($response['order'])) {
                 foreach ($response['order']['items'] as $k => $item) {
                     $externalId = $k .'_'. $item['offer']['externalId'];
@@ -223,12 +224,12 @@ class RetailCrmOrder
                 ) {
                     $externalIds[$keyBasketId] = [
                         'code' => 'bitrixBasketId',
-                        'value' => $product['ID'],
+                        'value' => $product['ID'] . '#' . $externalId,
                     ];
                 } else {
                     $externalIds[] = [
                         'code' => 'bitrixBasketId',
-                        'value' => $product['ID'],
+                        'value' => $product['ID'] . '#' . $externalId,
                     ];
                 }
             } else { //create
@@ -239,7 +240,7 @@ class RetailCrmOrder
                     ],
                     [
                         'code' => 'bitrixBasketId',
-                        'value' => $product['ID'],
+                        'value' => $product['ID'] . '#' . $externalId,
                     ],
                 ];
             }
