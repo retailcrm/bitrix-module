@@ -220,6 +220,8 @@ class RCrmActions
      * Agent function
      *
      * @return self name
+     *
+     * @throws \Throwable
      */
     public static function orderAgent()
     {
@@ -227,12 +229,22 @@ class RCrmActions
             define('NO_AGENT_CHECK', true);
         }
 
-        $service = ManagerService::getInstance();
-        $service->synchronizeManagers();
+        try {
+            $service = ManagerService::getInstance();
+            $service->synchronizeManagers();
 
-        RetailCrmHistory::customerHistory();
-        RetailCrmHistory::orderHistory();
-        self::uploadOrdersAgent();
+            RetailCrmHistory::customerHistory();
+            RetailCrmHistory::orderHistory();
+            self::uploadOrdersAgent();
+        } catch (\Throwable $exception) {
+            RCrmActions::eventLog(
+                'RCrmActions',
+                'orderAgent',
+                $exception->getMessage() . PHP_EOL .
+                'File: ' . $exception->getFile() . PHP_EOL .
+                'Line: ' . $exception->getLine() . PHP_EOL
+            );
+        }
 
         return 'RCrmActions::orderAgent();';
     }
