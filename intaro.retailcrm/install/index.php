@@ -1082,7 +1082,10 @@ class intaro_retailcrm extends CModule
             $dateAgent->add($intAgent);
 
             CAgent::AddAgent(
-                'RCrmActions::orderAgent();', $this->MODULE_ID, 'N', 600, // interval - 10 mins
+                'RCrmActions::orderAgent();',
+                $this->MODULE_ID,
+                'N',
+                600, // interval - 10 mins
                 $dateAgent->format('d.m.Y H:i:s'), // date of first check
                 'Y', // agent is active
                 $dateAgent->format('d.m.Y H:i:s'), // date of first start
