@@ -66,6 +66,9 @@ class ConfigProvider
     /** @var bool|null|string $orderNumbers */
     protected static $orderNumbers;
 
+    /** @var bool|null|string $orderVat */
+    protected static $orderVat;
+
     /** @var array $orderTypes */
     protected static $orderTypes;
 
@@ -612,6 +615,20 @@ class ConfigProvider
         }
 
         return self::$orderNumbers;
+    }
+
+    /**
+     * getOrderVat
+     *
+     * @return bool|string|null
+     */
+    public static function getOrderVat()
+    {
+        if (self::isEmptyNotZero(self::$orderVat)) {
+            self::$orderVat = static::getOption(Constants::CRM_ORDER_VAT);
+        }
+
+        return self::$orderVat;
     }
 
     /**

@@ -1035,8 +1035,17 @@ class RetailCrmHistory
 
                                 if ($item instanceof \Bitrix\Sale\BasketItem) {
                                     $elem = self::getInfoElement($product['offer']['externalId']);
+                                    $vatRate = null;
 
-                                    $item->setFields(array(
+                                    if (RetailcrmConfigProvider::getOrderVat() === 'Y') {
+                                        if ($product['vatRate'] === 0) {
+                                            $vatRate = 0;
+                                        } elseif($product['vatRate'] !== null) {
+                                            $vatRate = $product['vatRate'] / 100;
+                                        }
+                                    }
+
+                                    $item->setFields([
                                         'CURRENCY' => $newOrder->getCurrency(),
                                         'LID' => $site,
                                         'BASE_PRICE' => $collectItems[$product['offer']['externalId']]['initialPrice_max'],
@@ -1047,8 +1056,10 @@ class RetailCrmHistory
                                         'WEIGHT' => $elem['WEIGHT'],
                                         'NOTES' => GetMessage('PRICE_TYPE'),
                                         'PRODUCT_XML_ID' => $elem["XML_ID"],
-                                        'CATALOG_XML_ID' => $elem["IBLOCK_XML_ID"]
-                                    ));
+                                        'CATALOG_XML_ID' => $elem["IBLOCK_XML_ID"],
+                                        'VAT_INCLUDED' => $vatRate !== null ? 'Y' : 'N',
+                                        'VAT_RATE' => $vatRate,
+                                    ]);
                                 } else {
                                     RCrmActions::eventLog(
                                         'RetailCrmHistory::orderHistory',

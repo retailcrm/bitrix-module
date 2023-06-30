@@ -38,6 +38,7 @@ $CRM_CUSTOM_FIELDS         = 'custom_fields';
 $CRM_CONTRAGENT_TYPE       = 'contragent_type';
 $CRM_SITES_LIST            = 'sites_list';
 $CRM_ORDER_NUMBERS         = 'order_numbers';
+$CRM_ORDER_VAT             = 'order_vat';
 $CRM_CANSEL_ORDER          = 'cansel_order';
 $CRM_INVENTORIES_UPLOAD  = 'inventories_upload';
 $CRM_STORES              = 'stores';
@@ -400,9 +401,10 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     }
 
     //order numbers
-    $orderNumbers = htmlspecialchars(trim($_POST['order-numbers'])) ? htmlspecialchars(trim($_POST['order-numbers'])) : 'N';
-    $orderDimensions = htmlspecialchars(trim($_POST[$CRM_DIMENSIONS])) ? htmlspecialchars(trim($_POST[$CRM_DIMENSIONS])) : 'N';
-    $sendPaymentAmount = htmlspecialchars(trim($_POST[RetailcrmConstants::SEND_PAYMENT_AMOUNT])) ? htmlspecialchars(trim($_POST[RetailcrmConstants::SEND_PAYMENT_AMOUNT])) : 'N';
+    $orderVat = htmlspecialchars(trim($_POST['order-vat'])) ?: 'N';
+    $orderNumbers = htmlspecialchars(trim($_POST['order-numbers'])) ?: 'N';
+    $orderDimensions = htmlspecialchars(trim($_POST[$CRM_DIMENSIONS])) ?: 'N';
+    $sendPaymentAmount = htmlspecialchars(trim($_POST[RetailcrmConstants::SEND_PAYMENT_AMOUNT])) ?: 'N';
 
     //stores
     $bitrixStoresArr          = [];
@@ -807,6 +809,11 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     );
     COption::SetOptionString(
         $mid,
+        $CRM_ORDER_VAT,
+        $orderVat
+    );
+    COption::SetOptionString(
+        $mid,
         $CRM_CANSEL_ORDER,
         serialize(RCrmActions::clearArr(is_array($canselOrderArr) ? $canselOrderArr : []))
     );
@@ -1007,6 +1014,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $optionsLegalDetails = unserialize(COption::GetOptionString($mid, $CRM_LEGAL_DETAILS, 0));
     $optionsCustomFields = unserialize(COption::GetOptionString($mid, $CRM_CUSTOM_FIELDS, 0));
     $optionsOrderNumbers = COption::GetOptionString($mid, $CRM_ORDER_NUMBERS, 0);
+    $optionsOrderVat= COption::GetOptionString($mid, $CRM_ORDER_VAT, 0);
     $canselOrderArr = unserialize(COption::GetOptionString($mid, $CRM_CANSEL_ORDER, 0));
 
     $optionInventotiesUpload = COption::GetOptionString($mid, $CRM_INVENTORIES_UPLOAD, 0);
@@ -2138,9 +2146,18 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             <tr>
                 <td colspan="2" class="option-head option-other-top option-other-bottom">
                     <b>
-                        <label><input class="addr" type="checkbox" name="order-numbers" value="Y" <?php if ($optionsOrderNumbers === 'Y') {
+                        <label><input class="addr" type="checkbox" name="order-vat" value="Y" <?php if ($optionsOrderVat === 'Y') {
                                 echo "checked";
-                            } ?>> <?php echo GetMessage('ORDER_NUMBERS'); ?></label>
+                            } ?>> <?php echo GetMessage('ORDER_VAT'); ?></label>
+                    </b>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" class="option-head option-other-top option-other-bottom">
+                    <b>
+                        <label>
+                            <input class="addr" type="checkbox" name="<?php echo RetailcrmConstants::SEND_PAYMENT_AMOUNT; ?>" value="Y" <?php if(RetailcrmConfigProvider::shouldSendPaymentAmount()) echo "checked"; ?>> <?php echo GetMessage('SEND_PAYMENT_AMOUNT'); ?>
+                        </label>
                     </b>
                 </td>
             </tr>
@@ -2158,9 +2175,9 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             <tr>
                 <td colspan="2" class="option-head option-other-top option-other-bottom">
                     <b>
-                        <label>
-                            <input class="addr" type="checkbox" name="<?php echo RetailcrmConstants::SEND_PAYMENT_AMOUNT; ?>" value="Y" <?php if(RetailcrmConfigProvider::shouldSendPaymentAmount()) echo "checked"; ?>> <?php echo GetMessage('SEND_PAYMENT_AMOUNT'); ?>
-                        </label>
+                        <label><input class="addr" type="checkbox" name="order-numbers" value="Y" <?php if ($optionsOrderNumbers === 'Y') {
+                                echo "checked";
+                            } ?>> <?php echo GetMessage('ORDER_NUMBERS'); ?></label>
                     </b>
                 </td>
             </tr>

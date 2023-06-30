@@ -76,7 +76,8 @@ $MESS ['LOYALTY_PROGRAM_TITLE'] = 'Программа лояльности';
 $MESS ['LOYALTY_PROGRAM_TOGGLE_MSG'] = 'Включить программу лояльности';
 $MESS ['OTHER_OPTIONS'] = 'Прочие настройки';
 $MESS ['ORDERS_OPTIONS'] = 'Настройки заказов';
-$MESS ['ORDER_NUMBERS'] = 'Транслировать номера заказов созданных в црм в магазин';
+$MESS ['ORDER_NUMBERS'] = 'Транслировать номера заказов созданных в CRM в магазин';
+$MESS ['ORDER_VAT'] = 'Передавать НДС товаров';
 
 $MESS ['CRM_API_VERSION'] = 'Версия API клиента';
 $MESS ['CURRENCY'] = 'Валюта, устанавливаемая в заказе при выгрузке из CRM';
