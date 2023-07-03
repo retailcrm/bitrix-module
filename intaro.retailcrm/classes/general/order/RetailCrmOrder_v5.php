@@ -301,6 +301,14 @@ class RetailCrmOrder
                 $item['initialPrice'] = $product['PRICE'];
             }
 
+            if (
+                !empty($product['VAT_INCLUDED'])
+                && $product['VAT_INCLUDED'] === 'Y'
+                && RetailcrmConfigProvider::getOrderVat() === 'Y'
+            ) {
+                $item['vatRate'] = $product['VAT_RATE'] * 100;
+            }
+
             $order['items'][] = $item;
 
             if ($send && $dimensionsSetting === 'Y') {
