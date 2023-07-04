@@ -35,6 +35,7 @@ $CRM_ORDER_DISCHARGE       = 'order_discharge';
 $CRM_ORDER_PROPS           = 'order_props';
 $CRM_LEGAL_DETAILS         = 'legal_details';
 $CRM_CUSTOM_FIELDS         = 'custom_fields';
+$CRM_COUPON_FIELD          = 'crm_coupon_field';
 $CRM_CONTRAGENT_TYPE       = 'contragent_type';
 $CRM_SITES_LIST            = 'sites_list';
 $CRM_ORDER_NUMBERS         = 'order_numbers';
@@ -405,6 +406,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $orderNumbers = htmlspecialchars(trim($_POST['order-numbers'])) ?: 'N';
     $orderDimensions = htmlspecialchars(trim($_POST[$CRM_DIMENSIONS])) ?: 'N';
     $sendPaymentAmount = htmlspecialchars(trim($_POST[RetailcrmConstants::SEND_PAYMENT_AMOUNT])) ?: 'N';
+    $crmCouponFiled = htmlspecialchars(trim($_POST['crm-coupon-field'])) ?: 'N';
 
     //stores
     $bitrixStoresArr          = [];
@@ -814,6 +816,11 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     );
     COption::SetOptionString(
         $mid,
+        $CRM_COUPON_FIELD,
+        $crmCouponFiled
+    );
+    COption::SetOptionString(
+        $mid,
         $CRM_CANSEL_ORDER,
         serialize(RCrmActions::clearArr(is_array($canselOrderArr) ? $canselOrderArr : []))
     );
@@ -1051,8 +1058,26 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
     //currency
     $baseCurrency = \Bitrix\Currency\CurrencyManager::getBaseCurrency();
-    $currencyOption = COption::GetOptionString($mid, $CRM_CURRENCY, 0) ? COption::GetOptionString($mid, $CRM_CURRENCY, 0) : $baseCurrency;
+    $currencyOption = COption::GetOptionString($mid, $CRM_CURRENCY, 0) ?: $baseCurrency;
     $currencyList = \Bitrix\Currency\CurrencyManager::getCurrencyList();
+
+    $customFields = [['code' => '__default_empty_value__', 'name' => GetMessage('SELECT_VALUE')]];
+    $crmCouponFieldOption = COption::GetOptionString($mid, $CRM_COUPON_FIELD, 0) ?: null;
+    $page = 1;
+
+    do {
+        $getCustomFields = $api->customFieldsList(['entity' => 'order', 'type' => ['string', 'text']], 100, $page);
+
+        if (!$getCustomFields->isSuccessful() && empty($getCustomFields['customFields'])) {
+            break;
+        }
+
+        foreach ($getCustomFields['customFields'] as $customField) {
+            $customFields[] = $customField;
+        }
+
+        $page++;
+    } while($getCustomFields['pagination']['currentPage'] < $getCustomFields['pagination']['totalPageCount']);
 
     $optionsOrderDimensions = COption::GetOptionString($mid, $CRM_DIMENSIONS, 'N');
     $addressOptions = unserialize(COption::GetOptionString($mid, $CRM_ADDRESS_OPTIONS, 0));
@@ -2191,6 +2216,21 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                 echo "checked";
                             } ?>><?php echo GetMessage('DISCHARGE_AGENT'); ?></label>
                     </b>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" class="option-head option-other-top option-other-bottom">
+                    <b><?php echo GetMessage('COUPON_CUSTOM_FIELD'); ?></b>
+                    <br><br>
+                    <select name="crm-coupon-field" class="typeselect">
+                        <?php foreach ($customFields as $customField) : ?>
+                            <option value="<?php echo $customField['code']; ?>" <?php if ($customField['code'] === $crmCouponFieldOption) {
+                                echo 'selected';
+                            } ?>>
+                                <?php echo $customField['name']; ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
                 </td>
             </tr>
             <tr class="heading">

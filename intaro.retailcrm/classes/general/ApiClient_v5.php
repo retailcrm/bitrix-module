@@ -1433,9 +1433,9 @@ class ApiClient
      *
      * @return ApiResponse
      */
-    public function customFieldsList(array $filter = array(), $limit = null, $page = null)
+    public function customFieldsList(array $filter = [], $limit = null, $page = null)
     {
-        $parameters = array();
+        $parameters = [];
 
         if (count($filter)) {
             $parameters['filter'] = $filter;

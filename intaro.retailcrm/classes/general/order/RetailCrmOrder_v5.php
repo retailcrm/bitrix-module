@@ -75,6 +75,25 @@ class RetailCrmOrder
             'delivery' => ['cost' => $arOrder['PRICE_DELIVERY']],
         ];
 
+        $orderCouponField = ConfigProvider::getOrderCouponField();
+
+        if ($orderCouponField !== '__default_empty_value__') {
+            $couponList = \Bitrix\Sale\Internals\OrderCouponsTable::getList([
+                'select' => ['COUPON'],
+                'filter' => ['=ORDER_ID' => $arOrder['ID']],
+            ]);
+            $appliedCoupons = [];
+
+            while ($coupon = $couponList->fetch())
+            {
+                $appliedCoupons[] = $coupon['COUPON'];
+            }
+
+            if (!empty($orderCouponField) && $appliedCoupons !== []) {
+                $order['customFields'][$orderCouponField] = implode('; ', $appliedCoupons);
+            }
+        }
+
         if (!empty($arOrder['REASON_CANCELED'])) {
             $order['statusComment'] = $arOrder['REASON_CANCELED'];
         }

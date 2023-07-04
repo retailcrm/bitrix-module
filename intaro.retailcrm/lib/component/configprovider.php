@@ -69,6 +69,9 @@ class ConfigProvider
     /** @var bool|null|string $orderVat */
     protected static $orderVat;
 
+    /** @var null|string $orderVat */
+    protected static $orderCouponField;
+
     /** @var array $orderTypes */
     protected static $orderTypes;
 
@@ -499,6 +502,20 @@ class ConfigProvider
         }
 
         return static::$customFields;
+    }
+
+    /**
+     * get CRM order coupon field
+     *
+     * @return string
+     */
+    public static function getOrderCouponField()
+    {
+        if (self::isEmptyNotZero(static::$orderCouponField)) {
+            static::$orderCouponField = static::getOption(Constants::CRM_COUPON_FIELD);
+        }
+
+        return static::$orderCouponField;
     }
 
     /**
