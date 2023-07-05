@@ -44,6 +44,7 @@ class Constants
     public const CRM_SITES_LIST_CORPORATE = 'shops-corporate';
     public const CRM_ORDER_NUMBERS = 'order_numbers';
     public const CRM_ORDER_VAT = 'order_vat';
+    public const CRM_COUPON_FIELD = 'crm_coupon_field';
     public const CRM_CANCEL_ORDER = 'cansel_order';
     public const CRM_INVENTORIES_UPLOAD = 'inventories_upload';
     public const CRM_STORES = 'stores';
