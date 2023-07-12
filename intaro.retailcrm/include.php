@@ -11,6 +11,7 @@ use Intaro\RetailCrm\Service\OrderLoyaltyDataService;
 use Intaro\RetailCrm\Service\LoyaltyService;
 use Intaro\RetailCrm\Service\LoyaltyAccountService;
 use Intaro\RetailCrm\Service\CustomerService;
+use Intaro\RetailCrm\Service\SubscriberService;
 use Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\AnnotationReader;
 use Intaro\RetailCrm\Vendor\Doctrine\Common\Annotations\AnnotationRegistry;
 use \Intaro\RetailCrm\Component\Builder\Api\CustomerBuilder;
@@ -42,7 +43,8 @@ ServiceLocator::registerServices([
     LoyaltyService::class,
     CustomerService::class,
     OrderLoyaltyDataService::class,
-    CustomerBuilder::class
+    CustomerBuilder::class,
+    SubscriberService::class
 ]);
 
 $arJsConfig = [
