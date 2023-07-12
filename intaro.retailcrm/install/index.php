@@ -15,6 +15,7 @@ use Bitrix\Sale\EventActions;
 use Bitrix\Sale\Internals\OrderTable;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Installer\LoyaltyInstallerTrait;
+use Intaro\RetailCrm\Component\Installer\SubscriberInstallerTrait;
 use Intaro\RetailCrm\Service\OrderLoyaltyDataService;
 use Intaro\RetailCrm\Vendor\Symfony\Component\Process\PhpExecutableFinder;
 use RetailCrm\ApiClient;
@@ -30,10 +31,12 @@ if (class_exists('intaro_retailcrm')) {
 }
 
 include(__DIR__ . '/../lib/component/installer/loyaltyinstallertrait.php');
+include (__DIR__ . '/../lib/component/installer/subscriberinstallertrait.php');
 
 class intaro_retailcrm extends CModule
 {
     use LoyaltyInstallerTrait;
+    use SubscriberInstallerTrait;
 
     public const V5 = 'v5';
     public $MODULE_ID = 'intaro.retailcrm';
@@ -251,6 +254,8 @@ class intaro_retailcrm extends CModule
         $this->addLPUserFields();
         $this->addLPEvents();
         $this->addAgreement();
+
+        $this->CopyFilesSubscribe();
 
         OrderLoyaltyDataService::createLoyaltyHlBlock();
 
@@ -1094,6 +1099,7 @@ class intaro_retailcrm extends CModule
             );
 
             $this->CopyFiles();
+            $this->CopyFilesSubscribe();
 
             COption::RemoveOption($this->MODULE_ID, $this->CRM_CATALOG_BASE_PRICE);
 
