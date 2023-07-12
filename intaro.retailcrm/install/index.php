@@ -245,6 +245,7 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../lib/service/orderloyaltydataservice.php');
         include($this->INSTALL_PATH . '/../lib/component/factory/clientfactory.php');
         include($this->INSTALL_PATH . '/../lib/component/apiclient/clientadapter.php');
+        include($this->INSTALL_PATH . '/../lib/service/subscriberservice.php');
 
         $this->CopyFiles();
         $this->addLPUserFields();
