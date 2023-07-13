@@ -1110,7 +1110,6 @@ class intaro_retailcrm extends CModule
             );
 
             $this->CopyFiles();
-            $this->CopyFilesSubscribe();
 
             COption::RemoveOption($this->MODULE_ID, $this->CRM_CATALOG_BASE_PRICE);
 
@@ -1306,7 +1305,6 @@ class intaro_retailcrm extends CModule
 
         $this->deleteFiles();
         $this->deleteLPEvents();
-        $this->deleteSubscribeEvents();
 
         UnRegisterModule($this->MODULE_ID);
 
