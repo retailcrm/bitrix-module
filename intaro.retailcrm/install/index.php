@@ -248,7 +248,6 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../lib/service/orderloyaltydataservice.php');
         include($this->INSTALL_PATH . '/../lib/component/factory/clientfactory.php');
         include($this->INSTALL_PATH . '/../lib/component/apiclient/clientadapter.php');
-        include($this->INSTALL_PATH . '/../lib/service/subscriberservice.php');
 
         $this->CopyFiles();
         $this->addLPUserFields();
@@ -1074,6 +1073,7 @@ class intaro_retailcrm extends CModule
             RegisterModule($this->MODULE_ID);
             RegisterModuleDependences('sale', 'OnOrderUpdate', $this->MODULE_ID, 'RetailCrmEvent', 'onUpdateOrder');
             RegisterModuleDependences('main', 'OnAfterUserUpdate', $this->MODULE_ID, 'RetailCrmEvent', 'OnAfterUserUpdate');
+            RegisterModuleDependences('main', 'OnBeforeUserUpdate', $this->MODULE_ID, 'RetailCrmEvent', 'OnBeforeUserUpdate');
             RegisterModuleDependences('sale', 'OnSaleOrderDeleted', $this->MODULE_ID, 'RetailCrmEvent', 'orderDelete');
             RegisterModuleDependences('sale', 'OnSalePaymentEntitySaved', $this->MODULE_ID, 'RetailCrmEvent', 'paymentSave');
             RegisterModuleDependences('sale', 'OnSalePaymentEntityDeleted', $this->MODULE_ID, 'RetailCrmEvent', 'paymentDelete');
@@ -1270,6 +1270,7 @@ class intaro_retailcrm extends CModule
 
         UnRegisterModuleDependences('sale', 'OnOrderUpdate', $this->MODULE_ID, 'RetailCrmEvent', 'onUpdateOrder');
         UnRegisterModuleDependences('main', 'OnAfterUserUpdate', $this->MODULE_ID, 'RetailCrmEvent', 'OnAfterUserUpdate');
+        UnRegisterModuleDependences('main', 'OnBeforeUserUpdate', $this->MODULE_ID, 'RetailCrmEvent', 'OnBeforeUserUpdate');
         UnRegisterModuleDependences('sale', 'OnSaleOrderDeleted', $this->MODULE_ID, 'RetailCrmEvent', 'orderDelete');
         UnRegisterModuleDependences('main', 'OnBeforeProlog', $this->MODULE_ID, 'RetailCrmCollector', 'add');
         UnRegisterModuleDependences('main', 'OnBeforeProlog', $this->MODULE_ID, 'RetailCrmUa', 'add');

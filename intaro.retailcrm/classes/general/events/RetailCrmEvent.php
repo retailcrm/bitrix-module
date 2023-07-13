@@ -62,6 +62,25 @@ class RetailCrmEvent
     }
 
     /**
+     * @param $arFields
+     *
+     * @return bool
+     * @throws InvalidArgumentException
+     */
+    public static function OnBeforeUserUpdate(&$arFields)
+    {
+        if (isset($GLOBALS['RETAIL_CRM_HISTORY']) && $GLOBALS['RETAIL_CRM_HISTORY']) {
+            return false;
+        }
+
+        if (empty($arFields['UF_SUBSCRIBE_USER_EMAIL'])) {
+            $arFields['UF_SUBSCRIBE_USER_EMAIL'] = false;
+        }
+
+        return true;
+    }
+
+    /**
      * onUpdateOrder
      *
      * @param mixed $ID       - Order id

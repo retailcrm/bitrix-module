@@ -69,7 +69,7 @@ trait SubscriberInstallerTrait
 
         foreach ($lpTemplateNames as $lpTemplateName){
             $lpTemplatePath = $_SERVER['DOCUMENT_ROOT']
-                . '/local/templates/.default/components/bitrix/' . $lpTemplateName . '/default_subscribe12';
+                . '/local/templates/.default/components/bitrix/' . $lpTemplateName . '/default_subscribe16';
 
             if (!file_exists($lpTemplatePath)) {
                 $pathFrom = $_SERVER['DOCUMENT_ROOT']
