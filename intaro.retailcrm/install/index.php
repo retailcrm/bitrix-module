@@ -256,6 +256,8 @@ class intaro_retailcrm extends CModule
         $this->addAgreement();
 
         $this->CopyFilesSubscribe();
+        $this->addSubscribeUserFields();
+        $this->addSubscriberEvents();
 
         OrderLoyaltyDataService::createLoyaltyHlBlock();
 
@@ -1293,6 +1295,7 @@ class intaro_retailcrm extends CModule
 
         $this->deleteFiles();
         $this->deleteLPEvents();
+        $this->deleteSubscribeEvents();
 
         UnRegisterModule($this->MODULE_ID);
 
