@@ -92,7 +92,7 @@ trait InstallerTrait
     }
 
     /**
-     * Add USER fields for LP
+     * Добавление полей пользователя для ПЛ и подписки
      */
     public function addUserFields(): void
     {
