@@ -525,6 +525,14 @@ class User extends AbstractSerializableModel
     private $loyalty;
 
     /**
+     * @var bool
+     *
+     * @Mapping\Type("boolean")
+     * @Mapping\SerializedName("UF_SUBSCRIBE_USER_EMAIL")
+     */
+    private $subscribe;
+
+    /**
      * @return int
      */
     public function getId(): ?int
@@ -1729,5 +1737,25 @@ class User extends AbstractSerializableModel
     public function setLoyalty(UserLoyaltyData $loyalty): void
     {
         $this->loyalty = $loyalty;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getSubscribe()
+    {
+        return $this->subscribe;
+    }
+
+
+    /**
+     * @param bool $subscribe
+     * @return $this
+     */
+    public function setSubscribe($subscribe)
+    {
+        $this->subscribe = $subscribe;
+
+        return $this;
     }
 }

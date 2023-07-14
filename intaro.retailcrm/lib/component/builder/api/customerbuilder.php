@@ -162,7 +162,7 @@ class CustomerBuilder implements BuilderInterface
         $this->customer->externalId = $this->user->getId();
         $this->customer->email = $this->user->getEmail();
         $this->customer->createdAt = $this->user->getDateRegister();
-        $this->customer->subscribed = false;
+        $this->customer->subscribed = !empty($this->user->getSubscribe());
     }
 
     /**
