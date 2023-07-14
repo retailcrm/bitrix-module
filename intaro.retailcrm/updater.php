@@ -1090,24 +1090,31 @@ class UpdateSubscribe
 
         $templateNames = [
             'default_subscribe' => [
-                'sale.personal.section'
+                0 => [
+                    'name' => 'sale.personal.section',
+                    'templateDirectory' => '.default'
+                ],
+                1 => [
+                    'name' => 'main.register',
+                    'templateDirectory' => '.default_subscribe'
+                ]
             ]
         ];
 
-        foreach ($templateNames as $directory => $names) {
-            foreach ($names as $name) {
-                $lpTemplatePath = $_SERVER['DOCUMENT_ROOT']
-                    . '/local/templates/.default/components/bitrix/' . $name . '/' . $directory;
+        foreach ($templateNames as $directory => $templates) {
+            foreach ($templates as $template) {
+                $templatePath = $_SERVER['DOCUMENT_ROOT']
+                    . '/local/templates/.default/components/bitrix/' . $template['name'] . '/' . $directory;
 
-                if (!file_exists($lpTemplatePath)) {
+                if (!file_exists($templatePath)) {
                     $pathFrom = $_SERVER['DOCUMENT_ROOT']
                         . '/bitrix/modules/intaro.retailcrm/install/export/local/components/intaro/'
-                        . $name
-                        . '/templates/.default';
+                        . $template['name']
+                        . '/templates/' . $template['templateDirectory'];
 
                     CopyDirFiles(
                         $pathFrom,
-                        $lpTemplatePath,
+                        $templatePath,
                         true,
                         true,
                         false

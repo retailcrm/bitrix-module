@@ -74,19 +74,35 @@ trait InstallerTrait
 
         $templateNames = [
             'default_loyalty' => [
-                'sale.order.ajax',
-                'sale.basket.basket',
-                'main.register',
+                0 => [
+                    'name' => 'sale.order.ajax',
+                    'templateDirectory' => '.default'
+                ],
+                1 => [
+                    'name' => 'sale.basket.basket',
+                    'templateDirectory' => '.default'
+                ],
+                2 => [
+                    'name' => 'main.register',
+                    'templateDirectory' => '.default'
+                ],
             ],
 
             'default_subscribe' => [
-                'sale.personal.section'
+                0 => [
+                    'name' => 'sale.personal.section',
+                    'templateDirectory' => '.default'
+                ],
+                1 => [
+                    'name' => 'main.register',
+                    'templateDirectory' => '.default_subscribe'
+                ]
             ]
         ];
 
-        foreach ($templateNames as $directory => $names) {
-            foreach ($names as $name) {
-                $this->copy($directory, $name);
+        foreach ($templateNames as $directory => $templates) {
+            foreach ($templates as $template) {
+                $this->copy($directory, $template);
             }
         }
     }
@@ -234,16 +250,16 @@ trait InstallerTrait
         }
     }
 
-    private function copy($directory, $name): void
+    private function copy($directory, $template): void
     {
         $templatePath = $_SERVER['DOCUMENT_ROOT']
-            . '/local/templates/.default/components/bitrix/' . $name . '/'. $directory;
+            . '/local/templates/.default/components/bitrix/' . $template['name'] . '/'. $directory;
 
         if (!file_exists($templatePath)) {
             $pathFrom = $_SERVER['DOCUMENT_ROOT']
                 . '/bitrix/modules/intaro.retailcrm/install/export/local/components/intaro/'
-                . $name
-                . '/templates/.default';
+                . $template['name']
+                . '/templates/' . $template['templateDirectory'];
 
             CopyDirFiles(
                 $pathFrom,
