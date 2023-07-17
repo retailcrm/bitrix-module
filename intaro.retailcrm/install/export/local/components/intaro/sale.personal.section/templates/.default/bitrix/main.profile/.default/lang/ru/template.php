@@ -15,4 +15,4 @@ $MESS['RESET'] = "Сбросить";
 $MESS['LAST_LOGIN'] = "Последняя авторизация:";
 $MESS['NEW_PASSWORD_REQ'] = "Новый пароль:";
 $MESS['MAIN_PROFILE_TITLE'] = "Обращение:";
-$MESS['SUBSCRIBE_EMAIL'] = 'Подписаться на события';
+$MESS['SUBSCRIBE_EMAIL'] = 'Согласен на рекламно-информационные рассылки';

@@ -16,3 +16,4 @@ $MESS ['RETAILCRM_CURL_ERR'] = 'RetailCRM integration module requires PHP CURL e
 $MESS ['ERR_ARTICLE_IBLOCK'] = 'Articles are not set';
 $MESS ['DATE_TIMEZONE_ERR'] = 'Timezone is not specified in php settings.';
 $MESS ['SALE_VERSION_ERR'] = '\'Online-store\' module version must be higher than 16.';
+$MESS['UF_SUBSCRIBE_USER_EMAIL_TITLE'] = 'Agree to receive promotional  newsletters';

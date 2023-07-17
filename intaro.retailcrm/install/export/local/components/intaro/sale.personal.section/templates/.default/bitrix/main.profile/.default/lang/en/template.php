@@ -15,4 +15,4 @@ $MESS["PROFILE_DATA_SAVED"] = "All changes saved";
 $MESS["RESET"] = "Reset";
 $MESS["SAVE"] = "Save changes";
 $MESS["SECOND_NAME"] = "Middle name:";
-$MESS['SUBSCRIBE_EMAIL'] = 'Event subscribe';
+$MESS['SUBSCRIBE_EMAIL'] = 'I agree to receive promotional newsletters';

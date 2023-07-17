@@ -60,4 +60,5 @@ $MESS['main_profile_time_zones_auto_yes'] = "Yes, use browser settings";
 $MESS['main_profile_time_zones_zones'] = "Time Zone:";
 $MESS['main_register_sms'] = "SMS confirmation code:";
 $MESS['main_register_sms_send'] = "Submit";
+$MESS["SUBSCRIBE_EMAIL"] = "I agree to receive promotional newsletters";
 ?>

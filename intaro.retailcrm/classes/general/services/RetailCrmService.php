@@ -170,8 +170,10 @@ class RetailCrmService
                 $fileSub = 'unSubscribe';
             }
 
-            $logger = new Logger();
-            $logger->write('Пользователь ' . $arFields['ID'] . ' ' . $actionSub, $fileSub);
+            Logger::getInstance()->write(
+                'Пользователь ' . $arFields['ID'] . ' ' . $actionSub,
+                $fileSub
+            );
         }
     }
 }
