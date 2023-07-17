@@ -155,9 +155,8 @@ class RetailCrmHistory
 
                     if ($registerNewUser === true) {
                         $customerBuilder->buildPassword();
-                        $registeredUserID = $newUser->Add(
-                            $customerBuilder->getCustomer()->getObjectToArray()
-                        );
+                        $customerArray = $customerBuilder->getCustomer()->getObjectToArray();
+                        $registeredUserID = $newUser->Add(self::convertBooleanFields($customerArray));
 
                         if ($registeredUserID === false) {
                             RCrmActions::eventLog(
