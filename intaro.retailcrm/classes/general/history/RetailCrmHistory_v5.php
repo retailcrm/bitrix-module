@@ -198,7 +198,9 @@ class RetailCrmHistory
                         );
                     }
 
-                    $u = $newUser->Update($customer['externalId'], $customerBuilder->getCustomer()->getObjectToArray());
+                    $customerArray = $customerBuilder->getCustomer()->getObjectToArray();
+                    $u = $newUser->Update($customer['externalId'], self::convertBooleanFields($customerArray));
+
                     if (!$u) {
                         RCrmActions::eventLog(
                             'RetailCrmHistory::customerHistory',
@@ -2087,5 +2089,20 @@ class RetailCrmHistory
                 'Error order canceled: ' . $externalId
             );
         }
+    }
+
+    /**
+     * @param array $array
+     * @return array
+     */
+    public static function convertBooleanFields($array)
+    {
+        foreach ($array as $key => $value) {
+            if ($value === 'N') {
+                $array[$key] = false;
+            }
+        }
+
+        return $array;
     }
 }

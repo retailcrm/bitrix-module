@@ -47,6 +47,9 @@ class Customer extends BaseModel
     /**@var string $PERSONAL_GENDER */
     protected $PERSONAL_GENDER;
 
+    /**@var string $UF_SUBSCRIBE_USER_EMAIL */
+    protected $UF_SUBSCRIBE_USER_EMAIL;
+
     /**
      * @param string $EMAIL
      * @return $this
@@ -197,6 +200,17 @@ class Customer extends BaseModel
     public function setPersonalGender($PERSONAL_GENDER)
     {
         $this->PERSONAL_GENDER = $PERSONAL_GENDER;
+
+        return $this;
+    }
+
+    /**
+     * @param string $UF_SUBSCRIBE_USER_EMAIL
+     * @return $this
+     */
+    public function setSubscribe($UF_SUBSCRIBE_USER_EMAIL)
+    {
+        $this->UF_SUBSCRIBE_USER_EMAIL = $UF_SUBSCRIBE_USER_EMAIL;
 
         return $this;
     }

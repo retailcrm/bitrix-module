@@ -74,7 +74,7 @@ class RetailCrmEvent
     public static function OnBeforeUserUpdate(&$arFields)
     {
         if (isset($GLOBALS['RETAIL_CRM_HISTORY']) && $GLOBALS['RETAIL_CRM_HISTORY']) {
-            return false;
+            return true;
         }
 
         if (empty($arFields['UF_SUBSCRIBE_USER_EMAIL'])) {
