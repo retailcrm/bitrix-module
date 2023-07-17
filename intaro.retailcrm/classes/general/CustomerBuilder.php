@@ -201,7 +201,7 @@ class CustomerBuilder extends AbstractBuilder implements RetailcrmBuilderInterfa
             $this->buildAddress();
         }
 
-        // клиент подписан при значении равном null
+        // клиент считается подписанным при значении равном null
         if (array_key_exists('emailMarketingUnsubscribedAt', $this->dataCrm)) {
             if (empty($this->dataCrm['emailMarketingUnsubscribedAt'])) {
                 $this->customer->setSubscribe('Y');

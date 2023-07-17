@@ -155,6 +155,7 @@ class RetailCrmHistory
 
                     if ($registerNewUser === true) {
                         $customerBuilder->buildPassword();
+
                         $customerArray = $customerBuilder->getCustomer()->getObjectToArray();
 
                         if (!array_key_exists('UF_SUBSCRIBE_USER_EMAIL', $customerArray)) {

@@ -42,7 +42,7 @@ ServiceLocator::registerServices([
     LoyaltyService::class,
     CustomerService::class,
     OrderLoyaltyDataService::class,
-    CustomerBuilder::class,
+    CustomerBuilder::class
 ]);
 
 $arJsConfig = [

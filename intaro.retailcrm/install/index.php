@@ -251,14 +251,6 @@ class intaro_retailcrm extends CModule
         $this->addAgreement();
         $this->addUserFields();
 
-      /*  $this->addLPUserFields();
-        $this->addLPEvents();
-        $this->addAgreement();
-
-        $this->CopyFilesSubscribe();
-        $this->addSubscribeUserFields();
-        $this->addSubscriberEvents();*/
-
         OrderLoyaltyDataService::createLoyaltyHlBlock();
 
         $service = new OrderLoyaltyDataService();
