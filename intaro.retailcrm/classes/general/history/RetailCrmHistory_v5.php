@@ -463,9 +463,13 @@ class RetailCrmHistory
                             $corporateCustomerBuilder->setCorporateContact($userData);
 
                             $newUser = new CUser();
-                            $registeredUserID = $newUser->Add(
-                                $corporateCustomerBuilder->getCustomer()->getObjectToArray()
-                            );
+                            $customerArray = $corporateCustomerBuilder->getCustomer()->getObjectToArray();
+
+                            if (!array_key_exists('UF_SUBSCRIBE_USER_EMAIL', $customerArray)) {
+                                $customerArray['UF_SUBSCRIBE_USER_EMAIL'] = 'Y';
+                            }
+
+                            $registeredUserID = $newUser->Add(self::convertBooleanFields($customerArray));
 
                             if ($registeredUserID === false) {
                                 RCrmActions::eventLog(
@@ -927,9 +931,14 @@ class RetailCrmHistory
                                 }
 
                                 if ($registerNewUser === true) {
-                                    $registeredUserID = $newUser->Add(
-                                        $customerBuilder->getCustomer()->getObjectToArray()
-                                    );
+                                    $customerArray = $customerBuilder->getCustomer()->getObjectToArray();
+
+                                    if (!array_key_exists('UF_SUBSCRIBE_USER_EMAIL', $customerArray)) {
+                                        $customerArray['UF_SUBSCRIBE_USER_EMAIL'] = 'Y';
+                                    }
+
+                                    $registeredUserID = $newUser->Add(self::convertBooleanFields($customerArray));
+
                                     if ($registeredUserID === false) {
                                         RCrmActions::eventLog(
                                             'RetailCrmHistory::orderHistory',
