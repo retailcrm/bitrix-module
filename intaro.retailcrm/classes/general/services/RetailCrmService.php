@@ -154,4 +154,24 @@ class RetailCrmService
 
         return $result;
     }
+
+    /**
+     * @param array $arFields
+     * @return void
+     */
+    public static function writeLogsSubscribe(array $arFields): void
+    {
+        if (array_key_exists('UF_SUBSCRIBE_USER_EMAIL', $arFields)) {
+            $actionSub = 'Подписался на рассылки';
+            $fileSub = 'subscribe';
+
+            if (empty($arFields['UF_SUBSCRIBE_USER_EMAIL'])) {
+                $actionSub = 'Отписался от рассылок';
+                $fileSub = 'unSubscribe';
+            }
+
+            $logger = new Logger();
+            $logger->write('Пользователь ' . $arFields['ID'] . ' ' . $actionSub, $fileSub);
+        }
+    }
 }

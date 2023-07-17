@@ -1079,6 +1079,7 @@ class intaro_retailcrm extends CModule
             RegisterModuleDependences('sale', 'OnSalePaymentEntitySaved', $this->MODULE_ID, 'RetailCrmEvent', 'paymentSave');
             RegisterModuleDependences('sale', 'OnSalePaymentEntityDeleted', $this->MODULE_ID, 'RetailCrmEvent', 'paymentDelete');
             RegisterModuleDependences('main', 'OnAfterUserRegister', $this->MODULE_ID, 'RetailCrmEvent', 'OnAfterUserRegister');
+            RegisterModuleDependences('main', 'OnAfterUserAdd', $this->MODULE_ID, 'RetailCrmEvent', 'OnAfterUserAdd');
 
 
             COption::SetOptionString($this->MODULE_ID, $this->CRM_CATALOG_BASE_PRICE, htmlspecialchars(trim($_POST['price-types'])));
@@ -1279,6 +1280,7 @@ class intaro_retailcrm extends CModule
         UnRegisterModuleDependences('sale', 'OnSalePaymentEntitySaved', $this->MODULE_ID, 'RetailCrmEvent', 'paymentSave');
         UnRegisterModuleDependences('sale', 'OnSalePaymentEntityDeleted', $this->MODULE_ID, 'RetailCrmEvent', 'paymentDelete');
         UnRegisterModuleDependences('main', 'OnAfterUserRegister', $this->MODULE_ID, 'RetailCrmEvent', 'OnAfterUserRegister');
+        UnRegisterModuleDependences('main', 'OnAfterUserAdd', $this->MODULE_ID, 'RetailCrmEvent', 'OnAfterUserAdd');
 
         if (
             CModule::IncludeModule('catalog')

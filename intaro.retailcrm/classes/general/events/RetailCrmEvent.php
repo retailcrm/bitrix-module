@@ -13,6 +13,7 @@ use Bitrix\Sale\Order;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Model\Api\Response\OrdersCreateResponse;
 use Intaro\RetailCrm\Model\Api\Response\OrdersEditResponse;
+use Logger;
 
 /**
  * Class RetailCrmEvent
@@ -46,6 +47,8 @@ class RetailCrmEvent
      */
     public static function OnAfterUserUpdate($arFields)
     {
+        RetailCrmService::writeLogsSubscribe($arFields);
+
         if (isset($GLOBALS['RETAIL_CRM_HISTORY']) && $GLOBALS['RETAIL_CRM_HISTORY']) {
             return false;
         }
@@ -684,6 +687,8 @@ class RetailCrmEvent
 
             $customerService->createOrUpdateCustomer($customer);
 
+            RetailCrmService::writeLogsSubscribe($arFields);
+
             //Если пользователь выразил желание зарегистрироваться в ПЛ и согласился со всеми правилами
             if ((int) $arFields['UF_REG_IN_PL_INTARO'] === 1
                 && (int) $arFields['UF_AGREE_PL_INTARO'] === 1
@@ -700,6 +705,17 @@ class RetailCrmEvent
                 $service->activateLpUserInBitrix($createResponse, $arFields['USER_ID']);
             }
         }
+    }
+
+    /**
+     * @param $arFields
+     *
+     * @return void
+     * @throws InvalidArgumentException
+     */
+    public static function OnAfterUserAdd($arFields)
+    {
+        RetailCrmService::writeLogsSubscribe($arFields);
     }
 
     /**
