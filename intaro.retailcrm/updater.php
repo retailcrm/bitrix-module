@@ -1140,7 +1140,6 @@ class UpdateSubscribe
 
         RegisterModuleDependences('main', 'OnAfterUserRegister', 'intaro.retailcrm', 'RetailCrmEvent', 'OnAfterUserRegister');
         RegisterModuleDependences('main', 'OnAfterUserAdd', 'intaro.retailcrm', 'RetailCrmEvent', 'OnAfterUserAdd');
-        RegisterModuleDependences('main', 'OnBeforeUserUpdate', 'intaro.retailcrm', 'RetailCrmEvent', 'OnBeforeUserUpdate');
 
         return $this;
     }

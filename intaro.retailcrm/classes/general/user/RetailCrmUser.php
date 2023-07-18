@@ -90,7 +90,7 @@ class RetailCrmUser
         if ($found) {
             $normalizer = new RestNormalizer();
             $customer = $normalizer->normalize($customer, 'customers');
-            $customer = self::getBooleanFields($customer);
+            $customer = self::getBooleanFields($customer, $arFields);
 
             if (function_exists('retailCrmBeforeCustomerSend')) {
                 $newResCustomer = retailCrmBeforeCustomerSend($customer);
@@ -128,10 +128,6 @@ class RetailCrmUser
         $customer['address']['text'] = $arFields['PERSONAL_STREET'] ?? null;
         $customer['address']['index'] = $arFields['PERSONAL_ZIP'] ?? null;
 
-        if (!empty($arFields['UF_SUBSCRIBE_USER_EMAIL']) && $arFields['UF_SUBSCRIBE_USER_EMAIL'] == true) {
-            $customer['subscribed'] = true;
-        }
-
         if (mb_strlen($arFields['EMAIL']) < 100) {
             $customer['email'] = $arFields['EMAIL'];
         }
@@ -139,10 +135,14 @@ class RetailCrmUser
         return $customer;
     }
 
-    private static function getBooleanFields($customer)
+    private static function getBooleanFields($customer, $arFields)
     {
-        if (empty($customer['subscribed'])) {
-            $customer['subscribed'] = false;
+        if (isset($arFields['UF_SUBSCRIBE_USER_EMAIL'])) {
+            if ($arFields['UF_SUBSCRIBE_USER_EMAIL'] === "1") {
+                $customer['subscribed'] = true;
+            } else {
+                $customer['subscribed'] = false;
+            }
         }
 
         return $customer;

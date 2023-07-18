@@ -117,7 +117,8 @@ use Bitrix\Main\Localization\Loc;
 			</div>
             <div class="form-check row">
                 <div class="col-sm-8 col-md-9">
-                    <input class="form-check-input" type="checkbox" name="UF_SUBSCRIBE_USER_EMAIL" id="main-profile-subscribe" <?if($arResult["arUser"]["UF_SUBSCRIBE_USER_EMAIL"] == true) echo "checked";?>/>
+                    <input type="hidden" name="UF_SUBSCRIBE_USER_EMAIL" value="0">
+                    <input class="form-check-input" type="checkbox" name="UF_SUBSCRIBE_USER_EMAIL" value="1" id="main-profile-subscribe" <?if($arResult["arUser"]["UF_SUBSCRIBE_USER_EMAIL"] == true) echo "checked";?>/>
                     <label class="form-check-label" for="main-profile-subscribe"><?=Loc::getMessage('SUBSCRIBE_EMAIL')?></label>
                 </div>
             </div>
