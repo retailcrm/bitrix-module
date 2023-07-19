@@ -89,8 +89,9 @@ class RetailCrmCart
                 'customer' => [
                     'externalId' => $arBasket['USER_ID'],
                     'site' => $site,
-                    $date => date(self::$dateFormat),
                 ],
+                $date => date(self::$dateFormat),
+                'droppedAt' => date(self::$dateFormat),
                 'items' => $items,
             ],
             $site
