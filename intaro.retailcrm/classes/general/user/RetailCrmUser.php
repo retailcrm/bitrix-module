@@ -27,7 +27,6 @@ class RetailCrmUser
 
         $customer = self::getSimpleCustomer($arFields);
         $customer['createdAt'] = new \DateTime($arFields['DATE_REGISTER']);
-        $customer['subscribed'] = false;
         $customer['contragent'] = ['contragentType' => $contragentType];
 
         if ($send && isset($_COOKIE['_rc']) && $_COOKIE['_rc'] != '') {
@@ -48,6 +47,10 @@ class RetailCrmUser
 
         $normalizer = new RestNormalizer();
         $customer = $normalizer->normalize($customer, 'customers');
+
+        if (empty($arFields['UF_SUBSCRIBE_USER_EMAIL'])) {
+            $customer['subscribed'] = false;
+        }
 
         Logger::getInstance()->write($customer, 'customerSend');
 
