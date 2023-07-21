@@ -65,6 +65,8 @@ class RetailcrmClasspathBuilder
      */
     protected $notIncluded = [];
 
+    protected $directories = [];
+
     /**
      * These classes can be customized, in which case they would be replaced with files from
      * directory <root>/bitrix/php_interface/retailcrm
@@ -75,19 +77,31 @@ class RetailcrmClasspathBuilder
      * ]
      */
     protected static $customizableClasses = [
-        'RestNormalizer' => 'RestNormalizer.php',
-        'Logger' => 'Logger.php',
-        'RetailCrm\ApiClient' => 'ApiClient_v5.php',
-        'RetailCrm\Http\Client' => 'Client.php',
-        'RCrmActions' => 'RCrmActions.php',
-        'RetailCrmUser' => 'RetailCrmUser.php',
-        'RetailCrmICML' => 'RetailCrmICML.php',
-        'RetailCrmInventories' => 'RetailCrmInventories.php',
-        'RetailCrmPrices' => 'RetailCrmPrices.php',
-        'RetailCrmCollector' => 'RetailCrmCollector.php',
-        'RetailCrmUa' => 'RetailCrmUa.php',
-        'RetailCrmEvent' => 'RetailCrmEvent.php',
-        'RetailCrmCorporateClient' => 'RetailCrmCorporateClient.php'
+        'classes' => [
+            'RestNormalizer' => 'RestNormalizer.php',
+            'Logger' => 'Logger.php',
+            'RetailCrm\ApiClient' => 'ApiClient_v5.php',
+            'RetailCrm\Http\Client' => 'Client.php',
+            'RCrmActions' => 'RCrmActions.php',
+            'RetailCrmUser' => 'RetailCrmUser.php',
+            'RetailCrmICML' => 'RetailCrmICML.php',
+            'RetailCrmInventories' => 'RetailCrmInventories.php',
+            'RetailCrmPrices' => 'RetailCrmPrices.php',
+            'RetailCrmCollector' => 'RetailCrmCollector.php',
+            'RetailCrmUa' => 'RetailCrmUa.php',
+            'RetailCrmEvent' => 'RetailCrmEvent.php',
+            'RetailCrmCorporateClient' => 'RetailCrmCorporateClient.php'
+        ],
+        'lib/icml' => [
+            'Intaro\RetailCrm\Icml\XmlOfferBuilder' => 'xmlofferbuilder.php',
+            'Intaro\RetailCrm\Icml\XmlOfferDirector' => 'xmlofferdirector.php',
+            'Intaro\RetailCrm\Icml\IcmlWriter' => 'icmlwriter.php',
+            'Intaro\RetailCrm\Icml\QueryParamsMolder' => 'queryparamsmolder.php',
+            'Intaro\RetailCrm\Icml\SettingsService' => 'settingsservice.php',
+            'Intaro\RetailCrm\Icml\XmlCategoryDirector' => 'xmlcategorydirector.php',
+            'Intaro\RetailCrm\Icml\XmlCategoryFactory' => 'xmlcategoryfactory.php',
+            'Intaro\RetailCrm\Icml\IcmlDirector' => 'icmldirector.php'
+        ]
     ];
 
     /**
@@ -101,37 +115,46 @@ class RetailcrmClasspathBuilder
      * ]
      */
     protected static $versionedClasses = [
-        'RetailCrm\ApiClient' => ['ApiClient.php', 'ApiClient_%s.php'],
-        'RetailCrmOrder' => ['RetailCrmOrder.php', 'RetailCrmOrder_%s.php'],
-        'RetailCrmHistory' => ['RetailCrmHistory.php', 'RetailCrmHistory_%s.php'],
-        'RetailCrmCart' => ['RetailCrmCart.php', 'RetailCrmCart_%s.php']
+        'classes' => [
+            'RetailCrm\ApiClient' => ['ApiClient.php', 'ApiClient_%s.php'],
+            'RetailCrmOrder' => ['RetailCrmOrder.php', 'RetailCrmOrder_%s.php'],
+            'RetailCrmHistory' => ['RetailCrmHistory.php', 'RetailCrmHistory_%s.php'],
+            'RetailCrmCart' => ['RetailCrmCart.php', 'RetailCrmCart_%s.php']
+        ],
+        'lib/icml' => []
     ];
 
     /**
      * These classes will be ignored while loading from original files
      */
     protected static $ignoredClasses = [
-        'ApiClient_v4.php',
-        'ApiClient_v5.php',
-        'RetailCrmOrder_v4.php',
-        'RetailCrmOrder_v5.php',
-        'RetailCrmHistory_v4.php',
-        'RetailCrmHistory_v5.php',
-        'RetailCrmCart_v5.php',
+        'classes' => [
+            'ApiClient_v4.php',
+            'ApiClient_v5.php',
+            'RetailCrmOrder_v4.php',
+            'RetailCrmOrder_v5.php',
+            'RetailCrmHistory_v4.php',
+            'RetailCrmHistory_v5.php',
+            'RetailCrmCart_v5.php',
+        ],
+        'lib/icml' => []
     ];
 
     /**
      * These namespaces are hardcoded.
      */
     protected static $hardcodedNamespaces = [
-        'RetailCrm\Response\ApiResponse' => 'ApiResponse.php',
-        'RetailCrm\Exception\InvalidJsonException' => 'InvalidJsonException.php',
-        'RetailCrm\Exception\CurlException' => 'CurlException.php'
+        'classes' => [
+            'RetailCrm\Response\ApiResponse' => 'ApiResponse.php',
+            'RetailCrm\Exception\InvalidJsonException' => 'InvalidJsonException.php',
+            'RetailCrm\Exception\CurlException' => 'CurlException.php'
+        ],
+        'lib/icml' => []
     ];
 
     protected function buildCustomizableClasspath()
     {
-        foreach (static::$customizableClasses as $className => $fileName) {
+        foreach (static::$customizableClasses[$this->path] as $className => $fileName) {
             if (file_exists($this->documentRoot . $this->customizedFilesPath . $fileName)) {
                 $this->result[$className] = $this->customizedClassesPath . $fileName;
             } else {
@@ -142,7 +165,7 @@ class RetailcrmClasspathBuilder
 
     protected function buildVersionedClasspath()
     {
-        foreach (static::$versionedClasses as $className => $fileNames) {
+        foreach (static::$versionedClasses[$this->path] as $className => $fileNames) {
             if (file_exists($this->documentRoot . $this->customizedFilesPath . $fileNames[0])) {
                 $this->result[$className] = $this->customizedClassesPath . $fileNames[0];
             } else {
@@ -157,39 +180,45 @@ class RetailcrmClasspathBuilder
      */
     public function build(): self
     {
-        $directory = new RecursiveDirectoryIterator(
-            $this->getSearchPath(),
-            RecursiveDirectoryIterator::SKIP_DOTS
-        );
-        $fileIterator = new RecursiveIteratorIterator($directory, RecursiveIteratorIterator::LEAVES_ONLY);
+        foreach ($this->directories as $path) {
+            $this->path = $path;
 
-        $this->buildCustomizableClasspath();
-        $this->buildVersionedClasspath();
-        $notIncludedClasses = array_flip($this->notIncluded);
-        $hardcodedNamespaces = array_flip(static::$hardcodedNamespaces);
+            $directory = new RecursiveDirectoryIterator(
+                $this->getSearchPath(),
+                RecursiveDirectoryIterator::SKIP_DOTS
+            );
 
-        /** @var \SplFileObject $file */
-        foreach ($fileIterator as $file) {
-            $fileNameWithoutExt = str_ireplace('.' . $this->fileExt, '', $file->getFilename());
+            $fileIterator = new RecursiveIteratorIterator($directory, RecursiveIteratorIterator::LEAVES_ONLY);
 
-            if ($file->getExtension() !== $this->fileExt) {
-                continue;
-            }
+            $this->buildCustomizableClasspath();
+            $this->buildVersionedClasspath();
 
-            if (in_array($file->getFilename(), static::$customizableClasses)
-                || in_array($file->getFilename(), static::$ignoredClasses)
-            ) {
-                if (in_array($file->getFilename(), $this->notIncluded)) {
-                    $this->result[$notIncludedClasses[$file->getFilename()]] = $this->getImportPath($file->getPathname());
+            $notIncludedClasses = array_flip($this->notIncluded);
+            $hardcodedNamespaces = array_flip(static::$hardcodedNamespaces[$path]);
+
+            /** @var \SplFileObject $file */
+            foreach ($fileIterator as $file) {
+                $fileNameWithoutExt = str_ireplace('.' . $this->fileExt, '', $file->getFilename());
+
+                if ($file->getExtension() !== $this->fileExt) {
+                    continue;
                 }
 
-                continue;
-            }
+                if (in_array($file->getFilename(), static::$customizableClasses[$path])
+                    || in_array($file->getFilename(), static::$ignoredClasses[$path])
+                ) {
+                    if (in_array($file->getFilename(), $this->notIncluded)) {
+                        $this->result[$notIncludedClasses[$file->getFilename()]] = $this->getImportPath($file->getPathname());
+                    }
 
-            if (in_array($file->getFilename(), static::$hardcodedNamespaces)) {
-                $this->result[$hardcodedNamespaces[$file->getFilename()]] = $this->getImportPath($file->getPathname());
-            } else {
-                $this->result[$this->getImportClass($fileNameWithoutExt, $file->getPath())] = $this->getImportPath($file->getPathname());
+                    continue;
+                }
+
+                if (in_array($file->getFilename(), static::$hardcodedNamespaces[$path])) {
+                    $this->result[$hardcodedNamespaces[$file->getFilename()]] = $this->getImportPath($file->getPathname());
+                } else {
+                    $this->result[$this->getImportClass($fileNameWithoutExt, $file->getPath())] = $this->getImportPath($file->getPathname());
+                }
             }
         }
 
@@ -223,13 +252,24 @@ class RetailcrmClasspathBuilder
     /**
      * Sets the $path property
      *
-     * @param string $path Top path to load files
+     * @param array $path Top path to load files
      *
      * @return \RetailcrmClasspathBuilder
      */
-    public function setPath(string $path)
+    public function setPath(array $path)
     {
         $this->path = $path;
+        return $this;
+    }
+
+    /**
+     * @param array $directories
+     * @return \RetailcrmClasspathBuilder
+     */
+    public function setDirectories(array $directories)
+    {
+        $this->directories = $directories;
+
         return $this;
     }
 
