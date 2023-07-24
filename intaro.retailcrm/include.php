@@ -26,7 +26,7 @@ $builder = new RetailcrmClasspathBuilder();
 $builder->setDisableNamespaces(true)
     ->setDocumentRoot($server)
     ->setModuleId($retailcrmModuleId)
-    ->setPath('classes')
+    ->setDirectories(['classes', 'lib/icml'])
     ->setVersion($version)
     ->build();
 
