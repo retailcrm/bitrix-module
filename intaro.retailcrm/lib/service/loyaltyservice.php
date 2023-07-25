@@ -179,7 +179,7 @@ class LoyaltyService
         $request = new LoyaltyAccountRequest();
         $request->filter = new LoyaltyAccountApiFilterType();
         $request->filter->id = $idInLoyalty;
-        $request->filter->sites = $this->site;
+        $request->filter->sites = is_array($this->site) ? $this->site : [$this->site];
 
         $response = $this->client->getLoyaltyAccounts($request);
 

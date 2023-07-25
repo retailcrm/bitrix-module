@@ -163,7 +163,7 @@ class LoyaltyAccountService
             $getRequest = new LoyaltyAccountRequest();
 
             $getRequest->filter = new LoyaltyAccountApiFilterType();
-            $getRequest->filter->sites = $sitesAvailable;
+            $getRequest->filter->sites = is_array($sitesAvailable) ? $sitesAvailable : [$sitesAvailable];
             $getRequest->filter->customerExternalId = (string)$userId;
 
 
