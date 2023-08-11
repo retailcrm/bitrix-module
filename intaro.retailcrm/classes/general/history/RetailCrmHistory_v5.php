@@ -156,13 +156,7 @@ class RetailCrmHistory
                     if ($registerNewUser === true) {
                         $customerBuilder->buildPassword();
 
-                        $customerArray = $customerBuilder->getCustomer()->getObjectToArray();
-
-                        if (!array_key_exists('UF_SUBSCRIBE_USER_EMAIL', $customerArray)) {
-                            $customerArray['UF_SUBSCRIBE_USER_EMAIL'] = 'Y';
-                        }
-
-                        $registeredUserID = $newUser->Add(self::convertBooleanFields($customerArray));
+                        $registeredUserID = $newUser->Add(self::getDataUser($customerBuilder));
 
                         if ($registeredUserID === false) {
                             RCrmActions::eventLog(
@@ -932,13 +926,7 @@ class RetailCrmHistory
                                 }
 
                                 if ($registerNewUser === true) {
-                                    $customerArray = $customerBuilder->getCustomer()->getObjectToArray();
-
-                                    if (!array_key_exists('UF_SUBSCRIBE_USER_EMAIL', $customerArray)) {
-                                        $customerArray['UF_SUBSCRIBE_USER_EMAIL'] = 'Y';
-                                    }
-
-                                    $registeredUserID = $newUser->Add(self::convertBooleanFields($customerArray));
+                                    $registeredUserID = $newUser->Add(self::getDataUser($customerBuilder));
 
                                     if ($registeredUserID === false) {
                                         RCrmActions::eventLog(
@@ -2118,5 +2106,20 @@ class RetailCrmHistory
         }
 
         return $array;
+    }
+
+    /**
+     * @param $customerBuilder
+     * @return array
+     */
+    private  static function getDataUser($customerBuilder)
+    {
+        $customerArray = $customerBuilder->getCustomer()->getObjectToArray();
+
+        if (!array_key_exists('UF_SUBSCRIBE_USER_EMAIL', $customerArray)) {
+            $customerArray['UF_SUBSCRIBE_USER_EMAIL'] = 'Y';
+        }
+
+        return self::convertBooleanFields($customerArray);
     }
 }
