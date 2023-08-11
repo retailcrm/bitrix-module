@@ -35,7 +35,7 @@
 * icmldirector.php
 
 Кастомизированные файлы каталога также должны быть расположены в директории `bitrix/php_inteface/retailcrm`
-Например, кастом оригинального файла `lib/icml/xmlofferbuilder.php` будет находиться `bitrix/php_interface/retailcrm/xmlofferbuilder.php`
+Например, кастом оригинального файла `lib/icml/xmlofferbuilder.php` будет иметь путь `bitrix/php_interface/retailcrm/xmlofferbuilder.php`
 
 Для кастомизации файлов, в названии которых есть используемая версия API,
 создаются файлы с названием без указания версии, например - `RetailCrmHistory.php`.
