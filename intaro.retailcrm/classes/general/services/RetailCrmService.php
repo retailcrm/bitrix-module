@@ -162,16 +162,18 @@ class RetailCrmService
     public static function writeLogsSubscribe(array $arFields): void
     {
         if (array_key_exists('UF_SUBSCRIBE_USER_EMAIL', $arFields)) {
-            $actionSub = 'Подписался на рассылки';
+            $actionSub = GetMessage('SUBSCRIBED_USER');
             $fileSub = 'subscribe';
 
             if (empty($arFields['UF_SUBSCRIBE_USER_EMAIL'])) {
-                $actionSub = 'Отписался от рассылок';
+                $actionSub = GetMessage('UNSUBSCRIBED_USER');
                 $fileSub = 'unSubscribe';
             }
 
+            $id = $arFields['ID'] ?? $arFields['USER_ID'];
+
             Logger::getInstance()->write(
-                'Пользователь ' . $arFields['ID'] . ' ' . $actionSub,
+                $actionSub . ' (' . $id . ')',
                 $fileSub
             );
         }
