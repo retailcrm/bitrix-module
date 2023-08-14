@@ -1104,13 +1104,15 @@ class UpdateSubscribe
         foreach ($templateNames as $directory => $templates) {
             foreach ($templates as $template) {
                 $templatePath = $_SERVER['DOCUMENT_ROOT']
-                    . '/local/templates/.default/components/bitrix/' . $template['name'] . '/' . $directory;
+                    . '/local/templates/.default/components/bitrix/' . $template['name'] . '/' . $directory
+                ;
 
                 if (!file_exists($templatePath)) {
                     $pathFrom = $_SERVER['DOCUMENT_ROOT']
                         . '/bitrix/modules/intaro.retailcrm/install/export/local/components/intaro/'
                         . $template['name']
-                        . '/templates/' . $template['templateDirectory'];
+                        . '/templates/' . $template['templateDirectory']
+                    ;
 
                     CopyDirFiles(
                         $pathFrom,
@@ -1147,18 +1149,18 @@ class UpdateSubscribe
     public function addCustomUserField(): self
     {
         $arProps     = [
-            'ENTITY_ID'       => 'USER',
-            'FIELD_NAME'      => 'UF_SUBSCRIBE_USER_EMAIL',
-            'USER_TYPE_ID'    => 'boolean',
-            'MULTIPLE'        => 'N',
-            'MANDATORY'       => 'N',
+            'ENTITY_ID' => 'USER',
+            'FIELD_NAME' => 'UF_SUBSCRIBE_USER_EMAIL',
+            'USER_TYPE_ID' => 'boolean',
+            'MULTIPLE' => 'N',
+            'MANDATORY' => 'N',
             'EDIT_FORM_LABEL' => ['ru' => 'Подписка на события'],
 
         ];
 
         $props = array_merge($arProps, []);
         $obUserField = new CUserTypeEntity();
-        $dbRes       = CUserTypeEntity::GetList([], ['FIELD_NAME' => 'UF_SUBSCRIBE_USER_EMAIL'])->fetch();
+        $dbRes = CUserTypeEntity::GetList([], ['FIELD_NAME' => 'UF_SUBSCRIBE_USER_EMAIL'])->fetch();
 
         if (!$dbRes['ID']) {
             $obUserField->Add($props);

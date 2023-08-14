@@ -253,13 +253,15 @@ trait InstallerTrait
     private function copy($directory, $template): void
     {
         $templatePath = $_SERVER['DOCUMENT_ROOT']
-            . '/local/templates/.default/components/bitrix/' . $template['name'] . '/'. $directory;
+            . '/local/templates/.default/components/bitrix/' . $template['name'] . '/'. $directory
+        ;
 
         if (!file_exists($templatePath)) {
             $pathFrom = $_SERVER['DOCUMENT_ROOT']
                 . '/bitrix/modules/intaro.retailcrm/install/export/local/components/intaro/'
                 . $template['name']
-                . '/templates/' . $template['templateDirectory'];
+                . '/templates/' . $template['templateDirectory']
+            ;
 
             CopyDirFiles(
                 $pathFrom,

@@ -663,7 +663,7 @@ class RetailCrmEvent
 
             /* @var CustomerService $customerService */
             $customerService = ServiceLocator::get(CustomerService::class);
-            $customer        = $customerService->createModel($arFields['USER_ID']);
+            $customer = $customerService->createModel($arFields['USER_ID']);
 
             $customerService->createOrUpdateCustomer($customer);
 
@@ -674,12 +674,12 @@ class RetailCrmEvent
                 && (int) $arFields['UF_AGREE_PL_INTARO'] === 1
                 && (int) $arFields['UF_PD_PROC_PL_INTARO'] === 1
             ) {
-                $phone          = $arFields['PERSONAL_PHONE'] ?? '';
-                $card           = $arFields['UF_CARD_NUM_INTARO'] ?? '';
-                $customerId     = (string) $arFields['USER_ID'];
+                $phone = $arFields['PERSONAL_PHONE'] ?? '';
+                $card = $arFields['UF_CARD_NUM_INTARO'] ?? '';
+                $customerId = (string) $arFields['USER_ID'];
 
                 /** @var LoyaltyAccountService $service */
-                $service        = ServiceLocator::get(LoyaltyAccountService::class);
+                $service = ServiceLocator::get(LoyaltyAccountService::class);
                 $createResponse = $service->createLoyaltyAccount($phone, $card, $customerId);
 
                 $service->activateLpUserInBitrix($createResponse, $arFields['USER_ID']);
