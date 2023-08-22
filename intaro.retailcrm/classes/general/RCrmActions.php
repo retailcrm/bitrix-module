@@ -237,12 +237,12 @@ class RCrmActions
             RetailCrmHistory::orderHistory();
             self::uploadOrdersAgent();
         } catch (\Throwable $exception) {
-            RCrmActions::eventLog(
-                'RCrmActions',
-                'orderAgent',
+            Logger::getInstance()->write(
+                'Fail orderAgent:' . PHP_EOL .
                 $exception->getMessage() . PHP_EOL .
                 'File: ' . $exception->getFile() . PHP_EOL .
-                'Line: ' . $exception->getLine() . PHP_EOL
+                'Line: ' . $exception->getLine() . PHP_EOL,
+                'orderAgent'
             );
         }
 

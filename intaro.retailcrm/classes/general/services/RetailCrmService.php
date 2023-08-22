@@ -154,4 +154,28 @@ class RetailCrmService
 
         return $result;
     }
+
+    /**
+     * @param array $arFields
+     * @return void
+     */
+    public static function writeLogsSubscribe(array $arFields): void
+    {
+        if (array_key_exists('UF_SUBSCRIBE_USER_EMAIL', $arFields)) {
+            $actionSub = GetMessage('SUBSCRIBED_USER');
+            $fileSub = 'subscribe';
+
+            if (empty($arFields['UF_SUBSCRIBE_USER_EMAIL'])) {
+                $actionSub = GetMessage('UNSUBSCRIBED_USER');
+                $fileSub = 'unSubscribe';
+            }
+
+            $id = $arFields['ID'] ?? $arFields['USER_ID'];
+
+            Logger::getInstance()->write(
+                $actionSub . ' (' . $id . ')',
+                $fileSub
+            );
+        }
+    }
 }

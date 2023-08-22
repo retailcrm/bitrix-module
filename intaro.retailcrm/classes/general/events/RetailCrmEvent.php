@@ -1,6 +1,10 @@
 <?php
 
 use Bitrix\Main\Context\Culture;
+use Intaro\RetailCrm\Component\ServiceLocator;
+use Intaro\RetailCrm\Repository\UserRepository;
+use Intaro\RetailCrm\Service\CustomerService;
+use Intaro\RetailCrm\Service\LoyaltyAccountService;
 use Intaro\RetailCrm\Service\ManagerService;
 use Bitrix\Sale\Payment;
 use Bitrix\Catalog\Model\Event;
@@ -42,6 +46,8 @@ class RetailCrmEvent
      */
     public static function OnAfterUserUpdate($arFields)
     {
+        RetailCrmService::writeLogsSubscribe($arFields);
+
         if (isset($GLOBALS['RETAIL_CRM_HISTORY']) && $GLOBALS['RETAIL_CRM_HISTORY']) {
             return false;
         }
@@ -630,6 +636,66 @@ class RetailCrmEvent
                 }
             }
         }
+    }
+
+    /**
+     * Регистрирует пользователя в CRM системе после регистрации на сайте
+     *
+     * @param array $arFields
+     * @return mixed
+     * @throws \ReflectionException
+     */
+    public static function OnAfterUserRegister(array $arFields): void
+    {
+        if (isset($arFields['USER_ID']) && $arFields['USER_ID'] > 0) {
+            $user = UserRepository::getById($arFields['USER_ID']);
+
+            if (isset($_POST['REGISTER']['PERSONAL_PHONE'])) {
+                $phone = htmlspecialchars($_POST['REGISTER']['PERSONAL_PHONE']);
+
+                if ($user !== null) {
+                    $user->setPersonalPhone($phone);
+                    $user->save();
+                }
+
+                $arFields['PERSONAL_PHONE'] = $phone;
+            }
+
+            /* @var CustomerService $customerService */
+            $customerService = ServiceLocator::get(CustomerService::class);
+            $customer = $customerService->createModel($arFields['USER_ID']);
+
+            $customerService->createOrUpdateCustomer($customer);
+
+            RetailCrmService::writeLogsSubscribe($arFields);
+
+            //Если пользователь выразил желание зарегистрироваться в ПЛ и согласился со всеми правилами
+            if ((int) $arFields['UF_REG_IN_PL_INTARO'] === 1
+                && (int) $arFields['UF_AGREE_PL_INTARO'] === 1
+                && (int) $arFields['UF_PD_PROC_PL_INTARO'] === 1
+            ) {
+                $phone = $arFields['PERSONAL_PHONE'] ?? '';
+                $card = $arFields['UF_CARD_NUM_INTARO'] ?? '';
+                $customerId = (string) $arFields['USER_ID'];
+
+                /** @var LoyaltyAccountService $service */
+                $service = ServiceLocator::get(LoyaltyAccountService::class);
+                $createResponse = $service->createLoyaltyAccount($phone, $card, $customerId);
+
+                $service->activateLpUserInBitrix($createResponse, $arFields['USER_ID']);
+            }
+        }
+    }
+
+    /**
+     * @param $arFields
+     *
+     * @return void
+     * @throws InvalidArgumentException
+     */
+    public static function OnAfterUserAdd($arFields)
+    {
+        RetailCrmService::writeLogsSubscribe($arFields);
     }
 
     /**

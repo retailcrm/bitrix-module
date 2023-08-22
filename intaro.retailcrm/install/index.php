@@ -14,7 +14,7 @@ use Bitrix\Sale\Delivery\Services\Manager;
 use Bitrix\Sale\EventActions;
 use Bitrix\Sale\Internals\OrderTable;
 use Intaro\RetailCrm\Component\ConfigProvider;
-use Intaro\RetailCrm\Component\Installer\LoyaltyInstallerTrait;
+use Intaro\RetailCrm\Component\Installer\InstallerTrait;
 use Intaro\RetailCrm\Service\OrderLoyaltyDataService;
 use Intaro\RetailCrm\Vendor\Symfony\Component\Process\PhpExecutableFinder;
 use RetailCrm\ApiClient;
@@ -29,11 +29,11 @@ if (class_exists('intaro_retailcrm')) {
     return false;
 }
 
-include(__DIR__ . '/../lib/component/installer/loyaltyinstallertrait.php');
+include (__DIR__ . '/../lib/component/installer/installertrait.php');
 
 class intaro_retailcrm extends CModule
 {
-    use LoyaltyInstallerTrait;
+    use InstallerTrait;
 
     public const V5 = 'v5';
     public $MODULE_ID = 'intaro.retailcrm';
@@ -247,9 +247,9 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../lib/component/apiclient/clientadapter.php');
 
         $this->CopyFiles();
-        $this->addLPUserFields();
-        $this->addLPEvents();
+        $this->addEvents();
         $this->addAgreement();
+        $this->addUserFields();
 
         OrderLoyaltyDataService::createLoyaltyHlBlock();
 
@@ -1069,6 +1069,9 @@ class intaro_retailcrm extends CModule
             RegisterModuleDependences('sale', 'OnSaleOrderDeleted', $this->MODULE_ID, 'RetailCrmEvent', 'orderDelete');
             RegisterModuleDependences('sale', 'OnSalePaymentEntitySaved', $this->MODULE_ID, 'RetailCrmEvent', 'paymentSave');
             RegisterModuleDependences('sale', 'OnSalePaymentEntityDeleted', $this->MODULE_ID, 'RetailCrmEvent', 'paymentDelete');
+            RegisterModuleDependences('main', 'OnAfterUserRegister', $this->MODULE_ID, 'RetailCrmEvent', 'OnAfterUserRegister');
+            RegisterModuleDependences('main', 'OnAfterUserAdd', $this->MODULE_ID, 'RetailCrmEvent', 'OnAfterUserAdd');
+
 
             COption::SetOptionString($this->MODULE_ID, $this->CRM_CATALOG_BASE_PRICE, htmlspecialchars(trim($_POST['price-types'])));
             COption::SetOptionString($this->MODULE_ID, $this->CRM_INVENTORIES_UPLOAD, 'N');
@@ -1266,6 +1269,8 @@ class intaro_retailcrm extends CModule
         UnRegisterModuleDependences('main', 'OnBeforeProlog', $this->MODULE_ID, 'RetailCrmUa', 'add');
         UnRegisterModuleDependences('sale', 'OnSalePaymentEntitySaved', $this->MODULE_ID, 'RetailCrmEvent', 'paymentSave');
         UnRegisterModuleDependences('sale', 'OnSalePaymentEntityDeleted', $this->MODULE_ID, 'RetailCrmEvent', 'paymentDelete');
+        UnRegisterModuleDependences('main', 'OnAfterUserRegister', $this->MODULE_ID, 'RetailCrmEvent', 'OnAfterUserRegister');
+        UnRegisterModuleDependences('main', 'OnAfterUserAdd', $this->MODULE_ID, 'RetailCrmEvent', 'OnAfterUserAdd');
 
         if (
             CModule::IncludeModule('catalog')

@@ -1,16 +1,5 @@
 <?php
 
-/**
- * PHP version 7.1
- *
- * @category Integration
- * @package  Intaro\RetailCrm\Component\Update
- * @author   RetailCRM <integration@retailcrm.ru>
- * @license  MIT
- * @link     http://retailcrm.ru
- * @see      http://retailcrm.ru/docs
- */
-
 namespace Intaro\RetailCrm\Component\Installer;
 
 use Bitrix\Main\ArgumentException;
@@ -28,12 +17,12 @@ use RCrmActions;
 
 IncludeModuleLangFile(__FILE__);
 
-trait LoyaltyInstallerTrait
+trait InstallerTrait
 {
     /**
-     * create loyalty program events handlers
+     * Создание событий для программы лояльности
      */
-    public function addLPEvents(): void
+    public function addEvents(): void
     {
         $eventManager = EventManager::getInstance();
 
@@ -69,7 +58,7 @@ trait LoyaltyInstallerTrait
     }
 
     /**
-     * CamelCase в имени является требованием Bitrix. Изменить на lowerCamelCase нельзя
+     * Перемещение модульных шаблонов в CMS
      */
     public function CopyFiles(): void
     {
@@ -83,37 +72,45 @@ trait LoyaltyInstallerTrait
             false
         );
 
-        $lpTemplateNames = [
-            'sale.order.ajax',
-            'sale.basket.basket',
-            'main.register',
+        $templateNames = [
+            'default_loyalty' => [
+                0 => [
+                    'name' => 'sale.order.ajax',
+                    'templateDirectory' => '.default'
+                ],
+                1 => [
+                    'name' => 'sale.basket.basket',
+                    'templateDirectory' => '.default'
+                ],
+                2 => [
+                    'name' => 'main.register',
+                    'templateDirectory' => '.default'
+                ],
+            ],
+
+            'default_subscribe' => [
+                0 => [
+                    'name' => 'sale.personal.section',
+                    'templateDirectory' => '.default'
+                ],
+                1 => [
+                    'name' => 'main.register',
+                    'templateDirectory' => '.default_subscribe'
+                ]
+            ]
         ];
 
-        foreach ($lpTemplateNames as $lpTemplateName){
-            $lpTemplatePath = $_SERVER['DOCUMENT_ROOT']
-                . '/local/templates/.default/components/bitrix/' . $lpTemplateName . '/default_loyalty';
-
-            if (!file_exists($lpTemplatePath)) {
-                $pathFrom = $_SERVER['DOCUMENT_ROOT']
-                    . '/bitrix/modules/intaro.retailcrm/install/export/local/components/intaro/'
-                    . $lpTemplateName
-                    . '/templates/.default';
-
-                CopyDirFiles(
-                    $pathFrom,
-                    $lpTemplatePath,
-                    true,
-                    true,
-                    false
-                );
+        foreach ($templateNames as $directory => $templates) {
+            foreach ($templates as $template) {
+                $this->copy($directory, $template);
             }
         }
     }
 
     /**
-     * Add USER fields for LP
+     * Добавление полей пользователя для ПЛ и подписки
      */
-    public function addLPUserFields(): void
+    public function addUserFields(): void
     {
         $this->addCustomUserFields(
             [
@@ -154,6 +151,10 @@ trait LoyaltyInstallerTrait
                     'name'  => 'UF_EXT_REG_PL_INTARO',
                     'title' => GetMessage('UF_EXT_REG_PL_INTARO_TITLE'),
                 ],
+                [
+                    'name' => 'UF_SUBSCRIBE_USER_EMAIL',
+                    'title' => GetMessage('UF_SUBSCRIBE_USER_EMAIL_TITLE')
+                ]
             ]
         );
     }
@@ -245,6 +246,29 @@ trait LoyaltyInstallerTrait
                 $this->MODULE_ID,
                 EventsHandlers::class,
                 $event['EVENT_NAME'].'Handler'
+            );
+        }
+    }
+
+    private function copy($directory, $template): void
+    {
+        $templatePath = $_SERVER['DOCUMENT_ROOT']
+            . '/local/templates/.default/components/bitrix/' . $template['name'] . '/'. $directory
+        ;
+
+        if (!file_exists($templatePath)) {
+            $pathFrom = $_SERVER['DOCUMENT_ROOT']
+                . '/bitrix/modules/intaro.retailcrm/install/export/local/components/intaro/'
+                . $template['name']
+                . '/templates/' . $template['templateDirectory']
+            ;
+
+            CopyDirFiles(
+                $pathFrom,
+                $templatePath,
+                true,
+                true,
+                false
             );
         }
     }

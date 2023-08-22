@@ -1074,6 +1074,102 @@ class LoyaltyProgramUpdater
     }
 }
 
+class UpdateSubscribe
+{
+    public function CopyFiles(): self
+    {
+        $pathFrom = $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/intaro.retailcrm/install';
+
+        CopyDirFiles(
+            $pathFrom . '/export',
+            $_SERVER['DOCUMENT_ROOT'],
+            true,
+            true,
+            false
+        );
+
+        $templateNames = [
+            'default_subscribe' => [
+                0 => [
+                    'name' => 'sale.personal.section',
+                    'templateDirectory' => '.default'
+                ],
+                1 => [
+                    'name' => 'main.register',
+                    'templateDirectory' => '.default_subscribe'
+                ]
+            ]
+        ];
+
+        foreach ($templateNames as $directory => $templates) {
+            foreach ($templates as $template) {
+                $templatePath = $_SERVER['DOCUMENT_ROOT']
+                    . '/local/templates/.default/components/bitrix/' . $template['name'] . '/' . $directory
+                ;
+
+                if (!file_exists($templatePath)) {
+                    $pathFrom = $_SERVER['DOCUMENT_ROOT']
+                        . '/bitrix/modules/intaro.retailcrm/install/export/local/components/intaro/'
+                        . $template['name']
+                        . '/templates/' . $template['templateDirectory']
+                    ;
+
+                    CopyDirFiles(
+                        $pathFrom,
+                        $templatePath,
+                        true,
+                        true,
+                        false
+                    );
+                }
+            }
+        }
+
+        return $this;
+    }
+
+    public function addEvent(): self
+    {
+        $eventManager = EventManager::getInstance();
+
+        $eventManager->unRegisterEventHandler(
+            'main',
+            'OnAfterUserRegister',
+            'intaro.retailcrm',
+            'Intaro\RetailCrm\Component\Handlers\EventsHandlers',
+            'OnAfterUserRegisterHandler'
+        );
+
+        RegisterModuleDependences('main', 'OnAfterUserRegister', 'intaro.retailcrm', 'RetailCrmEvent', 'OnAfterUserRegister');
+        RegisterModuleDependences('main', 'OnAfterUserAdd', 'intaro.retailcrm', 'RetailCrmEvent', 'OnAfterUserAdd');
+
+        return $this;
+    }
+
+    public function addCustomUserField(): self
+    {
+        $arProps     = [
+            'ENTITY_ID' => 'USER',
+            'FIELD_NAME' => 'UF_SUBSCRIBE_USER_EMAIL',
+            'USER_TYPE_ID' => 'boolean',
+            'MULTIPLE' => 'N',
+            'MANDATORY' => 'N',
+            'EDIT_FORM_LABEL' => ['ru' => 'Подписка на события'],
+
+        ];
+
+        $props = array_merge($arProps, []);
+        $obUserField = new CUserTypeEntity();
+        $dbRes = CUserTypeEntity::GetList([], ['FIELD_NAME' => 'UF_SUBSCRIBE_USER_EMAIL'])->fetch();
+
+        if (!$dbRes['ID']) {
+            $obUserField->Add($props);
+        }
+
+        return $this;
+    }
+}
+
 /**
  * @throws \Bitrix\Main\ArgumentException
  * @throws \Bitrix\Main\ObjectPropertyException
@@ -1093,6 +1189,11 @@ function update()
     UnRegisterModuleDependences("main", "OnBeforeProlog", 'intaro.retailcrm', "RetailCrmPricePrchase", "add");
     UnRegisterModuleDependences("main", "OnBeforeProlog", 'intaro.retailcrm', "RetailCrmDc", "add");
     UnRegisterModuleDependences("main", "OnBeforeProlog", 'intaro.retailcrm', "RetailCrmCc", "add");
+
+    (new UpdateSubscribe())
+        ->CopyFiles()
+        ->addEvent()
+        ->addCustomUserField();
 }
 
 try {

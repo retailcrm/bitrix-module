@@ -155,9 +155,8 @@ class RetailCrmHistory
 
                     if ($registerNewUser === true) {
                         $customerBuilder->buildPassword();
-                        $registeredUserID = $newUser->Add(
-                            $customerBuilder->getCustomer()->getObjectToArray()
-                        );
+
+                        $registeredUserID = $newUser->Add(self::getDataUser($customerBuilder));
 
                         if ($registeredUserID === false) {
                             RCrmActions::eventLog(
@@ -198,7 +197,9 @@ class RetailCrmHistory
                         );
                     }
 
-                    $u = $newUser->Update($customer['externalId'], $customerBuilder->getCustomer()->getObjectToArray());
+                    $customerArray = $customerBuilder->getCustomer()->getObjectToArray();
+                    $u = $newUser->Update($customer['externalId'], self::convertBooleanFields($customerArray));
+
                     if (!$u) {
                         RCrmActions::eventLog(
                             'RetailCrmHistory::customerHistory',
@@ -457,9 +458,13 @@ class RetailCrmHistory
                             $corporateCustomerBuilder->setCorporateContact($userData);
 
                             $newUser = new CUser();
-                            $registeredUserID = $newUser->Add(
-                                $corporateCustomerBuilder->getCustomer()->getObjectToArray()
-                            );
+                            $customerArray = $corporateCustomerBuilder->getCustomer()->getObjectToArray();
+
+                            if (!array_key_exists('UF_SUBSCRIBE_USER_EMAIL', $customerArray)) {
+                                $customerArray['UF_SUBSCRIBE_USER_EMAIL'] = 'Y';
+                            }
+
+                            $registeredUserID = $newUser->Add(self::convertBooleanFields($customerArray));
 
                             if ($registeredUserID === false) {
                                 RCrmActions::eventLog(
@@ -921,9 +926,8 @@ class RetailCrmHistory
                                 }
 
                                 if ($registerNewUser === true) {
-                                    $registeredUserID = $newUser->Add(
-                                        $customerBuilder->getCustomer()->getObjectToArray()
-                                    );
+                                    $registeredUserID = $newUser->Add(self::getDataUser($customerBuilder));
+
                                     if ($registeredUserID === false) {
                                         RCrmActions::eventLog(
                                             'RetailCrmHistory::orderHistory',
@@ -2087,5 +2091,35 @@ class RetailCrmHistory
                 'Error order canceled: ' . $externalId
             );
         }
+    }
+
+    /**
+     * @param array $array
+     * @return array
+     */
+    public static function convertBooleanFields($array)
+    {
+        foreach ($array as $key => $value) {
+            if ($value === 'N') {
+                $array[$key] = false;
+            }
+        }
+
+        return $array;
+    }
+
+    /**
+     * @param $customerBuilder
+     * @return array
+     */
+    private  static function getDataUser($customerBuilder)
+    {
+        $customerArray = $customerBuilder->getCustomer()->getObjectToArray();
+
+        if (!array_key_exists('UF_SUBSCRIBE_USER_EMAIL', $customerArray)) {
+            $customerArray['UF_SUBSCRIBE_USER_EMAIL'] = 'Y';
+        }
+
+        return self::convertBooleanFields($customerArray);
     }
 }

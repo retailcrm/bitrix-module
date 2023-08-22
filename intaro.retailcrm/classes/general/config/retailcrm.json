@@ -81,12 +81,7 @@
             "default": false
         },
         "subscribed": {
-            "type": "bool",
-            "default": false
-        },
-        "subscribed": {
-            "type": "bool",
-            "default": false
+            "type": "string"
         },
         "commentary": {
             "type": "string"

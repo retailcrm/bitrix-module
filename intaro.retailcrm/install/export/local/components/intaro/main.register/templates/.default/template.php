@@ -540,6 +540,19 @@ if ($arResult["LOYALTY_CONNECTION_ERROR"] === true) {
                         <td><?=GetMessage("REGISTER_CAPTCHA_PROMT")?>:<span class="starrequired">*</span></td>
                         <td><input type="text" name="captcha_word" maxlength="50" value="" autocomplete="off"/></td>
                     </tr>
+
+                    <tr>
+                        <td></td>
+                        <td>
+                            <div class="fields boolean">
+                                <div class="fields boolean">
+                                    <label>
+                                        <input type="checkbox" name="UF_SUBSCRIBE_USER_EMAIL" id="checkbox_UF_SUBSCRIBE_USER_EMAIL"> <?=GetMessage("SUBSCRIBE_EMAIL")?>
+                                    </label>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
                     <?
                 }
                 /* !CAPTCHA */

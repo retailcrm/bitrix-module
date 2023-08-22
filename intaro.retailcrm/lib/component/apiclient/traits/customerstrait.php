@@ -99,6 +99,7 @@ trait CustomersTrait
     public function customersCreate(CustomersCreateRequest $request): ?CustomerChangeResponse
     {
         $serialized = Serializer::serializeArray($request);
+        $serialized = $this->setBooleanParameters($serialized);
         $response = $this->client->customersCreate($serialized['customer'] ?? [], $request->site);
 
         return Deserializer::deserializeArray($response->getResponseBody(), CustomerChangeResponse::class);
@@ -181,5 +182,19 @@ trait CustomersTrait
         );
 
         return Deserializer::deserializeArray($response->getResponseBody(), HistoryResponse::class);
+    }
+
+    /**
+     * @param array $serializedRequest
+     * @return array
+     */
+    private function setBooleanParameters($serializedRequest)
+    {
+        if (empty($serializedRequest['customer']['subscribed']))
+        {
+            $serializedRequest['customer']['subscribed'] = false;
+        }
+
+        return $serializedRequest;
     }
 }

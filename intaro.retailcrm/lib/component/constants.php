@@ -101,7 +101,6 @@ class Constants
     public const LP_EVENTS                      = [
         ['EVENT_NAME' => 'OnSaleOrderSaved', 'FROM_MODULE' => 'sale'],
         ['EVENT_NAME' => 'OnSaleComponentOrderResultPrepared', 'FROM_MODULE' => 'sale'],
-        ['EVENT_NAME' => 'OnAfterUserRegister', 'FROM_MODULE' => 'main'],
     ];
     public const SITES_AVAILABLE = 'sites_available';
 }

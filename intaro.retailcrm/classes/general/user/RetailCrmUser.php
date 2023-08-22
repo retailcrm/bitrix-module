@@ -27,7 +27,6 @@ class RetailCrmUser
 
         $customer = self::getSimpleCustomer($arFields);
         $customer['createdAt'] = new \DateTime($arFields['DATE_REGISTER']);
-        $customer['subscribed'] = false;
         $customer['contragent'] = ['contragentType' => $contragentType];
 
         if ($send && isset($_COOKIE['_rc']) && $_COOKIE['_rc'] != '') {
@@ -48,6 +47,10 @@ class RetailCrmUser
 
         $normalizer = new RestNormalizer();
         $customer = $normalizer->normalize($customer, 'customers');
+
+        if (empty($arFields['UF_SUBSCRIBE_USER_EMAIL'])) {
+            $customer['subscribed'] = false;
+        }
 
         Logger::getInstance()->write($customer, 'customerSend');
 
@@ -90,6 +93,7 @@ class RetailCrmUser
         if ($found) {
             $normalizer = new RestNormalizer();
             $customer = $normalizer->normalize($customer, 'customers');
+            $customer = self::getBooleanFields($customer, $arFields);
 
             if (function_exists('retailCrmBeforeCustomerSend')) {
                 $newResCustomer = retailCrmBeforeCustomerSend($customer);
@@ -129,6 +133,19 @@ class RetailCrmUser
 
         if (mb_strlen($arFields['EMAIL']) < 100) {
             $customer['email'] = $arFields['EMAIL'];
+        }
+
+        return $customer;
+    }
+
+    private static function getBooleanFields($customer, $arFields)
+    {
+        if (isset($arFields['UF_SUBSCRIBE_USER_EMAIL'])) {
+            if ($arFields['UF_SUBSCRIBE_USER_EMAIL'] === "1") {
+                $customer['subscribed'] = true;
+            } else {
+                $customer['subscribed'] = false;
+            }
         }
 
         return $customer;
