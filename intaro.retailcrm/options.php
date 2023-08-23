@@ -1061,6 +1061,15 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $currencyOption = COption::GetOptionString($mid, $CRM_CURRENCY, 0) ?: $baseCurrency;
     $currencyList = \Bitrix\Currency\CurrencyManager::getCurrencyList();
 
+    $errCurrency = null;
+
+    foreach ($arResult['sitesList'] as $site) {
+        if ($site['currency'] !== $baseCurrency) {
+            $errCurrency['site'] =  ' (' . $site['name'] . ')';
+            $errCurrency['errorText'] = 'ERR_CURRENCY_SITES';
+        }
+    }
+
     $customFields = [['code' => '__default_empty_value__', 'name' => GetMessage('SELECT_VALUE')]];
     $crmCouponFieldOption = COption::GetOptionString($mid, $CRM_COUPON_FIELD, 0) ?: null;
     $page = 1;
@@ -1462,7 +1471,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         <tr class="heading">
             <td colspan="2"><b><?php echo GetMessage('ICRM_CONN_SETTINGS'); ?></b></td>
         </tr>
-        <tr>
+
+        <tr >
             <td width="50%" class="adm-detail-content-cell-l"><?php echo GetMessage('ICRM_API_HOST'); ?></td>
             <td width="50%" class="adm-detail-content-cell-r"><input type="text" id="api_host" name="api_host" value="<?php echo $api_host; ?>"></td>
         </tr>
@@ -1470,6 +1480,17 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             <td width="50%" class="adm-detail-content-cell-l"><?php echo GetMessage('ICRM_API_KEY'); ?></td>
             <td width="50%" class="adm-detail-content-cell-r"><input type="text" id="api_key" name="api_key" value="<?php echo $api_key; ?>"></td>
         </tr>
+
+        <?php if ($errCurrency): ?>
+            <tr align="center">
+                <td colspan="2">
+                    <strong style="color:red" >
+                        <?php echo GetMessage($errCurrency['errorText']) . $errCurrency['site']; ?>
+                    </strong>
+                </td>
+            </tr>
+        <?php endif; ?>
+
         <?php if (count($arResult['arSites']) > 1): ?>
             <tr class="heading">
                 <td colspan="2" style="background-color: transparent;">

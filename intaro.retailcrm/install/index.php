@@ -1438,6 +1438,8 @@ class intaro_retailcrm extends CModule
 
         try {
             $result = $client->makeRequest('/reference/sites', 'GET');
+            $bitrixSites = RCrmActions::getSitesList();
+            $bitrixBaseCurrency = CCurrency::GetBaseCurrency();
         } catch (CurlException $e) {
             RCrmActions::eventLog(
                 'intaro.retailcrm/install/index.php', 'RetailCrm\ApiClient::sitesList',
@@ -1445,21 +1447,38 @@ class intaro_retailcrm extends CModule
             );
 
             $res['errCode'] = 'ERR_' . $e->getCode();
-        }
-
-        if (!isset($result) || $result->getStatusCode() == 200) {
-            ConfigProvider::setApiVersion(self::V5);
-
-            $res['sitesList'] = $APPLICATION->ConvertCharsetArray(
-                $result->sites,
-                'utf-8',
-                SITE_CHARSET
-            );
 
             return $res;
         }
 
-        $res['errCode'] = 'ERR_METHOD_NOT_FOUND';
+        //Проверка, что был получен корректный ответ
+        if (isset($result) && $result->getStatusCode() == 200) {
+            //Проверка количества магазинов, доступных по апи
+            if (count($bitrixSites) < count($result->sites)) {
+                $res['errCode'] = 'ERR_COUNT_SITES';
+            }
+
+            //Проверка совпадения базовой валюты CMS
+            if (!isset($res)) {
+                foreach ($result->sites as $site) {
+                    if ($site['currency'] !== $bitrixBaseCurrency) {
+                        $res['errCode'] = 'ERR_CURRENCY_SITES';
+                    }
+                }
+            }
+
+            if (!isset($res)) {
+                ConfigProvider::setApiVersion(self::V5);
+
+                $res['sitesList'] = $APPLICATION->ConvertCharsetArray(
+                    $result->sites,
+                    'utf-8',
+                    SITE_CHARSET
+                );
+            }
+        } else {
+            $res['errCode'] = 'ERR_METHOD_NOT_FOUND';
+        }
 
         return $res;
     }
