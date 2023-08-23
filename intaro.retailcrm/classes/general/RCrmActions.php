@@ -546,13 +546,21 @@ class RCrmActions
                         'errors' => !empty($result['errors']) ? $result['errors'] : '',
                         'params' => $params
                     ), 'uploadApiErrors');
+                } elseif ($methodApi == 'cartGet') {
+                    Logger::getInstance()->write(array(
+                        'api' => $version,
+                        'methodApi' => $methodApi,
+                        'errorMsg' => !empty($result['errorMsg']) ? $result['errorMsg'] : '',
+                        'errors' => !empty($result['errors']) ? $result['errors'] : '',
+                        'params' => $params,
+                    ), 'apiErrors');
                 } else {
-
                     self::eventLog(
                         __CLASS__ . '::' . $method,
                         'RetailCrm\ApiClient::' . $methodApi,
                         !empty($result['errorMsg']) ? $result['errorMsg'] : ''
                     );
+
                     Logger::getInstance()->write(array(
                         'api' => $version,
                         'methodApi' => $methodApi,
