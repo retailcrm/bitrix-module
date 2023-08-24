@@ -28,6 +28,7 @@ $MESS ['INTEGRATION_PAYMENT_LIST'] = 'Для интеграционных опл
 $MESS ['INTEGRATIONS'] = ' (интеграционная)';
 
 $MESS ['ERR_CURRENCY_SITES'] = 'Базовая валюта отличается от валюты магазина в CRM!';
+$MESS ['ERR_COUNT_SITES'] = 'По введенному ключу апи доступно больше магазинов, чем существует в CMS!';
 
 $MESS ['ICRM_OPTIONS_SUBMIT_TITLE'] = 'Сохранить настройки';
 $MESS ['ICRM_OPTIONS_SUBMIT_VALUE'] = 'Сохранить';

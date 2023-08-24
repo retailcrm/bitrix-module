@@ -1061,14 +1061,21 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $currencyOption = COption::GetOptionString($mid, $CRM_CURRENCY, 0) ?: $baseCurrency;
     $currencyList = \Bitrix\Currency\CurrencyManager::getCurrencyList();
 
-    $errCurrency = null;
+    $errorText = [];
 
     foreach ($arResult['sitesList'] as $site) {
         if ($site['currency'] !== $baseCurrency) {
-            $errCurrency['site'] =  ' (' . $site['name'] . ')';
-            $errCurrency['errorText'] = 'ERR_CURRENCY_SITES';
+            $errorText[] = GetMessage('ERR_CURRENCY_SITES') . '(' . $site['name'] . ')';
         }
     }
+
+    $errCountSites = null;
+
+    if (count($arResult['arSites']) < count($arResult['sitesList'])) {
+        $errorText[] = GetMessage('ERR_COUNT_SITES');
+    }
+
+
 
     $customFields = [['code' => '__default_empty_value__', 'name' => GetMessage('SELECT_VALUE')]];
     $crmCouponFieldOption = COption::GetOptionString($mid, $CRM_COUPON_FIELD, 0) ?: null;
@@ -1486,6 +1493,16 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 <td colspan="2">
                     <strong style="color:red" >
                         <?php echo GetMessage($errCurrency['errorText']) . $errCurrency['site']; ?>
+                    </strong>
+                </td>
+            </tr>
+        <?php endif; ?>
+
+        <?php if ($errCountSites): ?>
+            <tr align="center">
+                <td colspan="2">
+                    <strong style="color:red" >
+                        <?php echo GetMessage($errCountSites); ?>
                     </strong>
                 </td>
             </tr>
