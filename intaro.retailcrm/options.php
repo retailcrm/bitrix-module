@@ -1061,21 +1061,21 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $currencyOption = COption::GetOptionString($mid, $CRM_CURRENCY, 0) ?: $baseCurrency;
     $currencyList = \Bitrix\Currency\CurrencyManager::getCurrencyList();
 
-    $errorText = [];
+    $errorsText = [];
 
     foreach ($arResult['sitesList'] as $site) {
         if ($site['currency'] !== $baseCurrency) {
-            $errorText[] = GetMessage('ERR_CURRENCY_SITES') . '(' . $site['name'] . ')';
+            $errorsText[] = GetMessage('ERR_CURRENCY_SITES') . '(' . $site['name'] . ')';
         }
     }
 
-    $errCountSites = null;
-
-    if (count($arResult['arSites']) < count($arResult['sitesList'])) {
-        $errorText[] = GetMessage('ERR_COUNT_SITES');
+    if (count($arResult['arSites']) === 1 && count($arResult['sitesList']) > 1) {
+        $errorsText[] = GetMessage('ERR_COUNT_SITES');
     }
 
-
+    if (preg_match('/&errc=ERR_(.*)/is', $uri, $matches)){
+        $errorsText[] = $matches[1];
+    }
 
     $customFields = [['code' => '__default_empty_value__', 'name' => GetMessage('SELECT_VALUE')]];
     $crmCouponFieldOption = COption::GetOptionString($mid, $CRM_COUPON_FIELD, 0) ?: null;
@@ -1488,23 +1488,15 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             <td width="50%" class="adm-detail-content-cell-r"><input type="text" id="api_key" name="api_key" value="<?php echo $api_key; ?>"></td>
         </tr>
 
-        <?php if ($errCurrency): ?>
+        <?php if ($errorsText): ?>
             <tr align="center">
-                <td colspan="2">
-                    <strong style="color:red" >
-                        <?php echo GetMessage($errCurrency['errorText']) . $errCurrency['site']; ?>
-                    </strong>
-                </td>
-            </tr>
-        <?php endif; ?>
-
-        <?php if ($errCountSites): ?>
-            <tr align="center">
-                <td colspan="2">
-                    <strong style="color:red" >
-                        <?php echo GetMessage($errCountSites); ?>
-                    </strong>
-                </td>
+                <?php foreach ($errorsText as $error): ?>
+                    <td colspan="2">
+                        <strong style="color:red" >
+                            <?php echo $error; ?>
+                        </strong>
+                    </td>
+                <?php endforeach; ?>
             </tr>
         <?php endif; ?>
 
