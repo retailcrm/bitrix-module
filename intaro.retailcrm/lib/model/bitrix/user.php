@@ -68,7 +68,7 @@ class User extends AbstractSerializableModel
     /**
      * @var \DateTime|null
      *
-     * @Mapping\Type("DateTime<'m.d.Y H:i:s'>")
+     * @Mapping\Type("DateTime<'d.m.Y H:i:s'>")
      * @Mapping\SerializedName("DATE_REGISTER")
      */
     private $dateRegister;
@@ -85,7 +85,7 @@ class User extends AbstractSerializableModel
     /**
      * @var \DateTime
      *
-     * @Mapping\Type("DateTime<'m.d.Y H:i:s'>")
+     * @Mapping\Type("DateTime<'d.m.Y H:i:s'>")
      * @Mapping\SerializedName("LAST_LOGIN")
      */
     private $lastLogin;
@@ -102,7 +102,7 @@ class User extends AbstractSerializableModel
     /**
      * @var \DateTime
      *
-     * @Mapping\Type("DateTime<'m.d.Y H:i:s'>")
+     * @Mapping\Type("DateTime<'d.m.Y H:i:s'>")
      * @Mapping\SerializedName("LAST_ACTIVITY_DATE")
      */
     private $lastActivityDate;
@@ -110,7 +110,7 @@ class User extends AbstractSerializableModel
     /**
      * @var \DateTime
      *
-     * @Mapping\Type("DateTime<'m.d.Y H:i:s'>")
+     * @Mapping\Type("DateTime<'d.m.Y H:i:s'>")
      * @Mapping\SerializedName("TIMESTAMP_X")
      */
     private $timestampX;
