@@ -118,6 +118,7 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"] . '/bitrix/modules/intaro.retailcrm/cl
 }
 
 $arResult['arSites'] = RCrmActions::getSitesList();
+$arResult['arCurrencySites'] = RCrmActions::getCurrencySites();
 //ajax update deliveryServices
 if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') && isset($_POST['ajax']) && ($_POST['ajax'] === 1)) {
     $api_host = COption::GetOptionString($mid, $CRM_API_HOST_OPTION, 0);
@@ -1063,14 +1064,35 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
     $errorsText = [];
 
-    foreach ($arResult['sitesList'] as $site) {
-        if ($site['currency'] !== $baseCurrency) {
-            $errorsText[] = GetMessage('ERR_CURRENCY_SITES') . '(' . $site['name'] . ')';
-        }
-    }
-
     if (count($arResult['arSites']) === 1 && count($arResult['sitesList']) > 1) {
         $errorsText[] = GetMessage('ERR_COUNT_SITES');
+    }
+
+    if ($arResult['arSites'] > 1) {
+        foreach ($optionsSitesList as $LID => $crmCode) {
+            $currentCurrency = $baseCurrency;
+
+            if (isset($arResult['arCurrencySites'][$LID])) {
+                $currentCurrency = $arResult['arCurrencySites'][$LID];
+            }
+
+            if ($currentCurrency !== $arResult['sitesList'][$crmCode]['currency']) {
+                $errorsText[] = GetMessage('ERR_CURRENCY_SITES') . '(' . $arResult['sitesList'][$crmCode]['name'] . ')';
+            }
+        }
+    } else {
+        $currentCurrency = $baseCurrency;
+        $LID = $arResult['arSites'][0]['LID'];
+
+        if (isset($arResult['arCurrencySites'][$LID])) {
+            $currentCurrency = $arResult['arCurrencySites'][$LID];
+        }
+
+        $crmSite = reset($arResult['sitesList']);
+
+        if ($currentCurrency !== $crmSite['currency']) {
+            $errorsText[] = GetMessage('ERR_CURRENCY_SITES') . '(' . $crmSite['name'] . ')';
+        }
     }
 
     if (preg_match('/&errc=ERR_(.*)/is', $uri, $matches)){

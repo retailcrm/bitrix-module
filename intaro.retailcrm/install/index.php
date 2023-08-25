@@ -369,6 +369,8 @@ class intaro_retailcrm extends CModule
             }
 
             $arResult['arSites'] = RCrmActions::getSitesList();
+            $arResult['arCurrencySites'] = RCrmActions::getCurrencySites();
+            $bitrixBaseCurrency = CCurrency::GetBaseCurrency();
 
             if (count($arResult['arSites']) > 1) {
 
@@ -382,6 +384,23 @@ class intaro_retailcrm extends CModule
                         $siteCode[$site['LID']] = null;
                     }
                 }
+
+                foreach ($arResult['arSites'] as $bitrixSite) {
+                    $currentCurrency = $bitrixBaseCurrency;
+                    $LID = $bitrixSite['LID'];
+
+                    if (isset($arResult['arCurrencySites'][$LID])) {
+                        $currentCurrency = $arResult['arCurrencySites'][$LID];
+                    }
+
+                    if (
+                        isset($arResult['sitesList'][$siteCode[$LID]])
+                        && $currentCurrency !== $arResult['sitesList'][$siteCode[$LID]]['currency'])
+                    {
+                        $arResult['errCode'] = 'ERR_CURRENCY_SITES';
+                    }
+                }
+
                 if (count($arResult['arSites']) != count($siteCode)) {
                     $arResult['errCode'] = 'ERR_FIELDS_API_HOST';
                     $APPLICATION->IncludeAdminFile(
@@ -1440,6 +1459,7 @@ class intaro_retailcrm extends CModule
             $result = $client->makeRequest('/reference/sites', 'GET');
             $bitrixSites = RCrmActions::getSitesList();
             $bitrixBaseCurrency = CCurrency::GetBaseCurrency();
+            $currencySites = RCrmActions::getCurrencySites();
         } catch (CurlException $e) {
             RCrmActions::eventLog(
                 'intaro.retailcrm/install/index.php', 'RetailCrm\ApiClient::sitesList',
@@ -1454,16 +1474,22 @@ class intaro_retailcrm extends CModule
         //Проверка, что был получен корректный ответ
         if (isset($result) && $result->getStatusCode() == 200) {
             //Проверка количества магазинов, доступных по апи
-            if (count($bitrixSites) < count($result->sites)) {
+            if (count($bitrixSites) === 1 && count($result->sites) > 1) {
                 $res['errCode'] = 'ERR_COUNT_SITES';
             }
 
-            //Проверка совпадения базовой валюты CMS
-            if (!isset($res)) {
-                foreach ($result->sites as $site) {
-                    if ($site['currency'] !== $bitrixBaseCurrency) {
-                        $res['errCode'] = 'ERR_CURRENCY_SITES';
-                    }
+            if (count($bitrixSites) === 1 ) {
+                $currentCurrency = $bitrixBaseCurrency;
+                $LID = $bitrixSites[0]['LID'];
+
+                if (isset($currencySites[$LID])) {
+                    $currentCurrency = $currencySites[$LID];
+                }
+
+                $crmSite = reset($result->sites);
+
+                if ($currentCurrency !== $crmSite['currency']) {
+                    $res['errCode'] = 'ERR_CURRENCY_SITES';
                 }
             }
 
