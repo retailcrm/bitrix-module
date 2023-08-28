@@ -369,11 +369,8 @@ class intaro_retailcrm extends CModule
             }
 
             $arResult['arSites'] = RCrmActions::getSitesList();
-            $arResult['arCurrencySites'] = RCrmActions::getCurrencySites();
-            $bitrixBaseCurrency = CCurrency::GetBaseCurrency();
 
             if (count($arResult['arSites']) > 1) {
-
                 $api_host = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, 0);
                 $api_key = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, 0);
 
@@ -383,6 +380,16 @@ class intaro_retailcrm extends CModule
                     } else {
                         $siteCode[$site['LID']] = null;
                     }
+                }
+
+                $arResult['arCurrencySites'] = RCrmActions::getCurrencySites();
+                $bitrixBaseCurrency = CCurrency::GetBaseCurrency();
+                $result = $this->getReferenceShops($api_host, $api_key);
+
+                if (isset($result['errCode'])) {
+                    $arResult['errCode'] = $result['errCode'];
+                } else {
+                    $arResult['sitesList'] = $result['sitesList'];
                 }
 
                 foreach ($arResult['arSites'] as $bitrixSite) {
@@ -403,8 +410,11 @@ class intaro_retailcrm extends CModule
 
                 if (count($arResult['arSites']) != count($siteCode)) {
                     $arResult['errCode'] = 'ERR_FIELDS_API_HOST';
+                }
+
+                if (isset($arResult['errCode'])) {
                     $APPLICATION->IncludeAdminFile(
-                        GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step11.php'
+                        GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step1.php'
                     );
 
                     return false;

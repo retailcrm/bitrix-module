@@ -1077,7 +1077,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             }
 
             if ($currentCurrency !== $arResult['sitesList'][$crmCode]['currency']) {
-                $errorsText[] = GetMessage('ERR_CURRENCY_SITES') . '(' . $arResult['sitesList'][$crmCode]['name'] . ')';
+                $errorsText[] = GetMessage('ERR_CURRENCY_SITES') . ' (' . $arResult['sitesList'][$crmCode]['name'] . ')';
             }
         }
     } else {
