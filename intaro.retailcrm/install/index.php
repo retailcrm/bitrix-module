@@ -414,7 +414,7 @@ class intaro_retailcrm extends CModule
 
                 if (isset($arResult['errCode'])) {
                     $APPLICATION->IncludeAdminFile(
-                        GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step1.php'
+                        GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step11.php'
                     );
 
                     return false;
