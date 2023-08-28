@@ -109,8 +109,14 @@ class RetailCrmEvent
      *
      * @param object $event
      */
-    public  static function onChangeBasket($event)
+    public static function onChangeBasket($event)
     {
+        $apiVersion = COption::GetOptionString(self::$MODULE_ID, 'api_version', 0);
+
+        if ($apiVersion !== 'v5') {
+            return;
+        }
+
         $id = \Bitrix\Main\Engine\CurrentUser::get()->getId();
 
         if ($id) {
