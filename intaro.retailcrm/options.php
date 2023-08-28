@@ -1068,8 +1068,12 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         $errorsText[] = GetMessage('ERR_COUNT_SITES');
     }
 
-    if ($arResult['arSites'] > 1) {
+    if (count($arResult['arSites']) > 1) {
         foreach ($optionsSitesList as $LID => $crmCode) {
+            if (empty($crmCode)) {
+                continue;
+            }
+
             $currentCurrency = $baseCurrency;
 
             if (isset($arResult['arCurrencySites'][$LID])) {
@@ -1091,12 +1095,12 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         $crmSite = reset($arResult['sitesList']);
 
         if ($currentCurrency !== $crmSite['currency']) {
-            $errorsText[] = GetMessage('ERR_CURRENCY_SITES') . '(' . $crmSite['name'] . ')';
+            $errorsText[] = GetMessage('ERR_CURRENCY_SITES') . ' (' . $crmSite['name'] . ')';
         }
     }
 
-    if (preg_match('/&errc=ERR_(.*)/is', $uri, $matches)){
-        $errorsText[] = $matches[1];
+    if (preg_match('/&errc=ERR_(.*)/is', $APPLICATION->GetCurUri(), $matches)){
+        $errorsText[] = urldecode($matches[1]);
     }
 
     $customFields = [['code' => '__default_empty_value__', 'name' => GetMessage('SELECT_VALUE')]];
@@ -1511,15 +1515,15 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         </tr>
 
         <?php if ($errorsText): ?>
-            <tr align="center">
-                <?php foreach ($errorsText as $error): ?>
+            <?php foreach ($errorsText as $error): ?>
+                <tr align="center">
                     <td colspan="2">
                         <strong style="color:red" >
                             <?php echo $error; ?>
                         </strong>
                     </td>
-                <?php endforeach; ?>
-            </tr>
+                </tr>
+            <?php endforeach; ?>
         <?php endif; ?>
 
         <?php if (count($arResult['arSites']) > 1): ?>

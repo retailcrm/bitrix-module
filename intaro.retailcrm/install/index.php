@@ -1488,7 +1488,7 @@ class intaro_retailcrm extends CModule
                 $res['errCode'] = 'ERR_COUNT_SITES';
             }
 
-            if (count($bitrixSites) === 1 ) {
+            if (!isset($res['errCode']) && count($bitrixSites) === 1 ) {
                 $currentCurrency = $bitrixBaseCurrency;
                 $LID = $bitrixSites[0]['LID'];
 
