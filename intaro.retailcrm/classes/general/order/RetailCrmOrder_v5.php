@@ -17,6 +17,7 @@ use Intaro\RetailCrm\Service\LoyaltyAccountService;
 use RetailCrm\Response\ApiResponse;
 use \Bitrix\Sale\Location\Name\LocationTable as LocationTableName;
 use Intaro\RetailCrm\Component\ConfigProvider;
+use Intaro\RetailCrm\Model\Api\Response\OrdersCreateResponse;
 
 IncludeModuleLangFile(__FILE__);
 
@@ -439,12 +440,27 @@ class RetailCrmOrder
                 }
 
                 $crmBasket = RCrmActions::apiMethod($api, 'cartGet', __METHOD__, $externalId, $site);
+                $orderResponse = $client->createOrder($order, $site);
 
-                if (!empty($crmBasket['cart'])) {
-                    $order['isFromCart'] = true;
+                if (!empty($crmBasket['cart']) && $orderResponse instanceof OrdersCreateResponse && !empty($orderResponse->id) ) {
+                    RCrmActions::apiMethod(
+                        $api,
+                        'cartClear',
+                        __METHOD__,
+                        [
+                            'clearedAt' => date('Y-m-d H:i:sP'),
+                            'customer' => [
+                                'externalId' => $externalId
+                            ],
+                            'order' => [
+                                'id' => $orderResponse->id
+                            ]
+                        ],
+                        $site
+                    );
                 }
 
-                return $client->createOrder($order, $site);
+                return $orderResponse;
             }
 
             if ($methodApi === 'ordersEdit') {
