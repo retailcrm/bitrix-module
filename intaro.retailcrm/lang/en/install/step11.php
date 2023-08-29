@@ -10,3 +10,5 @@ $MESS ['ERR_0'] = 'Server connection timeout error.';
 $MESS ['ERR_FIELDS_API_HOST'] = 'Fields are filled incorrectly.';
 $MESS ['INFO_1'] = 'Set the correspondence between 1C-Bitrix and RetailCRM stores.';
 $MESS ['INFO_2'] = 'All your stores in RetailCRM must have a common API key!';
+$MESS ['ERR_CURRENCY_SITES'] = 'The currency of the site differs from the currency of the store in CRM.
+For the integration to work correctly, the currencies in CRM and CMS must match';

@@ -100,5 +100,10 @@ $MESS ['ONLINE_CONSULTANT_LABEL'] = 'Online Consultant script';
 $MESS ['INTEGRATION_PAYMENT_LIST'] = 'The status will not be transferred for integration payments';
 $MESS ['INTEGRATIONS'] = ' (integration)';
 
+$MESS ['ERR_COUNT_SITES'] = 'The API Key you entered relates to more than one store.
+Change the access settings for the API key, it should work with only one store in CRM';
+$MESS ['ERR_CURRENCY_SITES'] = 'The currency of the site differs from the currency of the store in CRM.
+For the integration to work correctly, the currencies in CRM and CMS must match';
+
 $MESS ['ACTIVITY_SETTINGS'] = 'Module activity settings';
 $MESS ['DEACTIVATE_MODULE'] = 'Deactivate the module';

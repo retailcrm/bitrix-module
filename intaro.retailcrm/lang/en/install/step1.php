@@ -15,3 +15,7 @@ $MESS ['ERR_METHOD_NOT_FOUND'] = 'Check availability of API methods for current 
 $MESS ['INFO_1'] = 'Enter the address of RetailCRM instance (for example, https://demo.retailcrm.ru) and API key.';
 $MESS ['INFO_2'] = 'API key can be generated when the store is registered in RetailCRM (Administration > Integration).';
 $MESS ['INFO_3'] = 'Store code in 1C-Bitrix must correspond with the store code in RetailCRM (Administration > Stores).';
+$MESS ['ERR_COUNT_SITES'] = 'The API Key you entered relates to more than one store.
+Change the access settings for the API key, it should work with only one store in CRM';
+$MESS ['ERR_CURRENCY_SITES'] = 'The currency of the site differs from the currency of the store in CRM.
+For the integration to work correctly, the currencies in CRM and CMS must match';

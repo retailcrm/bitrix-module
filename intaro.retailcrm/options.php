@@ -1064,43 +1064,45 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
     $errorsText = [];
 
-    if (count($arResult['arSites']) === 1 && count($arResult['sitesList']) > 1) {
-        $errorsText[] = GetMessage('ERR_COUNT_SITES');
+    if (preg_match('/&errc=ERR_(.*)/is', $APPLICATION->GetCurUri(), $matches)) {
+        $errorsText[] = urldecode($matches[1]);
     }
 
-    if (count($arResult['arSites']) > 1) {
-        foreach ($optionsSitesList as $LID => $crmCode) {
-            if (empty($crmCode)) {
-                continue;
-            }
+    if (empty($errorsText)) {
+        if (count($arResult['arSites']) === 1 && count($arResult['sitesList']) > 1) {
+            $errorsText[] = GetMessage('ERR_COUNT_SITES');
+        }
 
+        if (count($arResult['arSites']) > 1) {
+            foreach ($optionsSitesList as $LID => $crmCode) {
+                if (empty($crmCode)) {
+                    continue;
+                }
+
+                $currentCurrency = $baseCurrency;
+
+                if (isset($arResult['arCurrencySites'][$LID])) {
+                    $currentCurrency = $arResult['arCurrencySites'][$LID];
+                }
+
+                if ($currentCurrency !== $arResult['sitesList'][$crmCode]['currency']) {
+                    $errorsText[] = GetMessage('ERR_CURRENCY_SITES') . ' (' . $arResult['sitesList'][$crmCode]['name'] . ')';
+                }
+            }
+        } else {
             $currentCurrency = $baseCurrency;
+            $LID = $arResult['arSites'][0]['LID'];
 
             if (isset($arResult['arCurrencySites'][$LID])) {
                 $currentCurrency = $arResult['arCurrencySites'][$LID];
             }
 
-            if ($currentCurrency !== $arResult['sitesList'][$crmCode]['currency']) {
-                $errorsText[] = GetMessage('ERR_CURRENCY_SITES') . ' (' . $arResult['sitesList'][$crmCode]['name'] . ')';
+            $crmSite = reset($arResult['sitesList']);
+
+            if ($currentCurrency !== $crmSite['currency']) {
+                $errorsText[] = GetMessage('ERR_CURRENCY_SITES') . ' (' . $crmSite['name'] . ')';
             }
         }
-    } else {
-        $currentCurrency = $baseCurrency;
-        $LID = $arResult['arSites'][0]['LID'];
-
-        if (isset($arResult['arCurrencySites'][$LID])) {
-            $currentCurrency = $arResult['arCurrencySites'][$LID];
-        }
-
-        $crmSite = reset($arResult['sitesList']);
-
-        if ($currentCurrency !== $crmSite['currency']) {
-            $errorsText[] = GetMessage('ERR_CURRENCY_SITES') . ' (' . $crmSite['name'] . ')';
-        }
-    }
-
-    if (preg_match('/&errc=ERR_(.*)/is', $APPLICATION->GetCurUri(), $matches)){
-        $errorsText[] = urldecode($matches[1]);
     }
 
     $customFields = [['code' => '__default_empty_value__', 'name' => GetMessage('SELECT_VALUE')]];
