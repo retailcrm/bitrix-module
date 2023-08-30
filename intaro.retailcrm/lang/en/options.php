@@ -107,3 +107,6 @@ For the integration to work correctly, the currencies in CRM and CMS must match'
 
 $MESS ['ACTIVITY_SETTINGS'] = 'Module activity settings';
 $MESS ['DEACTIVATE_MODULE'] = 'Deactivate the module';
+
+$MESS ['WRONG_CREDENTIALS'] = 'Enter the address and authorization key of the CRM system';
+$MESS ['Wrong "apiKey" value.'] = 'Invalid authorization key';

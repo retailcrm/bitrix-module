@@ -276,6 +276,10 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
         COption::SetOptionString($mid, 'api_host', $api_host);
         COption::SetOptionString($mid, 'api_key', $api_key);
+    } else {
+        $uri .= '&errc=ERR_WRONG_CREDENTIALS';
+
+        LocalRedirect($uri);
     }
 
     //form order types ids arr
@@ -1065,7 +1069,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $errorsText = [];
 
     if (preg_match('/&errc=ERR_(.*)/is', $APPLICATION->GetCurUri(), $matches)) {
-        $errorsText[] = urldecode($matches[1]);
+        $errorsText[] = GetMessage(urldecode($matches[1]));
     }
 
     if (empty($errorsText)) {
