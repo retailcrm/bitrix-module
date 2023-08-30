@@ -118,6 +118,7 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"] . '/bitrix/modules/intaro.retailcrm/cl
 }
 
 $arResult['arSites'] = RCrmActions::getSitesList();
+$arResult['arCurrencySites'] = RCrmActions::getCurrencySites();
 //ajax update deliveryServices
 if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') && isset($_POST['ajax']) && ($_POST['ajax'] === 1)) {
     $api_host = COption::GetOptionString($mid, $CRM_API_HOST_OPTION, 0);
@@ -275,6 +276,10 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
         COption::SetOptionString($mid, 'api_host', $api_host);
         COption::SetOptionString($mid, 'api_key', $api_key);
+    } else {
+        $uri .= '&errc=ERR_WRONG_CREDENTIALS';
+
+        LocalRedirect($uri);
     }
 
     //form order types ids arr
@@ -1061,6 +1066,49 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $currencyOption = COption::GetOptionString($mid, $CRM_CURRENCY, 0) ?: $baseCurrency;
     $currencyList = \Bitrix\Currency\CurrencyManager::getCurrencyList();
 
+    $errorsText = [];
+
+    if (preg_match('/&errc=ERR_(.*)/is', $APPLICATION->GetCurUri(), $matches)) {
+        $errorsText[] = GetMessage(urldecode($matches[1]));
+    }
+
+    if (empty($errorsText)) {
+        if (count($arResult['arSites']) === 1 && count($arResult['sitesList']) > 1) {
+            $errorsText[] = GetMessage('ERR_COUNT_SITES');
+        }
+
+        if (count($arResult['arSites']) > 1) {
+            foreach ($optionsSitesList as $LID => $crmCode) {
+                if (empty($crmCode)) {
+                    continue;
+                }
+
+                $currentCurrency = $baseCurrency;
+
+                if (isset($arResult['arCurrencySites'][$LID])) {
+                    $currentCurrency = $arResult['arCurrencySites'][$LID];
+                }
+
+                if ($currentCurrency !== $arResult['sitesList'][$crmCode]['currency']) {
+                    $errorsText[] = GetMessage('ERR_CURRENCY_SITES') . ' (' . $arResult['sitesList'][$crmCode]['name'] . ')';
+                }
+            }
+        } else {
+            $currentCurrency = $baseCurrency;
+            $LID = $arResult['arSites'][0]['LID'];
+
+            if (isset($arResult['arCurrencySites'][$LID])) {
+                $currentCurrency = $arResult['arCurrencySites'][$LID];
+            }
+
+            $crmSite = reset($arResult['sitesList']);
+
+            if ($currentCurrency !== $crmSite['currency']) {
+                $errorsText[] = GetMessage('ERR_CURRENCY_SITES') . ' (' . $crmSite['name'] . ')';
+            }
+        }
+    }
+
     $customFields = [['code' => '__default_empty_value__', 'name' => GetMessage('SELECT_VALUE')]];
     $crmCouponFieldOption = COption::GetOptionString($mid, $CRM_COUPON_FIELD, 0) ?: null;
     $page = 1;
@@ -1462,7 +1510,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         <tr class="heading">
             <td colspan="2"><b><?php echo GetMessage('ICRM_CONN_SETTINGS'); ?></b></td>
         </tr>
-        <tr>
+
+        <tr >
             <td width="50%" class="adm-detail-content-cell-l"><?php echo GetMessage('ICRM_API_HOST'); ?></td>
             <td width="50%" class="adm-detail-content-cell-r"><input type="text" id="api_host" name="api_host" value="<?php echo $api_host; ?>"></td>
         </tr>
@@ -1470,6 +1519,19 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             <td width="50%" class="adm-detail-content-cell-l"><?php echo GetMessage('ICRM_API_KEY'); ?></td>
             <td width="50%" class="adm-detail-content-cell-r"><input type="text" id="api_key" name="api_key" value="<?php echo $api_key; ?>"></td>
         </tr>
+
+        <?php if ($errorsText): ?>
+            <?php foreach ($errorsText as $error): ?>
+                <tr align="center">
+                    <td colspan="2">
+                        <strong style="color:red" >
+                            <?php echo $error; ?>
+                        </strong>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+        <?php endif; ?>
+
         <?php if (count($arResult['arSites']) > 1): ?>
             <tr class="heading">
                 <td colspan="2" style="background-color: transparent;">

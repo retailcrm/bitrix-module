@@ -21,6 +21,36 @@ class RCrmActions
     public static $CRM_API_VERSION = 'api_version';
     public const CANCEL_PROPERTY_CODE = 'INTAROCRM_IS_CANCELED';
 
+    public static function getCurrencySites(): array
+    {
+        global $DB;
+
+        $sites = self::getSitesList();
+        $sitesLID = [];
+        $sitesCurrency = [];
+
+        foreach ($sites as $site) {
+            $sitesLID[] = $site['LID'];
+        }
+
+        $currencies = $DB->Query(
+            "SELECT DISTINCT site.SMN_SITE_ID, hook_data.VALUE
+                FROM `b_landing_site` site
+                    LEFT JOIN `b_landing_hook_data` hook_data on site.ID = hook_data.ENTITY_ID
+                WHERE site.SMN_SITE_ID IN ('" . implode("', '", $sitesLID) . "')
+                AND hook_data.CODE = 'CURRENCY_ID';
+            "
+        );
+
+        while ($currencySite = $currencies->Fetch()) {
+            if (!empty($currencySite['SMN_SITE_ID'])) {
+                $sitesCurrency[$currencySite['SMN_SITE_ID']] = $currencySite['VALUE'];
+            }
+        }
+
+        return $sitesCurrency;
+    }
+
     /**
      * @return array
      */

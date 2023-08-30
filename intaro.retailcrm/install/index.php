@@ -371,7 +371,6 @@ class intaro_retailcrm extends CModule
             $arResult['arSites'] = RCrmActions::getSitesList();
 
             if (count($arResult['arSites']) > 1) {
-
                 $api_host = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, 0);
                 $api_key = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, 0);
 
@@ -382,8 +381,38 @@ class intaro_retailcrm extends CModule
                         $siteCode[$site['LID']] = null;
                     }
                 }
+
+                $arResult['arCurrencySites'] = RCrmActions::getCurrencySites();
+                $bitrixBaseCurrency = CCurrency::GetBaseCurrency();
+                $result = $this->getReferenceShops($api_host, $api_key);
+
+                if (isset($result['errCode'])) {
+                    $arResult['errCode'] = $result['errCode'];
+                } else {
+                    $arResult['sitesList'] = $result['sitesList'];
+                }
+
+                foreach ($arResult['arSites'] as $bitrixSite) {
+                    $currentCurrency = $bitrixBaseCurrency;
+                    $LID = $bitrixSite['LID'];
+
+                    if (isset($arResult['arCurrencySites'][$LID])) {
+                        $currentCurrency = $arResult['arCurrencySites'][$LID];
+                    }
+
+                    if (
+                        isset($arResult['sitesList'][$siteCode[$LID]])
+                        && $currentCurrency !== $arResult['sitesList'][$siteCode[$LID]]['currency'])
+                    {
+                        $arResult['errCode'] = 'ERR_CURRENCY_SITES';
+                    }
+                }
+
                 if (count($arResult['arSites']) != count($siteCode)) {
                     $arResult['errCode'] = 'ERR_FIELDS_API_HOST';
+                }
+
+                if (isset($arResult['errCode'])) {
                     $APPLICATION->IncludeAdminFile(
                         GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step11.php'
                     );
@@ -1438,6 +1467,9 @@ class intaro_retailcrm extends CModule
 
         try {
             $result = $client->makeRequest('/reference/sites', 'GET');
+            $bitrixSites = RCrmActions::getSitesList();
+            $bitrixBaseCurrency = CCurrency::GetBaseCurrency();
+            $currencySites = RCrmActions::getCurrencySites();
         } catch (CurlException $e) {
             RCrmActions::eventLog(
                 'intaro.retailcrm/install/index.php', 'RetailCrm\ApiClient::sitesList',
@@ -1445,21 +1477,44 @@ class intaro_retailcrm extends CModule
             );
 
             $res['errCode'] = 'ERR_' . $e->getCode();
-        }
-
-        if (!isset($result) || $result->getStatusCode() == 200) {
-            ConfigProvider::setApiVersion(self::V5);
-
-            $res['sitesList'] = $APPLICATION->ConvertCharsetArray(
-                $result->sites,
-                'utf-8',
-                SITE_CHARSET
-            );
 
             return $res;
         }
 
-        $res['errCode'] = 'ERR_METHOD_NOT_FOUND';
+        //Проверка, что был получен корректный ответ
+        if (isset($result) && $result->getStatusCode() == 200) {
+            //Проверка количества магазинов, доступных по апи
+            if (count($bitrixSites) === 1 && count($result->sites) > 1) {
+                $res['errCode'] = 'ERR_COUNT_SITES';
+            }
+
+            if (!isset($res['errCode']) && count($bitrixSites) === 1 ) {
+                $currentCurrency = $bitrixBaseCurrency;
+                $LID = $bitrixSites[0]['LID'];
+
+                if (isset($currencySites[$LID])) {
+                    $currentCurrency = $currencySites[$LID];
+                }
+
+                $crmSite = reset($result->sites);
+
+                if ($currentCurrency !== $crmSite['currency']) {
+                    $res['errCode'] = 'ERR_CURRENCY_SITES';
+                }
+            }
+
+            if (!isset($res)) {
+                ConfigProvider::setApiVersion(self::V5);
+
+                $res['sitesList'] = $APPLICATION->ConvertCharsetArray(
+                    $result->sites,
+                    'utf-8',
+                    SITE_CHARSET
+                );
+            }
+        } else {
+            $res['errCode'] = 'ERR_METHOD_NOT_FOUND';
+        }
 
         return $res;
     }
