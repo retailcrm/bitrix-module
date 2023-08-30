@@ -1181,6 +1181,8 @@ function update()
     Loader::includeModule('sale');
     Loader::includeModule('highloadblock');
 
+    COption::SetOptionString('intaro.retailcrm', 'api_version', 'v5');
+
     (new LoyaltyProgramUpdater())
         ->updateBonusInfoFieldForLp()
         ->updateBonusFieldsTypeInHl()
