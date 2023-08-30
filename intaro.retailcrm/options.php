@@ -576,9 +576,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $version = COption::GetOptionString($mid, $CRM_API_VERSION);
 
     if (htmlspecialchars(trim($_POST['api_version'])) != $version) {
-        if (htmlspecialchars(trim($_POST['api_version'])) === 'v4') {
-            $version = 'v4';
-        } elseif (htmlspecialchars(trim($_POST['api_version'])) === 'v5') {
+        if (htmlspecialchars(trim($_POST['api_version'])) === 'v5') {
             $version = 'v5';
         } else {
             LocalRedirect($uri);
@@ -2301,7 +2299,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             <tr>
                 <td colspan="2" class="option-head option-other-top option-other-bottom">
                     <select name="api_version" class="typeselect">
-                        <?php for ($v = 4; $v <= 5; $v++) {
+                        <?php for ($v = 5; $v <= 5; $v++) {
                             $ver = 'v' . $v; ?>
                             <option value="<?php echo $ver; ?>" <?php if ($ver === $version) {
                                 echo 'selected';

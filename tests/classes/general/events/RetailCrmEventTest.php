@@ -46,7 +46,6 @@ class RetailCrmEventTest extends PHPUnit\Framework\TestCase
 
     /**
      * @param $history
-     * @param $v5
      * @param $new
      *
      * @throws InvalidArgumentException
@@ -57,7 +56,7 @@ class RetailCrmEventTest extends PHPUnit\Framework\TestCase
      *
      * @dataProvider paymentSaveDataProvider
      */
-    public function testPaymentSave($history, $v5, $new)
+    public function testPaymentSave($history, $new)
     {
         $event = $this->createMock(\Bitrix\Sale\Payment::class);
 
@@ -77,10 +76,6 @@ class RetailCrmEventTest extends PHPUnit\Framework\TestCase
             $GLOBALS['RETAIL_CRM_HISTORY'] = true;
         }
 
-        if ($v5 === false) {
-            COption::SetOptionString('intaro.retailcrm', 'api_version', 'v4');
-        }
-
         $result = RetailCrmEvent::paymentSave($event);
 
         $this->assertEquals(false, $result);
@@ -88,7 +83,6 @@ class RetailCrmEventTest extends PHPUnit\Framework\TestCase
 
     /**
      * @param $history
-     * @param $v5
      *
      * @throws InvalidArgumentException
      * @throws \PHPUnit\Framework\Exception
@@ -97,16 +91,12 @@ class RetailCrmEventTest extends PHPUnit\Framework\TestCase
      *
      * @dataProvider paymentDeleteDataProvider
      */
-    public function testPaymentDelete($history, $v5)
+    public function testPaymentDelete($history)
     {
         $event = $this->createMock(\Bitrix\Sale\Payment::class);
 
         if ($history === true) {
             $GLOBALS['RETAIL_CRM_HISTORY'] = true;
-        }
-
-        if ($v5 === false) {
-            COption::SetOptionString('intaro.retailcrm', 'api_version', 'v4');
         }
 
         $result = RetailCrmEvent::paymentDelete($event);
@@ -247,17 +237,14 @@ class RetailCrmEventTest extends PHPUnit\Framework\TestCase
         return [
             [
                 'history' => true,
-                'v5' => true,
                 'new' => false
             ],
             [
                 'history' => false,
-                'v5' => false,
                 'new' => false
             ],
             [
                 'history' => false,
-                'v5' => true,
                 'new' => true
             ]
         ];
@@ -271,15 +258,12 @@ class RetailCrmEventTest extends PHPUnit\Framework\TestCase
         return [
             [
                 'history' => true,
-                'v5' => true
             ],
             [
                 'history' => false,
-                'v5' => false
             ],
             [
                 'history' => false,
-                'v5' => true
             ]
         ];
     }

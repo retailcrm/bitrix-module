@@ -468,30 +468,18 @@ class RCrmActions
 
         $code = $integrationCode . '-' . $clientId;
 
-        if ($api_version == 'v4') {
-            $configuration = array(
-                'name' => GetMessage('API_MODULE_NAME'),
-                'code' => $code,
-                'logo' => $logo,
-                'configurationUrl' => $accountUrl,
-                'active' => $active
-            );
+        $configuration = array(
+            'clientId' => $clientId,
+            'code' => $code,
+            'integrationCode' => $integrationCode,
+            'active' => $active,
+            'name' => GetMessage('API_MODULE_NAME'),
+            'logo' => $logo,
+            'baseUrl' => $baseUrl,
+            'accountUrl' => $accountUrl
+        );
 
-            self::apiMethod($api, 'marketplaceSettingsEdit', __METHOD__, $configuration);
-        } else {
-            $configuration = array(
-                'clientId' => $clientId,
-                'code' => $code,
-                'integrationCode' => $integrationCode,
-                'active' => $active,
-                'name' => GetMessage('API_MODULE_NAME'),
-                'logo' => $logo,
-                'baseUrl' => $baseUrl,
-                'accountUrl' => $accountUrl
-            );
-
-            self::apiMethod($api, 'integrationModulesEdit', __METHOD__, $configuration);
-        }
+        self::apiMethod($api, 'integrationModulesEdit', __METHOD__, $configuration);
     }
 
     public static function apiMethod($api, $methodApi, $method, $params, $site = null)
