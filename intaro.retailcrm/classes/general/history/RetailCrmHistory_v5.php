@@ -1042,7 +1042,7 @@ class RetailCrmHistory
                                     $vatRate = null;
 
                                     if (RetailcrmConfigProvider::getOrderVat() === 'Y') {
-                                        if ($product['vatRate'] === 0) {
+                                        if ($product['vatRate'] === 0 || $product['vatRate'] === 'none') {
                                             $vatRate = 0;
                                         } elseif($product['vatRate'] !== null) {
                                             $vatRate = $product['vatRate'] / 100;
