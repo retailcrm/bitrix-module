@@ -17,11 +17,8 @@
 * RetailCrmCollector.php
 * RetailCrmUa.php
 * RetailCrmEvent.php
-* RetailCrmHistory_v4.php
 * RetailCrmHistory_v5.php
-* RetailCrmOrder_v4.php
 * RetailCrmOrder_v5.php
-* ApiClient_v4.php  
 * ApiClient_v5.php
 
 С версии 6.3.19 доступна кастомизация ICML, файлы которого расположены в модуле по пути `lib/icml`:
