@@ -310,11 +310,11 @@ class ApiClient
      * @param string $by     (default: 'externalId')
      * @param string $site   (default: null)
      *
+     * @return ApiResponse
      * @throws \InvalidArgumentException
      * @throws \RetailCrm\Exception\CurlException
      * @throws \RetailCrm\Exception\InvalidJsonException
      *
-     * @return \RetailCrm\Response\ApiResponse
      */
     public function customersCorporateCompanies(
         $id,
@@ -371,7 +371,7 @@ class ApiClient
      * @param string $by      (default: 'externalId')
      * @param string $site    (default: null)
      *
-     * @return \RetailCrm\Response\ApiResponse
+     * @return ApiResponse
      * @throws \RetailCrm\Exception\CurlException
      * @throws \RetailCrm\Exception\InvalidJsonException
      *
@@ -403,11 +403,11 @@ class ApiClient
      * @param string $by     (default: 'externalId')
      * @param string $site   (default: null)
      *
+     * @return ApiResponse
      * @throws \InvalidArgumentException
      * @throws \RetailCrm\Exception\CurlException
      * @throws \RetailCrm\Exception\InvalidJsonException
      *
-     * @return \RetailCrm\Response\ApiResponse
      */
     public function customersCorporateContacts(
         $id,
@@ -443,11 +443,11 @@ class ApiClient
      * @param int   $page   (default: null)
      * @param int   $limit  (default: null)
      *
-     * @throws \InvalidArgumentException
+     * @return ApiResponse
      * @throws \RetailCrm\Exception\CurlException
      * @throws \RetailCrm\Exception\InvalidJsonException
      *
-     * @return \RetailCrm\Response\ApiResponse
+     * @throws \InvalidArgumentException
      */
     public function customersCorporateList(array $filter = [], $page = null, $limit = null)
     {
@@ -476,11 +476,11 @@ class ApiClient
      * @param int   $page   (default: null)
      * @param int   $limit  (default: null)
      *
-     * @throws \InvalidArgumentException
+     * @return ApiResponse
      * @throws \RetailCrm\Exception\CurlException
      * @throws \RetailCrm\Exception\InvalidJsonException
      *
-     * @return \RetailCrm\Response\ApiResponse
+     * @throws \InvalidArgumentException
      */
     public function customersCorporateNotesList(array $filter = [], $page = null, $limit = null)
     {
@@ -508,11 +508,11 @@ class ApiClient
      * @param array $note (default: array())
      * @param string $site     (default: null)
      *
-     * @throws \InvalidArgumentException
+     * @return ApiResponse
      * @throws \RetailCrm\Exception\CurlException
      * @throws \RetailCrm\Exception\InvalidJsonException
      *
-     * @return \RetailCrm\Response\ApiResponse
+     * @throws \InvalidArgumentException
      */
     public function customersCorporateNotesCreate($note, $site = null)
     {
@@ -534,11 +534,11 @@ class ApiClient
      *
      * @param integer $id
      *
-     * @throws \InvalidArgumentException
+     * @return ApiResponse
      * @throws \RetailCrm\Exception\CurlException
      * @throws \RetailCrm\Exception\InvalidJsonException
      *
-     * @return \RetailCrm\Response\ApiResponse
+     * @throws \InvalidArgumentException
      */
     public function customersCorporateNotesDelete($id)
     {
@@ -564,11 +564,11 @@ class ApiClient
      * @param string $by     (default: 'externalId')
      * @param string $site   (default: null)
      *
+     * @return ApiResponse
      * @throws \InvalidArgumentException
      * @throws \RetailCrm\Exception\CurlException
      * @throws \RetailCrm\Exception\InvalidJsonException
      *
-     * @return \RetailCrm\Response\ApiResponse
      */
     public function customersCorporateAddresses(
         $id,
@@ -605,7 +605,7 @@ class ApiClient
      * @param string $by      (default: 'externalId')
      * @param null   $site    (default: null)
      *
-     * @return \RetailCrm\Response\ApiResponse
+     * @return ApiResponse
      */
     public function customersCorporateAddressesCreate($id, array $address = [], $by = 'externalId', $site = null): ApiResponse
     {
@@ -626,11 +626,11 @@ class ApiClient
      * @param string $addressBy  (default: 'externalId')
      * @param string $site       (default: null)
      *
+     * @return ApiResponse
      * @throws \InvalidArgumentException
      * @throws \RetailCrm\Exception\CurlException
      * @throws \RetailCrm\Exception\InvalidJsonException
      *
-     * @return \RetailCrm\Response\ApiResponse
      */
     public function customersCorporateAddressesEdit(
         $customerId,
@@ -670,11 +670,11 @@ class ApiClient
      * @param string $by       (default: 'externalId')
      * @param string $site     (default: null)
      *
-     * @throws \InvalidArgumentException
+     * @return ApiResponse
      * @throws \RetailCrm\Exception\CurlException
      * @throws \RetailCrm\Exception\InvalidJsonException
      *
-     * @return \RetailCrm\Response\ApiResponse
+     * @throws \InvalidArgumentException
      */
     public function customersCorporateCompaniesCreate($id, array $company = [], $by = 'externalId', $site = null)
     {
@@ -696,7 +696,7 @@ class ApiClient
      * @param string $companyBy  (default: 'externalId')
      * @param string $site       (default: null)
      *
-     * @return \RetailCrm\Response\ApiResponse
+     * @return ApiResponse
      * @throws \InvalidArgumentException
      * @throws \RetailCrm\Exception\CurlException
      * @throws \RetailCrm\Exception\InvalidJsonException
@@ -732,7 +732,7 @@ class ApiClient
      * @param string $contactBy  (default: 'externalId')
      * @param string $site       (default: null)
      *
-     * @return \RetailCrm\Response\ApiResponse
+     * @return ApiResponse
      * @throws \InvalidArgumentException
      * @throws \RetailCrm\Exception\CurlException
      * @throws \RetailCrm\Exception\InvalidJsonException
@@ -765,7 +765,7 @@ class ApiClient
      * @param string $by (default: 'externalId')
      * @param null        $site (default: null)
      *
-     * @return \RetailCrm\Response\ApiResponse
+     * @return ApiResponse
      */
     public function customersCorporateEdit(
         array $params,
@@ -2883,7 +2883,8 @@ class ApiClient
     /**
      * @param array $request
      * @param int   $checkId
-     * @return \RetailCrm\Response\ApiResponse
+     *
+     * @return ApiResponse
      * @throws \RetailCrm\Exception\CurlException
      */
     public function checkStatusPlVerification(array $request, int $checkId): ApiResponse
@@ -2897,7 +2898,8 @@ class ApiClient
 
     /**
      * @param array $request
-     * @return \RetailCrm\Response\ApiResponse
+     *
+     * @return ApiResponse
      * @throws \RetailCrm\Exception\CurlException
      */
     public function loyaltyOrderApply(array $request): ApiResponse
@@ -2915,7 +2917,8 @@ class ApiClient
 
     /**
      * @param array $request
-     * @return \RetailCrm\Response\ApiResponse
+     *
+     * @return ApiResponse
      * @throws \RetailCrm\Exception\CurlException
      */
     public function loyaltyOrderCalculate(array $request): ApiResponse
@@ -2932,7 +2935,7 @@ class ApiClient
     }
 
     /**
-     * @return \RetailCrm\Response\ApiResponse
+     * @return ApiResponse
      * @throws \RetailCrm\Exception\CurlException
      */
     public function getCredentials(): ApiResponse
@@ -2945,7 +2948,8 @@ class ApiClient
 
     /**
      * @param array $request
-     * @return \RetailCrm\Response\ApiResponse
+     *
+     * @return ApiResponse
      * @throws \RetailCrm\Exception\CurlException
      */
     public function createLoyaltyAccount(array $request): ApiResponse
@@ -2962,7 +2966,8 @@ class ApiClient
 
     /**
      * @param int $loyaltyId
-     * @return \RetailCrm\Response\ApiResponse
+     *
+     * @return ApiResponse
      * @throws \RetailCrm\Exception\CurlException
      */
     public function activateLoyaltyAccount(int $loyaltyId): ApiResponse
@@ -2975,7 +2980,8 @@ class ApiClient
 
     /**
      * @param array $request
-     * @return \RetailCrm\Response\ApiResponse
+     *
+     * @return ApiResponse
      * @throws \RetailCrm\Exception\CurlException
      */
     public function sendVerificationCode(array $request): ApiResponse
@@ -2991,7 +2997,8 @@ class ApiClient
 
     /**
      * @param array $request
-     * @return \RetailCrm\Response\ApiResponse
+     *
+     * @return ApiResponse
      * @throws \RetailCrm\Exception\CurlException
      */
     public function getLoyaltyAccounts(array $request): ApiResponse
@@ -3005,7 +3012,8 @@ class ApiClient
 
     /**
      * @param int $loyaltyId
-     * @return \RetailCrm\Response\ApiResponse
+     *
+     * @return ApiResponse
      * @throws \RetailCrm\Exception\CurlException
      */
     public function getLoyaltyLoyalty(int $loyaltyId): ApiResponse
@@ -3017,7 +3025,7 @@ class ApiClient
     }
 
     /**
-     * @return \RetailCrm\Response\ApiResponse
+     * @return ApiResponse
      * @throws \RetailCrm\Exception\CurlException
      */
     public function getLoyaltyLoyalties(): ApiResponse
@@ -3029,10 +3037,20 @@ class ApiClient
     }
 
     /**
+     * @param int $accountId
+     *
+     * @return ApiResponse
+     */
+    public function getLoyaltyAccount(int $accountId): ApiResponse
+    {
+        return $this->client->makeRequest('/loyalty/account/' . $accountId, Client::METHOD_GET);
+    }
+
+    /**
      * @param array $request
      * @param int   $accountId
      *
-     * @return \RetailCrm\Response\ApiResponse
+     * @return ApiResponse
      * @throws \RetailCrm\Exception\CurlException
      */
     public function editLoyaltyAccount(array $request, int $accountId): ApiResponse
@@ -3049,7 +3067,7 @@ class ApiClient
 
     /**
      * @param array $request
-     * @return \RetailCrm\Response\ApiResponse
+     * @return ApiResponse
      * @throws \RetailCrm\Exception\CurlException
      */
     protected function confirmLpVerificationBySMS(array $request): ApiResponse
@@ -3063,7 +3081,7 @@ class ApiClient
 
     /**
      * @param array $request
-     * @return \RetailCrm\Response\ApiResponse
+     * @return ApiResponse
      * @throws \RetailCrm\Exception\CurlException
      */
     public function sendSmsForLpVerification(array $request): ApiResponse

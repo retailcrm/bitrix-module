@@ -45,10 +45,10 @@ class LoyaltyAccount
     /**
      * Программа лояльности
      *
-     * @var \Intaro\RetailCrm\Model\Api\Loyalty
+     * @var Loyalty
      *
      * @Mapping\Type("\Intaro\RetailCrm\Model\Api\Loyalty")
-     * @Mapping\SerializedName("$loyalty")
+     * @Mapping\SerializedName("loyalty")
      */
     public $loyalty;
 

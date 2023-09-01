@@ -391,14 +391,6 @@ class RetailCrmOrder
             $order['payments'] = $payments;
         }
 
-        if (!empty($arParams['crmOrder']['privilegeType'])) {
-            $order['privilegeType'] = $arParams['crmOrder']['privilegeType'];
-        } elseif (ConfigProvider::getLoyaltyProgramStatus() === 'Y' && LoyaltyAccountService::getLoyaltyPersonalStatus()) {
-            $order['privilegeType'] = 'loyalty_level';
-        } else {
-            $order['privilegeType'] = 'none';
-        }
-
         //send
         if (function_exists('retailCrmBeforeOrderSend')) {
             $newResOrder = retailCrmBeforeOrderSend($order, $arOrder);
@@ -426,6 +418,9 @@ class RetailCrmOrder
 
         /** @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter $client */
         $client = ClientFactory::createClientAdapter();
+
+        // Check and set privilegeType
+        $order['privilegeType'] = LoyaltyAccountService::getPrivilegeType($client, $arParams);
 
         if ($send) {
             if ($methodApi === 'ordersCreate') {

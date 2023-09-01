@@ -20,7 +20,8 @@ use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountCreateReque
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountEditRequest;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountRequest;
 use Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountEditResponse;
-use Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountResponse;
+use Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountGetResponse;
+use Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountsResponse;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\LoyaltyCalculateRequest;
 use Intaro\RetailCrm\Model\Api\Request\Order\Loyalty\OrderLoyaltyApplyRequest;
 use Intaro\RetailCrm\Model\Api\Request\SmsVerification\SmsVerificationConfirmRequest;
@@ -33,7 +34,7 @@ use Intaro\RetailCrm\Model\Api\Response\Order\Loyalty\OrderLoyaltyApplyResponse;
 use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationConfirmResponse;
 use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusRequest;
 use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusResponse;
-use RetailCrm\Response\ApiResponse;
+use ReflectionException;
 
 /**
  * Trait LoyaltyTrait
@@ -42,8 +43,10 @@ use RetailCrm\Response\ApiResponse;
 trait LoyaltyTrait
 {
     /**
-     * @param \Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusRequest $request
-     * @return \Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusResponse|null
+     * @param SmsVerificationStatusRequest $request
+     *
+     * @return SmsVerificationStatusResponse|null
+     * @throws ReflectionException
      */
     public function checkStatusPlVerification(SmsVerificationStatusRequest $request): ?SmsVerificationStatusResponse
     {
@@ -54,8 +57,10 @@ trait LoyaltyTrait
     }
 
     /**
-     * @param \Intaro\RetailCrm\Model\Api\Request\Order\Loyalty\OrderLoyaltyApplyRequest $request
-     * @return mixed
+     * @param OrderLoyaltyApplyRequest $request
+     *
+     * @return OrderLoyaltyApplyResponse|null
+     * @throws ReflectionException
      */
     public function loyaltyOrderApply(OrderLoyaltyApplyRequest $request): ?OrderLoyaltyApplyResponse
     {
@@ -66,8 +71,10 @@ trait LoyaltyTrait
     }
 
     /**
-     * @param \Intaro\RetailCrm\Model\Api\Request\Loyalty\LoyaltyCalculateRequest $request
-     * @return mixed
+     * @param LoyaltyCalculateRequest $request
+     *
+     * @return LoyaltyCalculateResponse|null
+     * @throws ReflectionException
      */
     public function loyaltyCalculate(LoyaltyCalculateRequest $request): ?LoyaltyCalculateResponse
     {
@@ -78,8 +85,36 @@ trait LoyaltyTrait
     }
 
     /**
-     * @param \Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountCreateRequest $request
-     * @return \Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountCreateResponse|null
+     * @param int $accountId
+     *
+     * @return LoyaltyAccountGetResponse|null
+     */
+    public function getLoyaltyAccount(int $accountId): ?LoyaltyAccountGetResponse
+    {
+        $response = $this->client->getLoyaltyAccount($accountId);
+
+        return Deserializer::deserializeArray($response->getResponseBody(), LoyaltyAccountGetResponse::class);
+    }
+
+    /**
+     * @param LoyaltyAccountRequest $request
+     *
+     * @return LoyaltyAccountsResponse|null
+     * @throws ReflectionException
+     */
+    public function getLoyaltyAccounts(LoyaltyAccountRequest $request): ?LoyaltyAccountsResponse
+    {
+        $serialized = Serializer::serializeArray($request);
+        $response   = $this->client->getLoyaltyAccounts($serialized);
+
+        return Deserializer::deserializeArray($response->getResponseBody(), LoyaltyAccountsResponse::class);
+    }
+
+    /**
+     * @param LoyaltyAccountCreateRequest $request
+     *
+     * @return LoyaltyAccountCreateResponse|null
+     * @throws ReflectionException
      */
     public function createLoyaltyAccount(LoyaltyAccountCreateRequest $request): ?LoyaltyAccountCreateResponse
     {
@@ -90,8 +125,24 @@ trait LoyaltyTrait
     }
 
     /**
-     * @param \Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountActivateRequest $request
-     * @return \Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountActivateResponse|null
+     * @param LoyaltyAccountEditRequest $request
+     *
+     * @return LoyaltyAccountEditResponse|null
+     * @throws ReflectionException
+     */
+    public function editLoyaltyAccount(LoyaltyAccountEditRequest $request): ?LoyaltyAccountEditResponse
+    {
+        $serialized = Serializer::serializeArray($request);
+        $response = $this->client->editLoyaltyAccount($serialized, $request->id);
+
+        return Deserializer::deserializeArray($response->getResponseBody(), LoyaltyAccountEditResponse::class);
+    }
+
+    /**
+     * @param LoyaltyAccountActivateRequest $request
+     *
+     * @return LoyaltyAccountActivateResponse|null
+     * @throws ReflectionException
      */
     public function activateLoyaltyAccount(LoyaltyAccountActivateRequest $request): ?LoyaltyAccountActivateResponse
     {
@@ -101,9 +152,12 @@ trait LoyaltyTrait
         return Deserializer::deserializeArray($response->getResponseBody(), LoyaltyAccountActivateResponse::class);
     }
 
+
     /**
-     * @param \Intaro\RetailCrm\Model\Api\Request\SmsVerification\SmsVerificationConfirmRequest $request
-     * @return \Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountActivateResponse|null
+     * @param SmsVerificationConfirmRequest $request
+     *
+     * @return LoyaltyAccountActivateResponse|null
+     * @throws ReflectionException
      */
     public function sendVerificationCode(SmsVerificationConfirmRequest $request): ?SmsVerificationConfirmResponse
     {
@@ -114,21 +168,9 @@ trait LoyaltyTrait
     }
 
     /**
-     * @param \Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountRequest $request
-     * @return \Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountResponse|null
-     */
-    public function getLoyaltyAccounts(LoyaltyAccountRequest $request): ?LoyaltyAccountResponse
-    {
-        $serialized = Serializer::serializeArray($request);
-        $response   = $this->client->getLoyaltyAccounts($serialized);
-
-        return Deserializer::deserializeArray($response->getResponseBody(), LoyaltyAccountResponse::class);
-    }
-
-    /**
      * @param int $loyaltyId
      *
-     * @return \Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyLoyaltyResponse|null
+     * @return LoyaltyLoyaltyResponse|null
      */
     public function getLoyaltyLoyalty(int $loyaltyId): ?LoyaltyLoyaltyResponse
     {
@@ -138,26 +180,12 @@ trait LoyaltyTrait
     }
 
     /**
-     * @return \Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyLoyaltiesResponse|null
+     * @return LoyaltyLoyaltiesResponse|null
      */
     public function getLoyaltyLoyalties(): ?LoyaltyLoyaltiesResponse
     {
         $response = $this->client->getLoyaltyLoyalties();
 
         return Deserializer::deserializeArray($response->getResponseBody(), LoyaltyLoyaltiesResponse::class);
-    }
-
-    /**
-     * @param \Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountEditRequest $request
-     *
-     * @return \Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountEditResponse|null
-     * @throws \ReflectionException
-     */
-    public function editLoyaltyAccount(LoyaltyAccountEditRequest $request): ?LoyaltyAccountEditResponse
-    {
-        $serialized = Serializer::serializeArray($request);
-        $response = $this->client->editLoyaltyAccount($serialized, $request->id);
-
-        return Deserializer::deserializeArray($response->getResponseBody(), LoyaltyAccountEditResponse::class);
     }
 }
