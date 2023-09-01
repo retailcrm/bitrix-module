@@ -14,14 +14,15 @@
 namespace Intaro\RetailCrm\Model\Api\Response\Loyalty\Account;
 
 use Intaro\RetailCrm\Component\Json\Mapping;
+use Intaro\RetailCrm\Model\Api\PaginationResponse;
 use Intaro\RetailCrm\Model\Api\Response\AbstractApiResponseModel;
 
 /**
- * Class LoyaltyAccountResponse
+ * Class LoyaltyAccountsResponse
  *
  * @package Intaro\RetailCrm\Model\Api\Request\Loyalty\Account
  */
-class LoyaltyAccountResponse extends AbstractApiResponseModel
+class LoyaltyAccountsResponse extends AbstractApiResponseModel
 {
     /**
      * Результат запроса (успешный/неуспешный)
@@ -34,7 +35,7 @@ class LoyaltyAccountResponse extends AbstractApiResponseModel
     public $success;
 
     /**
-     * @var \Intaro\RetailCrm\Model\Api\PaginationResponse
+     * @var PaginationResponse
      *
      * @Mapping\Type("\Intaro\RetailCrm\Model\Api\PaginationResponse")
      * @Mapping\SerializedName("pagination")

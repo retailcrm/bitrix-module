@@ -14,6 +14,7 @@
 namespace Intaro\RetailCrm\Service;
 
 use CUser;
+use Logger;
 use DateTime;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
@@ -215,9 +216,102 @@ class LoyaltyAccountService
     public static function getLoyaltyPersonalStatus(): bool
     {
         global $USER;
+
         $userFields = CUser::GetByID($USER->GetID())->Fetch();
 
         return isset($userFields['UF_EXT_REG_PL_INTARO']) && $userFields['UF_EXT_REG_PL_INTARO'] === '1';
+    }
+
+    /**
+     * Возвращает ID аккаунта в программе лояльности
+     *
+     * @return int|null
+     */
+    public static function getLoyaltyAccountId(): ?int
+    {
+        global $USER;
+
+        $userFields = CUser::GetByID($USER->GetID())->Fetch();
+
+        return $userFields['UF_LP_ID_INTARO'] ?? null;
+    }
+
+    /**
+     * Метод возвращает значение для поля 'privilegeType'. Валидация поля происходит по кейсам:
+     *  1. Программа лояльност не работает с корп. клиентами.
+     *  2. Участие клиента не найдено в CRM, соответственно либо нет участия, либо нет клиента.
+     *  3. Участие клиента найдено, но не активно (поле status = deactivated).
+     *  4. Программа лояльности деактивирована в CRM.
+     *
+     * @param $client
+     * @param array $arParams
+     *
+     * @return string
+     */
+    public static function getPrivilegeType($client, array $arParams = []): string
+    {
+        $file = 'loyaltyStatus';
+        $privilegeType = 'none';
+
+        if (!empty($arParams['customerCorporate']['privilegeType'])) {
+            $privilegeType = $arParams['crmOrder']['privilegeType'];
+        } elseif (ConfigProvider::getLoyaltyProgramStatus() === 'Y' && self::getLoyaltyPersonalStatus()) {
+            $privilegeType = 'loyalty_level';
+        }
+
+        if (!empty($arParams['customerCorporate']) || !empty($arParams['orderCompany'])) {
+            return 'none';
+        }
+
+        if ($privilegeType === 'none') {
+            return 'none';
+        }
+
+        $loyaltyAccountId = self::getLoyaltyAccountId();
+
+        if ($loyaltyAccountId === null) {
+            Logger::getInstance()->write('Участие клиента не найдено', $file);
+
+            return 'none';
+        }
+
+        $loyaltyAccount = $client->getLoyaltyAccount($loyaltyAccountId)->loyaltyAccount ?? null;
+
+        if ($loyaltyAccount === null) {
+            Logger::getInstance()->write('Участие клиента c ID: ' . $loyaltyAccountId . ' не найдено', $file);
+
+            return 'none';
+        }
+
+        if ($loyaltyAccount->status === 'deactivated') {
+            Logger::getInstance()->write('Участие клиента c ID: ' . $loyaltyAccountId . ' деактивированно', $file);
+
+            return 'none';
+        }
+
+        $loyaltyId = $loyaltyAccount->loyalty->id ?? null;
+
+        if ($loyaltyId === null) {
+            Logger::getInstance()->write('Программа лояльности не найдена', $file);
+
+            return 'none';
+        }
+
+        $loyalty = $client->getLoyaltyLoyalty($loyaltyId)->loyalty ?? null;
+
+        if ($loyalty === null) {
+            Logger::getInstance()->write('Программа лояльности c ID: ' . $loyaltyId . ' не найдена', $file);
+
+            return 'none';
+        }
+
+        if (!$loyalty->active) {
+            Logger::getInstance()->write('Программа лояльности c ID: ' . $loyaltyId . ' деактивированна', $file);
+
+            return 'none';
+        }
+
+        return $privilegeType;
     }
 
     /**
