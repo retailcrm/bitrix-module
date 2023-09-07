@@ -422,6 +422,19 @@ class RetailCrmOrder
         // Check and set privilegeType
         $order['privilegeType'] = LoyaltyAccountService::getPrivilegeType($client, $arParams);
 
+        $arUser = UserTable::getById($arOrder['USER_ID'])->fetch();
+        $fioBitrix['firstName'] = $arUser['NAME'];
+        $fioBitrix['lastName'] = $arUser['LAST_NAME'];
+
+        $fioCrm[] = $order['firstName'] ?? null;
+        $fioCrm[] = $order['lastName'] ?? null;
+        $fioCrm[] = $order['patronymic'] ?? null;
+
+        if (in_array($fioBitrix['firstName'], $fioCrm) && in_array($fioBitrix['lastName'], $fioCrm)) {
+            $order['firstName'] = $arUser['NAME'];
+            $order['lastName'] = $arUser['LAST_NAME'];
+        }
+
         if ($send) {
             if ($methodApi === 'ordersCreate') {
                 if (isset($arParams['customerCorporate']) && !empty($order['contact']['externalId'])) {
