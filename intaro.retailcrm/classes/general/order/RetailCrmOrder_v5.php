@@ -423,15 +423,13 @@ class RetailCrmOrder
         $order['privilegeType'] = LoyaltyAccountService::getPrivilegeType($client, $arParams);
 
         $arUser = UserTable::getById($arOrder['USER_ID'])->fetch();
-        $fioBitrix['firstName'] = $arUser['NAME'];
-        $fioBitrix['lastName'] = $arUser['LAST_NAME'];
+        $fioCrm = [$order['firstName'] ?? null, $order['lastName'] ?? null, $order['patronymic'] ?? null];
 
-        $fioCrm[] = $order['firstName'] ?? null;
-        $fioCrm[] = $order['lastName'] ?? null;
-        $fioCrm[] = $order['patronymic'] ?? null;
-
-        if (in_array($fioBitrix['firstName'], $fioCrm) && in_array($fioBitrix['lastName'], $fioCrm)) {
+        if (in_array($arUser['NAME'], $fioCrm)) {
             $order['firstName'] = $arUser['NAME'];
+        }
+
+        if (in_array($arUser['LAST_NAME'], $fioCrm)) {
             $order['lastName'] = $arUser['LAST_NAME'];
         }
 
