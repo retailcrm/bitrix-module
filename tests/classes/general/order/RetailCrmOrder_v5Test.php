@@ -102,6 +102,7 @@ class RetailCrmOrder_v5Test extends BitrixTestCase {
             'optionsContragentType' => RetailcrmConfigProvider::getContragentTypes(),
             'optionsDelivTypes' => RetailcrmConfigProvider::getDeliveryTypes(),
             'optionsPayTypes' => RetailcrmConfigProvider::getPaymentTypes(),
+            'optionsOrderProps' => ['bitrixType' => ['fio' => 'FIO']],
             'optionsPayment' => ['Y' => 'paid']
         ];
 
@@ -133,7 +134,9 @@ class RetailCrmOrder_v5Test extends BitrixTestCase {
                     'paidAt' => $this->getDateTime()->format('Y-m-d H:i:s')
                 ]],
                 'privilegeType' => 'none',
-                'statusComment' => $arFields['REASON_CANCELED']
+                'statusComment' => $arFields['REASON_CANCELED'],
+                'firstName' => 'FirstName',
+                'lastName' => 'LastName'
             ],
         ]];
     }

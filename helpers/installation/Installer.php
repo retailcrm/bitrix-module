@@ -129,8 +129,8 @@ class Installer
             '__wiz_admin_password' => 'admin123',
             '__wiz_admin_password_confirm' => 'admin123',
             '__wiz_email' => 'admin@mail.com',
-            '__wiz_user_name' => '',
-            '__wiz_user_surname' => '',
+            '__wiz_user_name' => 'FirstName',
+            '__wiz_user_surname' => 'LastName',
             '__wiz_selected_wizard' => 'bitrix.eshop:bitrix:eshop',
         );
 
