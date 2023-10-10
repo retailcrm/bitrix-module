@@ -15,7 +15,6 @@ use RetailCrm\ApiClient;
 use Intaro\RetailCrm\Service\ManagerService;
 use Intaro\RetailCrm\Service\LoyaltyAccountService;
 use RetailCrm\Response\ApiResponse;
-use \Bitrix\Sale\Location\Name\LocationTable as LocationTableName;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Model\Api\Response\OrdersCreateResponse;
 
@@ -121,7 +120,11 @@ class RetailCrmOrder
 
         $order['contragent']['contragentType'] = $arParams['optionsContragentType'][$arOrder['PERSON_TYPE_ID']];
 
-        //fields
+
+        $countryList = RetailCrmService::getCountryList();
+        $deliveryAddress = ['city' => '', 'text' => '', 'index' => '', 'region' => '', 'countryIso' => ''];
+
+        //Order fields
         foreach ($arOrder['PROPS']['properties'] as $prop) {
             if (!empty($arParams['optionsLegalDetails'])
                 && is_array($arParams['optionsLegalDetails'][$arOrder['PERSON_TYPE_ID']])
@@ -147,44 +150,39 @@ class RetailCrmOrder
 
                         $order[$search] = $prop['VALUE'][0];//phone, email
                     }
-                } else {//address
-                    if ($prop['TYPE'] === 'LOCATION' && isset($prop['VALUE'][0]) && $prop['VALUE'][0] != '') {
-                        $arLoc = LocationTable::getByCode($prop['VALUE'][0])->fetch();
-                        if ($arLoc) {
-                            $server = Context::getCurrent()->getServer()->getDocumentRoot();
-                            $countrys = [];
-
-                            if (file_exists($server . '/bitrix/modules/intaro.retailcrm/classes/general/config/country.xml')) {
-                                $countrysFile = simplexml_load_file($server . '/bitrix/modules/intaro.retailcrm/classes/general/config/country.xml');
-                                foreach ($countrysFile->country as $country) {
-                                    $countrys[RCrmActions::fromJSON((string) $country->name)] = (string) $country->alpha;
-                                }
-                            }
-
-                            $location = LocationTableName::getList([
-                                'filter' => ['=LOCATION_ID' => $arLoc['CITY_ID'], 'LANGUAGE_ID' => 'ru']
-                            ])->fetch();
-
-                            if (count($countrys) > 0) {
-                                $countryOrder = LocationTableName::getList([
-                                    'filter' => ['=LOCATION_ID' => $arLoc['COUNTRY_ID'], 'LANGUAGE_ID' => 'ru']
-                                ])->fetch();
-                                if(isset($countrys[$countryOrder['NAME']])){
-                                    $order['countryIso'] = $countrys[$countryOrder['NAME']];
-                                }
-                            }
-                        }
-                        $prop['VALUE'][0] = $location['NAME'];
-                    }
-
-                    if (!empty($prop['VALUE'][0])) {
-                        $order['delivery']['address'][$search] = $prop['VALUE'][0];
-                    }
                 }
+            }
+
+            if ($prop['CODE'] === 'ZIP' && !empty($prop['VALUE'][0])) {
+                $deliveryAddress['index'] = $prop['VALUE'][0];
+            }
+
+            if ($prop['CODE'] === 'CITY' && $deliveryAddress['city'] === '' && !empty($prop['VALUE'][0])) {
+                $deliveryAddress['city'] = $prop['VALUE'][0];
+            }
+
+            if ($prop['CODE'] === 'ADDRESS' && !empty($prop['VALUE'][0])) {
+                $deliveryAddress['text']  = $prop['VALUE'][0];
+            }
+
+            if ($prop['TYPE'] === 'LOCATION' && isset($prop['VALUE'][0]) && !empty($prop['VALUE'][0])) {
+                $arLoc = LocationTable::getByCode($prop['VALUE'][0])->fetch();
+                $deliveryLocation = CSaleLocation::GetByID($arLoc['ID']);
+
+                $deliveryAddress['city'] = $deliveryLocation['CITY_NAME'] ?? '';
+                $deliveryAddress['region'] = $deliveryLocation['REGION_NAME'] ?? '';
+                $deliveryAddress['countryIso'] = $countryList['COUNTRY_NAME'] ?? '';
             }
         }
 
-        //deliverys
+        // Clear empty fields
+        $deliveryAddress = array_filter($deliveryAddress);
+
+        if (!empty($deliveryAddress)) {
+            $order['delivery']['address'] = $deliveryAddress;
+        }
+
+        //Deliverys
         if (array_key_exists($arOrder['DELIVERYS'][0]['id'], $arParams['optionsDelivTypes'])) {
             $order['delivery']['code'] = $arParams['optionsDelivTypes'][$arOrder['DELIVERYS'][0]['id']];
 
