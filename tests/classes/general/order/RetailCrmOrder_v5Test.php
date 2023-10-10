@@ -154,6 +154,7 @@ class RetailCrmOrder_v5Test extends BitrixTestCase {
 
         $rcrmActions = Mockery::mock('alias:' . RCrmActions::class);
         $rcrmActions->shouldReceive('apiMethod')->withAnyArgs()->andReturn(true);
+        $rcrmActions->shouldReceive('fromJSON')->withAnyArgs()->andReturn('');
 
         $result = RetailCrmOrder::uploadOrders();
 

@@ -187,8 +187,9 @@ class RetailCrmService
         $countryList = [];
 
         if (file_exists($server . '/bitrix/modules/intaro.retailcrm/classes/general/config/country.xml')) {
-            $countrysFile = simplexml_load_file($server . '/bitrix/modules/intaro.retailcrm/classes/general/config/country.xml');
-            foreach ($countrysFile->country as $country) {
+            $countryFile = simplexml_load_file($server . '/bitrix/modules/intaro.retailcrm/classes/general/config/country.xml');
+
+            foreach ($countryFile->country as $country) {
                 $countryList[RCrmActions::fromJSON((string) $country->name)] = (string) $country->alpha;
             }
         }
