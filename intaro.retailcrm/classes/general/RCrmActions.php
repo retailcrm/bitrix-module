@@ -321,6 +321,7 @@ class RCrmActions
 
         /** @var \Intaro\RetailCrm\Service\Utils $utils */
         $utils = ServiceLocator::getOrCreate(\Intaro\RetailCrm\Service\Utils::class);
+
         return $utils->fromUTF8($str);
     }
 
