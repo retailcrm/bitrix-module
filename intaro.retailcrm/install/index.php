@@ -461,7 +461,6 @@ class intaro_retailcrm extends CModule
                 COption::SetOptionString($this->MODULE_ID, $this->CRM_SITES_LIST, serialize([]));
             }
 
-            //prepare crm lists
             try {
                 $arResult['orderTypesList'] = $this->RETAIL_CRM_API->orderTypesList()->orderTypes;
                 $arResult['deliveryTypesList'] = $this->RETAIL_CRM_API->deliveryTypesList()->deliveryTypes;
