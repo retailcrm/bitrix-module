@@ -120,8 +120,7 @@ class RetailCrmOrder
 
         $order['contragent']['contragentType'] = $arParams['optionsContragentType'][$arOrder['PERSON_TYPE_ID']];
 
-
-        $countryList = RetailCrmService::getCountryList();
+        $countryList = BitrixOrderService::getCountryList();
         $deliveryAddress = ['city' => '', 'text' => '', 'index' => '', 'region' => '', 'countryIso' => ''];
 
         //Order fields
@@ -175,10 +174,19 @@ class RetailCrmOrder
             }
         }
 
-        // Clear empty fields
+        // Удаляем пустые значения
         $deliveryAddress = array_filter($deliveryAddress);
 
-        if (!empty($deliveryAddress)) {
+        // Пункт самовывоза
+        $pickupPointAddress = '';
+
+        if (RetailcrmConfigProvider::needSendPickupPointAddress() === 'Y') {
+            $pickupPointAddress = BitrixOrderService::getPickupPointAddress($arOrder);
+        }
+
+        if ($pickupPointAddress !== '') {
+            $order['delivery']['address']['text'] = $pickupPointAddress;
+        } elseif(!empty($deliveryAddress)) {
             $order['delivery']['address'] = $deliveryAddress;
         }
 

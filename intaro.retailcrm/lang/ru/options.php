@@ -89,6 +89,8 @@ $MESS ['ORDER_VAT'] = 'Передавать НДС товаров';
 $MESS ['CRM_API_VERSION'] = 'Версия API клиента';
 $MESS ['CURRENCY'] = 'Валюта, устанавливаемая в заказе при выгрузке из CRM';
 $MESS ['ORDER_DIMENSIONS'] = 'Передавать габариты и вес товаров в заказе';
+$MESS ['SEND_PICKUP_POINT_ADDRESS'] = 'Передавать пункт самовывоза';
+$MESS ['SEND_PICKUP_POINT_ADDRESS_WARNING'] = 'Важно! Корректность передачи данных работает при одной добавленной отгрузке в заказе 1C-Bitrix';
 $MESS ['SEND_PAYMENT_AMOUNT'] = 'Передавать сумму оплаты в заказе';
 
 $MESS ['INVENTORIES_UPLOAD'] = 'Включить выгрузку остатков в разрезе складов';

@@ -648,6 +648,11 @@ class ConfigProvider
         return self::$orderVat;
     }
 
+    public static function needSendPickupPointAddress()
+    {
+        return static::getOption(Constants::CRM_SEND_PICKUP_POINT_ADDRESS);
+    }
+
     /**
      * getOrderHistoryDate
      *

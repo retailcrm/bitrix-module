@@ -98,6 +98,7 @@ class Constants
     public const AGREEMENT_PERSONAL_DATA_CODE   = 'AGREEMENT_PERSONAL_DATA_CODE';
     public const AGREEMENT_LOYALTY_PROGRAM_CODE = 'AGREEMENT_LOYALTY_PROGRAM_CODE';
     public const CART                           = 'cart';
+    public const CRM_SEND_PICKUP_POINT_ADDRESS = 'send_pickup_point_address';
     public const LP_EVENTS                      = [
         ['EVENT_NAME' => 'OnSaleOrderSaved', 'FROM_MODULE' => 'sale'],
         ['EVENT_NAME' => 'OnSaleComponentOrderResultPrepared', 'FROM_MODULE' => 'sale'],
