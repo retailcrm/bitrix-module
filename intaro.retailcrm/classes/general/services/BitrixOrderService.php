@@ -38,7 +38,7 @@ class BitrixOrderService
                 ]);
 
                 if (!empty($arStore['ADDRESS'])) {
-                    $address = 'Пункт самовывоза: ' . $arStore['ADDRESS'];
+                    $address = GetMessage('PICKUP_POINT') . $arStore['ADDRESS'];
 
                     break;
                 }
