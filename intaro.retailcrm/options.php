@@ -406,13 +406,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         $contragentTypeArr[$orderType['ID']] = htmlspecialchars(trim($_POST['contragent-type-' . $orderType['ID']]));
     }
 
-    //order numbers
-    $orderVat = htmlspecialchars(trim($_POST['order-vat'])) ?: 'N';
-    $orderNumbers = htmlspecialchars(trim($_POST['order-numbers'])) ?: 'N';
-    $orderDimensions = htmlspecialchars(trim($_POST[$CRM_DIMENSIONS])) ?: 'N';
-    $sendPaymentAmount = htmlspecialchars(trim($_POST[RetailcrmConstants::SEND_PAYMENT_AMOUNT])) ?: 'N';
-    $crmCouponFiled = htmlspecialchars(trim($_POST['crm-coupon-field'])) ?: 'N';
-
     //stores
     $bitrixStoresArr          = [];
     $bitrixShopsArr           = [];
@@ -810,17 +803,22 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     COption::SetOptionString(
         $mid,
         $CRM_ORDER_NUMBERS,
-        $orderNumbers
+        htmlspecialchars(trim($_POST['order-numbers'])) ?: 'N'
     );
     COption::SetOptionString(
         $mid,
         $CRM_ORDER_VAT,
-        $orderVat
+        htmlspecialchars(trim($_POST['order-vat'])) ?: 'N'
     );
     COption::SetOptionString(
         $mid,
         $CRM_COUPON_FIELD,
-        $crmCouponFiled
+        htmlspecialchars(trim($_POST['crm-coupon-field'])) ?: 'N'
+    );
+    COption::SetOptionString(
+        $mid,
+        Constants::CRM_SEND_PICKUP_POINT_ADDRESS,
+        htmlspecialchars(trim($_POST['send-pickup-point-address'])) ?: 'N'
     );
     COption::SetOptionString(
         $mid,
@@ -894,9 +892,9 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     COption::SetOptionString(
         $mid,
         $CRM_DIMENSIONS,
-        $orderDimensions
+        htmlspecialchars(trim($_POST[$CRM_DIMENSIONS])) ?: 'N'
     );
-    RetailcrmConfigProvider::setSendPaymentAmount($sendPaymentAmount);
+    RetailcrmConfigProvider::setSendPaymentAmount(htmlspecialchars(trim($_POST[Constants::SEND_PAYMENT_AMOUNT])) ?: 'N');
     RetailCrmConfigProvider::setDiscountRound($discount_round);
     RetailcrmConfigProvider::setCart($optionCart);
     COption::SetOptionString(
@@ -1024,8 +1022,9 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $optionsLegalDetails = unserialize(COption::GetOptionString($mid, $CRM_LEGAL_DETAILS, 0));
     $optionsCustomFields = unserialize(COption::GetOptionString($mid, $CRM_CUSTOM_FIELDS, 0));
     $optionsOrderNumbers = COption::GetOptionString($mid, $CRM_ORDER_NUMBERS, 0);
-    $optionsOrderVat= COption::GetOptionString($mid, $CRM_ORDER_VAT, 0);
+    $optionsOrderVat = COption::GetOptionString($mid, $CRM_ORDER_VAT, 0);
     $canselOrderArr = unserialize(COption::GetOptionString($mid, $CRM_CANSEL_ORDER, 0));
+    $sendPickupPointAddress = COption::GetOptionString($mid, Constants::CRM_SEND_PICKUP_POINT_ADDRESS, 'N');
 
     $optionInventotiesUpload = COption::GetOptionString($mid, $CRM_INVENTORIES_UPLOAD, 0);
     $optionStores = unserialize(COption::GetOptionString($mid, $CRM_STORES, 0));
@@ -2194,6 +2193,13 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
                         return false;
                     });
+
+                    $('input[name="send-pickup-point-address"]').change(
+                        function(){
+                            if ($(this).is(':checked')) {
+                                alert('<?php echo GetMessage('SEND_PICKUP_POINT_ADDRESS_WARNING'); ?>');
+                            }
+                        });
                 });
             </script>
 
@@ -2237,6 +2243,32 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                     </b>
                 </td>
             </tr>
+            <tr>
+                <td colspan="2" class="option-head option-other-top option-other-bottom">
+                    <b>
+                        <label>
+                            <input class="addr" type="checkbox" name="send-pickup-point-address" value="Y" <?php if($sendPickupPointAddress === 'Y') {echo "checked";} ?>> <?php echo GetMessage('SEND_PICKUP_POINT_ADDRESS'); ?>
+                        </label>
+                    </b>
+                </td>
+            </tr>
+
+        <?php if($sendPickupPointAddress === 'Y') {
+            $warningMessage = GetMessage('SEND_PICKUP_POINT_ADDRESS_WARNING');
+
+            echo sprintf('<tr>
+                <td colspan="2" class="option-head option-other-top option-other-bottom">
+                    <b>
+                        <label style="color: darkorange">
+                            %s
+                        </label>
+                    </b>
+                </td>
+            </tr>', $warningMessage);
+        } ?>
+
+
+
             <tr>
                 <td colspan="2" class="option-head option-other-top option-other-bottom">
                     <b>
