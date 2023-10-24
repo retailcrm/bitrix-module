@@ -40,6 +40,7 @@ $CRM_CONTRAGENT_TYPE       = 'contragent_type';
 $CRM_SITES_LIST            = 'sites_list';
 $CRM_ORDER_NUMBERS         = 'order_numbers';
 $CRM_ORDER_VAT             = 'order_vat';
+$CRM_ORDER_TRACK_NUMBER    = 'receive_track_number_delivery';
 $CRM_CANSEL_ORDER          = 'cansel_order';
 $CRM_INVENTORIES_UPLOAD  = 'inventories_upload';
 $CRM_STORES              = 'stores';
@@ -816,6 +817,12 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     );
     COption::SetOptionString(
         $mid,
+        $CRM_ORDER_TRACK_NUMBER,
+        htmlspecialchars(trim($_POST['track-number'])) ?: 'N'
+    );
+
+    COption::SetOptionString(
+        $mid,
         $CRM_COUPON_FIELD,
         htmlspecialchars(trim($_POST['crm-coupon-field'])) ?: 'N'
     );
@@ -1027,6 +1034,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $optionsCustomFields = unserialize(COption::GetOptionString($mid, $CRM_CUSTOM_FIELDS, 0));
     $optionsOrderNumbers = COption::GetOptionString($mid, $CRM_ORDER_NUMBERS, 0);
     $optionsOrderVat = COption::GetOptionString($mid, $CRM_ORDER_VAT, 0);
+    $optionsOrderTrackNumber = COption::GetOptionString($mid, $CRM_ORDER_TRACK_NUMBER, 0);
     $canselOrderArr = unserialize(COption::GetOptionString($mid, $CRM_CANSEL_ORDER, 0));
     $sendPickupPointAddress = COption::GetOptionString($mid, Constants::CRM_SEND_PICKUP_POINT_ADDRESS, 'N');
 
@@ -2244,6 +2252,15 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                         <label><input class="addr" type="checkbox" name="order-vat" value="Y" <?php if ($optionsOrderVat === 'Y') {
                                 echo "checked";
                             } ?>> <?php echo GetMessage('ORDER_VAT'); ?></label>
+                    </b>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" class="option-head option-other-top option-other-bottom">
+                    <b>
+                        <label><input class="addr" type="checkbox" name="track-number" value="Y" <?php if ($optionsOrderTrackNumber === 'Y') {
+                                echo "checked";
+                            } ?>> <?php echo GetMessage('ORDER_TRACK_NUMBER'); ?></label>
                     </b>
                 </td>
             </tr>

@@ -1180,6 +1180,15 @@ class RetailCrmHistory
                         if ($orderCrm) {
                             self::deliveryUpdate($newOrder, $optionsDelivTypes, $orderCrm['order']);
                         }
+
+                        if (isset($order['delivery']['service']['trackNumber'])
+                            && RetailcrmConfigProvider::getTrackNumberStatus() === 'Y'
+                        ) {
+                            $newOrder->setField(
+                                'TRACKING_NUMBER',
+                                $order['delivery']['service']['trackNumber']
+                            );
+                        }
                     }
 
                     if ($itemUpdate === true && $newOrder->getField('CANCELED') !== 'Y') {

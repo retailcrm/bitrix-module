@@ -104,4 +104,6 @@ class Constants
         ['EVENT_NAME' => 'OnSaleComponentOrderResultPrepared', 'FROM_MODULE' => 'sale'],
     ];
     public const SITES_AVAILABLE = 'sites_available';
+
+    public const DISPLAY_TRACK_NUMBER_DELIVERY = 'receive_track_number_delivery';
 }
