@@ -42,7 +42,6 @@ class intaro_retailcrm extends CModule
     public $MODULE_VERSION_DATE;
     public $MODULE_NAME;
     public $MODULE_DESCRIPTION;
-    public $MODULE_GROUP_RIGHTS = 'N';
     public $PARTNER_NAME;
     public $PARTNER_URI;
     public $RETAIL_CRM_API;
@@ -1116,7 +1115,7 @@ class intaro_retailcrm extends CModule
                 'RCrmActions::orderAgent();',
                 $this->MODULE_ID,
                 'N',
-                600, // interval - 10 mins
+                600, // interval - 10 min
                 $dateAgent->format('d.m.Y H:i:s'), // date of first check
                 'Y', // agent is active
                 $dateAgent->format('d.m.Y H:i:s'), // date of first start
@@ -1202,10 +1201,9 @@ class intaro_retailcrm extends CModule
 
             $api_host = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, 0);
             $api_key = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, 0);
-            $api_version = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_VERSION, 0);
             $this->RETAIL_CRM_API = new ApiClient($api_host, $api_key);
 
-            RCrmActions::sendConfiguration($this->RETAIL_CRM_API, $api_version);
+            RCrmActions::sendConfiguration($this->RETAIL_CRM_API);
 
             $APPLICATION->IncludeAdminFile(
                 GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step6.php'
@@ -1219,7 +1217,6 @@ class intaro_retailcrm extends CModule
 
         $api_host    = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, 0);
         $api_key     = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, 0);
-        $api_version = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_VERSION, 0);
 
         require_once($this->INSTALL_PATH . '/../classes/general/Http/Client.php');
         require_once($this->INSTALL_PATH . '/../classes/general/Response/ApiResponse.php');
@@ -1232,8 +1229,8 @@ class intaro_retailcrm extends CModule
         require_once($this->INSTALL_PATH . '/../classes/general/history/RetailCrmHistory_v5.php');
         require_once($this->INSTALL_PATH . '/../lib/component/constants.php');
         require_once($this->INSTALL_PATH . '/../classes/general/cart/RetailCrmCart_v5.php');
-
-        $retail_crm_api = new ApiClient($api_host, $api_key);
+        
+        RCrmActions::sendConfiguration(new ApiClient($api_host, $api_key), false);
 
         CAgent::RemoveAgent('RCrmActions::orderAgent();', $this->MODULE_ID);
         CAgent::RemoveAgent('RetailCrmInventories::inventoriesUpload();', $this->MODULE_ID);
@@ -1314,8 +1311,6 @@ class intaro_retailcrm extends CModule
 
             }
         }
-
-        RCrmActions::sendConfiguration($retail_crm_api, $api_version, false);
 
         $this->deleteFiles();
         $this->deleteLPEvents();

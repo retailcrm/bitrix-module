@@ -452,7 +452,7 @@ class RCrmActions
         return $result;
     }
 
-    public static function sendConfiguration($api, $api_version, $active = true)
+    public static function sendConfiguration($api, $active = true)
     {
         $scheme = isset($_SERVER['HTTPS']) ? 'https://' : 'http://';
         $baseUrl = $scheme . $_SERVER['HTTP_HOST'];
@@ -464,12 +464,13 @@ class RCrmActions
 
         if (!$clientId) {
             $clientId = uniqid();
+
             COption::SetOptionString(self::$MODULE_ID, 'client_id', $clientId);
         }
 
         $code = $integrationCode . '-' . $clientId;
 
-        $configuration = array(
+        $configuration = [
             'clientId' => $clientId,
             'code' => $code,
             'integrationCode' => $integrationCode,
@@ -478,7 +479,7 @@ class RCrmActions
             'logo' => $logo,
             'baseUrl' => $baseUrl,
             'accountUrl' => $accountUrl
-        );
+        ];
 
         self::apiMethod($api, 'integrationModulesEdit', __METHOD__, $configuration);
     }
