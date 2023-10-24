@@ -683,6 +683,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         if ($deactivateEvents !== []) {
             COption::SetOptionString($mid, $EVENTS_DEACTIVATE, serialize($deactivateEvents));
         }
+
+        RCrmActions::sendConfiguration($api, false);
     } else {
         $deactivateAgents = unserialize(COption::GetOptionString($mid, $AGENTS_DEACTIVATE, ''));
         $deactivateEvents = unserialize(COption::GetOptionString($mid, $EVENTS_DEACTIVATE, ''));
@@ -733,6 +735,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
             COption::SetOptionString($mid, $EVENTS_DEACTIVATE, serialize([]));
         }
+
+        RCrmActions::sendConfiguration($api);
     }
 
     COption::SetOptionString(
