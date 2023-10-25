@@ -2249,18 +2249,18 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             <tr>
                 <td colspan="2" class="option-head option-other-top option-other-bottom">
                     <b>
-                        <label><input class="addr" type="checkbox" name="order-vat" value="Y" <?php if ($optionsOrderVat === 'Y') {
+                        <label><input class="addr" type="checkbox" name="track-number" value="Y" <?php if ($optionsOrderTrackNumber === 'Y') {
                                 echo "checked";
-                            } ?>> <?php echo GetMessage('ORDER_VAT'); ?></label>
+                            } ?>> <?php echo GetMessage('ORDER_TRACK_NUMBER'); ?></label>
                     </b>
                 </td>
             </tr>
             <tr>
                 <td colspan="2" class="option-head option-other-top option-other-bottom">
                     <b>
-                        <label><input class="addr" type="checkbox" name="track-number" value="Y" <?php if ($optionsOrderTrackNumber === 'Y') {
+                        <label><input class="addr" type="checkbox" name="order-vat" value="Y" <?php if ($optionsOrderVat === 'Y') {
                                 echo "checked";
-                            } ?>> <?php echo GetMessage('ORDER_TRACK_NUMBER'); ?></label>
+                            } ?>> <?php echo GetMessage('ORDER_VAT'); ?></label>
                     </b>
                 </td>
             </tr>

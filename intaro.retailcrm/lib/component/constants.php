@@ -105,5 +105,5 @@ class Constants
     ];
     public const SITES_AVAILABLE = 'sites_available';
 
-    public const DISPLAY_TRACK_NUMBER_DELIVERY = 'receive_track_number_delivery';
+    public const RECEIVE_TRACK_NUMBER_DELIVERY = 'receive_track_number_delivery';
 }

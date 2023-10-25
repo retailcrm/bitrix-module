@@ -1162,11 +1162,11 @@ class ConfigProvider
 
     public static function getTrackNumberStatus()
     {
-        return static::getOption(Constants::DISPLAY_TRACK_NUMBER_DELIVERY);
+        return static::getOption(Constants::RECEIVE_TRACK_NUMBER_DELIVERY);
     }
 
     public static function setTrackNumberStatus($trackNumberStatus)
     {
-        static::setOption(Constants::DISPLAY_TRACK_NUMBER_DELIVERY, $trackNumberStatus);
+        static::setOption(Constants::RECEIVE_TRACK_NUMBER_DELIVERY, $trackNumberStatus);
     }
 }
