@@ -253,7 +253,9 @@ class LoyaltyAccountService
         $file = 'loyaltyStatus';
         $privilegeType = 'none';
 
-        if (isset($arParams['crmOrder']['privilegeType'])) {
+        if (!empty($arParams['customerCorporate']['privilegeType'])) {
+            $privilegeType = $arParams['crmOrder']['privilegeType'];
+        } else if (isset($arParams['crmOrder']['privilegeType'])) {
             return $arParams['crmOrder']['privilegeType'];
         } elseif (ConfigProvider::getLoyaltyProgramStatus() === 'Y' && self::getLoyaltyPersonalStatus()) {
             $privilegeType = 'loyalty_level';
