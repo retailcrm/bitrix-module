@@ -1180,15 +1180,6 @@ class RetailCrmHistory
                         if ($orderCrm) {
                             self::deliveryUpdate($newOrder, $optionsDelivTypes, $orderCrm['order']);
                         }
-
-                        if (isset($order['delivery']['service']['trackNumber'])
-                            && RetailcrmConfigProvider::getTrackNumberStatus() === 'Y'
-                        ) {
-                            $newOrder->setField(
-                                'TRACKING_NUMBER',
-                                $order['delivery']['service']['trackNumber']
-                            );
-                        }
                     }
 
                     if ($itemUpdate === true && $newOrder->getField('CANCELED') !== 'Y') {
@@ -1731,28 +1722,32 @@ class RetailCrmHistory
         $shipmentColl = $bitrixOrder->getShipmentCollection();
 
         if ($delivery) {
+            $baseFields = [
+                'BASE_PRICE_DELIVERY'   => $crmOrder['delivery']['cost'],
+                'PRICE_DELIVERY'        => $crmOrder['delivery']['cost'],
+                'CURRENCY'              => $bitrixOrder->getCurrency(),
+                'DELIVERY_NAME'         => $delivery->getName(),
+                'CUSTOM_PRICE_DELIVERY' => 'Y',
+            ];
+
+            if (isset($crmOrder['delivery']['data']['trackNumber'])
+                && RetailcrmConfigProvider::getTrackNumberStatus() === 'Y'
+            ) {
+                $baseFields['TRACKING_NUMBER'] = $crmOrder['delivery']['data']['trackNumber'];
+            }
+
             //В коллекции всегда есть одна скрытая системная доставка, к которой относятся нераспределенные товары
             //Поэтому, если есть только системная доставка, то нужно создать новую
             if (!$update || $shipmentColl->count() === 1) {
                 $shipment = $shipmentColl->createItem($delivery);
-                $shipment->setFields([
-                    'BASE_PRICE_DELIVERY'   => $crmOrder['delivery']['cost'],
-                    'PRICE_DELIVERY'        => $crmOrder['delivery']['cost'],
-                    'CURRENCY'              => $bitrixOrder->getCurrency(),
-                    'DELIVERY_NAME'         => $delivery->getName(),
-                    'CUSTOM_PRICE_DELIVERY' => 'Y'
-                ]);
+
+                $shipment->setFields($baseFields);
             } else {
+                $baseFields['DELIVERY_ID'] = $deliveryId;
+
                 foreach ($shipmentColl as $shipment) {
                     if (!$shipment->isSystem()) {
-                        $shipment->setFields([
-                            'BASE_PRICE_DELIVERY'   => $crmOrder['delivery']['cost'],
-                            'PRICE_DELIVERY'        => $crmOrder['delivery']['cost'],
-                            'CURRENCY'              => $bitrixOrder->getCurrency(),
-                            'DELIVERY_ID'           => $deliveryId,
-                            'DELIVERY_NAME'         => $delivery->getName(),
-                            'CUSTOM_PRICE_DELIVERY' => 'Y'
-                        ]);
+                        $shipment->setFields($baseFields);
                     }
                 }
             }
