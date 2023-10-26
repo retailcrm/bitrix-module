@@ -112,3 +112,5 @@ $MESS ['DEACTIVATE_MODULE'] = 'Deactivate the module';
 
 $MESS ['WRONG_CREDENTIALS'] = 'Enter the address and authorization key of the CRM system';
 $MESS ['Wrong "apiKey" value.'] = 'Invalid authorization key';
+
+$MESS ['ORDER_TRACK_NUMBER'] = 'Receive track number';

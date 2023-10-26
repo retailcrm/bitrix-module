@@ -171,3 +171,5 @@ $MESS ['DEACTIVATE_MODULE'] = 'Деактивировать модуль';
 
 $MESS ['WRONG_CREDENTIALS'] = 'Введите адрес и ключ авторизации CRM системы';
 $MESS ['Wrong "apiKey" value.'] = 'Недействительный ключ авторизации';
+
+$MESS ['ORDER_TRACK_NUMBER'] = 'Получать трек-номер';

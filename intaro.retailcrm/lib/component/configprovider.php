@@ -1159,4 +1159,14 @@ class ConfigProvider
     {
         return COption::GetOptionString(Constants::MODULE_ID, Constants::SITES_AVAILABLE, null);
     }
+
+    public static function getTrackNumberStatus()
+    {
+        return static::getOption(Constants::RECEIVE_TRACK_NUMBER_DELIVERY);
+    }
+
+    public static function setTrackNumberStatus($trackNumberStatus)
+    {
+        static::setOption(Constants::RECEIVE_TRACK_NUMBER_DELIVERY, $trackNumberStatus);
+    }
 }

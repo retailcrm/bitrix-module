@@ -814,6 +814,9 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         $CRM_ORDER_VAT,
         htmlspecialchars(trim($_POST['order-vat'])) ?: 'N'
     );
+
+    ConfigProvider::setTrackNumberStatus(htmlspecialchars(trim($_POST['track-number'])) ?: 'N');
+
     COption::SetOptionString(
         $mid,
         $CRM_COUPON_FIELD,
@@ -1027,6 +1030,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $optionsCustomFields = unserialize(COption::GetOptionString($mid, $CRM_CUSTOM_FIELDS, 0));
     $optionsOrderNumbers = COption::GetOptionString($mid, $CRM_ORDER_NUMBERS, 0);
     $optionsOrderVat = COption::GetOptionString($mid, $CRM_ORDER_VAT, 0);
+    $optionsOrderTrackNumber = ConfigProvider::getTrackNumberStatus();
     $canselOrderArr = unserialize(COption::GetOptionString($mid, $CRM_CANSEL_ORDER, 0));
     $sendPickupPointAddress = COption::GetOptionString($mid, Constants::CRM_SEND_PICKUP_POINT_ADDRESS, 'N');
 
@@ -2237,6 +2241,15 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             <input type="hidden" name="tab" value="catalog">
             <tr class="heading">
                 <td colspan="2" class="option-other-bottom"><b><?php echo GetMessage('ORDERS_OPTIONS'); ?></b></td>
+            </tr>
+            <tr>
+                <td colspan="2" class="option-head option-other-top option-other-bottom">
+                    <b>
+                        <label><input class="addr" type="checkbox" name="track-number" value="Y" <?php if ($optionsOrderTrackNumber === 'Y') {
+                                echo "checked";
+                            } ?>> <?php echo GetMessage('ORDER_TRACK_NUMBER'); ?></label>
+                    </b>
+                </td>
             </tr>
             <tr>
                 <td colspan="2" class="option-head option-other-top option-other-bottom">
