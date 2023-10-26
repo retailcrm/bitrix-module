@@ -40,7 +40,6 @@ $CRM_CONTRAGENT_TYPE       = 'contragent_type';
 $CRM_SITES_LIST            = 'sites_list';
 $CRM_ORDER_NUMBERS         = 'order_numbers';
 $CRM_ORDER_VAT             = 'order_vat';
-$CRM_ORDER_TRACK_NUMBER    = 'receive_track_number_delivery';
 $CRM_CANSEL_ORDER          = 'cansel_order';
 $CRM_INVENTORIES_UPLOAD  = 'inventories_upload';
 $CRM_STORES              = 'stores';
@@ -815,11 +814,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         $CRM_ORDER_VAT,
         htmlspecialchars(trim($_POST['order-vat'])) ?: 'N'
     );
-    COption::SetOptionString(
-        $mid,
-        $CRM_ORDER_TRACK_NUMBER,
-        htmlspecialchars(trim($_POST['track-number'])) ?: 'N'
-    );
+
+    ConfigProvider::setTrackNumberStatus(htmlspecialchars(trim($_POST['track-number'])) ?: 'N');
 
     COption::SetOptionString(
         $mid,
@@ -1034,7 +1030,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $optionsCustomFields = unserialize(COption::GetOptionString($mid, $CRM_CUSTOM_FIELDS, 0));
     $optionsOrderNumbers = COption::GetOptionString($mid, $CRM_ORDER_NUMBERS, 0);
     $optionsOrderVat = COption::GetOptionString($mid, $CRM_ORDER_VAT, 0);
-    $optionsOrderTrackNumber = COption::GetOptionString($mid, $CRM_ORDER_TRACK_NUMBER, 0);
+    $optionsOrderTrackNumber = ConfigProvider::getTrackNumberStatus();
     $canselOrderArr = unserialize(COption::GetOptionString($mid, $CRM_CANSEL_ORDER, 0));
     $sendPickupPointAddress = COption::GetOptionString($mid, Constants::CRM_SEND_PICKUP_POINT_ADDRESS, 'N');
 
