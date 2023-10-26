@@ -1730,10 +1730,8 @@ class RetailCrmHistory
                 'CUSTOM_PRICE_DELIVERY' => 'Y',
             ];
 
-            if (isset($crmOrder['delivery']['data']['trackNumber'])
-                && RetailcrmConfigProvider::getTrackNumberStatus() === 'Y'
-            ) {
-                $baseFields['TRACKING_NUMBER'] = $crmOrder['delivery']['data']['trackNumber'];
+            if (RetailcrmConfigProvider::getTrackNumberStatus() === 'Y') {
+                $baseFields['TRACKING_NUMBER'] = $crmOrder['delivery']['data']['trackNumber'] ?? '';
             }
 
             //В коллекции всегда есть одна скрытая системная доставка, к которой относятся нераспределенные товары
