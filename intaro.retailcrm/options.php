@@ -120,6 +120,8 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"] . '/bitrix/modules/intaro.retailcrm/cl
 
 $arResult['arSites'] = RCrmActions::getSitesList();
 $arResult['arCurrencySites'] = RCrmActions::getCurrencySites();
+$arResult['bitrixOrdersCustomProp'] = RCrmActions::customOrderPropList();
+$arResult['bitrixCustomUserFields'] = RCrmActions::customUserFieldList();
 //ajax update deliveryServices
 if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') && isset($_POST['ajax']) && ($_POST['ajax'] === 1)) {
     $api_host = COption::GetOptionString($mid, $CRM_API_HOST_OPTION, 0);
@@ -961,6 +963,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         $arResult['sitesList'] = $APPLICATION->ConvertCharsetArray($api->sitesList()->sites, 'utf-8', SITE_CHARSET);
         $arResult['inventoriesList'] = $APPLICATION->ConvertCharsetArray($api->storesList()->stores, 'utf-8', SITE_CHARSET);
         $arResult['priceTypeList'] = $APPLICATION->ConvertCharsetArray($api->pricesTypes()->priceTypes, 'utf-8', SITE_CHARSET);
+        $arResult['crmCustomOrderFields'] = $api->customFieldsList(['entity' => 'order']);
+        $arResult['crmCustomUserFields'] = $api->customFieldsList(['entity' => 'customer']);
     } catch (\RetailCrm\Exception\CurlException $e) {
         RCrmActions::eventLog(
             'intaro.retailcrm/options.php', 'RetailCrm\ApiClient::*List::CurlException',
@@ -1166,13 +1170,19 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             "TITLE" => GetMessage('ICRM_OPTIONS_ORDER_DISCHARGE_CAPTION'),
         ],
         [
-            "DIV"   => "edit5",
+            "DIV" => "edit5",
+            "TAB" => GetMessage('CUSTOM_FIELDS_TITLE'),
+            "ICON" => '',
+            "TITLE" => GetMessage('CUSTOM_FIELDS_CAPTION'),
+        ],
+        [
+            "DIV"   => "edit6",
             "TAB"   => GetMessage('UPLOAD_ORDERS_OPTIONS'),
             "ICON"  => '',
             "TITLE" => GetMessage('ORDER_UPLOAD'),
         ],
         [
-            "DIV"   => "edit6",
+            "DIV"   => "edit7",
             "TAB"   => GetMessage('OTHER_OPTIONS'),
             "ICON"  => '',
             "TITLE" => GetMessage('ICRM_OPTIONS_ORDER_DISCHARGE_CAPTION'),
@@ -1321,6 +1331,10 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
         function switchPLStatus() {
             $('#loyalty_main_settings').toggle(500);
+        }
+
+        function switchCustomFieldsStatus() {
+            $('#custom_fields_settings').toggle(500);
         }
 
         $(document).ready(function() {
@@ -1877,7 +1891,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             </tr>
         <?php endforeach; ?>
         <?php endforeach; ?>
-
         <?php $tabControl->BeginNextTab(); ?>
         <?php
         //loyalty program options
@@ -2068,6 +2081,110 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                 </td>
                             </tr>
                         </table>
+                    </div>
+                </td>
+            </tr>
+
+        <?php $tabControl->BeginNextTab(); ?>
+        <?php
+        $customFieldsToggle = ConfigProvider::getCustomFieldsStatus();
+        ?>
+            <tr class="heading">
+                <p>При работе с данной настройкой, убедитесь, что у вас не используются кастомизированные файлы по работе с заказами и пользователями.</p>
+                <p>Если же они имеются, убедитеть, что функционал по работе с пользовательскими полями встроен в модуль</p>
+                <td colspan="2" class="option-other-heading">
+                    <b>
+                        <label>
+                            <input class="addr" type="checkbox" id="custom_fields_toggle" name="custom_fields_toggle" onclick="switchCustomFieldsStatus();" <?php if ($customFieldsToggle === 'Y') {
+                                echo "checked";
+                            } ?>>
+                            <?php echo GetMessage('CUSTOM_FIELDS_TOGGLE_MSG'); ?>
+                        </label>
+                    </b>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div id="custom_fields_settings" <?php if ($customFieldsToggle !== 'Y') {
+                        echo "hidden";
+                    } ?>>
+                        <br>
+                        <table width="100%" class="adm-list-table">
+                            <thead>
+                            <tr class="adm-list-table-header">
+                                <td class="adm-list-table-cell" colspan="2">
+                                    <div class="adm-list-table-cell-inner">
+                                        <?=GetMessage('CUSTOM_FIELDS_ORDER_BITRIX')?>
+                                    </div>
+                                </td>
+                                <td class="adm-list-table-cell" colspan="2">
+                                    <div class="adm-list-table-cell-inner">
+                                        <?=GetMessage('CUSTOM_FIELDS_ORDER_CRM');?>
+                                    </div>
+                                </td>
+                                <td class="adm-list-table-cell" colspan="1"></td>
+                            </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="adm-list-table-row">
+                                    <td class="adm-list-table-cell" colspan="2">
+                                        <select style="width: 200px;" class="property-export">
+                                            <option value=""></option>
+                                        </select>
+                                    </td>
+                                    <td class="adm-list-table-cell" colspan="2">
+                                        <select style="width: 200px;" class="property-export">
+                                            <option value=""></option>
+                                        </select>
+                                    </td>
+                                    <td class="adm-list-table-cell" colspan="1"><a>Удалить</a></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <br>
+                        <button class="adm-btn-save">Добавить поле</button>
+
+                        <br>
+                        <br>
+                        <table width="100%" class="adm-list-table">
+                            <thead>
+                            <tr class="adm-list-table-header">
+                                <td class="adm-list-table-cell" colspan="2">
+                                    <div class="adm-list-table-cell-inner">
+                                        <?=GetMessage('CUSTOM_FIELDS_USER_BITRIX')?>
+                                    </div>
+                                </td>
+                                <td class="adm-list-table-cell" colspan="2">
+                                    <div class="adm-list-table-cell-inner">
+                                        <?=GetMessage('CUSTOM_FIELDS_USER_CRM');?>
+                                    </div>
+                                </td>
+                                <td class="adm-list-table-cell" colspan="1"></td>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr class="adm-list-table-row">
+                                <td class="adm-list-table-cell" colspan="2">
+                                    <select style="width: 200px;" class="property-export">
+                                        <option value=""></option>
+                                    </select>
+                                </td>
+                                <td class="adm-list-table-cell" colspan="2">
+                                    <select style="width: 200px;" class="property-export">
+                                        <option value=""></option>
+                                    </select>
+                                </td>
+                                <td class="adm-list-table-cell" colspan="1"><a>Удалить</a></td>
+                            </tr>
+                            </tbody>
+                        </table>
+
+                        <br>
+                        <button class="adm-btn-save">Добавить поле</button>
+
+                        <br>
+                        <br>
                     </div>
                 </td>
             </tr>

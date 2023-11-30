@@ -10,6 +10,8 @@ use Intaro\RetailCrm\Service\Utils;
 use RetailCrm\Exception\CurlException;
 use RetailCrm\Exception\InvalidJsonException;
 use Intaro\RetailCrm\Service\ManagerService;
+use Bitrix\Main\UserFieldTable;
+use Bitrix\Main\UserFieldLangTable;
 use Bitrix\Sale\Internals\SiteCurrencyTable;
 
 IncludeModuleLangFile(__FILE__);
@@ -436,6 +438,47 @@ class RCrmActions
         }
 
         return $result;
+    }
+
+    public static function customOrderPropList()
+    {
+        $propsList = OrderPropsTable::getList([
+            'select' => ['ID', 'CODE', 'NAME', 'PERSON_TYPE_ID'],
+            'filter' => [
+                ['!=CODE' => "LP_BONUS_INFO"],
+                ['!=CODE' => "LP_DISCOUNT_INFO"],
+                ['>ID' => 19]
+            ]
+        ]);
+
+        return $propsList->fetchAll();
+    }
+
+    public static function customUserFieldList()
+    {
+        $userFields = UserFieldTable::getList([
+            'select' => ['ID', 'FIELD_NAME'],
+            'filter' => [
+                ['ENTITY_ID' => 'USER'],
+                ['?FIELD_NAME' => '~%INTARO%'],
+                ['!=FIELD_NAME' => 'UF_SUBSCRIBE_USER_EMAIL']
+            ]
+        ])->fetchAll();
+
+
+        foreach ($userFields as $key => $userField) {
+            $label = UserFieldLangTable::getList([
+                'select' => ['EDIT_FORM_LABEL'],
+                'filter' => [
+                    ["USER_FIELD_ID" => $userField['ID']],
+                    ['LANGUAGE_ID' => LANGUAGE_ID]
+                ]
+            ])->fetch();
+
+            $userFields[$key]['FIELD_LABEL'] = $label['EDIT_FORM_LABEL'];
+        }
+
+        return $userFields;
     }
 
     public static function sendConfiguration($api, $active = true)

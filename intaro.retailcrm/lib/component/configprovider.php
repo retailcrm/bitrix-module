@@ -1169,4 +1169,22 @@ class ConfigProvider
     {
         static::setOption(Constants::RECEIVE_TRACK_NUMBER_DELIVERY, $trackNumberStatus);
     }
+
+    /**
+     * @return string|null
+     */
+    public static function getCustomFieldsStatus()
+    {
+        return static::getOption(Constants::CUSTOM_FIELDS_TOGGLE);
+    }
+
+    /**
+     * @param bool|string|null $customFieldsStatus
+     * @return void
+     * @throws \Bitrix\Main\ArgumentOutOfRangeException
+     */
+    public static function setCustomFieldsStatus($customFieldsStatus)
+    {
+        static::setOption(Constants::CUSTOM_FIELDS_TOGGLE, $customFieldsStatus);
+    }
 }
