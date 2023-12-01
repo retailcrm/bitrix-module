@@ -106,4 +106,6 @@ class Constants
 
     public const RECEIVE_TRACK_NUMBER_DELIVERY = 'receive_track_number_delivery';
     public const CUSTOM_FIELDS_TOGGLE = 'custom_fields_toggle';
+    public const MATCHED_CUSTOM_PROPS = 'matched_order_props';
+    public const MATCHED_CUSTOM_USER_FIELDS = 'matched_custom_field';
 }

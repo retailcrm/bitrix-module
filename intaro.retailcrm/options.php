@@ -120,8 +120,7 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"] . '/bitrix/modules/intaro.retailcrm/cl
 
 $arResult['arSites'] = RCrmActions::getSitesList();
 $arResult['arCurrencySites'] = RCrmActions::getCurrencySites();
-$arResult['bitrixOrdersCustomProp'] = RCrmActions::customOrderPropList();
-$arResult['bitrixCustomUserFields'] = RCrmActions::customUserFieldList();
+
 //ajax update deliveryServices
 if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') && isset($_POST['ajax']) && ($_POST['ajax'] === 1)) {
     $api_host = COption::GetOptionString($mid, $CRM_API_HOST_OPTION, 0);
@@ -963,8 +962,13 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         $arResult['sitesList'] = $APPLICATION->ConvertCharsetArray($api->sitesList()->sites, 'utf-8', SITE_CHARSET);
         $arResult['inventoriesList'] = $APPLICATION->ConvertCharsetArray($api->storesList()->stores, 'utf-8', SITE_CHARSET);
         $arResult['priceTypeList'] = $APPLICATION->ConvertCharsetArray($api->pricesTypes()->priceTypes, 'utf-8', SITE_CHARSET);
-        $arResult['crmCustomOrderFields'] = $api->customFieldsList(['entity' => 'order']);
-        $arResult['crmCustomUserFields'] = $api->customFieldsList(['entity' => 'customer']);
+        $arResult['crmCustomOrderFields'] = $APPLICATION->ConvertCharsetArray(
+                $api->customFieldsList(['entity' => 'order'], 250)->customFields, 'utf-8', SITE_CHARSET
+        );
+        $arResult['crmCustomUserFields'] = $APPLICATION->ConvertCharsetArray(
+                $api->customFieldsList(['entity' => 'customer'], 250)->customFields, 'utf-8', SITE_CHARSET
+        );
+        var_dump($arResult['crmCustomOrderFields'], $arResult['crmCustomUserFields']);
     } catch (\RetailCrm\Exception\CurlException $e) {
         RCrmActions::eventLog(
             'intaro.retailcrm/options.php', 'RetailCrm\ApiClient::*List::CurlException',
@@ -979,6 +983,11 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         $badJson = true;
         echo CAdminMessage::ShowMessage(GetMessage('ERR_JSON'));
     }
+
+    $arResult['bitrixOrdersCustomProp'] = RCrmActions::customOrderPropList();
+    $arResult['bitrixCustomUserFields'] = RCrmActions::customUserFieldList();
+    $arResult['matchedOrderProps'] = ConfigProvider::getMatchedOrderProps();
+    $arResult['matchedUserFields'] = ConfigProvider::getMatchedUserFields();
 
     $arResult['paymentTypesList'] = RetailCrmService::getAvailableTypes(
         $availableSites,
@@ -2126,15 +2135,78 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                             </tr>
                             </thead>
                             <tbody>
+                                <?php
+                                    $matchedNum = 1;
+                                    foreach ($arResult['matchedOrderProps'] as $bitrixProp => $crmField) {?>
+                                        <tr class="adm-list-table-row">
+                                            <td class="adm-list-table-cell" colspan="2">
+                                                <select
+                                                    style="width: 200px;" class="typeselect"
+                                                    id="matchedOrderProps_<?php $matchedNum ?>"
+                                                    name="matchedOrderFields"
+                                                >
+                                                    <option value=""></option>
+                                                    <?php foreach ($arResult['bitrixOrdersCustomProp'] as $code => $prop) {?>
+                                                        <option
+                                                            value="<?php $bitrixProp ?>"
+                                                            <?php if ($bitrixProp === $code) echo 'selected'; ?>
+                                                        >
+                                                            <?php $prop ?>
+                                                        </option>
+                                                    <?php } ?>
+                                                </select>
+                                            </td>
+
+                                            <!--Доработать-->
+                                            <td class="adm-list-table-cell" colspan="2">
+                                                <select
+                                                        style="width: 200px;" class="typeselect"
+                                                        id="matchedOrderProps_<?php $matchedNum ?>"
+                                                        name="matchedOrderFields"
+                                                >
+                                                    <option value=""></option>
+                                                    <?php if (isset($arResult['bitrixOrdersCustomProp'][$bitrixProp])) {?>
+                                                        <option value="<?php $bitrixProp?>">
+                                                            <?php $arResult['bitrixOrdersCustomProp'][$bitrixProp]?>
+                                                        </option>
+                                                    <?php }?>
+                                                </select>
+                                            </td>
+                                            <td class="adm-list-table-cell" colspan="1"><a>Удалить</a></td>
+                                        </tr>
+                                <?php $matchedNum++; }?>
                                 <tr class="adm-list-table-row">
                                     <td class="adm-list-table-cell" colspan="2">
-                                        <select style="width: 200px;" class="property-export">
+                                        <select
+                                            style="width: 200px;" class="typeselect"
+                                            name=""
+                                        >
                                             <option value=""></option>
+                                            <optgroup label="<?=GetMessage('SELECT_FIELD_NAME')?>">
+                                                <?php
+                                                foreach ($arResult['bitrixOrdersCustomProp'] as $prop) { ?>
+                                                    <option value="<?=$prop['ID'] . '#' . $prop['CODE']?>">
+                                                        <?= $prop['NAME'] . ' (' . $prop['PERSON_TYPE_ID'] . ')'?>
+                                                    </option>
+                                                <?php
+                                                }
+                                                ?>
+                                            </optgroup>
                                         </select>
                                     </td>
                                     <td class="adm-list-table-cell" colspan="2">
-                                        <select style="width: 200px;" class="property-export">
+                                        <select style="width: 200px;" class="typeselect">
                                             <option value=""></option>
+                                            <optgroup label="<?=GetMessage('SELECT_FIELD_NAME')?>">
+                                                <?php
+                                                foreach ($arResult['crmCustomOrderFields'] as $prop) { ?>
+                                                    <option value="<?=$prop['code']?>">
+                                                        <?= $prop['name']?>
+                                                    </option>
+                                                    <?php
+                                                }
+                                                ?>
+                                            </optgroup>
                                         </select>
                                     </td>
                                     <td class="adm-list-table-cell" colspan="1"><a>Удалить</a></td>
@@ -2166,12 +2238,12 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                             <tbody>
                             <tr class="adm-list-table-row">
                                 <td class="adm-list-table-cell" colspan="2">
-                                    <select style="width: 200px;" class="property-export">
+                                    <select style="width: 200px;" class="typeselect">
                                         <option value=""></option>
                                     </select>
                                 </td>
                                 <td class="adm-list-table-cell" colspan="2">
-                                    <select style="width: 200px;" class="property-export">
+                                    <select style="width: 200px;" class="typeselect">
                                         <option value=""></option>
                                     </select>
                                 </td>

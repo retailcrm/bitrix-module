@@ -184,4 +184,7 @@ $MESS ['CUSTOM_FIELDS_ORDER_BITRIX'] = 'Свойства заказа';
 $MESS ['CUSTOM_FIELDS_ORDER_CRM'] = 'Пользовательские поля заказа в црм';
 $MESS ['CUSTOM_FIELDS_USER_BITRIX'] = 'Поля пользователя';
 $MESS ['CUSTOM_FIELDS_USER_CRM'] = 'Пользовательские поля клиента в црм';
+$MESS ['SELECT_FIELD_NAME'] = 'Поле';
+
+
 

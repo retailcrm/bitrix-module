@@ -451,7 +451,15 @@ class RCrmActions
             ]
         ]);
 
-        return $propsList->fetchAll();
+        $propsList->fetchAll();
+        $resultList = [];
+
+        foreach ($propsList as $prop) {
+            $key = $prop['ID'] . '#' . $prop['CODE'];
+            $resultList[$key] = $prop['NAME'] . ' (' . $prop['PERSON_TYPE_ID'] . ')';
+        }
+
+        return $resultList;
     }
 
     public static function customUserFieldList()
@@ -466,7 +474,9 @@ class RCrmActions
         ])->fetchAll();
 
 
-        foreach ($userFields as $key => $userField) {
+        $resultList = [];
+
+        foreach ($userFields as $userField) {
             $label = UserFieldLangTable::getList([
                 'select' => ['EDIT_FORM_LABEL'],
                 'filter' => [
@@ -475,10 +485,11 @@ class RCrmActions
                 ]
             ])->fetch();
 
-            $userFields[$key]['FIELD_LABEL'] = $label['EDIT_FORM_LABEL'];
+            $key = $userField['ID'] . '#' . $userField['FIELD_NAME'];
+            $resultList[$key] = $label['EDIT_FORM_LABEL'];
         }
 
-        return $userFields;
+        return $resultList;
     }
 
     public static function sendConfiguration($api, $active = true)

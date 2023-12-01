@@ -117,6 +117,12 @@ class ConfigProvider
     /** @var bool|null|string $loyaltyProgramStatus */
     protected static $loyaltyProgramStatus;
 
+    /** @var array $mathedCustomProps */
+    protected static $mathedCustomProps;
+
+    /** @var array $mathedCustomFields */
+    protected static $mathedCustomFields;
+
     /**
      * @return bool|string|null
      */
@@ -1186,5 +1192,52 @@ class ConfigProvider
     public static function setCustomFieldsStatus($customFieldsStatus)
     {
         static::setOption(Constants::CUSTOM_FIELDS_TOGGLE, $customFieldsStatus);
+    }
+
+    /**
+     * @return array
+     */
+    public static function getMatchedOrderProps()
+    {
+        if (self::isEmptyNotZero(static::$mathedCustomProps)) {
+            static::$mathedCustomProps = static::getUnserializedOption(Constants::MATCHED_CUSTOM_PROPS);
+        }
+
+        return static::$mathedCustomProps;
+    }
+
+    /**
+     * @param array|null $customPropsList
+     *
+     * @return void
+     * @throws \Bitrix\Main\ArgumentOutOfRangeException
+     */
+    public static function setMatchedOrderProps(?array $customPropsList)
+    {
+        static::setOption(Constants::MATCHED_CUSTOM_PROPS, serialize($customPropsList));
+        'selected';
+    }
+
+    /**
+     * @return array
+     */
+    public static function getMatchedUserFields()
+    {
+        if (self::isEmptyNotZero(static::$mathedCustomFields)) {
+            static::$mathedCustomFields = static::getUnserializedOption(Constants::MATCHED_CUSTOM_USER_FIELDS);
+        }
+
+        return static::$mathedCustomFields;
+    }
+
+    /**
+     * @param array|null $customUserFields
+     *
+     * @return void
+     * @throws \Bitrix\Main\ArgumentOutOfRangeException
+     */
+    public static function setMatchedUserFields(?array $customUserFields)
+    {
+        static::setOption(Constants::MATCHED_CUSTOM_USER_FIELDS, serialize($customUserFields));
     }
 }
