@@ -451,7 +451,7 @@ class RCrmActions
             ]
         ]);
 
-        $propsList->fetchAll();
+        $propsList = $propsList->fetchAll();
         $resultList = [];
 
         foreach ($propsList as $prop) {
