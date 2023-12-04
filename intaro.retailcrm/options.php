@@ -935,6 +935,30 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         $bitrixCorpAdres
     );
 
+    if (isset($_POST['custom_fields_toggle']) && $_POST['custom_fields_toggle'] === 'on') {
+        $counter = 1;
+        $customOrderProps = [];
+        $customUserFields = [];
+
+        do {
+            if (!empty($_POST['bitrixOrderProp_' . $counter]) && !empty($_POST['crmOrderField_' . $counter])) {
+                $customOrderProps[htmlspecialchars($_POST['bitrixOrderProp_' . $counter])] = htmlspecialchars($_POST['crmOrderField_' . $counter]);
+            }
+
+            if (!empty($_POST['bitrixUserField_' . $counter]) && !empty($_POST['crmUserField_' . $counter])) {
+                $customUserFields[htmlspecialchars($_POST['bitrixUserField_' . $counter])] = htmlspecialchars($_POST['crmUserField_' . $counter]);
+            }
+
+            $counter++;
+        } while ($counter <= 250);
+
+        ConfigProvider::setCustomFieldsStatus('Y');
+        ConfigProvider::setMatchedOrderProps($customOrderProps);
+        ConfigProvider::setMatchedUserFields($customUserFields);
+    } else {
+        ConfigProvider::setCustomFieldsStatus('N');
+    }
+
     $request = Application::getInstance()->getContext()->getRequest();
 
     if ($request->isHttps() === true) {
@@ -1361,8 +1385,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             matchedElement.classList.add("adm-list-table-row");
             matchedElement.classList.add("matchedProps");
             matchedElement.setAttribute("id", "matchedOrderProps_" + nextId);
-            matchedElement.querySelector("select[name='bitrixOrderProp']").setAttribute("id", "bitrixOrderProp_"  + nextId);
-            matchedElement.querySelector("select[name='crmOrderField']").setAttribute("id", "crmOrderField_"  + nextId);
+            matchedElement.querySelector("select[name='bitrixOrderProp']").setAttribute("name", "bitrixOrderProp_"  + nextId);
+            matchedElement.querySelector("select[name='crmOrderField']").setAttribute("name", "crmOrderField_"  + nextId);
             matchedElement.removeAttribute("hidden");
 
             document.getElementById("prop_matched").appendChild(matchedElement);
@@ -1384,8 +1408,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             matchedElement.classList.add("adm-list-table-row");
             matchedElement.classList.add("matchedField");
             matchedElement.setAttribute("id", "matchedUserProps_" + nextId);
-            matchedElement.querySelector("select[name='bitrixUserField']").setAttribute("id", "bitrixUserField_" + nextId);
-            matchedElement.querySelector("select[name='crmUserField']").setAttribute("id", "crmUserField_"  + nextId);
+            matchedElement.querySelector("select[name='bitrixUserField']").setAttribute("name", "bitrixUserField_" + nextId);
+            matchedElement.querySelector("select[name='crmUserField']").setAttribute("name", "crmUserField_"  + nextId);
             matchedElement.removeAttribute("hidden");
 
             document.getElementById("field_matched").appendChild(matchedElement);
@@ -2193,13 +2217,12 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                             <td class="adm-list-table-cell" colspan="2">
                                                 <select
                                                     style="width: 200px;" class="typeselect"
-                                                    id="bitrixOrderProp_<?php echo $matchedPropsNum ?>"
-                                                    name="bitrixOrderProp"
+                                                    name="bitrixOrderProp_<?php echo $matchedPropsNum ?>"
                                                 >
                                                     <option value=""></option>
                                                     <?php foreach ($arResult['bitrixOrdersCustomProp'] as $code => $prop) {?>
                                                         <option
-                                                            value="<?php echo $bitrixProp ?>"
+                                                            value="<?php echo $code ?>"
                                                             <?php if ($bitrixProp === $code) echo 'selected'; ?>
                                                         >
                                                             <?php echo $prop ?>
@@ -2210,8 +2233,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                             <td class="adm-list-table-cell" colspan="2">
                                                 <select
                                                         style="width: 200px;" class="typeselect"
-                                                        id="crmOrderField_<?php echo $matchedPropsNum ?>"
-                                                        name="crmOrderField"
+                                                        name="crmOrderField_<?php echo $matchedPropsNum ?>"
                                                 >
                                                     <option value=""></option>
                                                     <?php foreach ($arResult['crmCustomOrderFields'] as $crmProp) {?>
@@ -2232,8 +2254,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                         <td class="adm-list-table-cell" colspan="2">
                                             <select
                                                     style="width: 200px;" class="typeselect"
-                                                    id="bitrixOrderProp_<?php echo $matchedPropsNum ?>"
-                                                    name="bitrixOrderProp"
+                                                    name="bitrixOrderProp_<?php echo $matchedPropsNum ?>"
                                             >
                                                 <option value=""></option>
                                                 <?php foreach ($arResult['bitrixOrdersCustomProp'] as $code => $prop) {?>
@@ -2246,8 +2267,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                         <td class="adm-list-table-cell" colspan="2">
                                             <select
                                                     style="width: 200px;" class="typeselect"
-                                                    id="crmOrderField_<?php echo $matchedPropsNum ?>"
-                                                    name="crmOrderField"
+                                                    name="crmOrderField_<?php echo $matchedPropsNum ?>"
                                             >
                                                 <option value=""></option>
                                                 <?php foreach ($arResult['crmCustomOrderFields'] as $crmProp) {?>
@@ -2292,8 +2312,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                     <td class="adm-list-table-cell" colspan="2">
                                         <select
                                                 style="width: 200px;" class="typeselect"
-                                                id="bitrixUserField_<?php echo $matchedFieldsNum ?>"
-                                                name="bitrixUserField"
+                                                name="bitrixUserField_<?php echo $matchedFieldsNum ?>"
                                         >
                                             <option value=""></option>
                                             <?php foreach ($arResult['bitrixCustomUserFields'] as $code => $prop) {?>
@@ -2309,8 +2328,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                     <td class="adm-list-table-cell" colspan="2">
                                         <select
                                                 style="width: 200px;" class="typeselect"
-                                                id="crmCustomUserField_<?php echo $matchedFieldsNum ?>"
-                                                name="crmUserField"
+                                                name="crmUserField_<?php echo $matchedFieldsNum ?>"
                                         >
                                             <option value=""></option>
                                             <?php foreach ($arResult['crmCustomUserFields'] as $crmProp) {?>
@@ -2331,8 +2349,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                     <td class="adm-list-table-cell" colspan="2">
                                         <select
                                                 style="width: 200px;" class="typeselect"
-                                                id="matchedUserFields_<?php echo $matchedFieldsNum ?>"
-                                                name="matchedUserFields"
+                                                name="bitrixUserField_<?php echo $matchedFieldsNum ?>"
                                         >
                                             <option value=""></option>
                                             <?php foreach ($arResult['bitrixCustomUserFields'] as $code => $prop) {?>
@@ -2345,8 +2362,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                     <td class="adm-list-table-cell" colspan="2">
                                         <select
                                                 style="width: 200px;" class="typeselect"
-                                                id="matchedUserCustomFields_<?php echo $matchedFieldsNum ?>"
-                                                name="matchedUserCustomFields"
+                                                name="crmUserField_<?php echo $matchedFieldsNum ?>"
                                         >
                                             <option value=""></option>
                                             <?php foreach ($arResult['crmCustomUserFields'] as $crmProp) {?>
