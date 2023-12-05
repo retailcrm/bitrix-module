@@ -131,10 +131,10 @@ class RetailCrmOrder
                 && $search = array_search($prop['CODE'], $arParams['optionsLegalDetails'][$arOrder['PERSON_TYPE_ID']])
             ) {
                 $order['contragent'][$search] = $prop['VALUE'][0];//legal order data
-            } elseif (!empty($arParams['optionsCustomFields'])
-                && $search = array_search($prop['CODE'], $arParams['optionsCustomFields'][$arOrder['PERSON_TYPE_ID']])
+            } elseif (!empty($arParams['customOrderProps'])
+                && isset($arParams['customOrderProps'][$prop['ID'] . '#' . $prop['CODE']])
             ) {
-                $order['customFields'][$search] = $prop['VALUE'][0];//custom properties
+                $order['customFields'][$arParams['customOrderProps'][$prop['ID'] . '#' . $prop['CODE']]] = $prop['VALUE'][0];
             } elseif (is_array($arParams['optionsOrderProps'][$arOrder['PERSON_TYPE_ID']])
                 && $search = array_search($prop['CODE'], $arParams['optionsOrderProps'][$arOrder['PERSON_TYPE_ID']])) {//other
                 if (in_array($search, ['fio', 'phone', 'email'])) {//fio, phone, email
@@ -557,6 +557,7 @@ class RetailCrmOrder
             'optionsContragentType' => $optionsContragentType,
             'optionsSitesList'      => RetailcrmConfigProvider::getSitesList(),
             'optionsCustomFields'   => $optionsCustomFields,
+            'customOrderProps'      => RetailcrmConfigProvider::getMatchedOrderProps(),
         ];
 
         $recOrders = [];

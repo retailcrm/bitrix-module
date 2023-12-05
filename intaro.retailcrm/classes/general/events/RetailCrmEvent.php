@@ -175,6 +175,7 @@ class RetailCrmEvent
             'optionsContragentType' => $optionsContragentType,
             'optionsSitesList'      => $optionsSitesList,
             'optionsCustomFields'   => $optionsCustomFields,
+            'customOrderProps'      => RetailcrmConfigProvider::getMatchedOrderProps(),
         ]);
 
         //many sites?

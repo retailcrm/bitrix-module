@@ -485,8 +485,7 @@ class RCrmActions
                 ]
             ])->fetch();
 
-            $key = $userField['ID'] . '#' . $userField['FIELD_NAME'];
-            $resultList[$key] = $label['EDIT_FORM_LABEL'];
+            $resultList[$userField['FIELD_NAME']] = $label['EDIT_FORM_LABEL'];
         }
 
         return $resultList;

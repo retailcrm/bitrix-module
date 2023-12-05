@@ -26,6 +26,7 @@ class RetailCrmUser
         }
 
         $customer = self::getSimpleCustomer($arFields);
+        $customer['customFields'] = self::getCustomFields($arFields);
         $customer['createdAt'] = new \DateTime($arFields['DATE_REGISTER']);
         $customer['contragent'] = ['contragentType' => $contragentType];
 
@@ -73,6 +74,7 @@ class RetailCrmUser
         }
 
         $customer = self::getSimpleCustomer($arFields);
+        $customer['customFields'] = self::getCustomFields($arFields);
         $found = false;
 
         if (count($optionsSitesList) > 0) {
@@ -150,5 +152,19 @@ class RetailCrmUser
         }
 
         return $customer;
+    }
+
+    private static function getCustomFields(array $arFields)
+    {
+        $customUserFields = RetailcrmConfigProvider::getMatchedUserFields();
+        $result = [];
+
+        foreach ($customUserFields as $code => $codeCrm) {
+            if (!empty($arFields[$code])) {
+                $result[$codeCrm] = $arFields[$code];
+            }
+        }
+
+        return $result;
     }
 }
