@@ -270,9 +270,15 @@ class RetailCrmHistory
         $contragentTypes = array_flip(RetailcrmConfigProvider::getContragentTypes());
         $shipmentDeducted = RetailcrmConfigProvider::getShipmentDeducted();
 
-        $matchedCustomFields = RetailcrmConfigProvider::getMatchedUserFields() ?? [];
-        $matchedCustomFields = array_flip($matchedCustomFields);
+        $matchedCustomUserFields = RetailcrmConfigProvider::getMatchedUserFields() ?? [];
+        $matchedCustomUserFields = array_flip($matchedCustomUserFields);
+
+        $matchedCustomOrderFields = RetailcrmConfigProvider::getMatchedOrderProps() ?? [];
+        $matchedCustomOrderFields = array_flip($matchedCustomUserFields);
+
         self::$CUSTOM_FIELDS_IS_ACTIVE = RetailcrmConfigProvider::getCustomFieldsStatus();
+
+
 
         $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
         $page = 1;
@@ -472,7 +478,7 @@ class RetailCrmHistory
                             $newUser = new CUser();
                             $customerArray = $corporateCustomerBuilder->getCustomer()->getObjectToArray();
 
-                            $customFields = self::getCustomUserFields($userData, $matchedCustomFields);
+                            $customFields = self::getCustomUserFields($userData, $matchedCustomUserFields);
                             $customerArray = array_merge($customerArray, $customFields);
 
                             if (!array_key_exists('UF_SUBSCRIBE_USER_EMAIL', $customerArray)) {
@@ -941,7 +947,7 @@ class RetailCrmHistory
                                 }
 
                                 if ($registerNewUser === true) {
-                                    $customFields = self::getCustomUserFields($response['customer'], $matchedCustomFields);
+                                    $customFields = self::getCustomUserFields($response['customer'], $matchedCustomUserFields);
                                     $registeredUserID = $newUser->Add(self::getDataUser($customerBuilder, $customFields));
 
                                     if ($registeredUserID === false) {
@@ -1233,6 +1239,18 @@ class RetailCrmHistory
                     }
 
                     $newOrder->setField('PRICE', $orderSumm);
+
+                    if (self::$CUSTOM_FIELDS_IS_ACTIVE === 'Y' && !empty($matchedCustomOrderFields)) {
+                        foreach ($order['customFields'] as $code => $value) {
+                            if (isset($matchedCustomOrderFields[$code])) {
+                                $masIdentifier = explode('#', $matchedCustomOrderFields[$code], 2);
+                                $property = $propertyCollection->getItemById($masIdentifier[0]);
+
+                                $property->setValue($value);
+                            }
+                        }
+                    }
+
                     self::orderSave($newOrder);
 
                     if ($optionsOrderNumbers === 'Y' && isset($order['number'])) {
