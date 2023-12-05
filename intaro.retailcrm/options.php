@@ -987,10 +987,14 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         $arResult['inventoriesList'] = $APPLICATION->ConvertCharsetArray($api->storesList()->stores, 'utf-8', SITE_CHARSET);
         $arResult['priceTypeList'] = $APPLICATION->ConvertCharsetArray($api->pricesTypes()->priceTypes, 'utf-8', SITE_CHARSET);
         $arResult['crmCustomOrderFields'] = $APPLICATION->ConvertCharsetArray(
-                $api->customFieldsList(['entity' => 'order'], 250)->customFields, 'utf-8', SITE_CHARSET
+                $api->customFieldsList(['entity' => 'order', 'type' => [0 => 'string', 1 => 'text']], 250)->customFields,
+                'utf-8',
+                SITE_CHARSET
         );
         $arResult['crmCustomUserFields'] = $APPLICATION->ConvertCharsetArray(
-                $api->customFieldsList(['entity' => 'customer'], 250)->customFields, 'utf-8', SITE_CHARSET
+                $api->customFieldsList(['entity' => 'customer', 'type' => [0 => 'string', 1 => 'text']], 250)->customFields,
+                'utf-8',
+                SITE_CHARSET
         );
     } catch (\RetailCrm\Exception\CurlException $e) {
         RCrmActions::eventLog(
