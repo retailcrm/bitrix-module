@@ -1188,14 +1188,11 @@ function update()
         ->updateBonusFieldsTypeInHl()
         ->updateDefDiscountFieldTypeInHl();
 
-    UnRegisterModuleDependences("main", "OnBeforeProlog", 'intaro.retailcrm', "RetailCrmPricePrchase", "add");
-    UnRegisterModuleDependences("main", "OnBeforeProlog", 'intaro.retailcrm', "RetailCrmDc", "add");
-    UnRegisterModuleDependences("main", "OnBeforeProlog", 'intaro.retailcrm', "RetailCrmCc", "add");
-
-    (new UpdateSubscribe())
-        ->CopyFiles()
-        ->addEvent()
-        ->addCustomUserField();
+    COption::SetOptionString(
+        'intaro.retailcrm',
+        'custom_fields_toggle',
+        'N'
+    );
 }
 
 try {
