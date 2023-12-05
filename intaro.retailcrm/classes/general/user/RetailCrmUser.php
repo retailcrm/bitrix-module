@@ -26,9 +26,12 @@ class RetailCrmUser
         }
 
         $customer = self::getSimpleCustomer($arFields);
-        $customer['customFields'] = self::getCustomFields($arFields);
         $customer['createdAt'] = new \DateTime($arFields['DATE_REGISTER']);
         $customer['contragent'] = ['contragentType' => $contragentType];
+
+        if (RetailcrmConfigProvider::getCustomFieldsStatus() === 'Y') {
+            $customer['customFields'] = self::getCustomFields($arFields);
+        }
 
         if ($send && isset($_COOKIE['_rc']) && $_COOKIE['_rc'] != '') {
             $customer['browserId'] = $_COOKIE['_rc'];
@@ -74,8 +77,11 @@ class RetailCrmUser
         }
 
         $customer = self::getSimpleCustomer($arFields);
-        $customer['customFields'] = self::getCustomFields($arFields);
         $found = false;
+
+        if (RetailcrmConfigProvider::getCustomFieldsStatus() === 'Y') {
+            $customer['customFields'] = self::getCustomFields($arFields);
+        }
 
         if (count($optionsSitesList) > 0) {
             foreach ($optionsSitesList as $site) {

@@ -123,6 +123,7 @@ class RetailCrmOrder
 
         $countryList = BitrixOrderService::getCountryList();
         $deliveryAddress = ['city' => '', 'text' => '', 'index' => '', 'region' => '', 'countryIso' => ''];
+        $isSendCustomFields = RetailcrmConfigProvider::getCustomFieldsStatus();
 
         //Order fields
         foreach ($arOrder['PROPS']['properties'] as $prop) {
@@ -131,7 +132,8 @@ class RetailCrmOrder
                 && $search = array_search($prop['CODE'], $arParams['optionsLegalDetails'][$arOrder['PERSON_TYPE_ID']])
             ) {
                 $order['contragent'][$search] = $prop['VALUE'][0];//legal order data
-            } elseif (!empty($arParams['customOrderProps'])
+            } elseif ($isSendCustomFields === 'Y'
+                && !empty($arParams['customOrderProps'])
                 && isset($arParams['customOrderProps'][$prop['ID'] . '#' . $prop['CODE']])
             ) {
                 $order['customFields'][$arParams['customOrderProps'][$prop['ID'] . '#' . $prop['CODE']]] = $prop['VALUE'][0];
