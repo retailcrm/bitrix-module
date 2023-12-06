@@ -180,10 +180,8 @@ $MESS ['ORDER_TRACK_NUMBER'] = 'Получать трек-номер';
 $MESS ['CUSTOM_FIELDS_TITLE'] = 'Пользовательские поля';
 $MESS ['CUSTOM_FIELDS_CAPTION'] = 'Сопоставление пользовательских полей';
 $MESS ['CUSTOM_FIELDS_TOGGLE_MSG'] = 'Активность обмена пользовательскими полями';
-$MESS ['CUSTOM_FIELDS_ORDER_BITRIX'] = 'Свойства заказа';
-$MESS ['CUSTOM_FIELDS_ORDER_CRM'] = 'Пользовательские поля заказа в црм';
-$MESS ['CUSTOM_FIELDS_USER_BITRIX'] = 'Поля пользователя';
-$MESS ['CUSTOM_FIELDS_USER_CRM'] = 'Пользовательские поля клиента в црм';
+$MESS ['CUSTOM_FIELDS_ORDER_LABEL'] = 'Свойство заказа / пользовательское поле в црм';
+$MESS ['CUSTOM_FIELDS_USER_LABEL'] = 'Поля пользователя / Пользовательские поля клиента в црм';
 $MESS ['SELECT_FIELD_NAME'] = 'Поле';
 
 
