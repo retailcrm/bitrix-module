@@ -447,7 +447,8 @@ class RCrmActions
             'filter' => [
                 ['!=CODE' => "LP_BONUS_INFO"],
                 ['!=CODE' => "LP_DISCOUNT_INFO"],
-                ['>ID' => 19]
+                ['>ID' => 19],
+                ['TYPE' => 'STRING']
             ]
         ]);
 
@@ -469,10 +470,10 @@ class RCrmActions
             'filter' => [
                 ['ENTITY_ID' => 'USER'],
                 ['?FIELD_NAME' => '~%INTARO%'],
-                ['!=FIELD_NAME' => 'UF_SUBSCRIBE_USER_EMAIL']
+                ['!=FIELD_NAME' => 'UF_SUBSCRIBE_USER_EMAIL'],
+                ['USER_TYPE_ID' => 'string']
             ]
         ])->fetchAll();
-
 
         $resultList = [];
 

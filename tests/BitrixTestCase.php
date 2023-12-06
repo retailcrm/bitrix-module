@@ -47,7 +47,13 @@ class BitrixTestCase extends \PHPUnit\Framework\TestCase
             'USER_DESCRIPTION' => 'userComment',
             'COMMENTS' => 'managerComment',
             'PRICE_DELIVERY' => '100',
-            'PROPS' => ['properties' => [['CODE' => 'FIO', 'VALUE' => ['FirstName LastName']]]],
+            'PROPS' => [
+                'properties' => [
+                    ['CODE' => 'FIO', 'VALUE' => ['FirstName LastName']],
+                    ['ID' => 1, 'CODE' => 'TEST_PROP_1', 'VALUE' => ['test 1']],
+                    ['ID' => 2, 'CODE' => 'TEST_PROP_2', 'VALUE' => ['test 2']]
+                ]
+            ],
             'DELIVERYS' => [[
                 'id' => 'test',
                 'service' => 'service'
