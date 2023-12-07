@@ -1475,7 +1475,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 let text = element.options[element.selectedIndex].text;
                 element.value = uniqIdSelect;
 
-                alert('Field: "' + text +'" is already in use');
+                alert('Поле: "' + text +'" уже используется в обмене');
             }
         }
 
@@ -2231,10 +2231,13 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         <?php
         $customFieldsToggle = ConfigProvider::getCustomFieldsStatus();
         ?>
+            <tr class="">
+                <td class="option-head" colspan="2">
+                    <p><b><?php echo GetMessage('NOTATION_CUSTOM_FIELDS'); ?></b></p>
+                    <p><b><?php echo GetMessage('NOTATION_MATCHED_CUSTOM_FIELDS'); ?></b></p>
+                </td>
+            </tr>
             <tr class="heading">
-                <p>При работе с данной настройкой, убедитесь, что у вас не используются кастомизированные файлы по работе с заказами и пользователями.</p>
-                <p>Если же они имеются, убедитеть, что функционал по работе с пользовательскими полями встроен в модуль
-                <p>Типы кастомных полей должны быть одинаковыми, во избежаение проблем с синхронизацией</p>
                 <td colspan="2" class="option-other-heading">
                     <b>
                         <label>
@@ -2261,6 +2264,13 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                     </th>
                                 </tr>
                             </thead>
+                            <tfoot>
+                                <tr>
+                                    <th class="option-head option-other-top option-other-bottom" colspan="4">
+                                        <button class="adm-btn-save" type="button" onclick="createMatchedOrder()"><?php echo GetMessage('ADD_LABEL'); ?></button>
+                                    </th>
+                                </tr>
+                            </tfoot>
                             <tbody id="prop_matched">
                                 <?php
                                     $matchedPropsNum = 1;
@@ -2317,10 +2327,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                         </table>
 
                         <br>
-                        <button class="adm-btn-save" type="button" onclick="createMatchedOrder()">Добавить поле</button>
 
-                        <br>
-                        <br>
                         <table class="adm-list-table">
                             <thead>
                             <tr class="adm-list-table-header">
@@ -2329,6 +2336,13 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                 </th>
                             </tr>
                             </thead>
+                            <tfoot>
+                            <tr>
+                                <th class="option-head option-other-top option-other-bottom" colspan="4">
+                                    <button class="adm-btn-save" type="button" onclick="createMatchedUser()"><?php echo GetMessage('ADD_LABEL'); ?></button>
+                                </th>
+                            </tr>
+                            </tfoot>
                             <tbody id="field_matched">
                             <?php
                             $matchedFieldsNum = 1;
@@ -2382,12 +2396,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                 <?php $matchedFieldsNum++; }?>
                             </tbody>
                         </table>
-
-                        <br>
-                        <button class="adm-btn-save" type="button" onclick="createMatchedUser()">Добавить поле</button>
-
-                        <br>
-                        <br>
                     </div>
                 </td>
             </tr>

@@ -180,19 +180,21 @@ $MESS ['ORDER_TRACK_NUMBER'] = 'Получать трек-номер';
 $MESS ['CUSTOM_FIELDS_TITLE'] = 'Пользовательские поля';
 $MESS ['CUSTOM_FIELDS_CAPTION'] = 'Сопоставление пользовательских полей';
 $MESS ['CUSTOM_FIELDS_TOGGLE_MSG'] = 'Активность обмена пользовательскими полями';
-$MESS ['CUSTOM_FIELDS_ORDER_LABEL'] = 'Свойство заказа / пользовательское поле в црм';
-$MESS ['CUSTOM_FIELDS_USER_LABEL'] = 'Поля пользователя / Пользовательские поля клиента в црм';
+$MESS ['CUSTOM_FIELDS_ORDER_LABEL'] = 'Свойство заказа Битрикс/Пользовательское поле RetailCRM';
+$MESS ['CUSTOM_FIELDS_USER_LABEL'] = 'Пользовательское поле Битрикс/Пользовательское поле RetailCRM';
 $MESS ['SELECT_FIELD_NAME'] = 'Поле';
 $MESS ['INTEGER_TYPE'] = 'Целое число';
 $MESS ['STRING_TYPE'] = 'Строка';
 $MESS ['TEXT_TYPE'] = 'Текст';
 $MESS ['NUMBER_TYPE'] = 'Число';
 $MESS ['NUMERIC_TYPE'] = 'Число';
-$MESS ['Y/N_TYPE'] = 'Булев тип';
-$MESS ['BOOLEAN_TYPE'] = 'Булев тип';
+$MESS ['Y/N_TYPE'] = 'Флажок (да/нет)';
+$MESS ['BOOLEAN_TYPE'] = 'Флажок (да/нет)';
 $MESS ['DATE_TYPE'] = 'Дата';
 $MESS ['DATETIME_TYPE'] = 'Дата и время';
 $MESS ['DOUBLE_TYPE'] = 'Число';
-
+$MESS ['NOTATION_CUSTOM_FIELDS'] = 'Перед подключением данного функционала, убедитесь, что у вас нет кастомизированных файлов по работе с заказами и клиентами, связанными со старыми версиями модуля.';
+$MESS ['NOTATION_MATCHED_CUSTOM_FIELDS'] = 'Для корректного обмена данными типы сопоставляемых полей должны быть одинаковыми!';
+$MESS ['ADD_LABEL'] = 'Добавить';
 
 
