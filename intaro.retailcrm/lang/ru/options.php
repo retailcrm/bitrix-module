@@ -183,6 +183,14 @@ $MESS ['CUSTOM_FIELDS_TOGGLE_MSG'] = 'Активность обмена поль
 $MESS ['CUSTOM_FIELDS_ORDER_LABEL'] = 'Свойство заказа / пользовательское поле в црм';
 $MESS ['CUSTOM_FIELDS_USER_LABEL'] = 'Поля пользователя / Пользовательские поля клиента в црм';
 $MESS ['SELECT_FIELD_NAME'] = 'Поле';
+$MESS ['INTEGER_TYPE'] = 'Целое число';
+$MESS ['STRING_TYPE'] = 'Строка';
+$MESS ['TEXT_TYPE'] = 'Текст';
+$MESS ['NUMBER_TYPE'] = 'Число';
+$MESS ['NUMERIC_TYPE'] = 'Число';
+$MESS ['Y/N_TYPE'] = 'Булев тип';
+$MESS ['BOOLEAN_TYPE'] = 'Булев тип';
+$MESS ['DATE_TYPE'] = 'Дата';
 
 
 

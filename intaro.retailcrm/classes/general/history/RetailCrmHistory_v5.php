@@ -1245,6 +1245,7 @@ class RetailCrmHistory
                             if (isset($matchedCustomOrderFields[$code])) {
                                 $masIdentifier = explode('#', $matchedCustomOrderFields[$code], 2);
                                 $property = $propertyCollection->getItemByOrderPropertyId($masIdentifier[0]);
+                                $value = RCrmActions::convertCrmValueToPropOrder($property, $value);
                                 $r = $property->setField('VALUE', $value);
 
                                 if (!$r->isSuccess()) {

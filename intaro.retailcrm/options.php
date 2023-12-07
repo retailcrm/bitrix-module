@@ -942,9 +942,11 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         $customOrderProps = [];
         $customUserFields = [];
 
-        foreach ($arResult['bitrixOrdersCustomProp'] as $code => $text) {
-            if (!empty($_POST['bitrixOrderProp_' . $code]) && !empty($_POST['crmOrderField_' . $code])) {
-                $customOrderProps[htmlspecialchars($_POST['bitrixOrderProp_' . $code])] = htmlspecialchars($_POST['crmOrderField_' . $code]);
+        foreach ($arResult['bitrixOrdersCustomProp'] as $list) {
+            foreach ($list as $code => $text) {
+                if (!empty($_POST['bitrixOrderProp_' . $code]) && !empty($_POST['crmOrderField_' . $code])) {
+                    $customOrderProps[htmlspecialchars($_POST['bitrixOrderProp_' . $code])] = htmlspecialchars($_POST['crmOrderField_' . $code]);
+                }
             }
         }
 
@@ -989,7 +991,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         $arResult['inventoriesList'] = $APPLICATION->ConvertCharsetArray($api->storesList()->stores, 'utf-8', SITE_CHARSET);
         $arResult['priceTypeList'] = $APPLICATION->ConvertCharsetArray($api->pricesTypes()->priceTypes, 'utf-8', SITE_CHARSET);
         $arResult['crmCustomOrderFields'] = $APPLICATION->ConvertCharsetArray(
-                $api->customFieldsList(['entity' => 'order', 'type' => [0 => 'string', 1 => 'text']], 250)->customFields,
+                $api->customFieldsList(['entity' => 'order', 'type' => ['string','text', 'numeric', 'boolean', 'date']], 250)->customFields,
                 'utf-8',
                 SITE_CHARSET
         );
@@ -1012,6 +1014,15 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         $badJson = true;
         echo CAdminMessage::ShowMessage(GetMessage('ERR_JSON'));
     }
+
+    $crmCustomOrderFieldsList = [];
+
+    foreach ($arResult['crmCustomOrderFields'] as $customField){
+        $crmCustomOrderFieldsList[strtoupper($customField['type']) . '_TYPE'][] = ['name' => $customField['name'], 'code' => $customField['code']];
+    }
+
+    $arResult['crmCustomOrderFields'] = $crmCustomOrderFieldsList;
+    unset($crmCustomOrderFieldsList);
 
     $arResult['matchedOrderProps'] = ConfigProvider::getMatchedOrderProps();
     $arResult['matchedUserFields'] = ConfigProvider::getMatchedUserFields();
@@ -2213,7 +2224,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         ?>
             <tr class="heading">
                 <p>При работе с данной настройкой, убедитесь, что у вас не используются кастомизированные файлы по работе с заказами и пользователями.</p>
-                <p>Если же они имеются, убедитеть, что функционал по работе с пользовательскими полями встроен в модуль</p>
+                <p>Если же они имеются, убедитеть, что функционал по работе с пользовательскими полями встроен в модуль
+                <p>Типы кастомных полей должны быть одинаковыми, во избежаение проблем с синхронизацией</p>
                 <td colspan="2" class="option-other-heading">
                     <b>
                         <label>
@@ -2252,13 +2264,18 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                                     onchange="changeSelectValue(this, 'bitrixOrderProp_', 'crmOrderField_');"
                                                 >
                                                     <option value=""></option>
-                                                    <?php foreach ($arResult['bitrixOrdersCustomProp'] as $code => $prop) {?>
-                                                        <option
-                                                            value="<?php echo $code ?>"
-                                                            <?php if ($bitrixProp === $code) echo 'selected'; ?>
-                                                        >
-                                                            <?php echo $prop ?>
-                                                        </option>
+
+                                                    <?php foreach ($arResult['bitrixOrdersCustomProp'] as $type => $mass) {?>
+                                                        <optgroup label="<?php echo GetMessage($type); ?>">
+                                                            <?php foreach ($mass as $code => $prop) {?>
+                                                                <option
+                                                                        value="<?php echo $code ?>"
+                                                                    <?php if ($bitrixProp === $code) echo 'selected'; ?>
+                                                                >
+                                                                    <?php echo $prop ?>
+                                                                </option>
+                                                            <?php } ?>
+                                                        </optgroup>
                                                     <?php } ?>
                                                 </select>
                                             </td>
@@ -2269,13 +2286,17 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                                         name="crmOrderField_<?php echo $bitrixProp ?>"
                                                 >
                                                     <option value=""></option>
-                                                    <?php foreach ($arResult['crmCustomOrderFields'] as $crmProp) {?>
-                                                        <option
-                                                                value="<?php echo $crmProp['code'] ?>"
-                                                            <?php if ($crmField === $crmProp['code']) echo 'selected'; ?>
-                                                        >
-                                                            <?php echo $crmProp['name'] ?>
-                                                        </option>
+                                                    <?php foreach ($arResult['crmCustomOrderFields'] as $type => $mass) {?>
+                                                        <optgroup label="<?php echo GetMessage($type); ?>">
+                                                            <?php foreach ($mass as $crmProp) {?>
+                                                                <option
+                                                                        value="<?php echo $crmProp['code'] ?>"
+                                                                    <?php if ($crmField === $crmProp['code']) echo 'selected'; ?>
+                                                                >
+                                                                    <?php echo $crmProp['name'] ?>
+                                                                </option>
+                                                            <?php } ?>
+                                                        </optgroup>
                                                     <?php } ?>
                                                 </select>
                                                 &nbsp;
@@ -2362,11 +2383,20 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                         onchange="changeSelectValue(this, 'bitrixOrderProp_', 'crmOrderField_');"
                 >
                     <option value=""></option>
-                    <?php foreach ($arResult['bitrixOrdersCustomProp'] as $code => $prop) {?>
-                        <option value="<?php echo $code ?>">
-                            <?php echo $prop ?>
-                        </option>
+
+                    <?php foreach ($arResult['bitrixOrdersCustomProp'] as $type => $mass) {?>
+                        <optgroup label="<?php echo GetMessage($type); ?>">
+                            <?php foreach ($mass as $code => $prop) {?>
+                                <option
+                                        value="<?php echo $code ?>"
+                                    <?php if ($bitrixProp === $code) echo 'selected'; ?>
+                                >
+                                    <?php echo $prop ?>
+                                </option>
+                            <?php } ?>
+                        </optgroup>
                     <?php } ?>
+
                 </select>
             </td>
             <td class="adm-list-table-cell adm-detail-content-cell-r" colspan="2" width="50%">
@@ -2376,10 +2406,17 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                         name="crmOrderField"
                 >
                     <option value=""></option>
-                    <?php foreach ($arResult['crmCustomOrderFields'] as $crmProp) {?>
-                        <option value="<?php echo $crmProp['code'] ?>">
-                            <?php echo $crmProp['name'] ?>
-                        </option>
+                    <?php foreach ($arResult['crmCustomOrderFields'] as $type => $mass) {?>
+                        <optgroup label="<?php echo GetMessage($type); ?>">
+                            <?php foreach ($mass as $crmProp) {?>
+                                <option
+                                        value="<?php echo $crmProp['code'] ?>"
+                                    <?php if ($crmField === $crmProp['code']) echo 'selected'; ?>
+                                >
+                                    <?php echo $crmProp['name'] ?>
+                                </option>
+                            <?php } ?>
+                        </optgroup>
                     <?php } ?>
                 </select>
                 &nbsp;

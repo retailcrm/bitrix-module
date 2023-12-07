@@ -443,12 +443,13 @@ class RCrmActions
     public static function customOrderPropList()
     {
         $propsList = OrderPropsTable::getList([
-            'select' => ['ID', 'CODE', 'NAME', 'PERSON_TYPE_ID'],
+            'select' => ['ID', 'CODE', 'NAME', 'PERSON_TYPE_ID', 'TYPE'],
             'filter' => [
                 ['!=CODE' => "LP_BONUS_INFO"],
                 ['!=CODE' => "LP_DISCOUNT_INFO"],
                 ['>ID' => 19],
-                ['TYPE' => 'STRING']
+                ['?TYPE' => 'STRING | NUMBER | Y/N | DATE'],
+                ['MULTIPLE' => 'N']
             ]
         ]);
 
@@ -458,6 +459,7 @@ class RCrmActions
         foreach ($propsList as $prop) {
             $key = $prop['ID'] . '#' . $prop['CODE'];
             $resultList[$key] = $prop['NAME'] . ' (' . $prop['PERSON_TYPE_ID'] . ')';
+            $resultList[$prop['TYPE'] . '_TYPE'][$key] = $prop['NAME'] . ' (' . $persons[$prop['PERSON_TYPE_ID']] . ')';
         }
 
         return $resultList;
@@ -490,6 +492,41 @@ class RCrmActions
         }
 
         return $resultList;
+    }
+
+    public static function convertPropToCrmValue($prop)
+    {
+        $result = $prop['VALUE'][0];
+
+        if ($prop['TYPE'] === 'Y/N') {
+            $result = $prop['VALUE'][0] === 'Y' ? 1 : 0;
+        }
+
+        return $result;
+    }
+
+    public static function convertCrmValueToPropOrder($objProperty, $crmValue)
+    {
+        $result = $crmValue;
+        $typeField = $objProperty->getType();
+
+        if ($typeField === 'Y/N') {
+            $result = $crmValue == 1 ? 'Y' : 'N';
+        }
+
+        if ($typeField === 'DATE') {
+            if (empty($crmValue)) {
+                return $crmValue;
+            }
+
+            try {
+                $result = date('d.m.Y', strtotime($crmValue));
+            } catch (\Exception $exception) {
+                $result = '';
+            }
+        }
+
+        return $result;
     }
 
     public static function sendConfiguration($api, $active = true)

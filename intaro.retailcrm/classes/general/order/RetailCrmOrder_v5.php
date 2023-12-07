@@ -136,7 +136,7 @@ class RetailCrmOrder
                 && !empty($arParams['customOrderProps'])
                 && isset($arParams['customOrderProps'][$prop['ID'] . '#' . $prop['CODE']])
             ) {
-                $order['customFields'][$arParams['customOrderProps'][$prop['ID'] . '#' . $prop['CODE']]] = $prop['VALUE'][0];
+                $order['customFields'][$arParams['customOrderProps'][$prop['ID'] . '#' . $prop['CODE']]] = RCrmActions::convertPropToCrmValue($prop);
             } elseif (is_array($arParams['optionsOrderProps'][$arOrder['PERSON_TYPE_ID']])
                 && $search = array_search($prop['CODE'], $arParams['optionsOrderProps'][$arOrder['PERSON_TYPE_ID']])) {//other
                 if (in_array($search, ['fio', 'phone', 'email'])) {//fio, phone, email
