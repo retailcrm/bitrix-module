@@ -522,7 +522,11 @@ class RCrmActions
         $result = $value;
 
         if ($type === 'boolean') {
-            $result = $value === 'Y' ? 1 : 0;
+            $result = $value === '1' ? 1 : 0;
+        }
+
+        if ($type === 'datetime') {
+            $result = date('Y-m-d', strtotime($value));
         }
 
         return $result;

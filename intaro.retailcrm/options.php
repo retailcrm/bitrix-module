@@ -950,9 +950,11 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             }
         }
 
-        foreach ($arResult['bitrixCustomUserFields'] as $code => $text) {
-            if (!empty($_POST['bitrixUserField_' . $code]) && !empty($_POST['crmUserField_' . $code])) {
-                $customUserFields[htmlspecialchars($_POST['bitrixUserField_' . $code])] = htmlspecialchars($_POST['crmUserField_' . $code]);
+        foreach ($arResult['bitrixCustomUserFields'] as $list) {
+            foreach ($list as $code => $text) {
+                if (!empty($_POST['bitrixUserField_' . $code]) && !empty($_POST['crmUserField_' . $code])) {
+                    $customUserFields[htmlspecialchars($_POST['bitrixUserField_' . $code])] = htmlspecialchars($_POST['crmUserField_' . $code]);
+                }
             }
         }
 
