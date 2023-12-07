@@ -191,6 +191,8 @@ $MESS ['NUMERIC_TYPE'] = 'Число';
 $MESS ['Y/N_TYPE'] = 'Булев тип';
 $MESS ['BOOLEAN_TYPE'] = 'Булев тип';
 $MESS ['DATE_TYPE'] = 'Дата';
+$MESS ['DATETIME_TYPE'] = 'Дата и время';
+$MESS ['DOUBLE_TYPE'] = 'Число';
 
 
 

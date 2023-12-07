@@ -468,12 +468,13 @@ class RCrmActions
     public static function customUserFieldList()
     {
         $userFields = UserFieldTable::getList([
-            'select' => ['ID', 'FIELD_NAME'],
+            'select' => ['ID', 'FIELD_NAME', 'USER_TYPE_ID'],
             'filter' => [
                 ['ENTITY_ID' => 'USER'],
                 ['?FIELD_NAME' => '~%INTARO%'],
                 ['!=FIELD_NAME' => 'UF_SUBSCRIBE_USER_EMAIL'],
-                ['USER_TYPE_ID' => 'string']
+                ['?USER_TYPE_ID' => 'string | date | datetime | integer | double | boolean'],
+                ['MULTIPLE' => 'N'],
             ]
         ])->fetchAll();
 
@@ -488,11 +489,80 @@ class RCrmActions
                 ]
             ])->fetch();
 
-            $resultList[$userField['FIELD_NAME']] = $label['EDIT_FORM_LABEL'];
+            $resultList[strtoupper($userField['USER_TYPE_ID']) . '_TYPE'][$userField['FIELD_NAME']] = $label['EDIT_FORM_LABEL'];
         }
 
         return $resultList;
     }
+
+    public static function getTypeUserField()
+    {
+        $userFields = UserFieldTable::getList([
+            'select' => ['FIELD_NAME', 'USER_TYPE_ID'],
+            'filter' => [
+                ['ENTITY_ID' => 'USER'],
+                ['?FIELD_NAME' => '~%INTARO%'],
+                ['!=FIELD_NAME' => 'UF_SUBSCRIBE_USER_EMAIL'],
+                ['?USER_TYPE_ID' => 'string | date | datetime | integer | double | boolean'],
+                ['MULTIPLE' => 'N'],
+            ]
+        ])->fetchAll();
+
+        $result = [];
+
+        foreach ($userFields as $userField) {
+            $result[$userField['FIELD_NAME']] = $userField['USER_TYPE_ID'];
+        }
+
+        return $result;
+    }
+
+    public static function convertFieldToCrmValue($value, $type)
+    {
+        $result = $value;
+
+        if ($type === 'boolean') {
+            $result = $value === 'Y' ? 1 : 0;
+        }
+
+        return $result;
+    }
+
+    public static function convertCrmValueToFieldUser($crmValue, $type)
+    {
+        $result = $crmValue;
+
+        if ($type === 'boolean') {
+            $result = $crmValue == 1 ? 'Y' : 'N';
+        }
+
+        if ($type === 'date') {
+            if (empty($crmValue)) {
+                return '';
+            }
+
+            try {
+                $result = date('d.m.Y', strtotime($crmValue));
+            } catch (\Exception $exception) {
+                $result = '';
+            }
+        }
+
+        if ($type === 'datetime') {
+            if (empty($crmValue)) {
+                return '';
+            }
+
+            try {
+                $result = date('d.m.Y H:i:s', strtotime($crmValue));
+            } catch (\Exception $exception) {
+                $result = '';
+            }
+        }
+
+        return $result;
+    }
+
 
     public static function convertPropToCrmValue($prop)
     {
@@ -516,7 +586,7 @@ class RCrmActions
 
         if ($typeField === 'DATE') {
             if (empty($crmValue)) {
-                return $crmValue;
+                return '';
             }
 
             try {

@@ -67,6 +67,7 @@ class RetailCrmHistory
         $matchedCustomFields = RetailcrmConfigProvider::getMatchedUserFields() ?? [];
         $matchedCustomFields = array_flip($matchedCustomFields);
         self::$CUSTOM_FIELDS_IS_ACTIVE = RetailcrmConfigProvider::getCustomFieldsStatus();
+        $customUserFieldTypes = RCrmActions::getTypeUserField();
 
         if ($historyStart && $historyStart > 0) {
             $historyFilter['sinceId'] = $historyStart;
@@ -129,7 +130,7 @@ class RetailCrmHistory
 
                 $customerBuilder->setDataCrm($customer)->build();
 
-                $customFields = self::getCustomUserFields($customer, $matchedCustomFields);
+                $customFields = self::getCustomUserFields($customer, $matchedCustomFields, $customUserFieldTypes);
 
                 if (!isset($customer['externalId'])) {
                     if (!isset($customer['id'])) {
@@ -278,7 +279,7 @@ class RetailCrmHistory
 
         self::$CUSTOM_FIELDS_IS_ACTIVE = RetailcrmConfigProvider::getCustomFieldsStatus();
 
-
+        $customUserFieldTypes = RCrmActions::getTypeUserField();
 
         $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
         $page = 1;
@@ -478,7 +479,7 @@ class RetailCrmHistory
                             $newUser = new CUser();
                             $customerArray = $corporateCustomerBuilder->getCustomer()->getObjectToArray();
 
-                            $customFields = self::getCustomUserFields($userData, $matchedCustomUserFields);
+                            $customFields = self::getCustomUserFields($userData, $matchedCustomUserFields, $customUserFieldTypes);
                             $customerArray = array_merge($customerArray, $customFields);
 
                             if (!array_key_exists('UF_SUBSCRIBE_USER_EMAIL', $customerArray)) {
@@ -947,7 +948,7 @@ class RetailCrmHistory
                                 }
 
                                 if ($registerNewUser === true) {
-                                    $customFields = self::getCustomUserFields($response['customer'], $matchedCustomUserFields);
+                                    $customFields = self::getCustomUserFields($response['customer'], $matchedCustomUserFields, $customUserFieldTypes);
                                     $registeredUserID = $newUser->Add(self::getDataUser($customerBuilder, $customFields));
 
                                     if ($registeredUserID === false) {
@@ -2169,7 +2170,7 @@ class RetailCrmHistory
         return self::convertBooleanFields($customerArray);
     }
 
-    private static function getCustomUserFields($customer, $matchedCustomFields)
+    private static function getCustomUserFields($customer, $matchedCustomFields, $customUserFieldTypes)
     {
         $customFields = [];
 
@@ -2178,8 +2179,9 @@ class RetailCrmHistory
             && is_array($customer['customFields'])
         ) {
             foreach ($customer['customFields'] as $code => $value) {
-                if (isset($matchedCustomFields[$code])) {
-                    $customFields[$matchedCustomFields[$code]] = $value;
+                if (isset($matchedCustomFields[$code]) && !empty($customUserFieldTypes[$matchedCustomFields[$code]])) {
+                    $type = $customUserFieldTypes[$matchedCustomFields[$code]];
+                    $customFields[$matchedCustomFields[$code]] = RCrmActions::convertCrmValueToFieldUser($value, $type);
                 }
             }
         }
