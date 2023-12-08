@@ -1021,12 +1021,27 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $crmCustomUserFieldsList = [];
 
     foreach ($arResult['crmCustomOrderFields'] as $customField) {
-        $crmCustomOrderFieldsList[strtoupper($customField['type']) . '_TYPE'][] = ['name' => $customField['name'], 'code' => $customField['code']];
+        $type = $customField['type'];
+
+        if ($type === 'text') {
+            $type = 'string';
+        }
+
+        $crmCustomOrderFieldsList[strtoupper($type) . '_TYPE'][] = ['name' => $customField['name'], 'code' => $customField['code']];
     }
 
     foreach ($arResult['crmCustomUserFields'] as $customField) {
-        $crmCustomUserFieldsList[strtoupper($customField['type']). '_TYPE'][] = ['name' => $customField['name'], 'code' => $customField['code']];
+        $type = $customField['type'];
+
+        if ($type === 'text') {
+            $type = 'string';
+        }
+
+        $crmCustomUserFieldsList[strtoupper($type). '_TYPE'][] = ['name' => $customField['name'], 'code' => $customField['code']];
     }
+
+    ksort($crmCustomOrderFieldsList);
+    ksort($crmCustomUserFieldsList);
 
     $arResult['crmCustomOrderFields'] = $crmCustomOrderFieldsList;
     $arResult['crmCustomUserFields'] = $crmCustomUserFieldsList;

@@ -442,6 +442,24 @@ class RCrmActions
 
     public static function customOrderPropList()
     {
+        $typeMatched = [
+            'STRING' => 'STRING',
+            'NUMBER' => 'NUMERIC',
+            'Y/N' => 'BOOLEAN',
+            'DATE' => 'DATE'
+        ];
+
+        $listPersons = PersonType::getList([
+            'select' => ['ID', 'NAME'],
+            'filter' => ['ENTITY_REGISTRY_TYPE' => 'ORDER']
+        ])->fetchAll();
+
+        $persons = [];
+
+        foreach ($listPersons as $person) {
+            $persons[$person['ID']] = $person['NAME'];
+        }
+
         $propsList = OrderPropsTable::getList([
             'select' => ['ID', 'CODE', 'NAME', 'PERSON_TYPE_ID', 'TYPE'],
             'filter' => [
@@ -457,23 +475,36 @@ class RCrmActions
         $resultList = [];
 
         foreach ($propsList as $prop) {
+            $type = $typeMatched[$prop['TYPE']] ?? $prop['TYPE'];
             $key = $prop['ID'] . '#' . $prop['CODE'];
             $resultList[$key] = $prop['NAME'] . ' (' . $prop['PERSON_TYPE_ID'] . ')';
             $resultList[$prop['TYPE'] . '_TYPE'][$key] = $prop['NAME'] . ' (' . $persons[$prop['PERSON_TYPE_ID']] . ')';
+            $resultList[$type . '_TYPE'][$key] = $prop['NAME'] . ' (' . $persons[$prop['PERSON_TYPE_ID']] . ')';
         }
+
+        ksort($resultList);
 
         return $resultList;
     }
 
     public static function customUserFieldList()
     {
+        $typeMatched = [
+            'string' => 'STRING',
+            'double' => 'NUMERIC',
+            'boolean' => 'BOOLEAN',
+            'date' => 'DATE',
+            'integer' => 'INTEGER'
+        ];
+
         $userFields = UserFieldTable::getList([
             'select' => ['ID', 'FIELD_NAME', 'USER_TYPE_ID'],
             'filter' => [
                 ['ENTITY_ID' => 'USER'],
                 ['?FIELD_NAME' => '~%INTARO%'],
                 ['!=FIELD_NAME' => 'UF_SUBSCRIBE_USER_EMAIL'],
-                ['?USER_TYPE_ID' => 'string | date | datetime | integer | double | boolean'],
+                ['!=USER_TYPE_ID' => 'datetime'],
+                ['?USER_TYPE_ID' => 'string | date | integer | double | boolean'],
                 ['MULTIPLE' => 'N'],
             ]
         ])->fetchAll();
@@ -489,8 +520,11 @@ class RCrmActions
                 ]
             ])->fetch();
 
-            $resultList[strtoupper($userField['USER_TYPE_ID']) . '_TYPE'][$userField['FIELD_NAME']] = $label['EDIT_FORM_LABEL'];
+            $type = $typeMatched[$userField['USER_TYPE_ID']] ?? $userField['USER_TYPE_ID'];
+            $resultList[$type . '_TYPE'][$userField['FIELD_NAME']] = $label['EDIT_FORM_LABEL'];
         }
+
+        ksort($resultList);
 
         return $resultList;
     }
@@ -552,16 +586,8 @@ class RCrmActions
             }
         }
 
-        if ($type === 'datetime') {
-            if (empty($crmValue)) {
-                return '';
-            }
-
-            try {
-                $result = date('d.m.Y H:i:s', strtotime($crmValue));
-            } catch (\Exception $exception) {
-                $result = '';
-            }
+        if (array_search($type, ['string', 'text']) && strlen($result) > 500) {
+            $result = '';
         }
 
         return $result;
@@ -574,6 +600,10 @@ class RCrmActions
 
         if ($prop['TYPE'] === 'Y/N') {
             $result = $prop['VALUE'][0] === 'Y' ? 1 : 0;
+        }
+
+        if ($prop['TYPE'] === 'STRING' && strlen($result) > 500) {
+            $result = '';
         }
 
         return $result;
@@ -598,6 +628,10 @@ class RCrmActions
             } catch (\Exception $exception) {
                 $result = '';
             }
+        }
+
+        if ($typeField === 'STRING' && strlen($crmValue) > 500) {
+            $result = '';
         }
 
         return $result;
