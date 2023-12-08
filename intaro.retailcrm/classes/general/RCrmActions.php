@@ -467,7 +467,8 @@ class RCrmActions
                 ['!=CODE' => "LP_DISCOUNT_INFO"],
                 ['>ID' => 19],
                 ['?TYPE' => 'STRING | NUMBER | Y/N | DATE'],
-                ['MULTIPLE' => 'N']
+                ['MULTIPLE' => 'N'],
+                ['ACTIVE' => 'Y']
             ]
         ]);
 

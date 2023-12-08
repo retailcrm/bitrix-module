@@ -1475,7 +1475,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             }
         }
 
-        function changeSelectValue(element, nameBitrix, nameCrm)
+        function changeSelectBitrixValue(element, nameBitrix, nameCrm)
         {
             let name = element.getAttribute("name");
             let uniqIdSelect = name.replace(nameBitrix, "");
@@ -1491,6 +1491,28 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 element.value = uniqIdSelect;
 
                 alert('Поле: "' + text +'" уже используется в обмене');
+            }
+        }
+
+        function changeSelectCrmValue(element, nameElement)
+        {
+            let selectedValue = element.value;
+            let checkElement = document.getElementById(nameElement + selectedValue)
+
+            if (checkElement === null) {
+                element.id = nameElement + selectedValue;
+            } else {
+                let currentId = element.id;
+                let code = '';
+
+                if (currentId !== null) {
+                    code = currentId.replace(nameElement, "");
+                }
+
+                let text = element.options[element.selectedIndex].text;
+                element.value = code;
+
+                alert('Поле: "' + text + '" уже используется в обмене');
             }
         }
 
@@ -2295,7 +2317,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                                 <select
                                                     style="width: 200px;" class="typeselect"
                                                     name="bitrixOrderProp_<?php echo $bitrixProp ?>"
-                                                    onchange="changeSelectValue(this, 'bitrixOrderProp_', 'crmOrderField_');"
+                                                    onchange="changeSelectBitrixValue(this, 'bitrixOrderProp_', 'crmOrderField_');"
                                                 >
                                                     <option value=""></option>
 
@@ -2318,6 +2340,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                                 <select
                                                         style="width: 200px;" class="typeselect"
                                                         name="crmOrderField_<?php echo $bitrixProp ?>"
+                                                        id="crmOrder_<?php echo $crmField?>"
+                                                        onchange="changeSelectCrmValue(this, 'crmOrder_')"
                                                 >
                                                     <option value=""></option>
                                                     <?php foreach ($arResult['crmCustomOrderFields'] as $type => $mass) {?>
@@ -2367,7 +2391,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                         <select
                                                 style="width: 200px;" class="typeselect"
                                                 name="bitrixUserField_<?php echo $bitrixProp ?>"
-                                                onchange="changeSelectValue(this, 'bitrixUserField_', 'crmUserField_');"
+                                                onchange="changeSelectBitrixValue(this, 'bitrixUserField_', 'crmUserField_');"
                                         >
                                             <option value=""></option>
                                             <?php foreach ($arResult['bitrixCustomUserFields'] as $type => $mass) {?>
@@ -2389,6 +2413,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                         <select
                                                 style="width: 200px;" class="typeselect"
                                                 name="crmUserField_<?php echo $bitrixProp ?>"
+                                                id="crmClient_<?php echo $crmField?>"
+                                                onchange="changeSelectCrmValue(this, 'crmClient_')"
                                         >
                                             <option value=""></option>
                                             <?php foreach ($arResult['crmCustomUserFields'] as $type => $mass) {?>
@@ -2420,7 +2446,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 <select
                         style="width: 200px;" class="typeselect"
                         name="bitrixOrderProp"
-                        onchange="changeSelectValue(this, 'bitrixOrderProp_', 'crmOrderField_');"
+                        onchange="changeSelectBitrixValue(this, 'bitrixOrderProp_', 'crmOrderField_');"
                 >
                     <option value=""></option>
                     <?php foreach ($arResult['bitrixOrdersCustomProp'] as $type => $mass) {?>
@@ -2443,6 +2469,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 <select
                         style="width: 200px;" class="typeselect"
                         name="crmOrderField"
+                        onchange="changeSelectCrmValue(this, 'crmOrder_')"
                 >
                     <option value=""></option>
                     <?php foreach ($arResult['crmCustomOrderFields'] as $type => $mass) {?>
@@ -2468,7 +2495,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 <select
                         style="width: 200px;" class="typeselect"
                         name="bitrixUserField"
-                        onchange="changeSelectValue(this, 'bitrixUserField_', 'crmUserField_');"
+                        onchange="changeSelectBitrixValue(this, 'bitrixUserField_', 'crmUserField_');"
                 >
                     <option value=""></option>
                     <?php foreach ($arResult['bitrixCustomUserFields'] as $type => $mass) {?>
@@ -2487,6 +2514,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 <select
                         style="width: 200px;" class="typeselect"
                         name="crmUserField"
+                        onchange="changeSelectCrmValue(this, 'crmClient_')"
                 >
                     <option value=""></option>
                     <?php foreach ($arResult['crmCustomUserFields'] as $type => $mass) {?>
