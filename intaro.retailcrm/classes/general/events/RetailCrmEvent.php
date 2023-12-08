@@ -287,7 +287,7 @@ class RetailCrmEvent
             $userCrm = RCrmActions::apiMethod($api, 'customersGet', __METHOD__, $arOrder['USER_ID'], $site);
 
             if (!isset($userCrm['customer'])) {
-                $arUser = UserTable::getById($arOrder['USER_ID'])->fetch();
+                $arUser = CUser::GetByID($arOrder['USER_ID'])->Fetch();
 
                 if (!empty($address)) {
                     $arUser['PERSONAL_STREET'] = $address;
@@ -412,7 +412,8 @@ class RetailCrmEvent
             $userCrm = RCrmActions::apiMethod($api, 'customersGet', __METHOD__, $arOrder['USER_ID'], $site);
 
             if (!isset($userCrm['customer'])) {
-                $arUser = Bitrix\Main\UserTable::getById($arOrder['USER_ID'])->fetch();
+                $arUser = CUser::GetByID($arOrder['USER_ID'])->Fetch();
+
                 $resultUser = RetailCrmUser::customerSend(
                     $arUser,
                     $api,
@@ -429,7 +430,7 @@ class RetailCrmEvent
                     );
 
                     return null;
-                }http://localhost/personal/cart/
+                }
             }
         }
 

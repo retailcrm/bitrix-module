@@ -1,7 +1,7 @@
 [![Build Status](https://github.com/retailcrm/bitrix-module/workflows/ci/badge.svg)](https://github.com/retailcrm/bitrix-module/actions)
 [![GitHub release](https://img.shields.io/github/release/retailcrm/bitrix-module.svg?logo=github)](https://github.com/retailcrm/bitrix-module/releases)
 [![Coverage](https://img.shields.io/codecov/c/gh/retailcrm/bitrix-module/master.svg?logo=codecov)](https://codecov.io/gh/retailcrm/bitrix-module)
-[![PHP version](https://img.shields.io/badge/PHP->=7.4-blue.svg?logo=php)](https://php.net/)
+[![PHP version](https://img.shields.io/badge/PHP->=8.0-blue.svg?logo=php)](https://php.net/)
 
 Bitrix module
 =============

@@ -48,8 +48,9 @@ class RetailCrmUser
         $normalizer = new RestNormalizer();
         $customer = $normalizer->normalize($customer, 'customers');
 
-        if (empty($arFields['UF_SUBSCRIBE_USER_EMAIL'])) {
-            $customer['subscribed'] = false;
+        if (array_key_exists('UF_SUBSCRIBE_USER_EMAIL', $arFields)) {
+            // UF_SUBSCRIBE_USER_EMAIL = '1' or '0'
+            $customer['subscribed'] = (bool) $arFields['UF_SUBSCRIBE_USER_EMAIL'];
         }
 
         Logger::getInstance()->write($customer, 'customerSend');
