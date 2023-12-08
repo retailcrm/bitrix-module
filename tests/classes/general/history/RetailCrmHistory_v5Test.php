@@ -39,6 +39,10 @@ class RetailCrmHistory_v5Test extends \BitrixTestCase
         $apiResponse = new ApiResponse(200, DataHistory::get_history_data_new_customer());
 
         $actionsMock->shouldReceive('apiMethod')->withAnyArgs()->andReturn($apiResponse);
+        $actionsMock->shouldReceive('getTypeUserField')->withAnyArgs()->andReturn([
+            'UF_FIELD_USER_1' => 'string', 'UF_FIELD_USER_2' => 'string'
+        ]);
+        $actionsMock->shouldReceive('convertCrmValueToFieldUser')->byDefault();
 
         $this->deleteTestingUser();
         RetailCrmHistory::customerHistory();
@@ -46,6 +50,8 @@ class RetailCrmHistory_v5Test extends \BitrixTestCase
         $dbUser = CUser::GetList(($by = 'ID'), ($sort = 'DESC'), ['=EMAIL' => 'testbitrixreg@gmail.com']);
 
         $this->assertEquals(1, $dbUser->SelectedRowsCount());
+
+        RetailcrmConfigProvider::setCustomFieldsStatus('N');
     }
 
     /**

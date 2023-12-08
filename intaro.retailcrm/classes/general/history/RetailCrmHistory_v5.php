@@ -67,7 +67,12 @@ class RetailCrmHistory
         $matchedCustomFields = RetailcrmConfigProvider::getMatchedUserFields() ?? [];
         $matchedCustomFields = array_flip($matchedCustomFields);
         self::$CUSTOM_FIELDS_IS_ACTIVE = RetailcrmConfigProvider::getCustomFieldsStatus();
-        $customUserFieldTypes = RCrmActions::getTypeUserField();
+
+        $customUserFieldTypes = [];
+
+        if (self::$CUSTOM_FIELDS_IS_ACTIVE === 'Y') {
+            $customUserFieldTypes = RCrmActions::getTypeUserField();
+        }
 
         if ($historyStart && $historyStart > 0) {
             $historyFilter['sinceId'] = $historyStart;
@@ -279,7 +284,11 @@ class RetailCrmHistory
 
         self::$CUSTOM_FIELDS_IS_ACTIVE = RetailcrmConfigProvider::getCustomFieldsStatus();
 
-        $customUserFieldTypes = RCrmActions::getTypeUserField();
+        $customUserFieldTypes = [];
+
+        if (self::$CUSTOM_FIELDS_IS_ACTIVE === 'Y') {
+            $customUserFieldTypes = RCrmActions::getTypeUserField();
+        }
 
         $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
         $page = 1;
