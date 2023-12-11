@@ -374,15 +374,14 @@ class intaro_retailcrm extends CModule
                 $api_key = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, 0);
 
                 foreach ($arResult['arSites'] as $site) {
+                    $siteCode[$site['LID']] = null;
+
                     if ($_POST['sites-id-' . $site['LID']] && !empty($_POST['sites-id-' . $site['LID']])) {
                         $siteCode[$site['LID']] = htmlspecialchars(trim($_POST['sites-id-' . $site['LID']]));
-                    } else {
-                        $siteCode[$site['LID']] = null;
                     }
                 }
 
                 $arResult['arCurrencySites'] = RCrmActions::getCurrencySites();
-                $bitrixBaseCurrency = CCurrency::GetBaseCurrency();
                 $result = $this->getReferenceShops($api_host, $api_key);
 
                 if (isset($result['errCode'])) {
@@ -392,16 +391,11 @@ class intaro_retailcrm extends CModule
                 }
 
                 foreach ($arResult['arSites'] as $bitrixSite) {
-                    $currentCurrency = $bitrixBaseCurrency;
                     $LID = $bitrixSite['LID'];
-
-                    if (isset($arResult['arCurrencySites'][$LID])) {
-                        $currentCurrency = $arResult['arCurrencySites'][$LID];
-                    }
 
                     if (
                         isset($arResult['sitesList'][$siteCode[$LID]])
-                        && $currentCurrency !== $arResult['sitesList'][$siteCode[$LID]]['currency'])
+                        && $arResult['arCurrencySites'][$LID] !== $arResult['sitesList'][$siteCode[$LID]]['currency'])
                     {
                         $arResult['errCode'] = 'ERR_CURRENCY_SITES';
                     }
@@ -1462,7 +1456,6 @@ class intaro_retailcrm extends CModule
         try {
             $result = $client->makeRequest('/reference/sites', 'GET');
             $bitrixSites = RCrmActions::getSitesList();
-            $bitrixBaseCurrency = CCurrency::GetBaseCurrency();
             $currencySites = RCrmActions::getCurrencySites();
         } catch (CurlException $e) {
             RCrmActions::eventLog(
@@ -1483,16 +1476,11 @@ class intaro_retailcrm extends CModule
             }
 
             if (!isset($res['errCode']) && count($bitrixSites) === 1 ) {
-                $currentCurrency = $bitrixBaseCurrency;
                 $LID = $bitrixSites[0]['LID'];
-
-                if (isset($currencySites[$LID])) {
-                    $currentCurrency = $currencySites[$LID];
-                }
 
                 $crmSite = reset($result->sites);
 
-                if ($currentCurrency !== $crmSite['currency']) {
+                if ($currencySites[$LID] !== $crmSite['currency']) {
                     $res['errCode'] = 'ERR_CURRENCY_SITES';
                 }
             }

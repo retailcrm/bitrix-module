@@ -431,11 +431,11 @@ class RetailCrmOrder
         $arUser = UserTable::getById($arOrder['USER_ID'])->fetch();
         $fioCrm = [$order['firstName'] ?? null, $order['lastName'] ?? null, $order['patronymic'] ?? null];
 
-        if (in_array($arUser['NAME'], $fioCrm)) {
+        if ($arUser['NAME'] !== '' && in_array($arUser['NAME'], $fioCrm)) {
             $order['firstName'] = $arUser['NAME'];
         }
 
-        if (in_array($arUser['LAST_NAME'], $fioCrm)) {
+        if ($arUser['LAST_NAME'] !== '' && in_array($arUser['LAST_NAME'], $fioCrm)) {
             $order['lastName'] = $arUser['LAST_NAME'];
         }
 
