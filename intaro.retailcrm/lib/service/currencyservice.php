@@ -5,18 +5,18 @@ namespace Intaro\RetailCrm\Service;
 
 class CurrencyService
 {
-    public static function validateCurrency($cmsCurrency, $crmCurrency, $cmsSite = null, $crmSite = null)
+    public static function validateCurrency($cmsCurrency, $crmCurrency): string
     {
-        $errorMessage = '';
+        $errorCode = '';
 
         if ($cmsCurrency === null) {
-            $errorMessage = GetMessage('ERR_CMS_CURRENCY') . ' (' . $cmsSite . ')';
+            $errorCode = 'ERR_CMS_CURRENCY';
         } elseif ($crmCurrency === null) {
-            $errorMessage = GetMessage('ERR_CRM_CURRENCY') . ' (' . $crmSite . ')';
+            $errorCode = 'ERR_CRM_CURRENCY';
         } elseif ($cmsCurrency !== $crmCurrency) {
-            $errorMessage = GetMessage('ERR_CURRENCY_SITES') . ' (' . $crmSite . ')';
+            $errorCode = 'ERR_CURRENCY_SITES';
         }
 
-        return $errorMessage;
+        return $errorCode;
     }
 }

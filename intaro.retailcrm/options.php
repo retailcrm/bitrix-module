@@ -1093,19 +1093,24 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
                 $cmsCurrency = $arResult['arCurrencySites'][$LID] ?? null;
                 $crmCurrency = $arResult['sitesList'][$crmCode]['currency'] ?? null;
-                $crmSite = $arResult['sitesList'][$crmCode]['name'] ?? null;
+                $crmSiteName = $arResult['sitesList'][$crmCode]['name'] ?? null;
 
-                $errorsText[] = CurrencyService::validateCurrency($cmsCurrency, $crmCurrency, $LID, $crmSite);
+                $errorCode = CurrencyService::validateCurrency($cmsCurrency, $crmCurrency);
+
+                if ($errorCode === 'ERR_CMS_CURRENCY') {
+                    $errorsText[] = GetMessage($errorCode) . ' (' . $LID . ')';
+                } elseif($errorCode !== '') {
+                    $errorsText[] = GetMessage($errorCode) . ' (' . GetMessage('CRM_STORE') . $crmSiteName . ')';
+                }
             }
         } else {
             $LID = $arResult['arSites'][0]['LID'] ?? null;
             $cmsCurrency = $arResult['arCurrencySites'][$LID] ?? null;
 
             $crmSiteData = reset($arResult['sitesList']);
-            $crmSiteName = $crmSiteData['name'] ?? null;
             $crmCurrency = $crmSiteData['currency'] ?? null;
 
-            $errorsText[] = CurrencyService::validateCurrency($cmsCurrency, $crmCurrency, $LID, $crmSiteName);
+            $errorsText[] = GetMessage(CurrencyService::validateCurrency($cmsCurrency, $crmCurrency));
         }
     }
 

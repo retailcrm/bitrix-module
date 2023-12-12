@@ -243,6 +243,7 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../lib/component/constants.php');
         include($this->INSTALL_PATH . '/../lib/repository/agreementrepository.php');
         include($this->INSTALL_PATH . '/../lib/service/orderloyaltydataservice.php');
+        include($this->INSTALL_PATH . '/../lib/service/currencyservice.php');
         include($this->INSTALL_PATH . '/../lib/component/factory/clientfactory.php');
         include($this->INSTALL_PATH . '/../lib/component/apiclient/clientadapter.php');
 
@@ -312,9 +313,11 @@ class intaro_retailcrm extends CModule
 
             // form correct url
             $api_host = parse_url($api_host);
+
             if ($api_host['scheme'] !== 'https') {
                 $api_host['scheme'] = 'https';
             }
+
             $api_host = $api_host['scheme'] . '://' . $api_host['host'];
 
             if (!$api_host || !$api_key) {
@@ -394,18 +397,16 @@ class intaro_retailcrm extends CModule
                 foreach ($arResult['arSites'] as $bitrixSite) {
                     $LID = $bitrixSite['LID'] ?? null;
                     $cmsCurrency = $arResult['arCurrencySites'][$LID] ?? null;
+                    $crmCurrency = $arResult['sitesList'][$siteCode[$LID]]['currency'] ?? null;
 
-                    $crmCurrency = $arResult['sitesList'][$siteCode]['currency'] ?? null;
-                    $crmSite = $arResult['sitesList'][$siteCode]['name'] ?? null;
-
-                    $arResult['errCode'] = CurrencyService::validateCurrency($cmsCurrency, $crmCurrency, $LID, $crmSite);
+                    $arResult['errCode'] = CurrencyService::validateCurrency($cmsCurrency, $crmCurrency);
                 }
 
                 if (count($arResult['arSites']) != count($siteCode)) {
                     $arResult['errCode'] = 'ERR_FIELDS_API_HOST';
                 }
 
-                if (isset($arResult['errCode'])) {
+                if (!empty($arResult['errCode'])) {
                     $APPLICATION->IncludeAdminFile(
                         GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step11.php'
                     );
@@ -1452,9 +1453,10 @@ class intaro_retailcrm extends CModule
         global $APPLICATION;
 
         $client = new Client($api_host . '/api/'.self::V5, ['apiKey' => $api_key]);
+        $result = [];
 
         try {
-            $result = $client->makeRequest('/reference/sites', 'GET');
+            $siteResponse = $client->makeRequest('/reference/sites', 'GET');
             $bitrixSites = RCrmActions::getSitesList();
             $currencySites = RCrmActions::getCurrencySites();
         } catch (CurlException $e) {
@@ -1463,43 +1465,44 @@ class intaro_retailcrm extends CModule
                 $e->getCode() . ': ' . $e->getMessage()
             );
 
-            $res['errCode'] = 'ERR_' . $e->getCode();
+            $result['errCode'] = 'ERR_' . $e->getCode();
 
-            return $res;
+            return $result;
         }
 
-        //Проверка, что был получен корректный ответ
-        if (isset($result) && $result->getStatusCode() == 200) {
-            //Проверка количества магазинов, доступных по апи
-            if (count($bitrixSites) === 1 && count($result->sites) > 1) {
-                $res['errCode'] = 'ERR_COUNT_SITES';
+        // Проверка, что был получен корректный ответ
+        if (isset($siteResponse) && $siteResponse->getStatusCode() === 200) {
+            $sites = $siteResponse->sites ?? null;
+
+            if ($sites === null) {
+                $result['errCode'] = 'UNKNOWN_ERROR';
             }
 
-            if (!isset($res['errCode']) && count($bitrixSites) === 1 ) {
-                $LID = $bitrixSites[0]['LID'] ?? null;
-                $cmsCurrency = $arResult['arCurrencySites'][$LID] ?? null;
+            //Проверка количества магазинов, доступных по API
+            if (count($bitrixSites) === 1 && count($sites) > 1) {
+                $result['errCode'] = 'ERR_COUNT_SITES';
+            }
 
-                $crmSiteData = reset($arResult['sitesList']);
-                $crmSiteName = $crmSiteData['name'] ?? null;
+            if (!isset($result['errCode']) && count($bitrixSites) === 1 ) {
+                $LID = $bitrixSites[0]['LID'] ?? null;
+                $cmsCurrency = $currencySites[$LID] ?? null;
+
+                $crmSiteData = reset($sites);
                 $crmCurrency = $crmSiteData['currency'] ?? null;
 
-                $res['errCode'] = CurrencyService::validateCurrency($cmsCurrency, $crmCurrency, $LID, $crmSiteName);
+                $result['errCode'] = CurrencyService::validateCurrency($cmsCurrency, $crmCurrency);
             }
 
-            if (!isset($res)) {
+            if (empty($result['errCode'])) {
                 ConfigProvider::setApiVersion(self::V5);
 
-                $res['sitesList'] = $APPLICATION->ConvertCharsetArray(
-                    $result->sites,
-                    'utf-8',
-                    SITE_CHARSET
-                );
+                $result['sitesList'] = $APPLICATION->ConvertCharsetArray($sites, 'utf-8', SITE_CHARSET);
             }
         } else {
-            $res['errCode'] = 'ERR_METHOD_NOT_FOUND';
+            $result['errCode'] = 'ERR_METHOD_NOT_FOUND';
         }
 
-        return $res;
+        return $result;
     }
 
     /**
