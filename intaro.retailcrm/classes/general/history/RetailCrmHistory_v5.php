@@ -51,7 +51,6 @@ class RetailCrmHistory
     public static $CRM_DISCOUNT_ROUND = 'discount_round';
 
     const PAGE_LIMIT = 25;
-    const CANCEL_PROPERTY_CODE = 'INTAROCRM_IS_CANCELED';
 
     public static function customerHistory()
     {

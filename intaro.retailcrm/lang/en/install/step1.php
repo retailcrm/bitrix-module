@@ -19,3 +19,5 @@ $MESS ['ERR_COUNT_SITES'] = 'The API Key you entered relates to more than one st
 Change the access settings for the API key, it should work with only one store in CRM';
 $MESS ['ERR_CURRENCY_SITES'] = 'The currency of the site differs from the currency of the store in CRM.
 For the integration to work correctly, the currencies in CRM and CMS must match';
+$MESS ['ERR_CMS_CURRENCY'] = 'Failed to get Bitrix site currency';
+$MESS ['ERR_CRM_CURRENCY'] = 'Failed to get CRM store currency';

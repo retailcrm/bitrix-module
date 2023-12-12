@@ -1,13 +1,16 @@
 <?php
 
+use Bitrix\Sale\PersonType;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Bitrix\Sale\Delivery\Services\EmptyDeliveryService;
 use Bitrix\Sale\Internals\OrderPropsTable;
 use Bitrix\Sale\Internals\StatusTable;
 use Bitrix\Sale\PaySystem\Manager;
+use Intaro\RetailCrm\Service\Utils;
 use RetailCrm\Exception\CurlException;
 use RetailCrm\Exception\InvalidJsonException;
 use Intaro\RetailCrm\Service\ManagerService;
+use Bitrix\Sale\Internals\SiteCurrencyTable;
 
 IncludeModuleLangFile(__FILE__);
 
@@ -19,33 +22,19 @@ class RCrmActions
     public static $MODULE_ID = 'intaro.retailcrm';
     public static $CRM_ORDER_FAILED_IDS = 'order_failed_ids';
     public static $CRM_API_VERSION = 'api_version';
-    public const CANCEL_PROPERTY_CODE = 'INTAROCRM_IS_CANCELED';
 
     public static function getCurrencySites(): array
     {
-        global $DB;
-
         $sites = self::getSitesList();
-        $sitesLID = [];
+        $baseCurrency = CCurrency::GetBaseCurrency();
         $sitesCurrency = [];
 
         foreach ($sites as $site) {
-            $sitesLID[] = $site['LID'];
-        }
+            $siteCurrency = SiteCurrencyTable::getCurrency($site['LID']);
 
-        $currencies = $DB->Query(
-            "SELECT DISTINCT site.SMN_SITE_ID, hook_data.VALUE
-                FROM `b_landing_site` site
-                    LEFT JOIN `b_landing_hook_data` hook_data on site.ID = hook_data.ENTITY_ID
-                WHERE site.SMN_SITE_ID IN ('" . implode("', '", $sitesLID) . "')
-                AND hook_data.CODE = 'CURRENCY_ID';
-            "
-        );
-
-        while ($currencySite = $currencies->Fetch()) {
-            if (!empty($currencySite['SMN_SITE_ID'])) {
-                $sitesCurrency[$currencySite['SMN_SITE_ID']] = $currencySite['VALUE'];
-            }
+            $sitesCurrency[$site['LID']] = !empty($siteCurrency['CURRENCY'])
+                ? $siteCurrency['CURRENCY']
+                : $baseCurrency;
         }
 
         return $sitesCurrency;
@@ -68,17 +57,21 @@ class RCrmActions
 
     public static function OrderTypesList($arSites)
     {
-        $orderTypesList = array();
+        $orderTypesList = [];
+
         foreach ($arSites as $site) {
-            $personTypes = \Bitrix\Sale\PersonType::load($site['LID']);
-            $bitrixOrderTypesList = array();
+            $personTypes = PersonType::load($site['LID']);
+            $bitrixOrderTypesList = [];
+
             foreach ($personTypes as $personType) {
                 if (!array_key_exists($personType['ID'], $orderTypesList)) {
                     $bitrixOrderTypesList[$personType['ID']] = $personType;
                 }
+
                 asort($bitrixOrderTypesList);
             }
-            $orderTypesList = $orderTypesList + $bitrixOrderTypesList;
+
+            $orderTypesList += $bitrixOrderTypesList;
         }
 
         return $orderTypesList;
@@ -86,10 +79,11 @@ class RCrmActions
 
     public static function DeliveryList()
     {
-        $bitrixDeliveryTypesList = array();
+        $bitrixDeliveryTypesList = [];
         $arDeliveryServiceAll = \Bitrix\Sale\Delivery\Services\Manager::getActiveList();
         $noOrderId = EmptyDeliveryService::getEmptyDeliveryServiceId();
-        $groups = array();
+        $groups = [];
+
         foreach ($arDeliveryServiceAll as $arDeliveryService) {
             if ($arDeliveryService['CLASS_NAME'] == '\Bitrix\Sale\Delivery\Services\Group') {
                 $groups[] = $arDeliveryService['ID'];
@@ -112,11 +106,9 @@ class RCrmActions
 
     public static function PaymentList()
     {
-        $bitrixPaymentTypesList = array();
-        $dbPaymentAll = Manager::getList(array(
-            'select' => array('ID', 'NAME'),
-            'filter' => array('ACTIVE' => 'Y')
-        ));
+        $bitrixPaymentTypesList = [];
+        $dbPaymentAll = Manager::getList(['select' => ['ID', 'NAME'], 'filter' => ['ACTIVE' => 'Y']]);
+
         while ($payment = $dbPaymentAll->fetch()) {
             $bitrixPaymentTypesList[] = $payment;
         }
@@ -126,16 +118,14 @@ class RCrmActions
 
     public static function StatusesList()
     {
-        $bitrixPaymentStatusesList = array();
-        $obStatuses = StatusTable::getList(array(
-            'filter' => array('TYPE' => 'O', '=Bitrix\Sale\Internals\StatusLangTable:STATUS.LID' => LANGUAGE_ID),
-            'select' => array('ID', 'NAME' => 'Bitrix\Sale\Internals\StatusLangTable:STATUS.NAME')
-        ));
+        $bitrixPaymentStatusesList = [];
+        $obStatuses = StatusTable::getList([
+            'filter' => ['TYPE' => 'O', '=Bitrix\Sale\Internals\StatusLangTable:STATUS.LID' => LANGUAGE_ID],
+            'select' => ['ID', 'NAME' => 'Bitrix\Sale\Internals\StatusLangTable:STATUS.NAME'],
+        ]);
+
         while ($arStatus = $obStatuses->fetch()) {
-            $bitrixPaymentStatusesList[$arStatus['ID']] = array(
-                'ID'   => $arStatus['ID'],
-                'NAME' => $arStatus['NAME'],
-            );
+            $bitrixPaymentStatusesList[$arStatus['ID']] = ['ID'   => $arStatus['ID'], 'NAME' => $arStatus['NAME']];
         }
 
         return $bitrixPaymentStatusesList;
@@ -143,11 +133,9 @@ class RCrmActions
 
     public static function OrderPropsList()
     {
-        $bitrixPropsList = array();
-        $arPropsAll = OrderPropsTable::getList(array(
-            'select' => array('*'),
-            'filter' => array('CODE' => '_%')
-        ));
+        $bitrixPropsList = [];
+        $arPropsAll = OrderPropsTable::getList(['select' => ['*'], 'filter' => ['CODE' => '_%']]);
+
         while ($prop = $arPropsAll->Fetch()) {
             $bitrixPropsList[$prop['PERSON_TYPE_ID']][] = $prop;
         }
@@ -157,14 +145,8 @@ class RCrmActions
 
     public static function PricesExportList()
     {
-        $catalogExportPrices = array();
-        $dbPriceType = CCatalogGroup::GetList(
-            array(),
-            array(),
-            false,
-            false,
-            array('ID', 'NAME', 'NAME_LANG')
-        );
+        $catalogExportPrices = [];
+        $dbPriceType = CCatalogGroup::GetList([], [], false, false, ['ID', 'NAME', 'NAME_LANG']);
 
         while ($arPriceType = $dbPriceType->Fetch())
         {
@@ -176,8 +158,9 @@ class RCrmActions
 
     public static function StoresExportList()
     {
-        $catalogExportStores = array();
-        $dbStores = CCatalogStore::GetList(array(), array('ACTIVE' => 'Y'), false, false, array('ID', 'TITLE'));
+        $catalogExportStores = [];
+        $dbStores = CCatalogStore::GetList([], ['ACTIVE' => 'Y'], false, false, ['ID', 'TITLE']);
+
         while ($stores = $dbStores->Fetch()) {
             $catalogExportStores[] = $stores;
         }
@@ -187,18 +170,19 @@ class RCrmActions
 
     public static function IblocksExportList()
     {
-        $catalogExportIblocks = array();
-        $dbIblocks = CIBlock::GetList(array('IBLOCK_TYPE' => 'ASC', 'NAME' => 'ASC'), array('CHECK_PERMISSIONS' => 'Y', 'MIN_PERMISSION' => 'W'));
+        $catalogExportIblocks = [];
+        $dbIblocks = CIBlock::GetList(['IBLOCK_TYPE' => 'ASC', 'NAME' => 'ASC'], ['CHECK_PERMISSIONS' => 'Y', 'MIN_PERMISSION' => 'W']);
+
         while ($iblock = $dbIblocks->Fetch()) {
             if ($arCatalog = CCatalog::GetByIDExt($iblock['ID'])) {
                 if($arCatalog['CATALOG_TYPE'] == 'D' || $arCatalog['CATALOG_TYPE'] == 'X' || $arCatalog['CATALOG_TYPE'] == 'P') {
-                    $catalogExportIblocks[$iblock['ID']] = array(
+                    $catalogExportIblocks[$iblock['ID']] = [
                         'ID' => $iblock['ID'],
                         'IBLOCK_TYPE_ID' => $iblock['IBLOCK_TYPE_ID'],
                         'LID' => $iblock['LID'],
                         'CODE' => $iblock['CODE'],
                         'NAME' => $iblock['NAME'],
-                    );
+                    ];
 
                     if ($arCatalog['CATALOG_TYPE'] == 'X' || $arCatalog['CATALOG_TYPE'] == 'P') {
                         $iblockOffer = CCatalogSKU::GetInfoByProductIBlock($iblock['ID']);
@@ -289,8 +273,9 @@ class RCrmActions
      */
     public static function clearArr(array $arr): array
     {
-        /** @var \Intaro\RetailCrm\Service\Utils $utils */
-        $utils = ServiceLocator::getOrCreate(\Intaro\RetailCrm\Service\Utils::class);
+        /** @var Utils $utils */
+        $utils = ServiceLocator::getOrCreate(Utils::class);
+
         return $utils->clearArray($arr);
     }
 
@@ -302,8 +287,9 @@ class RCrmActions
      */
     public static function toJSON($str)
     {
-        /** @var \Intaro\RetailCrm\Service\Utils $utils */
-        $utils = ServiceLocator::getOrCreate(\Intaro\RetailCrm\Service\Utils::class);
+        /** @var Utils $utils */
+        $utils = ServiceLocator::getOrCreate(Utils::class);
+
         return $utils->toUTF8($str);
     }
 
@@ -319,8 +305,8 @@ class RCrmActions
             return ''; 
         }
 
-        /** @var \Intaro\RetailCrm\Service\Utils $utils */
-        $utils = ServiceLocator::getOrCreate(\Intaro\RetailCrm\Service\Utils::class);
+        /** @var Utils $utils */
+        $utils = ServiceLocator::getOrCreate(Utils::class);
 
         return $utils->fromUTF8($str);
     }
@@ -523,14 +509,14 @@ class RCrmActions
             case 'cartClear':
                 return self::proxy($api, $methodApi, $method, [$params, $site]);
             default:
-            return self::proxy($api, $methodApi, $method, array($params, $site));
+            return self::proxy($api, $methodApi, $method, [$params, $site]);
         }
     }
 
     private static function proxy($api, $methodApi, $method, $params) {
         $version = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_VERSION, 0);
         try {
-            $result = call_user_func_array(array($api, $methodApi), $params);
+            $result = call_user_func_array([$api, $methodApi], $params);
 
             if (!$result) {
                 $err = new RuntimeException(
@@ -551,21 +537,21 @@ class RCrmActions
                     || $methodApi == 'customersGet'
                     || $methodApi == 'customersCorporateGet'
                 ) {
-                    Logger::getInstance()->write(array(
+                    Logger::getInstance()->write([
                         'api' => $version,
                         'methodApi' => $methodApi,
                         'errorMsg' => !empty($result['errorMsg']) ? $result['errorMsg'] : '',
                         'errors' => !empty($result['errors']) ? $result['errors'] : '',
                         'params' => $params
-                    ), 'apiErrors');
+                    ], 'apiErrors');
                 } elseif ($methodApi == 'customersUpload' || $methodApi == 'ordersUpload') {
-                    Logger::getInstance()->write(array(
+                    Logger::getInstance()->write([
                         'api' => $version,
                         'methodApi' => $methodApi,
                         'errorMsg' => !empty($result['errorMsg']) ? $result['errorMsg'] : '',
                         'errors' => !empty($result['errors']) ? $result['errors'] : '',
                         'params' => $params
-                    ), 'uploadApiErrors');
+                    ], 'uploadApiErrors');
                 } elseif ($methodApi == 'cartGet') {
                     Logger::getInstance()->write(
                         [
@@ -584,13 +570,13 @@ class RCrmActions
                         !empty($result['errorMsg']) ? $result['errorMsg'] : ''
                     );
 
-                    Logger::getInstance()->write(array(
+                    Logger::getInstance()->write([
                         'api' => $version,
                         'methodApi' => $methodApi,
                         'errorMsg' => !empty($result['errorMsg']) ? $result['errorMsg'] : '',
                         'errors' => !empty($result['errors']) ? $result['errors'] : '',
                         'params' => $params,
-                    ), 'apiErrors');
+                    ], 'apiErrors');
                 }
 
                 if (function_exists('retailCrmApiResult')) {
@@ -671,13 +657,13 @@ class RCrmActions
             $exception->getCode() . ': ' . $exception->getMessage()
         );
 
-        Logger::getInstance()->write(array(
+        Logger::getInstance()->write([
             'api' => $version,
             'methodApi' => $methodApi,
             'errorMsg' => $exception->getMessage(),
             'errors' => $exception->getCode(),
             'params' => $params
-        ), 'apiErrors');
+        ], 'apiErrors');
 
         if (function_exists('retailCrmApiResult')) {
             retailCrmApiResult($methodApi, false, $apiResultExceptionName);

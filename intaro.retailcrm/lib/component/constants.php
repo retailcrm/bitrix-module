@@ -73,7 +73,6 @@ class Constants
     public const CRM_ORDER_HISTORY_DATE = 'order_history_date';
     public const CRM_CATALOG_BASE_PRICE = 'catalog_base_price';
     public const CRM_ORDER_DIMENSIONS = 'order_dimensions';
-    public const CANCEL_PROPERTY_CODE = 'INTAROCRM_IS_CANCELED';
     public const CRM_INTEGRATION_DELIVERY = 'integration_delivery';
     public const CRM_SHIPMENT_DEDUCTED        = 'shipment_deducted';
     public const CORPORATE_CONTRAGENT_TYPE    = 'legal-entity';

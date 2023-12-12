@@ -13,9 +13,10 @@ use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\Handlers\EventsHandlers;
 use Intaro\RetailCrm\Repository\AgreementRepository;
 use Intaro\RetailCrm\Repository\TemplateRepository;
+use Intaro\RetailCrm\Service\CurrencyService;
 use Intaro\RetailCrm\Service\OrderLoyaltyDataService;
+use Intaro\RetailCrm\Service\Utils as RetailCrmUtils;
 use RetailCrm\Exception\CurlException;
-use \Intaro\RetailCrm\Service\Utils as RetailcrmUtils;
 
 IncludeModuleLangFile(__FILE__);
 $mid = 'intaro.retailcrm';
@@ -605,7 +606,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
     if (isset($_POST['loyalty_toggle']) && $_POST['loyalty_toggle'] === 'on') {
         try {
-            $hlName = RetailcrmUtils::getHlClassByName(Constants::HL_LOYALTY_CODE);
+            $hlName = RetailCrmUtils::getHlClassByName(Constants::HL_LOYALTY_CODE);
 
             if (empty($hlName)) {
                 OrderLoyaltyDataService::createLoyaltyHlBlock();
@@ -1066,10 +1067,12 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
     $version = COption::GetOptionString($mid, $CRM_API_VERSION, 0);
 
-    //currency
-    $baseCurrency = \Bitrix\Currency\CurrencyManager::getBaseCurrency();
-    $currencyOption = COption::GetOptionString($mid, $CRM_CURRENCY, 0) ?: $baseCurrency;
-    $currencyList = \Bitrix\Currency\CurrencyManager::getCurrencyList();
+
+    // Old functional
+    $currencyOption = COption::GetOptionString($mid, $CRM_CURRENCY, 0) ?: CCurrency::GetBaseCurrency();
+
+    //Validate currency
+    $currencyList = CurrencyManager::getCurrencyList();
 
     $errorsText = [];
 
@@ -1088,29 +1091,26 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                     continue;
                 }
 
-                $currentCurrency = $baseCurrency;
+                $cmsCurrency = $arResult['arCurrencySites'][$LID] ?? null;
+                $crmCurrency = $arResult['sitesList'][$crmCode]['currency'] ?? null;
+                $crmSiteName = $arResult['sitesList'][$crmCode]['name'] ?? null;
 
-                if (isset($arResult['arCurrencySites'][$LID])) {
-                    $currentCurrency = $arResult['arCurrencySites'][$LID];
-                }
+                $errorCode = CurrencyService::validateCurrency($cmsCurrency, $crmCurrency);
 
-                if ($currentCurrency !== $arResult['sitesList'][$crmCode]['currency']) {
-                    $errorsText[] = GetMessage('ERR_CURRENCY_SITES') . ' (' . $arResult['sitesList'][$crmCode]['name'] . ')';
+                if ($errorCode === 'ERR_CMS_CURRENCY') {
+                    $errorsText[] = GetMessage($errorCode) . ' (' . $LID . ')';
+                } elseif($errorCode !== '') {
+                    $errorsText[] = GetMessage($errorCode) . ' (' . GetMessage('CRM_STORE') . $crmSiteName . ')';
                 }
             }
         } else {
-            $currentCurrency = $baseCurrency;
-            $LID = $arResult['arSites'][0]['LID'];
+            $LID = $arResult['arSites'][0]['LID'] ?? null;
+            $cmsCurrency = $arResult['arCurrencySites'][$LID] ?? null;
 
-            if (isset($arResult['arCurrencySites'][$LID])) {
-                $currentCurrency = $arResult['arCurrencySites'][$LID];
-            }
+            $crmSiteData = reset($arResult['sitesList']);
+            $crmCurrency = $crmSiteData['currency'] ?? null;
 
-            $crmSite = reset($arResult['sitesList']);
-
-            if ($currentCurrency !== $crmSite['currency']) {
-                $errorsText[] = GetMessage('ERR_CURRENCY_SITES') . ' (' . $crmSite['name'] . ')';
-            }
+            $errorsText[] = GetMessage(CurrencyService::validateCurrency($cmsCurrency, $crmCurrency));
         }
     }
 
