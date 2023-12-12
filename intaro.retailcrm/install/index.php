@@ -15,6 +15,7 @@ use Bitrix\Sale\EventActions;
 use Bitrix\Sale\Internals\OrderTable;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Installer\InstallerTrait;
+use Intaro\RetailCrm\Service\CurrencyService;
 use Intaro\RetailCrm\Service\OrderLoyaltyDataService;
 use Intaro\RetailCrm\Vendor\Symfony\Component\Process\PhpExecutableFinder;
 use RetailCrm\ApiClient;
@@ -391,14 +392,13 @@ class intaro_retailcrm extends CModule
                 }
 
                 foreach ($arResult['arSites'] as $bitrixSite) {
-                    $LID = $bitrixSite['LID'];
+                    $LID = $bitrixSite['LID'] ?? null;
+                    $cmsCurrency = $arResult['arCurrencySites'][$LID] ?? null;
 
-                    if (
-                        isset($arResult['sitesList'][$siteCode[$LID]])
-                        && $arResult['arCurrencySites'][$LID] !== $arResult['sitesList'][$siteCode[$LID]]['currency'])
-                    {
-                        $arResult['errCode'] = 'ERR_CURRENCY_SITES';
-                    }
+                    $crmCurrency = $arResult['sitesList'][$siteCode]['currency'] ?? null;
+                    $crmSite = $arResult['sitesList'][$siteCode]['name'] ?? null;
+
+                    $arResult['errCode'] = CurrencyService::validateCurrency($cmsCurrency, $crmCurrency, $LID, $crmSite);
                 }
 
                 if (count($arResult['arSites']) != count($siteCode)) {
@@ -1476,13 +1476,14 @@ class intaro_retailcrm extends CModule
             }
 
             if (!isset($res['errCode']) && count($bitrixSites) === 1 ) {
-                $LID = $bitrixSites[0]['LID'];
+                $LID = $bitrixSites[0]['LID'] ?? null;
+                $cmsCurrency = $arResult['arCurrencySites'][$LID] ?? null;
 
-                $crmSite = reset($result->sites);
+                $crmSiteData = reset($arResult['sitesList']);
+                $crmSiteName = $crmSiteData['name'] ?? null;
+                $crmCurrency = $crmSiteData['currency'] ?? null;
 
-                if ($currencySites[$LID] !== $crmSite['currency']) {
-                    $res['errCode'] = 'ERR_CURRENCY_SITES';
-                }
+                $res['errCode'] = CurrencyService::validateCurrency($cmsCurrency, $crmCurrency, $LID, $crmSiteName);
             }
 
             if (!isset($res)) {

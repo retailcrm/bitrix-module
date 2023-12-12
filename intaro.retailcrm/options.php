@@ -13,9 +13,10 @@ use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\Handlers\EventsHandlers;
 use Intaro\RetailCrm\Repository\AgreementRepository;
 use Intaro\RetailCrm\Repository\TemplateRepository;
+use Intaro\RetailCrm\Service\CurrencyService;
 use Intaro\RetailCrm\Service\OrderLoyaltyDataService;
+use Intaro\RetailCrm\Service\Utils as RetailcrmUtils;
 use RetailCrm\Exception\CurlException;
-use \Intaro\RetailCrm\Service\Utils as RetailcrmUtils;
 
 IncludeModuleLangFile(__FILE__);
 $mid = 'intaro.retailcrm';
@@ -1090,18 +1091,21 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                     continue;
                 }
 
-                if ($arResult['arCurrencySites'][$LID] !== $arResult['sitesList'][$crmCode]['currency']) {
-                    $errorsText[] = GetMessage('ERR_CURRENCY_SITES') . ' (' . $arResult['sitesList'][$crmCode]['name'] . ')';
-                }
+                $cmsCurrency = $arResult['arCurrencySites'][$LID] ?? null;
+                $crmCurrency = $arResult['sitesList'][$crmCode]['currency'] ?? null;
+                $crmSite = $arResult['sitesList'][$crmCode]['name'] ?? null;
+
+                $errorsText[] = CurrencyService::validateCurrency($cmsCurrency, $crmCurrency, $LID, $crmSite);
             }
         } else {
-            $LID = $arResult['arSites'][0]['LID'];
+            $LID = $arResult['arSites'][0]['LID'] ?? null;
+            $cmsCurrency = $arResult['arCurrencySites'][$LID] ?? null;
 
-            $crmSite = reset($arResult['sitesList']);
+            $crmSiteData = reset($arResult['sitesList']);
+            $crmSiteName = $crmSiteData['name'] ?? null;
+            $crmCurrency = $crmSiteData['currency'] ?? null;
 
-            if ($arResult['arCurrencySites'][$LID] !== $crmSite['currency']) {
-                $errorsText[] = GetMessage('ERR_CURRENCY_SITES') . ' (' . $crmSite['name'] . ')';
-            }
+            $errorsText[] = CurrencyService::validateCurrency($cmsCurrency, $crmCurrency, $LID, $crmSiteName);
         }
     }
 
