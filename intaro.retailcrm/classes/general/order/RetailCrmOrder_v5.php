@@ -8,6 +8,7 @@ use Bitrix\Sale\Internals\Fields;
 use Bitrix\Sale\Internals\OrderTable;
 use Bitrix\Sale\Location\LocationTable;
 use Bitrix\Sale\Order;
+use Intaro\RetailCrm\Component\ApiClient\ClientAdapter;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Service\LoyaltyService;
@@ -422,13 +423,14 @@ class RetailCrmOrder
 
         Logger::getInstance()->write($order, 'orderSend');
 
-        /** @var \Intaro\RetailCrm\Component\ApiClient\ClientAdapter $client */
+        /** @var ClientAdapter $client */
         $client = ClientFactory::createClientAdapter();
+        $userId = $arOrder['USER_ID'];
+        $arUser = UserTable::getById($userId)->fetch();
 
         // Check and set privilegeType
-        $order['privilegeType'] = LoyaltyAccountService::getPrivilegeType($client, $arParams);
+        $order['privilegeType'] = LoyaltyAccountService::getPrivilegeType($client, $userId, $arParams);
 
-        $arUser = UserTable::getById($arOrder['USER_ID'])->fetch();
         $fioCrm = [$order['firstName'] ?? null, $order['lastName'] ?? null, $order['patronymic'] ?? null];
 
         if ($arUser['NAME'] !== '' && in_array($arUser['NAME'], $fioCrm)) {

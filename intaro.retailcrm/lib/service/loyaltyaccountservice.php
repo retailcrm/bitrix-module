@@ -211,13 +211,19 @@ class LoyaltyAccountService
     /**
      * Возвращает статус пользователя в системе лояльности
      *
+     * @param $userId
+     *
      * @return bool
      */
-    public static function getLoyaltyPersonalStatus(): bool
+    public static function getLoyaltyPersonalStatus($userId = null): bool
     {
-        global $USER;
+        if ($userId === null) {
+            global $USER;
 
-        $userFields = CUser::GetByID($USER->GetID())->Fetch();
+            $userId = $USER->GetID();
+        }
+
+        $userFields = CUser::GetByID($userId)->Fetch();
 
         return isset($userFields['UF_EXT_REG_PL_INTARO']) && $userFields['UF_EXT_REG_PL_INTARO'] === '1';
     }
@@ -225,13 +231,13 @@ class LoyaltyAccountService
     /**
      * Возвращает ID аккаунта в программе лояльности
      *
+     * @param $userId
+     *
      * @return int|null
      */
-    public static function getLoyaltyAccountId(): ?int
+    public static function getLoyaltyAccountId($userId): ?int
     {
-        global $USER;
-
-        $userFields = CUser::GetByID($USER->GetID())->Fetch();
+        $userFields = CUser::GetByID($userId)->Fetch();
 
         return $userFields['UF_LP_ID_INTARO'] ?? null;
     }
@@ -244,18 +250,19 @@ class LoyaltyAccountService
      *  4. Программа лояльности деактивирована в CRM.
      *
      * @param $client
+     * @param $userId
      * @param array $arParams
      *
      * @return string
      */
-    public static function getPrivilegeType($client, array $arParams = []): string
+    public static function getPrivilegeType($client, $userId, array $arParams = []): string
     {
         $file = 'loyaltyStatus';
         $privilegeType = 'none';
 
         if (!empty($arParams['customerCorporate']['privilegeType'])) {
             $privilegeType = $arParams['crmOrder']['privilegeType'];
-        } elseif (ConfigProvider::getLoyaltyProgramStatus() === 'Y' && self::getLoyaltyPersonalStatus()) {
+        } elseif (ConfigProvider::getLoyaltyProgramStatus() === 'Y' && self::getLoyaltyPersonalStatus($userId)) {
             $privilegeType = 'loyalty_level';
         }
 
@@ -267,7 +274,7 @@ class LoyaltyAccountService
             return 'none';
         }
 
-        $loyaltyAccountId = self::getLoyaltyAccountId();
+        $loyaltyAccountId = self::getLoyaltyAccountId($userId);
 
         if ($loyaltyAccountId === null) {
             Logger::getInstance()->write('Участие клиента не найдено', $file);
