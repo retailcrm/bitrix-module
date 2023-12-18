@@ -944,16 +944,16 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
         foreach ($arResult['bitrixOrdersCustomProp'] as $list) {
             foreach ($list as $code => $text) {
-                if (!empty($_POST['bitrixOrderProp_' . $code]) && !empty($_POST['crmOrderField_' . $code])) {
-                    $customOrderProps[htmlspecialchars($_POST['bitrixOrderProp_' . $code])] = htmlspecialchars($_POST['crmOrderField_' . $code]);
+                if (!empty($_POST['bitrixOrderFields_' . $code]) && !empty($_POST['crmOrderFields_' . $code])) {
+                    $customOrderProps[htmlspecialchars($_POST['bitrixOrderFields_' . $code])] = htmlspecialchars($_POST['crmOrderFields_' . $code]);
                 }
             }
         }
 
         foreach ($arResult['bitrixCustomUserFields'] as $list) {
             foreach ($list as $code => $text) {
-                if (!empty($_POST['bitrixUserField_' . $code]) && !empty($_POST['crmUserField_' . $code])) {
-                    $customUserFields[htmlspecialchars($_POST['bitrixUserField_' . $code])] = htmlspecialchars($_POST['crmUserField_' . $code]);
+                if (!empty($_POST['bitrixUserFields_' . $code]) && !empty($_POST['crmUserFields_' . $code])) {
+                    $customUserFields[htmlspecialchars($_POST['bitrixUserFields_' . $code])] = htmlspecialchars($_POST['crmUserFields_' . $code]);
                 }
             }
         }
@@ -1408,51 +1408,76 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             $('#custom_fields_settings').toggle(500);
         }
 
-        function createMatchedOrder()
+        function createMatched(type)
         {
-            let elements = document.getElementsByClassName("adm-list-table-row matchedProps");
+            let bitrixName = "bitrix" + type + "Fields";
+            let crmName = "crm" + type + "Fields";
+
+            let elements = document.getElementsByClassName("adm-list-table-row matched-" + type);
             let nextId = 1;
 
             if (elements.length >= 1) {
-                let lastElement = elements[elements.length-1];
-                nextId = parseInt(lastElement.id.replace("matchedOrderProps_", "")) + 1;
+                let lastElement = elements[elements.length - 1];
+                nextId = parseInt(lastElement.id.replace("matched" + type + "Fields_", "")) + 1;
             }
 
-            let matchedBlank = document.getElementById("orderMatchedPropsBlank");
+            let matchedBlank = document.getElementById(type + "MatchedFieldsBlank");
             let matchedElement = matchedBlank.cloneNode(true);
 
             matchedElement.classList.add("adm-list-table-row");
-            matchedElement.classList.add("matchedProps");
-            matchedElement.setAttribute("id", "matchedOrderProps_" + nextId);
-            matchedElement.querySelector("select[name='bitrixOrderProp']").setAttribute("name", "bitrixOrderProp_"  + nextId);
-            matchedElement.querySelector("select[name='crmOrderField']").setAttribute("name", "crmOrderField_"  + nextId);
+            matchedElement.classList.add("matched-" + type);
+            matchedElement.setAttribute("id", "matched" + type + "Fields_" + nextId);
+            matchedElement.querySelector(`select[name=${bitrixName}`).setAttribute("name", bitrixName + "_" + nextId);
+            matchedElement.querySelector(`select[name=${crmName}`).setAttribute("name", crmName + "_" + nextId);
             matchedElement.removeAttribute("hidden");
 
-            document.getElementById("prop_matched").appendChild(matchedElement);
+            document.getElementById(type + "_matched").appendChild(matchedElement);
+        }
+
+        function createMatchedOrder()
+        {
+            let elements = document.getElementsByClassName("adm-list-table-row matched-Order");
+            let nextId = 1;
+
+            if (elements.length >= 1) {
+                let lastElement = elements[elements.length - 1];
+                nextId = parseInt(lastElement.id.replace("matchedOrderFields_", "")) + 1;
+            }
+
+            let matchedBlank = document.getElementById("OrderMatchedFieldsBlank");
+            let matchedElement = matchedBlank.cloneNode(true);
+
+            matchedElement.classList.add("adm-list-table-row");
+            matchedElement.classList.add("matched-Order");
+            matchedElement.setAttribute("id", "matchedOrderFields_" + nextId);
+            matchedElement.querySelector("select[name='bitrixOrderFields']").setAttribute("name", "bitrixOrderFields_"  + nextId);
+            matchedElement.querySelector("select[name='crmOrderFields']").setAttribute("name", "crmOrderFields_"  + nextId);
+            matchedElement.removeAttribute("hidden");
+
+            document.getElementById("Order_matched").appendChild(matchedElement);
         }
 
         function createMatchedUser()
         {
-            let elements = document.getElementsByClassName("adm-list-table-row matchedField");
+            let elements = document.getElementsByClassName("adm-list-table-row matched-User");
             let nextId = 1;
 
             if (elements.length >= 1) {
                 let lastElement = elements[elements.length-1];
-                nextId = parseInt(lastElement.id.replace("matchedUserProps_", "")) + 1;
+                nextId = parseInt(lastElement.id.replace("matchedUserFields_", "")) + 1;
             }
 
-            let matchedBlank = document.getElementById("userMatchedFieldsBlank");
+            let matchedBlank = document.getElementById("UserMatchedFieldsBlank");
             let matchedElement = matchedBlank.cloneNode(true);
 
             matchedElement.classList.add("adm-list-table-row");
-            matchedElement.classList.add("matchedField");
-            matchedElement.setAttribute("id", "matchedUserProps_" + nextId);
-            matchedElement.querySelector("select[name='bitrixUserField']").setAttribute("name", "bitrixUserField_" + nextId);
-            matchedElement.querySelector("select[name='crmUserField']").setAttribute("name", "crmUserField_"  + nextId);
+            matchedElement.classList.add("matched-User");
+            matchedElement.setAttribute("id", "matchedUserFields_" + nextId);
+            matchedElement.querySelector("select[name='bitrixUserFields']").setAttribute("name", "bitrixUserFields_" + nextId);
+            matchedElement.querySelector("select[name='crmUserFields']").setAttribute("name", "crmUserFields_"  + nextId);
             matchedElement.removeAttribute("hidden");
 
-            document.getElementById("field_matched").appendChild(matchedElement);
-
+            document.getElementById("User_matched").appendChild(matchedElement);
         }
 
         function deleteMatched(element)
@@ -1462,16 +1487,16 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
         function generateEmptyMatched()
         {
-            let elements = document.getElementsByClassName("adm-list-table-row matchedProps");
+            let elements = document.getElementsByClassName("adm-list-table-row matched-Order");
 
             if (elements.length < 1) {
-                createMatchedOrder();
+                createMatched("Order");
             }
 
-            elements = document.getElementsByClassName("adm-list-table-row matchedField");
+            elements = document.getElementsByClassName("adm-list-table-row matched-User");
 
             if (elements.length < 1) {
-                createMatchedUser();
+                createMatched("User");
             }
         }
 
@@ -2304,20 +2329,20 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                             <tfoot>
                                 <tr>
                                     <th class="option-head option-other-top option-other-bottom" colspan="4">
-                                        <button class="adm-btn-save" type="button" onclick="createMatchedOrder()"><?php echo GetMessage('ADD_LABEL'); ?></button>
+                                        <button class="adm-btn-save" type="button" onclick="createMatched(`Order`)"><?php echo GetMessage('ADD_LABEL'); ?></button>
                                     </th>
                                 </tr>
                             </tfoot>
-                            <tbody id="prop_matched">
+                            <tbody id="Order_matched">
                                 <?php
                                     $matchedPropsNum = 1;
                                     foreach ($arResult['matchedOrderProps'] as $bitrixProp => $crmField) {?>
-                                        <tr class="adm-list-table-row matchedProps" id="matchedOrderProps_<?php echo $matchedPropsNum ?>">
+                                        <tr class="adm-list-table-row matched-Order" id="matchedOrderFields_<?php echo $matchedPropsNum ?>">
                                             <td class="adm-list-table-cell adm-detail-content-cell-l" colspan="2" width="50%">
                                                 <select
                                                     style="width: 200px;" class="typeselect"
-                                                    name="bitrixOrderProp_<?php echo $bitrixProp ?>"
-                                                    onchange="changeSelectBitrixValue(this, 'bitrixOrderProp_', 'crmOrderField_');"
+                                                    name="bitrixOrderFields_<?php echo $bitrixProp ?>"
+                                                    onchange="changeSelectBitrixValue(this, 'bitrixOrderFields_', 'crmOrderFields_');"
                                                 >
                                                     <option value=""></option>
 
@@ -2339,7 +2364,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                                 &nbsp;&nbsp;&nbsp;&nbsp;
                                                 <select
                                                         style="width: 200px;" class="typeselect"
-                                                        name="crmOrderField_<?php echo $bitrixProp ?>"
+                                                        name="crmOrderFields_<?php echo $bitrixProp ?>"
                                                         id="crmOrder_<?php echo $crmField?>"
                                                         onchange="changeSelectCrmValue(this, 'crmOrder_')"
                                                 >
@@ -2378,20 +2403,20 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                             <tfoot>
                             <tr>
                                 <th class="option-head option-other-top option-other-bottom" colspan="4">
-                                    <button class="adm-btn-save" type="button" onclick="createMatchedUser()"><?php echo GetMessage('ADD_LABEL'); ?></button>
+                                    <button class="adm-btn-save" type="button" onclick="createMatched(`User`)"><?php echo GetMessage('ADD_LABEL'); ?></button>
                                 </th>
                             </tr>
                             </tfoot>
-                            <tbody id="field_matched">
+                            <tbody id="User_matched">
                             <?php
                             $matchedFieldsNum = 1;
                             foreach ($arResult['matchedUserFields'] as $bitrixProp => $crmField) {?>
-                                <tr class="adm-list-table-row matchedField" id="matchedUserProps_<?php echo $matchedFieldsNum ?>">
+                                <tr class="adm-list-table-row matched-User" id="matchedUserFields_<?php echo $matchedFieldsNum ?>">
                                     <td class="adm-list-table-cell adm-detail-content-cell-l" colspan="2" width="50%">
                                         <select
                                                 style="width: 200px;" class="typeselect"
-                                                name="bitrixUserField_<?php echo $bitrixProp ?>"
-                                                onchange="changeSelectBitrixValue(this, 'bitrixUserField_', 'crmUserField_');"
+                                                name="bitrixUserFields_<?php echo $bitrixProp ?>"
+                                                onchange="changeSelectBitrixValue(this, 'bitrixUserFields_', 'crmUserFields_');"
                                         >
                                             <option value=""></option>
                                             <?php foreach ($arResult['bitrixCustomUserFields'] as $type => $mass) {?>
@@ -2412,7 +2437,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                         &nbsp;&nbsp;&nbsp;&nbsp;
                                         <select
                                                 style="width: 200px;" class="typeselect"
-                                                name="crmUserField_<?php echo $bitrixProp ?>"
+                                                name="crmUserFields_<?php echo $bitrixProp ?>"
                                                 id="crmClient_<?php echo $crmField?>"
                                                 onchange="changeSelectCrmValue(this, 'crmClient_')"
                                         >
@@ -2441,12 +2466,12 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 </td>
             </tr>
 
-        <tr id="orderMatchedPropsBlank" hidden="hidden">
+        <tr id="OrderMatchedFieldsBlank" hidden="hidden">
             <td class="adm-list-table-cell adm-detail-content-cell-l" colspan="2" width="50%">
                 <select
                         style="width: 200px;" class="typeselect"
-                        name="bitrixOrderProp"
-                        onchange="changeSelectBitrixValue(this, 'bitrixOrderProp_', 'crmOrderField_');"
+                        name="bitrixOrderFields"
+                        onchange="changeSelectBitrixValue(this, 'bitrixOrderFields_', 'crmOrderFields_');"
                 >
                     <option value=""></option>
                     <?php foreach ($arResult['bitrixOrdersCustomProp'] as $type => $mass) {?>
@@ -2468,7 +2493,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 &nbsp;&nbsp;&nbsp;&nbsp;
                 <select
                         style="width: 200px;" class="typeselect"
-                        name="crmOrderField"
+                        name="crmOrderFields"
                         onchange="changeSelectCrmValue(this, 'crmOrder_')"
                 >
                     <option value=""></option>
@@ -2490,12 +2515,12 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             </td>
         </tr>
 
-        <tr id="userMatchedFieldsBlank" hidden="hidden">
+        <tr id="UserMatchedFieldsBlank" hidden="hidden">
             <td class="adm-list-table-cell adm-detail-content-cell-l" colspan="2" width="50%">
                 <select
                         style="width: 200px;" class="typeselect"
-                        name="bitrixUserField"
-                        onchange="changeSelectBitrixValue(this, 'bitrixUserField_', 'crmUserField_');"
+                        name="bitrixUserFields"
+                        onchange="changeSelectBitrixValue(this, 'bitrixUserFields_', 'crmUserFields_');"
                 >
                     <option value=""></option>
                     <?php foreach ($arResult['bitrixCustomUserFields'] as $type => $mass) {?>
@@ -2513,7 +2538,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 &nbsp;&nbsp;&nbsp;&nbsp;
                 <select
                         style="width: 200px;" class="typeselect"
-                        name="crmUserField"
+                        name="crmUserFields"
                         onchange="changeSelectCrmValue(this, 'crmClient_')"
                 >
                     <option value=""></option>

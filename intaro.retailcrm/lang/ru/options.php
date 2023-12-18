@@ -179,7 +179,7 @@ $MESS ['ORDER_TRACK_NUMBER'] = 'Получать трек-номер';
 
 $MESS ['CUSTOM_FIELDS_TITLE'] = 'Пользовательские поля';
 $MESS ['CUSTOM_FIELDS_CAPTION'] = 'Сопоставление пользовательских полей';
-$MESS ['CUSTOM_FIELDS_TOGGLE_MSG'] = 'Активность обмена пользовательскими полями';
+$MESS ['CUSTOM_FIELDS_TOGGLE_MSG'] = 'Активировать синхронизацию пользовательских полей';
 $MESS ['CUSTOM_FIELDS_ORDER_LABEL'] = 'Свойство заказа Битрикс/Пользовательское поле RetailCRM';
 $MESS ['CUSTOM_FIELDS_USER_LABEL'] = 'Пользовательское поле Битрикс/Пользовательское поле RetailCRM';
 $MESS ['INTEGER_TYPE'] = 'Целое число';

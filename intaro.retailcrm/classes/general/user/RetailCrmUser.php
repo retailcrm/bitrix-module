@@ -169,7 +169,7 @@ class RetailCrmUser
         foreach ($customUserFields as $code => $codeCrm) {
             if (isset($arFields[$code])) {
                 $type = $typeList[$code] ?? '';
-                $result[$codeCrm] = RCrmActions::convertFieldToCrmValue($arFields[$code], $type);
+                $result[$codeCrm] = RCrmActions::convertCmsFieldToCrmValue($arFields[$code], $type);
             }
         }
 

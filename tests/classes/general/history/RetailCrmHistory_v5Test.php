@@ -42,7 +42,7 @@ class RetailCrmHistory_v5Test extends \BitrixTestCase
         $actionsMock->shouldReceive('getTypeUserField')->withAnyArgs()->andReturn([
             'UF_FIELD_USER_1' => 'string', 'UF_FIELD_USER_2' => 'string'
         ]);
-        $actionsMock->shouldReceive('convertCrmValueToFieldUser')->byDefault();
+        $actionsMock->shouldReceive('convertCrmValueToCmsField')->byDefault();
 
         $this->deleteTestingUser();
         RetailCrmHistory::customerHistory();

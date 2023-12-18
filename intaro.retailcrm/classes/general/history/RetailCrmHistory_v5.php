@@ -212,9 +212,9 @@ class RetailCrmHistory
                     $customerArray = $customerBuilder->getCustomer()->getObjectToArray();
                     $customerArray = array_merge($customerArray, $customFields);
 
-                    $u = $newUser->Update($customer['externalId'], self::convertBooleanFields($customerArray));
+                    $queryUpdate = $newUser->Update($customer['externalId'], self::convertBooleanFields($customerArray));
 
-                    if (!$u) {
+                    if (!$queryUpdate) {
                         RCrmActions::eventLog(
                             'RetailCrmHistory::customerHistory',
                             'Error update user',
@@ -1255,10 +1255,10 @@ class RetailCrmHistory
                             if (isset($matchedCustomOrderFields[$code])) {
                                 $masIdentifier = explode('#', $matchedCustomOrderFields[$code], 2);
                                 $property = $propertyCollection->getItemByOrderPropertyId($masIdentifier[0]);
-                                $value = RCrmActions::convertCrmValueToPropOrder($property, $value);
-                                $r = $property->setField('VALUE', $value);
+                                $value = RCrmActions::convertCrmValueToCmsField($value, $property->getType());
+                                $queryResult = $property->setField('VALUE', $value);
 
-                                if (!$r->isSuccess()) {
+                                if (!$queryResult->isSuccess()) {
                                     RCrmActions::eventLog(
                                         'RetailCrmHistory::orderHistory',
                                         'CustomOrderPropSave',
@@ -2190,7 +2190,7 @@ class RetailCrmHistory
             foreach ($customer['customFields'] as $code => $value) {
                 if (isset($matchedCustomFields[$code]) && !empty($customUserFieldTypes[$matchedCustomFields[$code]])) {
                     $type = $customUserFieldTypes[$matchedCustomFields[$code]];
-                    $customFields[$matchedCustomFields[$code]] = RCrmActions::convertCrmValueToFieldUser($value, $type);
+                    $customFields[$matchedCustomFields[$code]] = RCrmActions::convertCrmValueToCmsField($value, $type);
                 }
             }
         }

@@ -470,9 +470,8 @@ class RCrmActions
                 ['MULTIPLE' => 'N'],
                 ['ACTIVE' => 'Y']
             ]
-        ]);
+        ])->fetchAll();
 
-        $propsList = $propsList->fetchAll();
         $resultList = [];
 
         foreach ($propsList as $prop) {
@@ -552,7 +551,7 @@ class RCrmActions
         return $result;
     }
 
-    public static function convertFieldToCrmValue($value, $type)
+    public static function convertCmsFieldToCrmValue($value, $type)
     {
         $result = $value;
 
@@ -564,75 +563,58 @@ class RCrmActions
             $result = date('Y-m-d', strtotime($value));
         }
 
+        switch ($type) {
+            case 'boolean':
+                $result = $value === '1' ? 1 : 0;
+                break;
+            case 'Y/N':
+                $result = $result === 'Y' ? 1 : 0;
+                break;
+            case 'STRING':
+            case 'string':
+                if (strlen($value) > 500) {
+                    $result = '';
+                }
+
+                break;
+            case 'datetime':
+                $result = date('Y-m-d', strtotime($value));
+                break;
+        }
+
         return $result;
     }
 
-    public static function convertCrmValueToFieldUser($crmValue, $type)
+    public static function convertCrmValueToCmsField($crmValue, $type)
     {
         $result = $crmValue;
 
-        if ($type === 'boolean') {
-            $result = $crmValue == 1 ? 'Y' : 'N';
-        }
+        switch ($type) {
+            case 'Y/N':
+            case 'boolean':
+                $result = $crmValue == 1 ? 'Y' : 'N';
+                break;
+            case 'DATE':
+            case 'date':
+                if (empty($crmValue)) {
+                    return '';
+                }
 
-        if ($type === 'date') {
-            if (empty($crmValue)) {
-                return '';
-            }
+                try {
+                    $result = date('d.m.Y', strtotime($crmValue));
+                } catch (\Exception $exception) {
+                    $result = '';
+                }
 
-            try {
-                $result = date('d.m.Y', strtotime($crmValue));
-            } catch (\Exception $exception) {
-                $result = '';
-            }
-        }
+                break;
+            case 'STRING':
+            case 'string':
+            case 'text':
+                if (strlen($result) > 500) {
+                    $result = '';
+                }
 
-        if (array_search($type, ['string', 'text']) && strlen($result) > 500) {
-            $result = '';
-        }
-
-        return $result;
-    }
-
-
-    public static function convertPropToCrmValue($prop)
-    {
-        $result = $prop['VALUE'][0];
-
-        if ($prop['TYPE'] === 'Y/N') {
-            $result = $prop['VALUE'][0] === 'Y' ? 1 : 0;
-        }
-
-        if ($prop['TYPE'] === 'STRING' && strlen($result) > 500) {
-            $result = '';
-        }
-
-        return $result;
-    }
-
-    public static function convertCrmValueToPropOrder($objProperty, $crmValue)
-    {
-        $result = $crmValue;
-        $typeField = $objProperty->getType();
-
-        if ($typeField === 'Y/N') {
-            $result = $crmValue == 1 ? 'Y' : 'N';
-        }
-
-        if ($typeField === 'DATE') {
-            if (empty($crmValue)) {
-                return '';
-            }
-
-            try {
-                $result = date('d.m.Y', strtotime($crmValue));
-            } catch (\Exception $exception) {
-                $result = '';
-            }
-        }
-
-        if ($typeField === 'STRING' && strlen($crmValue) > 500) {
-            $result = '';
+                break;
         }
 
         return $result;
