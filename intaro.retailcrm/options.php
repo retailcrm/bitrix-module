@@ -2383,7 +2383,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                                     <?php } ?>
                                                 </select>
                                                 &nbsp;
-                                                <a onclick="deleteMatched(this)">Удалить</a>
+                                                <a onclick="deleteMatched(this)" style="cursor: pointer"><?php echo GetMessage('DELETE_MATCHED'); ?></a>
                                             </td>
                                         </tr>
                                 <?php $matchedPropsNum++; }?>
@@ -2456,7 +2456,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                                             <?php } ?>
                                         </select>
                                         &nbsp;
-                                        <a onclick="deleteMatched(this)">Удалить</a>
+                                        <a onclick="deleteMatched(this)" style="cursor: pointer"><?php echo GetMessage('DELETE_MATCHED'); ?></a>
                                     </td>
                                 </tr>
                                 <?php $matchedFieldsNum++; }?>
@@ -2511,7 +2511,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                     <?php } ?>
                 </select>
                 &nbsp;
-                <a onclick="deleteMatched(this)">Удалить</a>
+                <a onclick="deleteMatched(this)" style="cursor: pointer"><?php echo GetMessage('DELETE_MATCHED'); ?></a>
             </td>
         </tr>
 
@@ -2553,7 +2553,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                     <?php } ?>
                 </select>
                 &nbsp;
-                <a onclick="deleteMatched(this)">Удалить</a>
+                <a onclick="deleteMatched(this)" style="cursor: pointer"><?php echo GetMessage('DELETE_MATCHED'); ?></a>
             </td>
         </tr>
 

@@ -465,6 +465,7 @@ class RCrmActions
             'filter' => [
                 ['!=CODE' => "LP_BONUS_INFO"],
                 ['!=CODE' => "LP_DISCOUNT_INFO"],
+                ['!=CODE' => ''],
                 ['>ID' => 19],
                 ['?TYPE' => 'STRING | NUMBER | Y/N | DATE'],
                 ['MULTIPLE' => 'N'],
