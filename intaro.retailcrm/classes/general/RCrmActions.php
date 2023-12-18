@@ -477,8 +477,6 @@ class RCrmActions
         foreach ($propsList as $prop) {
             $type = $typeMatched[$prop['TYPE']] ?? $prop['TYPE'];
             $key = $prop['ID'] . '#' . $prop['CODE'];
-            $resultList[$key] = $prop['NAME'] . ' (' . $prop['PERSON_TYPE_ID'] . ')';
-            $resultList[$prop['TYPE'] . '_TYPE'][$key] = $prop['NAME'] . ' (' . $persons[$prop['PERSON_TYPE_ID']] . ')';
             $resultList[$type . '_TYPE'][$key] = $prop['NAME'] . ' (' . $persons[$prop['PERSON_TYPE_ID']] . ')';
         }
 
@@ -554,14 +552,6 @@ class RCrmActions
     public static function convertCmsFieldToCrmValue($value, $type)
     {
         $result = $value;
-
-        if ($type === 'boolean') {
-            $result = $value === '1' ? 1 : 0;
-        }
-
-        if ($type === 'datetime') {
-            $result = date('Y-m-d', strtotime($value));
-        }
 
         switch ($type) {
             case 'boolean':
