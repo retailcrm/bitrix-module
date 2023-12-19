@@ -162,6 +162,12 @@ class RetailCrmUser
 
     private static function getCustomFields(array $arFields)
     {
+        if (!method_exists(RCrmActions::class, 'getTypeUserField')
+            || !method_exists(RCrmActions::class, 'convertCmsFieldToCrmValue')
+        ) {
+            return [];
+        }
+
         $customUserFields = RetailcrmConfigProvider::getMatchedUserFields();
         $typeList = RCrmActions::getTypeUserField();
         $result = [];

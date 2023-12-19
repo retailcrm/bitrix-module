@@ -66,7 +66,12 @@ class RetailCrmHistory
 
         $matchedCustomFields = RetailcrmConfigProvider::getMatchedUserFields();
         $matchedCustomFields = is_array($matchedCustomFields) ? array_flip($matchedCustomFields) : [];
-        self::$CUSTOM_FIELDS_IS_ACTIVE = RetailcrmConfigProvider::getCustomFieldsStatus();
+
+        if (method_exists(RCrmActions::class, 'getTypeUserField')
+            && method_exists(RCrmActions::class, 'convertCrmValueToCmsField')
+        ) {
+            self::$CUSTOM_FIELDS_IS_ACTIVE = RetailcrmConfigProvider::getCustomFieldsStatus();
+        }
 
         $customUserFieldTypes = [];
 
@@ -282,7 +287,11 @@ class RetailCrmHistory
         $matchedCustomOrderFields = RetailcrmConfigProvider::getMatchedOrderProps() ?? [];
         $matchedCustomOrderFields = is_array($matchedCustomOrderFields) ? array_flip($matchedCustomOrderFields) : [];
 
-        self::$CUSTOM_FIELDS_IS_ACTIVE = RetailcrmConfigProvider::getCustomFieldsStatus();
+        if (method_exists(RCrmActions::class, 'getTypeUserField')
+            && method_exists(RCrmActions::class, 'convertCrmValueToCmsField')
+        ) {
+            self::$CUSTOM_FIELDS_IS_ACTIVE = RetailcrmConfigProvider::getCustomFieldsStatus();
+        }
 
         $customUserFieldTypes = [];
 

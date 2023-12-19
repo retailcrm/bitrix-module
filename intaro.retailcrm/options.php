@@ -120,8 +120,15 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"] . '/bitrix/modules/intaro.retailcrm/cl
 
 $arResult['arSites'] = RCrmActions::getSitesList();
 $arResult['arCurrencySites'] = RCrmActions::getCurrencySites();
-$arResult['bitrixOrdersCustomProp'] = RCrmActions::customOrderPropList();
-$arResult['bitrixCustomUserFields'] = RCrmActions::customUserFieldList();
+$arResult['bitrixOrdersCustomProp'] = [];
+$arResult['bitrixCustomUserFields'] = [];
+
+if (method_exists(RCrmActions::class, 'customOrderPropList')
+    && method_exists(RCrmActions::class, 'customUserFieldList')
+) {
+    $arResult['bitrixOrdersCustomProp'] = RCrmActions::customOrderPropList();
+    $arResult['bitrixCustomUserFields'] = RCrmActions::customUserFieldList();
+}
 
 //ajax update deliveryServices
 if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') && isset($_POST['ajax']) && ($_POST['ajax'] === 1)) {

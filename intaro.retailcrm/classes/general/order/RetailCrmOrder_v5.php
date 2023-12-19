@@ -123,7 +123,11 @@ class RetailCrmOrder
 
         $countryList = BitrixOrderService::getCountryList();
         $deliveryAddress = ['city' => '', 'text' => '', 'index' => '', 'region' => '', 'countryIso' => ''];
-        $isSendCustomFields = RetailcrmConfigProvider::getCustomFieldsStatus();
+        $isSendCustomFields = 'N';
+
+        if (method_exists(RCrmActions::class, 'convertCmsFieldToCrmValue')) {
+            $isSendCustomFields = RetailcrmConfigProvider::getCustomFieldsStatus();
+        }
 
         //Order fields
         foreach ($arOrder['PROPS']['properties'] as $prop) {
