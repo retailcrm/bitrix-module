@@ -64,8 +64,8 @@ class RetailCrmHistory
         $historyStart = RetailcrmConfigProvider::getCustomersHistorySinceId();
         $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
 
-        $matchedCustomFields = RetailcrmConfigProvider::getMatchedUserFields() ?? [];
-        $matchedCustomFields = array_flip($matchedCustomFields);
+        $matchedCustomFields = RetailcrmConfigProvider::getMatchedUserFields();
+        $matchedCustomFields = is_array($matchedCustomFields) ? array_flip($matchedCustomFields) : [];
         self::$CUSTOM_FIELDS_IS_ACTIVE = RetailcrmConfigProvider::getCustomFieldsStatus();
 
         $customUserFieldTypes = [];
@@ -277,10 +277,10 @@ class RetailCrmHistory
         $shipmentDeducted = RetailcrmConfigProvider::getShipmentDeducted();
 
         $matchedCustomUserFields = RetailcrmConfigProvider::getMatchedUserFields() ?? [];
-        $matchedCustomUserFields = array_flip($matchedCustomUserFields);
+        $matchedCustomUserFields = is_array($matchedCustomUserFields) ? array_flip($matchedCustomUserFields) : [];
 
         $matchedCustomOrderFields = RetailcrmConfigProvider::getMatchedOrderProps() ?? [];
-        $matchedCustomOrderFields = array_flip($matchedCustomOrderFields);
+        $matchedCustomOrderFields = is_array($matchedCustomOrderFields) ? array_flip($matchedCustomOrderFields) : [];
 
         self::$CUSTOM_FIELDS_IS_ACTIVE = RetailcrmConfigProvider::getCustomFieldsStatus();
 
@@ -1253,8 +1253,8 @@ class RetailCrmHistory
                     if (self::$CUSTOM_FIELDS_IS_ACTIVE === 'Y' && !empty($matchedCustomOrderFields)) {
                         foreach ($order['customFields'] as $code => $value) {
                             if (isset($matchedCustomOrderFields[$code])) {
-                                $masIdentifier = explode('#', $matchedCustomOrderFields[$code], 2);
-                                $property = $propertyCollection->getItemByOrderPropertyId($masIdentifier[0]);
+                                $arrayIdentifier = explode('#', $matchedCustomOrderFields[$code], 2);
+                                $property = $propertyCollection->getItemByOrderPropertyId($arrayIdentifier[0]);
                                 $value = RCrmActions::convertCrmValueToCmsField($value, $property->getType());
                                 $queryResult = $property->setField('VALUE', $value);
 
@@ -1262,7 +1262,7 @@ class RetailCrmHistory
                                     RCrmActions::eventLog(
                                         'RetailCrmHistory::orderHistory',
                                         'CustomOrderPropSave',
-                                        'Error when saving a property: ' . $masIdentifier[1]
+                                        'Error when saving a property: ' . $arrayIdentifier[1]
                                     );
                                 }
                             }

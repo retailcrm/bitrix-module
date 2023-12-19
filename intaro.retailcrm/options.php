@@ -1434,52 +1434,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             document.getElementById(type + "_matched").appendChild(matchedElement);
         }
 
-        function createMatchedOrder()
-        {
-            let elements = document.getElementsByClassName("adm-list-table-row matched-Order");
-            let nextId = 1;
-
-            if (elements.length >= 1) {
-                let lastElement = elements[elements.length - 1];
-                nextId = parseInt(lastElement.id.replace("matchedOrderFields_", "")) + 1;
-            }
-
-            let matchedBlank = document.getElementById("OrderMatchedFieldsBlank");
-            let matchedElement = matchedBlank.cloneNode(true);
-
-            matchedElement.classList.add("adm-list-table-row");
-            matchedElement.classList.add("matched-Order");
-            matchedElement.setAttribute("id", "matchedOrderFields_" + nextId);
-            matchedElement.querySelector("select[name='bitrixOrderFields']").setAttribute("name", "bitrixOrderFields_"  + nextId);
-            matchedElement.querySelector("select[name='crmOrderFields']").setAttribute("name", "crmOrderFields_"  + nextId);
-            matchedElement.removeAttribute("hidden");
-
-            document.getElementById("Order_matched").appendChild(matchedElement);
-        }
-
-        function createMatchedUser()
-        {
-            let elements = document.getElementsByClassName("adm-list-table-row matched-User");
-            let nextId = 1;
-
-            if (elements.length >= 1) {
-                let lastElement = elements[elements.length-1];
-                nextId = parseInt(lastElement.id.replace("matchedUserFields_", "")) + 1;
-            }
-
-            let matchedBlank = document.getElementById("UserMatchedFieldsBlank");
-            let matchedElement = matchedBlank.cloneNode(true);
-
-            matchedElement.classList.add("adm-list-table-row");
-            matchedElement.classList.add("matched-User");
-            matchedElement.setAttribute("id", "matchedUserFields_" + nextId);
-            matchedElement.querySelector("select[name='bitrixUserFields']").setAttribute("name", "bitrixUserFields_" + nextId);
-            matchedElement.querySelector("select[name='crmUserFields']").setAttribute("name", "crmUserFields_"  + nextId);
-            matchedElement.removeAttribute("hidden");
-
-            document.getElementById("User_matched").appendChild(matchedElement);
-        }
-
         function deleteMatched(element)
         {
             element.parentNode.parentNode.remove();

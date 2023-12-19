@@ -449,6 +449,26 @@ class RCrmActions
             'DATE' => 'DATE'
         ];
 
+        //Базовые свойства заказа и используемые свойства в функционале модуля
+        $bannedCodeList = [
+            'FIO',
+            'EMAIL',
+            'PHONE',
+            'ZIP',
+            'CITY',
+            'LOCATION',
+            'ADDRESS',
+            'COMPANY',
+            'COMPANY_ADR',
+            'INN',
+            'KPP',
+            'CONTACT_PERSON',
+            'FAX',
+            'LP_BONUS_INFO',
+            'LP_DISCOUNT_INFO',
+            ''
+        ];
+
         $listPersons = PersonType::getList([
             'select' => ['ID', 'NAME'],
             'filter' => ['ENTITY_REGISTRY_TYPE' => 'ORDER']
@@ -463,10 +483,7 @@ class RCrmActions
         $propsList = OrderPropsTable::getList([
             'select' => ['ID', 'CODE', 'NAME', 'PERSON_TYPE_ID', 'TYPE'],
             'filter' => [
-                ['!=CODE' => "LP_BONUS_INFO"],
-                ['!=CODE' => "LP_DISCOUNT_INFO"],
-                ['!=CODE' => ''],
-                ['>ID' => 19],
+                ['!=CODE' => $bannedCodeList],
                 ['?TYPE' => 'STRING | NUMBER | Y/N | DATE'],
                 ['MULTIPLE' => 'N'],
                 ['ACTIVE' => 'Y']
