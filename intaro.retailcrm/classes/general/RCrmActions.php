@@ -10,6 +10,8 @@ use Intaro\RetailCrm\Service\Utils;
 use RetailCrm\Exception\CurlException;
 use RetailCrm\Exception\InvalidJsonException;
 use Intaro\RetailCrm\Service\ManagerService;
+use Bitrix\Main\UserFieldTable;
+use Bitrix\Main\UserFieldLangTable;
 use Bitrix\Sale\Internals\SiteCurrencyTable;
 
 IncludeModuleLangFile(__FILE__);
@@ -432,6 +434,188 @@ class RCrmActions
                     'firstName'  => $newFio[1],
                     'patronymic' => $newFio[2],
                 ];
+                break;
+        }
+
+        return $result;
+    }
+
+    public static function customOrderPropList()
+    {
+        $typeMatched = [
+            'STRING' => 'STRING',
+            'NUMBER' => 'NUMERIC',
+            'Y/N' => 'BOOLEAN',
+            'DATE' => 'DATE'
+        ];
+
+        //Базовые свойства заказа и используемые свойства в функционале модуля
+        $bannedCodeList = [
+            'FIO',
+            'EMAIL',
+            'PHONE',
+            'ZIP',
+            'CITY',
+            'LOCATION',
+            'ADDRESS',
+            'COMPANY',
+            'COMPANY_ADR',
+            'INN',
+            'KPP',
+            'CONTACT_PERSON',
+            'FAX',
+            'LP_BONUS_INFO',
+            'LP_DISCOUNT_INFO',
+            ''
+        ];
+
+        $listPersons = PersonType::getList([
+            'select' => ['ID', 'NAME'],
+            'filter' => ['ENTITY_REGISTRY_TYPE' => 'ORDER']
+        ])->fetchAll();
+
+        $persons = [];
+
+        foreach ($listPersons as $person) {
+            $persons[$person['ID']] = $person['NAME'];
+        }
+
+        $propsList = OrderPropsTable::getList([
+            'select' => ['ID', 'CODE', 'NAME', 'PERSON_TYPE_ID', 'TYPE'],
+            'filter' => [
+                ['!=CODE' => $bannedCodeList],
+                ['?TYPE' => 'STRING | NUMBER | Y/N | DATE'],
+                ['MULTIPLE' => 'N'],
+                ['ACTIVE' => 'Y']
+            ]
+        ])->fetchAll();
+
+        $resultList = [];
+
+        foreach ($propsList as $prop) {
+            $type = $typeMatched[$prop['TYPE']] ?? $prop['TYPE'];
+            $key = $prop['ID'] . '#' . $prop['CODE'];
+            $resultList[$type . '_TYPE'][$key] = $prop['NAME'] . ' (' . $persons[$prop['PERSON_TYPE_ID']] . ')';
+        }
+
+        ksort($resultList);
+
+        return $resultList;
+    }
+
+    public static function customUserFieldList()
+    {
+        $typeMatched = [
+            'string' => 'STRING',
+            'double' => 'NUMERIC',
+            'boolean' => 'BOOLEAN',
+            'date' => 'DATE',
+            'integer' => 'INTEGER'
+        ];
+
+        $userFields = UserFieldTable::getList([
+            'select' => ['ID', 'FIELD_NAME', 'USER_TYPE_ID'],
+            'filter' => [
+                ['ENTITY_ID' => 'USER'],
+                ['?FIELD_NAME' => '~%INTARO%'],
+                ['!=FIELD_NAME' => 'UF_SUBSCRIBE_USER_EMAIL'],
+                ['!=USER_TYPE_ID' => 'datetime'],
+                ['?USER_TYPE_ID' => 'string | date | integer | double | boolean'],
+                ['MULTIPLE' => 'N'],
+            ]
+        ])->fetchAll();
+
+        $resultList = [];
+
+        foreach ($userFields as $userField) {
+            $label = UserFieldLangTable::getList([
+                'select' => ['EDIT_FORM_LABEL'],
+                'filter' => [
+                    ["USER_FIELD_ID" => $userField['ID']],
+                    ['LANGUAGE_ID' => LANGUAGE_ID]
+                ]
+            ])->fetch();
+
+            $type = $typeMatched[$userField['USER_TYPE_ID']] ?? $userField['USER_TYPE_ID'];
+            $resultList[$type . '_TYPE'][$userField['FIELD_NAME']] = $label['EDIT_FORM_LABEL'];
+        }
+
+        ksort($resultList);
+
+        return $resultList;
+    }
+
+    public static function getTypeUserField()
+    {
+        $userFields = UserFieldTable::getList([
+            'select' => ['FIELD_NAME', 'USER_TYPE_ID'],
+            'filter' => [
+                ['ENTITY_ID' => 'USER'],
+                ['?FIELD_NAME' => '~%INTARO%'],
+                ['!=FIELD_NAME' => 'UF_SUBSCRIBE_USER_EMAIL'],
+                ['?USER_TYPE_ID' => 'string | date | datetime | integer | double | boolean'],
+                ['MULTIPLE' => 'N'],
+            ]
+        ])->fetchAll();
+
+        $result = [];
+
+        foreach ($userFields as $userField) {
+            $result[$userField['FIELD_NAME']] = $userField['USER_TYPE_ID'];
+        }
+
+        return $result;
+    }
+
+    public static function convertCmsFieldToCrmValue($value, $type)
+    {
+        $result = $value;
+
+        switch ($type) {
+            case 'boolean':
+                $result = $value === '1' ? 1 : 0;
+                break;
+            case 'Y/N':
+                $result = $result === 'Y' ? 1 : 0;
+                break;
+            case 'STRING':
+            case 'string':
+                $result =  strlen($value) <= 500 ? $value : '';
+                break;
+            case 'datetime':
+                $result = date('Y-m-d', strtotime($value));
+                break;
+        }
+
+        return $result;
+    }
+
+    public static function convertCrmValueToCmsField($crmValue, $type)
+    {
+        $result = $crmValue;
+
+        switch ($type) {
+            case 'Y/N':
+            case 'boolean':
+                $result = $crmValue == 1 ? 'Y' : 'N';
+                break;
+            case 'DATE':
+            case 'date':
+                if (empty($crmValue)) {
+                    return '';
+                }
+
+                try {
+                    $result = date('d.m.Y', strtotime($crmValue));
+                } catch (\Exception $exception) {
+                    $result = '';
+                }
+
+                break;
+            case 'STRING':
+            case 'string':
+            case 'text':
+                $result = strlen($crmValue) <= 500 ? $crmValue : '';
                 break;
         }
 

@@ -117,3 +117,18 @@ $MESS ['WRONG_CREDENTIALS'] = 'Enter the address and authorization key of the CR
 $MESS ['Wrong "apiKey" value.'] = 'Invalid authorization key';
 
 $MESS ['ORDER_TRACK_NUMBER'] = 'Receive track number';
+
+$MESS ['CUSTOM_FIELDS_TITLE'] = 'User fields';
+$MESS ['CUSTOM_FIELDS_CAPTION'] = 'Matching user fields';
+$MESS ['CUSTOM_FIELDS_TOGGLE_MSG'] = 'Activate synchronization of user fields';
+$MESS ['CUSTOM_FIELDS_ORDER_LABEL'] = 'Custom order fields';
+$MESS ['CUSTOM_FIELDS_USER_LABEL'] = 'User custom fields';
+$MESS ['INTEGER_TYPE'] = 'An integer';
+$MESS ['STRING_TYPE'] = 'Line/Text';
+$MESS ['NUMERIC_TYPE'] = 'Number';
+$MESS ['BOOLEAN_TYPE'] = 'Check box (yes/no)';
+$MESS ['DATE_TYPE'] = 'Date';
+$MESS ['NOTATION_CUSTOM_FIELDS'] = 'Before enabling this functionality, make sure that you do not have customized files for working with orders and customers associated with older versions of the module.';
+$MESS ['NOTATION_MATCHED_CUSTOM_FIELDS'] = 'For correct data exchange, the types of matched fields must be the same!';
+$MESS ['ADD_LABEL'] = 'Add';
+$MESS ['DELETE_MATCHED'] = 'Delete';

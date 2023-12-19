@@ -120,6 +120,16 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"] . '/bitrix/modules/intaro.retailcrm/cl
 
 $arResult['arSites'] = RCrmActions::getSitesList();
 $arResult['arCurrencySites'] = RCrmActions::getCurrencySites();
+$arResult['bitrixOrdersCustomProp'] = [];
+$arResult['bitrixCustomUserFields'] = [];
+
+if (method_exists(RCrmActions::class, 'customOrderPropList')
+    && method_exists(RCrmActions::class, 'customUserFieldList')
+) {
+    $arResult['bitrixOrdersCustomProp'] = RCrmActions::customOrderPropList();
+    $arResult['bitrixCustomUserFields'] = RCrmActions::customUserFieldList();
+}
+
 //ajax update deliveryServices
 if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') && isset($_POST['ajax']) && ($_POST['ajax'] === 1)) {
     $api_host = COption::GetOptionString($mid, $CRM_API_HOST_OPTION, 0);
@@ -934,6 +944,34 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         $bitrixCorpAdres
     );
 
+    if (isset($_POST['custom_fields_toggle']) && $_POST['custom_fields_toggle'] === 'on') {
+        $counter = 1;
+        $customOrderProps = [];
+        $customUserFields = [];
+
+        foreach ($arResult['bitrixOrdersCustomProp'] as $list) {
+            foreach ($list as $code => $text) {
+                if (!empty($_POST['bitrixOrderFields_' . $code]) && !empty($_POST['crmOrderFields_' . $code])) {
+                    $customOrderProps[htmlspecialchars($_POST['bitrixOrderFields_' . $code])] = htmlspecialchars($_POST['crmOrderFields_' . $code]);
+                }
+            }
+        }
+
+        foreach ($arResult['bitrixCustomUserFields'] as $list) {
+            foreach ($list as $code => $text) {
+                if (!empty($_POST['bitrixUserFields_' . $code]) && !empty($_POST['crmUserFields_' . $code])) {
+                    $customUserFields[htmlspecialchars($_POST['bitrixUserFields_' . $code])] = htmlspecialchars($_POST['crmUserFields_' . $code]);
+                }
+            }
+        }
+
+        ConfigProvider::setCustomFieldsStatus('Y');
+        ConfigProvider::setMatchedOrderProps($customOrderProps);
+        ConfigProvider::setMatchedUserFields($customUserFields);
+    } else {
+        ConfigProvider::setCustomFieldsStatus('N');
+    }
+
     $request = Application::getInstance()->getContext()->getRequest();
 
     if ($request->isHttps() === true) {
@@ -961,6 +999,16 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         $arResult['sitesList'] = $APPLICATION->ConvertCharsetArray($api->sitesList()->sites, 'utf-8', SITE_CHARSET);
         $arResult['inventoriesList'] = $APPLICATION->ConvertCharsetArray($api->storesList()->stores, 'utf-8', SITE_CHARSET);
         $arResult['priceTypeList'] = $APPLICATION->ConvertCharsetArray($api->pricesTypes()->priceTypes, 'utf-8', SITE_CHARSET);
+        $arResult['crmCustomOrderFields'] = $APPLICATION->ConvertCharsetArray(
+                $api->customFieldsList(['entity' => 'order', 'type' => ['string','text', 'numeric', 'boolean', 'date']], 250)->customFields,
+                'utf-8',
+                SITE_CHARSET
+        );
+        $arResult['crmCustomUserFields'] = $APPLICATION->ConvertCharsetArray(
+                $api->customFieldsList(['entity' => 'customer', 'type' => ['string', 'text', 'integer', 'numeric', 'boolean', 'date']], 250)->customFields,
+                'utf-8',
+                SITE_CHARSET
+        );
     } catch (\RetailCrm\Exception\CurlException $e) {
         RCrmActions::eventLog(
             'intaro.retailcrm/options.php', 'RetailCrm\ApiClient::*List::CurlException',
@@ -975,6 +1023,40 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         $badJson = true;
         echo CAdminMessage::ShowMessage(GetMessage('ERR_JSON'));
     }
+
+    $crmCustomOrderFieldsList = [];
+    $crmCustomUserFieldsList = [];
+
+    foreach ($arResult['crmCustomOrderFields'] as $customField) {
+        $type = $customField['type'];
+
+        if ($type === 'text') {
+            $type = 'string';
+        }
+
+        $crmCustomOrderFieldsList[strtoupper($type) . '_TYPE'][] = ['name' => $customField['name'], 'code' => $customField['code']];
+    }
+
+    foreach ($arResult['crmCustomUserFields'] as $customField) {
+        $type = $customField['type'];
+
+        if ($type === 'text') {
+            $type = 'string';
+        }
+
+        $crmCustomUserFieldsList[strtoupper($type). '_TYPE'][] = ['name' => $customField['name'], 'code' => $customField['code']];
+    }
+
+    ksort($crmCustomOrderFieldsList);
+    ksort($crmCustomUserFieldsList);
+
+    $arResult['crmCustomOrderFields'] = $crmCustomOrderFieldsList;
+    $arResult['crmCustomUserFields'] = $crmCustomUserFieldsList;
+
+    unset($crmCustomOrderFieldsList, $crmCustomUserFieldsList);
+
+    $arResult['matchedOrderProps'] = ConfigProvider::getMatchedOrderProps();
+    $arResult['matchedUserFields'] = ConfigProvider::getMatchedUserFields();
 
     $arResult['paymentTypesList'] = RetailCrmService::getAvailableTypes(
         $availableSites,
@@ -1166,13 +1248,19 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             "TITLE" => GetMessage('ICRM_OPTIONS_ORDER_DISCHARGE_CAPTION'),
         ],
         [
-            "DIV"   => "edit5",
+            "DIV" => "edit5",
+            "TAB" => GetMessage('CUSTOM_FIELDS_TITLE'),
+            "ICON" => '',
+            "TITLE" => GetMessage('CUSTOM_FIELDS_CAPTION'),
+        ],
+        [
+            "DIV"   => "edit6",
             "TAB"   => GetMessage('UPLOAD_ORDERS_OPTIONS'),
             "ICON"  => '',
             "TITLE" => GetMessage('ORDER_UPLOAD'),
         ],
         [
-            "DIV"   => "edit6",
+            "DIV"   => "edit7",
             "TAB"   => GetMessage('OTHER_OPTIONS'),
             "ICON"  => '',
             "TITLE" => GetMessage('ICRM_OPTIONS_ORDER_DISCHARGE_CAPTION'),
@@ -1321,6 +1409,97 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
         function switchPLStatus() {
             $('#loyalty_main_settings').toggle(500);
+        }
+
+        function switchCustomFieldsStatus() {
+            $('#custom_fields_settings').toggle(500);
+        }
+
+        function createMatched(type)
+        {
+            let bitrixName = "bitrix" + type + "Fields";
+            let crmName = "crm" + type + "Fields";
+
+            let elements = document.getElementsByClassName("adm-list-table-row matched-" + type);
+            let nextId = 1;
+
+            if (elements.length >= 1) {
+                let lastElement = elements[elements.length - 1];
+                nextId = parseInt(lastElement.id.replace("matched" + type + "Fields_", "")) + 1;
+            }
+
+            let matchedBlank = document.getElementById(type + "MatchedFieldsBlank");
+            let matchedElement = matchedBlank.cloneNode(true);
+
+            matchedElement.classList.add("adm-list-table-row");
+            matchedElement.classList.add("matched-" + type);
+            matchedElement.setAttribute("id", "matched" + type + "Fields_" + nextId);
+            matchedElement.querySelector(`select[name=${bitrixName}`).setAttribute("name", bitrixName + "_" + nextId);
+            matchedElement.querySelector(`select[name=${crmName}`).setAttribute("name", crmName + "_" + nextId);
+            matchedElement.removeAttribute("hidden");
+
+            document.getElementById(type + "_matched").appendChild(matchedElement);
+        }
+
+        function deleteMatched(element)
+        {
+            element.parentNode.parentNode.remove();
+        }
+
+        function generateEmptyMatched()
+        {
+            let elements = document.getElementsByClassName("adm-list-table-row matched-Order");
+
+            if (elements.length < 1) {
+                createMatched("Order");
+            }
+
+            elements = document.getElementsByClassName("adm-list-table-row matched-User");
+
+            if (elements.length < 1) {
+                createMatched("User");
+            }
+        }
+
+        function changeSelectBitrixValue(element, nameBitrix, nameCrm)
+        {
+            let name = element.getAttribute("name");
+            let uniqIdSelect = name.replace(nameBitrix, "");
+            let selectedValue = element.value;
+            let checkElements = document.getElementsByName(nameCrm + selectedValue);
+
+            if (checkElements.length === 0) {
+                let selectCrm = document.getElementsByName(nameCrm + uniqIdSelect);
+                selectCrm[0].setAttribute('name', nameCrm + selectedValue);
+                element.setAttribute('name', nameBitrix + selectedValue);
+            } else {
+                let text = element.options[element.selectedIndex].text;
+                element.value = uniqIdSelect;
+
+                alert('Поле: "' + text +'" уже используется в обмене');
+            }
+        }
+
+        function changeSelectCrmValue(element, nameElement)
+        {
+            let selectedValue = element.value;
+            let checkElement = document.getElementById(nameElement + selectedValue)
+
+            if (checkElement === null) {
+                element.id = nameElement + selectedValue;
+            } else {
+                let currentId = element.id;
+                let code = '';
+
+                if (currentId !== null) {
+                    code = currentId.replace(nameElement, "");
+                }
+
+                let text = element.options[element.selectedIndex].text;
+                element.value = code;
+
+                alert('Поле: "' + text + '" уже используется в обмене');
+            }
         }
 
         $(document).ready(function() {
@@ -1877,7 +2056,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             </tr>
         <?php endforeach; ?>
         <?php endforeach; ?>
-
         <?php $tabControl->BeginNextTab(); ?>
         <?php
         //loyalty program options
@@ -2072,6 +2250,274 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 </td>
             </tr>
 
+        <?php $tabControl->BeginNextTab(); ?>
+        <?php
+        $customFieldsToggle = ConfigProvider::getCustomFieldsStatus();
+        ?>
+            <tr class="">
+                <td class="option-head" colspan="2">
+                    <p><b><?php echo GetMessage('NOTATION_CUSTOM_FIELDS'); ?></b></p>
+                    <p><b><?php echo GetMessage('NOTATION_MATCHED_CUSTOM_FIELDS'); ?></b></p>
+                </td>
+            </tr>
+            <tr class="heading">
+                <td colspan="2" class="option-other-heading">
+                    <b>
+                        <label>
+                            <input class="addr" type="checkbox" id="custom_fields_toggle" name="custom_fields_toggle" onclick="switchCustomFieldsStatus();" <?php if ($customFieldsToggle === 'Y') {
+                                echo "checked";
+                            } ?>>
+                            <?php echo GetMessage('CUSTOM_FIELDS_TOGGLE_MSG'); ?>
+                        </label>
+                    </b>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div id="custom_fields_settings" <?php if ($customFieldsToggle !== 'Y') {
+                        echo "hidden";
+                    } ?>>
+                        <br>
+
+                        <table class="adm-list-table">
+                            <thead>
+                                <tr class="adm-list-table-header">
+                                    <th class="adm-list-table-cell option-head option-other-top option-other-bottom" colspan="4">
+                                        <?php echo GetMessage('CUSTOM_FIELDS_ORDER_LABEL');?>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tfoot>
+                                <tr>
+                                    <th class="option-head option-other-top option-other-bottom" colspan="4">
+                                        <button class="adm-btn-save" type="button" onclick="createMatched(`Order`)"><?php echo GetMessage('ADD_LABEL'); ?></button>
+                                    </th>
+                                </tr>
+                            </tfoot>
+                            <tbody id="Order_matched">
+                                <?php
+                                    $matchedPropsNum = 1;
+                                    foreach ($arResult['matchedOrderProps'] as $bitrixProp => $crmField) {?>
+                                        <tr class="adm-list-table-row matched-Order" id="matchedOrderFields_<?php echo $matchedPropsNum ?>">
+                                            <td class="adm-list-table-cell adm-detail-content-cell-l" colspan="2" width="50%">
+                                                <select
+                                                    style="width: 200px;" class="typeselect"
+                                                    name="bitrixOrderFields_<?php echo $bitrixProp ?>"
+                                                    onchange="changeSelectBitrixValue(this, 'bitrixOrderFields_', 'crmOrderFields_');"
+                                                >
+                                                    <option value=""></option>
+
+                                                    <?php foreach ($arResult['bitrixOrdersCustomProp'] as $type => $mass) {?>
+                                                        <optgroup label="<?php echo GetMessage($type); ?>">
+                                                            <?php foreach ($mass as $code => $prop) {?>
+                                                                <option
+                                                                        value="<?php echo $code ?>"
+                                                                    <?php if ($bitrixProp === $code) echo 'selected'; ?>
+                                                                >
+                                                                    <?php echo $prop ?>
+                                                                </option>
+                                                            <?php } ?>
+                                                        </optgroup>
+                                                    <?php } ?>
+                                                </select>
+                                            </td>
+                                            <td class="adm-list-table-cell adm-detail-content-cell-r" colspan="2" width="50%">
+                                                &nbsp;&nbsp;&nbsp;&nbsp;
+                                                <select
+                                                        style="width: 200px;" class="typeselect"
+                                                        name="crmOrderFields_<?php echo $bitrixProp ?>"
+                                                        id="crmOrder_<?php echo $crmField?>"
+                                                        onchange="changeSelectCrmValue(this, 'crmOrder_')"
+                                                >
+                                                    <option value=""></option>
+                                                    <?php foreach ($arResult['crmCustomOrderFields'] as $type => $mass) {?>
+                                                        <optgroup label="<?php echo GetMessage($type); ?>">
+                                                            <?php foreach ($mass as $crmProp) {?>
+                                                                <option
+                                                                        value="<?php echo $crmProp['code'] ?>"
+                                                                    <?php if ($crmField === $crmProp['code']) echo 'selected'; ?>
+                                                                >
+                                                                    <?php echo $crmProp['name'] ?>
+                                                                </option>
+                                                            <?php } ?>
+                                                        </optgroup>
+                                                    <?php } ?>
+                                                </select>
+                                                &nbsp;
+                                                <a onclick="deleteMatched(this)" style="cursor: pointer"><?php echo GetMessage('DELETE_MATCHED'); ?></a>
+                                            </td>
+                                        </tr>
+                                <?php $matchedPropsNum++; }?>
+                            </tbody>
+                        </table>
+
+                        <br>
+
+                        <table class="adm-list-table">
+                            <thead>
+                            <tr class="adm-list-table-header">
+                                <th class="adm-list-table-cell option-head option-other-top option-other-bottom" colspan="4">
+                                    <?php echo GetMessage('CUSTOM_FIELDS_USER_LABEL');?>
+                                </th>
+                            </tr>
+                            </thead>
+                            <tfoot>
+                            <tr>
+                                <th class="option-head option-other-top option-other-bottom" colspan="4">
+                                    <button class="adm-btn-save" type="button" onclick="createMatched(`User`)"><?php echo GetMessage('ADD_LABEL'); ?></button>
+                                </th>
+                            </tr>
+                            </tfoot>
+                            <tbody id="User_matched">
+                            <?php
+                            $matchedFieldsNum = 1;
+                            foreach ($arResult['matchedUserFields'] as $bitrixProp => $crmField) {?>
+                                <tr class="adm-list-table-row matched-User" id="matchedUserFields_<?php echo $matchedFieldsNum ?>">
+                                    <td class="adm-list-table-cell adm-detail-content-cell-l" colspan="2" width="50%">
+                                        <select
+                                                style="width: 200px;" class="typeselect"
+                                                name="bitrixUserFields_<?php echo $bitrixProp ?>"
+                                                onchange="changeSelectBitrixValue(this, 'bitrixUserFields_', 'crmUserFields_');"
+                                        >
+                                            <option value=""></option>
+                                            <?php foreach ($arResult['bitrixCustomUserFields'] as $type => $mass) {?>
+                                                <optgroup label="<?php echo GetMessage($type); ?>">
+                                                    <?php foreach ($mass as $code => $prop) {?>
+                                                        <option
+                                                                value="<?php echo $code ?>"
+                                                            <?php if ($bitrixProp === $code) echo 'selected'; ?>
+                                                        >
+                                                            <?php echo $prop ?>
+                                                        </option>
+                                                    <?php } ?>
+                                                </optgroup>
+                                            <?php } ?>
+                                        </select>
+                                    </td>
+                                    <td class="adm-list-table-cell adm-detail-content-cell-r" colspan="2" width="50%">
+                                        &nbsp;&nbsp;&nbsp;&nbsp;
+                                        <select
+                                                style="width: 200px;" class="typeselect"
+                                                name="crmUserFields_<?php echo $bitrixProp ?>"
+                                                id="crmClient_<?php echo $crmField?>"
+                                                onchange="changeSelectCrmValue(this, 'crmClient_')"
+                                        >
+                                            <option value=""></option>
+                                            <?php foreach ($arResult['crmCustomUserFields'] as $type => $mass) {?>
+                                                <optgroup label="<?php echo GetMessage($type); ?>">
+                                                    <?php foreach ($mass as $crmProp) {?>
+                                                        <option
+                                                                value="<?php echo $crmProp['code'] ?>"
+                                                            <?php if ($crmField === $crmProp['code']) echo 'selected'; ?>
+                                                        >
+                                                            <?php echo $crmProp['name'] ?>
+                                                        </option>
+                                                    <?php } ?>
+                                                </optgroup>
+                                            <?php } ?>
+                                        </select>
+                                        &nbsp;
+                                        <a onclick="deleteMatched(this)" style="cursor: pointer"><?php echo GetMessage('DELETE_MATCHED'); ?></a>
+                                    </td>
+                                </tr>
+                                <?php $matchedFieldsNum++; }?>
+                            </tbody>
+                        </table>
+                    </div>
+                </td>
+            </tr>
+
+        <tr id="OrderMatchedFieldsBlank" hidden="hidden">
+            <td class="adm-list-table-cell adm-detail-content-cell-l" colspan="2" width="50%">
+                <select
+                        style="width: 200px;" class="typeselect"
+                        name="bitrixOrderFields"
+                        onchange="changeSelectBitrixValue(this, 'bitrixOrderFields_', 'crmOrderFields_');"
+                >
+                    <option value=""></option>
+                    <?php foreach ($arResult['bitrixOrdersCustomProp'] as $type => $mass) {?>
+                        <optgroup label="<?php echo GetMessage($type); ?>">
+                            <?php foreach ($mass as $code => $prop) {?>
+                                <option
+                                        value="<?php echo $code ?>"
+                                    <?php if ($bitrixProp === $code) echo 'selected'; ?>
+                                >
+                                    <?php echo $prop ?>
+                                </option>
+                            <?php } ?>
+                        </optgroup>
+                    <?php } ?>
+
+                </select>
+            </td>
+            <td class="adm-list-table-cell adm-detail-content-cell-r" colspan="2" width="50%">
+                &nbsp;&nbsp;&nbsp;&nbsp;
+                <select
+                        style="width: 200px;" class="typeselect"
+                        name="crmOrderFields"
+                        onchange="changeSelectCrmValue(this, 'crmOrder_')"
+                >
+                    <option value=""></option>
+                    <?php foreach ($arResult['crmCustomOrderFields'] as $type => $mass) {?>
+                        <optgroup label="<?php echo GetMessage($type); ?>">
+                            <?php foreach ($mass as $crmProp) {?>
+                                <option
+                                        value="<?php echo $crmProp['code'] ?>"
+                                    <?php if ($crmField === $crmProp['code']) echo 'selected'; ?>
+                                >
+                                    <?php echo $crmProp['name'] ?>
+                                </option>
+                            <?php } ?>
+                        </optgroup>
+                    <?php } ?>
+                </select>
+                &nbsp;
+                <a onclick="deleteMatched(this)" style="cursor: pointer"><?php echo GetMessage('DELETE_MATCHED'); ?></a>
+            </td>
+        </tr>
+
+        <tr id="UserMatchedFieldsBlank" hidden="hidden">
+            <td class="adm-list-table-cell adm-detail-content-cell-l" colspan="2" width="50%">
+                <select
+                        style="width: 200px;" class="typeselect"
+                        name="bitrixUserFields"
+                        onchange="changeSelectBitrixValue(this, 'bitrixUserFields_', 'crmUserFields_');"
+                >
+                    <option value=""></option>
+                    <?php foreach ($arResult['bitrixCustomUserFields'] as $type => $mass) {?>
+                        <optgroup label="<?php echo GetMessage($type); ?>">
+                            <?php foreach ($mass as $code => $prop) {?>
+                                <option value="<?php echo $code ?>">
+                                    <?php echo $prop ?>
+                                </option>
+                            <?php } ?>
+                        </optgroup>
+                    <?php } ?>
+                </select>
+            </td>
+            <td class="adm-list-table-cell adm-detail-content-cell-r" colspan="2" width="50%">
+                &nbsp;&nbsp;&nbsp;&nbsp;
+                <select
+                        style="width: 200px;" class="typeselect"
+                        name="crmUserFields"
+                        onchange="changeSelectCrmValue(this, 'crmClient_')"
+                >
+                    <option value=""></option>
+                    <?php foreach ($arResult['crmCustomUserFields'] as $type => $mass) {?>
+                        <optgroup label="<?php echo GetMessage($type); ?>">
+                            <?php foreach ($mass as $crmProp) {?>
+                                <option value="<?php echo $crmProp['code'] ?>">
+                                    <?php echo $crmProp['name'] ?>
+                                </option>
+                            <?php } ?>
+                        </optgroup>
+                    <?php } ?>
+                </select>
+                &nbsp;
+                <a onclick="deleteMatched(this)" style="cursor: pointer"><?php echo GetMessage('DELETE_MATCHED'); ?></a>
+            </td>
+        </tr>
+
         <?php // Manual orders upload. ?>
         <?php $tabControl->BeginNextTab(); ?>
             <style type="text/css">
@@ -2149,6 +2595,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
             <script type="text/javascript">
                 $(document).ready(function() {
+                    generateEmptyMatched();
+
                     $('#percent').width($('.install-progress-bar-outer').width());
 
                     $(window).resize(function() { // strechin progress bar

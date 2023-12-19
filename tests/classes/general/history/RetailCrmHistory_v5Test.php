@@ -4,6 +4,7 @@ use Bitrix\Sale\Order;
 use Bitrix\Currency\CurrencyManager;
 use RetailCrm\Response\ApiResponse;
 use Tests\Intaro\RetailCrm\DataHistory;
+use CUserTypeEntity;
 
 /**
  * Class RetailCrmHistory_v5Test
@@ -27,10 +28,21 @@ class RetailCrmHistory_v5Test extends \BitrixTestCase
      */
     public function testRegisterUser(): void
     {
+        RetailcrmConfigProvider::setCustomFieldsStatus('Y');
+        RetailcrmConfigProvider::setMatchedUserFields(
+            ['UF_FIELD_USER_1' => 'custom_1', 'UF_FIELD_USER_2' => 'custom_2']
+        );
+
+        $this->registerCustomFields();
+
         $actionsMock = Mockery::mock('alias:' . RCrmActions::class);
         $apiResponse = new ApiResponse(200, DataHistory::get_history_data_new_customer());
 
         $actionsMock->shouldReceive('apiMethod')->withAnyArgs()->andReturn($apiResponse);
+        $actionsMock->shouldReceive('getTypeUserField')->withAnyArgs()->andReturn([
+            'UF_FIELD_USER_1' => 'string', 'UF_FIELD_USER_2' => 'string'
+        ]);
+        $actionsMock->shouldReceive('convertCrmValueToCmsField')->byDefault();
 
         $this->deleteTestingUser();
         RetailCrmHistory::customerHistory();
@@ -38,6 +50,8 @@ class RetailCrmHistory_v5Test extends \BitrixTestCase
         $dbUser = CUser::GetList(($by = 'ID'), ($sort = 'DESC'), ['=EMAIL' => 'testbitrixreg@gmail.com']);
 
         $this->assertEquals(1, $dbUser->SelectedRowsCount());
+
+        RetailcrmConfigProvider::setCustomFieldsStatus('N');
     }
 
     /**
@@ -219,5 +233,39 @@ class RetailCrmHistory_v5Test extends \BitrixTestCase
                 'countRows' => 0
             ],
         ];
+    }
+
+    private function registerCustomFields()
+    {
+        $oUserTypeEntity    = new CUserTypeEntity();
+        $userField = [
+            'ENTITY_ID' => 'USER',
+            'FIELD_NAME' => 'UF_FIELD_USER_1',
+            'USER_TYPE_ID' => 'string',
+            'MULTIPLE' => 'N',
+            'MANDATORY' => 'N',
+            'EDIT_FROM_LABEL' => ['ru' => 'TEST 1']
+        ];
+
+        $dbRes = CUserTypeEntity::GetList([], ['FIELD_NAME' => 'UF_FIELD_USER_1'])->fetch();
+
+        if (!$dbRes['ID']) {
+            $oUserTypeEntity->Add($userField);
+        }
+
+        $userField = [
+            'ENTITY_ID' => 'USER',
+            'FIELD_NAME' => 'UF_FIELD_USER_2',
+            'USER_TYPE_ID' => 'string',
+            'MULTIPLE' => 'N',
+            'MANDATORY' => 'N',
+            'EDIT_FROM_LABEL' => ['ru' => 'TEST 2']
+        ];
+
+        $dbRes = CUserTypeEntity::GetList([], ['FIELD_NAME' => 'UF_FIELD_USER_2'])->fetch();
+
+        if (!$dbRes['ID']) {
+            $oUserTypeEntity->Add($userField);
+        }
     }
 }

@@ -29,6 +29,8 @@ class RetailCrmOrder_v5Test extends BitrixTestCase {
      */
     public function testOrderSend($arFields, $arParams, $methodApi, $expected)
     {
+        RetailcrmConfigProvider::setCustomFieldsStatus('Y');
+
         self::assertEquals($expected, RetailCrmOrder::orderSend(
             $arFields,
             new stdClass(),
@@ -103,7 +105,8 @@ class RetailCrmOrder_v5Test extends BitrixTestCase {
             'optionsDelivTypes' => RetailcrmConfigProvider::getDeliveryTypes(),
             'optionsPayTypes' => RetailcrmConfigProvider::getPaymentTypes(),
             'optionsOrderProps' => ['bitrixType' => ['fio' => 'FIO']],
-            'optionsPayment' => ['Y' => 'paid']
+            'optionsPayment' => ['Y' => 'paid'],
+            'customOrderProps' => ['1#TEST_PROP_1' => 'custom_first', '2#TEST_PROP_2' => 'custom_second']
         ];
 
         return [[
@@ -136,7 +139,8 @@ class RetailCrmOrder_v5Test extends BitrixTestCase {
                 'privilegeType' => 'none',
                 'statusComment' => $arFields['REASON_CANCELED'],
                 'firstName' => 'FirstName',
-                'lastName' => 'LastName'
+                'lastName' => 'LastName',
+                'customFields' => ['custom_first' => 'test 1', 'custom_second' => 'test 2']
             ],
         ]];
     }

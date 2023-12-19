@@ -1195,7 +1195,14 @@ function update()
     (new UpdateSubscribe())
         ->CopyFiles()
         ->addEvent()
-        ->addCustomUserField();
+        ->addCustomUserField()
+    ;
+
+    COption::SetOptionString(
+        'intaro.retailcrm',
+        'custom_fields_toggle',
+        'N'
+    );
 }
 
 try {

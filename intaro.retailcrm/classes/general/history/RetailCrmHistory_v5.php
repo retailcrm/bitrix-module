@@ -49,6 +49,7 @@ class RetailCrmHistory
     public static $CRM_CANSEL_ORDER = 'cansel_order';
     public static $CRM_CURRENCY = 'currency';
     public static $CRM_DISCOUNT_ROUND = 'discount_round';
+    public static $CUSTOM_FIELDS_IS_ACTIVE = 'N';
 
     const PAGE_LIMIT = 25;
 
@@ -62,6 +63,21 @@ class RetailCrmHistory
         $historyFilter = [];
         $historyStart = RetailcrmConfigProvider::getCustomersHistorySinceId();
         $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
+
+        $matchedCustomFields = RetailcrmConfigProvider::getMatchedUserFields();
+        $matchedCustomFields = is_array($matchedCustomFields) ? array_flip($matchedCustomFields) : [];
+
+        if (method_exists(RCrmActions::class, 'getTypeUserField')
+            && method_exists(RCrmActions::class, 'convertCrmValueToCmsField')
+        ) {
+            self::$CUSTOM_FIELDS_IS_ACTIVE = RetailcrmConfigProvider::getCustomFieldsStatus();
+        }
+
+        $customUserFieldTypes = [];
+
+        if (self::$CUSTOM_FIELDS_IS_ACTIVE === 'Y') {
+            $customUserFieldTypes = RCrmActions::getTypeUserField();
+        }
 
         if ($historyStart && $historyStart > 0) {
             $historyFilter['sinceId'] = $historyStart;
@@ -124,6 +140,8 @@ class RetailCrmHistory
 
                 $customerBuilder->setDataCrm($customer)->build();
 
+                $customFields = self::getCustomUserFields($customer, $matchedCustomFields, $customUserFieldTypes);
+
                 if (!isset($customer['externalId'])) {
                     if (!isset($customer['id'])) {
                         continue;
@@ -155,7 +173,7 @@ class RetailCrmHistory
                     if ($registerNewUser === true) {
                         $customerBuilder->buildPassword();
 
-                        $registeredUserID = $newUser->Add(self::getDataUser($customerBuilder));
+                        $registeredUserID = $newUser->Add(self::getDataUser($customerBuilder, $customFields));
 
                         if ($registeredUserID === false) {
                             RCrmActions::eventLog(
@@ -197,9 +215,11 @@ class RetailCrmHistory
                     }
 
                     $customerArray = $customerBuilder->getCustomer()->getObjectToArray();
-                    $u = $newUser->Update($customer['externalId'], self::convertBooleanFields($customerArray));
+                    $customerArray = array_merge($customerArray, $customFields);
 
-                    if (!$u) {
+                    $queryUpdate = $newUser->Update($customer['externalId'], self::convertBooleanFields($customerArray));
+
+                    if (!$queryUpdate) {
                         RCrmActions::eventLog(
                             'RetailCrmHistory::customerHistory',
                             'Error update user',
@@ -260,6 +280,24 @@ class RetailCrmHistory
         $currency = RetailcrmConfigProvider::getCurrencyOrDefault();
         $contragentTypes = array_flip(RetailcrmConfigProvider::getContragentTypes());
         $shipmentDeducted = RetailcrmConfigProvider::getShipmentDeducted();
+
+        $matchedCustomUserFields = RetailcrmConfigProvider::getMatchedUserFields() ?? [];
+        $matchedCustomUserFields = is_array($matchedCustomUserFields) ? array_flip($matchedCustomUserFields) : [];
+
+        $matchedCustomOrderFields = RetailcrmConfigProvider::getMatchedOrderProps() ?? [];
+        $matchedCustomOrderFields = is_array($matchedCustomOrderFields) ? array_flip($matchedCustomOrderFields) : [];
+
+        if (method_exists(RCrmActions::class, 'getTypeUserField')
+            && method_exists(RCrmActions::class, 'convertCrmValueToCmsField')
+        ) {
+            self::$CUSTOM_FIELDS_IS_ACTIVE = RetailcrmConfigProvider::getCustomFieldsStatus();
+        }
+
+        $customUserFieldTypes = [];
+
+        if (self::$CUSTOM_FIELDS_IS_ACTIVE === 'Y') {
+            $customUserFieldTypes = RCrmActions::getTypeUserField();
+        }
 
         $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
         $page = 1;
@@ -458,6 +496,9 @@ class RetailCrmHistory
 
                             $newUser = new CUser();
                             $customerArray = $corporateCustomerBuilder->getCustomer()->getObjectToArray();
+
+                            $customFields = self::getCustomUserFields($userData, $matchedCustomUserFields, $customUserFieldTypes);
+                            $customerArray = array_merge($customerArray, $customFields);
 
                             if (!array_key_exists('UF_SUBSCRIBE_USER_EMAIL', $customerArray)) {
                                 $customerArray['UF_SUBSCRIBE_USER_EMAIL'] = 'Y';
@@ -925,7 +966,8 @@ class RetailCrmHistory
                                 }
 
                                 if ($registerNewUser === true) {
-                                    $registeredUserID = $newUser->Add(self::getDataUser($customerBuilder));
+                                    $customFields = self::getCustomUserFields($response['customer'], $matchedCustomUserFields, $customUserFieldTypes);
+                                    $registeredUserID = $newUser->Add(self::getDataUser($customerBuilder, $customFields));
 
                                     if ($registeredUserID === false) {
                                         RCrmActions::eventLog(
@@ -1216,6 +1258,26 @@ class RetailCrmHistory
                     }
 
                     $newOrder->setField('PRICE', $orderSumm);
+
+                    if (self::$CUSTOM_FIELDS_IS_ACTIVE === 'Y' && !empty($matchedCustomOrderFields)) {
+                        foreach ($order['customFields'] as $code => $value) {
+                            if (isset($matchedCustomOrderFields[$code])) {
+                                $arrayIdentifier = explode('#', $matchedCustomOrderFields[$code], 2);
+                                $property = $propertyCollection->getItemByOrderPropertyId($arrayIdentifier[0]);
+                                $value = RCrmActions::convertCrmValueToCmsField($value, $property->getType());
+                                $queryResult = $property->setField('VALUE', $value);
+
+                                if (!$queryResult->isSuccess()) {
+                                    RCrmActions::eventLog(
+                                        'RetailCrmHistory::orderHistory',
+                                        'CustomOrderPropSave',
+                                        'Error when saving a property: ' . $arrayIdentifier[1]
+                                    );
+                                }
+                            }
+                        }
+                    }
+
                     self::orderSave($newOrder);
 
                     if ($optionsOrderNumbers === 'Y' && isset($order['number'])) {
@@ -2113,7 +2175,7 @@ class RetailCrmHistory
      * @param $customerBuilder
      * @return array
      */
-    private  static function getDataUser($customerBuilder)
+    private static function getDataUser($customerBuilder, $customFields)
     {
         $customerArray = $customerBuilder->getCustomer()->getObjectToArray();
 
@@ -2121,6 +2183,27 @@ class RetailCrmHistory
             $customerArray['UF_SUBSCRIBE_USER_EMAIL'] = 'Y';
         }
 
+        $customerArray = array_merge($customerArray, $customFields);
+
         return self::convertBooleanFields($customerArray);
+    }
+
+    private static function getCustomUserFields($customer, $matchedCustomFields, $customUserFieldTypes)
+    {
+        $customFields = [];
+
+        if (self::$CUSTOM_FIELDS_IS_ACTIVE === 'Y'
+            && isset($customer['customFields'])
+            && is_array($customer['customFields'])
+        ) {
+            foreach ($customer['customFields'] as $code => $value) {
+                if (isset($matchedCustomFields[$code]) && !empty($customUserFieldTypes[$matchedCustomFields[$code]])) {
+                    $type = $customUserFieldTypes[$matchedCustomFields[$code]];
+                    $customFields[$matchedCustomFields[$code]] = RCrmActions::convertCrmValueToCmsField($value, $type);
+                }
+            }
+        }
+
+        return $customFields;
     }
 }

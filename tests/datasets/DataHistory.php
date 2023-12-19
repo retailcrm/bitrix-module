@@ -45,7 +45,9 @@ class DataHistory
                         "text": "Street"
                     },
                     "customFields": {
-                        "crm_customer": "test_customer"
+                        "crm_customer": "test_customer",
+                        "custom_1": "test 1",
+                        "custom_2": "test 2"
                     },
                     "segments": [],
                     "firstName": "Test_Name",
