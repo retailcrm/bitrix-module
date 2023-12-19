@@ -580,10 +580,7 @@ class RCrmActions
                 break;
             case 'STRING':
             case 'string':
-                if (strlen($value) > 500) {
-                    $result = '';
-                }
-
+                $result =  strlen($value) <= 500 ? $value : '';
                 break;
             case 'datetime':
                 $result = date('Y-m-d', strtotime($value));
@@ -618,10 +615,7 @@ class RCrmActions
             case 'STRING':
             case 'string':
             case 'text':
-                if (strlen($result) > 500) {
-                    $result = '';
-                }
-
+                $result = strlen($crmValue) <= 500 ? $crmValue : '';
                 break;
         }
 
