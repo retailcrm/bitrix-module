@@ -2434,14 +2434,11 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                         name="bitrixOrderFields"
                         onchange="changeSelectBitrixValue(this, 'bitrixOrderFields_', 'crmOrderFields_');"
                 >
-                    <option value=""></option>
+                    <option value="" selected></option>
                     <?php foreach ($arResult['bitrixOrdersCustomProp'] as $type => $mass) {?>
                         <optgroup label="<?php echo GetMessage($type); ?>">
                             <?php foreach ($mass as $code => $prop) {?>
-                                <option
-                                        value="<?php echo $code ?>"
-                                    <?php if ($bitrixProp === $code) echo 'selected'; ?>
-                                >
+                                <option value="<?php echo $code ?>">
                                     <?php echo $prop ?>
                                 </option>
                             <?php } ?>
@@ -2457,14 +2454,11 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                         name="crmOrderFields"
                         onchange="changeSelectCrmValue(this, 'crmOrder_')"
                 >
-                    <option value=""></option>
+                    <option value="" selected></option>
                     <?php foreach ($arResult['crmCustomOrderFields'] as $type => $mass) {?>
                         <optgroup label="<?php echo GetMessage($type); ?>">
                             <?php foreach ($mass as $crmProp) {?>
-                                <option
-                                        value="<?php echo $crmProp['code'] ?>"
-                                    <?php if ($crmField === $crmProp['code']) echo 'selected'; ?>
-                                >
+                                <option value="<?php echo $crmProp['code'] ?>">
                                     <?php echo $crmProp['name'] ?>
                                 </option>
                             <?php } ?>
@@ -2483,7 +2477,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                         name="bitrixUserFields"
                         onchange="changeSelectBitrixValue(this, 'bitrixUserFields_', 'crmUserFields_');"
                 >
-                    <option value=""></option>
+                    <option value="" selected></option>
                     <?php foreach ($arResult['bitrixCustomUserFields'] as $type => $mass) {?>
                         <optgroup label="<?php echo GetMessage($type); ?>">
                             <?php foreach ($mass as $code => $prop) {?>
@@ -2502,7 +2496,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                         name="crmUserFields"
                         onchange="changeSelectCrmValue(this, 'crmClient_')"
                 >
-                    <option value=""></option>
+                    <option value="" selected></option>
                     <?php foreach ($arResult['crmCustomUserFields'] as $type => $mass) {?>
                         <optgroup label="<?php echo GetMessage($type); ?>">
                             <?php foreach ($mass as $crmProp) {?>
