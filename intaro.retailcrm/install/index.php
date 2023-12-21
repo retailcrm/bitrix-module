@@ -1289,6 +1289,10 @@ class intaro_retailcrm extends CModule
         COption::RemoveOption($this->MODULE_ID, $this->HISTORY_TIME);
         COption::RemoveOption($this->MODULE_ID, $this->CLIENT_ID);
         COption::RemoveOption($this->MODULE_ID, $this->PROTOCOL);
+        COption::RemoveOption($this->MODULE_ID, Constants::MATCHED_CUSTOM_PROPS);
+        COption::RemoveOption($this->MODULE_ID, Constants::MATCHED_CUSTOM_USER_FIELDS);
+        COption::RemoveOption($this->MODULE_ID, Constants::CRM_ORDER_METHODS);
+        COption::RemoveOption($this->MODULE_ID, Constants::USE_CRM_ORDER_METHODS);
 
         if (CModule::IncludeModule('sale')) {
             UnRegisterModuleDependences(
