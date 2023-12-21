@@ -1184,7 +1184,7 @@ class ConfigProvider
      */
     public static function getCrmOrderMethods()
     {
-        return static::getUnserializedOption(Constants::CRM_ORDER_METHODS, []);
+        return static::getUnserializedOption(Constants::CRM_ORDER_METHODS);
     }
 
     public static function setTrackNumberStatus($trackNumberStatus)

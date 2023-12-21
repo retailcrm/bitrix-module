@@ -14,10 +14,10 @@ use Bitrix\Sale\Delivery\Services\Manager;
 use Bitrix\Sale\EventActions;
 use Bitrix\Sale\Internals\OrderTable;
 use Intaro\RetailCrm\Component\ConfigProvider;
+use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\Installer\InstallerTrait;
 use Intaro\RetailCrm\Service\CurrencyService;
 use Intaro\RetailCrm\Service\OrderLoyaltyDataService;
-use Intaro\RetailCrm\Vendor\Symfony\Component\Process\PhpExecutableFinder;
 use RetailCrm\ApiClient;
 use RetailCrm\Exception\CurlException;
 use RetailCrm\Http\Client;
@@ -551,6 +551,24 @@ class intaro_retailcrm extends CModule
             $api_host = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, 0);
             $api_key = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, 0);
             $this->RETAIL_CRM_API = new ApiClient($api_host, $api_key);
+
+            $useCrmOrderMethods = htmlspecialchars(trim($_POST['use_crm_order_methods'])) === 'Y' ? 'Y' : 'N';
+            $crmOrderMethod = [];
+
+            if ($useCrmOrderMethods === 'Y') {
+                $crmOrderMethod = $_POST['crm_order_methods'];
+            }
+            COption::SetOptionString(
+                $this->MODULE_ID,
+                Constants::USE_CRM_ORDER_METHODS,
+                $useCrmOrderMethods
+            );
+
+            COption::SetOptionString(
+                $this->MODULE_ID,
+                Constants::CRM_ORDER_METHODS,
+                serialize(RCrmActions::clearArr(is_array($crmOrderMethod) ? $crmOrderMethod : []))
+            );
 
             //bitrix orderTypesList
             $arResult['arSites'] = RCrmActions::getSitesList();
