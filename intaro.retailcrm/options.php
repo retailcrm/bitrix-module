@@ -10,7 +10,6 @@ use Bitrix\Sale\Delivery\Services\Manager;
 use Intaro\RetailCrm\Component\ApiClient\ClientAdapter;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Constants;
-use Intaro\RetailCrm\Component\Handlers\EventsHandlers;
 use Intaro\RetailCrm\Repository\AgreementRepository;
 use Intaro\RetailCrm\Repository\TemplateRepository;
 use Intaro\RetailCrm\Service\CurrencyService;
@@ -501,6 +500,14 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         CAgent::RemoveAgent("RetailCrmPrices::pricesUpload();", $mid);
     }
 
+
+    $useCrmOrderMethods = htmlspecialchars(trim($_POST['use_crm_order_methods'])) === 'Y' ? 'Y' : 'N';
+    $crmOrderMethod = [];
+
+    if ($useCrmOrderMethods === 'Y') {
+        $crmOrderMethod = $_POST['crm_order_methods'];
+    }
+
     //demon
     $collectorKeys = [];
     if (htmlspecialchars(trim($_POST['collector'])) === 'Y') {
@@ -642,7 +649,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             $availableSites,
             $api->deliveryTypesList()->deliveryTypes
         );
-    } catch (\RetailCrm\Exception\CurlException $e) {
+    } catch (CurlException $e) {
         RCrmActions::eventLog(
             'intaro.retailcrm/options.php', 'RetailCrm\ApiClient::*List::CurlException',
             $e->getCode() . ': ' . $e->getMessage()
@@ -870,6 +877,16 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     );
     COption::SetOptionString(
         $mid,
+        Constants::USE_CRM_ORDER_METHODS,
+        $useCrmOrderMethods
+    );
+    COption::SetOptionString(
+        $mid,
+        Constants::CRM_ORDER_METHODS,
+        serialize(RCrmActions::clearArr(is_array($crmOrderMethod) ? $crmOrderMethod : []))
+    );
+    COption::SetOptionString(
+        $mid,
         $CRM_PRICES,
         serialize(RCrmActions::clearArr(is_array($bitrixPricesArr) ? $bitrixPricesArr : []))
     );
@@ -987,7 +1004,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $api_key = COption::GetOptionString($mid, $CRM_API_KEY_OPTION, 0);
     $api = new RetailCrm\ApiClient($api_host, $api_key);
 
-    //prepare crm lists
+    // Prepare crm lists
     try {
         $arResult['orderTypesList'] = $api->orderTypesList()->orderTypes;
         $arResult['deliveryTypesList'] = $api->deliveryTypesList()->deliveryTypes;
@@ -1009,7 +1026,22 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 'utf-8',
                 SITE_CHARSET
         );
-    } catch (\RetailCrm\Exception\CurlException $e) {
+
+        $orderMethods = [];
+        $getOrderMethods = $api->orderMethodsList();
+
+        if ($getOrderMethods !== null && $getOrderMethods->isSuccessful()) {
+            foreach ($getOrderMethods->orderMethods as $method) {
+                if (!$method['active']) {
+                    continue;
+                }
+
+                $orderMethods[$method['code']] = $method['name'];
+            }
+        }
+
+        $arResult['orderMethods'] = $orderMethods;
+    } catch (CurlException $e) {
         RCrmActions::eventLog(
             'intaro.retailcrm/options.php', 'RetailCrm\ApiClient::*List::CurlException',
             $e->getCode() . ': ' . $e->getMessage()
@@ -1099,11 +1131,13 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $arResult['bitrixPricesExportList'] = RCrmActions::PricesExportList();
 
     //saved params
+    $useCrmOrderMethods = ConfigProvider::useCrmOrderMethods();
+    $crmOrderMethods = unserialize(COption::GetOptionString($mid, Constants::CRM_ORDER_METHODS, 0));
     $moduleDeactivate = unserialize(COption::GetOptionString($mid, $MODULE_DEACTIVATE, 'N'));
     $optionsOrderTypes = unserialize(COption::GetOptionString($mid, $CRM_ORDER_TYPES_ARR, 0));
     $optionsDelivTypes = unserialize(COption::GetOptionString($mid, $CRM_DELIVERY_TYPES_ARR, 0));
     $optionsPayTypes = unserialize(COption::GetOptionString($mid, $CRM_PAYMENT_TYPES, 0));
-    $optionsPayStatuses = unserialize(COption::GetOptionString($mid, $CRM_PAYMENT_STATUSES, 0)); // --statuses
+    $optionsPayStatuses = unserialize(COption::GetOptionString($mid, $CRM_PAYMENT_STATUSES, 0));
     $optionsPayment = unserialize(COption::GetOptionString($mid, $CRM_PAYMENT, 0));
     $optionsSitesList = unserialize(COption::GetOptionString($mid, $CRM_SITES_LIST, 0));
     $optionsDischarge = (int) COption::GetOptionString($mid, $CRM_ORDER_DISCHARGE, 0);
@@ -1405,6 +1439,10 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                     }
                 }
             )
+        }
+
+        function switchCrmOrderMethods() {
+            $('#crm_order_methods').toggle(500);
         }
 
         function switchPLStatus() {
@@ -1919,6 +1957,32 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 </td>
             </tr>
         <?php endforeach; ?>
+            <tr class="heading">
+                <td colspan="2"><b><?php echo GetMessage('CRM_ORDER_METHODS'); ?></b></td>
+            </tr>
+
+            <tr>
+                <td colspan="2" style="text-align: center!important;">
+                    <label><input class="addr" type="checkbox" name="use_crm_order_methods" value="Y" onclick="switchCrmOrderMethods();" <?php if ($useCrmOrderMethods === 'Y') {
+                            echo "checked";
+                        } ?>><?php echo GetMessage('CRM_ORDER_METHODS_OPTION'); ?></label>
+                </td>
+            </tr>
+
+            <tr id="crm_order_methods" style="display:<?php echo $useCrmOrderMethods !== 'Y' ? 'none' : '';?>">
+                <td colspan="2" style="text-align: center!important;">
+                    <br><br>
+                    <select multiple size="<?php echo count($arResult['orderMethods']);?>" name="crm_order_methods[]">
+                        <?php foreach ($arResult['orderMethods'] as $key => $name): ?>
+                            <option value="<?php echo $key;?>"<?php if (is_array($crmOrderMethods) && in_array($key, $crmOrderMethods)) {
+                                echo 'selected';
+                            } ?>>
+                                <?php echo $name;?>
+                            </option>
+                        <?php endforeach;?>
+                    </select>
+                </td>
+            </tr>
         <?php $tabControl->BeginNextTab(); ?>
             <input type="hidden" name="tab" value="catalog">
             <tr class="option-head">

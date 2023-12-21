@@ -88,7 +88,6 @@ class Constants
     public const LP_BONUS_INFO                  = 'LP_BONUS_INFO';
     public const API_ERRORS_LOG                 = 'apiErrors';
     public const LOYALTY_ERROR                  = 'loyaltyErrors';
-    public const HISTORY_ERRORS                 = 'historyErrors';
     public const REPOSITORY_ERRORS              = 'repositoryErrors';
     public const TEMPLATES_ERROR                = 'templatesErrors';
     public const DEFAULT_LOYALTY_TEMPLATE       = 'default_loyalty';
@@ -103,9 +102,10 @@ class Constants
         ['EVENT_NAME' => 'OnSaleComponentOrderResultPrepared', 'FROM_MODULE' => 'sale'],
     ];
     public const SITES_AVAILABLE = 'sites_available';
-
     public const RECEIVE_TRACK_NUMBER_DELIVERY = 'receive_track_number_delivery';
     public const CUSTOM_FIELDS_TOGGLE = 'custom_fields_toggle';
     public const MATCHED_CUSTOM_PROPS = 'matched_order_props';
     public const MATCHED_CUSTOM_USER_FIELDS = 'matched_custom_field';
+    public const USE_CRM_ORDER_METHODS  = 'use_crm_order_methods';
+    public const CRM_ORDER_METHODS  = 'crm_order_methods';
 }
