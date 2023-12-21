@@ -1,5 +1,6 @@
 <?php
 
+use Intaro\RetailCrm\Component\ConfigProvider;
 use RetailCrm\ApiClient;
 
 /** @var $APPLICATION */
@@ -132,6 +133,23 @@ if (isset($arResult['PAYMENT'])) {
         'N' => 'not-paid',
     ];
 }
+
+$orderMethods = [];
+$getOrderMethods = $RETAIL_CRM_API->orderMethodsList();
+
+if ($getOrderMethods !== null && $getOrderMethods->isSuccessful()) {
+    foreach ($getOrderMethods->orderMethods as $method) {
+        if (!$method['active']) {
+            continue;
+        }
+
+        $orderMethods[$method['code']] = $method['name'];
+    }
+}
+
+$arResult['orderMethods'] = $orderMethods;
+$crmOrderMethods = ConfigProvider::getCrmOrderMethods();
+$useCrmOrderMethods = ConfigProvider::useCrmOrderMethods();
 ?>
 
 <style type="text/css">
@@ -145,6 +163,10 @@ if (isset($arResult['PAYMENT'])) {
 <?php CJSCore::Init(['jquery']);?>
 
 <script type="text/javascript">
+    function switchCrmOrderMethods() {
+        $('#crm_order_methods').toggle(500);
+    }
+
     $(document).ready(function() {
         $('input[name="update"]').on('click', function() {
             $('input[name="step"]').val(2);
@@ -381,6 +403,32 @@ if (isset($arResult['PAYMENT'])) {
                 </td>
             </tr>
             <?php endforeach; ?>
+            <tr class="heading">
+                <td colspan="2"><b><?php echo GetMessage('CRM_ORDER_METHODS'); ?></b></td>
+            </tr>
+
+            <tr>
+                <td colspan="2" style="text-align: center!important;">
+                    <label><input class="addr" type="checkbox" name="use_crm_order_methods" value="Y" onclick="switchCrmOrderMethods();" <?php if ($useCrmOrderMethods === 'Y') {
+                            echo "checked";
+                        } ?>><?php echo GetMessage('CRM_ORDER_METHODS_OPTION'); ?></label>
+                </td>
+            </tr>
+
+            <tr id="crm_order_methods" style="display:<?php echo $useCrmOrderMethods !== 'Y' ? 'none' : '';?>">
+                <td colspan="2" style="text-align: center!important;">
+                    <br><br>
+                    <select multiple size="<?php echo count($arResult['orderMethods']);?>" name="crm_order_methods[]">
+                        <?php foreach ($arResult['orderMethods'] as $key => $name): ?>
+                            <option value="<?php echo $key;?>"<?php if (is_array($crmOrderMethods) && in_array($key, $crmOrderMethods)) {
+                                echo 'selected';
+                            } ?>>
+                                <?php echo $name;?>
+                            </option>
+                        <?php endforeach;?>
+                    </select>
+                </td>
+            </tr>
         </tbody>
     </table>
     <br />

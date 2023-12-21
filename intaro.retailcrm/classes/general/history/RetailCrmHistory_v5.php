@@ -34,7 +34,7 @@ class RetailCrmHistory
     public static $CRM_DELIVERY_TYPES_ARR = 'deliv_types_arr';
     public static $CRM_PAYMENT_TYPES = 'pay_types_arr';
     public static $CRM_PAYMENT_STATUSES = 'pay_statuses_arr';
-    public static $CRM_PAYMENT = 'payment_arr'; //order payment Y/N
+    public static $CRM_PAYMENT = 'payment_arr';
     public static $CRM_ORDER_LAST_ID = 'order_last_id';
     public static $CRM_SITES_LIST = 'sites_list';
     public static $CRM_ORDER_PROPS = 'order_props';
@@ -50,7 +50,6 @@ class RetailCrmHistory
     public static $CRM_CURRENCY = 'currency';
     public static $CRM_DISCOUNT_ROUND = 'discount_round';
     public static $CUSTOM_FIELDS_IS_ACTIVE = 'N';
-
     const PAGE_LIMIT = 25;
 
     public static function customerHistory()
@@ -208,8 +207,8 @@ class RetailCrmHistory
                             CUser::GetList(
                                 ($by = "ID"),
                                 ($order = "desc"),
-                                array('ID' => $customer['externalId']),
-                                array('FIELDS' => array('PERSONAL_PHONE', 'PERSONAL_MOBILE'))
+                                ['ID' => $customer['externalId']],
+                                ['FIELDS' => ['PERSONAL_PHONE', 'PERSONAL_MOBILE']]
                             )->fetch()
                         );
                     }
@@ -304,7 +303,7 @@ class RetailCrmHistory
         /* @var OrderLoyaltyDataService $orderLoyaltyDataService */
         $orderLoyaltyDataService = ServiceLocator::get(OrderLoyaltyDataService::class);
 
-        $historyFilter = array();
+        $historyFilter = [];
         $historyStart = COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_HISTORY);
 
         if ($historyStart && $historyStart > 0) {
@@ -381,7 +380,7 @@ class RetailCrmHistory
 
                 $corporateCustomerBuilder = new CorporateCustomerBuilder();
 
-                $corporateContact = array();
+                $corporateContact = [];
                 $orderCustomerExtId = $order['customer']['externalId'] ?? null;
                 $corporateCustomerBuilder->setOrderCustomerExtId($orderCustomerExtId)
                     ->setContragentTypes($contragentTypes)
@@ -432,6 +431,16 @@ class RetailCrmHistory
                 }
 
                 if (!isset($order['externalId'])) {
+                    if (ConfigProvider::useCrmOrderMethods() === 'Y') {
+                        $orderMethods = ConfigProvider::getCrmOrderMethods();
+
+                        // 1. Клиент активировал опцию, но не выбрал способы оформления - пропускаем все заказы.
+                        // 2. Если способа оформления заказа нет в выбранном в настройках списке - пропускаем заказ.
+                        if ($orderMethods === [] || !in_array($order['orderMethod'], $orderMethods, true)) {
+                            continue;
+                        }
+                    }
+
                     if (empty($orderCustomerExtId)) {
                         if (!isset($order['customer']['id'])
                             || (RetailCrmOrder::isOrderCorporate($order)
@@ -520,10 +529,10 @@ class RetailCrmHistory
                                     $api,
                                     'customersFixExternalIds',
                                     __METHOD__,
-                                    array(array(
+                                    [[
                                         'id' => $order['customer']['id'],
                                         'externalId' => $registeredUserID
-                                    ))) == false
+                                    ]]) == false
                             ) {
                                 continue;
                             }
@@ -533,21 +542,21 @@ class RetailCrmHistory
                         $corporateCustomerBuilder->setOrderCustomerExtId($orderCustomerExtId);
                     }
 
-                    $buyerProfileToAppend = array();
+                    $buyerProfileToAppend = [];
 
                     if (RetailCrmOrder::isOrderCorporate($order) && !empty($order['company'])) {
                         $buyerProfile = $corporateCustomerBuilder->getBuyerProfile()->getObjectToArray();
-                        $buyerProfileToAppend = OrderUserProperties::getList(array(
+                        $buyerProfileToAppend = OrderUserProperties::getList([
                             "filter" => $buyerProfile
-                        ))->fetch();
+                        ])->fetch();
 
                         if (empty($buyerProfileToAppend)) {
                             $buyerProfileInstance = new CSaleOrderUserProps();
 
                             if ($buyerProfileInstance->Add($buyerProfile)) {
-                                $buyerProfileToAppend = OrderUserProperties::getList(array(
+                                $buyerProfileToAppend = OrderUserProperties::getList([
                                     "filter" => $buyerProfile
-                                ))->fetch();
+                                ])->fetch();
                             }
                         }
                     }
@@ -634,8 +643,8 @@ class RetailCrmHistory
                         $propsRemove = true;
                     } else {
                         if (isset($order['orderType']) && $order['orderType']) {
-                            $nType = array();
-                            $tList = RCrmActions::OrderTypesList(array(array('LID' => $site)));
+                            $nType = [];
+                            $tList = RCrmActions::OrderTypesList([['LID' => $site]]);
 
                             foreach ($tList as $type) {
                                 if (isset($optionsOrderTypes[$type['ID']])) {
@@ -688,7 +697,7 @@ class RetailCrmHistory
                     //props
                     $propertyCollection = $newOrder->getPropertyCollection();
                     $propertyCollectionArr = $propertyCollection->getArray();
-                    $nProps = array();
+                    $nProps = [];
 
                     foreach ($propertyCollectionArr['properties'] as $orderProp) {
                         if ($orderProp['ID'][0] == 'n') {
@@ -705,7 +714,7 @@ class RetailCrmHistory
                         $nProps[] = $orderProp;
                     }
 
-                    $orderDump = array();
+                    $orderDump = [];
                     $propertyCollectionArr['properties'] = $nProps;
 
                     if ($propsRemove) {//delete props
@@ -722,7 +731,7 @@ class RetailCrmHistory
                         $order = $orderCrm['order'];
                     }
 
-                    $propsKey = array();
+                    $propsKey = [];
 
                     foreach ($propertyCollectionArr['properties'] as $prop) {
                         if ($prop['PROPS_GROUP_ID'] != 0) {
@@ -746,7 +755,7 @@ class RetailCrmHistory
                         }
 
                         $fio = RCrmActions::explodeFio($fio);
-                        $newFio = array();
+                        $newFio = [];
 
                         if ($fio) {
                             $newFio[] = isset($order['lastName'])
@@ -789,7 +798,7 @@ class RetailCrmHistory
                                     if (!empty($order['delivery']['address'][$key])) {
                                         $parameters['filter']['NAME.LANGUAGE_ID'] = 'ru';
                                         $parameters['limit'] = 1;
-                                        $parameters['select'] = array('*');
+                                        $parameters['select'] = ['*'];
 
                                         // if address have a dot
                                         $loc = explode('.', $order['delivery']['address'][$key]);
@@ -983,10 +992,10 @@ class RetailCrmHistory
                                             $api,
                                             'customersFixExternalIds',
                                             __METHOD__,
-                                            array(array(
+                                            [[
                                                     'id' => $response['customer']['id'],
                                                     'externalId' => $registeredUserID
-                                            ))
+                                            ]]
                                         ) == false
                                     ) {
                                         continue;
@@ -1198,7 +1207,7 @@ class RetailCrmHistory
                     $order['summ'] = $orderSumm;
 
                     //payment
-                    $newHistoryPayments = array();
+                    $newHistoryPayments = [];
 
                     if (array_key_exists('payments', $order)) {
                         if (!isset($orderCrm)) {
@@ -1344,7 +1353,7 @@ class RetailCrmHistory
                                 );
 
                                 if ($paymentId) {
-                                    PaymentTable::update($paymentId, array('XML_ID' => ''));
+                                    PaymentTable::update($paymentId, ['XML_ID' => '']);
                                 }
                             }
                         }
@@ -1357,7 +1366,7 @@ class RetailCrmHistory
                                 $api,
                                 'ordersFixExternalIds',
                                 __METHOD__,
-                                array(array('id' => $order['id'], 'externalId' => $newOrder->getId()))) == false
+                                [['id' => $order['id'], 'externalId' => $newOrder->getId()]]) == false
                         ) {
                             continue;
                         }
@@ -1411,12 +1420,15 @@ class RetailCrmHistory
      */
     public static function search_array_by_value($array, $value)
     {
-        $results = array();
+        $results = [];
+
         if (is_array($array)) {
-            $found = array_search($value,$array);
+            $found = array_search($value, $array);
+
             if ($found) {
                 $results[] = $found;
             }
+
             foreach ($array as $subarray)
                 $results = array_merge($results, static::search_array_by_value($subarray, $value));
         }
@@ -1427,14 +1439,14 @@ class RetailCrmHistory
     {
         $customerHistory = self::filterHistory($customerHistory, 'customer');
         $server = Context::getCurrent()->getServer()->getDocumentRoot();
-        $fields = array();
+        $fields = [];
         if (file_exists($server . '/bitrix/modules/intaro.retailcrm/classes/general/config/objects.xml')) {
             $objects = simplexml_load_file($server . '/bitrix/modules/intaro.retailcrm/classes/general/config/objects.xml');
             foreach ($objects->fields->field as $object) {
                 $fields[(string)$object["group"]][(string)$object["id"]] = (string)$object;
             }
         }
-        $customers = array();
+        $customers = [];
         foreach ($customerHistory as $change) {
             $change['customer'] = self::removeEmpty($change['customer']);
             if ($customers[$change['customer']['id']]) {
@@ -1510,7 +1522,7 @@ class RetailCrmHistory
             }
         }
 
-        $orders = array();
+        $orders = [];
 
         foreach ($orderHistory as $change) {
             $change['order'] = self::removeEmpty($change['order']);
@@ -1548,7 +1560,7 @@ class RetailCrmHistory
             }
 
             if ($change['order']['payments']) {
-                $payments = array();
+                $payments = [];
                 foreach ($change['order']['payments'] as $payment) {
                     $payments[$payment['id']] = $payment;
                 }
@@ -1761,7 +1773,7 @@ class RetailCrmHistory
                     $services = $service->getProfilesList();
                     if (!array_key_exists($serviceCode, $services)) {
                         $serviceCode = strtoupper($serviceCode);
-                        $serviceCode = str_replace(array('-'), "_", $serviceCode);
+                        $serviceCode = str_replace('-', "_", $serviceCode);
                     }
                 }
 
@@ -1893,7 +1905,7 @@ class RetailCrmHistory
      *
      * @return void
      */
-    public static function paymentsUpdate($order, $paymentsCrm, &$newHistoryPayments = array())
+    public static function paymentsUpdate($order, $paymentsCrm, &$newHistoryPayments = [])
     {
         $optionsPayTypes = array_flip(unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_TYPES, 0)));
         $optionsPayment = array_flip(unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT, 0)));
@@ -1901,7 +1913,7 @@ class RetailCrmHistory
         foreach ($allPaymentSystems as $allPaymentSystem) {
             $arPaySysmems[$allPaymentSystem['ID']] = $allPaymentSystem['NAME'];
         }
-        $paymentsList = array();
+        $paymentsList = [];
         $paymentColl = $order->getPaymentCollection();
         foreach ($paymentColl as $paymentData) {
             $data = $paymentData->getFields()->getValues();
@@ -1978,7 +1990,7 @@ class RetailCrmHistory
 
     public static function removeEmpty($inputArray)
     {
-        $outputArray = array();
+        $outputArray = [];
 
         if (!empty($inputArray)) {
             foreach ($inputArray as $key => $element) {
@@ -2058,18 +2070,20 @@ class RetailCrmHistory
         $url = CAllIBlock::ReplaceDetailUrl($elementInfo['DETAIL_PAGE_URL'], $elementInfo, false, 'E');
         $catalog = CCatalogProduct::GetByID($offerId);
 
-        $info = array(
+        $info = [
             'NAME' => $elementInfo['NAME'],
             'URL' => $url,
-            'DIMENSIONS' => serialize(array(
-                'WIDTH' => $catalog['WIDTH'],
-                'HEIGHT' => $catalog['HEIGHT'],
-                'LENGTH' => $catalog['LENGTH'],
-            )),
+            'DIMENSIONS' => serialize(
+                [
+                    'WIDTH' => $catalog['WIDTH'],
+                    'HEIGHT' => $catalog['HEIGHT'],
+                    'LENGTH' => $catalog['LENGTH'],
+                ]
+            ),
             'WEIGHT' => $catalog['WEIGHT'],
             'XML_ID' => $elementInfo["XML_ID"],
             'IBLOCK_XML_ID' => $elementInfo["IBLOCK_EXTERNAL_ID"]
-        );
+        ];
 
         return $info;
     }

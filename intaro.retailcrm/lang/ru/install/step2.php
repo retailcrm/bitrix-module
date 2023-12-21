@@ -22,3 +22,5 @@ $MESS ['DELIV_TYPES_EXPORT_F'] = 'Настроить соответствие д
 $MESS ['STATUS_NOT_SETTINGS'] ='Не найдены подходящие статусы в Битрикс';
 $MESS ['INTEGRATIONS'] = ' (интеграционная)';
 $MESS ['INTEGRATION_PAYMENT_LIST'] = 'Для интеграционных оплат статус не передаётся';
+$MESS ['CRM_ORDER_METHODS'] = 'Передача заказов из CRM в Битрикс';
+$MESS ['CRM_ORDER_METHODS_OPTION'] = 'Выгружать из RetailCRM заказы оформленные выбранными способами';

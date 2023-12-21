@@ -1171,6 +1171,22 @@ class ConfigProvider
         return static::getOption(Constants::RECEIVE_TRACK_NUMBER_DELIVERY);
     }
 
+    /**
+     * @return string
+     */
+    public static function useCrmOrderMethods()
+    {
+        return COption::GetOptionString(Constants::MODULE_ID, Constants::USE_CRM_ORDER_METHODS, 'N');
+    }
+
+    /**
+     * @return array
+     */
+    public static function getCrmOrderMethods()
+    {
+        return static::getUnserializedOption(Constants::CRM_ORDER_METHODS);
+    }
+
     public static function setTrackNumberStatus($trackNumberStatus)
     {
         static::setOption(Constants::RECEIVE_TRACK_NUMBER_DELIVERY, $trackNumberStatus);

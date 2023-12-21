@@ -22,3 +22,5 @@ $MESS ['DELIV_TYPES_EXPORT_F'] = 'Set the correspondence between 1C-Bitrix and R
 $MESS ['STATUS_NOT_SETTINGS'] ='Cannot find suitable statuses in Bitrix';
 $MESS ['INTEGRATIONS'] = ' (integration)';
 $MESS ['INTEGRATION_PAYMENT_LIST'] = 'The status will not be transferred for integration payments';
+$MESS ['CRM_ORDER_METHODS'] = 'Transfer of orders from CRM to Bitrix';
+$MESS ['CRM_ORDER_METHODS_OPTION'] = 'Upload orders using selected methods from RetailCRM';
