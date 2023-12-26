@@ -122,7 +122,6 @@ class RetailCrmOrder
         $order['contragent']['contragentType'] = $arParams['optionsContragentType'][$arOrder['PERSON_TYPE_ID']];
 
         $countryList = BitrixOrderService::getCountryList();
-        $deliveryAddress = ['city' => '', 'text' => '', 'index' => '', 'region' => '', 'countryIso' => ''];
         $isSendCustomFields = 'N';
 
         if (method_exists(RCrmActions::class, 'convertCmsFieldToCrmValue')) {
@@ -156,33 +155,37 @@ class RetailCrmOrder
 
                         $order[$search] = $prop['VALUE'][0];//phone, email
                     }
+                } else {
+                    if ($prop['TYPE'] === 'LOCATION' && isset($prop['VALUE'][0]) && $prop['VALUE'][0] != '') {
+                        $arLoc = LocationTable::getByCode($prop['VALUE'][0])->fetch();
+
+                        if ($arLoc) {
+                            $location = LocationTableName::getList([
+                                'filter' => ['=LOCATION_ID' => $arLoc['CITY_ID'], 'LANGUAGE_ID' => 'ru']
+                            ])->fetch();
+
+                            if (count($countryList) > 0) {
+                                $countryOrder = LocationTableName::getList([
+                                    'filter' => ['=LOCATION_ID' => $arLoc['COUNTRY_ID'], 'LANGUAGE_ID' => 'ru']
+                                ])->fetch();
+
+                                if (isset($countryList[$countryOrder['NAME']])){
+                                    $order['countryIso'] = $countryList[$countryOrder['NAME']];
+                                }
+                            }
+
+                            if (isset($location['NAME'])) {
+                                $prop['VALUE'][0] = $location['NAME'];
+                            }
+                        }
+                    }
+
+                    if (!empty($prop['VALUE'][0])) {
+                        $order['delivery']['address'][$search] = $prop['VALUE'][0];
+                    }
                 }
             }
-
-            if ($prop['CODE'] === 'ZIP' && !empty($prop['VALUE'][0])) {
-                $deliveryAddress['index'] = $prop['VALUE'][0];
-            }
-
-            if ($prop['CODE'] === 'CITY' && $deliveryAddress['city'] === '' && !empty($prop['VALUE'][0])) {
-                $deliveryAddress['city'] = $prop['VALUE'][0];
-            }
-
-            if ($prop['CODE'] === 'ADDRESS' && !empty($prop['VALUE'][0])) {
-                $deliveryAddress['text']  = $prop['VALUE'][0];
-            }
-
-            if ($prop['TYPE'] === 'LOCATION' && isset($prop['VALUE'][0]) && !empty($prop['VALUE'][0])) {
-                $arLoc = LocationTable::getByCode($prop['VALUE'][0])->fetch();
-                $deliveryLocation = CSaleLocation::GetByID($arLoc['ID']);
-
-                $deliveryAddress['city'] = $deliveryLocation['CITY_NAME'] ?? '';
-                $deliveryAddress['region'] = $deliveryLocation['REGION_NAME'] ?? '';
-                $deliveryAddress['countryIso'] = $countryList['COUNTRY_NAME'] ?? '';
-            }
         }
-
-        // Удаляем пустые значения
-        $deliveryAddress = array_filter($deliveryAddress);
 
         // Пункт самовывоза
         $pickupPointAddress = '';
@@ -193,8 +196,6 @@ class RetailCrmOrder
 
         if ($pickupPointAddress !== '') {
             $order['delivery']['address']['text'] = $pickupPointAddress;
-        } elseif(!empty($deliveryAddress)) {
-            $order['delivery']['address'] = $deliveryAddress;
         }
 
         //Deliverys
