@@ -1545,8 +1545,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         {
             splitName = $(this).attr('name').split('-');
             orderType = splitName[2];
-            //console.log(orderType);
-            console.log($(this).val());
 
             if (parseInt($(this).val()) === 1) {
                 let locationElement = document.getElementById('locationElement-' + orderType);

@@ -658,6 +658,7 @@ class intaro_retailcrm extends CModule
             //new page
             //form orderProps
             $arResult['arProp'] = RCrmActions::OrderPropsList();
+            $arResult['locationProp'] = RCrmActions::getLocationProps();
 
             $request = Application::getInstance()->getContext()->getRequest();
 

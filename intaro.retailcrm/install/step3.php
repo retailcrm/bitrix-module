@@ -32,6 +32,7 @@ if (count($arResult['arSites']) === 1) {
 if (!isset($arResult['bitrixOrderTypesList'])) {
     $arResult['bitrixOrderTypesList'] = RCrmActions::OrderTypesList($arResult['arSites']);
     $arResult['arProp'] = RCrmActions::OrderPropsList();
+    $arResult['locationProp'] = RCrmActions::getLocationProps();
     $arResult['ORDER_PROPS'] = unserialize(COption::GetOptionString($MODULE_ID, $CRM_ORDER_PROPS, 0));
 }
 
@@ -80,9 +81,43 @@ if (isset($arResult['ORDER_PROPS'])) {
 <?php CJSCore::Init(['jquery']);?>
 
 <script type="text/javascript">
+    function updateAddressList()
+    {
+        splitName = $(this).attr('name').split('-');
+        orderType = splitName[2];
+
+        if (parseInt($(this).val()) === 1) {
+            let locationElement = document.getElementById('locationElement-' + orderType);
+            let replacedSelect = document.getElementsByName('order-prop-text-' + orderType);
+            let replacedElement = replacedSelect[0].parentNode.parentNode;
+            let addedLocation = locationElement.cloneNode(true);
+
+            addedLocation.querySelector(`select`).setAttribute("name", 'order-prop-text-' + orderType);
+            addedLocation.removeAttribute("hidden");
+            addedLocation.removeAttribute("id");
+            replacedElement.replaceWith(addedLocation);
+
+            $('tr.address-detail-' + orderType).show('slow');
+
+        } else if (parseInt($(this).val()) === 0) {
+            let locationElement = document.getElementById('textAddressElement-' + orderType);
+            let replacedSelect = document.getElementsByName('order-prop-text-' + orderType);
+            let replacedElement = replacedSelect[0].parentNode.parentNode;
+            let addedLocation = locationElement.cloneNode(true);
+
+            addedLocation.querySelector(`select`).setAttribute("name", 'order-prop-text-' + orderType);
+            addedLocation.removeAttribute("hidden");
+            addedLocation.removeAttribute("id");
+            replacedElement.replaceWith(addedLocation);
+
+            $('tr.address-detail-' + orderType).hide('slow');
+        }
+    }
+
     $(document).ready(function() {
         const individual = $("[name='contragent-type-1']").val();
         const legalEntity = $("[name='contragent-type-2']").val();
+        $('input:checked[name^="address-detail-"]').each(updateAddressList);
 
         if (legalEntity !== 'individual') {
             $('tr.legal-detail-2').each(function(){
@@ -90,7 +125,7 @@ if (isset($arResult['ORDER_PROPS'])) {
                     $(this).show();
                     $('.legal-detail-title-2').show();
                 }
-            });
+            });``
         }
 
         if (individual !== 'individual') {
@@ -102,15 +137,7 @@ if (isset($arResult['ORDER_PROPS'])) {
             });
         }
 
-        $('input.addr').change(function(){
-            const splitName = $(this).attr('name').split('-');
-            const orderType = splitName[2];
-
-            if(parseInt($(this).val()) === 1)
-                $('tr.address-detail-' + orderType).show('slow');
-            else if(parseInt($(this).val()) === 0)
-                $('tr.address-detail-' + orderType).hide('slow');
-        });
+        $('input[name^="address-detail-"]').change(updateAddressList);
         
         $('tr.contragent-type select').change(function(){
             const splitName      = $(this).attr('name').split('-');
@@ -222,6 +249,42 @@ if (isset($arResult['ORDER_PROPS'])) {
                 </td>
             </tr>
             <?php $countProps++; endforeach; ?>
+
+            <tr id="<?php echo 'locationElement-' . $bitrixOrderType['ID']; ?>" hidden="hidden">
+                <td class="adm-detail-content-cell-l" width="50%" name="text">Местоположение (LOCATION)</td>
+                <td class="adm-detail-content-cell-r" width="50%">
+                    <select class="typeselect">
+                        <option value=""></option>
+                        <?php foreach ($arResult['locationProp'][$bitrixOrderType['ID']] as $arProp): ?>
+                            <option value="<?php echo $arProp['CODE']; ?>"
+                                <?php if ($defaultOrderProps[$bitrixOrderType['ID']]['text'] === $arProp['CODE']) {
+                                    echo 'selected';
+                                } ?>
+                            >
+                                <?php echo $arProp['NAME'];?>
+                            </option>
+                        <?php endforeach;?>
+                    </select>
+                </td>
+            </tr>
+            <tr id="<?php echo 'textAddressElement-' . $bitrixOrderType['ID']; ?>" hidden="hidden">
+                <td class="adm-detail-content-cell-l" width="50%" name="text">Адрес (строкой)</td>
+                <td class="adm-detail-content-cell-r" width="50%">
+                    <select class="typeselect">
+                        <option value=""></option>
+                        <?php foreach ($arResult['arProp'][$bitrixOrderType['ID']] as $arProp): ?>
+                            <option value="<?php echo $arProp['CODE']; ?>"
+                                <?php if ($defaultOrderProps[$bitrixOrderType['ID']]['text'] === $arProp['CODE']) {
+                                    echo 'selected';
+                                } ?>
+                            >
+                                <?php echo $arProp['NAME']; ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </td>
+            </tr>
+
 
             <?if (isset($arResult['customFields']) && count($arResult['customFields']) > 0):?>
                 <tr class="heading custom-detail-title">
