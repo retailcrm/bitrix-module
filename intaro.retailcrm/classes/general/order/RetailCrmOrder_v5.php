@@ -160,24 +160,16 @@ class RetailCrmOrder
                         $arLoc = LocationTable::getByCode($prop['VALUE'][0])->fetch();
 
                         if ($arLoc) {
-                            $location = LocationTableName::getList([
-                                'filter' => ['=LOCATION_ID' => $arLoc['CITY_ID'], 'LANGUAGE_ID' => 'ru']
-                            ])->fetch();
+                            $deliveryLocation = CSaleLocation::GetByID($arLoc['ID']);
+                            $order['delivery']['address']['city'] = $deliveryLocation['CITY_NAME'] ?? '';
+                            $order['delivery']['address']['region'] = $deliveryLocation['REGION_NAME'] ?? '';
 
-                            if (count($countryList) > 0) {
-                                $countryOrder = LocationTableName::getList([
-                                    'filter' => ['=LOCATION_ID' => $arLoc['COUNTRY_ID'], 'LANGUAGE_ID' => 'ru']
-                                ])->fetch();
-
-                                if (isset($countryList[$countryOrder['NAME']])){
-                                    $order['countryIso'] = $countryList[$countryOrder['NAME']];
-                                }
-                            }
-
-                            if (isset($location['NAME'])) {
-                                $prop['VALUE'][0] = $location['NAME'];
+                            if (count($countryList) > 0 && isset($countryList[$deliveryLocation['COUNTRY_NAME']])) {
+                                $order['countryIso'] = $countryList[$deliveryLocation['COUNTRY_NAME']];
                             }
                         }
+
+                        $prop['VALUE'][0] = null;
                     }
 
                     if (!empty($prop['VALUE'][0])) {

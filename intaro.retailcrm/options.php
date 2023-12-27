@@ -1125,6 +1125,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
     //bitrix orderPropsList
     $arResult['arProp'] = RCrmActions::OrderPropsList();
+    $arResult['locationProp'] = RCrmActions::getLocationProps();
 
     $arResult['bitrixIblocksExportList'] = RCrmActions::IblocksExportList();
     $arResult['bitrixStoresExportList'] = RCrmActions::StoresExportList();
@@ -1540,16 +1541,44 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             }
         }
 
-        $(document).ready(function() {
-            $('input.addr').change(function() {
-                splitName = $(this).attr('name').split('-');
-                orderType = splitName[2];
+        function updateAddressList()
+        {
+            splitName = $(this).attr('name').split('-');
+            orderType = splitName[2];
+            //console.log(orderType);
+            console.log($(this).val());
 
-                if (parseInt($(this).val()) === 1)
-                    $('tr.address-detail-' + orderType).show('slow');
-                else if (parseInt($(this).val()) === 0)
-                    $('tr.address-detail-' + orderType).hide('slow');
-            });
+            if (parseInt($(this).val()) === 1) {
+                let locationElement = document.getElementById('locationElement-' + orderType);
+                let replacedSelect = document.getElementsByName('order-prop-text-' + orderType);
+                let replacedElement = replacedSelect[0].parentNode.parentNode;
+                let addedLocation = locationElement.cloneNode(true);
+
+                addedLocation.querySelector(`select`).setAttribute("name", 'order-prop-text-' + orderType);
+                addedLocation.removeAttribute("hidden");
+                addedLocation.removeAttribute("id");
+                replacedElement.replaceWith(addedLocation);
+
+                $('tr.address-detail-' + orderType).show('slow');
+
+            } else if (parseInt($(this).val()) === 0) {
+                let locationElement = document.getElementById('textAddressElement-' + orderType);
+                let replacedSelect = document.getElementsByName('order-prop-text-' + orderType);
+                let replacedElement = replacedSelect[0].parentNode.parentNode;
+                let addedLocation = locationElement.cloneNode(true);
+
+                addedLocation.querySelector(`select`).setAttribute("name", 'order-prop-text-' + orderType);
+                addedLocation.removeAttribute("hidden");
+                addedLocation.removeAttribute("id");
+                replacedElement.replaceWith(addedLocation);
+
+                $('tr.address-detail-' + orderType).hide('slow');
+            }
+        }
+
+        $(document).ready(function() {
+            $('input[name^="address-detail-"]').change(updateAddressList);
+            $('input:checked[name^="address-detail-"]').each(updateAddressList);
 
             $('tr.contragent-type select').change(function() {
                 splitName      = $(this).attr('name').split('-');
@@ -2011,31 +2040,31 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             <?php $countProps = 1;
         foreach ($arResult['orderProps'] as $orderProp): ?>
             <?php if ($orderProp['ID'] === 'text'): ?>
-            <tr class="heading">
-                <td colspan="2" style="background-color: transparent;">
-                    <b>
-                        <label>
-                            <input class="addr" type="radio" name="address-detail-<?php echo $bitrixOrderType['ID']; ?>" value="0"
-                                <?php
-                                if ($addressOptions[$bitrixOrderType['ID']] === '0') {
-                                    echo 'checked';
-                                }
-                                ?>>
-                            <?= GetMessage('ADDRESS_SHORT')?>
-                        </label>
-                        <label>
-                            <input class="addr" type="radio" name="address-detail-<?php echo $bitrixOrderType['ID']; ?>" value="1"
-                                <?php
-                                if ($addressOptions[$bitrixOrderType['ID']] === '1') {
-                                    echo 'checked';
-                                }
-                                ?>>
-                            <?= GetMessage('ADDRESS_FULL')?>
-                        </label>
-                    </b>
-                </td>
-            </tr>
-        <?php endif; ?>
+                <tr class="heading">
+                    <td colspan="2" style="background-color: transparent;">
+                        <b>
+                            <label>
+                                <input class="addr" type="radio" name="address-detail-<?php echo $bitrixOrderType['ID']; ?>" value="0"
+                                    <?php
+                                    if ($addressOptions[$bitrixOrderType['ID']] === '0') {
+                                        echo 'checked';
+                                    }
+                                    ?>>
+                                <?= GetMessage('ADDRESS_SHORT')?>
+                            </label>
+                            <label>
+                                <input class="addr" type="radio" name="address-detail-<?php echo $bitrixOrderType['ID']; ?>" value="1"
+                                    <?php
+                                    if ($addressOptions[$bitrixOrderType['ID']] === '1') {
+                                        echo 'checked';
+                                    }
+                                    ?>>
+                                <?= GetMessage('ADDRESS_FULL')?>
+                            </label>
+                        </b>
+                    </td>
+                </tr>
+            <?php endif; ?>
             <tr <?php if ($countProps > 4) {
                 echo 'class="address-detail-' . $bitrixOrderType['ID'] . '"';
             }
@@ -2087,6 +2116,41 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             </tr>
         <? endforeach; ?>
         <? endif; ?>
+            <tr id="<?php echo 'locationElement-' . $bitrixOrderType['ID']; ?>" hidden="hidden">
+                <td class="adm-detail-content-cell-l" width="50%" name="text">Местоположение (LOCATION)</td>
+                <td class="adm-detail-content-cell-r" width="50%">
+                    <select class="typeselect">
+                        <option value=""></option>
+                        <?php foreach ($arResult['locationProp'][$bitrixOrderType['ID']] as $arProp): ?>
+                            <option value="<?php echo $arProp['CODE']; ?>"
+                                <?php if ($optionsOrderProps[$bitrixOrderType['ID']]['text'] === $arProp['CODE']) {
+                                    echo 'selected';
+                                } ?>
+                            >
+                                <?php echo $arProp['NAME'];?>
+                            </option>
+                        <?php endforeach;?>
+                    </select>
+                </td>
+            </tr>
+            <tr id="<?php echo 'textAddressElement-' . $bitrixOrderType['ID']; ?>" hidden="hidden">
+                <td class="adm-detail-content-cell-l" width="50%" name="text">Адрес (строкой)</td>
+                <td class="adm-detail-content-cell-r" width="50%">
+                    <select class="typeselect">
+                        <option value=""></option>
+                        <?php foreach ($arResult['arProp'][$bitrixOrderType['ID']] as $arProp): ?>
+                            <option value="<?php echo $arProp['CODE']; ?>"
+                                <?php if ($optionsOrderProps[$bitrixOrderType['ID']]['text'] === $arProp['CODE']) {
+                                    echo 'selected';
+                                } ?>
+                            >
+                                <?php echo $arProp['NAME']; ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </td>
+            </tr>
+
             <tr class="heading legal-detail-title-<?php echo $bitrixOrderType['ID']; ?>" <?php if (is_array($optionsLegalDetails[$bitrixOrderType['ID']]) && count($optionsLegalDetails[$bitrixOrderType['ID']]) < 1) {
                 echo 'style="display:none"';
             } ?>>
@@ -2120,6 +2184,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             </tr>
         <?php endforeach; ?>
         <?php endforeach; ?>
+
         <?php $tabControl->BeginNextTab(); ?>
         <?php
         //loyalty program options

@@ -136,7 +136,31 @@ class RCrmActions
     public static function OrderPropsList()
     {
         $bitrixPropsList = [];
-        $arPropsAll = OrderPropsTable::getList(['select' => ['*'], 'filter' => ['CODE' => '_%']]);
+        $arPropsAll = OrderPropsTable::getList([
+            'select' => ['*'],
+            'filter' => [
+                ['CODE' => '_%'],
+                ['!=TYPE' => 'LOCATION']
+            ]
+        ]);
+
+        while ($prop = $arPropsAll->Fetch()) {
+            $bitrixPropsList[$prop['PERSON_TYPE_ID']][] = $prop;
+        }
+
+        return $bitrixPropsList;
+    }
+
+    public static function getLocationProps()
+    {
+        $bitrixPropsList = [];
+        $arPropsAll = OrderPropsTable::getList([
+            'select' => ['*'],
+            'filter' => [
+                ['CODE' => '_%'],
+                ['TYPE' => 'LOCATION']
+            ]
+        ]);
 
         while ($prop = $arPropsAll->Fetch()) {
             $bitrixPropsList[$prop['PERSON_TYPE_ID']][] = $prop;
