@@ -44,9 +44,8 @@ trait CustomersTrait
      */
     public function customersList(CustomersListRequest $request): ?CustomersResponse
     {
-        $serialized = Serializer::serializeArray($request);
         $response = $this->client->customersList(
-            Serializer::serializeArray($serialized['filter'] ?? []),
+            Serializer::serializeArray($request->filter),
             $request->page,
             $request->limit
         );
