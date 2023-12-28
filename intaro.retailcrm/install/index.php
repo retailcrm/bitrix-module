@@ -804,8 +804,11 @@ class intaro_retailcrm extends CModule
             $orderTypesList = RCrmActions::OrderTypesList(RCrmActions::getSitesList());
 
             $orderTypesArr = [];
+            $addressDetailOptions = [];
+
             foreach ($orderTypesList as $orderType) {
                 $orderTypesArr[$orderType['ID']] = htmlspecialchars(trim($_POST['order-type-' . $orderType['ID']]));
+                $addressDetailOptions[$orderType['ID']] = $_POST['address-detail-' . $orderType['ID']];
             }
 
             $orderPropsArr = [];
@@ -847,6 +850,7 @@ class intaro_retailcrm extends CModule
                 $contragentTypeArr[$orderType['ID']] = htmlspecialchars(trim($_POST['contragent-type-' . $orderType['ID']]));
             }
 
+            COption::SetOptionString($this->MODULE_ID, $this->CRM_ADDRESS_OPTIONS, serialize($addressDetailOptions));
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_PROPS, serialize(RCrmActions::clearArr($orderPropsArr)));
             COption::SetOptionString($this->MODULE_ID, $this->CRM_CUSTOM_FIELDS, serialize(RCrmActions::clearArr($customFieldsArr)));
             COption::SetOptionString($this->MODULE_ID, $this->CRM_LEGAL_DETAILS, serialize(RCrmActions::clearArr($legalDetailsArr)));
