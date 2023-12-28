@@ -161,8 +161,8 @@ class RetailCrmOrder
 
                         if ($arLoc) {
                             $deliveryLocation = CSaleLocation::GetByID($arLoc['ID']);
-                            $order['delivery']['address']['city'] = $deliveryLocation['CITY_NAME'] ?? '';
                             $order['delivery']['address']['region'] = $deliveryLocation['REGION_NAME'] ?? '';
+                            $city = $deliveryLocation['CITY_NAME'] ?? null;
 
                             if (count($countryList) > 0 && isset($countryList[$deliveryLocation['COUNTRY_NAME']])) {
                                 $order['countryIso'] = $countryList[$deliveryLocation['COUNTRY_NAME']];
@@ -177,6 +177,11 @@ class RetailCrmOrder
                     }
                 }
             }
+        }
+
+        //Перезапись города при его наличии в свойстве типа LOCATION
+        if (isset($city)) {
+            $order['delivery']['address']['city'] = $city;
         }
 
         // Пункт самовывоза
