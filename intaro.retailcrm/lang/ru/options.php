@@ -193,3 +193,6 @@ $MESS ['NOTATION_CUSTOM_FIELDS'] = 'Перед подключением данн
 $MESS ['NOTATION_MATCHED_CUSTOM_FIELDS'] = 'Для корректного обмена данными типы сопоставляемых полей должны быть одинаковыми!';
 $MESS ['ADD_LABEL'] = 'Добавить';
 $MESS ['DELETE_MATCHED'] = 'Удалить';
+
+$MESS ['LOCATION_LABEL'] = 'Местоположение (LOCATION)';
+$MESS ['TEXT_ADDRESS_LABEL'] = 'Адрес (строкой)';

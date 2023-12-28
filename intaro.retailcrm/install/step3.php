@@ -251,7 +251,7 @@ if (isset($arResult['ORDER_PROPS'])) {
             <?php $countProps++; endforeach; ?>
 
             <tr id="<?php echo 'locationElement-' . $bitrixOrderType['ID']; ?>" hidden="hidden">
-                <td class="adm-detail-content-cell-l" width="50%" name="text">Местоположение (LOCATION)</td>
+                <td class="adm-detail-content-cell-l" width="50%" name="text"><?php echo GetMessage('LOCATION_LABEL'); ?></td>
                 <td class="adm-detail-content-cell-r" width="50%">
                     <select class="typeselect">
                         <option value=""></option>
@@ -268,7 +268,7 @@ if (isset($arResult['ORDER_PROPS'])) {
                 </td>
             </tr>
             <tr id="<?php echo 'textAddressElement-' . $bitrixOrderType['ID']; ?>" hidden="hidden">
-                <td class="adm-detail-content-cell-l" width="50%" name="text">Адрес (строкой)</td>
+                <td class="adm-detail-content-cell-l" width="50%" name="text"><?php echo GetMessage('TEXT_ADDRESS_LABEL'); ?></td>
                 <td class="adm-detail-content-cell-r" width="50%">
                     <select class="typeselect">
                         <option value=""></option>
