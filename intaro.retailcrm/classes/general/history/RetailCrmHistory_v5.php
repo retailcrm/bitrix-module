@@ -852,10 +852,16 @@ class RetailCrmHistory
                                     if (!empty($location)) {
                                         self::setProp($somePropValue, $location['CODE']);
                                     } else {
+                                        if (isset($order['externalId'])) {
+                                            $message = 'ExternalId: ' . $order['externalId'];
+                                        } else {
+                                            $message = 'CRM id: ' . $order['id'];
+                                        }
+
                                         RCrmActions::eventLog(
                                             'RetailCrmHistory::orderHistory',
                                             'RetailCrmHistory::setProp',
-                                            'Error location in order number= ' . $order['number']
+                                            'Ошибка обновления локации в заказе. ' . $message
                                         );
                                     }
                                 } catch (\Exception $exception) {
