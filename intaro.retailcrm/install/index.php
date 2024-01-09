@@ -376,13 +376,19 @@ class intaro_retailcrm extends CModule
             if (count($arResult['arSites']) > 1) {
                 $api_host = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, 0);
                 $api_key = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, 0);
+                $isEmptySites = true;
 
                 foreach ($arResult['arSites'] as $site) {
                     $siteCode[$site['LID']] = null;
 
                     if ($_POST['sites-id-' . $site['LID']] && !empty($_POST['sites-id-' . $site['LID']])) {
                         $siteCode[$site['LID']] = htmlspecialchars(trim($_POST['sites-id-' . $site['LID']]));
+                        $isEmptySites = false;
                     }
+                }
+
+                if ($isEmptySites) {
+                    $arResult['errCode'] = 'ERR_EMPTY_SITES_LIST';
                 }
 
                 $arResult['arCurrencySites'] = RCrmActions::getCurrencySites();
@@ -397,9 +403,11 @@ class intaro_retailcrm extends CModule
                 foreach ($arResult['arSites'] as $bitrixSite) {
                     $LID = $bitrixSite['LID'] ?? null;
                     $cmsCurrency = $arResult['arCurrencySites'][$LID] ?? null;
-                    $crmCurrency = $arResult['sitesList'][$siteCode[$LID]]['currency'] ?? null;
 
-                    $arResult['errCode'] = CurrencyService::validateCurrency($cmsCurrency, $crmCurrency);
+                    if (isset($arResult['sitesList'][$siteCode[$LID]])) {
+                        $crmCurrency = $arResult['sitesList'][$siteCode[$LID]]['currency'] ?? null;
+                        $arResult['errCode'] = CurrencyService::validateCurrency($cmsCurrency, $crmCurrency);
+                    }
                 }
 
                 if (count($arResult['arSites']) != count($siteCode)) {
