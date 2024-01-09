@@ -125,7 +125,7 @@ if (isset($arResult['ORDER_PROPS'])) {
                     $(this).show();
                     $('.legal-detail-title-2').show();
                 }
-            });``
+            });
         }
 
         if (individual !== 'individual') {
