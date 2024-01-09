@@ -27,3 +27,6 @@ $MESS ['BLOCK'] = 'Block';
 $MESS ['HOUSE'] = 'House';
 $MESS ['ADDRESS_SHORT'] = 'Short address';
 $MESS ['ADDRESS_FULL'] = 'Detailed address';
+
+$MESS ['LOCATION_LABEL'] = 'Location';
+$MESS ['TEXT_ADDRESS_LABEL'] = 'Address (line)';

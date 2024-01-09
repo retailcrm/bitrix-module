@@ -28,3 +28,6 @@ $MESS ['BLOCK'] = 'Подъезд';
 $MESS ['HOUSE'] = 'Строение / корпус';
 $MESS ['ADDRESS_SHORT'] = 'Краткий адрес';
 $MESS ['ADDRESS_FULL'] = 'Детальный адрес';
+
+$MESS ['LOCATION_LABEL'] = 'Местоположение (LOCATION)';
+$MESS ['TEXT_ADDRESS_LABEL'] = 'Адрес (строкой)';

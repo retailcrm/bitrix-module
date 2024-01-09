@@ -792,59 +792,93 @@ class RetailCrmHistory
                                 } else {
                                     self::setProp($somePropValue, RCrmActions::fromJSON($order[$key]));
                                 }
-                            } elseif (is_array($order['delivery']['address']) && array_key_exists($key, $order['delivery']['address'])) {
-                                if ($propsKey[$orderProp]['TYPE'] == 'LOCATION') {
+                            } elseif ($propsKey[$orderProp]['TYPE'] === 'LOCATION'
+                                && (
+                                    isset($order['delivery']['address']['city'])
+                                    || isset($order['delivery']['address']['region'])
+                                )
+                            ) {
+                                try {
+                                    $parameters = [
+                                        'filter' => [
+                                            'NAME.LANGUAGE_ID' => 'ru'
+                                        ],
+                                        'limit' => 1,
+                                        'select' => ['*']
+                                    ];
 
-                                    if (!empty($order['delivery']['address'][$key])) {
-                                        $parameters['filter']['NAME.LANGUAGE_ID'] = 'ru';
-                                        $parameters['limit'] = 1;
-                                        $parameters['select'] = ['*'];
+                                    $somePropValue = $propertyCollection
+                                        ->getItemByOrderPropertyId($propsKey[$orderProp]['ID'])
+                                    ;
 
-                                        // if address have a dot
-                                        $loc = explode('.', $order['delivery']['address'][$key]);
-                                        if (count($loc) == 1) {
+                                    $codeLocation = $somePropValue->getValue();
+                                    $subParameters = $parameters;
+                                    $subParameters['filter']['=CODE'] = RCrmActions::fromJSON($codeLocation);
+                                    $subLocation = Finder::find($subParameters)->fetch();
+
+                                    if (!isset($order['delivery']['address']['city'])) {
+                                        $parameters['filter']['=ID'] = RCrmActions::fromJSON($subLocation['CITY_ID']);
+                                    } else { // В системе город пишется с префиксом (г. Москва)
+                                        $loc = explode('.', $order['delivery']['address']['city']);
+
+                                        if (count($loc) === 1) {
                                             $parameters['filter']['=NAME.NAME'] = RCrmActions::fromJSON(trim($loc[0]));
                                         } else {
                                             $parameters['filter']['=NAME.NAME'] = RCrmActions::fromJSON(trim($loc[1]));
                                         }
+                                    }
 
-                                        $location = Finder::find(
-                                            $parameters
-                                        )->fetch();
+                                    if (!isset($order['delivery']['address']['region'])) {
+                                        $parameters['filter']['=PARENT.ID'] = RCrmActions::fromJSON($subLocation['REGION_ID']);
+                                    } else {
+                                        $parameters['filter']['PARENT.NAME.NAME'] = RCrmActions::fromJSON(trim($order['delivery']['address']['region']));
+                                    }
+
+                                    $location = Finder::find($parameters)->fetch();
+
+                                    //При существовании района в локации, фильтр по региону изменяется
+                                    if (empty($location)) {
+                                        if (!isset($order['delivery']['address']['region'])) {
+                                            $parameters['filter']['=PARENT.PARENT.ID'] = RCrmActions::fromJSON($subLocation['REGION_ID']);
+                                            unset($parameters['filter']['=PARENT.ID']);
+                                        } else {
+                                            $parameters['filter']['PARENT.PARENT.NAME.NAME'] = RCrmActions::fromJSON(trim($order['delivery']['address']['region']));
+                                            unset($parameters['filter']['PARENT.NAME.NAME']);
+                                        }
+
+                                        $location = Finder::find($parameters)->fetch();
                                     }
 
                                     if (!empty($location)) {
-                                        $somePropValue = $propertyCollection
-                                            ->getItemByOrderPropertyId($propsKey[$orderProp]['ID'])
-                                        ;
-                                        try {
-                                            self::setProp($somePropValue, $location['CODE']);
-                                        } catch (ArgumentException $argumentException) {
-                                            RCrmActions::eventLog(
-                                                'RetailCrmHistory::orderHistory',
-                                                'RetailCrmHistory::setProp',
-                                                'Location parameter is incorrect in order number=' . $order['number']
-                                            );
-                                        }
+                                        self::setProp($somePropValue, $location['CODE']);
                                     } else {
+                                        if (isset($order['externalId'])) {
+                                            $message = 'ExternalId: ' . $order['externalId'];
+                                        } else {
+                                            $message = 'CRM id: ' . $order['id'];
+                                        }
+
                                         RCrmActions::eventLog(
                                             'RetailCrmHistory::orderHistory',
                                             'RetailCrmHistory::setProp',
-                                            sprintf(
-                                                'Error location. %s is empty in order number=%s',
-                                                $order['delivery']['address'][$key],
-                                                $order['number']
-                                            )
+                                            'Ошибка обновления локации в заказе. ' . $message
                                         );
                                     }
-                                } else {
-                                    $somePropValue = $propertyCollection
-                                        ->getItemByOrderPropertyId($propsKey[$orderProp]['ID']);
-                                    self::setProp(
-                                        $somePropValue,
-                                        RCrmActions::fromJSON($order['delivery']['address'][$key])
+                                } catch (\Exception $exception) {
+                                    RCrmActions::eventLog(
+                                        'RetailCrmHistory::orderHistory',
+                                        'RetailCrmHistory::setProp',
+                                        'Error when updating a location. Order: '
+                                        . $order['number'] . ' message:' . $exception->getMessage()
                                     );
                                 }
+                            } elseif (is_array($order['delivery']['address']) && array_key_exists($key, $order['delivery']['address'])) {
+                                $somePropValue = $propertyCollection
+                                    ->getItemByOrderPropertyId($propsKey[$orderProp]['ID']);
+                                self::setProp(
+                                    $somePropValue,
+                                    RCrmActions::fromJSON($order['delivery']['address'][$key])
+                                );
                             }
                         }
                     }

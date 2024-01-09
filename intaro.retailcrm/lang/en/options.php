@@ -134,3 +134,6 @@ $MESS ['NOTATION_CUSTOM_FIELDS'] = 'Before enabling this functionality, make sur
 $MESS ['NOTATION_MATCHED_CUSTOM_FIELDS'] = 'For correct data exchange, the types of matched fields must be the same!';
 $MESS ['ADD_LABEL'] = 'Add';
 $MESS ['DELETE_MATCHED'] = 'Delete';
+
+$MESS ['LOCATION_LABEL'] = 'Location';
+$MESS ['TEXT_ADDRESS_LABEL'] = 'Address (line)';
