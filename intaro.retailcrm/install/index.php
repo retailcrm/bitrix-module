@@ -89,6 +89,7 @@ class intaro_retailcrm extends CModule
     public $CLIENT_ID = 'client_id';
     public $PROTOCOL  = 'protocol';
     public $INSTALL_PATH;
+    public $SITES_AVAILABLE = 'sites_available';
 
     public function __construct()
     {
@@ -461,6 +462,25 @@ class intaro_retailcrm extends CModule
                 COption::SetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, $api_host);
                 COption::SetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, $api_key);
                 COption::SetOptionString($this->MODULE_ID, $this->CRM_SITES_LIST, serialize([]));
+
+                try {
+                    $credentials = $this->RETAIL_CRM_API->getCredentials();
+
+                    COption::SetOptionString(
+                        $this->MODULE_ID,
+                        $this->SITES_AVAILABLE,
+                        $credentials->sitesAvailable[0] ?? ''
+                    );
+                } catch (ArgumentOutOfRangeException | CurlException $exception) {
+                    $arResult['errCode'] = 'ERR_GET_SITE_CRM';
+
+                    $APPLICATION->IncludeAdminFile(
+                        GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step1.php'
+                    );
+
+                    return false;
+                }
+
             }
 
             try {
