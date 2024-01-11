@@ -63,7 +63,7 @@ if (($ACTION === 'EXPORT' || $ACTION === 'EXPORT_EDIT' || $ACTION === 'EXPORT_CO
 	$SETUP_FILE_NAME = $settingsService->setupFileName;
 	$SETUP_PROFILE_NAME = $settingsService->setupProfileName;
 
-    $iblockProperties = $settingsService::getIblockPropsPreset();
+    $iblockProperties = $settingsService->actrualPropList;
     $loadPurchasePrice = $settingsService->loadPurchasePrice;
     $iblockExport = $settingsService->iblockExport;
     $loadNonActivity = $settingsService->loadNonActivity;
@@ -192,7 +192,7 @@ if ($STEP === 1) {
                             <tbody>
 
                             <?php
-                            foreach ($settingsService->getIblockPropsNames() as $propertyKey => $property) {
+                            foreach ($settingsService->actrualPropList as $propertyKey => $property) {
                                 $productSelected = false; ?>
 
                                 <tr class="adm-list-table-row">

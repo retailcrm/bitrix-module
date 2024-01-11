@@ -37,8 +37,8 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/exp
             $hlblockList[$hlblockArr["TABLE_NAME"]] = $hlblockArr;
         }
     }
-
-    $iblockProperties = SettingsService::getIblockPropsPreset();
+    $settingService = SettingsService::getInstance([], '');
+    $iblockProperties = $settingService->actrualPropList;
 
     $iblockPropertySku = [];
     $iblockPropertySkuHl = [];
@@ -47,7 +47,7 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/exp
     $iblockPropertyProductHl = [];
     $iblockPropertyUnitProduct = [];
 
-    foreach ($iblockProperties as $prop) {
+    foreach ($iblockProperties as $prop => $text) {
         $skuUnitProps = ('iblockPropertyUnitSku_' . $prop);
         $skuUnitProps = $$skuUnitProps;
 

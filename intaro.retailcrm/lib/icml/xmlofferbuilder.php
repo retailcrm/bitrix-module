@@ -465,7 +465,7 @@ class XmlOfferBuilder
     private function createParamObject(array $params): array
     {
         $offerParams = [];
-        $names = $this->settingsService->getIblockPropsNames();
+        $names = $this->settingsService->actrualPropList;
 
         foreach ($params as $code => $value) {
 

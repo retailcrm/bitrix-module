@@ -245,7 +245,7 @@ class SettingsService
     /**
      * @return string[]
      */
-    public function getIblockPropsPreset(): array
+    private function getIblockPropsPreset(): array
     {
         return [
             'article'      => GetMessage('PROPERTY_ARTICLE_HEADER_NAME'),
@@ -262,9 +262,28 @@ class SettingsService
 
     private function parseNewProps(): array
     {
+        global $APPLICATION;
+
         $result = [];
+        $text = $APPLICATION->GetFileContent($_SERVER["DOCUMENT_ROOT"] . "/local/addProperty.txt");
 
+        if ($text === false) {
+            return $result;
+        }
 
+        preg_match_all('/\w+\s*=\s*\w+/mu', $text, $matches);
+
+        foreach ($matches[0] as $newProp) {
+            $elements = explode("=", $newProp);
+
+            if (empty($elements[0]) || empty($elements[1])) {
+                continue;
+            }
+
+            $result[trim($elements[0])] = trim($elements[1]);
+        }
+
+        return $result;
     }
 
     /**
@@ -282,24 +301,6 @@ class SettingsService
             'width' => ['WIDTH', 'SHIRINA'],
             'height' => ['HEIGHT', 'VISOTA'],
             'picture' => ['PICTURE', 'PICTURE'],
-        ];
-    }
-
-    /**
-     * @return array
-     */
-    public function getIblockPropsNames(): array
-    {
-        return  [
-            'article'      => GetMessage('PROPERTY_ARTICLE_HEADER_NAME'),
-            'manufacturer' => GetMessage('PROPERTY_MANUFACTURER_HEADER_NAME'),
-            'color'        => GetMessage('PROPERTY_COLOR_HEADER_NAME'),
-            'size'         => GetMessage('PROPERTY_SIZE_HEADER_NAME'),
-            'weight'       => GetMessage('PROPERTY_WEIGHT_HEADER_NAME'),
-            'length'       => GetMessage('PROPERTY_LENGTH_HEADER_NAME'),
-            'width'        => GetMessage('PROPERTY_WIDTH_HEADER_NAME'),
-            'height'       => GetMessage('PROPERTY_HEIGHT_HEADER_NAME'),
-            'picture'      => GetMessage('PROPERTY_PICTURE_HEADER_NAME'),
         ];
     }
 
@@ -364,7 +365,7 @@ class SettingsService
 
     public function setProps(): void
     {
-        foreach ($this->getIblockPropsPreset() as $prop) {
+        foreach ($this->actrualPropList as $prop => $text) {
            $this->setProperties($this->iblockPropertySku, 'iblockPropertySku_' . $prop);
            $this->setProperties($this->iblockPropertyUnitSku, 'iblockPropertyUnitSku_' . $prop);
            $this->setProperties($this->iblockPropertyProduct, 'iblockPropertyProduct_' . $prop);
@@ -440,7 +441,7 @@ class SettingsService
     {
         $values = 'loadPurchasePrice,SETUP_FILE_NAME,iblockExport,maxOffersValue,loadNonActivity';
 
-        foreach ($iblockProperties as $val) {
+        foreach ($iblockProperties as $val => $text) {
             $values .= ',iblockPropertySku_' . $val
                 . ',iblockPropertyUnitSku_' . $val
                 . ',iblockPropertyProduct_' . $val
@@ -600,9 +601,9 @@ class SettingsService
         $props = [];
 
         if (isset($oldValues[$iblockId])) {
-            foreach ($this->getIblockPropsNames() as $key => $prop) {
-                $fullKey = $keyGroup . '_' . $key;
-                $props[$key] = $oldValues[$iblockId][$fullKey];
+            foreach ($this->actrualPropList as $prop => $text) {
+                $fullKey = $keyGroup . '_' . $prop;
+                $props[$prop] = $oldValues[$iblockId][$fullKey];
             }
         }
 
