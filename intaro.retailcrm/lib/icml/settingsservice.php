@@ -97,10 +97,14 @@ class SettingsService
      */
     public $loadNonActivity;
 
+    /** @var array */
+    public $actrualPropList = [];
+
     /**
      * @var \Intaro\RetailCrm\Icml\SettingsService|null
      */
     private static $instance = null;
+
 
     /**
      * SettingsService constructor.
@@ -123,6 +127,8 @@ class SettingsService
 
         $this->getPriceTypes();
         $this->getVatRates();
+
+        $this->actrualPropList = array_merge($this->getIblockPropsPreset(), $this->parseNewProps());
     }
 
     /**
@@ -131,12 +137,12 @@ class SettingsService
      *
      * @return \Intaro\RetailCrm\Icml\SettingsService|null
      */
-    static public function getInstance(array $arOldSetupVars, ?string $action): ?SettingsService
+    public static function getInstance(array $arOldSetupVars, ?string $action): ?SettingsService
     {
-        if(is_null(self::$instance))
-        {
+        if (is_null(self::$instance)) {
             self::$instance = new self($arOldSetupVars, $action);
         }
+
         return self::$instance;
     }
 
@@ -242,16 +248,23 @@ class SettingsService
     public function getIblockPropsPreset(): array
     {
         return [
-            'article'      => 'article',
-            'manufacturer' => 'manufacturer',
-            'color'        => 'color',
-            'size'         => 'size',
-            'weight'       => 'weight',
-            'length'       => 'length',
-            'width'        => 'width',
-            'height'       => 'height',
-            'picture'      => 'picture',
+            'article'      => GetMessage('PROPERTY_ARTICLE_HEADER_NAME'),
+            'manufacturer' => GetMessage('PROPERTY_MANUFACTURER_HEADER_NAME'),
+            'color'        => GetMessage('PROPERTY_COLOR_HEADER_NAME'),
+            'size'         => GetMessage('PROPERTY_SIZE_HEADER_NAME'),
+            'weight'       => GetMessage('PROPERTY_WEIGHT_HEADER_NAME'),
+            'length'       => GetMessage('PROPERTY_LENGTH_HEADER_NAME'),
+            'width'        => GetMessage('PROPERTY_WIDTH_HEADER_NAME'),
+            'height'       => GetMessage('PROPERTY_HEIGHT_HEADER_NAME'),
+            'picture'      => GetMessage('PROPERTY_PICTURE_HEADER_NAME'),
         ];
+    }
+
+    private function parseNewProps(): array
+    {
+        $result = [];
+
+
     }
 
     /**

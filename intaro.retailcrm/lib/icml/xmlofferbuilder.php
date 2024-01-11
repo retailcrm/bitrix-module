@@ -95,6 +95,11 @@ class XmlOfferBuilder
     private $vatRates;
 
     /**
+     * @var SettingsService
+     */
+    private $settingsService;
+
+    /**
      * IcmlDataManager constructor.
      *
      * XmlOfferBuilder constructor.
@@ -107,9 +112,8 @@ class XmlOfferBuilder
     {
         $this->setup             = $setup;
         $this->purchasePriceNull = RetailcrmConfigProvider::getCrmPurchasePrice();
-        /** @var \Intaro\RetailCrm\Icml\SettingsService $settingsService */
-        $settingsService         = SettingsService::getInstance([], '');
-        $this->vatRates          = $settingsService->vatRates;
+        $this->settingsService   = SettingsService::getInstance([], '');
+        $this->vatRates          = $this->settingsService->vatRates;
         $this->measures          = $this->prepareMeasures($measure);
         $this->defaultServerName = $defaultServerName;
      }
@@ -461,16 +465,16 @@ class XmlOfferBuilder
     private function createParamObject(array $params): array
     {
         $offerParams = [];
+        $names = $this->settingsService->getIblockPropsNames();
 
         foreach ($params as $code => $value) {
-            $paramName = GetMessage('PARAM_NAME_' . $code);
 
-            if (empty($paramName)) {
+            if (!isset($names[$code])) {
                 continue;
             }
 
             $offerParam        = new OfferParam();
-            $offerParam->name  = $paramName;
+            $offerParam->name  = $names[$code];
             $offerParam->code  = $code;
             $offerParam->value = $value;
             $offerParams[]     = $offerParam;

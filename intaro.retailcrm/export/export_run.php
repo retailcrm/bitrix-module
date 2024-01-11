@@ -6,6 +6,7 @@ use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupProps;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetupPropsCategories;
 use Intaro\RetailCrm\Repository\CatalogRepository;
+use Intaro\RetailCrm\Icml\SettingsService;
 
 /** @var $SETUP_FILE_NAME */
 
@@ -37,16 +38,7 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/exp
         }
     }
 
-    $iblockProperties = [
-        'article'      => 'article',
-        'manufacturer' => 'manufacturer',
-        'color'        => 'color',
-        'weight'       => 'weight',
-        'size'         => 'size',
-        'length'       => 'length',
-        'width'        => 'width',
-        'height'       => 'height',
-    ];
+    $iblockProperties = SettingsService::getIblockPropsPreset();
 
     $iblockPropertySku = [];
     $iblockPropertySkuHl = [];
