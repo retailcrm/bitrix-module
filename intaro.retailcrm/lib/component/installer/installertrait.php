@@ -232,6 +232,19 @@ trait InstallerTrait
         }
     }
 
+    public function createCustomPropertyFile(): void
+    {
+        $path = $_SERVER['DOCUMENT_ROOT'] . '/local/';
+
+        CheckDirPath($path);
+
+        $file = new \Bitrix\Main\IO\File($path . 'addProper4ty.txt', $siteId = null);
+
+        if (!$file->isExists()) {
+            $file->putContents("");
+        }
+    }
+
     /**
      * delete loyalty program events handlers
      */
