@@ -238,7 +238,7 @@ trait InstallerTrait
 
         CheckDirPath($path);
 
-        $file = new \Bitrix\Main\IO\File($path . 'addProper4ty.txt', $siteId = null);
+        $file = new \Bitrix\Main\IO\File($path . 'addProperty.txt', $siteId = null);
 
         if (!$file->isExists()) {
             $file->putContents("");
