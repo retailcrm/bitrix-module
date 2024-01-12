@@ -271,7 +271,7 @@ class SettingsService
             return $result;
         }
 
-        preg_match_all('/\w+\s*=\s*\w+/mu', $text, $matches);
+        preg_match_all('/\w+\s*=\s*\w+[ *\w+]*/mu', $text, $matches);
 
         foreach ($matches[0] as $newProp) {
             $elements = explode("=", $newProp);
