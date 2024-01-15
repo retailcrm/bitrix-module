@@ -839,12 +839,14 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
     if ($syncIntegrationPayment === 'Y') {
         ConfigProvider::setSyncIntegrationPayment($syncIntegrationPayment);
-    }
 
-    ConfigProvider::setSyncIntegrationPayment
-    (
-            htmlspecialchars(trim($_POST['sync-integration-payment'])) ?: 'N'
-    );
+        $integrationPaymentsList = RetailcrmConfigProvider::getIntegrationPaymentTypes();
+        foreach (RetailcrmConfigProvider::getIntegrationPaymentTypes() as $integrationPayment) {
+            if (array_search($integrationPayment, $paymentTypesArr)) {
+
+            }
+        }
+    }
 
     COption::SetOptionString(
         $mid,
