@@ -23,7 +23,7 @@ class SettingServiceTest extends \BitrixTestCase
 
         CheckDirPath($path);
 
-        $file = new \Bitrix\Main\IO\File($path . '/addProperty.txt', $siteId = null);
+        $file = new \Bitrix\Main\IO\File($path . '/icml_property_retailcrm.txt', $siteId = null);
 
         $file->putContents("property1 = test prop \n property2 = test prop 2");
 

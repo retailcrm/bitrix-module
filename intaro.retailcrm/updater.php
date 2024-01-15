@@ -1213,7 +1213,7 @@ function createCustomPropertyFile()
 
     CheckDirPath($path);
 
-    $file = new \Bitrix\Main\IO\File($path . 'addProperty.txt', $siteId = null);
+    $file = new \Bitrix\Main\IO\File($path . 'icml_property_retailcrm.txt', $siteId = null);
 
     if (!$file->isExists()) {
         $file->putContents("");

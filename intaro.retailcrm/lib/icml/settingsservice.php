@@ -265,7 +265,7 @@ class SettingsService
         global $APPLICATION;
 
         $result = [];
-        $text = $APPLICATION->GetFileContent($_SERVER["DOCUMENT_ROOT"] . "/local/addProperty.txt");
+        $text = $APPLICATION->GetFileContent($_SERVER["DOCUMENT_ROOT"] . "/local/icml_property_retailcrm.txt");
 
         if ($text === false) {
             return $result;
@@ -365,7 +365,7 @@ class SettingsService
 
     public function setProps(): void
     {
-        foreach ($this->actrualPropList as $prop => $text) {
+        foreach (array_keys($this->actrualPropList) as $prop) {
            $this->setProperties($this->iblockPropertySku, 'iblockPropertySku_' . $prop);
            $this->setProperties($this->iblockPropertyUnitSku, 'iblockPropertyUnitSku_' . $prop);
            $this->setProperties($this->iblockPropertyProduct, 'iblockPropertyProduct_' . $prop);
@@ -441,7 +441,7 @@ class SettingsService
     {
         $values = 'loadPurchasePrice,SETUP_FILE_NAME,iblockExport,maxOffersValue,loadNonActivity';
 
-        foreach ($iblockProperties as $val => $text) {
+        foreach ($iblockProperties as $val) {
             $values .= ',iblockPropertySku_' . $val
                 . ',iblockPropertyUnitSku_' . $val
                 . ',iblockPropertyProduct_' . $val
@@ -601,7 +601,7 @@ class SettingsService
         $props = [];
 
         if (isset($oldValues[$iblockId])) {
-            foreach ($this->actrualPropList as $prop => $text) {
+            foreach (array_keys($this->actrualPropList) as $prop) {
                 $fullKey = $keyGroup . '_' . $prop;
                 $props[$prop] = $oldValues[$iblockId][$fullKey];
             }

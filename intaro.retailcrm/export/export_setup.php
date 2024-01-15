@@ -49,7 +49,6 @@ __IncludeLang(GetLangFileName(
 $basePriceId = RetailcrmConfigProvider::getCrmBasePrice($_REQUEST['PROFILE_ID']);
 $priceTypes = $settingsService->priceTypes;
 $iblockFieldsName = $settingsService->getIblockFieldsNames();
-$iblockPropertiesHint = $settingsService->getHintProps();
 $units = $settingsService->getUnitsNames();
 $hintUnit = $settingsService->getHintUnit();
 
@@ -63,7 +62,6 @@ if (($ACTION === 'EXPORT' || $ACTION === 'EXPORT_EDIT' || $ACTION === 'EXPORT_CO
 	$SETUP_FILE_NAME = $settingsService->setupFileName;
 	$SETUP_PROFILE_NAME = $settingsService->setupProfileName;
 
-    $iblockProperties = $settingsService->actrualPropList;
     $loadPurchasePrice = $settingsService->loadPurchasePrice;
     $iblockExport = $settingsService->iblockExport;
     $loadNonActivity = $settingsService->loadNonActivity;
@@ -568,7 +566,7 @@ if ($STEP === 1) {
             <input type="hidden" name="STEP" value="<?=$STEP + 1?>">
             <input type="hidden" name="SETUP_FIELDS_LIST" value="<?=
             $settingsService->getSetupFieldsString(
-                $iblockProperties ?? [],
+                array_keys($settingsService->actrualPropList) ?? [],
                 $hlblockModule === true,
                 $hlBlockList ?? []
             )
