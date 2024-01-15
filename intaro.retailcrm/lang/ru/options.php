@@ -196,3 +196,5 @@ $MESS ['DELETE_MATCHED'] = 'Удалить';
 
 $MESS ['LOCATION_LABEL'] = 'Местоположение (LOCATION)';
 $MESS ['TEXT_ADDRESS_LABEL'] = 'Адрес (строкой)';
+
+$MESS ['SYNC_INTEGRATION_PAYMENT'] = 'Активировать синхронизацию интегрированных оплат';

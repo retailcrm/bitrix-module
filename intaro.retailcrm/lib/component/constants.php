@@ -108,4 +108,5 @@ class Constants
     public const MATCHED_CUSTOM_USER_FIELDS = 'matched_custom_field';
     public const USE_CRM_ORDER_METHODS  = 'use_crm_order_methods';
     public const CRM_ORDER_METHODS  = 'crm_order_methods';
+    public const SYNC_INTEGRATION_PAYMENT = 'sync_integration_payment';
 }

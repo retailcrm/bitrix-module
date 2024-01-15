@@ -137,3 +137,5 @@ $MESS ['DELETE_MATCHED'] = 'Delete';
 
 $MESS ['LOCATION_LABEL'] = 'Location';
 $MESS ['TEXT_ADDRESS_LABEL'] = 'Address (line)';
+
+$MESS ['SYNC_INTEGRATION_PAYMENT'] = 'Activate synchronization of integrated payments';

@@ -1171,6 +1171,16 @@ class ConfigProvider
         return static::getOption(Constants::RECEIVE_TRACK_NUMBER_DELIVERY);
     }
 
+    public static function getSyncIntegrationPayment()
+    {
+        return static::getOption(Constants::SYNC_INTEGRATION_PAYMENT);
+    }
+
+    public static function setSyncIntegrationPayment($syncIntegrationPayment)
+    {
+        static::setOption(Constants::SYNC_INTEGRATION_PAYMENT, $syncIntegrationPayment);
+    }
+
     /**
      * @return string
      */

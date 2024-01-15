@@ -835,6 +835,17 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
     ConfigProvider::setTrackNumberStatus(htmlspecialchars(trim($_POST['track-number'])) ?: 'N');
 
+    $syncIntegrationPayment = htmlspecialchars(trim($_POST['sync-integration-payment'])) ?: 'N';
+
+    if ($syncIntegrationPayment === 'Y') {
+        ConfigProvider::setSyncIntegrationPayment($syncIntegrationPayment);
+    }
+
+    ConfigProvider::setSyncIntegrationPayment
+    (
+            htmlspecialchars(trim($_POST['sync-integration-payment'])) ?: 'N'
+    );
+
     COption::SetOptionString(
         $mid,
         $CRM_COUPON_FIELD,
@@ -1149,6 +1160,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $optionsOrderNumbers = COption::GetOptionString($mid, $CRM_ORDER_NUMBERS, 0);
     $optionsOrderVat = COption::GetOptionString($mid, $CRM_ORDER_VAT, 0);
     $optionsOrderTrackNumber = ConfigProvider::getTrackNumberStatus();
+    $optionsSyncIntegrationPayment = ConfigProvider::getSyncIntegrationPayment();
     $canselOrderArr = unserialize(COption::GetOptionString($mid, $CRM_CANSEL_ORDER, 0));
     $sendPickupPointAddress = COption::GetOptionString($mid, Constants::CRM_SEND_PICKUP_POINT_ADDRESS, 'N');
 
@@ -2817,6 +2829,15 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                         <label><input class="addr" type="checkbox" name="track-number" value="Y" <?php if ($optionsOrderTrackNumber === 'Y') {
                                 echo "checked";
                             } ?>> <?php echo GetMessage('ORDER_TRACK_NUMBER'); ?></label>
+                    </b>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" class="option-head option-other-top option-other-bottom">
+                    <b>
+                        <label><input class="addr" type="checkbox" name="sync-integration-payment" value="Y" <?php if ($optionsSyncIntegrationPayment === 'Y') {
+                                echo "checked";
+                            } ?>> <?php echo GetMessage('SYNC_INTEGRATION_PAYMENT'); ?></label>
                     </b>
                 </td>
             </tr>
