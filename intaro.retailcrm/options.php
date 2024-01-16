@@ -1684,6 +1684,16 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 return true;
             });
 
+            $('.r-sync-payment-button label').change(function() {
+                if ($(this).find('input').is(':checked') === true) {
+                    $('tr.r-sync-payment').show('slow');
+                } else if ($(this).find('input').is(':checked') === false) {
+                    $('tr.r-sync-payment').hide('slow');
+                }
+
+                return true;
+            });
+
             $('.r-ac-button label').change(function() {
                 if ($(this).find('input').is(':checked') === true) {
                     $('tr.r-ac').show('slow');
@@ -2873,15 +2883,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             <tr>
                 <td colspan="2" class="option-head option-other-top option-other-bottom">
                     <b>
-                        <label><input class="addr" type="checkbox" name="sync-integration-payment" value="Y" <?php if ($optionsSyncIntegrationPayment === 'Y') {
-                                echo "checked";
-                            } ?>> <?php echo GetMessage('SYNC_INTEGRATION_PAYMENT'); ?></label>
-                    </b>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="2" class="option-head option-other-top option-other-bottom">
-                    <b>
                         <label><input class="addr" type="checkbox" name="order-vat" value="Y" <?php if ($optionsOrderVat === 'Y') {
                                 echo "checked";
                             } ?>> <?php echo GetMessage('ORDER_VAT'); ?></label>
@@ -3255,6 +3256,26 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             } ?>>
                 <td class="option-head" colspan="2">
                     <b><?php echo GetMessage('ROUND_LABEL'); ?></b>
+                </td>
+            </tr>
+
+            <tr class="heading r-sync-payment-button">
+                <td colspan="2" class="option-other-heading">
+                    <b>
+                        <label>
+                            <input class="addr" type="checkbox" name="sync-integration-payment" value="Y" <?php if ($optionsSyncIntegrationPayment === 'Y') {
+                                echo "checked";
+                            } ?>> <?php echo GetMessage('SYNC_INTEGRATION_PAYMENT'); ?>
+                        </label>
+                    </b>
+                </td>
+            </tr>
+
+            <tr class="r-sync-payment" <?php if ($optionsSyncIntegrationPayment !== 'Y') {
+                echo 'style="display: none;"';
+            } ?>>
+                <td class="option-head" colspan="2">
+                    <b><?php echo GetMessage('INTEGRATION_PAYMENT_LABEL'); ?></b>
                 </td>
             </tr>
 
