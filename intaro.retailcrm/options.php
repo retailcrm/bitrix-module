@@ -244,6 +244,7 @@ if (!empty($availableSites)) {
 
 //update connection settings
 if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
+    $error = null;
     $api_host = htmlspecialchars(trim($_POST['api_host']));
     $api_key = htmlspecialchars(trim($_POST['api_key']));
 
@@ -840,10 +841,35 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     if ($syncIntegrationPayment === 'Y') {
         ConfigProvider::setSyncIntegrationPayment($syncIntegrationPayment);
 
-        $integrationPaymentsList = RetailcrmConfigProvider::getIntegrationPaymentTypes();
-        foreach (RetailcrmConfigProvider::getIntegrationPaymentTypes() as $integrationPayment) {
-            if (array_search($integrationPayment, $paymentTypesArr)) {
+        $crmCodePaymentList = array_column($arResult['paymentTypesList'], 'code');
 
+        foreach (RetailcrmConfigProvider::getIntegrationPaymentTypes() as $integrationPayment) {
+            if (in_array($integrationPayment, $paymentTypesArr)) {
+                $originalPayment = $arResult['paymentTypesList'][$integrationPayment];
+                $codePayment = $integrationPayment . '-not-integration';
+                $sites = $siteListArr !== [] ? array_values($siteListArr) : array_keys($availableSites);
+                $sites = array_filter($sites, function ($site) {return $site !== null;});
+
+                $response = $api->paymentTypesEdit([
+                    'name' => $originalPayment['name'] . ' ' . GetMessage('SUBSTITUTED_PAYMENT'),
+                    'code' => $codePayment,
+                    'active' => true,
+                    'description' => GetMessage('DESCRIPTION_AUTO_PAYMENT_TYPE'),
+                    'sites' => $sites,
+                    'paymentStatuses' => $originalPayment['paymentStatuses']
+                ]);
+
+                $statusCode = $response->getStatusCode();
+
+                if ($statusCode !== 200 && $statusCode !== 201) {
+                    RCrmActions::eventLog(
+                        'Retailcrm::options.php',
+                        'syncIntegrationPayment',
+                        GetMessage('ERROR_LINK_INTEGRATION_PAYMENT') . ' : ' . $response->getResponseBody()
+                    );
+
+                    $error = 'ERR_CHECK_JOURNAL';
+                }
             }
         }
     }
@@ -1010,7 +1036,12 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         COption::SetOptionString($mid, $PROTOCOL, 'http://');
     }
 
-    $uri .= '&ok=Y';
+    if ($error !== null) {
+        $uri .= '&errc=' . $error;
+    } else {
+        $uri .= '&ok=Y';
+    }
+
     LocalRedirect($uri);
 } else {
     $api_host = COption::GetOptionString($mid, $CRM_API_HOST_OPTION, 0);
@@ -1107,6 +1138,11 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         $availableSites,
         $api->paymentTypesList()->paymentTypes
     );
+
+    $arResult['paymentTypesList'] = array_filter($arResult['paymentTypesList'], function ($payment) {
+        return strripos($payment['code'], '-not-integration') === false;
+    });
+
     $arResult['deliveryTypesList'] = RetailCrmService::getAvailableTypes(
         $availableSites,
         $api->deliveryTypesList()->deliveryTypes

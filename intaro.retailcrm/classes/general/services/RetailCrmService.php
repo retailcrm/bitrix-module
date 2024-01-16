@@ -141,11 +141,11 @@ class RetailCrmService
             }
 
             if (empty($type['sites'])) {
-                $result[] = $type;
+                $result[$type['code']] = $type;
             } else {
                 foreach ($type['sites'] as $site) {
                     if (!empty($availableSites[$site])) {
-                        $result[] = $type;
+                        $result[$type['code']] = $type;
                         break;
                     }
                 }

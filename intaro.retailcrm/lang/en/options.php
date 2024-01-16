@@ -139,3 +139,7 @@ $MESS ['LOCATION_LABEL'] = 'Location';
 $MESS ['TEXT_ADDRESS_LABEL'] = 'Address (line)';
 
 $MESS ['SYNC_INTEGRATION_PAYMENT'] = 'Activate synchronization of integrated payments';
+$MESS ['DESCRIPTION_AUTO_PAYMENT_TYPE'] = 'Automatically created payment type for integration substitution (Bitrix)';
+$MESS ['SUBSTITUTED_PAYMENT'] = '(Substituted Bitrix)';
+$MESS ['ERR_CHECK_JOURNAL'] = 'Error while saving. Details in the event log';
+$MESS ['ERROR_LINK_INTEGRATION_PAYMENT'] = 'Integration payment linkage error';
