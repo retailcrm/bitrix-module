@@ -1,6 +1,7 @@
 <?php
 
 use Bitrix\Main\Context\Culture;
+use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Repository\UserRepository;
 use Intaro\RetailCrm\Service\CustomerService;
@@ -524,18 +525,15 @@ class RetailCrmEvent
         }
 
         if (!empty($arPayment['PAY_SYSTEM_ID']) && isset($optionsPaymentTypes[$arPayment['PAY_SYSTEM_ID']])) {
-            $paymentToCrm = [
-                'type' => $optionsPaymentTypes[$arPayment['PAY_SYSTEM_ID']],
-            ];
+            $paymentToCrm = [];
 
             if (!empty($arPayment['ID'])) {
                 $paymentToCrm['externalId'] = RCrmActions::generatePaymentExternalId($arPayment['ID']);
             }
 
-            $isIntegrationPayment
-                = RetailCrmService::isIntegrationPayment($arPayment['PAY_SYSTEM_ID'] ?? null);
+            $isIntegrationPayment = RetailCrmService::isIntegrationPayment($arPayment['PAY_SYSTEM_ID'] ?? null);
 
-            if (!empty($arPayment['DATE_PAID']) && !$isIntegrationPayment) {
+            if (!empty($arPayment['DATE_PAID'])) {
                 if (is_object($arPayment['DATE_PAID'])) {
                     $culture = new Culture(['FORMAT_DATETIME' => 'YYYY-MM-DD HH:MI:SS']);
                     $paymentToCrm['paidAt'] = $arPayment['DATE_PAID']->toString($culture);
@@ -544,7 +542,7 @@ class RetailCrmEvent
                 }
             }
 
-            if (!empty($optionsPayStatuses[$arPayment['PAID']]) && !$isIntegrationPayment) {
+            if (!empty($optionsPayStatuses[$arPayment['PAID']])) {
                 $paymentToCrm['status'] = $optionsPayStatuses[$arPayment['PAID']];
             }
 
@@ -554,6 +552,17 @@ class RetailCrmEvent
 
             if (RetailcrmConfigProvider::shouldSendPaymentAmount()) {
                 $paymentToCrm['amount'] = $arPayment['SUM'];
+            }
+
+            if ($isIntegrationPayment && RetailcrmConfigProvider::getSyncIntegrationPayment() === 'Y') {
+                $paymentToCrm['type'] = $optionsPaymentTypes[$arPayment['PAY_SYSTEM_ID']] .
+                    Constants::CRM_PART_SUBSTITUTED_PAYMENT_CODE;
+            } else {
+                $paymentToCrm['type'] = $optionsPaymentTypes[$arPayment['PAY_SYSTEM_ID']];
+
+                if ($isIntegrationPayment) {
+                    unset($paymentToCrm['paidAt'], $paymentToCrm['status']);
+                }
             }
         } else {
             RCrmActions::eventLog('RetailCrmEvent::paymentSave', 'payments', 'OrderID = ' . $arPayment['ID'] . '. Payment not found.');
