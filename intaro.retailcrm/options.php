@@ -68,6 +68,7 @@ $CRM_CART = 'cart';
 $MODULE_DEACTIVATE = 'module_deactivate';
 $AGENTS_DEACTIVATE = 'agents_deactivate';
 $EVENTS_DEACTIVATE = 'events_deactivate';
+$CRM_PART_SUBSTITUTED_PAYMENT_CODE = '-not-integration';
 
 if (!CModule::IncludeModule('intaro.retailcrm') || !CModule::IncludeModule('sale') || !CModule::IncludeModule('iblock') || !CModule::IncludeModule('catalog')) {
     return;
@@ -785,11 +786,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     );
     COption::SetOptionString(
         $mid,
-        $CRM_PAYMENT_TYPES,
-        serialize(RCrmActions::clearArr(is_array($paymentTypesArr) ? $paymentTypesArr : []))
-    );
-    COption::SetOptionString(
-        $mid,
         $CRM_PAYMENT_STATUSES,
         serialize(RCrmActions::clearArr(is_array($paymentStatusesArr) ? $paymentStatusesArr : []))
     );
@@ -838,30 +834,34 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
     $syncIntegrationPayment = htmlspecialchars(trim($_POST['sync-integration-payment'])) ?: 'N';
 
-    if ($syncIntegrationPayment === 'Y') {
-        ConfigProvider::setSyncIntegrationPayment($syncIntegrationPayment);
+    ConfigProvider::setSyncIntegrationPayment($syncIntegrationPayment);
 
+    if ($syncIntegrationPayment === 'Y') {
         $crmCodePaymentList = array_column($arResult['paymentTypesList'], 'code');
 
         foreach (RetailcrmConfigProvider::getIntegrationPaymentTypes() as $integrationPayment) {
             if (in_array($integrationPayment, $paymentTypesArr)) {
                 $originalPayment = $arResult['paymentTypesList'][$integrationPayment];
-                $codePayment = $integrationPayment . '-not-integration';
-                $sites = $siteListArr !== [] ? array_values($siteListArr) : array_keys($availableSites);
-                $sites = array_filter($sites, function ($site) {return $site !== null;});
+                $codePayment = $integrationPayment . $CRM_PART_SUBSTITUTED_PAYMENT_CODE;
 
                 $response = $api->paymentTypesEdit([
-                    'name' => $originalPayment['name'] . ' ' . GetMessage('SUBSTITUTED_PAYMENT'),
+                    'name' => $originalPayment['name'] . ' ' . GetMessage('NO_INTEGRATION_PAYMENT'),
                     'code' => $codePayment,
                     'active' => true,
                     'description' => GetMessage('DESCRIPTION_AUTO_PAYMENT_TYPE'),
-                    'sites' => $sites,
+                    'sites' => $originalPayment['sites'],
                     'paymentStatuses' => $originalPayment['paymentStatuses']
                 ]);
 
                 $statusCode = $response->getStatusCode();
 
-                if ($statusCode !== 200 && $statusCode !== 201) {
+                if ($response->isSuccessful()) {
+                    $listKeys = array_keys($paymentTypesArr, $integrationPayment);
+
+                    foreach ($listKeys as $key) {
+                        $paymentTypesArr[$key] = $codePayment;
+                    }
+                } else {
                     RCrmActions::eventLog(
                         'Retailcrm::options.php',
                         'syncIntegrationPayment',
@@ -873,6 +873,12 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             }
         }
     }
+
+    COption::SetOptionString(
+        $mid,
+        $CRM_PAYMENT_TYPES,
+        serialize(RCrmActions::clearArr(is_array($paymentTypesArr) ? $paymentTypesArr : []))
+    );
 
     COption::SetOptionString(
         $mid,
@@ -1139,9 +1145,12 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         $api->paymentTypesList()->paymentTypes
     );
 
-    $arResult['paymentTypesList'] = array_filter($arResult['paymentTypesList'], function ($payment) {
-        return strripos($payment['code'], '-not-integration') === false;
-    });
+    $arResult['paymentTypesList'] = array_filter(
+            $arResult['paymentTypesList'],
+            function ($payment) use ($CRM_PART_SUBSTITUTED_PAYMENT_CODE) {
+                return strripos($payment['code'], $CRM_PART_SUBSTITUTED_PAYMENT_CODE) === false;
+            }
+    );
 
     $arResult['deliveryTypesList'] = RetailCrmService::getAvailableTypes(
         $availableSites,
@@ -1913,7 +1922,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                         <select name="payment-type-<?php echo $bitrixPaymentType['ID']; ?>" class="typeselect">
                             <option value="" selected=""></option>
                             <?php foreach ($arResult['paymentTypesList'] as $paymentType): ?>
-                                <option value="<?php echo $paymentType['code']; ?>" <?php if ($optionsPayTypes[$bitrixPaymentType['ID']] === $paymentType['code']) {
+                                <option value="<?php echo $paymentType['code']; ?>"
+                                    <?php if (explode($CRM_PART_SUBSTITUTED_PAYMENT_CODE, $optionsPayTypes[$bitrixPaymentType['ID']])[0] === $paymentType['code']) {
                                     echo 'selected';
                                 } ?>>
                                     <?php echo $APPLICATION->ConvertCharset($paymentType['name'], 'utf-8', SITE_CHARSET); ?>
@@ -3275,7 +3285,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 echo 'style="display: none;"';
             } ?>>
                 <td class="option-head" colspan="2">
-                    <b><?php echo GetMessage('INTEGRATION_PAYMENT_LABEL'); ?></b>
+                    <p><b><?php echo GetMessage('INTEGRATION_PAYMENT_LABEL'); ?></b></p>
+                    <p><b><?php echo GetMessage('NEED_PERMISSIONS_REFERENCE_LABEL'); ?></b></p>
                 </td>
             </tr>
 

@@ -140,7 +140,8 @@ $MESS ['TEXT_ADDRESS_LABEL'] = 'Address (line)';
 
 $MESS ['SYNC_INTEGRATION_PAYMENT'] = 'Activate synchronization of integrated payments';
 $MESS ['DESCRIPTION_AUTO_PAYMENT_TYPE'] = 'Automatically created payment type for integration substitution (Bitrix)';
-$MESS ['SUBSTITUTED_PAYMENT'] = '(Substituted Bitrix)';
+$MESS ['NO_INTEGRATION_PAYMENT'] = '(Non-integrated)';
 $MESS ['ERR_CHECK_JOURNAL'] = 'Error while saving. Details in the event log';
 $MESS ['ERROR_LINK_INTEGRATION_PAYMENT'] = 'Integration payment linkage error';
 $MESS ['INTEGRATION_PAYMENT_LABEL'] = 'When correlating CMS and CRM integration payments, a regular payment is created on the system side to which orders will be linked';
+$MESS ['NEED_PERMISSIONS_REFERENCE_LABEL'] = 'For this option to work correctly, the api key needs access to receive and edit reference book';
