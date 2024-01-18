@@ -97,10 +97,14 @@ class SettingsService
      */
     public $loadNonActivity;
 
+    /** @var array */
+    public $actrualPropList = [];
+
     /**
      * @var \Intaro\RetailCrm\Icml\SettingsService|null
      */
     private static $instance = null;
+
 
     /**
      * SettingsService constructor.
@@ -123,6 +127,8 @@ class SettingsService
 
         $this->getPriceTypes();
         $this->getVatRates();
+
+        $this->actrualPropList = array_merge($this->getIblockPropsPreset(), $this->parseNewProps());
     }
 
     /**
@@ -131,12 +137,12 @@ class SettingsService
      *
      * @return \Intaro\RetailCrm\Icml\SettingsService|null
      */
-    static public function getInstance(array $arOldSetupVars, ?string $action): ?SettingsService
+    public static function getInstance(array $arOldSetupVars, ?string $action): ?SettingsService
     {
-        if(is_null(self::$instance))
-        {
+        if (is_null(self::$instance)) {
             self::$instance = new self($arOldSetupVars, $action);
         }
+
         return self::$instance;
     }
 
@@ -239,19 +245,45 @@ class SettingsService
     /**
      * @return string[]
      */
-    public function getIblockPropsPreset(): array
+    private function getIblockPropsPreset(): array
     {
         return [
-            'article'      => 'article',
-            'manufacturer' => 'manufacturer',
-            'color'        => 'color',
-            'size'         => 'size',
-            'weight'       => 'weight',
-            'length'       => 'length',
-            'width'        => 'width',
-            'height'       => 'height',
-            'picture'      => 'picture',
+            'article'      => GetMessage('PROPERTY_ARTICLE_HEADER_NAME'),
+            'manufacturer' => GetMessage('PROPERTY_MANUFACTURER_HEADER_NAME'),
+            'color'        => GetMessage('PROPERTY_COLOR_HEADER_NAME'),
+            'size'         => GetMessage('PROPERTY_SIZE_HEADER_NAME'),
+            'weight'       => GetMessage('PROPERTY_WEIGHT_HEADER_NAME'),
+            'length'       => GetMessage('PROPERTY_LENGTH_HEADER_NAME'),
+            'width'        => GetMessage('PROPERTY_WIDTH_HEADER_NAME'),
+            'height'       => GetMessage('PROPERTY_HEIGHT_HEADER_NAME'),
+            'picture'      => GetMessage('PROPERTY_PICTURE_HEADER_NAME'),
         ];
+    }
+
+    private function parseNewProps(): array
+    {
+        global $APPLICATION;
+
+        $result = [];
+        $text = $APPLICATION->GetFileContent($_SERVER["DOCUMENT_ROOT"] . "/local/icml_property_retailcrm.txt");
+
+        if ($text === false) {
+            return $result;
+        }
+
+        preg_match_all('/\w+\s*=\s*\w+[ *\w+]*/mu', $text, $matches);
+
+        foreach ($matches[0] as $newProp) {
+            $elements = explode("=", $newProp);
+
+            if (empty($elements[0]) || empty($elements[1])) {
+                continue;
+            }
+
+            $result[trim($elements[0])] = trim($elements[1]);
+        }
+
+        return $result;
     }
 
     /**
@@ -269,24 +301,6 @@ class SettingsService
             'width' => ['WIDTH', 'SHIRINA'],
             'height' => ['HEIGHT', 'VISOTA'],
             'picture' => ['PICTURE', 'PICTURE'],
-        ];
-    }
-
-    /**
-     * @return array
-     */
-    public function getIblockPropsNames(): array
-    {
-        return  [
-            'article'      => GetMessage('PROPERTY_ARTICLE_HEADER_NAME'),
-            'manufacturer' => GetMessage('PROPERTY_MANUFACTURER_HEADER_NAME'),
-            'color'        => GetMessage('PROPERTY_COLOR_HEADER_NAME'),
-            'size'         => GetMessage('PROPERTY_SIZE_HEADER_NAME'),
-            'weight'       => GetMessage('PROPERTY_WEIGHT_HEADER_NAME'),
-            'length'       => GetMessage('PROPERTY_LENGTH_HEADER_NAME'),
-            'width'        => GetMessage('PROPERTY_WIDTH_HEADER_NAME'),
-            'height'       => GetMessage('PROPERTY_HEIGHT_HEADER_NAME'),
-            'picture'      => GetMessage('PROPERTY_PICTURE_HEADER_NAME'),
         ];
     }
 
@@ -351,7 +365,7 @@ class SettingsService
 
     public function setProps(): void
     {
-        foreach ($this->getIblockPropsPreset() as $prop) {
+        foreach (array_keys($this->actrualPropList) as $prop) {
            $this->setProperties($this->iblockPropertySku, 'iblockPropertySku_' . $prop);
            $this->setProperties($this->iblockPropertyUnitSku, 'iblockPropertyUnitSku_' . $prop);
            $this->setProperties($this->iblockPropertyProduct, 'iblockPropertyProduct_' . $prop);
@@ -587,9 +601,9 @@ class SettingsService
         $props = [];
 
         if (isset($oldValues[$iblockId])) {
-            foreach ($this->getIblockPropsNames() as $key => $prop) {
-                $fullKey = $keyGroup . '_' . $key;
-                $props[$key] = $oldValues[$iblockId][$fullKey];
+            foreach (array_keys($this->actrualPropList) as $prop) {
+                $fullKey = $keyGroup . '_' . $prop;
+                $props[$prop] = $oldValues[$iblockId][$fullKey];
             }
         }
 

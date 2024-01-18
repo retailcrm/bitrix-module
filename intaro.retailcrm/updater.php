@@ -1203,7 +1203,23 @@ function update()
         'custom_fields_toggle',
         'N'
     );
+
+    createCustomPropertyFile();
 }
+
+function createCustomPropertyFile()
+{
+    $path = $_SERVER['DOCUMENT_ROOT'] . '/local/';
+
+    CheckDirPath($path);
+
+    $file = new \Bitrix\Main\IO\File($path . 'icml_property_retailcrm.txt', $siteId = null);
+
+    if (!$file->isExists()) {
+        $file->putContents("");
+    }
+}
+
 
 try {
     update();
