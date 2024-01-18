@@ -109,4 +109,5 @@ class Constants
     public const USE_CRM_ORDER_METHODS  = 'use_crm_order_methods';
     public const CRM_ORDER_METHODS  = 'crm_order_methods';
     public const SYNC_INTEGRATION_PAYMENT = 'sync_integration_payment';
+    public const CRM_PART_SUBSTITUTED_PAYMENT_CODE = '-not-integration';
 }

@@ -9,6 +9,7 @@ use Bitrix\Sale\Internals\OrderTable;
 use Bitrix\Sale\Location\LocationTable;
 use Bitrix\Sale\Order;
 use Intaro\RetailCrm\Component\ApiClient\ClientAdapter;
+use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Service\LoyaltyService;
@@ -368,24 +369,33 @@ class RetailCrmOrder
             $isIntegrationPayment = RetailCrmService::isIntegrationPayment($payment['PAY_SYSTEM_ID'] ?? null);
 
             if (!empty($payment['PAY_SYSTEM_ID']) && isset($arParams['optionsPayTypes'][$payment['PAY_SYSTEM_ID']])) {
-                $pm = [
-                    'type' => $arParams['optionsPayTypes'][$payment['PAY_SYSTEM_ID']]
-                ];
+                $pm = [];
+
+                if (!empty($payment['DATE_PAID'])) {
+                    $pm['paidAt'] = new \DateTime($payment['DATE_PAID']);
+                }
+
+                if (!empty($arParams['optionsPayment'][$payment['PAID']])) {
+                    $pm['status'] = $arParams['optionsPayment'][$payment['PAID']];
+                }
 
                 if (!empty($payment['ID'])) {
                     $pm['externalId'] = RCrmActions::generatePaymentExternalId($payment['ID']);
                 }
 
-                if (!empty($payment['DATE_PAID']) && !$isIntegrationPayment) {
-                    $pm['paidAt'] = new \DateTime($payment['DATE_PAID']);
-                }
-
-                if (!empty($arParams['optionsPayment'][$payment['PAID']]) && !$isIntegrationPayment) {
-                    $pm['status'] = $arParams['optionsPayment'][$payment['PAID']];
-                }
-
                 if (RetailcrmConfigProvider::shouldSendPaymentAmount()) {
                     $pm['amount'] = $payment['SUM'];
+                }
+
+                if ($isIntegrationPayment && RetailcrmConfigProvider::getSyncIntegrationPayment() === 'Y') {
+                    $pm['type'] = $arParams['optionsPayTypes'][$payment['PAY_SYSTEM_ID']] .
+                        Constants::CRM_PART_SUBSTITUTED_PAYMENT_CODE;
+                } else {
+                    $pm['type'] = $arParams['optionsPayTypes'][$payment['PAY_SYSTEM_ID']];
+
+                    if ($isIntegrationPayment) {
+                        unset($pm['paidAt'], $pm['status']);
+                    }
                 }
 
                 $payments[] = $pm;
