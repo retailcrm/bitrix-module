@@ -1,5 +1,7 @@
 <?php
 
+use Intaro\RetailCrm\Component\Constants;
+
 /**
  * Class RetailCrmEventTest
  */
@@ -139,6 +141,10 @@ class RetailCrmEventTest extends PHPUnit\Framework\TestCase
         $this->assertEquals(false, $result);
     }
 
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
     public function testPaymentSaveWithSyncIntegrationPayment()
     {
         RetailcrmConfigProvider::setSyncIntegrationPayment('Y');
@@ -184,7 +190,7 @@ class RetailCrmEventTest extends PHPUnit\Framework\TestCase
             [
                 'externalId' => null,
                 'order' => ['externalId' => 11],
-                'type' => 'testPayment',
+                'type' => 'testPayment' . Constants::CRM_PART_SUBSTITUTED_PAYMENT_CODE,
                 'status' => 'paid',
                 'paidAt' => $date
             ],

@@ -29,7 +29,9 @@ class RetailCrmOrder_v5Test extends BitrixTestCase {
      */
     public function testOrderSend($arFields, $arParams, $methodApi, $expected)
     {
+        RetailcrmConfigProvider::setIntegrationPaymentTypes([]);
         RetailcrmConfigProvider::setCustomFieldsStatus('Y');
+        RetailcrmConfigProvider::setSyncIntegrationPayment('N');
 
         self::assertEquals($expected, RetailCrmOrder::orderSend(
             $arFields,
@@ -44,13 +46,14 @@ class RetailCrmOrder_v5Test extends BitrixTestCase {
     /**
      * @dataProvider orderSendProvider
      */
-    public function testOrderSendWitIntegrationPayment(
+    public function testOrderSendWithIntegrationPayment(
         array $arFields,
         array $arParams,
         string $methodApi,
         array $expected
     ): void {
         RetailcrmConfigProvider::setIntegrationPaymentTypes(['testPayment']);
+        RetailcrmConfigProvider::setSyncIntegrationPayment('N');
 
         $orderSend = RetailCrmOrder::orderSend(
             $arFields,
