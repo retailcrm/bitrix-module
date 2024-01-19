@@ -54,9 +54,67 @@ class RetailCrmEventTest extends PHPUnit\Framework\TestCase
      * @throws \PHPUnit\Framework\MockObject\RuntimeException
      * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
      *
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     *
+     */
+    public function testIntegrationPaymentSave()
+    {
+        RetailcrmConfigProvider::setSyncIntegrationPayment('N');
+        RetailcrmConfigProvider::setIntegrationPaymentTypes(['testPayment']);
+
+        $event = $this->createMock(\Bitrix\Sale\Payment::class);
+        $date = \Bitrix\Main\Type\DateTime::createFromPhp(new DateTime('2000-01-01'))->format('Y-m-d H:i:s');
+        $order = $this->createMock(\Bitrix\Sale\Order::class);
+
+        $order->expects($this->any())
+            ->method('isNew')
+            ->willReturn(false);
+
+        $paymentCollection = $this->createMock(\Bitrix\Sale\PaymentCollection::class);
+        $paymentCollection->expects($this->any())
+            ->method('getOrder')
+            ->willReturn($order);
+
+        $event->method('getCollection')->willReturn($paymentCollection);
+        $event->method('getId')->willReturn(11);
+        $event->method('getField')->willReturnCallback(function ($field) use ($date){
+            switch ($field) {
+                case 'ORDER_ID': return 11;
+                case 'PAID': return 'paid';
+                case 'PAY_SYSTEM_ID': return 1;
+                case 'SUM': return '500';
+                case 'DATE_PAID': return $date;
+                default: return null;
+            }
+        });
+
+        $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
+        $spy = \Mockery::spy('overload:' .RCrmActions::class);
+
+        $GLOBALS['RETAIL_CRM_HISTORY'] = false;
+
+        $result = RetailCrmEvent::paymentSave($event);
+
+        $spy->shouldReceive('apiMethod')->with(
+            $api,
+            'ordersPaymentCreate',
+            'RetailCrmEvent::paymentSave',
+            [
+                'externalId' => null,
+                'order' => ['externalId' => 11],
+                'type' => 'testPayment'
+            ],
+            null
+        )->once();
+
+        $this->assertEquals(true, $result);
+    }
+
+    /**
      * @dataProvider paymentSaveDataProvider
      */
-    public function testPaymentSave($history, $new)
+    public function testSavePaymentWithHistoryAndCreateOrder($history, $new)
     {
         $event = $this->createMock(\Bitrix\Sale\Payment::class);
 
@@ -79,6 +137,61 @@ class RetailCrmEventTest extends PHPUnit\Framework\TestCase
         $result = RetailCrmEvent::paymentSave($event);
 
         $this->assertEquals(false, $result);
+    }
+
+    public function testPaymentSaveWithSyncIntegrationPayment()
+    {
+        RetailcrmConfigProvider::setSyncIntegrationPayment('Y');
+        RetailcrmConfigProvider::setIntegrationPaymentTypes(['testPayment']);
+
+        $event = $this->createMock(\Bitrix\Sale\Payment::class);
+        $date = \Bitrix\Main\Type\DateTime::createFromPhp(new DateTime('2000-01-01'))->format('Y-m-d H:i:s');
+        $order = $this->createMock(\Bitrix\Sale\Order::class);
+
+        $order->expects($this->any())
+            ->method('isNew')
+            ->willReturn(false);
+
+        $paymentCollection = $this->createMock(\Bitrix\Sale\PaymentCollection::class);
+        $paymentCollection->expects($this->any())
+            ->method('getOrder')
+            ->willReturn($order);
+
+        $event->method('getCollection')->willReturn($paymentCollection);
+        $event->method('getId')->willReturn(11);
+        $event->method('getField')->willReturnCallback(function ($field) use ($date){
+            switch ($field) {
+                case 'ORDER_ID': return 11;
+                case 'PAID': return 'paid';
+                case 'PAY_SYSTEM_ID': return 1;
+                case 'SUM': return '500';
+                case 'DATE_PAID': return $date;
+                default: return null;
+            }
+        });
+
+        $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
+        $spy = \Mockery::spy('overload:' .RCrmActions::class);
+
+        $GLOBALS['RETAIL_CRM_HISTORY'] = false;
+
+        $result = RetailCrmEvent::paymentSave($event);
+
+        $spy->shouldReceive('apiMethod')->with(
+            $api,
+            'ordersPaymentCreate',
+            'RetailCrmEvent::paymentSave',
+            [
+                'externalId' => null,
+                'order' => ['externalId' => 11],
+                'type' => 'testPayment',
+                'status' => 'paid',
+                'paidAt' => $date
+            ],
+            null
+        )->once();
+
+        $this->assertEquals(true, $result);
     }
 
     /**
@@ -237,10 +350,6 @@ class RetailCrmEventTest extends PHPUnit\Framework\TestCase
         return [
             [
                 'history' => true,
-                'new' => false
-            ],
-            [
-                'history' => false,
                 'new' => false
             ],
             [
