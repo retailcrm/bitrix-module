@@ -65,6 +65,34 @@ class RetailCrmOrder_v5Test extends BitrixTestCase {
         static::assertEquals($expected['payments'][0], $orderSend['payments'][0]);
     }
 
+    /**
+     * @dataProvider orderSendProvider
+     */
+    public function testOrderSendIntegrationPaymentWithEnableOption(
+        array $arFields,
+        array $arParams,
+        string $methodApi,
+        array $expected
+    ): void {
+        RetailcrmConfigProvider::setIntegrationPaymentTypes(['testPayment']);
+        RetailcrmConfigProvider::setSyncIntegrationPayment('Y');
+
+        $orderSend = RetailCrmOrder::orderSend(
+            $arFields,
+            new stdClass(),
+            $arParams,
+            false,
+            null,
+            $methodApi
+        );
+
+        self::assertEquals($expected['payments'][0]['paidAt'], $orderSend['payments'][0]['paidAt']);
+        self::assertEquals($expected['payments'][0]['status'], $orderSend['payments'][0]['status']);
+        self::assertEquals($expected['payments'][0]['type'] . '-not-integration', $orderSend['payments'][0]['type']);
+
+        RetailcrmConfigProvider::setSyncIntegrationPayment('N');
+    }
+
     public function testFieldExists(): void
     {
         $order = \Bitrix\Sale\Order::create('s1', 1, 'RUB');
