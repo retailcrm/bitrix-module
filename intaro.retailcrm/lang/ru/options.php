@@ -197,10 +197,10 @@ $MESS ['DELETE_MATCHED'] = 'Удалить';
 $MESS ['LOCATION_LABEL'] = 'Местоположение (LOCATION)';
 $MESS ['TEXT_ADDRESS_LABEL'] = 'Адрес (строкой)';
 
-$MESS ['SYNC_INTEGRATION_PAYMENT'] = 'Активировать синхронизацию интегрированных типов оплат';
+$MESS ['SYNC_INTEGRATION_PAYMENT'] = 'Активировать синхронизацию интеграционных типов оплат';
 $MESS ['DESCRIPTION_AUTO_PAYMENT_TYPE'] = 'Автоматически созданный тип оплаты для подмены интеграционной (Bitrix)';
-$MESS ['NO_INTEGRATION_PAYMENT'] = '(Не интегрированная)';
+$MESS ['NO_INTEGRATION_PAYMENT'] = '(Не интеграционная)';
 $MESS ['ERR_CHECK_JOURNAL'] = 'Ошибка при сохранении. Подробности в журнале событий';
-$MESS ['ERROR_LINK_INTEGRATION_PAYMENT'] = 'Ошибка связи интеграционных оплат';
-$MESS ['INTEGRATION_PAYMENT_LABEL'] = 'При соотношении интеграционных оплат CMS и CRM, на стороне системы создаётся обычная оплата, к которой будут привязываться заказы.';
+$MESS ['ERROR_LINK_INTEGRATION_PAYMENT'] = 'Ошибка при сопоставлении интеграционных оплат';
+$MESS ['INTEGRATION_PAYMENT_LABEL'] = 'При сопоставлении интеграционных оплат CRM, на стороне системы создаётся обычная оплата, к которой будут привязываться заказы.';
 $MESS ['NEED_PERMISSIONS_REFERENCE_LABEL'] = 'Для корректной работы опции, апи-ключу необходимы доступы на получение и редактирование справочников';

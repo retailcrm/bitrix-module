@@ -366,39 +366,27 @@ class RetailCrmOrder
         $payments = [];
 
         foreach ($arOrder['PAYMENTS'] as $payment) {
-            $isIntegrationPayment = RetailCrmService::isIntegrationPayment($payment['PAY_SYSTEM_ID'] ?? null);
-
             if (!empty($payment['PAY_SYSTEM_ID']) && isset($arParams['optionsPayTypes'][$payment['PAY_SYSTEM_ID']])) {
-                $pm = [];
+                $crmPayment = [];
 
                 if (!empty($payment['DATE_PAID'])) {
-                    $pm['paidAt'] = new \DateTime($payment['DATE_PAID']);
+                    $crmPayment['paidAt'] = new \DateTime($payment['DATE_PAID']);
                 }
 
                 if (!empty($arParams['optionsPayment'][$payment['PAID']])) {
-                    $pm['status'] = $arParams['optionsPayment'][$payment['PAID']];
+                    $crmPayment['status'] = $arParams['optionsPayment'][$payment['PAID']];
                 }
 
                 if (!empty($payment['ID'])) {
-                    $pm['externalId'] = RCrmActions::generatePaymentExternalId($payment['ID']);
+                    $crmPayment['externalId'] = RCrmActions::generatePaymentExternalId($payment['ID']);
                 }
 
                 if (RetailcrmConfigProvider::shouldSendPaymentAmount()) {
-                    $pm['amount'] = $payment['SUM'];
+                    $crmPayment['amount'] = $payment['SUM'];
                 }
 
-                if ($isIntegrationPayment && RetailcrmConfigProvider::getSyncIntegrationPayment() === 'Y') {
-                    $pm['type'] = $arParams['optionsPayTypes'][$payment['PAY_SYSTEM_ID']] .
-                        Constants::CRM_PART_SUBSTITUTED_PAYMENT_CODE;
-                } else {
-                    $pm['type'] = $arParams['optionsPayTypes'][$payment['PAY_SYSTEM_ID']];
-
-                    if ($isIntegrationPayment) {
-                        unset($pm['paidAt'], $pm['status']);
-                    }
-                }
-
-                $payments[] = $pm;
+                $crmPayment = RetailCrmService::preparePayment($crmPayment, $payments, $arParams['optionsPayTypes']);
+                $payments[] = $crmPayment;
             } else {
                 RCrmActions::eventLog(
                     'RetailCrmOrder::orderSend',

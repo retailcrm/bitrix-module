@@ -1,5 +1,7 @@
 <?php
 
+use Intaro\RetailCrm\Component\Constants;
+
 /**
  * Class RetailCrmService
  */
@@ -178,4 +180,29 @@ class RetailCrmService
             );
         }
     }
+
+    /**
+     * @param array $crmPayment
+     * @param array $bitrixPayment
+     * @param array $optionsPaymentTypes
+     * @return array mixed
+     */
+    public static function preparePayment($crmPayment, $bitrixPayment, $optionsPaymentTypes)
+    {
+        $isIntegrationPayment = self::isIntegrationPayment($bitrixPayment['PAY_SYSTEM_ID'] ?? null);
+
+        if ($isIntegrationPayment && RetailcrmConfigProvider::getSyncIntegrationPayment() === 'Y') {
+            $crmPayment['type'] = $optionsPaymentTypes[$bitrixPayment['PAY_SYSTEM_ID']] .
+                Constants::CRM_PART_SUBSTITUTED_PAYMENT_CODE;
+        } else {
+            $crmPayment['type'] = $optionsPaymentTypes[$bitrixPayment['PAY_SYSTEM_ID']];
+
+            if ($isIntegrationPayment) {
+                unset($crmPayment['paidAt'], $crmPayment['status']);
+            }
+        }
+
+        return $crmPayment;
+    }
+
 }

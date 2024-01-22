@@ -531,8 +531,6 @@ class RetailCrmEvent
                 $paymentToCrm['externalId'] = RCrmActions::generatePaymentExternalId($arPayment['ID']);
             }
 
-            $isIntegrationPayment = RetailCrmService::isIntegrationPayment($arPayment['PAY_SYSTEM_ID'] ?? null);
-
             if (!empty($arPayment['DATE_PAID'])) {
                 if (is_object($arPayment['DATE_PAID'])) {
                     $culture = new Culture(['FORMAT_DATETIME' => 'YYYY-MM-DD HH:MI:SS']);
@@ -554,16 +552,7 @@ class RetailCrmEvent
                 $paymentToCrm['amount'] = $arPayment['SUM'];
             }
 
-            if ($isIntegrationPayment && RetailcrmConfigProvider::getSyncIntegrationPayment() === 'Y') {
-                $paymentToCrm['type'] = $optionsPaymentTypes[$arPayment['PAY_SYSTEM_ID']] .
-                    Constants::CRM_PART_SUBSTITUTED_PAYMENT_CODE;
-            } else {
-                $paymentToCrm['type'] = $optionsPaymentTypes[$arPayment['PAY_SYSTEM_ID']];
-
-                if ($isIntegrationPayment) {
-                    unset($paymentToCrm['paidAt'], $paymentToCrm['status']);
-                }
-            }
+            $paymentToCrm = RetailCrmService::preparePayment($paymentToCrm, $arPayment, $optionsPaymentTypes);
         } else {
             RCrmActions::eventLog('RetailCrmEvent::paymentSave', 'payments', 'OrderID = ' . $arPayment['ID'] . '. Payment not found.');
             return false;

@@ -92,12 +92,13 @@ class RetailCrmEventTest extends PHPUnit\Framework\TestCase
         });
 
         $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
-        $spy = \Mockery::spy('overload:' .RCrmActions::class);
+        $spy = \Mockery::spy('overload:' . RCrmActions::class); //Добавление слежки за классом
 
         $GLOBALS['RETAIL_CRM_HISTORY'] = false;
 
         $result = RetailCrmEvent::paymentSave($event);
 
+        //Проверка вызова класса и передачи определенных параметров
         $spy->shouldReceive('apiMethod')->with(
             $api,
             'ordersPaymentCreate',
@@ -177,7 +178,7 @@ class RetailCrmEventTest extends PHPUnit\Framework\TestCase
         });
 
         $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
-        $spy = \Mockery::spy('overload:' .RCrmActions::class);
+        $spy = \Mockery::spy('overload:' . RCrmActions::class);
 
         $GLOBALS['RETAIL_CRM_HISTORY'] = false;
 
