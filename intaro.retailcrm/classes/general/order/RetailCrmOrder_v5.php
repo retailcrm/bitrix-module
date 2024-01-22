@@ -385,7 +385,7 @@ class RetailCrmOrder
                     $crmPayment['amount'] = $payment['SUM'];
                 }
 
-                $crmPayment = RetailCrmService::preparePayment($crmPayment, $payments, $arParams['optionsPayTypes']);
+                $crmPayment = RetailCrmService::preparePayment($crmPayment, $payment, $arParams['optionsPayTypes']);
                 $payments[] = $crmPayment;
             } else {
                 RCrmActions::eventLog(
