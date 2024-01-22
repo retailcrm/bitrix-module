@@ -1181,6 +1181,16 @@ class ConfigProvider
         static::setOption(Constants::SYNC_INTEGRATION_PAYMENT, $syncIntegrationPayment);
     }
 
+    public static function getSubstitutionPaymentList()
+    {
+        return static::getUnserializedOption(Constants::CRM_SUBSTITUTION_PAYMENT_LIST);
+    }
+
+    public static function setSubstitutionPaymentList($paymentList)
+    {
+        static::setOption(Constants::CRM_SUBSTITUTION_PAYMENT_LIST, serialize($paymentList));
+    }
+
     /**
      * @return string
      */

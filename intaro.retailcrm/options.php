@@ -839,7 +839,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $syncIntegrationPayment = htmlspecialchars(trim($_POST['sync-integration-payment'])) ?: 'N';
 
     if ($syncIntegrationPayment === 'Y') {
-        $crmCodePaymentList = array_column($arResult['paymentTypesList'], 'code');
+        $substitutionPaymentList = [];
 
         foreach (RetailcrmConfigProvider::getIntegrationPaymentTypes() as $integrationPayment) {
             if (in_array($integrationPayment, $paymentTypesArr)) {
@@ -857,7 +857,16 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
                 $statusCode = $response->getStatusCode();
 
-                if (!$response->isSuccessful()) {
+                if ($response->isSuccessful()) {
+                    $substitutionPaymentList[$integrationPayment] = $codePayment;
+
+                  /*  foreach ($arResult['paymentTypesList'][$integrationPayment]['deliveryTypes'] as $codeDelivery) {
+                        $response = $api->deliveryTypesEdit([
+                                'code' => $codeDelivery,
+
+                        ])
+                    }*/
+                } else {
                     RCrmActions::eventLog(
                         'Retailcrm::options.php',
                         'syncIntegrationPayment',
@@ -869,9 +878,12 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 }
             }
         }
+
+        RetailcrmConfigProvider::setSubstitutionPaymentList($substitutionPaymentList);
     }
 
     ConfigProvider::setSyncIntegrationPayment($syncIntegrationPayment);
+
     COption::SetOptionString(
         $mid,
         $CRM_COUPON_FIELD,
@@ -1926,6 +1938,28 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 </td>
             </tr>
         <?php endforeach; ?>
+
+            <tr class="heading r-sync-payment-button">
+                <td colspan="2" class="option-other-heading">
+                    <b>
+                        <label>
+                            <input class="addr" type="checkbox" name="sync-integration-payment" value="Y" <?php if ($optionsSyncIntegrationPayment === 'Y') {
+                                echo "checked";
+                            } ?>> <?php echo GetMessage('SYNC_INTEGRATION_PAYMENT'); ?>
+                        </label>
+                    </b>
+                </td>
+            </tr>
+
+            <tr class="r-sync-payment" <?php if ($optionsSyncIntegrationPayment !== 'Y') {
+                echo 'style="display: none;"';
+            } ?>>
+                <td class="option-head" colspan="2">
+                    <p><b><?php echo GetMessage('INTEGRATION_PAYMENT_LABEL'); ?></b></p>
+                    <p><b><?php echo GetMessage('NEED_PERMISSIONS_REFERENCE_LABEL'); ?></b></p>
+                </td>
+            </tr>
+
             <tr class="heading">
                 <td colspan="2"><b><?php echo GetMessage('PAYMENT_STATUS_LIST'); ?></b></td>
             </tr>
@@ -3258,27 +3292,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             } ?>>
                 <td class="option-head" colspan="2">
                     <b><?php echo GetMessage('ROUND_LABEL'); ?></b>
-                </td>
-            </tr>
-
-            <tr class="heading r-sync-payment-button">
-                <td colspan="2" class="option-other-heading">
-                    <b>
-                        <label>
-                            <input class="addr" type="checkbox" name="sync-integration-payment" value="Y" <?php if ($optionsSyncIntegrationPayment === 'Y') {
-                                echo "checked";
-                            } ?>> <?php echo GetMessage('SYNC_INTEGRATION_PAYMENT'); ?>
-                        </label>
-                    </b>
-                </td>
-            </tr>
-
-            <tr class="r-sync-payment" <?php if ($optionsSyncIntegrationPayment !== 'Y') {
-                echo 'style="display: none;"';
-            } ?>>
-                <td class="option-head" colspan="2">
-                    <p><b><?php echo GetMessage('INTEGRATION_PAYMENT_LABEL'); ?></b></p>
-                    <p><b><?php echo GetMessage('NEED_PERMISSIONS_REFERENCE_LABEL'); ?></b></p>
                 </td>
             </tr>
 
