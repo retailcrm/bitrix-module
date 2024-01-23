@@ -293,8 +293,6 @@ class RetailCrmHistory
             foreach ($substitutedPayment as $origCode => $subsCode) {
                 if (isset($optionsPayment['payTypes'][$origCode])) {
                     $optionsPayment['payTypes'][$subsCode] = $optionsPayment['payTypes'][$origCode];
-
-                    unset($optionsPayment['payTypes'][$origCode]);
                 }
             }
         }
