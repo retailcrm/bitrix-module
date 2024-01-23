@@ -288,7 +288,7 @@ class RetailCrmHistory
         ];
 
         if (RetailcrmConfigProvider::getSyncIntegrationPayment() === 'Y') {
-            $substitutedPayment = array_flip(RetailcrmConfigProvider::getSubstitutionPaymentList());
+            $substitutedPayment = RetailcrmConfigProvider::getSubstitutionPaymentList();
 
             foreach ($substitutedPayment as $origCode => $subsCode) {
                 if (isset($optionsPayment['payTypes'][$origCode])) {

@@ -860,12 +860,31 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 if ($response->isSuccessful()) {
                     $substitutionPaymentList[$integrationPayment] = $codePayment;
 
-                  /*  foreach ($arResult['paymentTypesList'][$integrationPayment]['deliveryTypes'] as $codeDelivery) {
-                        $response = $api->deliveryTypesEdit([
-                                'code' => $codeDelivery,
+                    foreach ($originalPayment['deliveryTypes'] as $codeDelivery) {
+                        if (!isset($arResult['deliveryTypesList'][$codeDelivery])) {
+                            continue;
+                        }
 
-                        ])
-                    }*/
+                        $currentDelivery = $arResult['deliveryTypesList'][$codeDelivery];
+                        $deliveryPaymentTypes = $currentDelivery['paymentTypes'];
+                        $deliveryPaymentTypes[] = $codePayment;
+
+                        $response = $api->deliveryTypesEdit([
+                            'code' => $codeDelivery,
+                            'paymentTypes' => $deliveryPaymentTypes,
+                            'name' => $currentDelivery['name']
+                        ]);
+
+                        if (!$response->isSuccessful()) {
+                            RCrmActions::eventLog(
+                                'Retailcrm::options.php',
+                                'syncIntegrationPayment::UpdateDelivery',
+                                GetMessage('ERROR_LINK_INTEGRATION_PAYMENT') . ' : ' . $response->getResponseBody()
+                            );
+
+                            $error = 'ERR_CHECK_JOURNAL';
+                        }
+                    }
                 } else {
                     RCrmActions::eventLog(
                         'Retailcrm::options.php',
