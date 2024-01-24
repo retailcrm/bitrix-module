@@ -137,3 +137,12 @@ $MESS ['DELETE_MATCHED'] = 'Delete';
 
 $MESS ['LOCATION_LABEL'] = 'Location';
 $MESS ['TEXT_ADDRESS_LABEL'] = 'Address (line)';
+
+$MESS ['SYNC_INTEGRATION_PAYMENT'] = 'Activate transfer of integration payment statuses';
+$MESS ['DESCRIPTION_AUTO_PAYMENT_TYPE'] = 'Automatically created payment type for integration substitution (Bitrix)';
+$MESS ['NO_INTEGRATION_PAYMENT'] = '(Non-integrated)';
+$MESS ['ERR_CHECK_JOURNAL'] = 'Error while saving. Details in the event log';
+$MESS ['ERROR_LINK_INTEGRATION_PAYMENT'] = 'Error in comparing integration payments';
+$MESS ['ERROR_UPDATE_PAYMENT_TYPES_DELIVERY'] = 'Error when updating payment methods for deliveries';
+$MESS ['INTEGRATION_PAYMENT_LABEL'] = 'When correlating CMS and CRM integration payments, a regular payment is created on the system side to which orders will be linked.';
+$MESS ['NEED_PERMISSIONS_REFERENCE_LABEL'] = 'For this option to work correctly, the api key needs access to receive and edit reference book';

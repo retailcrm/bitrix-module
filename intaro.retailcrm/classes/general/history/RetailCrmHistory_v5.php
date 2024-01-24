@@ -52,6 +52,8 @@ class RetailCrmHistory
     public static $CUSTOM_FIELDS_IS_ACTIVE = 'N';
     const PAGE_LIMIT = 25;
 
+    private static $optionsPayment = [];
+
     public static function customerHistory()
     {
         if (!RetailcrmDependencyLoader::loadDependencies()) {
@@ -279,6 +281,25 @@ class RetailCrmHistory
         $currency = RetailcrmConfigProvider::getCurrencyOrDefault();
         $contragentTypes = array_flip(RetailcrmConfigProvider::getContragentTypes());
         $shipmentDeducted = RetailcrmConfigProvider::getShipmentDeducted();
+
+        $optionsPayment = [
+            'payTypes' => array_flip(RetailcrmConfigProvider::getPaymentTypes()),
+            'paymentList' => array_flip(RetailcrmConfigProvider::getPayment()),
+        ];
+
+        if (RetailcrmConfigProvider::getSyncIntegrationPayment() === 'Y') {
+            $substitutedPayment = RetailcrmConfigProvider::getSubstitutionPaymentList();
+
+            foreach ($substitutedPayment as $origCode => $subsCode) {
+                if (isset($optionsPayment['payTypes'][$origCode])) {
+                    $optionsPayment['payTypes'][$subsCode] = $optionsPayment['payTypes'][$origCode];
+                }
+            }
+        }
+
+        self::$optionsPayment = $optionsPayment;
+
+        unset($optionsPayment);
 
         $matchedCustomUserFields = RetailcrmConfigProvider::getMatchedUserFields() ?? [];
         $matchedCustomUserFields = is_array($matchedCustomUserFields) ? array_flip($matchedCustomUserFields) : [];
@@ -1941,14 +1962,17 @@ class RetailCrmHistory
      */
     public static function paymentsUpdate($order, $paymentsCrm, &$newHistoryPayments = [])
     {
-        $optionsPayTypes = array_flip(unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT_TYPES, 0)));
-        $optionsPayment = array_flip(unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PAYMENT, 0)));
+        $optionsPayTypes = self::$optionsPayment['payTypes'];
+        $optionsPayment = self::$optionsPayment['paymentList'];
         $allPaymentSystems = RCrmActions::PaymentList();
+
         foreach ($allPaymentSystems as $allPaymentSystem) {
             $arPaySysmems[$allPaymentSystem['ID']] = $allPaymentSystem['NAME'];
         }
+
         $paymentsList = [];
         $paymentColl = $order->getPaymentCollection();
+
         foreach ($paymentColl as $paymentData) {
             $data = $paymentData->getFields()->getValues();
             $paymentsList[$data['ID']] = $paymentData;
@@ -1956,6 +1980,7 @@ class RetailCrmHistory
 
         //data from crm
         $paySumm = 0;
+
         foreach ($paymentsCrm['payments'] as $paymentCrm) {
             if (isset($paymentCrm['externalId']) && !empty($paymentCrm['externalId'])) {
                 //find the payment

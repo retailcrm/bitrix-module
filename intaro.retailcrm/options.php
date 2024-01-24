@@ -244,6 +244,7 @@ if (!empty($availableSites)) {
 
 //update connection settings
 if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
+    $error = null;
     $api_host = htmlspecialchars(trim($_POST['api_host']));
     $api_key = htmlspecialchars(trim($_POST['api_key']));
 
@@ -835,6 +836,73 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
     ConfigProvider::setTrackNumberStatus(htmlspecialchars(trim($_POST['track-number'])) ?: 'N');
 
+    $syncIntegrationPayment = htmlspecialchars(trim($_POST['sync-integration-payment'])) ?: 'N';
+
+    if ($syncIntegrationPayment === 'Y') {
+        $substitutionPaymentList = [];
+
+        foreach (RetailcrmConfigProvider::getIntegrationPaymentTypes() as $integrationPayment) {
+            if (in_array($integrationPayment, $paymentTypesArr)) {
+                $originalPayment = $arResult['paymentTypesList'][$integrationPayment];
+                $codePayment = $integrationPayment . Constants::CRM_PART_SUBSTITUTED_PAYMENT_CODE;
+
+                $response = $api->paymentTypesEdit([
+                    'name' => $originalPayment['name'] . ' ' . GetMessage('NO_INTEGRATION_PAYMENT'),
+                    'code' => $codePayment,
+                    'active' => true,
+                    'description' => GetMessage('DESCRIPTION_AUTO_PAYMENT_TYPE'),
+                    'sites' => $originalPayment['sites'],
+                    'paymentStatuses' => $originalPayment['paymentStatuses']
+                ]);
+
+                $statusCode = $response->getStatusCode();
+
+                if ($response->isSuccessful()) {
+                    $substitutionPaymentList[$integrationPayment] = $codePayment;
+
+                    foreach ($originalPayment['deliveryTypes'] as $codeDelivery) {
+                        if (!isset($arResult['deliveryTypesList'][$codeDelivery])) {
+                            continue;
+                        }
+
+                        $currentDelivery = $arResult['deliveryTypesList'][$codeDelivery];
+                        $deliveryPaymentTypes = $currentDelivery['paymentTypes'];
+                        $deliveryPaymentTypes[] = $codePayment;
+
+                        $response = $api->deliveryTypesEdit([
+                            'code' => $codeDelivery,
+                            'paymentTypes' => $deliveryPaymentTypes,
+                            'name' => $currentDelivery['name']
+                        ]);
+
+                        if (!$response->isSuccessful()) {
+                            RCrmActions::eventLog(
+                                'Retailcrm::options.php',
+                                'syncIntegrationPayment::UpdateDelivery',
+                                GetMessage('ERROR_LINK_INTEGRATION_PAYMENT') . ' : ' . $response->getResponseBody()
+                            );
+
+                            $error = 'ERR_CHECK_JOURNAL';
+                        }
+                    }
+                } else {
+                    RCrmActions::eventLog(
+                        'Retailcrm::options.php',
+                        'syncIntegrationPayment',
+                        GetMessage('ERROR_LINK_INTEGRATION_PAYMENT') . ' : ' . $response->getResponseBody()
+                    );
+
+                    $syncIntegrationPayment = 'N';
+                    $error = 'ERR_CHECK_JOURNAL';
+                }
+            }
+        }
+
+        RetailcrmConfigProvider::setSubstitutionPaymentList($substitutionPaymentList);
+    }
+
+    ConfigProvider::setSyncIntegrationPayment($syncIntegrationPayment);
+
     COption::SetOptionString(
         $mid,
         $CRM_COUPON_FIELD,
@@ -997,7 +1065,12 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         COption::SetOptionString($mid, $PROTOCOL, 'http://');
     }
 
-    $uri .= '&ok=Y';
+    if ($error !== null) {
+        $uri .= '&errc=' . $error;
+    } else {
+        $uri .= '&ok=Y';
+    }
+
     LocalRedirect($uri);
 } else {
     $api_host = COption::GetOptionString($mid, $CRM_API_HOST_OPTION, 0);
@@ -1094,6 +1167,14 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         $availableSites,
         $api->paymentTypesList()->paymentTypes
     );
+
+    $arResult['paymentTypesList'] = array_filter(
+            $arResult['paymentTypesList'],
+            function ($payment) {
+                return strripos($payment['code'], Constants::CRM_PART_SUBSTITUTED_PAYMENT_CODE) === false;
+            }
+    );
+
     $arResult['deliveryTypesList'] = RetailCrmService::getAvailableTypes(
         $availableSites,
         $api->deliveryTypesList()->deliveryTypes
@@ -1149,6 +1230,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $optionsOrderNumbers = COption::GetOptionString($mid, $CRM_ORDER_NUMBERS, 0);
     $optionsOrderVat = COption::GetOptionString($mid, $CRM_ORDER_VAT, 0);
     $optionsOrderTrackNumber = ConfigProvider::getTrackNumberStatus();
+    $optionsSyncIntegrationPayment = ConfigProvider::getSyncIntegrationPayment();
     $canselOrderArr = unserialize(COption::GetOptionString($mid, $CRM_CANSEL_ORDER, 0));
     $sendPickupPointAddress = COption::GetOptionString($mid, Constants::CRM_SEND_PICKUP_POINT_ADDRESS, 'N');
 
@@ -1634,6 +1716,16 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 return true;
             });
 
+            $('.r-sync-payment-button label').change(function() {
+                if ($(this).find('input').is(':checked') === true) {
+                    $('tr.r-sync-payment').show('slow');
+                } else if ($(this).find('input').is(':checked') === false) {
+                    $('tr.r-sync-payment').hide('slow');
+                }
+
+                return true;
+            });
+
             $('.r-ac-button label').change(function() {
                 if ($(this).find('input').is(':checked') === true) {
                     $('tr.r-ac').show('slow');
@@ -1853,7 +1945,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                         <select name="payment-type-<?php echo $bitrixPaymentType['ID']; ?>" class="typeselect">
                             <option value="" selected=""></option>
                             <?php foreach ($arResult['paymentTypesList'] as $paymentType): ?>
-                                <option value="<?php echo $paymentType['code']; ?>" <?php if ($optionsPayTypes[$bitrixPaymentType['ID']] === $paymentType['code']) {
+                                <option value="<?php echo $paymentType['code']; ?>"
+                                    <?php if ($optionsPayTypes[$bitrixPaymentType['ID']] === $paymentType['code']) {
                                     echo 'selected';
                                 } ?>>
                                     <?php echo $APPLICATION->ConvertCharset($paymentType['name'], 'utf-8', SITE_CHARSET); ?>
@@ -1864,6 +1957,28 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 </td>
             </tr>
         <?php endforeach; ?>
+
+            <tr class="heading r-sync-payment-button">
+                <td colspan="2" class="option-other-heading">
+                    <b>
+                        <label>
+                            <input class="addr" type="checkbox" name="sync-integration-payment" value="Y" <?php if ($optionsSyncIntegrationPayment === 'Y') {
+                                echo "checked";
+                            } ?>> <?php echo GetMessage('SYNC_INTEGRATION_PAYMENT'); ?>
+                        </label>
+                    </b>
+                </td>
+            </tr>
+
+            <tr class="r-sync-payment" <?php if ($optionsSyncIntegrationPayment !== 'Y') {
+                echo 'style="display: none;"';
+            } ?>>
+                <td class="option-head" colspan="2">
+                    <p><b><?php echo GetMessage('INTEGRATION_PAYMENT_LABEL'); ?></b></p>
+                    <p><b><?php echo GetMessage('NEED_PERMISSIONS_REFERENCE_LABEL'); ?></b></p>
+                </td>
+            </tr>
+
             <tr class="heading">
                 <td colspan="2"><b><?php echo GetMessage('PAYMENT_STATUS_LIST'); ?></b></td>
             </tr>

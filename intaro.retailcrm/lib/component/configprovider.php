@@ -1171,6 +1171,26 @@ class ConfigProvider
         return static::getOption(Constants::RECEIVE_TRACK_NUMBER_DELIVERY);
     }
 
+    public static function getSyncIntegrationPayment()
+    {
+        return static::getOption(Constants::SYNC_INTEGRATION_PAYMENT);
+    }
+
+    public static function setSyncIntegrationPayment($syncIntegrationPayment)
+    {
+        static::setOption(Constants::SYNC_INTEGRATION_PAYMENT, $syncIntegrationPayment);
+    }
+
+    public static function getSubstitutionPaymentList()
+    {
+        return static::getUnserializedOption(Constants::CRM_SUBSTITUTION_PAYMENT_LIST);
+    }
+
+    public static function setSubstitutionPaymentList($paymentList)
+    {
+        static::setOption(Constants::CRM_SUBSTITUTION_PAYMENT_LIST, serialize($paymentList));
+    }
+
     /**
      * @return string
      */

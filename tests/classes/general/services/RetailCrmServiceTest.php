@@ -59,9 +59,9 @@ class RetailCrmServiceTest extends PHPUnit\Framework\TestCase
         $result = RetailCrmService::getAvailableTypes($sites, $types);
 
         $this->assertCount(3, $result);
-        $this->assertEquals('test1', $result[0]['code']);
-        $this->assertEquals('test4', $result[1]['code']);
-        $this->assertEquals('test6', $result[2]['code']);
+        $this->assertEquals('test1', $result['test1']['code']);
+        $this->assertEquals('test4', $result['test4']['code']);
+        $this->assertEquals('test6', $result['test6']['code']);
     }
 
     public function selectIntegrationDeliveriesProvider()

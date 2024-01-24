@@ -29,7 +29,9 @@ class RetailCrmOrder_v5Test extends BitrixTestCase {
      */
     public function testOrderSend($arFields, $arParams, $methodApi, $expected)
     {
+        RetailcrmConfigProvider::setIntegrationPaymentTypes([]);
         RetailcrmConfigProvider::setCustomFieldsStatus('Y');
+        RetailcrmConfigProvider::setSyncIntegrationPayment('N');
 
         self::assertEquals($expected, RetailCrmOrder::orderSend(
             $arFields,
@@ -44,13 +46,14 @@ class RetailCrmOrder_v5Test extends BitrixTestCase {
     /**
      * @dataProvider orderSendProvider
      */
-    public function testOrderSendWitIntegrationPayment(
+    public function testOrderSendWithIntegrationPayment(
         array $arFields,
         array $arParams,
         string $methodApi,
         array $expected
     ): void {
         RetailcrmConfigProvider::setIntegrationPaymentTypes(['testPayment']);
+        RetailcrmConfigProvider::setSyncIntegrationPayment('N');
 
         $orderSend = RetailCrmOrder::orderSend(
             $arFields,
@@ -63,6 +66,34 @@ class RetailCrmOrder_v5Test extends BitrixTestCase {
 
         unset($expected['payments'][0]['paidAt'], $expected['payments'][0]['status']);
         static::assertEquals($expected['payments'][0], $orderSend['payments'][0]);
+    }
+
+    /**
+     * @dataProvider orderSendProvider
+     */
+    public function testOrderSendIntegrationPaymentWithEnableOption(
+        array $arFields,
+        array $arParams,
+        string $methodApi,
+        array $expected
+    ): void {
+        RetailcrmConfigProvider::setIntegrationPaymentTypes(['testPayment']);
+        RetailcrmConfigProvider::setSyncIntegrationPayment('Y');
+
+        $orderSend = RetailCrmOrder::orderSend(
+            $arFields,
+            new stdClass(),
+            $arParams,
+            false,
+            null,
+            $methodApi
+        );
+
+        self::assertEquals($expected['payments'][0]['paidAt'], $orderSend['payments'][0]['paidAt']);
+        self::assertEquals($expected['payments'][0]['status'], $orderSend['payments'][0]['status']);
+        self::assertEquals($expected['payments'][0]['type'] . '-not-integration', $orderSend['payments'][0]['type']);
+
+        RetailcrmConfigProvider::setSyncIntegrationPayment('N');
     }
 
     public function testFieldExists(): void
