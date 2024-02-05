@@ -573,13 +573,9 @@ class SettingsService
         $iblockOffer = CCatalogSKU::GetInfoByProductIBlock($iblockId);
 
         if ($iblockOffer !== false) {
-            $dbSkuProperties = CIBlock::GetProperties($iblockOffer['IBLOCK_ID'], []);
+            $dbSkuProperties = CIBlock::GetProperties($iblockOffer['IBLOCK_ID'], [], ['MULTIPLE' => 'N']);
 
             while ($prop = $dbSkuProperties->Fetch()) {
-                if ($prop['PROPERTY_TYPE'] === 'L' && $prop['MULTIPLE'] === 'Y') {
-                    continue;
-                }
-
                 $propertiesSKU[] = $prop;
             }
         }
@@ -631,13 +627,9 @@ class SettingsService
     {
         $propertiesProduct = null;
 
-        $iblockResult = CIBlock::GetProperties($iblockId, []);
+        $iblockResult = CIBlock::GetProperties($iblockId, [], ['MULTIPLE' => 'N']);
 
         while ($prop = $iblockResult->Fetch()) {
-            if ($prop['PROPERTY_TYPE'] === 'L' && $prop['MULTIPLE'] === 'Y') {
-                continue;
-            }
-
             $propertiesProduct[] = $prop;
         }
 
