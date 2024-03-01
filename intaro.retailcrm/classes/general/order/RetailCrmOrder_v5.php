@@ -435,11 +435,11 @@ class RetailCrmOrder
 
         $fioCrm = [$order['firstName'] ?? null, $order['lastName'] ?? null, $order['patronymic'] ?? null];
 
-        if ($arUser['NAME'] !== '' && in_array($arUser['NAME'], $fioCrm)) {
+        if (!empty($arUser['NAME']) && in_array($arUser['NAME'], $fioCrm)) {
             $order['firstName'] = $arUser['NAME'];
         }
 
-        if ($arUser['LAST_NAME'] !== '' && in_array($arUser['LAST_NAME'], $fioCrm)) {
+        if (!empty($arUser['LAST_NAME']) && in_array($arUser['LAST_NAME'], $fioCrm)) {
             $order['lastName'] = $arUser['LAST_NAME'];
         }
 
