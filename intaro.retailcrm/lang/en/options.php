@@ -29,7 +29,7 @@ $MESS ['ICRM_OPTIONS_SUBMIT_TITLE'] = 'Save settings';
 $MESS ['ICRM_OPTIONS_SUBMIT_VALUE'] = 'Save';
 $MESS ['ERR_403_LABEL'] = 'The following rights are missing: %s';
 $MESS ['ERR_404'] = 'CRM address may be incorrect.';
-$MESS ['ERR_403'] = '<a target="_blank" href="https://docs.retailcrm.ru/Users/Integration/SiteModules/1CBitrix/CreatingOnlineStore1CBitrix">Insufficient permissions for API key: %s</a>';
+$MESS ['ERR_403'] = '<a target="_blank" href="https://docs.retailcrm.ru/Users/Integration/SiteModules/1CBitrix/CreatingOnlineStore1CBitrix">Insufficient permissions for API key. %s</a>';
 $MESS ['ERR_403_CUSTOM'] = 'Недостаточно прав для API ключа!';
 $MESS ['ERR_JSON'] = 'Invalid data was received from CRM, check data books settings';
 $MESS ['ERR_0'] = 'Server connection timeout error.';

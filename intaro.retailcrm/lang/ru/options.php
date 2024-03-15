@@ -42,7 +42,7 @@ $MESS ['ICRM_OPTIONS_SUBMIT_VALUE'] = 'Сохранить';
 
 $MESS ['ERR_403_LABEL'] = 'Отсутствуют следующие права: %s';
 $MESS ['ERR_404'] = 'Возможно не верно введен адрес CRM.';
-$MESS ['ERR_403'] = '<a target="_blank" href="https://docs.retailcrm.ru/Users/Integration/SiteModules/1CBitrix/CreatingOnlineStore1CBitrix">Недостаточно прав для API ключа: %s</a>';
+$MESS ['ERR_403'] = '<a target="_blank" href="https://docs.retailcrm.ru/Users/Integration/SiteModules/1CBitrix/CreatingOnlineStore1CBitrix">Недостаточно прав для API ключа. %s</a>';
 $MESS ['ERR_403_CUSTOM'] = 'Недостаточно прав для API ключа!';
 $MESS ['ERR_JSON'] = 'Получены некорректные данные из CRM, проверьте данные справочников в настройках';
 $MESS ['ERR_0'] = 'Превышено время ожидания ответа от сервера.';

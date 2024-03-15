@@ -284,41 +284,6 @@ if (isset($arResult['ORDER_PROPS'])) {
                     </select>
                 </td>
             </tr>
-
-
-            <?if (isset($arResult['customFields']) && count($arResult['customFields']) > 0):?>
-                <tr class="heading custom-detail-title">
-                    <td colspan="2" style="background-color: transparent;">
-                        <b>
-                            <?=GetMessage('ORDER_CUSTOM'); ?>
-                        </b>
-                    </td>
-                </tr>
-                <?foreach($arResult['customFields'] as $customFields):?>
-                    <tr class="custom-detail-<?=$customFields['ID'];?>">
-                        <td width="50%" class="" name="">
-                            <?=$customFields['NAME']; ?>
-                        </td>
-                        <td width="50%" class="">
-                            <select name="custom-fields-<?=$customFields['ID'] . '-' . $bitrixOrderType['ID']?>" class="typeselect">
-                                <option value=""></option>              
-                                <?foreach ($arResult['arProp'][$bitrixOrderType['ID']] as $arProp):?>
-                                    <option value="<?=$arProp['CODE']?>"
-                                        <?= (isset($arResult['CUSTOM_FIELDS'][$bitrixOrderType['ID']][$customFields['ID']])
-                                            && $arResult['CUSTOM_FIELDS'][$bitrixOrderType['ID']][$customFields['ID']]
-                                            === $arProp['CODE'])
-                                            ? 'selected'
-                                            : ''
-                                        ?>>
-                                    <?=$arProp['NAME']?>
-                                    </option>
-                                <?php endforeach;?>
-                            </select>
-                        </td>
-                    </tr>
-                    <?php endforeach;?>
-                <?php endif;?>
-    
             <tr class="heading legal-detail-title-<?= $bitrixOrderType['ID']?>" style="display:none">
                 <td colspan="2" style="background-color: transparent;">
                     <b>
