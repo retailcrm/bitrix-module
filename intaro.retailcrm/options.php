@@ -1064,8 +1064,13 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     // Prepare crm lists
     try {
         $credentialsApi = $api->getCredentials()->getResponseBody();
+        $requiredApiScopes = Constants::REQUIRED_API_SCOPES;
 
-        $residualRight = array_diff(Constants::REQUIRED_API_SCOPES, $credentialsApi['scopes']);
+        if (ConfigProvider::getCustomFieldsStatus() === 'Y') {
+            $requiredApiScopes = array_merge($requiredApiScopes, Constants::REQUIRED_API_SCOPES_CUSTOM);
+        }
+
+        $residualRight = array_diff($requiredApiScopes, $credentialsApi['scopes']);
 
         if (count($residualRight) !== 0) {
             throw new InvalidArgumentException(sprintf(GetMessage('ERR_403_LABEL'), implode(', ', $residualRight)));
@@ -2639,7 +2644,13 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                         <?php else: ?>
                             <tr class="">
                                 <td class="option-head" colspan="2">
-                                    <p><b><?php echo GetMessage('ERR_403_CUSTOM'); ?></b></p>
+                                    <div class="adm-info-message-wrap adm-info-message-red">
+                                        <div class="adm-info-message">
+                                            <div class="adm-info-message-title"><a target="_blank" href="https://docs.retailcrm.ru/Users/Integration/SiteModules/1CBitrix/CreatingOnlineStore1CBitrix"><?php echo GetMessage('ERR_403_CUSTOM'); ?></a></div>
+
+                                            <div class="adm-info-message-icon"></div>
+                                        </div>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endif; ?>

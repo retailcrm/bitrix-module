@@ -18,4 +18,4 @@ $MESS ['DATE_TIMEZONE_ERR'] = 'Timezone is not specified in php settings.';
 $MESS ['SALE_VERSION_ERR'] = '\'Online-store\' module version must be higher than 16.';
 $MESS['UF_SUBSCRIBE_USER_EMAIL_TITLE'] = 'Agree to receive promotional newsletters';
 $MESS ['CRM_SITES_ERROR'] = 'Failed to get list of CRM stores, please try another API key or contact RetailCRM support.';
-$MESS ['ERR_403'] = '<a target="_blank" href="https://docs.retailcrm.ru/Users/Integration/SiteModules/1CBitrix/CreatingOnlineStore1CBitrix">Insufficient permissions for API key. The following rights are missing: %s</a>';
+$MESS ['ERR_403'] = '<a target="_blank" href="https://docs.retailcrm.ru/Users/Integration/SiteModules/1CBitrix/CreatingOnlineStore1CBitrix">Insufficient permissions for API key. The module must be added for it to work correctly: %s</a>';

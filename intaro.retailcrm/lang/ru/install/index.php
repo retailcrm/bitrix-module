@@ -56,4 +56,4 @@ $MESS ['UF_LP_ID_INTARO_TITLE'] = 'Номер аккаунта в програм
 $MESS['IBLOCK_NOT_SELECTED'] = 'Не выбрано ни одного инфоблока для экспорта';
 $MESS['TARGET_DIR_DOESNT_EXIST'] = 'Целевая директория не существует';
 $MESS['UF_SUBSCRIBE_USER_EMAIL_TITLE'] = 'Согласен на рекламно-информационные рассылки';
-$MESS ['ERR_403'] = '<a target="_blank" href="https://docs.retailcrm.ru/Users/Integration/SiteModules/1CBitrix/CreatingOnlineStore1CBitrix">Недостаточно прав для API ключа. Отсутствуют следующие права: %s</a>';
+$MESS ['ERR_403'] = '<a target="_blank" href="https://docs.retailcrm.ru/Users/Integration/SiteModules/1CBitrix/CreatingOnlineStore1CBitrix">Недостаточно прав для API ключа. Для корректной работы модуля необходимо добавить: %s</a>';

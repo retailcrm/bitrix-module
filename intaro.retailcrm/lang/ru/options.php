@@ -40,7 +40,7 @@ $MESS ['CRM_STORE'] = 'CRM магазин:  ';
 $MESS ['ICRM_OPTIONS_SUBMIT_TITLE'] = 'Сохранить настройки';
 $MESS ['ICRM_OPTIONS_SUBMIT_VALUE'] = 'Сохранить';
 
-$MESS ['ERR_403_LABEL'] = 'Отсутствуют следующие права: %s';
+$MESS ['ERR_403_LABEL'] = 'Для корректной работы модуля необходимо добавить: %s';
 $MESS ['ERR_404'] = 'Возможно не верно введен адрес CRM.';
 $MESS ['ERR_403'] = '<a target="_blank" href="https://docs.retailcrm.ru/Users/Integration/SiteModules/1CBitrix/CreatingOnlineStore1CBitrix">Недостаточно прав для API ключа. %s</a>';
 $MESS ['ERR_403_CUSTOM'] = 'Недостаточно прав для API ключа!';
