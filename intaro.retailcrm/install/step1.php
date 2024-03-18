@@ -1,8 +1,15 @@
 <?php 
     IncludeModuleLangFile(__FILE__);
 
-    if(isset($arResult['errCode']) && $arResult['errCode']) 
-        echo CAdminMessage::ShowMessage(GetMessage($arResult['errCode']));
+    if (isset($arResult['errCode']) && $arResult['errCode']) {
+       $message = GetMessage($arResult['errCode']);
+
+       if ($message) {
+           echo CAdminMessage::ShowMessage($message);
+       } else {
+           echo CAdminMessage::ShowMessage(['MESSAGE' => $arResult['errCode'], 'HTML' => true]);
+       }
+    }
 
 $MODULE_ID = 'intaro.retailcrm';
 $CRM_API_HOST_OPTION = 'api_host';

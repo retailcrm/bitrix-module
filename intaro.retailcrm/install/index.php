@@ -61,7 +61,6 @@ class intaro_retailcrm extends CModule
     public $CRM_ORDER_LAST_ID = 'order_last_id';
     public $CRM_ORDER_PROPS = 'order_props';
     public $CRM_LEGAL_DETAILS = 'legal_details';
-    public $CRM_CUSTOM_FIELDS = 'custom_fields';
     public $CRM_CONTRAGENT_TYPE = 'contragent_type';
     public $CRM_ORDER_DISCHARGE = 'order_discharge';
     public $CRM_ORDER_FAILED_IDS = 'order_failed_ids';
@@ -217,9 +216,7 @@ class intaro_retailcrm extends CModule
                 $type['NAME'] = $APPLICATION->ConvertCharset((string)$field, 'utf-8', SITE_CHARSET);
                 $type['ID'] = (string)$field['id'];
 
-                if ($field['group'] == 'custom') {
-                    $arResult['customFields'][] = $type;
-                } elseif (!$field['group']) {
+               if (!$field['group']) {
                     $arResult['orderProps'][] = $type;
                 } else {
                     $groups = explode(',', (string) $field['group']);
@@ -485,6 +482,14 @@ class intaro_retailcrm extends CModule
             }
 
             try {
+                $credentials = $this->RETAIL_CRM_API->getCredentials()->getResponseBody();
+                $residualRight = array_diff(Constants::REQUIRED_API_SCOPES, $credentials['scopes']);
+
+                if (count($residualRight) !== 0) {
+                    throw new \InvalidArgumentException(sprintf(GetMessage('ERR_403'), implode(', ', $residualRight)));
+                }
+
+
                 $arResult['orderTypesList'] = $this->RETAIL_CRM_API->orderTypesList()->orderTypes;
                 $arResult['deliveryTypesList'] = $this->RETAIL_CRM_API->deliveryTypesList()->deliveryTypes;
                 $arResult['deliveryServicesList'] = $this->RETAIL_CRM_API->deliveryServicesList()->deliveryServices;
@@ -498,7 +503,8 @@ class intaro_retailcrm extends CModule
                     $e->getCode() . ': ' . $e->getMessage()
                 );
             } catch (\InvalidArgumentException $e) {
-                $arResult['errCode'] = 'ERR_METHOD_NOT_FOUND';
+                $arResult['errCode'] = $e->getMessage();
+
                 $APPLICATION->IncludeAdminFile(
                     GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step1.php'
                 );
@@ -764,9 +770,6 @@ class intaro_retailcrm extends CModule
             if ($orderProps = COption::GetOptionString($this->OLD_MODULE_ID, $this->CRM_ORDER_PROPS, 0)) {
                 $arResult['ORDER_PROPS'] = unserialize($orderProps);
             }
-            if ($customFields = COption::GetOptionString($this->OLD_MODULE_ID, $this->CRM_CUSTOM_FIELDS, 0)) {
-                $arResult['CUSTOM_FIELDS'] = unserialize($customFields);
-            }
             if ($legalDetails = COption::GetOptionString($this->OLD_MODULE_ID, $this->CRM_LEGAL_DETAILS, 0)) {
                 $arResult['LEGAL_DETAILS'] = unserialize($legalDetails);
             }
@@ -864,15 +867,6 @@ class intaro_retailcrm extends CModule
                 $legalDetailsArr[$orderType['ID']] = $_legalDetailsArr;
             }
 
-            $customFieldsArr = [];
-            foreach ($orderTypesList as $orderType) {
-                $_customFieldsArr = [];
-                foreach ($arResult['customFields'] as $custom) {
-                    $_customFieldsArr[$custom['ID']] = htmlspecialchars(trim($_POST['custom-fields-' . $custom['ID'] . '-' . $orderType['ID']]));
-                }
-                $customFieldsArr[$orderType['ID']] = $_customFieldsArr;
-            }
-
             //contragents type list
             $contragentTypeArr = [];
             foreach ($orderTypesList as $orderType) {
@@ -881,7 +875,6 @@ class intaro_retailcrm extends CModule
 
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ADDRESS_OPTIONS, serialize($addressDetailOptions));
             COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_PROPS, serialize(RCrmActions::clearArr($orderPropsArr)));
-            COption::SetOptionString($this->MODULE_ID, $this->CRM_CUSTOM_FIELDS, serialize(RCrmActions::clearArr($customFieldsArr)));
             COption::SetOptionString($this->MODULE_ID, $this->CRM_LEGAL_DETAILS, serialize(RCrmActions::clearArr($legalDetailsArr)));
             COption::SetOptionString($this->MODULE_ID, $this->CRM_CONTRAGENT_TYPE, serialize(RCrmActions::clearArr($contragentTypeArr)));
 
@@ -1296,7 +1289,6 @@ class intaro_retailcrm extends CModule
         COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_TYPES_ARR);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_LEGAL_DETAILS);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_CONTRAGENT_TYPE);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_CUSTOM_FIELDS);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_SITES_LIST);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_DISCHARGE);
         COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_FAILED_IDS);
@@ -1508,11 +1500,14 @@ class intaro_retailcrm extends CModule
     {
         global $APPLICATION;
 
-        $client = new Client($api_host . '/api/'.self::V5, ['apiKey' => $api_key]);
+        $client = new Client($api_host . '/api', ['apiKey' => $api_key]);
         $result = [];
 
         try {
-            $siteResponse = $client->makeRequest('/reference/sites', 'GET');
+            $credentials = $client->makeRequest('/credentials', 'GET')->getResponseBody();
+            $residualRight = array_diff(Constants::REQUIRED_API_SCOPES, $credentials['scopes']);
+
+            $siteResponse = $client->makeRequest('/v5/reference/sites', 'GET');
             $bitrixSites = RCrmActions::getSitesList();
             $currencySites = RCrmActions::getCurrencySites();
         } catch (CurlException $e) {
@@ -1527,7 +1522,7 @@ class intaro_retailcrm extends CModule
         }
 
         // Проверка, что был получен корректный ответ
-        if (isset($siteResponse) && $siteResponse->getStatusCode() === 200) {
+        if (isset($siteResponse) && $siteResponse->getStatusCode() === 200 && count($residualRight) === 0) {
             $sites = $siteResponse->sites ?? null;
 
             if ($sites === null) {
@@ -1555,7 +1550,7 @@ class intaro_retailcrm extends CModule
                 $result['sitesList'] = $APPLICATION->ConvertCharsetArray($sites, 'utf-8', SITE_CHARSET);
             }
         } else {
-            $result['errCode'] = 'ERR_METHOD_NOT_FOUND';
+            $result['errCode'] = sprintf(GetMessage('ERR_403'), implode(', ', $residualRight));
         }
 
         return $result;

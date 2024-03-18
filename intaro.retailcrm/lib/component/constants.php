@@ -111,4 +111,20 @@ class Constants
     public const SYNC_INTEGRATION_PAYMENT = 'sync_integration_payment';
     public const CRM_PART_SUBSTITUTED_PAYMENT_CODE = '-not-integration';
     public const CRM_SUBSTITUTION_PAYMENT_LIST = 'substitution_payment';
+    public const REQUIRED_API_SCOPES = [
+        'order_read' => 'order_read',
+        'order_write' => 'order_write',
+        'customer_read' => 'customer_read',
+        'customer_write' => 'customer_write',
+        'store_read' => 'store_read',
+        'store_write' => 'store_write',
+        'reference_read' => 'reference_read',
+        'reference_write' => 'reference_write',
+        'integration_read' => 'integration_read',
+        'integration_write' => 'integration_write',
+    ];
+    public const REQUIRED_API_SCOPES_CUSTOM = [
+        'custom_fields_read' => 'custom_fields_read',
+        'custom_fields_write' => 'custom_fields_write'
+    ];
 }

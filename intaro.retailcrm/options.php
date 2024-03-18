@@ -88,6 +88,7 @@ if (!empty($_GET['ok']) && $_GET['ok'] === 'Y') {
 }
 
 $arResult = [];
+$enabledCustom = false;
 
 if (file_exists($_SERVER["DOCUMENT_ROOT"] . '/bitrix/modules/intaro.retailcrm/classes/general/config/options.xml')) {
     $options = simplexml_load_file($_SERVER["DOCUMENT_ROOT"] . '/bitrix/modules/intaro.retailcrm/classes/general/config/options.xml');
@@ -102,9 +103,7 @@ if (file_exists($_SERVER["DOCUMENT_ROOT"] . '/bitrix/modules/intaro.retailcrm/cl
         $type["NAME"] = $APPLICATION->ConvertCharset((string) $field, 'utf-8', SITE_CHARSET);
         $type["ID"]   = (string) $field["id"];
 
-        if ($field["group"] === 'custom') {
-            $arResult['customFields'][] = $type;
-        } elseif (!$field["group"]) {
+        if (!$field["group"]) {
             $arResult['orderProps'][] = $type;
         } else {
             $groups = explode(",", (string) $field["group"]);
@@ -398,16 +397,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             $_legalDetailsArr[$legalDetails['ID']] = htmlspecialchars(trim($_POST['legal-detail-' . $legalDetails['ID'] . '-' . $orderType['ID']]));
         }
         $legalDetailsArr[$orderType['ID']] = $_legalDetailsArr;
-    }
-
-    $customFieldsArr = [];
-
-    foreach ($orderTypesList as $orderType) {
-        $_customFieldsArr = [];
-        foreach ($arResult['customFields'] as $custom) {
-            $_customFieldsArr[$custom['ID']] = htmlspecialchars(trim($_POST['custom-fields-' . $custom['ID'] . '-' . $orderType['ID']]));
-        }
-        $customFieldsArr[$orderType['ID']] = $_customFieldsArr;
     }
 
     //contragents type list
@@ -820,11 +809,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     );
     COption::SetOptionString(
         $mid,
-        $CRM_CUSTOM_FIELDS,
-        serialize(RCrmActions::clearArr(is_array($customFieldsArr) ? $customFieldsArr : []))
-    );
-    COption::SetOptionString(
-        $mid,
         $CRM_ORDER_NUMBERS,
         htmlspecialchars(trim($_POST['order-numbers'])) ?: 'N'
     );
@@ -1079,6 +1063,19 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
     // Prepare crm lists
     try {
+        $credentialsApi = $api->getCredentials()->getResponseBody();
+        $requiredApiScopes = Constants::REQUIRED_API_SCOPES;
+
+        if (ConfigProvider::getCustomFieldsStatus() === 'Y') {
+            $requiredApiScopes = array_merge($requiredApiScopes, Constants::REQUIRED_API_SCOPES_CUSTOM);
+        }
+
+        $residualRight = array_diff($requiredApiScopes, $credentialsApi['scopes']);
+
+        if (count($residualRight) !== 0) {
+            throw new InvalidArgumentException(sprintf(GetMessage('ERR_403_LABEL'), implode(', ', $residualRight)));
+        }
+
         $arResult['orderTypesList'] = $api->orderTypesList()->orderTypes;
         $arResult['deliveryTypesList'] = $api->deliveryTypesList()->deliveryTypes;
         $arResult['deliveryServicesList'] = $api->deliveryServicesList()->deliveryServices;
@@ -1089,16 +1086,22 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         $arResult['sitesList'] = $APPLICATION->ConvertCharsetArray($api->sitesList()->sites, 'utf-8', SITE_CHARSET);
         $arResult['inventoriesList'] = $APPLICATION->ConvertCharsetArray($api->storesList()->stores, 'utf-8', SITE_CHARSET);
         $arResult['priceTypeList'] = $APPLICATION->ConvertCharsetArray($api->pricesTypes()->priceTypes, 'utf-8', SITE_CHARSET);
-        $arResult['crmCustomOrderFields'] = $APPLICATION->ConvertCharsetArray(
+        $arResult['crmCustomOrderFields'] = [];
+        $arResult['crmCustomUserFields'] = [];
+
+        if (count(array_diff(Constants::REQUIRED_API_SCOPES_CUSTOM, $credentialsApi['scopes'])) === 0) {
+            $arResult['crmCustomOrderFields'] = $APPLICATION->ConvertCharsetArray(
                 $api->customFieldsList(['entity' => 'order', 'type' => ['string','text', 'numeric', 'boolean', 'date']], 250)->customFields,
                 'utf-8',
                 SITE_CHARSET
-        );
-        $arResult['crmCustomUserFields'] = $APPLICATION->ConvertCharsetArray(
+            );
+            $arResult['crmCustomUserFields'] = $APPLICATION->ConvertCharsetArray(
                 $api->customFieldsList(['entity' => 'customer', 'type' => ['string', 'text', 'integer', 'numeric', 'boolean', 'date']], 250)->customFields,
                 'utf-8',
                 SITE_CHARSET
-        );
+            );
+            $enabledCustom = true;
+        }
 
         $orderMethods = [];
         $getOrderMethods = $api->orderMethodsList();
@@ -1123,7 +1126,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         echo CAdminMessage::ShowMessage(GetMessage('ERR_' . $e->getCode()));
     } catch (InvalidArgumentException $e) {
         $badKey = true;
-        echo CAdminMessage::ShowMessage(GetMessage('ERR_403'));
+        echo CAdminMessage::ShowMessage(['MESSAGE' => sprintf(GetMessage('ERR_403'), $e->getMessage()), 'HTML' => true]);
     } catch (\RetailCrm\Exception\InvalidJsonException $e) {
         $badJson = true;
         echo CAdminMessage::ShowMessage(GetMessage('ERR_JSON'));
@@ -2201,34 +2204,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 </td>
             </tr>
             <?php $countProps++; endforeach; ?>
-            <? if (isset($arResult['customFields']) && count($arResult['customFields']) > 0): ?>
-            <tr class="heading custom-detail-title">
-                <td colspan="2" style="background-color: transparent;">
-                    <b>
-                        <?=GetMessage("ORDER_CUSTOM");?>
-                    </b>
-                </td>
-            </tr>
-            <? foreach ($arResult['customFields'] as $customFields): ?>
-            <tr class="custom-detail-<?=$customFields['ID'];?>">
-                <td width="50%" class="" name="">
-                    <?=$customFields['NAME'];?>
-                </td>
-                <td width="50%" class="">
-                    <select name="custom-fields-<?=$customFields['ID'] . '-' . $bitrixOrderType['ID'];?>" class="typeselect">
-                        <option value=""></option>
-                        <? foreach ($arResult['arProp'][$bitrixOrderType['ID']] as $arProp): ?>
-                            <option value="<?=$arProp['CODE']?>" <?php if ($optionsCustomFields[$bitrixOrderType['ID']][$customFields['ID']] === $arProp['CODE']) {
-                                echo 'selected';
-                            } ?>>
-                                <?=$arProp['NAME'];?>
-                            </option>
-                        <? endforeach; ?>
-                    </select>
-                </td>
-            </tr>
-        <? endforeach; ?>
-        <? endif; ?>
             <tr id="<?php echo 'locationElement-' . $bitrixOrderType['ID']; ?>" hidden="hidden">
                 <td class="adm-detail-content-cell-l" width="50%" name="text"><?php echo GetMessage('LOCATION_LABEL'); ?></td>
                 <td class="adm-detail-content-cell-r" width="50%">
@@ -2519,152 +2494,166 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                     <div id="custom_fields_settings" <?php if ($customFieldsToggle !== 'Y') {
                         echo "hidden";
                     } ?>>
-                        <br>
+                        <?php if ($enabledCustom): ?>
+                            <br>
 
-                        <table class="adm-list-table">
-                            <thead>
+                            <table class="adm-list-table">
+                                <thead>
+                                    <tr class="adm-list-table-header">
+                                        <th class="adm-list-table-cell option-head option-other-top option-other-bottom" colspan="4">
+                                            <?php echo GetMessage('CUSTOM_FIELDS_ORDER_LABEL');?>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tfoot>
+                                    <tr>
+                                        <th class="option-head option-other-top option-other-bottom" colspan="4">
+                                            <button class="adm-btn-save" type="button" onclick="createMatched(`Order`)"><?php echo GetMessage('ADD_LABEL'); ?></button>
+                                        </th>
+                                    </tr>
+                                </tfoot>
+                                <tbody id="Order_matched">
+                                    <?php
+                                        $matchedPropsNum = 1;
+                                        foreach ($arResult['matchedOrderProps'] as $bitrixProp => $crmField) {?>
+                                            <tr class="adm-list-table-row matched-Order" id="matchedOrderFields_<?php echo $matchedPropsNum ?>">
+                                                <td class="adm-list-table-cell adm-detail-content-cell-l" colspan="2" width="50%">
+                                                    <select
+                                                        style="width: 200px;" class="typeselect"
+                                                        name="bitrixOrderFields_<?php echo $bitrixProp ?>"
+                                                        onchange="changeSelectBitrixValue(this, 'bitrixOrderFields_', 'crmOrderFields_');"
+                                                    >
+                                                        <option value=""></option>
+
+                                                        <?php foreach ($arResult['bitrixOrdersCustomProp'] as $type => $mass) {?>
+                                                            <optgroup label="<?php echo GetMessage($type); ?>">
+                                                                <?php foreach ($mass as $code => $prop) {?>
+                                                                    <option
+                                                                            value="<?php echo $code ?>"
+                                                                        <?php if ($bitrixProp === $code) echo 'selected'; ?>
+                                                                    >
+                                                                        <?php echo $prop ?>
+                                                                    </option>
+                                                                <?php } ?>
+                                                            </optgroup>
+                                                        <?php } ?>
+                                                    </select>
+                                                </td>
+                                                <td class="adm-list-table-cell adm-detail-content-cell-r" colspan="2" width="50%">
+                                                    &nbsp;&nbsp;&nbsp;&nbsp;
+                                                    <select
+                                                            style="width: 200px;" class="typeselect"
+                                                            name="crmOrderFields_<?php echo $bitrixProp ?>"
+                                                            id="crmOrder_<?php echo $crmField?>"
+                                                            onchange="changeSelectCrmValue(this, 'crmOrder_')"
+                                                    >
+                                                        <option value=""></option>
+                                                        <?php foreach ($arResult['crmCustomOrderFields'] as $type => $mass) {?>
+                                                            <optgroup label="<?php echo GetMessage($type); ?>">
+                                                                <?php foreach ($mass as $crmProp) {?>
+                                                                    <option
+                                                                            value="<?php echo $crmProp['code'] ?>"
+                                                                        <?php if ($crmField === $crmProp['code']) echo 'selected'; ?>
+                                                                    >
+                                                                        <?php echo $crmProp['name'] ?>
+                                                                    </option>
+                                                                <?php } ?>
+                                                            </optgroup>
+                                                        <?php } ?>
+                                                    </select>
+                                                    &nbsp;
+                                                    <a onclick="deleteMatched(this)" style="cursor: pointer"><?php echo GetMessage('DELETE_MATCHED'); ?></a>
+                                                </td>
+                                            </tr>
+                                    <?php $matchedPropsNum++; }?>
+                                </tbody>
+                            </table>
+
+                            <br>
+
+                            <table class="adm-list-table">
+                                <thead>
                                 <tr class="adm-list-table-header">
                                     <th class="adm-list-table-cell option-head option-other-top option-other-bottom" colspan="4">
-                                        <?php echo GetMessage('CUSTOM_FIELDS_ORDER_LABEL');?>
+                                        <?php echo GetMessage('CUSTOM_FIELDS_USER_LABEL');?>
                                     </th>
                                 </tr>
-                            </thead>
-                            <tfoot>
+                                </thead>
+                                <tfoot>
                                 <tr>
                                     <th class="option-head option-other-top option-other-bottom" colspan="4">
-                                        <button class="adm-btn-save" type="button" onclick="createMatched(`Order`)"><?php echo GetMessage('ADD_LABEL'); ?></button>
+                                        <button class="adm-btn-save" type="button" onclick="createMatched(`User`)"><?php echo GetMessage('ADD_LABEL'); ?></button>
                                     </th>
                                 </tr>
-                            </tfoot>
-                            <tbody id="Order_matched">
+                                </tfoot>
+                                <tbody id="User_matched">
                                 <?php
-                                    $matchedPropsNum = 1;
-                                    foreach ($arResult['matchedOrderProps'] as $bitrixProp => $crmField) {?>
-                                        <tr class="adm-list-table-row matched-Order" id="matchedOrderFields_<?php echo $matchedPropsNum ?>">
-                                            <td class="adm-list-table-cell adm-detail-content-cell-l" colspan="2" width="50%">
-                                                <select
+                                $matchedFieldsNum = 1;
+                                foreach ($arResult['matchedUserFields'] as $bitrixProp => $crmField) {?>
+                                    <tr class="adm-list-table-row matched-User" id="matchedUserFields_<?php echo $matchedFieldsNum ?>">
+                                        <td class="adm-list-table-cell adm-detail-content-cell-l" colspan="2" width="50%">
+                                            <select
                                                     style="width: 200px;" class="typeselect"
-                                                    name="bitrixOrderFields_<?php echo $bitrixProp ?>"
-                                                    onchange="changeSelectBitrixValue(this, 'bitrixOrderFields_', 'crmOrderFields_');"
-                                                >
-                                                    <option value=""></option>
+                                                    name="bitrixUserFields_<?php echo $bitrixProp ?>"
+                                                    onchange="changeSelectBitrixValue(this, 'bitrixUserFields_', 'crmUserFields_');"
+                                            >
+                                                <option value=""></option>
+                                                <?php foreach ($arResult['bitrixCustomUserFields'] as $type => $mass) {?>
+                                                    <optgroup label="<?php echo GetMessage($type); ?>">
+                                                        <?php foreach ($mass as $code => $prop) {?>
+                                                            <option
+                                                                    value="<?php echo $code ?>"
+                                                                <?php if ($bitrixProp === $code) echo 'selected'; ?>
+                                                            >
+                                                                <?php echo $prop ?>
+                                                            </option>
+                                                        <?php } ?>
+                                                    </optgroup>
+                                                <?php } ?>
+                                            </select>
+                                        </td>
+                                        <td class="adm-list-table-cell adm-detail-content-cell-r" colspan="2" width="50%">
+                                            &nbsp;&nbsp;&nbsp;&nbsp;
+                                            <select
+                                                    style="width: 200px;" class="typeselect"
+                                                    name="crmUserFields_<?php echo $bitrixProp ?>"
+                                                    id="crmClient_<?php echo $crmField?>"
+                                                    onchange="changeSelectCrmValue(this, 'crmClient_')"
+                                            >
+                                                <option value=""></option>
+                                                <?php foreach ($arResult['crmCustomUserFields'] as $type => $mass) {?>
+                                                    <optgroup label="<?php echo GetMessage($type); ?>">
+                                                        <?php foreach ($mass as $crmProp) {?>
+                                                            <option
+                                                                    value="<?php echo $crmProp['code'] ?>"
+                                                                <?php if ($crmField === $crmProp['code']) echo 'selected'; ?>
+                                                            >
+                                                                <?php echo $crmProp['name'] ?>
+                                                            </option>
+                                                        <?php } ?>
+                                                    </optgroup>
+                                                <?php } ?>
+                                            </select>
+                                            &nbsp;
+                                            <a onclick="deleteMatched(this)" style="cursor: pointer"><?php echo GetMessage('DELETE_MATCHED'); ?></a>
+                                        </td>
+                                    </tr>
+                                    <?php $matchedFieldsNum++; }?>
+                                </tbody>
+                            </table>
+                        <?php else: ?>
+                            <tr class="">
+                                <td class="option-head" colspan="2">
+                                    <div class="adm-info-message-wrap adm-info-message-red">
+                                        <div class="adm-info-message">
+                                            <div class="adm-info-message-title"><a target="_blank" href="https://docs.retailcrm.ru/Users/Integration/SiteModules/1CBitrix/CreatingOnlineStore1CBitrix"><?php echo GetMessage('ERR_403_CUSTOM'); ?></a></div>
 
-                                                    <?php foreach ($arResult['bitrixOrdersCustomProp'] as $type => $mass) {?>
-                                                        <optgroup label="<?php echo GetMessage($type); ?>">
-                                                            <?php foreach ($mass as $code => $prop) {?>
-                                                                <option
-                                                                        value="<?php echo $code ?>"
-                                                                    <?php if ($bitrixProp === $code) echo 'selected'; ?>
-                                                                >
-                                                                    <?php echo $prop ?>
-                                                                </option>
-                                                            <?php } ?>
-                                                        </optgroup>
-                                                    <?php } ?>
-                                                </select>
-                                            </td>
-                                            <td class="adm-list-table-cell adm-detail-content-cell-r" colspan="2" width="50%">
-                                                &nbsp;&nbsp;&nbsp;&nbsp;
-                                                <select
-                                                        style="width: 200px;" class="typeselect"
-                                                        name="crmOrderFields_<?php echo $bitrixProp ?>"
-                                                        id="crmOrder_<?php echo $crmField?>"
-                                                        onchange="changeSelectCrmValue(this, 'crmOrder_')"
-                                                >
-                                                    <option value=""></option>
-                                                    <?php foreach ($arResult['crmCustomOrderFields'] as $type => $mass) {?>
-                                                        <optgroup label="<?php echo GetMessage($type); ?>">
-                                                            <?php foreach ($mass as $crmProp) {?>
-                                                                <option
-                                                                        value="<?php echo $crmProp['code'] ?>"
-                                                                    <?php if ($crmField === $crmProp['code']) echo 'selected'; ?>
-                                                                >
-                                                                    <?php echo $crmProp['name'] ?>
-                                                                </option>
-                                                            <?php } ?>
-                                                        </optgroup>
-                                                    <?php } ?>
-                                                </select>
-                                                &nbsp;
-                                                <a onclick="deleteMatched(this)" style="cursor: pointer"><?php echo GetMessage('DELETE_MATCHED'); ?></a>
-                                            </td>
-                                        </tr>
-                                <?php $matchedPropsNum++; }?>
-                            </tbody>
-                        </table>
-
-                        <br>
-
-                        <table class="adm-list-table">
-                            <thead>
-                            <tr class="adm-list-table-header">
-                                <th class="adm-list-table-cell option-head option-other-top option-other-bottom" colspan="4">
-                                    <?php echo GetMessage('CUSTOM_FIELDS_USER_LABEL');?>
-                                </th>
+                                            <div class="adm-info-message-icon"></div>
+                                        </div>
+                                    </div>
+                                </td>
                             </tr>
-                            </thead>
-                            <tfoot>
-                            <tr>
-                                <th class="option-head option-other-top option-other-bottom" colspan="4">
-                                    <button class="adm-btn-save" type="button" onclick="createMatched(`User`)"><?php echo GetMessage('ADD_LABEL'); ?></button>
-                                </th>
-                            </tr>
-                            </tfoot>
-                            <tbody id="User_matched">
-                            <?php
-                            $matchedFieldsNum = 1;
-                            foreach ($arResult['matchedUserFields'] as $bitrixProp => $crmField) {?>
-                                <tr class="adm-list-table-row matched-User" id="matchedUserFields_<?php echo $matchedFieldsNum ?>">
-                                    <td class="adm-list-table-cell adm-detail-content-cell-l" colspan="2" width="50%">
-                                        <select
-                                                style="width: 200px;" class="typeselect"
-                                                name="bitrixUserFields_<?php echo $bitrixProp ?>"
-                                                onchange="changeSelectBitrixValue(this, 'bitrixUserFields_', 'crmUserFields_');"
-                                        >
-                                            <option value=""></option>
-                                            <?php foreach ($arResult['bitrixCustomUserFields'] as $type => $mass) {?>
-                                                <optgroup label="<?php echo GetMessage($type); ?>">
-                                                    <?php foreach ($mass as $code => $prop) {?>
-                                                        <option
-                                                                value="<?php echo $code ?>"
-                                                            <?php if ($bitrixProp === $code) echo 'selected'; ?>
-                                                        >
-                                                            <?php echo $prop ?>
-                                                        </option>
-                                                    <?php } ?>
-                                                </optgroup>
-                                            <?php } ?>
-                                        </select>
-                                    </td>
-                                    <td class="adm-list-table-cell adm-detail-content-cell-r" colspan="2" width="50%">
-                                        &nbsp;&nbsp;&nbsp;&nbsp;
-                                        <select
-                                                style="width: 200px;" class="typeselect"
-                                                name="crmUserFields_<?php echo $bitrixProp ?>"
-                                                id="crmClient_<?php echo $crmField?>"
-                                                onchange="changeSelectCrmValue(this, 'crmClient_')"
-                                        >
-                                            <option value=""></option>
-                                            <?php foreach ($arResult['crmCustomUserFields'] as $type => $mass) {?>
-                                                <optgroup label="<?php echo GetMessage($type); ?>">
-                                                    <?php foreach ($mass as $crmProp) {?>
-                                                        <option
-                                                                value="<?php echo $crmProp['code'] ?>"
-                                                            <?php if ($crmField === $crmProp['code']) echo 'selected'; ?>
-                                                        >
-                                                            <?php echo $crmProp['name'] ?>
-                                                        </option>
-                                                    <?php } ?>
-                                                </optgroup>
-                                            <?php } ?>
-                                        </select>
-                                        &nbsp;
-                                        <a onclick="deleteMatched(this)" style="cursor: pointer"><?php echo GetMessage('DELETE_MATCHED'); ?></a>
-                                    </td>
-                                </tr>
-                                <?php $matchedFieldsNum++; }?>
-                            </tbody>
-                        </table>
+                        <?php endif; ?>
                     </div>
                 </td>
             </tr>
