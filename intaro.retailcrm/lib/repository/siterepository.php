@@ -34,28 +34,35 @@ class SiteRepository
         $resultBlock = [];
         $resultSites = [];
 
-        $iBlockResult= IblockTable::GetList(['select' => ['ID', 'LID']], $sort, ['ACTIVE' => 'Y']);
+        try {
+            $iBlockResult = IblockTable::GetList(['select' => ['ID', 'LID']], $sort, ['ACTIVE' => 'Y']);
 
-        while ($ar = $iBlockResult->Fetch()) {
-            $resultBlock[] = $ar;
-        }
-
-        $resultBlock = array_column($resultBlock, 'LID', 'ID');
-
-        $rsSites = CSite::GetList($by, $sort, ['ACTIVE' => 'Y']);
-
-        while ($ar = $rsSites->Fetch()) {
-            $resultSites[] = $ar;
-        }
-
-        $resultSites = array_column($resultSites, 'SERVER_NAME', 'LID');
-
-        foreach ($resultBlock as $id => $lid) {
-            if (isset($resultSites[$lid])) {
-                $result[$id] = $resultSites[$lid];
+            while ($ar = $iBlockResult->Fetch()) {
+                $resultBlock[] = $ar;
             }
-        }
 
+            $resultBlock = array_column($resultBlock, 'LID', 'ID');
+
+            $rsSites = CSite::GetList($by, $sort, ['ACTIVE' => 'Y']);
+
+            while ($ar = $rsSites->Fetch()) {
+                $resultSites[] = $ar;
+            }
+
+            $resultSites = array_column($resultSites, 'SERVER_NAME', 'LID');
+
+            foreach ($resultBlock as $id => $lid) {
+                if (isset($resultSites[$lid])) {
+                    $result[$id] = $resultSites[$lid];
+                }
+            }
+        } catch (\Throwable $exception) {
+            RCrmActions::eventLog(
+                'SiteRepository:getDomainList',
+                'domain',
+                'Error when obtaining domains: ' . $exception->getMessage()
+            );
+        }
 
         return $result;
     }
