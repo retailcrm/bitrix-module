@@ -328,6 +328,8 @@ class RetailCrmOrder
             } elseif ($product['BASE_PRICE'] >= $product['PRICE']) {
                 $item['discountManualAmount'] = self::getDiscountManualAmount($product);
                 $item['initialPrice'] = (double) $product['BASE_PRICE'];
+                $order['discountManualAmount'] = 0;
+                $order['discountManualPercent'] = 0;
             } else {
                 $item['discountManualAmount'] = 0;
                 $item['initialPrice'] = $product['PRICE'];
