@@ -53,7 +53,7 @@ class SiteRepository
 
             foreach ($resultBlock as $id => $lid) {
                 if (isset($resultSites[$lid])) {
-                    $result[$id] = $resultSites[$lid];
+                    $result[$id] = RetailcrmConfigProvider::getProtocol() . $resultSites[$lid];
                 }
             }
         } catch (\Throwable $exception) {
