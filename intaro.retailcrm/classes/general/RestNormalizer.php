@@ -102,7 +102,7 @@ class RestNormalizer
                 $formatted[ $code ] = $this->formatting($value, true);
             }
 
-            //стиль кода поправить и комент тут
+           //Удаление пустых переменных, кроме значений равных 0
             if (empty($formatted[$code]) && $formatted[$code] !== 0 && $formatted[$code] !== 0.0) {
                 if ($this->clear === true) {
                     unset($formatted[ $code ]);
