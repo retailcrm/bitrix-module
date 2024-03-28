@@ -14,14 +14,18 @@ class FileRepository
      * @var string
      */
     private $defaultServerName;
+
+    /** @var array */
+    private $domainCatalogList = [];
     
     /**
      * FileRepository constructor.
      * @param string $defaultServerName
      */
-    public function __construct(string $defaultServerName, $idCategory = null, )
+    public function __construct(string $defaultServerName)
     {
         $this->defaultServerName = $defaultServerName;
+        $this->domainCatalogList = SiteRepository::getDomainList();
     }
     
     /**
