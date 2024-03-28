@@ -4,6 +4,7 @@ namespace Intaro\RetailCrm\Repository;
 
 use CSite;
 use RetailcrmConfigProvider;
+use IblockTable;
 
 /**
  * Class SiteRepository
@@ -25,5 +26,25 @@ class SiteRepository
         }
         
         return null;
+    }
+
+    public static function getDomainList(): ?array
+    {
+        $iBlockResult= IblockTable::GetList();
+        $resultBlock = [];
+
+        while ($ar = $iBlockResult->Fetch()) {
+            $resultBlock[] = $ar;
+        }
+
+        $rsSites = CSite::GetList($by, $sort, ['ACTIVE' => 'Y']);
+        $resultSites = [];
+
+        while ($ar = $rsSites = $rsSites->Fetch()) {
+            $resultSites[] = $ar;
+        }
+
+
+        return [];
     }
 }

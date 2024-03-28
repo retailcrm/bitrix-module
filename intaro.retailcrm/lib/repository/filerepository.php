@@ -19,7 +19,7 @@ class FileRepository
      * FileRepository constructor.
      * @param string $defaultServerName
      */
-    public function __construct(string $defaultServerName)
+    public function __construct(string $defaultServerName, $idCategory = null, )
     {
         $this->defaultServerName = $defaultServerName;
     }
