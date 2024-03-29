@@ -37,16 +37,16 @@ class SiteRepository
         try {
             $iBlockResult = IblockTable::GetList(['select' => ['ID', 'LID']], $sort, ['ACTIVE' => 'Y']);
 
-            while ($ar = $iBlockResult->Fetch()) {
-                $resultBlock[] = $ar;
+            while ($iBlock = $iBlockResult->Fetch()) {
+                $resultBlock[] = $iBlock;
             }
 
             $resultBlock = array_column($resultBlock, 'LID', 'ID');
 
             $rsSites = CSite::GetList($by, $sort, ['ACTIVE' => 'Y']);
 
-            while ($ar = $rsSites->Fetch()) {
-                $resultSites[] = $ar;
+            while ($site = $rsSites->Fetch()) {
+                $resultSites[] = $site;
             }
 
             $resultSites = array_column($resultSites, 'SERVER_NAME', 'LID');
