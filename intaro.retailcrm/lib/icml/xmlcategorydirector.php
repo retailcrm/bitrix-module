@@ -91,9 +91,10 @@ class XmlCategoryDirector
             }
             
             try {
+
                 $xmlCategory = $this->xmlCategoryFactory->create(
                     $category,
-                    $this->fileRepository->getImageUrl($category->get('PICTURE'))
+                    $this->fileRepository->getImageUrl($category->get('PICTURE'), $category->get('IBLOCK_ID'))
                 );
                 
                 if (!$xmlCategory) {
@@ -102,7 +103,7 @@ class XmlCategoryDirector
                 
                 $xmlCategories[$categoryKey] = $this->xmlCategoryFactory->create(
                     $category,
-                    $this->fileRepository->getImageUrl($category->get('PICTURE'))
+                    $this->fileRepository->getImageUrl($category->get('PICTURE'), $category->get('IBLOCK_ID'))
                 );
             } catch (ArgumentException | SystemException $exception) {
                 AddMessage2Log($exception->getMessage());
@@ -130,7 +131,7 @@ class XmlCategoryDirector
         try {
             return $this->xmlCategoryFactory->create(
                 $iblock,
-                $this->fileRepository->getImageUrl($iblock->get('PICTURE')),
+                $this->fileRepository->getImageUrl($iblock->get('PICTURE'), $iblockId),
                 $categoryId
             );
         } catch (ArgumentException | SystemException $exception) {

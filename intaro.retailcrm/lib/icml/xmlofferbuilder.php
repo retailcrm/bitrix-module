@@ -42,7 +42,7 @@ class XmlOfferBuilder
     /**
      * @var string|null
      */
-    private $defaultServerName;
+    private $serverName;
 
     /**
      * @var array
@@ -106,16 +106,16 @@ class XmlOfferBuilder
      *
      * @param \Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup $setup
      * @param array                                       $measure
-     * @param string|null                                 $defaultServerName
+     * @param string|null                                 $serverName
      */
-    public function __construct(XmlSetup $setup, array $measure, ?string $defaultServerName)
+    public function __construct(XmlSetup $setup, array $measure, ?string $serverName)
     {
         $this->setup             = $setup;
         $this->purchasePriceNull = RetailcrmConfigProvider::getCrmPurchasePrice();
         $this->settingsService   = SettingsService::getInstance([], '');
         $this->vatRates          = $this->settingsService->vatRates;
         $this->measures          = $this->prepareMeasures($measure);
-        $this->defaultServerName = $defaultServerName;
+        $this->serverName = $serverName;
      }
 
     /**
@@ -198,6 +198,11 @@ class XmlOfferBuilder
         $this->productPicture = $getProductPicture;
     }
 
+    public function setServerName(string $serverName): void
+    {
+        $this->serverName = $serverName;
+    }
+
     /**
      * Добавляет в XmlOffer значения настраиваемых параметров, производителя, вес и габариты
      */
@@ -242,7 +247,7 @@ class XmlOfferBuilder
         $this->xmlOffer->productType = (int) $item['CATALOG_TYPE'];
         $this->xmlOffer->quantity = $item['CATALOG_QUANTITY'] ?? '';
         $this->xmlOffer->url = $item['DETAIL_PAGE_URL']
-            ? $this->defaultServerName . $item['DETAIL_PAGE_URL']
+            ? $this->serverName . $item['DETAIL_PAGE_URL']
             : '';
         $this->xmlOffer->price = $item['CATALOG_PRICE_' . $this->setup->basePriceId];
         $this->xmlOffer->purchasePrice = $this->getPurchasePrice(

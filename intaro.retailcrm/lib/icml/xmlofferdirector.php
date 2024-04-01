@@ -74,6 +74,8 @@ class XmlOfferDirector
         $ciBlockResult = $this->catalogRepository->getProductPage($param, $catalogIblockInfo, $this->setup->loadNonActivity);
         $offers = [];
 
+        $this->xmlOfferBuilder->setServerName($this->fileRepository->getServerName($catalogIblockInfo->productIblockId));
+
         while ($offer = $ciBlockResult->Fetch()) {
             $categories = $this->catalogRepository->getProductCategories($offer['ID']);
             $offer['DETAIL_PAGE_URL'] = $this->replaceUrlTemplate($offer, $categories);
@@ -211,7 +213,7 @@ class XmlOfferDirector
         $this->xmlOfferBuilder->setPicturesPath(
             $this
                 ->fileRepository
-                ->getProductPicture($product, $pictureProperty ?? '')
+                ->getProductPicture($product, $pictureProperty ?? '', $catalogIblockInfo->productIblockId)
         );
     }
 
