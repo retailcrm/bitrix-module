@@ -6,8 +6,8 @@
 class RestNormalizer
 {
     public $clear = true;
-    private $validation = array();
-    private $originalValidation = array();
+    private $validation = [];
+    private $originalValidation = [];
     private $server;
 
     /**
@@ -55,9 +55,11 @@ class RestNormalizer
         $file = $server . $file;
         if (is_null($file) || is_file($file) === false
             || json_decode(file_get_contents($file)) === null
-            || $this->parseConfig($file) === false) {
-                RCrmActions::eventLog('RestNormalizer', 'intaro.retailcrm', 'Incorrect file normalize.');
-                return false;
+            || $this->parseConfig($file) === false
+        ) {
+            RCrmActions::eventLog('RestNormalizer', 'intaro.retailcrm', 'Incorrect file normalize.');
+
+            return false;
         }
 
         if (is_string($data)) {
@@ -72,6 +74,7 @@ class RestNormalizer
 
         if (!is_array($data) || count($data) < 1) {
             RCrmActions::eventLog('RestNormalizer', 'intaro.retailcrm', 'Incorrect data array.');
+
             return false;
         }
 
@@ -88,7 +91,7 @@ class RestNormalizer
      */
     final private function formatting($data, $skip = false)
     {
-        $formatted = array();
+        $formatted = [];
 
         foreach ($data as $code => $value) {
             if (isset($this->validation[ $code ]) && $this->validation[ $code ]['type'] == 'skip') {
@@ -99,13 +102,15 @@ class RestNormalizer
                 $formatted[ $code ] = $this->formatting($value, true);
             }
 
-            if (empty($formatted[$code] && $formatted[$code] !== 0)) {
+           //Удаление пустых переменных, кроме значений равных 0
+            if (empty($formatted[$code]) && $formatted[$code] !== 0 && $formatted[$code] !== 0.0) {
                 if ($this->clear === true) {
                     unset($formatted[ $code ]);
                 }
 
                 if (isset($this->validation[ $code ]['required']) && $this->validation[ $code ]['required'] === true) {
-                    $formatted = array();
+                    $formatted = [];
+
                     break;
                 }
             }
@@ -174,7 +179,8 @@ class RestNormalizer
         $data = trim((string) $data);
 
         if (isset($validation['default']) && is_string($validation['default']) && trim($validation['default']) != ''
-            && ($data == '' || is_string($data) === false)) {
+            && ($data == '' || is_string($data) === false)
+        ) {
             $data = trim($validation['default']);
         } elseif ($data == '' || is_string($data) === false) {
             return null;
@@ -302,7 +308,8 @@ class RestNormalizer
         } elseif (isset($validation['default']) && in_array($validation['default'], $validation['values']) === false) {
             return null;
         } elseif (in_array($data, $validation['values']) === false
-                  && isset($validation['default']) && in_array($validation['default'], $validation['values'])) {
+            && isset($validation['default']) && in_array($validation['default'], $validation['values'])
+        ) {
             $data = $validation['default'];
         } elseif (in_array($data, $validation['values']) === false) {
             return null;
@@ -327,10 +334,13 @@ class RestNormalizer
                 if (is_array($value)) {
                     $value = array_diff($value, array('', NULL));
                 }
+
                 $data[$APPLICATION->ConvertCharset($code, SITE_CHARSET, 'utf-8')] = is_array($value)
-                                                                        ? $this->multiConvert($value)
-                                                                        : $APPLICATION->ConvertCharset($value, SITE_CHARSET, 'utf-8');
+                    ? $this->multiConvert($value)
+                    : $APPLICATION->ConvertCharset($value, SITE_CHARSET, 'utf-8')
+                ;
             }
+
             return $data;
         } else {
             return $APPLICATION->ConvertCharset($data, SITE_CHARSET, 'utf-8');
