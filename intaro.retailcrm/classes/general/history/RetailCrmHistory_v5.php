@@ -1245,6 +1245,12 @@ class RetailCrmHistory
                         }
                     }
 
+                    self::orderSave($newOrder);
+
+                    if ($optionsOrderNumbers === 'Y' && isset($order['number'])) {
+                        $newOrder->setField('ACCOUNT_NUMBER', $order['number']);
+                    }
+
                     $orderSumm = 0;
 
                     foreach ($basket as $item) {
@@ -1268,6 +1274,7 @@ class RetailCrmHistory
                         if (!isset($orderCrm)) {
                             $orderCrm = RCrmActions::apiMethod($api, 'orderGet', __METHOD__, $order['id']);
                         }
+
                         if ($orderCrm) {
                             self::paymentsUpdate($newOrder, $orderCrm['order'], $newHistoryPayments);
                         }
@@ -1343,11 +1350,6 @@ class RetailCrmHistory
                     }
 
                     self::orderSave($newOrder);
-
-                    if ($optionsOrderNumbers === 'Y' && isset($order['number'])) {
-                        $newOrder->setField('ACCOUNT_NUMBER', $order['number']);
-                        self::orderSave($newOrder);
-                    }
 
                     //items loyalty info to HL
                     if (!empty($editBasketInfo)) {
@@ -1989,10 +1991,12 @@ class RetailCrmHistory
                 //update data
                 if ($nowPayment instanceof Payment) {
                     $nowPayment->setField('SUM', $paymentCrm['amount']);
+
                     if ($optionsPayTypes[$paymentCrm['type']] != $nowPayment->getField('PAY_SYSTEM_ID')) {
                         $nowPayment->setField('PAY_SYSTEM_ID', $optionsPayTypes[$paymentCrm['type']]);
                         $nowPayment->setField('PAY_SYSTEM_NAME', $arPaySysmems[$optionsPayTypes[$paymentCrm['type']]]);
                     }
+
                     if (isset($optionsPayment[$paymentCrm['status']])) {
                         $nowPayment->setField('PAID', $optionsPayment[$paymentCrm['status']]);
                     }
@@ -2012,6 +2016,7 @@ class RetailCrmHistory
                 $newPayment->setField('EXTERNAL_PAYMENT', 'N');
                 $newPayment->setField('UPDATED_1C', 'N');
                 $newPayment->setField('XML_ID', $paymentCrm['id']);
+                $newPayment->setField('ACCOUNT_NUMBER', $order->getField('ACCOUNT_NUMBER'));
 
                 $newPaymentId = $newPayment->getId();
 
@@ -2024,6 +2029,7 @@ class RetailCrmHistory
                 $paySumm += $paymentCrm['amount'];
             }
         }
+
         foreach ($paymentsList as $payment) {
             if ($payment->isPaid()) {
                 $payment->setPaid("N");
