@@ -1662,15 +1662,15 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         $(document).ready(function() {
             $('input[name^="address-detail-"]').change(updateAddressList);
             $('input:checked[name^="address-detail-"]').each(updateAddressList);
-
+            
             $('tr.contragent-type select').change(function() {
                 splitName      = $(this).attr('name').split('-');
                 contragentType = $(this).val();
                 orderType = splitName[2];
-
+                
                 $('tr.legal-detail-' + orderType).hide();
                 $('.legal-detail-title-' + orderType).hide();
-
+                
                 $('tr.legal-detail-' + orderType).each(function() {
                     if ($(this).hasClass(contragentType)) {
                         $(this).show();
@@ -1685,7 +1685,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 } else if ($(this).find('input').is(':checked') === false) {
                     $('tr.inventories').hide('slow');
                 }
-
+                
                 return true;
             });
 
@@ -1695,7 +1695,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 } else if ($(this).find('input').is(':checked') === false) {
                     $('tr.prices').hide('slow');
                 }
-
+                
                 return true;
             });
 
@@ -1705,7 +1705,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 } else if ($(this).find('input').is(':checked') === false) {
                     $('tr.r-ua').hide('slow');
                 }
-
+                
                 return true;
             });
 
@@ -1715,7 +1715,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 } else if ($(this).find('input').is(':checked') === false) {
                     $('tr.r-dc').hide('slow');
                 }
-
+                
                 return true;
             });
 
@@ -1725,7 +1725,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 } else if ($(this).find('input').is(':checked') === false) {
                     $('tr.r-sync-payment').hide('slow');
                 }
-
+                
                 return true;
             });
 
@@ -1735,7 +1735,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 } else if ($(this).find('input').is(':checked') === false) {
                     $('tr.r-ac').hide('slow');
                 }
-
+                
                 return true;
             })
 
@@ -1745,7 +1745,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 } else if ($(this).find('input').is(':checked') === false) {
                     $('tr.r-cc').hide('slow');
                 }
-
+                
                 return true;
             });
 
@@ -1755,7 +1755,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 } else if ($(this).find('input').is(':checked') === false) {
                     $('tr.r-coll').hide('slow');
                 }
-
+                
                 return true;
             });
 
@@ -1765,7 +1765,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 } else if($(this).find('input').is(':checked') === false){
                     $('tr.r-consultant').hide('slow');
                 }
-
+                
                 return true;
             });
 
@@ -1775,42 +1775,41 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 } else if ($(this).find('input').is(':checked') === false) {
                     $('tr.r-purchaseprice').hide('slow');
                 }
-
+                
                 return true;
             });
 
-        });
-
-        $('input[name="update-delivery-services"]').on('click', function() {
-            BX.showWait();
-            var updButton = this;
-            // hide next step button
-            $(updButton).css('opacity', '0.5').attr('disabled', 'disabled');
-
-            var handlerUrl = $(this).parents('form').attr('action');
-            var data = 'ajax=1';
-
-            $.ajax({
-                type: 'POST',
-                url: handlerUrl,
-                data: data,
-                dataType: 'json',
-                success: function(response) {
-                    BX.closeWait();
-                    $(updButton).css('opacity', '1').removeAttr('disabled');
-
-                    if (!response.success)
-                        alert('<?php echo GetMessage('MESS_1'); ?>');
-                },
-                error: function () {
-                    BX.closeWait();
-                    $(updButton).css('opacity', '1').removeAttr('disabled');
-
-                    alert('<?php echo GetMessage('MESS_2'); ?>');
-                }
+            $('input[name="update-delivery-services"]').on('click', function() {
+                BX.showWait();
+                var updButton = this;
+                // hide next step button
+                $(updButton).css('opacity', '0.5').attr('disabled', 'disabled');
+                
+                var handlerUrl = $(this).parents('form').attr('action');
+                var data = 'ajax=1';
+                
+                $.ajax({
+                    type: 'POST',
+                    url: handlerUrl,
+                    data: data,
+                    dataType: 'json',
+                    success: function(response) {
+                        BX.closeWait();
+                        $(updButton).css('opacity', '1').removeAttr('disabled');
+                        
+                        if (!response.success)
+                            alert('<?php echo GetMessage('MESS_1'); ?>');
+                    },
+                    error: function () {
+                        BX.closeWait();
+                        $(updButton).css('opacity', '1').removeAttr('disabled');
+                        
+                        alert('<?php echo GetMessage('MESS_2'); ?>');
+                    }
+                });
+                
+                return false;
             });
-
-            return false;
         });
     </script>
     <style type="text/css">
