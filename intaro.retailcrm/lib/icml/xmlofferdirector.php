@@ -130,6 +130,7 @@ class XmlOfferDirector
             $offer->categoryIds = $product->categoryIds;
             $offer->productName = $product->productName;
             $offer->url = $this->mergeUrls($product->url, $offer->url);
+            $offer->activityProduct = $product->activity;
         }
 
         return $xmlOffers;

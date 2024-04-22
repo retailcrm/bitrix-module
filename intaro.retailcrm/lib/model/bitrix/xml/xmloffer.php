@@ -137,6 +137,12 @@ class XmlOffer
     public $activity;
 
     /**
+     * Признак активности товара при наличии торговых предложений
+     * @var string | null
+     */
+    public ?string $activityProduct = null;
+
+    /**
      * @param $productValue
      * @param $offerValue
      * @return mixed

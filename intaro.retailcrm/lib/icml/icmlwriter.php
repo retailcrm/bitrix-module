@@ -136,8 +136,10 @@ class IcmlWriter
         $this->writeSimpleAttribute('quantity', $offer->quantity);
         $this->writeSimpleElement('activity', $activity);
 
-        if ($activity === 'N') {
-            $this->writeSimpleElement('productActivity', 'N');
+        if ($offer->activityProduct === null) {
+            $this->writeSimpleElement('productActivity', $activity);
+        } else {
+            $this->writeSimpleElement('productActivity', $offer->activityProduct);
         }
 
         foreach ($offer->categoryIds as $categoryId) {
