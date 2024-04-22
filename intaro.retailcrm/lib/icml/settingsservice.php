@@ -95,7 +95,12 @@ class SettingsService
     /**
      * @var mixed|string|null
      */
-    public $loadNonActivity;
+    public mixed $loadNonActivity;
+
+    /**
+     * @var mixed|string|null
+     */
+    public mixed $loadServiceNonAvailable;
 
     /** @var array */
     public $actrualPropList = [];
@@ -104,12 +109,6 @@ class SettingsService
      * @var \Intaro\RetailCrm\Icml\SettingsService|null
      */
     private static $instance = null;
-
-    /**
-     * @var mixed|string|null
-     */
-    private mixed $loadServiceNonAvailable;
-
 
     /**
      * SettingsService constructor.

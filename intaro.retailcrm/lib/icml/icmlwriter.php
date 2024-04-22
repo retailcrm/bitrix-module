@@ -123,7 +123,7 @@ class IcmlWriter
     {
         $productType = $offer->productType === ProductTable::TYPE_SERVICE ? 'service' : 'product';
 
-        if ($productType === 'service' && $offer->quantity === 0 && !$this->loadServiceNonAvailable) {
+        if ($productType === 'service' && $offer->quantity === "0" && !$this->loadServiceNonAvailable) {
             return;
         }
 

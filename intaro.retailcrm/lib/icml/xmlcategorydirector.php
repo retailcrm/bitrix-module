@@ -40,10 +40,10 @@ class XmlCategoryDirector
      */
     private $fileRepository;
     
-    public function __construct(array $iblocksForExport)
+    public function __construct(array $iblocksForExport, bool $isLoadNotActive)
     {
         $this->iblocksForExport   = $iblocksForExport;
-        $this->catalogRepository  = new CatalogRepository();
+        $this->catalogRepository  = new CatalogRepository($isLoadNotActive);
         $this->xmlCategoryFactory = new XmlCategoryFactory();
         $this->fileRepository     = new FileRepository(SiteRepository::getDefaultServerName());
     }

@@ -28,7 +28,7 @@ class XmlOffer
     public $productId;
 
     /**
-     * @var int
+     * @var string
      */
     public $quantity;
 

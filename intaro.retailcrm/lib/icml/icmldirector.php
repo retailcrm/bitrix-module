@@ -81,7 +81,7 @@ class IcmlDirector
         $this->catalogRepository = new CatalogRepository($this->setup->loadNonActivity);
         $this->icmlWriter = new IcmlWriter($this->setup->filePath, $this->setup->loadServiceNonAvailable);
         $this->xmlOfferDirector = new XmlOfferDirector($this->setup);
-        $this->xmlCategoryDirector = new XmlCategoryDirector($this->setup->iblocksForExport);
+        $this->xmlCategoryDirector = new XmlCategoryDirector($this->setup->iblocksForExport, $this->setup->loadNonActivity);
         $this->queryBuilder = new QueryParamsMolder();
         $this->xmlData = new XmlData();
         $this->logger = $logger;
