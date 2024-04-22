@@ -1779,38 +1779,37 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 return true;
             });
 
-        });
+            $('input[name="update-delivery-services"]').on('click', function() {
+                BX.showWait();
+                var updButton = this;
+                // hide next step button
+                $(updButton).css('opacity', '0.5').attr('disabled', 'disabled');
 
-        $('input[name="update-delivery-services"]').on('click', function() {
-            BX.showWait();
-            var updButton = this;
-            // hide next step button
-            $(updButton).css('opacity', '0.5').attr('disabled', 'disabled');
+                var handlerUrl = $(this).parents('form').attr('action');
+                var data = 'ajax=1';
 
-            var handlerUrl = $(this).parents('form').attr('action');
-            var data = 'ajax=1';
+                $.ajax({
+                    type: 'POST',
+                    url: handlerUrl,
+                    data: data,
+                    dataType: 'json',
+                    success: function(response) {
+                        BX.closeWait();
+                        $(updButton).css('opacity', '1').removeAttr('disabled');
 
-            $.ajax({
-                type: 'POST',
-                url: handlerUrl,
-                data: data,
-                dataType: 'json',
-                success: function(response) {
-                    BX.closeWait();
-                    $(updButton).css('opacity', '1').removeAttr('disabled');
+                        if (!response.success)
+                            alert('<?php echo GetMessage('MESS_1'); ?>');
+                    },
+                    error: function () {
+                        BX.closeWait();
+                        $(updButton).css('opacity', '1').removeAttr('disabled');
 
-                    if (!response.success)
-                        alert('<?php echo GetMessage('MESS_1'); ?>');
-                },
-                error: function () {
-                    BX.closeWait();
-                    $(updButton).css('opacity', '1').removeAttr('disabled');
+                        alert('<?php echo GetMessage('MESS_2'); ?>');
+                    }
+                });
 
-                    alert('<?php echo GetMessage('MESS_2'); ?>');
-                }
+                return false;
             });
-
-            return false;
         });
     </script>
     <style type="text/css">
