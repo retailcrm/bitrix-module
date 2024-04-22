@@ -53,7 +53,7 @@ class XmlOfferDirector
     {
         $this->setup = $setup;
         $this->fileRepository = new FileRepository(SiteRepository::getDefaultServerName());
-        $this->catalogRepository = new CatalogRepository();
+        $this->catalogRepository = new CatalogRepository($this->setup->loadNonActivity);
         $this->xmlOfferBuilder = new XmlOfferBuilder(
             $setup,
             MeasureRepository::getMeasures(),
@@ -71,7 +71,7 @@ class XmlOfferDirector
      */
     public function getXmlOffersPart(SelectParams $param, CatalogIblockInfo $catalogIblockInfo): array
     {
-        $ciBlockResult = $this->catalogRepository->getProductPage($param, $catalogIblockInfo, $this->setup->loadNonActivity);
+        $ciBlockResult = $this->catalogRepository->getProductPage($param, $catalogIblockInfo);
         $offers = [];
 
         $this->xmlOfferBuilder->setServerName($this->fileRepository->getServerName($catalogIblockInfo->productIblockId));

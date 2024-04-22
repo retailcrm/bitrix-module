@@ -8,6 +8,7 @@ $MESS["EXPORT2INTAROCML"] = "Выгрузить в ICML";
 $MESS["FILENAME"] = "Укажите имя файла данных:";
 $MESS["LOAD_PURCHASE_PRICE"] = "Выгружать закупочную цену";
 $MESS["LOAD_NON_ACTIVITY"] = "Выгружать неактивные товары и торговые предложения";
+$MESS['LOAD_SERVICES_NOT_AVAILABLE'] = "Выгружать услуги без доступности";
 $MESS["PROPERTY"] = "Свойство, содержащее артикул товара";
 $MESS["ALL_CATALOG"] = "Все каталоги";
 $MESS["EXPORT"] = "Экспортировать";

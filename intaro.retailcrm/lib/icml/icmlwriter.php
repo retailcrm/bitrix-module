@@ -7,6 +7,7 @@ use Intaro\RetailCrm\Model\Bitrix\Xml\XmlCategory;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlData;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlOffer;
 use XMLWriter;
+use Bitrix\Catalog\ProductTable;
 
 /**
  * Отвечает за запись данных каталога в файл
@@ -23,19 +24,25 @@ class IcmlWriter
      * @var \XMLWriter
      */
     private $writer;
+
     /**
      * @var string
      */
     private $filePath;
+
+    /** @var bool */
+    private $loadServiceNonAvailable;
 
     /**
      * IcmlWriter constructor.
      *
      * @param string $filePath
      */
-    public function __construct(string $filePath)
+    public function __construct(string $filePath, bool $loadServiceNonAvailable)
     {
         $this->filePath = $filePath;
+        $this->loadServiceNonAvailable = $loadServiceNonAvailable;
+
         $this->writer = new XMLWriter();
         $this->writer->openMemory();
         $this->writer->setIndent(false);
@@ -99,10 +106,10 @@ class IcmlWriter
      * @param XmlOffer[] $offers
      * @param bool $isNotActiveProduct
      */
-    public function writeOffers(array $offers, $isNotActiveProduct = false): void
+    public function writeOffers(array $offers): void
     {
         foreach ($offers as $offer) {
-            $this->writeOffer($offer, $isNotActiveProduct);
+            $this->writeOffer($offer);
         }
 
         file_put_contents($this->filePath, $this->writer->flush(true), FILE_APPEND);
@@ -112,17 +119,25 @@ class IcmlWriter
      * @param \Intaro\RetailCrm\Model\Bitrix\Xml\XmlOffer $offer
      * @param bool $isNotActiveProduct
      */
-    private function writeOffer(XmlOffer $offer, $isNotActiveProduct): void
+    private function writeOffer(XmlOffer $offer): void
     {
+        $productType = $offer->productType === ProductTable::TYPE_SERVICE ? 'service' : 'product';
+
+        if ($productType === 'service' && $offer->quantity === 0 && !$this->loadServiceNonAvailable) {
+            return;
+        }
+
+        $activity = $offer->activity;
+
         $this->writer->startElement('offer');
         $this->writeSimpleAttribute('id', $offer->id);
+        $this->writeSimpleAttribute('type', $productType);
         $this->writeSimpleAttribute('productId', $offer->productId);
         $this->writeSimpleAttribute('quantity', $offer->quantity);
+        $this->writeSimpleElement('activity', $activity);
 
-        if ($isNotActiveProduct) {
+        if ($activity === 'N') {
             $this->writeSimpleElement('productActivity', 'N');
-        } else {
-            $this->writeSimpleElement('activity', $offer->activity);
         }
 
         foreach ($offer->categoryIds as $categoryId) {

@@ -105,6 +105,11 @@ class SettingsService
      */
     private static $instance = null;
 
+    /**
+     * @var mixed|string|null
+     */
+    private mixed $loadServiceNonAvailable;
+
 
     /**
      * SettingsService constructor.
@@ -119,6 +124,7 @@ class SettingsService
         $this->iblockExport = $this->getSingleSetting('iblockExport');
         $this->loadPurchasePrice = $this->getSingleSetting('loadPurchasePrice');
         $this->loadNonActivity = $this->getSingleSetting('loadNonActivity');
+        $this->loadServiceNonAvailable = $this->getSingleSetting('loadServiceNonAvailable');
         $oldSetup = $this->getSingleSetting('SETUP_FILE_NAME');
         $defaultFilePath = RetailcrmConfigProvider::getDefaultIcmlPath();
         $this->setupFileName = htmlspecialcharsbx($oldSetup ?? $defaultFilePath);
@@ -439,7 +445,7 @@ class SettingsService
      */
     public function getSetupFieldsString(array $iblockProperties, bool $hlblockModule, array $hlBlockList): string
     {
-        $values = 'loadPurchasePrice,SETUP_FILE_NAME,iblockExport,maxOffersValue,loadNonActivity';
+        $values = 'loadPurchasePrice,SETUP_FILE_NAME,iblockExport,maxOffersValue,loadNonActivity,loadServiceNonAvailable';
 
         foreach ($iblockProperties as $val) {
             $values .= ',iblockPropertySku_' . $val
