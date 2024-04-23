@@ -34,15 +34,19 @@ class CatalogRepository
     /**
      * @var bool
      */
-    private $isLoadNotActive;
+    private $isLoadNotActive = false;
 
     /**
      * CatalogRepository constructor.
      */
-    public function __construct(bool $isLoadNotActive)
+    public function __construct()
     {
         $this->builder = new QueryParamsMolder();
-        $this->isLoadNotActive = $isLoadNotActive;
+    }
+
+    public function setLoadNotActive(bool $isLoad)
+    {
+        $this->isLoadNotActive = $isLoad;
     }
 
     /**

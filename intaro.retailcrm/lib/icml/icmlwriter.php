@@ -124,13 +124,6 @@ class IcmlWriter
         $this->writeSimpleAttribute('type', $productType);
         $this->writeSimpleAttribute('productId', $offer->productId);
         $this->writeSimpleAttribute('quantity', $offer->quantity);
-        $this->writeSimpleElement('activity', $activity);
-
-        if ($offer->activityProduct === null) {
-            $this->writeSimpleElement('productActivity', $activity);
-        } else {
-            $this->writeSimpleElement('productActivity', $offer->activityProduct);
-        }
 
         foreach ($offer->categoryIds as $categoryId) {
             $this->writeSimpleElement('categoryId', $categoryId);
@@ -152,6 +145,12 @@ class IcmlWriter
             $this->writeParam($param);
         }
 
+        isset($offer->activityProduct) ?
+            $this->writeSimpleElement('productActivity', $offer->activityProduct) :
+            $this->writeSimpleElement('productActivity', $activity)
+        ;
+
+        $this->writeSimpleElement('activity', $activity);
         $this->writeSimpleElement('url', $offer->url);
         $this->writeSimpleElement('price', $offer->price);
         $this->writeSimpleElement('name', $offer->name);

@@ -43,9 +43,11 @@ class XmlCategoryDirector
     public function __construct(array $iblocksForExport, bool $isLoadNotActive)
     {
         $this->iblocksForExport   = $iblocksForExport;
-        $this->catalogRepository  = new CatalogRepository($isLoadNotActive);
         $this->xmlCategoryFactory = new XmlCategoryFactory();
         $this->fileRepository     = new FileRepository(SiteRepository::getDefaultServerName());
+        $this->catalogRepository  = new CatalogRepository();
+
+        $this->catalogRepository->setLoadNotActive($isLoadNotActive);
     }
     
     /**

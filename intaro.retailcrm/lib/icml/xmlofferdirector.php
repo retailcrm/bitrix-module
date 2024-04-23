@@ -53,12 +53,14 @@ class XmlOfferDirector
     {
         $this->setup = $setup;
         $this->fileRepository = new FileRepository(SiteRepository::getDefaultServerName());
-        $this->catalogRepository = new CatalogRepository($this->setup->loadNonActivity);
         $this->xmlOfferBuilder = new XmlOfferBuilder(
             $setup,
             MeasureRepository::getMeasures(),
             SiteRepository::getDefaultServerName()
         );
+        $this->catalogRepository = new CatalogRepository();
+
+        $this->catalogRepository->setLoadNotActive($this->setup->loadNonActivity);
         $this->barcodes = $this->catalogRepository->getBarcodes();
     }
 
