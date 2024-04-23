@@ -65,7 +65,6 @@ if (($ACTION === 'EXPORT' || $ACTION === 'EXPORT_EDIT' || $ACTION === 'EXPORT_CO
     $loadPurchasePrice = $settingsService->loadPurchasePrice;
     $iblockExport = $settingsService->iblockExport;
     $loadNonActivity = $settingsService->loadNonActivity;
-    $loadServiceNonAvailable = $settingsService->loadServiceNonAvailable;
 
     if ($iblockExport) {
         $maxOffersValue = $settingsService->getSingleSetting('maxOffersValue');
@@ -494,9 +493,6 @@ if ($STEP === 1) {
         <br><br>
         <span class="text"><?=GetMessage('LOAD_NON_ACTIVITY')?>&nbsp;</span>
         <input type="checkbox" name="loadNonActivity" value="Y" <?=$loadNonActivity === 'Y' ? 'checked' : ''?>>
-        <br><br>
-        <span class="text"><?=GetMessage('LOAD_SERVICES_NOT_AVAILABLE')?>&nbsp;</span>
-        <input type="checkbox" name="loadServiceNonAvailable" value="Y" <?=$loadServiceNonAvailable === 'Y' ? 'checked' : ''?>>
         <br><br>
         <?php
         if ($isSetupModulePage) { ?>

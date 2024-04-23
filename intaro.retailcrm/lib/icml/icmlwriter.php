@@ -30,19 +30,14 @@ class IcmlWriter
      */
     private $filePath;
 
-    /** @var bool */
-    private $loadServiceNonAvailable;
-
     /**
      * IcmlWriter constructor.
      *
      * @param string $filePath
      */
-    public function __construct(string $filePath, bool $loadServiceNonAvailable)
+    public function __construct(string $filePath)
     {
         $this->filePath = $filePath;
-        $this->loadServiceNonAvailable = $loadServiceNonAvailable;
-
         $this->writer = new XMLWriter();
         $this->writer->openMemory();
         $this->writer->setIndent(false);
@@ -122,13 +117,7 @@ class IcmlWriter
     private function writeOffer(XmlOffer $offer): void
     {
         $productType = $offer->productType === ProductTable::TYPE_SERVICE ? 'service' : 'product';
-        $isDeactivateService = ($productType === 'service' && $offer->quantity === "0");
-
-        if ($isDeactivateService && !$this->loadServiceNonAvailable) {
-            return;
-        }
-
-        $activity = $isDeactivateService ? 'N' : $offer->activity;
+        $activity = $offer->activity;
 
         $this->writer->startElement('offer');
         $this->writeSimpleAttribute('id', $offer->id);

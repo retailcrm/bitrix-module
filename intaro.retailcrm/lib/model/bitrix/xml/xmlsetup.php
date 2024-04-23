@@ -77,7 +77,4 @@ class XmlSetup
      * @var bool
      */
     public $loadNonActivity;
-
-    /** @var bool */
-    public $loadServiceNonAvailable;
 }

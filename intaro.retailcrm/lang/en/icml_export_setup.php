@@ -46,5 +46,4 @@ $MESS["UNIT_MEASUREMENT_KG"] = "kg";
 $MESS['BASE_PRICE'] = 'Base price';
 $MESS['WAIT'] = 'Loading...';
 $MESS["OFFERS_VALUE"] = "Maximum number of trade offers for a product";
-$MESS["LOAD_NON_ACTIVITY"] = "Unload inactive products and trade offers";
-$MESS['LOAD_SERVICES_NOT_AVAILABLE'] = "Offload services without availability";
+$MESS["LOAD_NON_ACTIVITY"] = "Unload inactive products, services and trade offers";
