@@ -122,12 +122,13 @@ class IcmlWriter
     private function writeOffer(XmlOffer $offer): void
     {
         $productType = $offer->productType === ProductTable::TYPE_SERVICE ? 'service' : 'product';
+        $isDeactivateService = ($productType === 'service' && $offer->quantity === "0");
 
-        if ($productType === 'service' && $offer->quantity === "0" && !$this->loadServiceNonAvailable) {
+        if ($isDeactivateService && !$this->loadServiceNonAvailable) {
             return;
         }
 
-        $activity = $offer->activity;
+        $activity = $isDeactivateService ? 'N' : $offer->activity;
 
         $this->writer->startElement('offer');
         $this->writeSimpleAttribute('id', $offer->id);
