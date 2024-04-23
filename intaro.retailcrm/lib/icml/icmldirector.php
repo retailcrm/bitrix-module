@@ -80,7 +80,7 @@ class IcmlDirector
         $this->shopName = RetailcrmConfigProvider::getSiteName();
         $this->icmlWriter = new IcmlWriter($this->setup->filePath);
         $this->xmlOfferDirector = new XmlOfferDirector($this->setup);
-        $this->xmlCategoryDirector = new XmlCategoryDirector($this->setup->iblocksForExport, $this->setup->loadNonActivity);
+        $this->xmlCategoryDirector = new XmlCategoryDirector($this->setup);
         $this->queryBuilder = new QueryParamsMolder();
         $this->xmlData = new XmlData();
         $this->logger = $logger;

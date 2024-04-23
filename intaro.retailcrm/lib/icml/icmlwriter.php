@@ -117,7 +117,6 @@ class IcmlWriter
     private function writeOffer(XmlOffer $offer): void
     {
         $productType = $offer->productType === ProductTable::TYPE_SERVICE ? 'service' : 'product';
-        $activity = $offer->activity;
 
         $this->writer->startElement('offer');
         $this->writeSimpleAttribute('id', $offer->id);
@@ -145,9 +144,11 @@ class IcmlWriter
             $this->writeParam($param);
         }
 
-        isset($offer->activityProduct) ?
-            $this->writeSimpleElement('productActivity', $offer->activityProduct) :
-            $this->writeSimpleElement('productActivity', $activity)
+        $activity = $offer->activity;
+
+        null === $offer->activityProduct ?
+            $this->writeSimpleElement('productActivity', $activity) :
+            $this->writeSimpleElement('productActivity', $offer->activityProduct)
         ;
 
         $this->writeSimpleElement('activity', $activity);
