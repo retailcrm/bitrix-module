@@ -95,12 +95,12 @@ class SettingsService
     /**
      * @var mixed|string|null
      */
-    public mixed $loadNonActivity;
+    public $loadNonActivity;
 
     /**
      * @var mixed|string|null
      */
-    public mixed $loadServiceNonAvailable;
+    public $loadServiceNonAvailable;
 
     /** @var array */
     public $actrualPropList = [];
