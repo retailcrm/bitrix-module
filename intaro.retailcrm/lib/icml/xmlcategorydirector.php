@@ -8,6 +8,7 @@ use Bitrix\Main\ORM\Objectify\Collection;
 use Bitrix\Main\ORM\Objectify\EntityObject;
 use Bitrix\Main\SystemException;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlCategory;
+use Intaro\RetailCrm\Model\Bitrix\Xml\XmlSetup;
 use Intaro\RetailCrm\Repository\CatalogRepository;
 use Intaro\RetailCrm\Repository\FileRepository;
 use Intaro\RetailCrm\Repository\SiteRepository;
@@ -40,12 +41,14 @@ class XmlCategoryDirector
      */
     private $fileRepository;
     
-    public function __construct(array $iblocksForExport)
+    public function __construct(XmlSetup $setup)
     {
-        $this->iblocksForExport   = $iblocksForExport;
-        $this->catalogRepository  = new CatalogRepository();
+        $this->iblocksForExport   = $setup->iblocksForExport;
         $this->xmlCategoryFactory = new XmlCategoryFactory();
         $this->fileRepository     = new FileRepository(SiteRepository::getDefaultServerName());
+        $this->catalogRepository  = new CatalogRepository();
+
+        $this->catalogRepository->setLoadNotActive($setup->loadNonActivity);
     }
     
     /**

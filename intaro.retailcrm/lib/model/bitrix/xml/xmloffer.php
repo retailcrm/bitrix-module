@@ -28,7 +28,7 @@ class XmlOffer
     public $productId;
 
     /**
-     * @var int
+     * @var string
      */
     public $quantity;
 
@@ -135,6 +135,12 @@ class XmlOffer
      * @var string
      */
     public $activity;
+
+    /**
+     * Признак активности товара при наличии торговых предложений
+     * @var string | null
+     */
+    public ?string $activityProduct = null;
 
     /**
      * @param $productValue

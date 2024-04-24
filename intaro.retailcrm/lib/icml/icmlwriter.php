@@ -7,6 +7,7 @@ use Intaro\RetailCrm\Model\Bitrix\Xml\XmlCategory;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlData;
 use Intaro\RetailCrm\Model\Bitrix\Xml\XmlOffer;
 use XMLWriter;
+use Bitrix\Catalog\ProductTable;
 
 /**
  * Отвечает за запись данных каталога в файл
@@ -23,6 +24,7 @@ class IcmlWriter
      * @var \XMLWriter
      */
     private $writer;
+
     /**
      * @var string
      */
@@ -99,10 +101,10 @@ class IcmlWriter
      * @param XmlOffer[] $offers
      * @param bool $isNotActiveProduct
      */
-    public function writeOffers(array $offers, $isNotActiveProduct = false): void
+    public function writeOffers(array $offers): void
     {
         foreach ($offers as $offer) {
-            $this->writeOffer($offer, $isNotActiveProduct);
+            $this->writeOffer($offer);
         }
 
         file_put_contents($this->filePath, $this->writer->flush(true), FILE_APPEND);
@@ -112,18 +114,15 @@ class IcmlWriter
      * @param \Intaro\RetailCrm\Model\Bitrix\Xml\XmlOffer $offer
      * @param bool $isNotActiveProduct
      */
-    private function writeOffer(XmlOffer $offer, $isNotActiveProduct): void
+    private function writeOffer(XmlOffer $offer): void
     {
+        $productType = $offer->productType === ProductTable::TYPE_SERVICE ? 'service' : 'product';
+
         $this->writer->startElement('offer');
         $this->writeSimpleAttribute('id', $offer->id);
+        $this->writeSimpleAttribute('type', $productType);
         $this->writeSimpleAttribute('productId', $offer->productId);
         $this->writeSimpleAttribute('quantity', $offer->quantity);
-
-        if ($isNotActiveProduct) {
-            $this->writeSimpleElement('productActivity', 'N');
-        } else {
-            $this->writeSimpleElement('activity', $offer->activity);
-        }
 
         foreach ($offer->categoryIds as $categoryId) {
             $this->writeSimpleElement('categoryId', $categoryId);
@@ -145,6 +144,14 @@ class IcmlWriter
             $this->writeParam($param);
         }
 
+        $activity = $offer->activity;
+
+        null === $offer->activityProduct ?
+            $this->writeSimpleElement('productActivity', $activity) :
+            $this->writeSimpleElement('productActivity', $offer->activityProduct)
+        ;
+
+        $this->writeSimpleElement('activity', $activity);
         $this->writeSimpleElement('url', $offer->url);
         $this->writeSimpleElement('price', $offer->price);
         $this->writeSimpleElement('name', $offer->name);

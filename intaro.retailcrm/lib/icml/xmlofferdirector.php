@@ -53,12 +53,14 @@ class XmlOfferDirector
     {
         $this->setup = $setup;
         $this->fileRepository = new FileRepository(SiteRepository::getDefaultServerName());
-        $this->catalogRepository = new CatalogRepository();
         $this->xmlOfferBuilder = new XmlOfferBuilder(
             $setup,
             MeasureRepository::getMeasures(),
             SiteRepository::getDefaultServerName()
         );
+        $this->catalogRepository = new CatalogRepository();
+
+        $this->catalogRepository->setLoadNotActive($this->setup->loadNonActivity);
         $this->barcodes = $this->catalogRepository->getBarcodes();
     }
 
@@ -71,7 +73,7 @@ class XmlOfferDirector
      */
     public function getXmlOffersPart(SelectParams $param, CatalogIblockInfo $catalogIblockInfo): array
     {
-        $ciBlockResult = $this->catalogRepository->getProductPage($param, $catalogIblockInfo, $this->setup->loadNonActivity);
+        $ciBlockResult = $this->catalogRepository->getProductPage($param, $catalogIblockInfo);
         $offers = [];
 
         $this->xmlOfferBuilder->setServerName($this->fileRepository->getServerName($catalogIblockInfo->productIblockId));
@@ -130,6 +132,7 @@ class XmlOfferDirector
             $offer->categoryIds = $product->categoryIds;
             $offer->productName = $product->productName;
             $offer->url = $this->mergeUrls($product->url, $offer->url);
+            $offer->activityProduct = $product->activity;
         }
 
         return $xmlOffers;

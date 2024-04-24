@@ -32,11 +32,21 @@ class CatalogRepository
     private $builder;
 
     /**
+     * @var bool
+     */
+    private $isLoadNotActive = false;
+
+    /**
      * CatalogRepository constructor.
      */
     public function __construct()
     {
         $this->builder = new QueryParamsMolder();
+    }
+
+    public function setLoadNotActive(bool $isLoad)
+    {
+        $this->isLoadNotActive = $isLoad;
     }
 
     /**
@@ -88,14 +98,13 @@ class CatalogRepository
     /**
      * @param \Intaro\RetailCrm\Model\Bitrix\Xml\SelectParams      $param
      * @param \Intaro\RetailCrm\Model\Bitrix\Orm\CatalogIblockInfo $catalogIblockInfo
-     * @param boolean $loadNonActivity
      * @return \CIBlockResult|int
      */
-    public function getProductPage(SelectParams $param, CatalogIblockInfo $catalogIblockInfo, bool $loadNonActivity)
+    public function getProductPage(SelectParams $param, CatalogIblockInfo $catalogIblockInfo)
     {
         return CIBlockElement::GetList(
             ['ID' => 'ASC'],
-            $this->builder->getWhereForOfferPart($param->parentId, $catalogIblockInfo, $loadNonActivity),
+            $this->builder->getWhereForOfferPart($param->parentId, $catalogIblockInfo, $this->isLoadNotActive),
             false,
             ['nPageSize' => $param->nPageSize, 'iNumPage' => $param->pageNumber, 'checkOutOfRange' => true],
             $param->allParams

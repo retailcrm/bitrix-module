@@ -78,13 +78,15 @@ class IcmlDirector
     {
         $this->setup = $setup;
         $this->shopName = RetailcrmConfigProvider::getSiteName();
-        $this->catalogRepository = new CatalogRepository();
         $this->icmlWriter = new IcmlWriter($this->setup->filePath);
         $this->xmlOfferDirector = new XmlOfferDirector($this->setup);
-        $this->xmlCategoryDirector = new XmlCategoryDirector($this->setup->iblocksForExport);
+        $this->xmlCategoryDirector = new XmlCategoryDirector($this->setup);
         $this->queryBuilder = new QueryParamsMolder();
         $this->xmlData = new XmlData();
         $this->logger = $logger;
+        $this->catalogRepository = new CatalogRepository();
+
+        $this->catalogRepository->setLoadNotActive($this->setup->loadNonActivity);
     }
 
     /**
@@ -164,7 +166,7 @@ class IcmlDirector
             $selectParams->allParams = array_merge($selectParams->configurable, $selectParams->main);
 
             while ($xmlOffers = $this->xmlOfferDirector->getXmlOffersPart($selectParams, $catalogIblockInfo)) {
-                $this->icmlWriter->writeOffers($xmlOffers, $xmlOffers->activity === 'N');
+                $this->icmlWriter->writeOffers($xmlOffers);
                 $selectParams->pageNumber++;
             }
 
@@ -249,15 +251,9 @@ class IcmlDirector
         $paramsForOffer->allParams = array_merge($paramsForOffer->configurable, $paramsForOffer->main);
 
         do {
-            $isNotActiveProduct = false;
-
-            if ($product->activity === 'N') {
-                $isNotActiveProduct = true;
-            }
-
             //Если каталог проиндексирован, у товара есть Тип и это простой товар, то просто записываем его
             if ($product->productType === ProductTable::TYPE_PRODUCT) {
-                $this->icmlWriter->writeOffers([$product], $isNotActiveProduct);
+                $this->icmlWriter->writeOffers([$product]);
                 break;
             }
 
@@ -266,7 +262,7 @@ class IcmlDirector
 
             // если это "простой товар", у которого нет ТП, то просто записываем его
             if ($paramsForOffer->pageNumber === 1 && count($xmlOffersPart) === 0) {
-                $this->icmlWriter->writeOffers([$product], $isNotActiveProduct);
+                $this->icmlWriter->writeOffers([$product]);
                 break;
             }
 
@@ -274,7 +270,7 @@ class IcmlDirector
                 $xmlOffersPart
                     = $this->trimOffersList($writingOffersCount, $xmlOffersPart);
 
-                $this->icmlWriter->writeOffers($xmlOffersPart, $isNotActiveProduct);
+                $this->icmlWriter->writeOffers($xmlOffersPart);
 
                 $writingOffersCount += count($xmlOffersPart);
                 $paramsForOffer->pageNumber++;
