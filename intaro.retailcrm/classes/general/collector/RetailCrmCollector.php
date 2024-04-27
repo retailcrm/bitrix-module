@@ -1,7 +1,19 @@
 <?php
 
 /**
+ * @category RetailCRM
+ * @package  RetailCRM\Collector
+ * @author   RetailCRM <integration@retailcrm.ru>
+ * @license  MIT
+ * @link     http://retailcrm.ru
+ * @see      http://retailcrm.ru/docs
+ */
+
+/**
  * Class RetailCrmCollector
+ *
+ * @category RetailCRM
+ * @package RetailCRM\Collector
  */
 class RetailCrmCollector
 {

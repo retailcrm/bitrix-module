@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * @category Integration
+ * @package  Intaro\RetailCrm\Repository
+ * @author   RetailCRM <integration@retailcrm.ru>
+ * @license  MIT
+ * @link     http://retailcrm.ru
+ * @see      http://retailcrm.ru/docs
+ */
+
 namespace Intaro\RetailCrm\Repository;
 
 use Bitrix\Main\ArgumentException;

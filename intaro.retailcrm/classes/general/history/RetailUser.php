@@ -1,7 +1,19 @@
 <?php
 
 /**
+ * @category RetailCRM
+ * @package  RetailCRM\History
+ * @author   RetailCRM <integration@retailcrm.ru>
+ * @license  MIT
+ * @link     http://retailcrm.ru
+ * @see      http://retailcrm.ru/docs
+ */
+
+/**
  * Class RetailUser
+ *
+ * @category RetailCRM
+ * @package RetailCRM\History
  */
 class RetailUser extends CUser
 {

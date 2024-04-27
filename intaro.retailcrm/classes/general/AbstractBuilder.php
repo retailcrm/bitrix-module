@@ -1,7 +1,19 @@
 <?php
 
 /**
+ * @category RetailCRM
+ * @package  RetailCRM
+ * @author   RetailCRM <integration@retailcrm.ru>
+ * @license  MIT
+ * @link     http://retailcrm.ru
+ * @see      http://retailcrm.ru/docs
+ */
+
+/**
  * Class AbstractBuilder
+ *
+ * @category RetailCRM
+ * @package RetailCRM
  */
 abstract class AbstractBuilder
 {

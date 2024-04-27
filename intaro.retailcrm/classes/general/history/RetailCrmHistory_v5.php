@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * @category RetailCRM
+ * @package  RetailCRM\History
+ * @author   RetailCRM <integration@retailcrm.ru>
+ * @license  MIT
+ * @link     http://retailcrm.ru
+ * @see      http://retailcrm.ru/docs
+ */
+
 use Bitrix\Main\ArgumentException;
 use Bitrix\Main\ArgumentNullException;
 use Bitrix\Main\ArgumentOutOfRangeException;
@@ -25,6 +34,13 @@ use Intaro\RetailCrm\Component\Handlers\EventsHandlers;
 use RetailCrm\Response\ApiResponse;
 
 IncludeModuleLangFile(__FILE__);
+
+/**
+ * Class RetailCrmHistory
+ *
+ * @category RetailCRM
+ * @package RetailCRM\History
+ */
 class RetailCrmHistory
 {
     public static $MODULE_ID = 'intaro.retailcrm';

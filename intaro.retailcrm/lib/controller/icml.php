@@ -18,9 +18,12 @@ use CModule;
 use Intaro\RetailCrm\Service\Hl;
 
 /**
- * Class Order
- *
- * @package Intaro\RetailCrm\Controller\Loyalty
+ * @category Integration
+ * @package  Intaro\RetailCrm\Controller
+ * @author   RetailCRM <integration@retailcrm.ru>
+ * @license  MIT
+ * @link     http://retailcrm.ru
+ * @see      http://retailcrm.ru/docs
  */
 class Icml extends Controller
 {

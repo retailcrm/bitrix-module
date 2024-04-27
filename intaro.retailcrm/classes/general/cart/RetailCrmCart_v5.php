@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * @category RetailCRM
+ * @package  RetailCRM\Cart
+ * @author   RetailCRM <integration@retailcrm.ru>
+ * @license  MIT
+ * @link     http://retailcrm.ru
+ * @see      http://retailcrm.ru/docs
+ */
+
 use Bitrix\Main\Context\Culture;
 use Bitrix\Sale\Basket;
 
@@ -8,6 +17,9 @@ IncludeModuleLangFile(__FILE__);
 
 /**
  * Class RetailCrmCart
+ *
+ * @category RetailCRM
+ * @package RetailCRM\Cart
  */
 class RetailCrmCart
 {

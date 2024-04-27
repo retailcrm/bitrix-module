@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * @category RetailCRM
+ * @package  RetailCRM
+ * @author   RetailCRM <integration@retailcrm.ru>
+ * @license  MIT
+ * @link     http://retailcrm.ru
+ * @see      http://retailcrm.ru/docs
+ */
+
 use Bitrix\Sale\PersonType;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Bitrix\Sale\Delivery\Services\EmptyDeliveryService;
@@ -19,6 +28,12 @@ IncludeModuleLangFile(__FILE__);
 require_once __DIR__ . '/../../lib/component/servicelocator.php';
 require_once __DIR__ . '/../../lib/service/utils.php';
 
+/**
+ * class RCrmActions
+ *
+ * @category RetailCRM
+ * @package RetailCRM
+ */
 class RCrmActions
 {
     public static $MODULE_ID = 'intaro.retailcrm';

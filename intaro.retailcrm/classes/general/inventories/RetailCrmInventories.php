@@ -1,5 +1,21 @@
 <?php
 IncludeModuleLangFile(__FILE__);
+
+/**
+ * @category RetailCRM
+ * @package  RetailCRM\Inventories
+ * @author   RetailCRM <integration@retailcrm.ru>
+ * @license  MIT
+ * @link     http://retailcrm.ru
+ * @see      http://retailcrm.ru/docs
+ */
+
+/**
+ * Class RetailCrmInventories
+ *
+ * @category RetailCRM
+ * @package RetailCRM\Inventories
+ */
 class RetailCrmInventories
 {
     public static $pageSize = 500;

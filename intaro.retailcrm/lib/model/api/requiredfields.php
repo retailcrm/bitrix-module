@@ -1,8 +1,6 @@
 <?php
 
 /**
- * PHP version 7.1
- *
  * @category Integration
  * @package  Intaro\RetailCrm\Model\Api
  * @author   RetailCRM <integration@retailcrm.ru>
@@ -15,6 +13,11 @@ namespace Intaro\RetailCrm\Model\Api;
 
 use Intaro\RetailCrm\Component\Json\Mapping;
 
+/**
+ * Class RequiredFields
+ *
+ * @package Intaro\RetailCrm\Model\Api
+ */
 class RequiredFields
 {
     /**

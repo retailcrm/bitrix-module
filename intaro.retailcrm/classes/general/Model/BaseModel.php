@@ -1,7 +1,19 @@
 <?php
 
 /**
-* Class BaseModel
+ * @category RetailCRM
+ * @package  RetailCRM\Model
+ * @author   RetailCRM <integration@retailcrm.ru>
+ * @license  MIT
+ * @link     http://retailcrm.ru
+ * @see      http://retailcrm.ru/docs
+ */
+
+/**
+ * Class BaseModel
+ *
+ * @category RetailCRM
+ * @package RetailCRM\Model
  */
 abstract class BaseModel
 {
