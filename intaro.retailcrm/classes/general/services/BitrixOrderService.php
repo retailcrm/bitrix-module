@@ -1,9 +1,24 @@
 <?php
 
+/**
+ * @category RetailCRM
+ * @package  RetailCRM\Service
+ * @author   RetailCRM <integration@retailcrm.ru>
+ * @license  MIT
+ * @link     http://retailcrm.ru
+ * @see      http://retailcrm.ru/docs
+ */
+
 use Bitrix\Sale\Order;
 use Bitrix\Main\Context;
 use Bitrix\Catalog\StoreTable;
 
+/**
+ * Class BitrixOrderService
+ *
+ * @category RetailCRM
+ * @package RetailCRM\Service
+ */
 class BitrixOrderService
 {
     public static function getCountryList()

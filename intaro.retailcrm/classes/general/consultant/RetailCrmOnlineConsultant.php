@@ -1,7 +1,19 @@
 <?php
 
 /**
- * class RetailCrmOnlineConsultant
+ * @category RetailCRM
+ * @package  RetailCRM\Consultant
+ * @author   RetailCRM <integration@retailcrm.ru>
+ * @license  MIT
+ * @link     http://retailcrm.ru
+ * @see      http://retailcrm.ru/docs
+ */
+
+/**
+ * Class RetailCrmOnlineConsultant
+ *
+ * @category RetailCRM
+ * @package RetailCRM\Consultant
  */
 class RetailCrmOnlineConsultant
 {

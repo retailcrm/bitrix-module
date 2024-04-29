@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * @category RetailCRM
+ * @package  RetailCRM\Events
+ * @author   RetailCRM <integration@retailcrm.ru>
+ * @license  MIT
+ * @link     http://retailcrm.ru
+ * @see      http://retailcrm.ru/docs
+ */
+
 use Bitrix\Main\Context\Culture;
 use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\ServiceLocator;
@@ -17,6 +26,9 @@ use Intaro\RetailCrm\Model\Api\Response\OrdersEditResponse;
 
 /**
  * Class RetailCrmEvent
+ *
+ * @category RetailCRM
+ * @package RetailCRM\Events
  */
 class RetailCrmEvent
 {

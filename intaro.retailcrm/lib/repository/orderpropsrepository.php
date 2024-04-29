@@ -1,8 +1,6 @@
 <?php
 
 /**
- * PHP version 7.1
- *
  * @category Integration
  * @package  Intaro\RetailCrm\Repository
  * @author   RetailCRM <integration@retailcrm.ru>

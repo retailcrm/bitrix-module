@@ -5,6 +5,16 @@ namespace Intaro\RetailCrm\Model\Api\Order;
 use Intaro\RetailCrm\Model\Api\AbstractApiModel;
 use Intaro\RetailCrm\Component\Json\Mapping;
 
+/**
+ * Class OrderDeliveryData
+ *
+ * @category Integration
+ * @package  Intaro\RetailCrm\Model\Api\Order
+ * @author   RetailCRM <integration@retailcrm.ru>
+ * @license  MIT
+ * @link     http://retailcrm.ru
+ * @see      http://retailcrm.ru/docs
+ */
 class Order extends AbstractApiModel
 {
     /**

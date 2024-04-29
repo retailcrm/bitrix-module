@@ -1,5 +1,22 @@
 <?php
+
+/**
+ * @category RetailCRM
+ * @package  RetailCRM\Prices
+ * @author   RetailCRM <integration@retailcrm.ru>
+ * @license  MIT
+ * @link     http://retailcrm.ru
+ * @see      http://retailcrm.ru/docs
+ */
+
 IncludeModuleLangFile(__FILE__);
+
+/**
+ * Class RetailCrmPrices
+ *
+ * @category RetailCRM
+ * @package RetailCRM\Prices
+ */
 class RetailCrmPrices
 {
     public static $MODULE_ID = 'intaro.retailcrm';

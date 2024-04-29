@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * @category RetailCRM
+ * @package  RetailCRM\Order
+ * @author   RetailCRM <integration@retailcrm.ru>
+ * @license  MIT
+ * @link     http://retailcrm.ru
+ * @see      http://retailcrm.ru/docs
+ */
+
 use Bitrix\Main\Context;
 use Bitrix\Main\Context\Culture;
 use Bitrix\Main\UserTable;
@@ -24,6 +33,9 @@ IncludeModuleLangFile(__FILE__);
 
 /**
  * Class RetailCrmOrder
+ *
+ * @category RetailCRM
+ * @package RetailCRM\Order
  */
 class RetailCrmOrder
 {

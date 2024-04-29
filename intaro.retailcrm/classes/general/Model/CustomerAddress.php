@@ -1,7 +1,19 @@
 <?php
 
 /**
+ * @category RetailCRM
+ * @package  RetailCRM\Model
+ * @author   RetailCRM <integration@retailcrm.ru>
+ * @license  MIT
+ * @link     http://retailcrm.ru
+ * @see      http://retailcrm.ru/docs
+ */
+
+/**
  * Class CustomerAddress
+ *
+ * @category RetailCRM
+ * @package RetailCRM\Model
  */
 class CustomerAddress extends BaseModel
 {

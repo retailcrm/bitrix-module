@@ -1,7 +1,5 @@
 <?php
 /**
- * PHP version 8.0
- *
  * @category Integration
  * @package  Intaro\RetailCrm\Component\ApiClient
  * @author   RetailCRM <integration@retailcrm.ru>

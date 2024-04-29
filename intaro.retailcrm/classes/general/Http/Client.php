@@ -1,12 +1,12 @@
 <?php
 
 /**
- * PHP version 5.3
- *
- * HTTP client
- *
  * @category RetailCRM
- * @package  RetailCRM
+ * @package  RetailCRM\Http
+ * @author   RetailCRM <integration@retailcrm.ru>
+ * @license  MIT
+ * @link     http://retailcrm.ru
+ * @see      http://retailcrm.ru/docs
  */
 
 namespace RetailCrm\Http;
@@ -16,12 +16,10 @@ use RetailCrm\Exception\InvalidJsonException;
 use RetailCrm\Response\ApiResponse;
 
 /**
- * PHP version 5.3
- *
- * HTTP client
+ * Class Client
  *
  * @category RetailCRM
- * @package  RetailCRM
+ * @package RetailCRM\Http
  */
 class Client
 {

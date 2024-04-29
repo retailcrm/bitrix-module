@@ -23,6 +23,14 @@ use Intaro\RetailCrm\Service\LoyaltyService;
 use Intaro\RetailCrm\Service\LoyaltyAccountService;
 use Intaro\RetailCrm\Service\Utils;
 
+/**
+ * @category Integration
+ * @package  Intaro\RetailCrm\Controller\Loyalty
+ * @author   RetailCRM <integration@retailcrm.ru>
+ * @license  MIT
+ * @link     http://retailcrm.ru
+ * @see      http://retailcrm.ru/docs
+ */
 class Register extends Controller
 {
     public const MIN_CODE_LENGTH = 3;

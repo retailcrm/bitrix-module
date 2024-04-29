@@ -7,6 +7,14 @@ use Bitrix\Main\Engine\Controller;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Constants;
 
+/**
+ * @category Integration
+ * @package  Intaro\RetailCrm\Controller
+ * @author   RetailCRM <integration@retailcrm.ru>
+ * @license  MIT
+ * @link     http://retailcrm.ru
+ * @see      http://retailcrm.ru/docs
+ */
 class AdminPanel extends Controller
 {
     public function configureActions(): array

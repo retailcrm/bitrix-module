@@ -1,10 +1,26 @@
 <?php
 
+/**
+ * @category RetailCRM
+ * @package  RetailCRM\User
+ * @author   RetailCRM <integration@retailcrm.ru>
+ * @license  MIT
+ * @link     http://retailcrm.ru
+ * @see      http://retailcrm.ru/docs
+ */
+
 use Bitrix\Main\UserTable;
 use RetailCrm\ApiClient;
 use RetailCrm\Response\ApiResponse;
 
 IncludeModuleLangFile(__FILE__);
+
+/**
+ * Class RetailCrmCorporateClient
+ *
+ * @category RetailCRM
+ * @package RetailCRM\User
+ */
 class RetailCrmCorporateClient
 {
     const CORP_PREFIX = 'corp';

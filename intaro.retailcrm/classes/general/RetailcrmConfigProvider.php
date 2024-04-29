@@ -1,12 +1,19 @@
 <?php
 
 /**
- * PHP version 5.3
- *
+ * @category RetailCRM
+ * @package  RetailCRM
+ * @author   RetailCRM <integration@retailcrm.ru>
+ * @license  MIT
+ * @link     http://retailcrm.ru
+ * @see      http://retailcrm.ru/docs
+ */
+
+/**
  * RetailcrmConfigProvider class
  *
  * @category RetailCRM
- * @package  RetailCRM
+ * @package RetailCRM
  */
 
 use Intaro\RetailCrm\Component\ConfigProvider;

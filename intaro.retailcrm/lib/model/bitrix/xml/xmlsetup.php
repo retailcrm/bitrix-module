@@ -1,10 +1,8 @@
 <?php
 
 /**
- * PHP version 7.1
- *
  * @category Integration
- * @package  Intaro\RetailCrm\Model\Bitrix
+ * @package  Intaro\RetailCrm\Model\Bitrix\Xml
  * @author   RetailCRM <integration@retailcrm.ru>
  * @license  MIT
  * @link     http://retailcrm.ru

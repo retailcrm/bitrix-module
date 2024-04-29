@@ -1,12 +1,12 @@
 <?php
 
 /**
- * PHP version 5.3
- *
- * API client class
- *
  * @category RetailCRM
  * @package  RetailCRM
+ * @author   RetailCRM <integration@retailcrm.ru>
+ * @license  MIT
+ * @link     http://retailcrm.ru
+ * @see      http://retailcrm.ru/docs
  */
 
 namespace RetailCrm;
@@ -17,12 +17,10 @@ use RetailCrm\Http\Client;
 use RetailCrm\Response\ApiResponse;
 
 /**
- * PHP version 5.3
- *
  * API client class
  *
  * @category RetailCRM
- * @package  RetailCRM
+ * @package RetailCRM
  */
 class ApiClient
 {
