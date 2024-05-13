@@ -61,7 +61,12 @@ jobs:
       - name: Run tests
         run: make test
       - name: Coverage
-        run: bash <(curl -s https://codecov.io/bash)
+        env:
+          COVERAGE: ${{ matrix.coverage }}
+        if: env.COVERAGE == 1
+        run: |
+          make coverage
+          bash <(curl -s https://codecov.io/bash)
   deploy:
     needs: ['test']
     if: success() && github.event_name == 'push' && github.repository_owner == 'retailcrm' && github.ref == 'refs/heads/master'

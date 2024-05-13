@@ -49,3 +49,6 @@ run_local_tests:
 	docker-compose up -d --build
 	docker exec app_test make install_bitrix deps test
 	docker-compose down
+
+coverage:
+	wget https://phar.phpunit.de/phpcov-2.0.2.phar && php phpcov-2.0.2.phar merge coverage/ --clover coverage.xml
