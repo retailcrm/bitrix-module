@@ -1,6 +1,7 @@
 ROOT_DIR=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
 test: prepare_module
+	mkdir coverage
 	composer tests
 
 prepare_module:
