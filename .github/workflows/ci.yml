@@ -61,9 +61,6 @@ jobs:
       - name: Run tests
         run: make test
       - name: Coverage
-        env:
-          COVERAGE: ${{ matrix.coverage }}
-        if: env.COVERAGE == 1
         run: |
           make coverage
           bash <(curl -s https://codecov.io/bash)
