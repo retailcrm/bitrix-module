@@ -157,6 +157,7 @@ class IcmlWriter
         $this->writeSimpleElement('name', $offer->name);
         $this->writeSimpleElement('productName', $offer->productName);
         $this->writeSimpleElement('xmlId', $offer->xmlId);
+        $this->writeSimpleElement('markable', $offer->markable);
         $this->writeOptionalSimpleElement('vendor', $offer->vendor);
         $this->writeOptionalSimpleElement('barcode', $offer->barcode);
         $this->writeOptionalSimpleElement('vatRate', $offer->vatRate);

@@ -140,6 +140,8 @@ class XmlOffer
      */
     public ?string $activityProduct = null;
 
+    public ?string $markable = null;
+
     /**
      * @param $productValue
      * @param $offerValue
