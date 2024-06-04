@@ -3,8 +3,12 @@
 namespace Intaro\RetailCrm\Icml;
 
 use Bitrix\Catalog\ProductTable;
+use Bitrix\Highloadblock\HighloadBlockTable;
+use Bitrix\Iblock;
 use Bitrix\Main\ArgumentException;
-use Intaro\RetailCrm\Component\ServiceLocator;
+use Bitrix\Main\Entity;
+use Bitrix\Main\Loader;
+use Bitrix\Main\UserField\Internal\UserFieldHelper;
 use Intaro\RetailCrm\Icml\Utils\IcmlUtils;
 use Intaro\RetailCrm\Model\Bitrix\Orm\CatalogIblockInfo;
 use Intaro\RetailCrm\Model\Bitrix\Xml\OfferParam;
@@ -116,6 +120,10 @@ class XmlOfferBuilder
         $this->vatRates          = $this->settingsService->vatRates;
         $this->measures          = $this->prepareMeasures($measure);
         $this->serverName = $serverName;
+
+        Loader::includeModule("highloadblock");
+        Loader::includeModule('iblock');
+        Loader::includeModule('catalog');
      }
 
     /**
@@ -262,6 +270,7 @@ class XmlOfferBuilder
         $this->xmlOffer->vatRate = $this->getVatRate($item);
         $this->xmlOffer->unitCode = $this->getUnitCode($item['CATALOG_MEASURE'], $item['ID']);
         $this->xmlOffer->activity = $item['ACTIVE'];
+        $this->xmlOffer->markable = $this->isMarkableOffer($item['ID']);
     }
 
     /**
@@ -564,5 +573,32 @@ class XmlOfferBuilder
         }
 
         return null;
+    }
+
+    /**
+     * Метод для проверки можно ли маркировать товар.
+     *
+     * Таблица в БД - b_hlsys_marking_code_group
+     * По умолчанию ID Highload-блока ProductMarkingCodeGroup - 1.
+     *
+     * @param $offerId
+     * @return void
+     */
+    private function isMarkableOffer($offerId): ?string
+    {
+        $idHlBlock = 1;
+        $hlBlock = HighloadBlockTable::getById($idHlBlock)->fetch();
+        $hlBlockData = HighloadBlockTable::compileEntity($hlBlock)->getDataClass();
+        $userFieldManager = UserFieldHelper::getInstance()->getManager();
+        $userFieldsData = $userFieldManager->GetUserFields(ProductTable::getUfId(), $offerId);
+        $ufProductGroup = $userFieldsData['UF_PRODUCT_GROUP']['VALUE'] ?? null;
+        $isMarkableOffer = null;
+
+        if ($ufProductGroup !== null) {
+            $productGroup =  $hlBlockData::getList(["select" => ["UF_NAME"], "filter" => ['ID' => $ufProductGroup]]);
+            $isMarkableOffer = !empty($productGroup->Fetch()['UF_NAME']) ? 'Y' : 'N';
+        }
+
+        return $isMarkableOffer;
     }
 }
