@@ -30,60 +30,65 @@ class RetailCrmUser
      * @return array|false
      * @throws \Exception
      */
-    public static function customerSend(array $arFields, $api, $contragentType, bool $send = false, $site = null)
+    public static function customerSend(array $packetUser, $api, $contragentType, bool $send = false, $site = null)
     {
-        if (!$api || empty($contragentType)) {
-            return false;
-        }
+        $users = [];
+        foreach ($packetUser as $arFields) {
+            if (!$api || empty($contragentType)) {
+                return false;
+            }
 
-        if (empty($arFields)) {
-            RCrmActions::eventLog('RetailCrmUser::customerSend', 'empty($arFields)', 'incorrect customer');
-
-            return false;
-        }
-
-        $customer = self::getSimpleCustomer($arFields);
-        $customer['createdAt'] = new \DateTime($arFields['DATE_REGISTER']);
-        $customer['contragent'] = ['contragentType' => $contragentType];
-
-        if (RetailcrmConfigProvider::getCustomFieldsStatus() === 'Y') {
-            $customer['customFields'] = self::getCustomFields($arFields);
-        }
-
-        if ($send && isset($_COOKIE['_rc']) && $_COOKIE['_rc'] != '') {
-            $customer['browserId'] = $_COOKIE['_rc'];
-        }
-
-        if (function_exists('retailCrmBeforeCustomerSend')) {
-            $newResCustomer = retailCrmBeforeCustomerSend($customer);
-
-            if (is_array($newResCustomer) && !empty($newResCustomer)) {
-                $customer = $newResCustomer;
-            } elseif ($newResCustomer === false) {
-                RCrmActions::eventLog('RetailCrmUser::customerSend', 'retailCrmBeforeCustomerSend()', 'UserID = ' . $arFields['ID'] . '. Sending canceled after retailCrmBeforeCustomerSend');
+            if (empty($arFields)) {
+                RCrmActions::eventLog('RetailCrmUser::customerSend', 'empty($arFields)', 'incorrect customer');
 
                 return false;
             }
+
+            $customer = self::getSimpleCustomer($arFields);
+            $customer['createdAt'] = new \DateTime($arFields['DATE_REGISTER']);
+            $customer['contragent'] = ['contragentType' => $contragentType];
+
+            if (RetailcrmConfigProvider::getCustomFieldsStatus() === 'Y') {
+                $customer['customFields'] = self::getCustomFields($arFields);
+            }
+
+            if ($send && isset($_COOKIE['_rc']) && $_COOKIE['_rc'] != '') {
+                $customer['browserId'] = $_COOKIE['_rc'];
+            }
+
+            if (function_exists('retailCrmBeforeCustomerSend')) {
+                $newResCustomer = retailCrmBeforeCustomerSend($customer);
+
+                if (is_array($newResCustomer) && !empty($newResCustomer)) {
+                    $customer = $newResCustomer;
+                } elseif ($newResCustomer === false) {
+                    RCrmActions::eventLog('RetailCrmUser::customerSend', 'retailCrmBeforeCustomerSend()', 'UserID = ' . $arFields['ID'] . '. Sending canceled after retailCrmBeforeCustomerSend');
+
+                    return false;
+                }
+            }
+
+            $normalizer = new RestNormalizer();
+            $customer = $normalizer->normalize($customer, 'customers');
+
+            if (array_key_exists('UF_SUBSCRIBE_USER_EMAIL', $arFields)) {
+                // UF_SUBSCRIBE_USER_EMAIL = '1' or '0'
+                $customer['subscribed'] = (bool) $arFields['UF_SUBSCRIBE_USER_EMAIL'];
+            }
+
+            Logger::getInstance()->write($customer, 'customerSend');
+
+            $users[] = $customer;
         }
-
-        $normalizer = new RestNormalizer();
-        $customer = $normalizer->normalize($customer, 'customers');
-
-        if (array_key_exists('UF_SUBSCRIBE_USER_EMAIL', $arFields)) {
-            // UF_SUBSCRIBE_USER_EMAIL = '1' or '0'
-            $customer['subscribed'] = (bool) $arFields['UF_SUBSCRIBE_USER_EMAIL'];
-        }
-
-        Logger::getInstance()->write($customer, 'customerSend');
 
         if (
             $send
-            && !RCrmActions::apiMethod($api, 'customersCreate', __METHOD__, $customer, $site)
+            && !RCrmActions::apiMethod($api, 'customersUpload', __METHOD__, $users, $site)
         ) {
                 return false;
         }
 
-        return $customer;
+        return 'OK';
     }
 
     public static function customerEdit($arFields, $api, $optionsSitesList = array()) : bool
@@ -197,5 +202,84 @@ class RetailCrmUser
         }
 
         return $result;
+    }
+
+    public static function uploadUsers()
+    {
+        $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
+        $users = CUser::GetList();
+
+        $packetUser = [];
+
+        while($user = $users->GetNext())
+        {
+            $user['DATE_REGISTER'] = '2025-01-01 00:00:00';
+            $packetUser[] = $user;
+
+            if (count($packetUser) === 50) {
+                echo RetailCrmUser::customerSend($packetUser, $api, 'individual', true);
+                $packetUser = [];
+                time_nanosleep(0, 200000000);
+            }
+        }
+    }
+
+    public static function fixDateCustomer(): void
+    {
+        CAgent::RemoveAgent("RetailCrmUser::fixDateCustomer();", RetailcrmConstants::MODULE_ID);
+        COption::SetOptionString(RetailcrmConstants::MODULE_ID, RetailcrmConstants::OPTION_FIX_DATE_CUSTOMER, 'Y');
+
+        $startId = COption::GetOptionInt(RetailcrmConstants::MODULE_ID, RetailcrmConstants::OPTION_FIX_DATE_CUSTOMER_LAST_ID, 0);
+        $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
+        $optionsSitesList = RetailcrmConfigProvider::getSitesList();
+        $limit = 50;
+        $isProcess = true;
+
+        do {
+            try {
+                $usersResult = UserTable::getList([
+                    'select' => ['ID', 'DATE_REGISTER', 'LID'],
+                    'order' => ['ID'],
+                    'limit' => $limit,
+                    'offset' => $startId,
+                ]);
+            } catch (\Throwable $exception) {
+                Logger::getInstance()->write($exception->getMessage(), 'fixDateCustomers');
+
+                break;
+            }
+
+            $users = $usersResult->fetchAll();
+
+            if ($users === []) {
+                break;
+            }
+
+            foreach ($users as $user) {
+                $site = null;
+
+                if ($optionsSitesList) {
+                    if (isset($user['LID']) && array_key_exists($user['LID'], $optionsSitesList) && $optionsSitesList[$user['LID']] !== null) {
+                        $site = $optionsSitesList[$user['LID']];
+                    } else {
+                        continue;
+                    }
+                }
+
+                $customer['externalId'] = $user['ID'];
+
+                try {
+                    $date = new \DateTime($user['DATE_REGISTER']);
+                    $customer['createdAt'] = $date->format('Y-m-d H:i:s');
+
+                    RCrmActions::apiMethod($api, 'customersEdit', __METHOD__, $customer, $site);
+                } catch (\Throwable $exception) {
+                    Logger::getInstance()->write($exception->getMessage(), 'fixDateCustomers');
+                    continue;
+                }
+
+                time_nanosleep(0, 200000000);
+            }
+        } while($isProcess === true);
     }
 }

@@ -232,6 +232,27 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_RE
     die(json_encode($res));
 }
 
+if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') && isset($_POST['ajax']) && $_POST['ajax'] == 3) {
+    $dateAgent = new DateTime();
+    $intAgent = new DateInterval('PT60S');
+    $dateAgent->add($intAgent);
+
+    CAgent::AddAgent(
+        "RetailCrmUser::fixDateCustomer();",
+        $mid,
+        "N",
+        9999999,
+        $dateAgent->format('d.m.Y H:i:s'), // date of first check
+        "Y", // agent is active
+        $dateAgent->format('d.m.Y H:i:s'), // date of first start
+        30
+    );
+
+    $APPLICATION->RestartBuffer();
+    header('Content-Type: application/x-javascript; charset=' . LANG_CHARSET);
+    die(json_encode(['success' => true]));
+}
+
 $availableSites = RetailcrmConfigProvider::getSitesList();
 
 if (!empty($availableSites)) {
@@ -1269,6 +1290,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
     $version = COption::GetOptionString($mid, $CRM_API_VERSION, 0);
 
+    $optionsFixDateCustomer = COption::GetOptionString($mid, RetailcrmConstants::OPTION_FIX_DATE_CUSTOMER, 0);
 
     // Old functional
     $currencyOption = COption::GetOptionString($mid, $CRM_CURRENCY, 0) ?: CCurrency::GetBaseCurrency();
@@ -1562,7 +1584,13 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             matchedElement.querySelector(`select[name=${crmName}`).setAttribute("name", crmName + "_" + nextId);
             matchedElement.removeAttribute("hidden");
 
-            document.getElementById(type + "_matched").appendChild(matchedElement);
+            let element = document.getElementById(type + "_matched");
+
+            if (element) {
+                element.appendChild(matchedElement);
+            }
+
+            /*document.getElementById(type + "_matched").appendChild(matchedElement);*/
         }
 
         function deleteMatched(element)
@@ -2879,7 +2907,29 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                             if ($(this).is(':checked')) {
                                 alert('<?php echo GetMessage('SEND_PICKUP_POINT_ADDRESS_WARNING'); ?>');
                             }
-                        });
+                    });
+
+                    function customerFixDate() {
+                        var handleUrl = $('#fix-upload_customer').attr('action');
+                        var data = 'ajax=3';
+
+                        $.ajax({
+                            type: 'POST',
+                            url: handleUrl,
+                            data: data,
+                            dataType: 'json',
+                            success: function () {
+                                $('#block-fix-customer-date').html("<p><b><?php echo GetMessage('FIX_UPLOAD_CUSTOMER_AFTER_SUBMIT'); ?></b></p>");
+                            },
+                            error: function () {
+                                $('#block-fix-customer-date').html("<p><b><?php echo GetMessage('FIX_UPLOAD_CUSTOMER_AFTER_SUBMIT_ERROR'); ?></b></p>");
+                            }
+                        })
+                    }
+
+                    $('input[name="start-fix-date-customer"]').on('click', function () {
+                        customerFixDate();
+                    });
                 });
             </script>
 
@@ -3415,6 +3465,21 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 </b>
             </td>
         </tr>
+
+
+        <?php if ($optionsFixDateCustomer !== 'Y'): ?>
+            <tr class="heading">
+                <td colspan="2" class="option-other-bottom"><b><?php echo GetMessage('FIX_UPLOAD_CUSTOMER_HEADER'); ?></b></td>
+            </tr>
+            <tr>
+                <td id="block-fix-customer-date" colspan="2" class="option-head option-other-top option-other-bottom">
+                    <p><b><?php echo GetMessage('FIX_UPLOAD_CUSTOMER_INFO'); ?></b></p>
+                    <b>
+                        <label><input type="button" name="start-fix-date-customer" value="<?php echo GetMessage('FIX_UPLOAD_CUSTOMER_BUTTON_LABEL'); ?>" class="adm-btn-save"></label>
+                    </b>
+                </td>
+            </tr>
+        <?php endif;?>
 
         <?php $tabControl->Buttons(); ?>
         <input type="hidden" name="Update" value="Y"/>

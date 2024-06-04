@@ -1205,6 +1205,22 @@ function update()
     );
 
     createCustomPropertyFile();
+    addOnceUploadOption();
+}
+
+function addOnceUploadOption()
+{
+    $optionValue = COption::GetOptionString('intaro.retailcrm', 'once_upload_customer', 0);
+
+    if ($optionValue === 0) {
+        return;
+    }
+
+    COption::SetOptionString(
+        'intaro.retailcrm',
+        'once_upload_customer',
+        'N'
+    );
 }
 
 function createCustomPropertyFile()
