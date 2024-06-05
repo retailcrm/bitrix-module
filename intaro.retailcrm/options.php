@@ -1589,8 +1589,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             if (element) {
                 element.appendChild(matchedElement);
             }
-
-            /*document.getElementById(type + "_matched").appendChild(matchedElement);*/
         }
 
         function deleteMatched(element)
