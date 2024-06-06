@@ -11,6 +11,8 @@
 
 IncludeModuleLangFile(__FILE__);
 
+use Bitrix\Main\UserTable;
+
 /**
  * Class RetailCrmUser
  *
@@ -197,5 +199,69 @@ class RetailCrmUser
         }
 
         return $result;
+    }
+
+    public static function fixDateCustomer(): void
+    {
+        CAgent::RemoveAgent("RetailCrmUser::fixDateCustomer();", RetailcrmConstants::MODULE_ID);
+        COption::SetOptionString(RetailcrmConstants::MODULE_ID, RetailcrmConstants::OPTION_FIX_DATE_CUSTOMER, 'Y');
+
+        $startId = COption::GetOptionInt(RetailcrmConstants::MODULE_ID, RetailcrmConstants::OPTION_FIX_DATE_CUSTOMER_LAST_ID, 0);
+        $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
+        $optionsSitesList = RetailcrmConfigProvider::getSitesList();
+        $limit = 50;
+        $offset = 0;
+
+        while(true) {
+            try {
+                $usersResult = UserTable::getList([
+                    'select' => ['ID', 'DATE_REGISTER', 'LID'],
+                    'filter' => ['>ID' => $startId],
+                    'order' => ['ID'],
+                    'limit' => $limit,
+                    'offset' => $offset,
+                ]);
+            } catch (\Throwable $exception) {
+                Logger::getInstance()->write($exception->getMessage(), 'fixDateCustomers');
+
+                break;
+            }
+
+            $users = $usersResult->fetchAll();
+
+            if ($users === []) {
+                break;
+            }
+
+            foreach ($users as $user) {
+                $site = null;
+
+                if ($optionsSitesList) {
+                    if (isset($user['LID']) && array_key_exists($user['LID'], $optionsSitesList) && $optionsSitesList[$user['LID']] !== null) {
+                        $site = $optionsSitesList[$user['LID']];
+                    } else {
+                        continue;
+                    }
+                }
+
+                $customer['externalId'] = $user['ID'];
+
+                try {
+                    $date = new \DateTime($user['DATE_REGISTER']);
+                    $customer['createdAt'] = $date->format('Y-m-d H:i:s');
+
+                    RCrmActions::apiMethod($api, 'customersEdit', __METHOD__, $customer, $site);
+                } catch (\Throwable $exception) {
+                    Logger::getInstance()->write($exception->getMessage(), 'fixDateCustomers');
+                    continue;
+                }
+
+                time_nanosleep(0, 250000000);
+            }
+
+            COption::SetOptionInt(RetailcrmConstants::MODULE_ID, RetailcrmConstants::OPTION_FIX_DATE_CUSTOMER_LAST_ID, end($users)['ID']);
+
+            $offset += $limit;
+        }
     }
 }

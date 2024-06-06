@@ -148,3 +148,9 @@ $MESS ['ERROR_LINK_INTEGRATION_PAYMENT'] = 'Error in comparing integration payme
 $MESS ['ERROR_UPDATE_PAYMENT_TYPES_DELIVERY'] = 'Error when updating payment methods for deliveries';
 $MESS ['INTEGRATION_PAYMENT_LABEL'] = 'When correlating CMS and CRM integration payments, a regular payment is created on the system side to which orders will be linked.';
 $MESS ['NEED_PERMISSIONS_REFERENCE_LABEL'] = 'For this option to work correctly, the api key needs access to receive and edit reference book';
+
+$MESS ['FIX_UPLOAD_CUSTOMER_HEADER'] = 'Fix customer registration date in CRM';
+$MESS ['FIX_UPLOAD_CUSTOMER_BUTTON_LABEL'] = 'Correct customer registration date in CRM';
+$MESS ['FIX_UPLOAD_CUSTOMER_INFO'] = 'When you press this button, an agent will be created to launch the script. Please note that the script execution time may vary depending on the number of clients in the database. To minimize possible disruptions to the script operation, it is recommended to launch it at night time. This script can only be launched once';
+$MESS ['FIX_UPLOAD_CUSTOMER_AFTER_SUBMIT'] = 'The agent has been created and will be launched soon';
+$MESS ['FIX_UPLOAD_CUSTOMER_AFTER_SUBMIT_ERROR'] = 'An error occurred while adding an agent';

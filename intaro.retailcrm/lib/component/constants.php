@@ -125,4 +125,7 @@ class Constants
         'custom_fields_read' => 'custom_fields_read',
         'custom_fields_write' => 'custom_fields_write'
     ];
+
+    public const OPTION_FIX_DATE_CUSTOMER = 'once_upload_customer';
+    public const OPTION_FIX_DATE_CUSTOMER_LAST_ID = 'last_id_customer_fix';
 }
