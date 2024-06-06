@@ -211,9 +211,8 @@ class RetailCrmUser
         $optionsSitesList = RetailcrmConfigProvider::getSitesList();
         $limit = 50;
         $offset = 0;
-        $isProcess = true;
 
-        do {
+        while(true) {
             try {
                 $usersResult = UserTable::getList([
                     'select' => ['ID', 'DATE_REGISTER', 'LID'],
@@ -263,6 +262,6 @@ class RetailCrmUser
             COption::SetOptionInt(RetailcrmConstants::MODULE_ID, RetailcrmConstants::OPTION_FIX_DATE_CUSTOMER_LAST_ID, end($users)['ID']);
 
             $offset += $limit;
-        } while($isProcess === true);
+        }
     }
 }

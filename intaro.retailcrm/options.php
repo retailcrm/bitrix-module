@@ -242,9 +242,9 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_RE
         $mid,
         "N",
         9999999,
-        $dateAgent->format('d.m.Y H:i:s'), // date of first check
-        "Y", // agent is active
-        $dateAgent->format('d.m.Y H:i:s'), // date of first start
+        $dateAgent->format('d.m.Y H:i:s'),
+        "Y",
+        $dateAgent->format('d.m.Y H:i:s'),
         30
     );
 
