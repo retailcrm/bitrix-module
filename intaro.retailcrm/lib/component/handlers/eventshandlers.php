@@ -181,9 +181,7 @@ class EventsHandlers
 
                 //Если есть бонусы
                 if ($isBonusesIssetAndAvailable) {
-                    $applyBonusResponse = $loyaltyService->applyBonusesInOrder($order, $bonusFloat);
-
-                    $hlInfoBuilder->setApplyResponse($applyBonusResponse);
+                    $hlInfoBuilder->setApplyResponse($loyaltyService->applyBonusesInOrder($order, $bonusFloat));
                     $loyaltyBonusMsg = $bonusFloat;
                     $hlInfoBuilder->setBonusCountTotal($bonusFloat);
                 }
@@ -191,7 +189,6 @@ class EventsHandlers
                 //Если бонусов нет, но скидка по ПЛ есть
                 if (
                     ($isDataForLoyaltyDiscount && !$isBonusInput)
-                    || ($applyBonusResponse instanceof OrderLoyaltyApplyResponse && !$applyBonusResponse->order)
                 ) {
                     $loyaltyService->saveDiscounts($order, $calculateItemsInput);
                 }
