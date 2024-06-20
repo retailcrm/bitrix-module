@@ -43,7 +43,7 @@ if (!isset($arResult['paymentTypesList'])) {
         $availableSites,
         $RETAIL_CRM_API->paymentTypesList()->paymentTypes
     );
-    $arResult['PAYMENT_TYPES'] = unserialize(COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_SITES_LIST, 0));
+    $arResult['PAYMENT_TYPES'] = unserialize(COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_PAYMENT_TYPES, 0));
 }
 
 if (!isset($arResult['bitrixStatusesList'])) {
