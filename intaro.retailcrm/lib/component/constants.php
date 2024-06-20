@@ -69,6 +69,7 @@ class Constants
     public const CRM_ORDER_FAILED_IDS           = 'order_failed_ids';
     public const CRM_CUSTOMERS_HISTORY_SINCE_ID = 'customer_history';
     public const CRM_ORDER_HISTORY_DATE = 'order_history_date';
+    public const CRM_ORDER_HISTORY = 'order_history';
     public const CRM_CATALOG_BASE_PRICE = 'catalog_base_price';
     public const CRM_ORDER_DIMENSIONS = 'order_dimensions';
     public const CRM_INTEGRATION_DELIVERY = 'integration_delivery';
@@ -128,4 +129,8 @@ class Constants
 
     public const OPTION_FIX_DATE_CUSTOMER = 'once_upload_customer';
     public const OPTION_FIX_DATE_CUSTOMER_LAST_ID = 'last_id_customer_fix';
+    public const HISTORY_TIME = 'history_time';
+    public const MODULE_DEACTIVATE = 'module_deactivate';
+    public const AGENTS_DEACTIVATE = 'agents_deactivate';
+    public const EVENTS_DEACTIVATE = 'events_deactivate';
 }

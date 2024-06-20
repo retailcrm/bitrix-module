@@ -47,48 +47,7 @@ class intaro_retailcrm extends CModule
     public $PARTNER_URI;
     public $RETAIL_CRM_API;
     public $RETAIL_CRM_EXPORT = 'retailcrm';
-    public $CRM_API_HOST_OPTION = 'api_host';
-    public $CRM_API_KEY_OPTION = 'api_key';
-    public $CRM_SITES_LIST = 'sites_list';
-    public $CRM_ORDER_TYPES_ARR = 'order_types_arr';
-    public $CRM_DELIVERY_TYPES_ARR = 'deliv_types_arr';
-    public $CRM_DELIVERY_SERVICES_ARR = 'deliv_services_arr';
-    public $CRM_INTEGRATION_DELIVERY = 'integration_delivery';
-    public $CRM_PAYMENT_TYPES = 'pay_types_arr';
-    public $CRM_PAYMENT_STATUSES = 'pay_statuses_arr';
-    public $CRM_PAYMENT = 'payment_arr';
-    public $CRM_INTEGRATION_PAYMENT = 'integration_payment';
-    public $CRM_ORDER_LAST_ID = 'order_last_id';
-    public $CRM_ORDER_PROPS = 'order_props';
-    public $CRM_LEGAL_DETAILS = 'legal_details';
-    public $CRM_CONTRAGENT_TYPE = 'contragent_type';
-    public $CRM_ORDER_DISCHARGE = 'order_discharge';
-    public $CRM_ORDER_FAILED_IDS = 'order_failed_ids';
-    public $CRM_ORDER_HISTORY = 'order_history';
-    public $CRM_CUSTOMER_HISTORY = 'customer_history';
-    public $CRM_CATALOG_BASE_PRICE = 'catalog_base_price';
-    public $CRM_ORDER_NUMBERS = 'order_numbers';
-    public $CRM_CANSEL_ORDER = 'cansel_order';
-    public $CRM_CURRENCY = 'currency';
-    public $CRM_ADDRESS_OPTIONS = 'address_options';
-    public $CRM_INVENTORIES_UPLOAD = 'inventories_upload';
-    public $CRM_STORES = 'stores';
-    public $CRM_SHOPS = 'shops';
-    public $CRM_IBLOCKS_INVENTORIES = 'iblocks_inventories';
-    public $CRM_PRICES_UPLOAD = 'prices_upload';
-    public $CRM_PRICES = 'prices';
-    public $CRM_PRICE_SHOPS = 'price_shops';
-    public $CRM_IBLOCKS_PRICES = 'iblock_prices';
-    public $CRM_COLLECTOR = 'collector';
-    public $CRM_COLL_KEY = 'coll_key';
-    public $CRM_UA = 'ua';
-    public $CRM_UA_KEYS = 'ua_keys';
-    public $CRM_API_VERSION = 'api_version';
-    public $HISTORY_TIME    = 'history_time';
-    public $CLIENT_ID = 'client_id';
-    public $PROTOCOL  = 'protocol';
     public $INSTALL_PATH;
-    public $SITES_AVAILABLE = 'sites_available';
 
     public function __construct()
     {
@@ -195,7 +154,7 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../classes/general/RestNormalizer.php');
         include($this->INSTALL_PATH . '/../classes/general/Logger.php');
         include($this->INSTALL_PATH . '/../classes/general/services/RetailCrmService.php');
-        $version = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_VERSION, 0);
+        $version = COption::GetOptionString($this->MODULE_ID, Constants::CRM_API_VERSION, 0);
         include($this->INSTALL_PATH . '/../classes/general/ApiClient_v5.php');
         include($this->INSTALL_PATH . '/../classes/general/order/RetailCrmOrder_v5.php');
         include($this->INSTALL_PATH . '/../classes/general/history/RetailCrmHistory_v5.php');
@@ -275,10 +234,10 @@ class intaro_retailcrm extends CModule
                 $arResult['errCode'] = 'ERR_CATALOG';
             }
 
-            if ($api_host = COption::GetOptionString($this->OLD_MODULE_ID, $this->CRM_API_HOST_OPTION, 0)) {
+            if ($api_host = COption::GetOptionString($this->OLD_MODULE_ID, Constants::CRM_API_HOST_OPTION , 0)) {
                 $arResult['API_HOST'] = $api_host;
             }
-            if ($api_key = COption::GetOptionString($this->OLD_MODULE_ID, $this->CRM_API_KEY_OPTION, 0)) {
+            if ($api_key = COption::GetOptionString($this->OLD_MODULE_ID, Constants::CRM_API_KEY_OPTION, 0)) {
                 $arResult['API_KEY'] = $api_key;
             }
 
@@ -307,8 +266,8 @@ class intaro_retailcrm extends CModule
                 return false;
             }
 
-            $api_host = htmlspecialchars(trim($_POST[$this->CRM_API_HOST_OPTION]));
-            $api_key = htmlspecialchars(trim($_POST[$this->CRM_API_KEY_OPTION]));
+            $api_host = htmlspecialchars(trim($_POST[Constants::CRM_API_HOST_OPTION]));
+            $api_key = htmlspecialchars(trim($_POST[Constants::CRM_API_KEY_OPTION]));
 
             // form correct url
             $api_host = parse_url($api_host);
@@ -341,10 +300,10 @@ class intaro_retailcrm extends CModule
                 return false;
             }
 
-            COption::SetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, $api_host);
-            COption::SetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, $api_key);
+            COption::SetOptionString($this->MODULE_ID, Constants::CRM_API_HOST_OPTION, $api_host);
+            COption::SetOptionString($this->MODULE_ID, Constants::CRM_API_KEY_OPTION, $api_key);
 
-            if ($sites_list = COption::GetOptionString($this->OLD_MODULE_ID, $this->CRM_SITES_LIST, 0)) {
+            if ($sites_list = COption::GetOptionString($this->OLD_MODULE_ID, Constants::CRM_SITES_LIST, 0)) {
                 $arResult['SITES_LIST'] = unserialize($sites_list);
             }
 
@@ -373,8 +332,8 @@ class intaro_retailcrm extends CModule
             $arResult['arSites'] = RCrmActions::getSitesList();
 
             if (count($arResult['arSites']) > 1) {
-                $api_host = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, 0);
-                $api_key = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, 0);
+                $api_host = COption::GetOptionString($this->MODULE_ID, Constants::CRM_API_HOST_OPTION, 0);
+                $api_key = COption::GetOptionString($this->MODULE_ID, Constants::CRM_API_KEY_OPTION, 0);
                 $isEmptySites = true;
 
                 foreach ($arResult['arSites'] as $site) {
@@ -422,10 +381,10 @@ class intaro_retailcrm extends CModule
                 }
 
                 $this->RETAIL_CRM_API = new ApiClient($api_host, $api_key);
-                COption::SetOptionString($this->MODULE_ID, $this->CRM_SITES_LIST, serialize($siteCode));
+                COption::SetOptionString($this->MODULE_ID, Constants::CRM_SITES_LIST, serialize($siteCode));
             } else {
-                $api_host = htmlspecialchars(trim($_POST[$this->CRM_API_HOST_OPTION]));
-                $api_key = htmlspecialchars(trim($_POST[$this->CRM_API_KEY_OPTION]));
+                $api_host = htmlspecialchars(trim($_POST[Constants::CRM_API_HOST_OPTION]));
+                $api_key = htmlspecialchars(trim($_POST[Constants::CRM_API_KEY_OPTION]));
 
                 // form correct url
                 $api_host = parse_url($api_host);
@@ -457,16 +416,16 @@ class intaro_retailcrm extends CModule
                 }
 
                 $this->RETAIL_CRM_API = new ApiClient($api_host, $api_key);
-                COption::SetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, $api_host);
-                COption::SetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, $api_key);
-                COption::SetOptionString($this->MODULE_ID, $this->CRM_SITES_LIST, serialize([]));
+                COption::SetOptionString($this->MODULE_ID, Constants::CRM_API_HOST_OPTION, $api_host);
+                COption::SetOptionString($this->MODULE_ID, Constants::CRM_API_KEY_OPTION, $api_key);
+                COption::SetOptionString($this->MODULE_ID, Constants::CRM_SITES_LIST, serialize([]));
 
                 try {
                     $credentials = $this->RETAIL_CRM_API->getCredentials();
 
                     COption::SetOptionString(
                         $this->MODULE_ID,
-                        $this->SITES_AVAILABLE,
+                        Constants::SITES_AVAILABLE,
                         $credentials->sitesAvailable[0] ?? ''
                     );
                 } catch (ArgumentOutOfRangeException | CurlException $exception) {
@@ -552,19 +511,19 @@ class intaro_retailcrm extends CModule
             //bitrix statusesList --statuses
             $arResult['bitrixStatusesList'] = RCrmActions::StatusesList();
 
-            if ($order_types = COption::GetOptionString($this->OLD_MODULE_ID, $this->CRM_ORDER_TYPES_ARR, 0)) {
+            if ($order_types = COption::GetOptionString($this->OLD_MODULE_ID, Constants::CRM_ORDER_TYPES_ARR, 0)) {
                 $arResult['ORDER_TYPES'] = array_flip(unserialize($order_types));
             }
-            if ($delivery_types = COption::GetOptionString($this->OLD_MODULE_ID, $this->CRM_DELIVERY_TYPES_ARR, 0)) {
+            if ($delivery_types = COption::GetOptionString($this->OLD_MODULE_ID, Constants::CRM_DELIVERY_TYPES_ARR, 0)) {
                 $arResult['DELIVERY_TYPES'] = array_flip(unserialize($delivery_types));
             }
-            if ($payment_types = COption::GetOptionString($this->OLD_MODULE_ID, $this->CRM_PAYMENT_TYPES, 0)) {
+            if ($payment_types = COption::GetOptionString($this->OLD_MODULE_ID, Constants::CRM_PAYMENT_TYPES, 0)) {
                 $arResult['PAYMENT_TYPES'] = array_flip(unserialize($payment_types));
             }
-            if ($payment_statuses = COption::GetOptionString($this->OLD_MODULE_ID, $this->CRM_PAYMENT_STATUSES, 0)) {
+            if ($payment_statuses = COption::GetOptionString($this->OLD_MODULE_ID, Constants::CRM_PAYMENT_STATUSES, 0)) {
                 $arResult['PAYMENT_STATUSES'] = array_flip(unserialize($payment_statuses));
             }
-            if ($payment = COption::GetOptionString($this->OLD_MODULE_ID, $this->CRM_PAYMENT, 0)) {
+            if ($payment = COption::GetOptionString($this->OLD_MODULE_ID, Constants::CRM_PAYMENT, 0)) {
                 $arResult['PAYMENT'] = array_flip(unserialize($payment));
             }
 
@@ -583,8 +542,8 @@ class intaro_retailcrm extends CModule
             }
 
             // api load
-            $api_host = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, 0);
-            $api_key = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, 0);
+            $api_host = COption::GetOptionString($this->MODULE_ID, Constants::CRM_API_HOST_OPTION, 0);
+            $api_key = COption::GetOptionString($this->MODULE_ID, Constants::CRM_API_KEY_OPTION, 0);
             $this->RETAIL_CRM_API = new ApiClient($api_host, $api_key);
 
             $useCrmOrderMethods = htmlspecialchars(trim($_POST['use_crm_order_methods'])) === 'Y' ? 'Y' : 'N';
@@ -698,16 +657,16 @@ class intaro_retailcrm extends CModule
             $request = Application::getInstance()->getContext()->getRequest();
 
             if ($request->isHttps() === true) {
-                COption::SetOptionString($this->MODULE_ID, $this->PROTOCOL, 'https://');
+                COption::SetOptionString($this->MODULE_ID, Constants::PROTOCOL, 'https://');
             } else {
-                COption::SetOptionString($this->MODULE_ID, $this->PROTOCOL, 'http://');
+                COption::SetOptionString($this->MODULE_ID, Constants::PROTOCOL, 'http://');
             }
 
             // Set order types
             if (!empty($orderTypesArr)) {
                 COption::SetOptionString(
                     $this->MODULE_ID,
-                    $this->CRM_ORDER_TYPES_ARR,
+                    Constants::CRM_ORDER_TYPES_ARR,
                     serialize(RCrmActions::clearArr($orderTypesArr)
                     )
                 );
@@ -717,7 +676,7 @@ class intaro_retailcrm extends CModule
             if (!empty($deliveryTypesArr)) {
                 COption::SetOptionString(
                     $this->MODULE_ID,
-                    $this->CRM_DELIVERY_TYPES_ARR,
+                    Constants::CRM_DELIVERY_TYPES_ARR,
                     serialize(RCrmActions::clearArr($deliveryTypesArr)
                     )
                 );
@@ -727,7 +686,7 @@ class intaro_retailcrm extends CModule
             if (!empty($paymentTypesArr)) {
                 COption::SetOptionString(
                     $this->MODULE_ID,
-                    $this->CRM_PAYMENT_TYPES,
+                    Constants::CRM_PAYMENT_TYPES,
                     serialize(RCrmActions::clearArr($paymentTypesArr)
                     )
                 );
@@ -737,7 +696,7 @@ class intaro_retailcrm extends CModule
             if (!empty($paymentStatusesArr)) {
                 COption::SetOptionString(
                     $this->MODULE_ID,
-                    $this->CRM_PAYMENT_STATUSES,
+                    Constants::CRM_PAYMENT_STATUSES,
                     serialize(RCrmActions::clearArr($paymentStatusesArr)
                     )
                 );
@@ -747,33 +706,33 @@ class intaro_retailcrm extends CModule
             if (!empty($paymentArr)) {
                 COption::SetOptionString(
                     $this->MODULE_ID,
-                    $this->CRM_PAYMENT,
+                    Constants::CRM_PAYMENT,
                     serialize(RCrmActions::clearArr($paymentArr)
                     )
                 );
             }
 
-            COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_LAST_ID, 0);
-            COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_DISCHARGE, 1);
-            COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_FAILED_IDS, serialize([]));
+            COption::SetOptionString($this->MODULE_ID, Constants::CRM_ORDER_LAST_ID, 0);
+            COption::SetOptionString($this->MODULE_ID, Constants::CRM_ORDER_DISCHARGE, 1);
+            COption::SetOptionString($this->MODULE_ID, Constants::CRM_ORDER_FAILED_IDS, serialize([]));
 
             // Set cansel order
             if (!empty($canselOrderArr)) {
                 COption::SetOptionString(
                     $this->MODULE_ID,
-                    $this->CRM_CANSEL_ORDER,
+                    Constants::CRM_CANCEL_ORDER,
                     serialize(RCrmActions::clearArr($canselOrderArr)
                     )
                 );
             }
 
-            if ($orderProps = COption::GetOptionString($this->OLD_MODULE_ID, $this->CRM_ORDER_PROPS, 0)) {
+            if ($orderProps = COption::GetOptionString($this->OLD_MODULE_ID, Constants::CRM_ORDER_PROPS, 0)) {
                 $arResult['ORDER_PROPS'] = unserialize($orderProps);
             }
-            if ($legalDetails = COption::GetOptionString($this->OLD_MODULE_ID, $this->CRM_LEGAL_DETAILS, 0)) {
+            if ($legalDetails = COption::GetOptionString($this->OLD_MODULE_ID, Constants::CRM_LEGAL_DETAILS, 0)) {
                 $arResult['LEGAL_DETAILS'] = unserialize($legalDetails);
             }
-            if ($contragentType = COption::GetOptionString($this->OLD_MODULE_ID, $this->CRM_CONTRAGENT_TYPE, 0)) {
+            if ($contragentType = COption::GetOptionString($this->OLD_MODULE_ID, Constants::CRM_CONTRAGENT_TYPE, 0)) {
                 $arResult['CONTRAGENT_TYPES'] = unserialize($contragentType);
             }
 
@@ -801,7 +760,7 @@ class intaro_retailcrm extends CModule
                 $this->loadDeps();
                 RetailCrmOrder::uploadOrders(); // each 50
 
-                $lastUpOrderId = COption::GetOptionString($this->MODULE_ID, $this->CRM_ORDER_LAST_ID, 0);
+                $lastUpOrderId = COption::GetOptionString($this->MODULE_ID, Constants::CRM_ORDER_LAST_ID, 0);
                 $countLeft = (int) OrderTable::getCount(['>ID' => $lastUpOrderId]);
                 $countAll = (int) OrderTable::getCount();
 
@@ -873,10 +832,10 @@ class intaro_retailcrm extends CModule
                 $contragentTypeArr[$orderType['ID']] = htmlspecialchars(trim($_POST['contragent-type-' . $orderType['ID']]));
             }
 
-            COption::SetOptionString($this->MODULE_ID, $this->CRM_ADDRESS_OPTIONS, serialize($addressDetailOptions));
-            COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_PROPS, serialize(RCrmActions::clearArr($orderPropsArr)));
-            COption::SetOptionString($this->MODULE_ID, $this->CRM_LEGAL_DETAILS, serialize(RCrmActions::clearArr($legalDetailsArr)));
-            COption::SetOptionString($this->MODULE_ID, $this->CRM_CONTRAGENT_TYPE, serialize(RCrmActions::clearArr($contragentTypeArr)));
+            COption::SetOptionString($this->MODULE_ID, Constants::CRM_ADDRESS_OPTIONS, serialize($addressDetailOptions));
+            COption::SetOptionString($this->MODULE_ID, Constants::CRM_ORDER_PROPS, serialize(RCrmActions::clearArr($orderPropsArr)));
+            COption::SetOptionString($this->MODULE_ID, Constants::CRM_LEGAL_DETAILS, serialize(RCrmActions::clearArr($legalDetailsArr)));
+            COption::SetOptionString($this->MODULE_ID, Constants::CRM_CONTRAGENT_TYPE, serialize(RCrmActions::clearArr($contragentTypeArr)));
 
             $APPLICATION->IncludeAdminFile(
                 GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step4.php'
@@ -914,12 +873,12 @@ class intaro_retailcrm extends CModule
                 $arResult['errCode'] = 'ERR_SALE';
             }
 
-            $api_host = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, 0);
-            $api_key = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, 0);
+            $api_host = COption::GetOptionString($this->MODULE_ID, Constants::CRM_API_HOST_OPTION, 0);
+            $api_key = COption::GetOptionString($this->MODULE_ID, Constants::CRM_API_KEY_OPTION, 0);
             $api = new ApiClient($api_host, $api_key);
 
             $customerH = $this->historyLoad($api, 'customersHistory');
-            COption::SetOptionString($this->MODULE_ID, $this->CRM_CUSTOMER_HISTORY, $customerH);
+            COption::SetOptionString($this->MODULE_ID, Constants::CRM_CUSTOMERS_HISTORY_SINCE_ID, $customerH);
 
             //new data
             if ($historyDate = COption::GetOptionString($this->OLD_MODULE_ID, 'order_history_date', 0)) {
@@ -948,10 +907,10 @@ class intaro_retailcrm extends CModule
                 $orderH = $this->historyLoad($api, 'ordersHistory');
             }
 
-            COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_HISTORY, $orderH);
+            COption::SetOptionString($this->MODULE_ID, Constants::CRM_ORDER_HISTORY, $orderH);
 
-            if ($orderLastId = COption::GetOptionString($this->OLD_MODULE_ID, $this->CRM_ORDER_LAST_ID, 0)) {
-                COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_LAST_ID, $orderLastId);
+            if ($orderLastId = COption::GetOptionString($this->OLD_MODULE_ID, Constants::CRM_ORDER_LAST_ID, 0)) {
+                COption::SetOptionString($this->MODULE_ID, Constants::CRM_ORDER_LAST_ID, $orderLastId);
             } else {
                 $dbOrder = OrderTable::GetList([
                     'order'  => ['ID' => 'DESC'],
@@ -960,14 +919,14 @@ class intaro_retailcrm extends CModule
                 ]);
                 $arOrder = $dbOrder->fetch();
                 if (!empty($arOrder['ID'])) {
-                    COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_LAST_ID, $arOrder['ID']);
+                    COption::SetOptionString($this->MODULE_ID, Constants::CRM_ORDER_LAST_ID, $arOrder['ID']);
                 } else {
-                    COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_LAST_ID, 0);
+                    COption::SetOptionString($this->MODULE_ID, Constants::CRM_ORDER_LAST_ID, 0);
                 }
             }
 
-            if ($orderFailedIds = COption::GetOptionString($this->OLD_MODULE_ID, $this->CRM_ORDER_FAILED_IDS, 0)) {
-                COption::SetOptionString($this->MODULE_ID, $this->CRM_ORDER_FAILED_IDS, $orderFailedIds);
+            if ($orderFailedIds = COption::GetOptionString($this->OLD_MODULE_ID, Constants::CRM_ORDER_FAILED_IDS, 0)) {
+                COption::SetOptionString($this->MODULE_ID, Constants::CRM_ORDER_FAILED_IDS, $orderFailedIds);
             }
 
             $arResult['PRICE_TYPES'] = [];
@@ -1140,11 +1099,11 @@ class intaro_retailcrm extends CModule
             RegisterModuleDependences('main', 'OnAfterUserAdd', $this->MODULE_ID, 'RetailCrmEvent', 'OnAfterUserAdd');
 
 
-            COption::SetOptionString($this->MODULE_ID, $this->CRM_CATALOG_BASE_PRICE, htmlspecialchars(trim($_POST['price-types'])));
-            COption::SetOptionString($this->MODULE_ID, $this->CRM_INVENTORIES_UPLOAD, 'N');
-            COption::SetOptionString($this->MODULE_ID, $this->CRM_PRICES_UPLOAD, 'N');
-            COption::SetOptionString($this->MODULE_ID, $this->CRM_COLLECTOR, 'N');
-            COption::SetOptionString($this->MODULE_ID, $this->CRM_UA, 'N');
+            COption::SetOptionString($this->MODULE_ID, Constants::CRM_CATALOG_BASE_PRICE, htmlspecialchars(trim($_POST['price-types'])));
+            COption::SetOptionString($this->MODULE_ID, Constants::CRM_INVENTORIES_UPLOAD, 'N');
+            COption::SetOptionString($this->MODULE_ID, Constants::CRM_PRICES_UPLOAD, 'N');
+            COption::SetOptionString($this->MODULE_ID, Constants::CRM_COLLECTOR, 'N');
+            COption::SetOptionString($this->MODULE_ID, Constants::CRM_UA, 'N');
 
             //agent
             $dateAgent = new DateTime();
@@ -1164,7 +1123,7 @@ class intaro_retailcrm extends CModule
 
             $this->CopyFiles();
 
-            COption::RemoveOption($this->MODULE_ID, $this->CRM_CATALOG_BASE_PRICE);
+            COption::RemoveOption($this->MODULE_ID, Constants::CRM_CATALOG_BASE_PRICE);
 
             if (
                 file_exists($_SERVER['DOCUMENT_ROOT']
@@ -1217,7 +1176,7 @@ class intaro_retailcrm extends CModule
 
             COption::SetOptionString(
                 $this->MODULE_ID,
-                $this->CRM_CATALOG_BASE_PRICE . '_' . $profileId,
+                Constants::CRM_CATALOG_BASE_PRICE . '_' . $profileId,
                 htmlspecialchars(trim($_POST['price-types']))
             );
 
@@ -1239,8 +1198,8 @@ class intaro_retailcrm extends CModule
                 CCatalogExport::PreGenerateExport($profileId);
             }
 
-            $api_host = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, 0);
-            $api_key = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, 0);
+            $api_host = COption::GetOptionString($this->MODULE_ID, Constants::CRM_API_HOST_OPTION, 0);
+            $api_key = COption::GetOptionString($this->MODULE_ID, Constants::CRM_API_KEY_OPTION, 0);
             $this->RETAIL_CRM_API = new ApiClient($api_host, $api_key);
 
             RCrmActions::sendConfiguration($this->RETAIL_CRM_API);
@@ -1255,8 +1214,8 @@ class intaro_retailcrm extends CModule
     {
         global $APPLICATION;
 
-        $api_host    = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_HOST_OPTION, 0);
-        $api_key     = COption::GetOptionString($this->MODULE_ID, $this->CRM_API_KEY_OPTION, 0);
+        $api_host    = COption::GetOptionString($this->MODULE_ID, Constants::CRM_API_HOST_OPTION, 0);
+        $api_key     = COption::GetOptionString($this->MODULE_ID, Constants::CRM_API_KEY_OPTION, 0);
 
         require_once($this->INSTALL_PATH . '/../classes/general/Http/Client.php');
         require_once($this->INSTALL_PATH . '/../classes/general/Response/ApiResponse.php');
@@ -1276,45 +1235,45 @@ class intaro_retailcrm extends CModule
         CAgent::RemoveAgent('RetailCrmInventories::inventoriesUpload();', $this->MODULE_ID);
         CAgent::RemoveAgent('RetailCrmPrices::pricesUpload();', $this->MODULE_ID);
 
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_API_HOST_OPTION);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_API_KEY_OPTION);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_DELIVERY_TYPES_ARR);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_INTEGRATION_DELIVERY);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_PAYMENT_TYPES);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_PAYMENT_STATUSES);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_PAYMENT);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_INTEGRATION_PAYMENT);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_LAST_ID);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_PROPS);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_TYPES_ARR);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_LEGAL_DETAILS);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_CONTRAGENT_TYPE);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_SITES_LIST);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_DISCHARGE);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_FAILED_IDS);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_CUSTOMER_HISTORY);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_HISTORY);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_CATALOG_BASE_PRICE);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_CURRENCY);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_ADDRESS_OPTIONS);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_ORDER_NUMBERS);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_CANSEL_ORDER);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_INVENTORIES_UPLOAD);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_STORES);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_SHOPS);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_IBLOCKS_INVENTORIES);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_PRICES_UPLOAD);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_PRICES);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_PRICE_SHOPS);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_IBLOCKS_PRICES);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_COLLECTOR);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_COLL_KEY);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_UA);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_UA_KEYS);
-        COption::RemoveOption($this->MODULE_ID, $this->CRM_API_VERSION);
-        COption::RemoveOption($this->MODULE_ID, $this->HISTORY_TIME);
-        COption::RemoveOption($this->MODULE_ID, $this->CLIENT_ID);
-        COption::RemoveOption($this->MODULE_ID, $this->PROTOCOL);
+        COption::RemoveOption($this->MODULE_ID, Constants::CRM_API_HOST_OPTION);
+        COption::RemoveOption($this->MODULE_ID, Constants::CRM_API_KEY_OPTION);
+        COption::RemoveOption($this->MODULE_ID, Constants::CRM_DELIVERY_TYPES_ARR);
+        COption::RemoveOption($this->MODULE_ID, Constants::CRM_INTEGRATION_DELIVERY);
+        COption::RemoveOption($this->MODULE_ID, Constants::CRM_PAYMENT_TYPES);
+        COption::RemoveOption($this->MODULE_ID, Constants::CRM_PAYMENT_STATUSES);
+        COption::RemoveOption($this->MODULE_ID, Constants::CRM_PAYMENT);
+        COption::RemoveOption($this->MODULE_ID, Constants::CRM_INTEGRATION_PAYMENT);
+        COption::RemoveOption($this->MODULE_ID, Constants::CRM_ORDER_LAST_ID);
+        COption::RemoveOption($this->MODULE_ID, Constants::CRM_ORDER_PROPS);
+        COption::RemoveOption($this->MODULE_ID, Constants::CRM_ORDER_TYPES_ARR);
+        COption::RemoveOption($this->MODULE_ID, Constants::CRM_LEGAL_DETAILS);
+        COption::RemoveOption($this->MODULE_ID, Constants::CRM_CONTRAGENT_TYPE);
+        COption::RemoveOption($this->MODULE_ID, Constants::CRM_SITES_LIST);
+        COption::RemoveOption($this->MODULE_ID, Constants::CRM_ORDER_DISCHARGE);
+        COption::RemoveOption($this->MODULE_ID, Constants::CRM_ORDER_FAILED_IDS);
+        COption::RemoveOption($this->MODULE_ID, Constants::CRM_CUSTOMERS_HISTORY_SINCE_ID);
+        COption::RemoveOption($this->MODULE_ID, Constants::CRM_ORDER_HISTORY);
+        COption::RemoveOption($this->MODULE_ID, Constants::CRM_CATALOG_BASE_PRICE);
+        COption::RemoveOption($this->MODULE_ID, Constants::CRM_CURRENCY);
+        COption::RemoveOption($this->MODULE_ID, Constants::CRM_ADDRESS_OPTIONS);
+        COption::RemoveOption($this->MODULE_ID, Constants::CRM_ORDER_NUMBERS);
+        COption::RemoveOption($this->MODULE_ID, Constants::CRM_CANCEL_ORDER);
+        COption::RemoveOption($this->MODULE_ID, Constants::CRM_INVENTORIES_UPLOAD);
+        COption::RemoveOption($this->MODULE_ID, Constants::CRM_STORES);
+        COption::RemoveOption($this->MODULE_ID, Constants::CRM_SHOPS);
+        COption::RemoveOption($this->MODULE_ID, Constants::CRM_IBLOCKS_INVENTORIES);
+        COption::RemoveOption($this->MODULE_ID, Constants::CRM_PRICES_UPLOAD);
+        COption::RemoveOption($this->MODULE_ID, Constants::CRM_PRICES);
+        COption::RemoveOption($this->MODULE_ID, Constants::CRM_PRICE_SHOPS);
+        COption::RemoveOption($this->MODULE_ID, Constants::CRM_IBLOCKS_PRICES);
+        COption::RemoveOption($this->MODULE_ID, Constants::CRM_COLLECTOR);
+        COption::RemoveOption($this->MODULE_ID, Constants::CRM_COLL_KEY);
+        COption::RemoveOption($this->MODULE_ID, Constants::CRM_UA);
+        COption::RemoveOption($this->MODULE_ID, Constants::CRM_UA_KEYS);
+        COption::RemoveOption($this->MODULE_ID, Constants::CRM_API_VERSION);
+        COption::RemoveOption($this->MODULE_ID, Constants::HISTORY_TIME);
+        COption::RemoveOption($this->MODULE_ID, Constants::CLIENT_ID);
+        COption::RemoveOption($this->MODULE_ID, Constants::PROTOCOL);
         COption::RemoveOption($this->MODULE_ID, Constants::MATCHED_CUSTOM_PROPS);
         COption::RemoveOption($this->MODULE_ID, Constants::MATCHED_CUSTOM_USER_FIELDS);
         COption::RemoveOption($this->MODULE_ID, Constants::CRM_ORDER_METHODS);

@@ -8,6 +8,13 @@ $MESS ['ICRM_API_HOST'] = 'Адрес RetailCRM:';
 $MESS ['ICRM_API_KEY'] = 'Ключ авторизации:';
 $MESS ['ICRM_SITES'] = 'Активные сайты';
 
+$MESS ['ICRM_OPTIONS_GENERAL_CAPTION'] = 'Настройка подключения к системе RetailCRM';
+$MESS ['ICRM_OPTIONS_CATALOG_CAPTION'] = 'Сопоставление справочников системы RetailCRM и Bitrix';
+$MESS ['ICRM_OPTIONS_ORDER_PROPS_CAPTION'] = 'Сопоставление полей заказа системы RetailCRM и Bitrix';
+$MESS ['ICRM_OPTIONS_LOYALTY_PROGRAM_CAPTION'] = 'Настройка работы с программой лояльности';
+$MESS ['ICRM_OPTIONS_OTHER_CAPTION'] = 'Настройка дополнительных опций интеграции c системой RetailCRM';
+
+
 $MESS ['ICRM_OPTIONS_CATALOG_TAB'] = 'Настройка справочников';
 $MESS ['DELIVERY_TYPES_LIST'] = 'Способы доставки';
 $MESS ['PAYMENT_TYPES_LIST'] = 'Способы оплаты';

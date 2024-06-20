@@ -21,54 +21,6 @@ IncludeModuleLangFile(__FILE__);
 $mid = 'intaro.retailcrm';
 $uri = $APPLICATION->GetCurPage() . '?mid=' . htmlspecialchars($mid) . '&lang=' . LANGUAGE_ID;
 
-$CRM_API_HOST_OPTION       = 'api_host';
-$CRM_API_KEY_OPTION        = 'api_key';
-$CRM_ORDER_TYPES_ARR       = 'order_types_arr';
-$CRM_DELIVERY_TYPES_ARR    = 'deliv_types_arr';
-$CRM_DELIVERY_SERVICES_ARR = 'deliv_services_arr';
-$CRM_PAYMENT_TYPES         = 'pay_types_arr';
-$CRM_PAYMENT_STATUSES      = 'pay_statuses_arr';
-$CRM_PAYMENT               = 'payment_arr';
-$CRM_ORDER_LAST_ID         = 'order_last_id';
-$CRM_ORDER_SITES           = 'sites_ids';
-$CRM_ORDER_DISCHARGE       = 'order_discharge';
-$CRM_ORDER_PROPS           = 'order_props';
-$CRM_LEGAL_DETAILS         = 'legal_details';
-$CRM_CUSTOM_FIELDS         = 'custom_fields';
-$CRM_COUPON_FIELD          = 'crm_coupon_field';
-$CRM_CONTRAGENT_TYPE       = 'contragent_type';
-$CRM_SITES_LIST            = 'sites_list';
-$CRM_ORDER_NUMBERS         = 'order_numbers';
-$CRM_ORDER_VAT             = 'order_vat';
-$CRM_CANSEL_ORDER          = 'cansel_order';
-$CRM_INVENTORIES_UPLOAD  = 'inventories_upload';
-$CRM_STORES              = 'stores';
-$CRM_SHOPS               = 'shops';
-$CRM_IBLOCKS_INVENTORIES = 'iblocks_inventories';
-$CRM_PRICES_UPLOAD  = 'prices_upload';
-$CRM_PRICES         = 'prices';
-$CRM_PRICE_SHOPS    = 'price_shops';
-$CRM_IBLOCKS_PRICES = 'iblock_prices';
-$CRM_COLLECTOR = 'collector';
-$CRM_COLL_KEY  = 'coll_key';
-$CRM_UA      = 'ua';
-$CRM_UA_KEYS = 'ua_keys';
-$CRM_DISCOUNT_ROUND = 'discount_round';
-$CRM_CC = 'cc';
-$CRM_CORP_SHOPS = 'shops-corporate';
-$CRM_CORP_NAME = 'nickName-corporate';
-$CRM_CORP_ADRES = 'adres-corporate';
-$CRM_API_VERSION = 'api_version';
-$CRM_CURRENCY        = 'currency';
-$CRM_ADDRESS_OPTIONS = 'address_options';
-$CRM_DIMENSIONS      = 'order_dimensions';
-$PROTOCOL            = 'protocol';
-$CRM_PURCHASE_PRICE_NULL = 'purchasePrice_null';
-$CRM_CART = 'cart';
-$MODULE_DEACTIVATE = 'module_deactivate';
-$AGENTS_DEACTIVATE = 'agents_deactivate';
-$EVENTS_DEACTIVATE = 'events_deactivate';
-
 if (!CModule::IncludeModule('intaro.retailcrm') || !CModule::IncludeModule('sale') || !CModule::IncludeModule('iblock') || !CModule::IncludeModule('catalog')) {
     return;
 }
@@ -130,8 +82,8 @@ if (method_exists(RCrmActions::class, 'customOrderPropList')
 
 //ajax update deliveryServices
 if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') && isset($_POST['ajax']) && ($_POST['ajax'] === 1)) {
-    $api_host = COption::GetOptionString($mid, $CRM_API_HOST_OPTION, 0);
-    $api_key = COption::GetOptionString($mid, $CRM_API_KEY_OPTION, 0);
+    $api_host = COption::GetOptionString($mid, Constants::CRM_API_HOST_OPTION, 0);
+    $api_key = COption::GetOptionString($mid, Constants::CRM_API_KEY_OPTION , 0);
     $api = new RetailCrm\ApiClient($api_host, $api_key);
 
     try {
@@ -147,7 +99,7 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_RE
         die(json_encode(['success' => false, 'errMsg' => $e->getCode()]));
     }
 
-    $optionsDelivTypes    = unserialize(COption::GetOptionString($mid, $CRM_DELIVERY_TYPES_ARR, 0));
+    $optionsDelivTypes    = unserialize(COption::GetOptionString($mid, Constants::CRM_DELIVERY_TYPES_ARR, 0));
     $arDeliveryServiceAll = Manager::getActiveList();
 
     foreach ($optionsDelivTypes as $key => $deliveryType) {
@@ -354,7 +306,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $paymentArr['Y'] = htmlspecialchars(trim($_POST['payment-Y']));
     $paymentArr['N'] = htmlspecialchars(trim($_POST['payment-N']));
 
-    $previousDischarge = COption::GetOptionString($mid, $CRM_ORDER_DISCHARGE, 0);
+    $previousDischarge = COption::GetOptionString($mid, Constants::CRM_ORDER_DISCHARGE, 0);
     //order discharge mode
     // 0 - agent
     // 1 - event
@@ -370,7 +322,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         RegisterModuleDependences('sale', 'OnSaleOrderDeleted', $mid, 'RetailCrmEvent', "orderDelete");
     }
 
-    $optionCart = COption::GetOptionString($mid, $CRM_CART, 'N');
+    $optionCart = COption::GetOptionString($mid, Constants::CART, 'N');
 
     $cart = htmlspecialchars(trim($_POST['cart']));
 
@@ -595,7 +547,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
     //version
 
-    $version = COption::GetOptionString($mid, $CRM_API_VERSION);
+    $version = COption::GetOptionString($mid, Constants::CRM_API_VERSION);
 
     if (htmlspecialchars(trim($_POST['api_version'])) != $version) {
         if (htmlspecialchars(trim($_POST['api_version'])) === 'v5') {
@@ -621,15 +573,15 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         );
 
         if ($result->getStatusCode() === 200) {
-            COption::SetOptionString($mid, $CRM_API_VERSION, $version);
+            COption::SetOptionString($mid, Constants::CRM_API_VERSION, $version);
         } else {
             LocalRedirect($uri);
             echo CAdminMessage::ShowMessage(GetMessage('API_NOT_WORK'));
         }
     }
 
-    if ($_POST[$CRM_CURRENCY]) {
-        COption::SetOptionString($mid, $CRM_CURRENCY, $_POST['currency']);
+    if ($_POST[Constants::CRM_CURRENCY]) {
+        COption::SetOptionString($mid, Constants::CRM_CURRENCY, $_POST['currency']);
     }
 
     if (isset($_POST['loyalty_toggle']) && $_POST['loyalty_toggle'] === 'on') {
@@ -706,17 +658,17 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         }
 
         if ($deactivateAgents !== []) {
-            COption::SetOptionString($mid, $AGENTS_DEACTIVATE, serialize($deactivateAgents));
+            COption::SetOptionString($mid, Constants::AGENTS_DEACTIVATE, serialize($deactivateAgents));
         }
 
         if ($deactivateEvents !== []) {
-            COption::SetOptionString($mid, $EVENTS_DEACTIVATE, serialize($deactivateEvents));
+            COption::SetOptionString($mid, Constants::EVENTS_DEACTIVATE, serialize($deactivateEvents));
         }
 
         RCrmActions::sendConfiguration($api, false);
     } else {
-        $deactivateAgents = unserialize(COption::GetOptionString($mid, $AGENTS_DEACTIVATE, ''));
-        $deactivateEvents = unserialize(COption::GetOptionString($mid, $EVENTS_DEACTIVATE, ''));
+        $deactivateAgents = unserialize(COption::GetOptionString($mid, Constants::AGENTS_DEACTIVATE, ''));
+        $deactivateEvents = unserialize(COption::GetOptionString($mid, Constants::EVENTS_DEACTIVATE, ''));
 
         if (!empty($deactivateAgents)) {
             $dateAgent = new DateTime();
@@ -736,7 +688,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 );
             }
 
-            COption::SetOptionString($mid, $AGENTS_DEACTIVATE, serialize([]));
+            COption::SetOptionString($mid, Constants::AGENTS_DEACTIVATE, serialize([]));
         }
 
         if (!empty($deactivateEvents)) {
@@ -762,7 +714,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 }
             }
 
-            COption::SetOptionString($mid, $EVENTS_DEACTIVATE, serialize([]));
+            COption::SetOptionString($mid, Constants::EVENTS_DEACTIVATE, serialize([]));
         }
 
         RCrmActions::sendConfiguration($api);
@@ -770,72 +722,72 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
     COption::SetOptionString(
         $mid,
-        $MODULE_DEACTIVATE,
+        Constants::MODULE_DEACTIVATE,
         serialize($moduleDeactivateParam)
     );
     COption::SetOptionString(
         $mid,
-        $CRM_ADDRESS_OPTIONS,
+        Constants::CRM_ADDRESS_OPTIONS,
         serialize($addressDatailOptions)
     );
     COption::SetOptionString(
         $mid,
-        $CRM_SITES_LIST,
+        Constants::CRM_SITES_LIST,
         serialize($siteListArr)
     );
     COption::SetOptionString(
         $mid,
-        $CRM_ORDER_TYPES_ARR,
+        Constants::CRM_ORDER_TYPES_ARR,
         serialize(RCrmActions::clearArr(is_array($orderTypesArr) ? $orderTypesArr : []))
     );
     COption::SetOptionString(
         $mid,
-        $CRM_DELIVERY_TYPES_ARR,
+        Constants::CRM_DELIVERY_TYPES_ARR,
         serialize(RCrmActions::clearArr(is_array($deliveryTypesArr) ? $deliveryTypesArr : []))
     );
     COption::SetOptionString(
         $mid,
-        $CRM_PAYMENT_TYPES,
+        Constants::CRM_PAYMENT_TYPES,
         serialize(RCrmActions::clearArr(is_array($paymentTypesArr) ? $paymentTypesArr : []))
     );
     COption::SetOptionString(
         $mid,
-        $CRM_PAYMENT_STATUSES,
+        Constants::CRM_PAYMENT_STATUSES,
         serialize(RCrmActions::clearArr(is_array($paymentStatusesArr) ? $paymentStatusesArr : []))
     );
     COption::SetOptionString(
         $mid,
-        $CRM_PAYMENT,
+        Constants::CRM_PAYMENT,
         serialize(RCrmActions::clearArr(is_array($paymentArr) ? $paymentArr : []))
     );
     COption::SetOptionString(
         $mid,
-        $CRM_ORDER_DISCHARGE,
+        Constants::CRM_ORDER_DISCHARGE,
         $orderDischarge
     );
     COption::SetOptionString(
         $mid,
-        $CRM_ORDER_PROPS,
+        Constants::CRM_ORDER_PROPS,
         serialize(RCrmActions::clearArr(is_array($orderPropsArr) ? $orderPropsArr : []))
     );
     COption::SetOptionString(
         $mid,
-        $CRM_CONTRAGENT_TYPE,
+        Constants::CRM_CONTRAGENT_TYPE,
         serialize(RCrmActions::clearArr(is_array($contragentTypeArr) ? $contragentTypeArr : []))
     );
     COption::SetOptionString(
         $mid,
-        $CRM_LEGAL_DETAILS,
+        Constants::CRM_LEGAL_DETAILS,
         serialize(RCrmActions::clearArr(is_array($legalDetailsArr) ? $legalDetailsArr : []))
     );
     COption::SetOptionString(
         $mid,
-        $CRM_ORDER_NUMBERS,
+        Constants::CRM_ORDER_NUMBERS,
         htmlspecialchars(trim($_POST['order-numbers'])) ?: 'N'
     );
     COption::SetOptionString(
         $mid,
-        $CRM_ORDER_VAT,
+        Constants::CRM_ORDER_VAT,
         htmlspecialchars(trim($_POST['order-vat'])) ?: 'N'
     );
 
@@ -910,7 +862,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
     COption::SetOptionString(
         $mid,
-        $CRM_COUPON_FIELD,
+        Constants::CRM_COUPON_FIELD,
         htmlspecialchars(trim($_POST['crm-coupon-field'])) ?: 'N'
     );
     COption::SetOptionString(
@@ -920,32 +872,32 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     );
     COption::SetOptionString(
         $mid,
-        $CRM_CANSEL_ORDER,
+        Constants::CRM_CANCEL_ORDER,
         serialize(RCrmActions::clearArr(is_array($canselOrderArr) ? $canselOrderArr : []))
     );
     COption::SetOptionString(
         $mid,
-        $CRM_INVENTORIES_UPLOAD,
+        Constants::CRM_INVENTORIES_UPLOAD,
         $inventoriesUpload
     );
     COption::SetOptionString(
         $mid,
-        $CRM_STORES,
+        Constants::CRM_STORES,
         serialize(RCrmActions::clearArr(is_array($bitrixStoresArr) ? $bitrixStoresArr : []))
     );
     COption::SetOptionString(
         $mid,
-        $CRM_SHOPS,
+        Constants::CRM_SHOPS,
         serialize(RCrmActions::clearArr(is_array($bitrixShopsArr) ? $bitrixShopsArr : []))
     );
     COption::SetOptionString(
         $mid,
-        $CRM_IBLOCKS_INVENTORIES,
+        Constants::CRM_IBLOCKS_INVENTORIES,
         serialize(RCrmActions::clearArr(is_array($bitrixIblocksInventories) ? $bitrixIblocksInventories : []))
     );
     COption::SetOptionString(
         $mid,
-        $CRM_PRICES_UPLOAD,
+        Constants::CRM_PRICES_UPLOAD,
         $pricesUpload
     );
     COption::SetOptionString(
@@ -960,27 +912,27 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     );
     COption::SetOptionString(
         $mid,
-        $CRM_PRICES,
+        Constants::CRM_PRICES,
         serialize(RCrmActions::clearArr(is_array($bitrixPricesArr) ? $bitrixPricesArr : []))
     );
     COption::SetOptionString(
         $mid,
-        $CRM_PRICE_SHOPS,
+        Constants::CRM_PRICE_SHOPS,
         serialize(RCrmActions::clearArr(is_array($bitrixPriceShopsArr) ? $bitrixPriceShopsArr : []))
     );
     COption::SetOptionString(
         $mid,
-        $CRM_IBLOCKS_PRICES,
+        Constants::CRM_IBLOCKS_PRICES,
         serialize(RCrmActions::clearArr(is_array($bitrixIblocksPrices) ? $bitrixIblocksPrices : []))
     );
     COption::SetOptionString(
         $mid,
-        $CRM_COLLECTOR,
+        Constants::CRM_COLLECTOR,
         $collector
     );
     COption::SetOptionString(
         $mid,
-        $CRM_COLL_KEY,
+        Constants::CRM_COLL_KEY,
         serialize(RCrmActions::clearArr(is_array($collectorKeys) ? $collectorKeys : []))
     );
 
@@ -989,25 +941,25 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
     COption::SetOptionString(
         $mid,
-        $CRM_UA,
+        Constants::CRM_UA,
         $ua
     );
     COption::SetOptionString(
         $mid,
-        $CRM_UA_KEYS,
+        Constants::CRM_UA_KEYS,
         serialize(RCrmActions::clearArr(is_array($uaKeys) ? $uaKeys : []))
     );
     COption::SetOptionString(
         $mid,
-        $CRM_DIMENSIONS,
-        htmlspecialchars(trim($_POST[$CRM_DIMENSIONS])) ?: 'N'
+        Constants::CRM_DIMENSIONS,
+        htmlspecialchars(trim($_POST[Constants::CRM_DIMENSIONS])) ?: 'N'
     );
     RetailcrmConfigProvider::setSendPaymentAmount(htmlspecialchars(trim($_POST[Constants::SEND_PAYMENT_AMOUNT])) ?: 'N');
     RetailCrmConfigProvider::setDiscountRound($discount_round);
     RetailcrmConfigProvider::setCart($optionCart);
     COption::SetOptionString(
         $mid,
-        $CRM_PURCHASE_PRICE_NULL,
+        Constants::CRM_PURCHASE_PRICE_NULL,
         $purchasePrice_null
     );
     COption::SetOptionString(
@@ -1015,22 +967,22 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         RetailcrmConstants::CRM_SHIPMENT_DEDUCTED, $shipment_deducted);
     COption::SetOptionString(
         $mid,
-        $CRM_CC,
+        Constants::CRM_CC,
         $cc
     );
     COption::SetOptionString(
         $mid,
-        $CRM_CORP_SHOPS,
+        Constants::CRM_CORP_SHOPS,
         serialize(RCrmActions::clearArr(is_array($bitrixCorpShopsArr) ? $bitrixCorpShopsArr : []))
     );
     COption::SetOptionString(
         $mid,
-        $CRM_CORP_NAME,
+        Constants::CRM_CORP_NAME,
         $bitrixCorpName
     );
     COption::SetOptionString(
         $mid,
-        $CRM_CORP_ADRES,
+        Constants::CRM_CORP_ADDRESS,
         $bitrixCorpAdres
     );
 
@@ -1065,9 +1017,9 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $request = Application::getInstance()->getContext()->getRequest();
 
     if ($request->isHttps() === true) {
-        COption::SetOptionString($mid, $PROTOCOL, 'https://');
+        COption::SetOptionString($mid, Constants::PROTOCOL, 'https://');
     } else {
-        COption::SetOptionString($mid, $PROTOCOL, 'http://');
+        COption::SetOptionString($mid, Constants::PROTOCOL, 'http://');
     }
 
     if ($error !== null) {
@@ -1078,8 +1030,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
     LocalRedirect($uri);
 } else {
-    $api_host = COption::GetOptionString($mid, $CRM_API_HOST_OPTION, 0);
-    $api_key = COption::GetOptionString($mid, $CRM_API_KEY_OPTION, 0);
+    $api_host = COption::GetOptionString($mid, Constants::CRM_API_HOST_OPTION, 0);
+    $api_key = COption::GetOptionString($mid, Constants::CRM_API_KEY_OPTION , 0);
     $api = new RetailCrm\ApiClient($api_host, $api_key);
 
     // Prepare crm lists
@@ -1239,61 +1191,61 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     //saved params
     $useCrmOrderMethods = ConfigProvider::useCrmOrderMethods();
     $crmOrderMethods = unserialize(COption::GetOptionString($mid, Constants::CRM_ORDER_METHODS, 0));
-    $moduleDeactivate = unserialize(COption::GetOptionString($mid, $MODULE_DEACTIVATE, 'N'));
-    $optionsOrderTypes = unserialize(COption::GetOptionString($mid, $CRM_ORDER_TYPES_ARR, 0));
-    $optionsDelivTypes = unserialize(COption::GetOptionString($mid, $CRM_DELIVERY_TYPES_ARR, 0));
-    $optionsPayTypes = unserialize(COption::GetOptionString($mid, $CRM_PAYMENT_TYPES, 0));
-    $optionsPayStatuses = unserialize(COption::GetOptionString($mid, $CRM_PAYMENT_STATUSES, 0));
-    $optionsPayment = unserialize(COption::GetOptionString($mid, $CRM_PAYMENT, 0));
-    $optionsSitesList = unserialize(COption::GetOptionString($mid, $CRM_SITES_LIST, 0));
-    $optionsDischarge = (int) COption::GetOptionString($mid, $CRM_ORDER_DISCHARGE, 0);
-    $optionsOrderProps = unserialize(COption::GetOptionString($mid, $CRM_ORDER_PROPS, 0));
-    $optionsContragentType = unserialize(COption::GetOptionString($mid, $CRM_CONTRAGENT_TYPE, 0));
-    $optionsLegalDetails = unserialize(COption::GetOptionString($mid, $CRM_LEGAL_DETAILS, 0));
-    $optionsCustomFields = unserialize(COption::GetOptionString($mid, $CRM_CUSTOM_FIELDS, 0));
-    $optionsOrderNumbers = COption::GetOptionString($mid, $CRM_ORDER_NUMBERS, 0);
-    $optionsOrderVat = COption::GetOptionString($mid, $CRM_ORDER_VAT, 0);
+    $moduleDeactivate = unserialize(COption::GetOptionString($mid, Constants::MODULE_DEACTIVATE, 'N'));
+    $optionsOrderTypes = unserialize(COption::GetOptionString($mid, Constants::CRM_ORDER_TYPES_ARR, 0));
+    $optionsDelivTypes = unserialize(COption::GetOptionString($mid, Constants::CRM_DELIVERY_TYPES_ARR, 0));
+    $optionsPayTypes = unserialize(COption::GetOptionString($mid, Constants::CRM_PAYMENT_TYPES, 0));
+    $optionsPayStatuses = unserialize(COption::GetOptionString($mid, Constants::CRM_PAYMENT_STATUSES, 0));
+    $optionsPayment = unserialize(COption::GetOptionString($mid, Constants::CRM_PAYMENT, 0));
+    $optionsSitesList = unserialize(COption::GetOptionString($mid, Constants::CRM_SITES_LIST, 0));
+    $optionsDischarge = (int) COption::GetOptionString($mid, Constants::CRM_ORDER_DISCHARGE, 0);
+    $optionsOrderProps = unserialize(COption::GetOptionString($mid, Constants::CRM_ORDER_PROPS, 0));
+    $optionsContragentType = unserialize(COption::GetOptionString($mid, Constants::CRM_CONTRAGENT_TYPE, 0));
+    $optionsLegalDetails = unserialize(COption::GetOptionString($mid, Constants::CRM_LEGAL_DETAILS, 0));
+    $optionsCustomFields = unserialize(COption::GetOptionString($mid, Constants::CRM_CUSTOM_FIELDS, 0));
+    $optionsOrderNumbers = COption::GetOptionString($mid, Constants::CRM_ORDER_NUMBERS, 0);
+    $optionsOrderVat = COption::GetOptionString($mid, Constants::CRM_ORDER_VAT, 0);
     $optionsOrderTrackNumber = ConfigProvider::getTrackNumberStatus();
     $optionsSyncIntegrationPayment = ConfigProvider::getSyncIntegrationPayment();
-    $canselOrderArr = unserialize(COption::GetOptionString($mid, $CRM_CANSEL_ORDER, 0));
+    $canselOrderArr = unserialize(COption::GetOptionString($mid, Constants::CRM_CANCEL_ORDER, 0));
     $sendPickupPointAddress = COption::GetOptionString($mid, Constants::CRM_SEND_PICKUP_POINT_ADDRESS, 'N');
 
-    $optionInventotiesUpload = COption::GetOptionString($mid, $CRM_INVENTORIES_UPLOAD, 0);
-    $optionStores = unserialize(COption::GetOptionString($mid, $CRM_STORES, 0));
-    $optionShops = unserialize(COption::GetOptionString($mid, $CRM_SHOPS, 0));
-    $optionIblocksInventories = unserialize(COption::GetOptionString($mid, $CRM_IBLOCKS_INVENTORIES, 0));
-    $optionShopsCorporate = unserialize(COption::GetOptionString($mid, $CRM_SHOPS, 0));
+    $optionInventotiesUpload = COption::GetOptionString($mid, Constants::CRM_INVENTORIES_UPLOAD, 0);
+    $optionStores = unserialize(COption::GetOptionString($mid, Constants::CRM_STORES, 0));
+    $optionShops = unserialize(COption::GetOptionString($mid, Constants::CRM_SHOPS, 0));
+    $optionIblocksInventories = unserialize(COption::GetOptionString($mid, Constants::CRM_IBLOCKS_INVENTORIES, 0));
+    $optionShopsCorporate = unserialize(COption::GetOptionString($mid, Constants::CRM_SHOPS, 0));
 
-    $optionPricesUpload = COption::GetOptionString($mid, $CRM_PRICES_UPLOAD, 0);
-    $optionPrices = unserialize(COption::GetOptionString($mid, $CRM_PRICES, 0));
-    $optionPriceShops = unserialize(COption::GetOptionString($mid, $CRM_PRICE_SHOPS, 0));
-    $optionIblocksPrices = unserialize(COption::GetOptionString($mid, $CRM_IBLOCKS_PRICES, 0));
+    $optionPricesUpload = COption::GetOptionString($mid, Constants::CRM_PRICES_UPLOAD, 0);
+    $optionPrices = unserialize(COption::GetOptionString($mid, Constants::CRM_PRICES, 0));
+    $optionPriceShops = unserialize(COption::GetOptionString($mid, Constants::CRM_PRICE_SHOPS, 0));
+    $optionIblocksPrices = unserialize(COption::GetOptionString($mid, Constants::CRM_IBLOCKS_PRICES, 0));
 
-    $optionCollector = COption::GetOptionString($mid, $CRM_COLLECTOR, 0);
-    $optionCollectorKeys = unserialize(COption::GetOptionString($mid, $CRM_COLL_KEY));
+    $optionCollector = COption::GetOptionString($mid, Constants::CRM_COLLECTOR, 0);
+    $optionCollectorKeys = unserialize(COption::GetOptionString($mid, Constants::CRM_COLL_KEY));
 
     $optionOnlineConsultant = RetailcrmConfigProvider::isOnlineConsultantEnabled();
     $optionOnlineConsultantScript = RetailcrmConfigProvider::getOnlineConsultantScript();
 
-    $optionUa = COption::GetOptionString($mid, $CRM_UA, 0);
-    $optionUaKeys = unserialize(COption::GetOptionString($mid, $CRM_UA_KEYS));
+    $optionUa = COption::GetOptionString($mid, Constants::CRM_UA, 0);
+    $optionUaKeys = unserialize(COption::GetOptionString($mid, Constants::CRM_UA_KEYS));
 
-    $optionDiscRound = COption::GetOptionString($mid, $CRM_DISCOUNT_ROUND, 0);
-    $optionPricePrchaseNull = COption::GetOptionString($mid, $CRM_PURCHASE_PRICE_NULL, 0);
+    $optionDiscRound = COption::GetOptionString($mid, Constants::CRM_DISCOUNT_ROUND, 0);
+    $optionPricePrchaseNull = COption::GetOptionString($mid, Constants::CRM_PURCHASE_PRICE_NULL, 0);
     $optionShipmentDeducted = RetailcrmConfigProvider::getShipmentDeducted();
 
     //corporate-cliente
-    $optionCorpClient = COption::GetOptionString($mid, $CRM_CC, 0);
-    $optionCorpShops = unserialize(COption::GetOptionString($mid, $CRM_CORP_SHOPS, 0));
-    $optionsCorpComName = COption::GetOptionString($mid, $CRM_CORP_NAME, 0);
-    $optionsCorpAdres = COption::GetOptionString($mid, $CRM_CORP_ADRES, 0);
+    $optionCorpClient = COption::GetOptionString($mid, Constants::CRM_CC, 0);
+    $optionCorpShops = unserialize(COption::GetOptionString($mid, Constants::CRM_CORP_SHOPS, 0));
+    $optionsCorpComName = COption::GetOptionString($mid, Constants::CRM_CORP_NAME, 0);
+    $optionsCorpAdres = COption::GetOptionString($mid, Constants::CRM_CORP_ADDRESS, 0);
 
-    $version = COption::GetOptionString($mid, $CRM_API_VERSION, 0);
+    $version = COption::GetOptionString($mid, Constants::CRM_API_VERSION, 0);
 
     $optionsFixDateCustomer = COption::GetOptionString($mid, RetailcrmConstants::OPTION_FIX_DATE_CUSTOMER, 0);
 
     // Old functional
-    $currencyOption = COption::GetOptionString($mid, $CRM_CURRENCY, 0) ?: CCurrency::GetBaseCurrency();
+    $currencyOption = COption::GetOptionString($mid, Constants::CRM_CURRENCY, 0) ?: CCurrency::GetBaseCurrency();
 
     //Validate currency
     $currencyList = CurrencyManager::getCurrencyList();
@@ -1339,7 +1291,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     }
 
     $customFields = [['code' => '__default_empty_value__', 'name' => GetMessage('SELECT_VALUE')]];
-    $crmCouponFieldOption = COption::GetOptionString($mid, $CRM_COUPON_FIELD, 0) ?: null;
+    $crmCouponFieldOption = COption::GetOptionString($mid, Constants::CRM_COUPON_FIELD, 0) ?: null;
     $page = 1;
 
     do {
@@ -1356,10 +1308,10 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         $page++;
     } while($getCustomFields['pagination']['currentPage'] < $getCustomFields['pagination']['totalPageCount']);
 
-    $optionsOrderDimensions = COption::GetOptionString($mid, $CRM_DIMENSIONS, 'N');
-    $addressOptions = unserialize(COption::GetOptionString($mid, $CRM_ADDRESS_OPTIONS, 0));
+    $optionsOrderDimensions = COption::GetOptionString($mid, Constants::CRM_DIMENSIONS, 'N');
+    $addressOptions = unserialize(COption::GetOptionString($mid, Constants::CRM_ADDRESS_OPTIONS, 0));
 
-    $optionCart = COption::GetOptionString($mid, $CRM_CART, 'N');
+    $optionCart = COption::GetOptionString($mid, Constants::CART, 'N');
 
     //loyalty program options
     $loyaltyProgramToggle = ConfigProvider::getLoyaltyProgramStatus();
@@ -1387,7 +1339,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             "DIV"   => "edit4",
             "TAB"   => GetMessage('LOYALTY_PROGRAM_TITLE'),
             "ICON"  => '',
-            "TITLE" => GetMessage('ICRM_OPTIONS_ORDER_DISCHARGE_CAPTION'),
+            "TITLE" => GetMessage('ICRM_OPTIONS_LOYALTY_PROGRAM_CAPTION'),
         ],
         [
             "DIV" => "edit5",
@@ -1405,7 +1357,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             "DIV"   => "edit7",
             "TAB"   => GetMessage('OTHER_OPTIONS'),
             "ICON"  => '',
-            "TITLE" => GetMessage('ICRM_OPTIONS_ORDER_DISCHARGE_CAPTION'),
+            "TITLE" => GetMessage('ICRM_OPTIONS_OTHER_CAPTION'),
         ]
     ];
     $tabControl = new CAdminTabControl("tabControl", $aTabs);

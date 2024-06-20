@@ -1,29 +1,20 @@
 <?php
 
 use Intaro\RetailCrm\Component\ConfigProvider;
+use Intaro\RetailCrm\Component\Constants;
 use RetailCrm\ApiClient;
 
 /** @var $APPLICATION */
 
 IncludeModuleLangFile(__FILE__);
 
-$MODULE_ID = 'intaro.retailcrm';
-$CRM_API_HOST_OPTION = 'api_host';
-$CRM_API_KEY_OPTION = 'api_key';
-$CRM_SITES_LIST= 'sites_list';
-$CRM_PAYMENT_TYPES = 'pay_types_arr';
-$CRM_DELIVERY_TYPES_ARR = 'deliv_types_arr';
-$CRM_PAYMENT_TYPES = 'pay_types_arr';
-$CRM_PAYMENT_STATUSES = 'pay_statuses_arr';
-$CRM_PAYMENT = 'payment_arr';
-$CRM_ORDER_TYPES_ARR = 'order_types_arr';
-$api_host = COption::GetOptionString($MODULE_ID, $CRM_API_HOST_OPTION, 0);
-$api_key = COption::GetOptionString($MODULE_ID, $CRM_API_KEY_OPTION, 0);
+$api_host = COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_API_HOST_OPTION, 0);
+$api_key = COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_API_KEY_OPTION, 0);
 $arResult['arSites'] = RCrmActions::getSitesList();
 
 $RETAIL_CRM_API = new ApiClient($api_host, $api_key);
-COption::SetOptionString($MODULE_ID, $CRM_API_HOST_OPTION, $api_host);
-COption::SetOptionString($MODULE_ID, $CRM_API_KEY_OPTION, $api_key);
+COption::SetOptionString(Constants::MODULE_ID, Constants::CRM_API_HOST_OPTION, $api_host);
+COption::SetOptionString(Constants::MODULE_ID, Constants::CRM_API_KEY_OPTION, $api_key);
 
 $availableSites = RetailcrmConfigProvider::getSitesList();
 
@@ -35,15 +26,15 @@ if (!empty($availableSites)) {
 }
 
 if (count($arResult['arSites']) === 1) {
-    COption::SetOptionString($MODULE_ID, $CRM_SITES_LIST, serialize([]));
+    COption::SetOptionString(Constants::MODULE_ID, Constants::CRM_SITES_LIST, serialize([]));
 }
 
 if (!isset($arResult['PAYMENT'])) {
-    $arResult['PAYMENT'] = unserialize(COption::GetOptionString($MODULE_ID, $CRM_PAYMENT, 0));
+    $arResult['PAYMENT'] = unserialize(COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_PAYMENT, 0));
 }
 
 if (!isset($arResult['ORDER_TYPES'])) {
-    $arResult['ORDER_TYPES'] = unserialize(COption::GetOptionString($MODULE_ID, $CRM_ORDER_TYPES_ARR, 0));
+    $arResult['ORDER_TYPES'] = unserialize(COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_ORDER_TYPES_ARR, 0));
 }
 
 if (!isset($arResult['paymentTypesList'])) {
@@ -52,7 +43,7 @@ if (!isset($arResult['paymentTypesList'])) {
         $availableSites,
         $RETAIL_CRM_API->paymentTypesList()->paymentTypes
     );
-    $arResult['PAYMENT_TYPES'] = unserialize(COption::GetOptionString($MODULE_ID, $CRM_PAYMENT_TYPES, 0));
+    $arResult['PAYMENT_TYPES'] = unserialize(COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_SITES_LIST, 0));
 }
 
 if (!isset($arResult['bitrixStatusesList'])) {
@@ -68,7 +59,7 @@ if (!isset($arResult['orderTypesList'])) {
 
 if (!isset($arResult['paymentStatusesList'])) {
     $arResult['paymentStatusesList'] = $RETAIL_CRM_API->paymentStatusesList()->paymentStatuses;
-    $arResult['PAYMENT_STATUSES'] = unserialize(COption::GetOptionString($MODULE_ID, $CRM_PAYMENT_STATUSES, 0));
+    $arResult['PAYMENT_STATUSES'] = unserialize(COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_PAYMENT_STATUSES, 0));
 }
 
 if (!isset($arResult['bitrixDeliveryTypesList'])) {
@@ -77,7 +68,7 @@ if (!isset($arResult['bitrixDeliveryTypesList'])) {
         $availableSites,
         $RETAIL_CRM_API->deliveryTypesList()->deliveryTypes
     );
-    $arResult['DELIVERY_TYPES'] = unserialize(COption::GetOptionString($MODULE_ID, $CRM_DELIVERY_TYPES_ARR, 0));
+    $arResult['DELIVERY_TYPES'] = unserialize(COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_DELIVERY_TYPES_ARR, 0));
 }
 
 //bitrix pyament Y/N
