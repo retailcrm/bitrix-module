@@ -154,6 +154,7 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../classes/general/RestNormalizer.php');
         include($this->INSTALL_PATH . '/../classes/general/Logger.php');
         include($this->INSTALL_PATH . '/../classes/general/services/RetailCrmService.php');
+        include($this->INSTALL_PATH . '/../lib/component/constants.php');
         $version = COption::GetOptionString($this->MODULE_ID, Constants::CRM_API_VERSION, 0);
         include($this->INSTALL_PATH . '/../classes/general/ApiClient_v5.php');
         include($this->INSTALL_PATH . '/../classes/general/order/RetailCrmOrder_v5.php');
@@ -197,7 +198,6 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../lib/repository/tomodulerepository.php');
         include($this->INSTALL_PATH . '/../lib/model/bitrix/orm/tomodule.php');
         include($this->INSTALL_PATH . '/../lib/model/bitrix/agreement.php');
-        include($this->INSTALL_PATH . '/../lib/component/constants.php');
         include($this->INSTALL_PATH . '/../lib/repository/agreementrepository.php');
         include($this->INSTALL_PATH . '/../lib/service/orderloyaltydataservice.php');
         include($this->INSTALL_PATH . '/../lib/service/currencyservice.php');
@@ -1214,9 +1214,6 @@ class intaro_retailcrm extends CModule
     {
         global $APPLICATION;
 
-        $api_host    = COption::GetOptionString($this->MODULE_ID, Constants::CRM_API_HOST_OPTION, 0);
-        $api_key     = COption::GetOptionString($this->MODULE_ID, Constants::CRM_API_KEY_OPTION, 0);
-
         require_once($this->INSTALL_PATH . '/../classes/general/Http/Client.php');
         require_once($this->INSTALL_PATH . '/../classes/general/Response/ApiResponse.php');
         require_once($this->INSTALL_PATH . '/../classes/general/Exception/InvalidJsonException.php');
@@ -1228,6 +1225,9 @@ class intaro_retailcrm extends CModule
         require_once($this->INSTALL_PATH . '/../classes/general/history/RetailCrmHistory_v5.php');
         require_once($this->INSTALL_PATH . '/../lib/component/constants.php');
         require_once($this->INSTALL_PATH . '/../classes/general/cart/RetailCrmCart_v5.php');
+
+        $api_host    = COption::GetOptionString($this->MODULE_ID, Constants::CRM_API_HOST_OPTION, 0);
+        $api_key     = COption::GetOptionString($this->MODULE_ID, Constants::CRM_API_KEY_OPTION, 0);
         
         RCrmActions::sendConfiguration(new ApiClient($api_host, $api_key), false);
 
