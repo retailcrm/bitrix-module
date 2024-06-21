@@ -1,5 +1,6 @@
 <?php
 
+use Intaro\RetailCrm\Component\Constants;
 use RetailCrm\ApiClient;
 
 /** @var $APPLICATION */
@@ -10,38 +11,31 @@ if (!check_bitrix_sessid()) {
 
 IncludeModuleLangFile(__FILE__);
 
-$MODULE_ID = 'intaro.retailcrm';
-$CRM_API_HOST_OPTION = 'api_host';
-$CRM_API_KEY_OPTION = 'api_key';
-$CRM_SITES_LIST= 'sites_list';
-$CRM_ORDER_PROPS = 'order_props';
-$CRM_CONTRAGENT_TYPE = 'contragent_type';
-$CRM_LEGAL_DETAILS = 'legal_details';
-$api_host = COption::GetOptionString($MODULE_ID, $CRM_API_HOST_OPTION, 0);
-$api_key = COption::GetOptionString($MODULE_ID, $CRM_API_KEY_OPTION, 0);
+$api_host = COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_API_HOST_OPTION, 0);
+$api_key = COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_API_KEY_OPTION, 0);
 $arResult['arSites'] = RCrmActions::getSitesList();
 
 $RETAIL_CRM_API = new ApiClient($api_host, $api_key);
-COption::SetOptionString($MODULE_ID, $CRM_API_HOST_OPTION, $api_host);
-COption::SetOptionString($MODULE_ID, $CRM_API_KEY_OPTION, $api_key);
+COption::SetOptionString(Constants::MODULE_ID, Constants::CRM_API_HOST_OPTION, $api_host);
+COption::SetOptionString(Constants::MODULE_ID, Constants::CRM_API_KEY_OPTION, $api_key);
 
 if (count($arResult['arSites']) === 1) {
-    COption::SetOptionString($MODULE_ID, $CRM_SITES_LIST, serialize([]));
+    COption::SetOptionString(Constants::MODULE_ID, Constants::CRM_SITES_LIST, serialize([]));
 }
 
 if (!isset($arResult['bitrixOrderTypesList'])) {
     $arResult['bitrixOrderTypesList'] = RCrmActions::OrderTypesList($arResult['arSites']);
     $arResult['arProp'] = RCrmActions::OrderPropsList();
     $arResult['locationProp'] = RCrmActions::getLocationProps();
-    $arResult['ORDER_PROPS'] = unserialize(COption::GetOptionString($MODULE_ID, $CRM_ORDER_PROPS, 0));
+    $arResult['ORDER_PROPS'] = unserialize(COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_ORDER_PROPS, 0));
 }
 
 if (!isset($arResult['LEGAL_DETAILS'])) {
-    $arResult['LEGAL_DETAILS'] = unserialize(COption::GetOptionString($MODULE_ID, $CRM_LEGAL_DETAILS, 0));
+    $arResult['LEGAL_DETAILS'] = unserialize(COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_LEGAL_DETAILS, 0));
 }
 
 if (!isset($arResult['CONTRAGENT_TYPES'])) {
-    $arResult['CONTRAGENT_TYPES'] = unserialize(COption::GetOptionString($MODULE_ID, $CRM_CONTRAGENT_TYPE, 0));
+    $arResult['CONTRAGENT_TYPES'] = unserialize(COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_CONTRAGENT_TYPE, 0));
 
     if ($arResult['CONTRAGENT_TYPES'] === false) {
         foreach ($arResult['contragentType'] as $crmContrAgentType) {

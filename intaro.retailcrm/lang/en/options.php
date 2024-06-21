@@ -154,3 +154,9 @@ $MESS ['FIX_UPLOAD_CUSTOMER_BUTTON_LABEL'] = 'Correct customer registration date
 $MESS ['FIX_UPLOAD_CUSTOMER_INFO'] = 'When you press this button, an agent will be created to launch the script. Please note that the script execution time may vary depending on the number of clients in the database. To minimize possible disruptions to the script operation, it is recommended to launch it at night time. This script can only be launched once';
 $MESS ['FIX_UPLOAD_CUSTOMER_AFTER_SUBMIT'] = 'The agent has been created and will be launched soon';
 $MESS ['FIX_UPLOAD_CUSTOMER_AFTER_SUBMIT_ERROR'] = 'An error occurred while adding an agent';
+
+$MESS ['ICRM_OPTIONS_GENERAL_CAPTION'] = 'Setting up connection to the RetailCRM system';
+$MESS ['ICRM_OPTIONS_CATALOG_CAPTION'] = 'Comparison of RetailCRM and Bitrix system directories';
+$MESS ['ICRM_OPTIONS_ORDER_PROPS_CAPTION'] = 'Comparison of order fields of RetailCRM and Bitrix systems';
+$MESS ['ICRM_OPTIONS_LOYALTY_PROGRAM_CAPTION'] = 'Setting up work with the loyalty program';
+$MESS ['ICRM_OPTIONS_OTHER_CAPTION'] = 'Setting up additional options for integration with the RetailCRM system';

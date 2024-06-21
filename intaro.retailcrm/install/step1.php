@@ -1,5 +1,8 @@
-<?php 
-    IncludeModuleLangFile(__FILE__);
+<?php
+
+use Intaro\RetailCrm\Component\Constants;
+
+IncludeModuleLangFile(__FILE__);
 
     if (isset($arResult['errCode']) && $arResult['errCode']) {
        $message = GetMessage($arResult['errCode']);
@@ -11,12 +14,8 @@
        }
     }
 
-$MODULE_ID = 'intaro.retailcrm';
-$CRM_API_HOST_OPTION = 'api_host';
-$CRM_API_KEY_OPTION = 'api_key';
-
-$arResult['API_HOST'] = COption::GetOptionString($MODULE_ID, $CRM_API_HOST_OPTION);
-$arResult['API_KEY'] = COption::GetOptionString($MODULE_ID, $CRM_API_KEY_OPTION);
+$arResult['API_HOST'] = COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_API_HOST_OPTION);
+$arResult['API_KEY'] = COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_API_KEY_OPTION);
 ?>
 
 <div class="adm-detail-content-item-block">
