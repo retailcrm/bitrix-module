@@ -63,7 +63,10 @@ class RetailCrmCartTest extends TestCase
 
     public function testGenerateCartLink()
     {
-        var_dump(RetailCrmCart::generateCartLink());
+        $cartLink = RetailCrmCart::generateCartLink();
+
+        self::assertNotNull($cartLink);
+        self::assertContains('/personal/cart', $cartLink);
     }
 
     /**
