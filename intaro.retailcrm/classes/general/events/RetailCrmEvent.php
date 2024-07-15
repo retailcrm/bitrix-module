@@ -10,6 +10,7 @@
  */
 
 use Bitrix\Main\Context\Culture;
+use Bitrix\Main\Engine\CurrentUser;
 use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Repository\UserRepository;
@@ -113,8 +114,6 @@ class RetailCrmEvent
     public static function orderDelete($event)
     {
         $GLOBALS['RETAILCRM_ORDER_DELETE'] = true;
-
-        return;
     }
 
     /**
@@ -130,7 +129,7 @@ class RetailCrmEvent
             return;
         }
 
-        $id = \Bitrix\Main\Engine\CurrentUser::get()->getId();
+        $id = CurrentUser::get()->getId();
 
         if ($id) {
             $arBasket = RetailCrmCart::getBasketArray($event);

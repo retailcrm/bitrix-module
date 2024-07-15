@@ -105,6 +105,7 @@ class RetailCrmCart
                 $date => date(self::$dateFormat),
                 'droppedAt' => date(self::$dateFormat),
                 'items' => $items,
+                'link' => static::generateCartLink(),
             ],
             $site
         );
@@ -138,5 +139,14 @@ class RetailCrmCart
         }
 
         return $arBasket;
+    }
+
+    public static function generateCartLink()
+    {
+        return sprintf(
+            '%s://%s/personal/cart',
+            !empty($_SERVER['HTTPS']) ? 'https' : 'http',
+            $_SERVER['HTTP_HOST']
+        );
     }
 }
