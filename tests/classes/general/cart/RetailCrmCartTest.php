@@ -6,7 +6,7 @@ use DateTime;
 use Mockery;
 use PHPUnit\Framework\TestCase;
 use RCrmActions;
-use RetailCrmCartV5;
+use RetailCrmCart;
 
 class RetailCrmCartTest extends TestCase
 {
