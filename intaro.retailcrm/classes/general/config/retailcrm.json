@@ -449,7 +449,7 @@
             "type": "double",
             "default": 0,
             "min": 0,
-            "decimals": 1
+            "decimals": 2
         },
         "code": {
             "type": "string"

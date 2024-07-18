@@ -11,6 +11,8 @@
 
 use Bitrix\Main\Context\Culture;
 use Bitrix\Sale\Basket;
+use Bitrix\Sale\Discount\Context\Fuser;
+use Bitrix\Sale\Discount;
 
 IncludeModuleLangFile(__FILE__);
 
@@ -128,14 +130,28 @@ class RetailCrmCart
             return null;
         }
 
-        $arBasket = [
-            'LID' => $obBasket->getSiteId(),
-        ];
-
         $items = $obBasket->getBasket();
+        $arBasket = ['LID' => $obBasket->getSiteId()];
 
-        foreach ($items as $item) {
-            $arBasket['BASKET'][] = $item->getFields();
+        if (count($items) !== 0) {
+            $fUser = new Fuser($obBasket->getFUserId());
+            $discounts = Discount::buildFromBasket($obBasket, $fUser);
+
+            $discounts->calculate();
+
+            $resultBasket = $discounts->getApplyResult(true);
+            $basketItems = $resultBasket['PRICES']['BASKET'] ?? [];
+
+
+            foreach ($items as $item) {
+                $itemFields = $item->getFields();
+
+                if (isset($basketItems[(int) $itemFields['ID']])) {
+                    $itemFields['PRICE'] = $basketItems[(int) $itemFields['ID']]['PRICE'];
+                }
+
+                $arBasket['BASKET'][] = $itemFields;
+            }
         }
 
         return $arBasket;
