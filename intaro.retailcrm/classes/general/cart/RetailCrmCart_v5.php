@@ -130,25 +130,28 @@ class RetailCrmCart
             return null;
         }
 
-        $fUser = new Fuser($obBasket->getFUserId());
-        $discounts = Discount::buildFromBasket($obBasket, $fUser);
-
-        $discounts->calculate();
-
-        $resultBasket = $discounts->getApplyResult(true);
-        $basketItems = $resultBasket['PRICES']['BASKET'] ?? [];
-
-        $arBasket = ['LID' => $obBasket->getSiteId()];
         $items = $obBasket->getBasket();
+        $arBasket = ['LID' => $obBasket->getSiteId()];
 
-        foreach ($items as $item) {
-            $itemFields = $item->getFields();
+        if (count($items) !== 0) {
+            $fUser = new Fuser($obBasket->getFUserId());
+            $discounts = Discount::buildFromBasket($obBasket, $fUser);
 
-            if (isset($basketItems[(int) $itemFields['ID']])) {
-                $itemFields['PRICE'] = $basketItems[(int) $itemFields['ID']]['PRICE'];
+            $discounts->calculate();
+
+            $resultBasket = $discounts->getApplyResult(true);
+            $basketItems = $resultBasket['PRICES']['BASKET'] ?? [];
+
+
+            foreach ($items as $item) {
+                $itemFields = $item->getFields();
+
+                if (isset($basketItems[(int) $itemFields['ID']])) {
+                    $itemFields['PRICE'] = $basketItems[(int) $itemFields['ID']]['PRICE'];
+                }
+
+                $arBasket['BASKET'][] = $itemFields;
             }
-
-            $arBasket['BASKET'][] = $itemFields;
         }
 
         return $arBasket;
