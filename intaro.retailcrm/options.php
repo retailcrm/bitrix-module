@@ -16,8 +16,11 @@ use Intaro\RetailCrm\Service\CurrencyService;
 use Intaro\RetailCrm\Service\OrderLoyaltyDataService;
 use Intaro\RetailCrm\Service\Utils as RetailCrmUtils;
 use RetailCrm\Exception\CurlException;
+use Intaro\RetailCrm\Component\Advanced\LoyaltyInstaller;
 
 IncludeModuleLangFile(__FILE__);
+include (__DIR__ . '/lib/component/advanced/loyaltyinstaller.php');
+
 $mid = 'intaro.retailcrm';
 $uri = $APPLICATION->GetCurPage() . '?mid=' . htmlspecialchars($mid) . '&lang=' . LANGUAGE_ID;
 
@@ -41,6 +44,7 @@ if (!empty($_GET['ok']) && $_GET['ok'] === 'Y') {
 
 $arResult = [];
 $enabledCustom = false;
+$loyaltySetup = new LoyaltyInstaller();
 
 if (file_exists($_SERVER["DOCUMENT_ROOT"] . '/bitrix/modules/intaro.retailcrm/classes/general/config/options.xml')) {
     $options = simplexml_load_file($_SERVER["DOCUMENT_ROOT"] . '/bitrix/modules/intaro.retailcrm/classes/general/config/options.xml');
@@ -586,12 +590,19 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
     if (isset($_POST['loyalty_toggle']) && $_POST['loyalty_toggle'] === 'on') {
         try {
+            $loyaltySetup->CopyFiles();
+            $loyaltySetup->addEvents();
+            $loyaltySetup->addAgreement();
+            $loyaltySetup->addUserFields();
+
             $hlName = RetailCrmUtils::getHlClassByName(Constants::HL_LOYALTY_CODE);
 
             if (empty($hlName)) {
                 OrderLoyaltyDataService::createLoyaltyHlBlock();
+                $service = new OrderLoyaltyDataService();
+                $service->addCustomersLoyaltyFields();
             }
-        } catch (LoaderException | SystemException $exception) {
+        } catch (Exception $exception) {
             RCrmActions::eventLog(
                 'intaro.retailcrm/options.php', 'OrderLoyaltyDataService::createLoyaltyHlBlock',
                 $e->getCode() . ': ' . $exception->getMessage()

@@ -15,13 +15,12 @@ use Bitrix\Sale\EventActions;
 use Bitrix\Sale\Internals\OrderTable;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Constants;
-use Intaro\RetailCrm\Component\Installer\InstallerTrait;
 use Intaro\RetailCrm\Service\CurrencyService;
-use Intaro\RetailCrm\Service\OrderLoyaltyDataService;
 use RetailCrm\ApiClient;
 use RetailCrm\Exception\CurlException;
 use RetailCrm\Http\Client;
 use RetailCrm\Response\ApiResponse;
+use Intaro\RetailCrm\Component\Advanced\InstallerTrait;
 
 Loader::IncludeModule('highloadblock');
 
@@ -30,7 +29,7 @@ if (class_exists('intaro_retailcrm')) {
     return false;
 }
 
-include (__DIR__ . '/../lib/component/installer/installertrait.php');
+include (__DIR__ . '/../lib/component/advanced/installertrait.php');
 
 class intaro_retailcrm extends CModule
 {
@@ -203,17 +202,22 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../lib/service/currencyservice.php');
         include($this->INSTALL_PATH . '/../lib/component/factory/clientfactory.php');
         include($this->INSTALL_PATH . '/../lib/component/apiclient/clientadapter.php');
+        include($this->INSTALL_PATH . '/../lib/component/advanced/loyaltyinstaller.php');
 
-        $this->CopyFiles();
+
+       /* $this->CopyFiles();
         $this->addEvents();
         $this->addAgreement();
-        $this->addUserFields();
-        $this->createCustomPropertyFile();
+        $this->addUserFields();*/
 
-        OrderLoyaltyDataService::createLoyaltyHlBlock();
+        $this->installExport();
+        $this->subscriptionSetup();
+        //$this->createCustomPropertyFile();
+
+     /*   OrderLoyaltyDataService::createLoyaltyHlBlock();
 
         $service = new OrderLoyaltyDataService();
-        $service->addCustomersLoyaltyFields();
+        $service->addCustomersLoyaltyFields();*/
 
         if ($step == 11) {
             $arResult['arSites'] = RCrmActions::getSitesList();
