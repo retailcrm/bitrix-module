@@ -220,7 +220,7 @@ class LoyaltyInstaller
     /**
      * delete loyalty program events handlers
      */
-    private function deleteLPEvents(): void
+    public function deleteLPEvents(): void
     {
         $eventManager = EventManager::getInstance();
 

@@ -21,6 +21,7 @@ use RetailCrm\Exception\CurlException;
 use RetailCrm\Http\Client;
 use RetailCrm\Response\ApiResponse;
 use Intaro\RetailCrm\Component\Advanced\InstallerTrait;
+use Intaro\RetailCrm\Component\Advanced\LoyaltyInstaller;
 
 Loader::IncludeModule('highloadblock');
 
@@ -1125,8 +1126,6 @@ class intaro_retailcrm extends CModule
                 30
             );
 
-            $this->CopyFiles();
-
             COption::RemoveOption($this->MODULE_ID, Constants::CRM_CATALOG_BASE_PRICE);
 
             if (
@@ -1319,7 +1318,9 @@ class intaro_retailcrm extends CModule
         }
 
         $this->deleteFiles();
-        $this->deleteLPEvents();
+
+        $loyalty = new LoyaltyInstaller();
+        $loyalty->deleteLPEvents();
 
         UnRegisterModule($this->MODULE_ID);
 
