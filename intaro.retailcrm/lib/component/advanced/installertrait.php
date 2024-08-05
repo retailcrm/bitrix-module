@@ -18,7 +18,7 @@ trait InstallerTrait
 
         CopyDirFiles(
             $pathFrom . '/export/bitrix/php_interface/include/catalog_export',
-            $_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include',
+            $_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/include/catalog_export',
             true,
             true,
             false
