@@ -1091,7 +1091,7 @@ class RetailCrmHistory
                             $duplicateItems = [];
 
                             foreach ($orderTemp['items'] as $item) {
-                                $duplicateItems[$item['id']]['externalId'] += $item['offer']['externalId'];
+                                $duplicateItems[$item['id']]['externalId'] = $item['offer']['externalId'];
                                 $duplicateItems[$item['id']]['quantity'] += $item['quantity'];
                                 $duplicateItems[$item['id']]['discountTotal'] +=
                                     $item['quantity'] * $item['discountTotal'];
