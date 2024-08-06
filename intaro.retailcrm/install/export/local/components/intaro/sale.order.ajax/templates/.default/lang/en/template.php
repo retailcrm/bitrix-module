@@ -135,4 +135,9 @@ $MESS["SUCCESS_PRELOAD_TEXT_DEFAULT"] = "You previously shopped with us and we r
 If the information is correct, click \"#ORDER_BUTTON#\".
 ";
 $MESS["USE_COUPON_DEFAULT"] = "Apply coupon";
+$MESS["PAYMENT_IN_BONUSES"] = 'Payment in bonuses:';
+$MESS["PERSONAL_DISCOUNT"] = 'Personalized Discount: ';
+$MESS["COMMON_DISCOUNT"] = 'Normal discount: ';
+$MESS["WILL_CREDITED_BONUSES"] = "Bonuses will be awarded: ";
+
 ?>

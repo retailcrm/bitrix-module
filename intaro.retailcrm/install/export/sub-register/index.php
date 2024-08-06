@@ -1,6 +1,6 @@
 <?php
 require($_SERVER['DOCUMENT_ROOT'] . '/bitrix/header.php');
-$APPLICATION->SetTitle('Регистрация');
+$APPLICATION->SetTitle(GetMessage('REGISTER'));
 ?>
 
 <?php $APPLICATION->IncludeComponent(

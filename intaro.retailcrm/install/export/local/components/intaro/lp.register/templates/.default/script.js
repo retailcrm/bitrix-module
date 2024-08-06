@@ -67,7 +67,7 @@ function activateAccount() {
         )
 
     if (emailViolation) {
-        $('#errMsg').text('Проверьте правильность заполнения email')
+        $('#errMsg').text(BX.message("NO_VALID_EMAIL"));
 
         return;
     }

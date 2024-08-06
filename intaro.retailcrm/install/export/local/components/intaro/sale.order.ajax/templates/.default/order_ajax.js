@@ -8324,25 +8324,25 @@ BX.namespace('BX.Sale.OrderAjaxComponent');
             if (this.loyaltyDiscount !== undefined && this.loyaltyDiscount > 0) {
                let loyaltyDiscount     = this.bonusCurrency
                     .replace('#', this.loyaltyDiscount.toString());
-                this.totalInfoBlockNode.appendChild(this.createTotalUnit("Персональная скидка: ", loyaltyDiscount));
+                this.totalInfoBlockNode.appendChild(this.createTotalUnit(BX.message("PERSONAL_DISCOUNT"), loyaltyDiscount));
             }
 
             if (this.bitrixDiscount !== undefined && this.bitrixDiscount > 0) {
                 let defaultDiscount = this.bonusCurrency
                     .replace('#', this.bitrixDiscount.toString());
-                this.totalInfoBlockNode.appendChild(this.createTotalUnit("Обычная скидка: ", defaultDiscount));
+                this.totalInfoBlockNode.appendChild(this.createTotalUnit(BX.message("COMMON_DISCOUNT"), defaultDiscount));
             }
 
             if (this.result.TOTAL.BONUS_PAYMENT !== undefined && this.result.TOTAL.BONUS_PAYMENT > 0) {
                 let bonusPayment     = this.bonusCurrency
                     .replace('#', this.result.TOTAL.BONUS_PAYMENT.toString());
-                this.totalInfoBlockNode.appendChild(this.createTotalUnit('Оплата бонусами:', bonusPayment));
+                this.totalInfoBlockNode.appendChild(this.createTotalUnit(BX.message("PAYMENT_IN_BONUSES"), bonusPayment));
             }
 
             if (this.result.TOTAL.WILL_BE_CREDITED !== undefined && this.result.TOTAL.WILL_BE_CREDITED > 0) {
-                this.totalInfoBlockNode.appendChild(this.createTotalUnit('Будет начислено бонусов: ', String(this.result.TOTAL.WILL_BE_CREDITED), {highlighted: true}));
+                this.totalInfoBlockNode.appendChild(this.createTotalUnit(BX.message("WILL_CREDITED_BONUSES"), String(this.result.TOTAL.WILL_BE_CREDITED), {highlighted: true}));
             } else if (this.willBeCredited > 0) {
-                this.totalInfoBlockNode.appendChild(this.createTotalUnit('Будет начислено бонусов:', this.willBeCredited, {highlighted: true}));
+                this.totalInfoBlockNode.appendChild(this.createTotalUnit(BX.message("WILL_CREDITED_BONUSES"), this.willBeCredited, {highlighted: true}));
             }
         }
 
