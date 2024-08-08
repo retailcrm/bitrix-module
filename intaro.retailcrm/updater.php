@@ -1182,29 +1182,6 @@ function update()
     Loader::includeModule('highloadblock');
 
     COption::SetOptionString('intaro.retailcrm', 'api_version', 'v5');
-
-    (new LoyaltyProgramUpdater())
-        ->updateBonusInfoFieldForLp()
-        ->updateBonusFieldsTypeInHl()
-        ->updateDefDiscountFieldTypeInHl();
-
-    UnRegisterModuleDependences("main", "OnBeforeProlog", 'intaro.retailcrm', "RetailCrmPricePrchase", "add");
-    UnRegisterModuleDependences("main", "OnBeforeProlog", 'intaro.retailcrm', "RetailCrmDc", "add");
-    UnRegisterModuleDependences("main", "OnBeforeProlog", 'intaro.retailcrm', "RetailCrmCc", "add");
-
-    (new UpdateSubscribe())
-        ->CopyFiles()
-        ->addEvent()
-        ->addCustomUserField()
-    ;
-
-    COption::SetOptionString(
-        'intaro.retailcrm',
-        'custom_fields_toggle',
-        'N'
-    );
-
-    createCustomPropertyFile();
 }
 
 function createCustomPropertyFile()

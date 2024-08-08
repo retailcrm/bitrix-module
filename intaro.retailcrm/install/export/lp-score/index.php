@@ -1,6 +1,6 @@
 <?php
 require($_SERVER["DOCUMENT_ROOT"] . "/bitrix/header.php");
-$APPLICATION->SetTitle("Бонусный счет");
+$APPLICATION->SetTitle(GetMessage('BONUS_ACCOUNT'));
 ?>
 
 <?php $APPLICATION->IncludeComponent(

@@ -1,6 +1,6 @@
 <?php
 
-namespace Intaro\RetailCrm\Component\Installer;
+namespace Intaro\RetailCrm\Component\Advanced;
 
 use Bitrix\Main\ArgumentException;
 use Bitrix\Main\EventManager;
@@ -17,7 +17,7 @@ use RCrmActions;
 
 IncludeModuleLangFile(__FILE__);
 
-trait InstallerTrait
+class LoyaltyInstaller
 {
     /**
      * Создание событий для программы лояльности
@@ -67,7 +67,7 @@ trait InstallerTrait
         CopyDirFiles(
             $pathFrom . '/export',
             $_SERVER['DOCUMENT_ROOT'],
-            true,
+            false,
             true,
             false
         );
@@ -86,17 +86,6 @@ trait InstallerTrait
                     'name' => 'main.register',
                     'templateDirectory' => '.default'
                 ],
-            ],
-
-            'default_subscribe' => [
-                0 => [
-                    'name' => 'sale.personal.section',
-                    'templateDirectory' => '.default'
-                ],
-                1 => [
-                    'name' => 'main.register',
-                    'templateDirectory' => '.default_subscribe'
-                ]
             ]
         ];
 
@@ -108,7 +97,7 @@ trait InstallerTrait
     }
 
     /**
-     * Добавление полей пользователя для ПЛ и подписки
+     * Добавление полей пользователя для ПЛ
      */
     public function addUserFields(): void
     {
@@ -150,10 +139,6 @@ trait InstallerTrait
                 [
                     'name'  => 'UF_EXT_REG_PL_INTARO',
                     'title' => GetMessage('UF_EXT_REG_PL_INTARO_TITLE'),
-                ],
-                [
-                    'name' => 'UF_SUBSCRIBE_USER_EMAIL',
-                    'title' => GetMessage('UF_SUBSCRIBE_USER_EMAIL_TITLE')
                 ]
             ]
         );
@@ -178,7 +163,7 @@ trait InstallerTrait
             ];
             $props = array_merge($arProps, $customProps);
             $obUserField = new CUserTypeEntity();
-            $dbRes       = CUserTypeEntity::GetList([], ['FIELD_NAME' => $filed['name']])->fetch();
+            $dbRes = CUserTypeEntity::GetList([], ['FIELD_NAME' => $filed['name']])->fetch();
 
             if (!$dbRes['ID']) {
                 $obUserField->Add($props);
@@ -232,23 +217,10 @@ trait InstallerTrait
         }
     }
 
-    public function createCustomPropertyFile(): void
-    {
-        $path = $_SERVER['DOCUMENT_ROOT'] . '/local/';
-
-        CheckDirPath($path);
-
-        $file = new \Bitrix\Main\IO\File($path . 'icml_property_retailcrm.txt', $siteId = null);
-
-        if (!$file->isExists()) {
-            $file->putContents("");
-        }
-    }
-
     /**
      * delete loyalty program events handlers
      */
-    private function deleteLPEvents(): void
+    public function deleteLPEvents(): void
     {
         $eventManager = EventManager::getInstance();
 
@@ -279,7 +251,7 @@ trait InstallerTrait
             CopyDirFiles(
                 $pathFrom,
                 $templatePath,
-                true,
+                false,
                 true,
                 false
             );
