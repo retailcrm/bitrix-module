@@ -578,15 +578,13 @@ class XmlOfferBuilder
     /**
      * Метод для проверки можно ли маркировать товар.
      *
-     * Таблица в БД - b_hlsys_marking_code_group
-     * По умолчанию ID Highload-блока ProductMarkingCodeGroup - 1.
-     *
      * @param $offerId
-     * @return void
+     *
+     * @return string|null
      */
     private function isMarkableOffer($offerId): ?string
     {
-        $idHlBlock = 1;
+        $idHlBlock = $this->getHighloadBlockIdByName('ProductMarkingCodeGroup');
         $hlBlock = HighloadBlockTable::getById($idHlBlock)->fetch();
         $hlBlockData = HighloadBlockTable::compileEntity($hlBlock)->getDataClass();
         $userFieldManager = UserFieldHelper::getInstance()->getManager();
@@ -600,5 +598,22 @@ class XmlOfferBuilder
         }
 
         return $isMarkableOffer;
+    }
+
+    /**
+     * Метод для получения ID Highload-блока по названию блока.
+     *
+     * Таблица в БД - b_hlsys_marking_code_group
+     * По умолчанию ID Highload-блока ProductMarkingCodeGroup - 1.
+     *
+     * @param $blockName
+     *
+     * @return mixed|null
+     */
+    private function getHighloadBlockIdByName($blockName)
+    {
+        $hlBlock = HighloadBlockTable::getList(['filter' => ['NAME' => $blockName], 'select' => ['ID']])->fetch();
+
+        return $hlBlock['ID'] ?? 1;
     }
 }
