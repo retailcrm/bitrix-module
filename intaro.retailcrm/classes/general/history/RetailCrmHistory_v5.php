@@ -129,6 +129,17 @@ class RetailCrmHistory
             $customerBuilder = new CustomerBuilder();
 
             foreach ($customers as $customer) {
+                if(!isset($customer['externalId']) && (!isset($customer['email']) || !isset($customer['firstName']))){
+                    $customerResponse = RCrmActions::apiMethod($api, 'customersGetById', __METHOD__, $customer['id']);                
+                    if(!isset($customer['email']) && isset($customerResponse['customer']['email'])){
+                        $customer['email'] = $customerResponse['customer']['email'];
+                    }
+
+                    if(!isset($customer['firstName'])&& isset($customerResponse['customer']['firstName'])){
+                            $customer['firstName'] = $customerResponse['customer']['firstName'];
+                    }
+                }
+                
                 if (function_exists('retailCrmBeforeCustomerSave')) {
                     $newResCustomer = retailCrmBeforeCustomerSave($customer);
                     if (is_array($newResCustomer) && !empty($newResCustomer)) {
