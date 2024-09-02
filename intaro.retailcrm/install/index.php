@@ -205,20 +205,8 @@ class intaro_retailcrm extends CModule
         include($this->INSTALL_PATH . '/../lib/component/apiclient/clientadapter.php');
         include($this->INSTALL_PATH . '/../lib/component/advanced/loyaltyinstaller.php');
 
-
-       /* $this->CopyFiles();
-        $this->addEvents();
-        $this->addAgreement();
-        $this->addUserFields();*/
-
         $this->installExport();
         $this->subscriptionSetup();
-        //$this->createCustomPropertyFile();
-
-     /*   OrderLoyaltyDataService::createLoyaltyHlBlock();
-
-        $service = new OrderLoyaltyDataService();
-        $service->addCustomersLoyaltyFields();*/
 
         if ($step == 11) {
             $arResult['arSites'] = RCrmActions::getSitesList();
@@ -1228,6 +1216,7 @@ class intaro_retailcrm extends CModule
         require_once($this->INSTALL_PATH . '/../classes/general/history/RetailCrmHistory_v5.php');
         require_once($this->INSTALL_PATH . '/../lib/component/constants.php');
         require_once($this->INSTALL_PATH . '/../classes/general/cart/RetailCrmCart_v5.php');
+        require_once($this->INSTALL_PATH . '/../lib/component/advanced/loyaltyinstaller.php');
 
         $api_host    = COption::GetOptionString($this->MODULE_ID, Constants::CRM_API_HOST_OPTION, 0);
         $api_key     = COption::GetOptionString($this->MODULE_ID, Constants::CRM_API_KEY_OPTION, 0);
