@@ -128,7 +128,7 @@ class RetailCrmHistory
             $newUser = new CUser();
             $customerBuilder = new CustomerBuilder();
 
-            foreach ($customers as $customer) {                
+            foreach ($customers as $customer) {
                 if (function_exists('retailCrmBeforeCustomerSave')) {
                     $newResCustomer = retailCrmBeforeCustomerSave($customer);
                     if (is_array($newResCustomer) && !empty($newResCustomer)) {
