@@ -221,6 +221,41 @@ class CustomerBuilder extends AbstractBuilder implements RetailcrmBuilderInterfa
                 $this->customer->setSubscribe('N');
             }
         }
+
+        if (empty($this->dataCrm['externalId'])
+            && (empty($this->dataCrm['firstName'])
+            || empty($this->dataCrm['email']))
+        ) {
+            $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
+            $customerResponse = RCrmActions::apiMethod($api, 'customersGetById', __METHOD__, $this->dataCrm['id']);
+    
+            if ($customerResponse instanceof RetailCrm\Response\ApiResponse
+                && $customerResponse->isSuccessful()
+                && !empty($customerResponse['customer'])
+            ) {
+                $crmCustomer = $customerResponse['customer'];
+                
+                if (empty($this->dataCrm['email']) 
+                    && !empty($crmCustomer['email'])
+                ) {
+                    $this->customer->setEmail($this->fromJSON($crmCustomer['email']));
+                }
+
+                if (empty($this->dataCrm['firstName']) 
+                    && !empty($crmCustomer['firstName'])
+                ) {
+                    $this->customer->setName($this->fromJSON($crmCustomer['firstName']));
+                }
+
+                if ((isset($crmCustomer['email']) || $crmCustomer['email'] !== '')
+                    && (!isset($crmCustomer['externalId']))
+                ) {
+                    $login = $crmCustomer['email'];
+                    $this->customer->setLogin($login)
+                        ->setEmail($login);
+                }
+            } 
+        }
     }
 
     public function buildPassword()
