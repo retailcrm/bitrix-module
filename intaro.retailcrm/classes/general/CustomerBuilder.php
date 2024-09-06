@@ -239,20 +239,14 @@ class CustomerBuilder extends AbstractBuilder implements RetailcrmBuilderInterfa
                     && !empty($crmCustomer['email'])
                 ) {
                     $this->customer->setEmail($this->fromJSON($crmCustomer['email']));
+                    $login = $crmCustomer['email'];
+                    $this->customer->setLogin($login);
                 }
 
                 if (empty($this->dataCrm['firstName']) 
                     && !empty($crmCustomer['firstName'])
                 ) {
                     $this->customer->setName($this->fromJSON($crmCustomer['firstName']));
-                }
-
-                if ((isset($crmCustomer['email']) || $crmCustomer['email'] !== '')
-                    && (!isset($crmCustomer['externalId']))
-                ) {
-                    $login = $crmCustomer['email'];
-                    $this->customer->setLogin($login)
-                        ->setEmail($login);
                 }
             } 
         }
