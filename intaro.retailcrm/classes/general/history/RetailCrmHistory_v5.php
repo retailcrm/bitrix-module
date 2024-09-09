@@ -1599,6 +1599,7 @@ class RetailCrmHistory
 
         foreach ($orderHistory as $change) {
             $change['order'] = self::removeEmpty($change['order']);
+            unset($change['order']['status']);
 
             if ($change['order']['items']) {
                 $items = [];
