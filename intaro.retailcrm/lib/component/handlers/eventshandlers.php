@@ -133,10 +133,6 @@ class EventsHandlers
             /** @var Order $order */
             $order = $event->getParameter('ENTITY');
 
-            // TODO: Replace old call with a new one.
-            $saveResult = RetailCrmEvent::orderSave($order);
-            Utils::handleApiErrors($saveResult);
-
             $isBonusInput = (
                 !empty($_POST['bonus-input'])
                 && !empty($_POST['available-bonuses'])

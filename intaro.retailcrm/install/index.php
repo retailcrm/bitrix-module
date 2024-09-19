@@ -1090,7 +1090,7 @@ class intaro_retailcrm extends CModule
             RegisterModuleDependences('sale', 'OnSalePaymentEntityDeleted', $this->MODULE_ID, 'RetailCrmEvent', 'paymentDelete');
             RegisterModuleDependences('main', 'OnAfterUserRegister', $this->MODULE_ID, 'RetailCrmEvent', 'OnAfterUserRegister');
             RegisterModuleDependences('main', 'OnAfterUserAdd', $this->MODULE_ID, 'RetailCrmEvent', 'OnAfterUserAdd');
-
+            RegisterModuleDependences('sale', EventActions::EVENT_ON_ORDER_SAVED, $this->MODULE_ID, 'RetailCrmEvent', 'orderSave', 99);
 
             COption::SetOptionString($this->MODULE_ID, Constants::CRM_CATALOG_BASE_PRICE, htmlspecialchars(trim($_POST['price-types'])));
             COption::SetOptionString($this->MODULE_ID, Constants::CRM_INVENTORIES_UPLOAD, 'N');
