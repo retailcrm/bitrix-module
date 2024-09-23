@@ -714,7 +714,7 @@ class RetailCrmOrder
 
         if (
             'Y' === RetailcrmConfigProvider::getCorporateClientStatus()
-            && $optionsContragentType[$order['PERSON_TYPE_ID']] === 'legal-entity'
+            && in_array($optionsContragentType[$order['PERSON_TYPE_ID']], ['legal-entity', 'enterpreneur'])
         ) {
             // TODO check if order is corporate, and if it IS - make corporate order
             $arCustomer = RetailCrmUser::customerSend(
@@ -728,7 +728,7 @@ class RetailCrmOrder
             $arCustomerCorporate = RetailCrmCorporateClient::clientSend(
                 $order,
                 $api,
-                'legal-entity',
+                $optionsContragentType[$order['PERSON_TYPE_ID']],
                 false,
                 true,
                 $site
@@ -774,7 +774,7 @@ class RetailCrmOrder
 
         if (
             isset($orderData['contragent']['contragentType'])
-            && $orderData['contragent']['contragentType'] === 'legal-entity'
+            && in_array($orderData['contragent']['contragentType'], ['legal-entity', 'enterpreneur'])
             && !empty($customerLegalName)
         ) {
             if (isset($cachedCorporateIds[$customerLegalName])) {

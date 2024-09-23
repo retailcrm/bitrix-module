@@ -224,7 +224,7 @@ class RetailCrmEvent
 
         //TODO эта управляющая конструкция по функционалу дублирует RetailCrmOrder::createCustomerForOrder.
         // Необходимо устранить дублирование, вынеся логику в обособленный класс-сервис
-        if ('Y' === $optionCorpClient && $optionsContragentType[$arOrder['PERSON_TYPE_ID']] === 'legal-entity') {
+        if ('Y' === $optionCorpClient && in_array($optionsContragentType[$arOrder['PERSON_TYPE_ID']], ['legal-entity', 'enterpreneur']) {
             //corparate cliente
             $nickName = '';
             $address = '';
