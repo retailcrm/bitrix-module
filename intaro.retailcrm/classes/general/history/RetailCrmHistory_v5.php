@@ -672,7 +672,7 @@ class RetailCrmHistory
                     $personType = $newOrder->getField('PERSON_TYPE_ID');
 
                     if (RetailCrmOrder::isOrderCorporate($order)
-                        || (!empty($order['contragentType']) && $order['contragentType'] == 'legal-entity')
+                        || (!empty($order['contragentType']) && in_array($order['contragentType'], ['legal-entity', 'enterpreneur']))
                     ) {
                         $personType = $contragentTypes['legal-entity'];
                         $newOrder->setField('PERSON_TYPE_ID', $personType);
