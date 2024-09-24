@@ -472,7 +472,7 @@ class RetailCrmOrder
                 $crmBasket = RCrmActions::apiMethod($api, 'cartGet', __METHOD__, $externalId, $site);
                 $orderResponse = $client->createOrder($order, $site);
 
-                if ($orderResponse instanceof OrdersCreateResponse && $orderResponse->success !== true) {
+                if ($orderResponse instanceof OrdersCreateResponse && !$orderResponse->success) {
 
                     Logger::getInstance()->write([
                         'methodApi' => 'orderCreate',
