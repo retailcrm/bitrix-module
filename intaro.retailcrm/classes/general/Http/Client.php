@@ -96,10 +96,10 @@ class Client
 
         $parameters = self::METHOD_GET === $method
             ? array_merge($this->defaultParameters, $parameters, [
-                'php_version' => function_exists('phpversion') ? phpversion() : '',
                 'cms_source' => 'Bitrix',
-                'module_version' => Constants::MODULE_VERSION,
                 'cms_version' => SM_VERSION,
+                'php_version' => function_exists('phpversion') ? phpversion() : '',
+                'module_version' => Constants::MODULE_VERSION,
             ])
             : $parameters = array_merge($this->defaultParameters, $parameters);
 
