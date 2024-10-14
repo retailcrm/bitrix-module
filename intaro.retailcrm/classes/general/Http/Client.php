@@ -11,6 +11,7 @@
 
 namespace RetailCrm\Http;
 
+use Intaro\RetailCrm\Component\Constants;
 use RetailCrm\Exception\CurlException;
 use RetailCrm\Exception\InvalidJsonException;
 use RetailCrm\Response\ApiResponse;
@@ -29,6 +30,7 @@ class Client
     protected $url;
     protected $defaultParameters;
     protected $retry;
+    protected $versionData;
 
     /**
      * Client constructor.
@@ -45,6 +47,13 @@ class Client
                 'API schema requires HTTPS protocol'
             );
         }
+
+        $this->versionData = [
+            'php_version' => function_exists('phpversion') ? phpversion() : '',
+            'cms_source' => 'Bitrix',
+            'module_version' => Constants::MODULE_VERSION,
+            'cms_version' => SM_VERSION
+        ];
 
         $this->url = $url;
         $this->defaultParameters = $defaultParameters;
@@ -93,7 +102,11 @@ class Client
             );
         }
 
-        $parameters = array_merge($this->defaultParameters, $parameters);
+        if (self::METHOD_GET === $method) {
+        $parameters = array_merge($this->defaultParameters, $parameters, $this->versionData);
+        } else {
+            $parameters = array_merge($this->defaultParameters, $parameters);
+        }
 
         $url = $this->url . $path;
 
