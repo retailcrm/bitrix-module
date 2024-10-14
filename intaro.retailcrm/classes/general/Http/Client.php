@@ -30,7 +30,6 @@ class Client
     protected $url;
     protected $defaultParameters;
     protected $retry;
-    protected $versionData;
 
     /**
      * Client constructor.
@@ -40,7 +39,7 @@ class Client
      *
      * @throws \InvalidArgumentException
      */
-    public function __construct($url, array $defaultParameters = array())
+    public function __construct($url, array $defaultParameters = [])
     {
         if (false === stripos($url, 'https://')) {
             throw new \InvalidArgumentException(
@@ -48,17 +47,10 @@ class Client
             );
         }
 
-        $this->versionData = [
-            'php_version' => function_exists('phpversion') ? phpversion() : '',
-            'cms_source' => 'Bitrix',
-            'module_version' => Constants::MODULE_VERSION,
-            'cms_version' => SM_VERSION
-        ];
-
         $this->url = $url;
         $this->defaultParameters = $defaultParameters;
         $this->retry = 0;
-        $this->curlErrors = array(
+        $this->curlErrors = [
             CURLE_COULDNT_RESOLVE_PROXY,
             CURLE_COULDNT_RESOLVE_HOST,
             CURLE_COULDNT_CONNECT,
@@ -66,8 +58,8 @@ class Client
             CURLE_HTTP_POST_ERROR,
             CURLE_SSL_CONNECT_ERROR,
             CURLE_SEND_ERROR,
-            CURLE_RECV_ERROR
-        );
+            CURLE_RECV_ERROR,
+        ];
     }
 
     /**
@@ -88,9 +80,9 @@ class Client
     public function makeRequest(
         $path,
         $method,
-        array $parameters = array()
+        array $parameters = []
     ) {
-        $allowedMethods = array(self::METHOD_GET, self::METHOD_POST);
+        $allowedMethods = [self::METHOD_GET, self::METHOD_POST];
 
         if (!in_array($method, $allowedMethods, false)) {
             throw new \InvalidArgumentException(
@@ -102,11 +94,14 @@ class Client
             );
         }
 
-        if (self::METHOD_GET === $method) {
-        $parameters = array_merge($this->defaultParameters, $parameters, $this->versionData);
-        } else {
-            $parameters = array_merge($this->defaultParameters, $parameters);
-        }
+        $parameters = self::METHOD_GET === $method
+            ? array_merge($this->defaultParameters, $parameters, [
+                'php_version' => function_exists('phpversion') ? phpversion() : '',
+                'cms_source' => 'Bitrix',
+                'module_version' => Constants::MODULE_VERSION,
+                'cms_version' => SM_VERSION,
+            ])
+            : $parameters = array_merge($this->defaultParameters, $parameters);
 
         $url = $this->url . $path;
 
@@ -135,7 +130,8 @@ class Client
 
         curl_close($curlHandler);
 
-        if ($errno
+        if (
+            $errno
             && in_array($errno, $this->curlErrors, false)
             && $this->retry < 3
         ) {
