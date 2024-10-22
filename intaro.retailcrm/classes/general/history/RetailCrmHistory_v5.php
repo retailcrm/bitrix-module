@@ -1015,6 +1015,14 @@ class RetailCrmHistory
                                 $order['site']
                             );
 
+                            if (!$response) {
+                                Logger::getInstance()->write(
+                                    sprintf('Заказ %s не выгружен. Не удалось получить клиента', $order['id']),
+                                    'orderAgent'
+                                );
+                                continue;
+                            }
+
                             $newUser = new CUser();
                             $customerBuilder = new CustomerBuilder();
                             $customerBuilder->setDataCrm($response['customer'])->build();
