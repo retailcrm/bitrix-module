@@ -1016,7 +1016,10 @@ class RetailCrmHistory
                             );
 
                             if (!$response) {
-                                Logger::getInstance()->write("Заказ {$order["id"]} не выгружен. Не удалось получить клиента", 'orderAgent');
+                                Logger::getInstance()->write(
+                                    sprintf('Заказ %s не выгружен. Не удалось получить клиента', $order['id']),
+                                    'orderAgent'
+                                );
                                 continue;
                             }
 
