@@ -5,6 +5,7 @@ use Bitrix\Main;
 use Bitrix\Main\Context;
 use Bitrix\Main\EventManager;
 use Bitrix\Main\Loader;
+use Bitrix\Main\Config\Option;
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\ORM\Fields\DatetimeField;
 use Bitrix\Main\ORM\Fields\IntegerField;
@@ -15,6 +16,7 @@ use Bitrix\Main\UserConsent\Internals\AgreementTable;
 use Bitrix\Sale\Internals\OrderPropsGroupTable;
 use Bitrix\Sale\Internals\OrderPropsTable;
 use Bitrix\Sale\Internals\PersonTypeTable;
+use Intaro\RetailCrm\Component\Advanced\LoyaltyInstaller;
 
 /**
  * Class ToModuleTable
@@ -60,7 +62,8 @@ class ToModuleTable extends Main\Entity\DataManager
         return [
             new IntegerField(
                 'id',
-                ['primary' => true, 'autocomplete' => true]),
+                ['primary' => true, 'autocomplete' => true]
+            ),
             new DatetimeField('TIMESTAMP_X', ['required' => true]),
             new IntegerField('sort'),
             new StringField(
@@ -676,9 +679,9 @@ class LoyaltyProgramUpdater
     public function getGroupIdByPersonId($personId): ?int
     {
         $lpOrderGroupName = [
-                'ru' => 'Программа лояльности',
-                'en' => 'Loyalty Program'
-            ][Context::getCurrent()->getLanguage()] ?? 'Программа лояльности';
+            'ru' => 'Программа лояльности',
+            'en' => 'Loyalty Program'
+        ][Context::getCurrent()->getLanguage()] ?? 'Программа лояльности';
 
         try {
             $lpGroup = OrderPropsGroupTable::query()
@@ -925,8 +928,7 @@ class LoyaltyProgramUpdater
             'DESCRIPTION' => $lpBonusInfo,
         ];
 
-        while ($bonusProp = $bonusProps->Fetch())
-        {
+        while ($bonusProp = $bonusProps->Fetch()) {
             CSaleOrderProps::Update($bonusProp['ID'], $updateInfo);
         }
 
@@ -1104,15 +1106,13 @@ class UpdateSubscribe
         foreach ($templateNames as $directory => $templates) {
             foreach ($templates as $template) {
                 $templatePath = $_SERVER['DOCUMENT_ROOT']
-                    . '/local/templates/.default/components/bitrix/' . $template['name'] . '/' . $directory
-                ;
+                    . '/local/templates/.default/components/bitrix/' . $template['name'] . '/' . $directory;
 
                 if (!file_exists($templatePath)) {
                     $pathFrom = $_SERVER['DOCUMENT_ROOT']
                         . '/bitrix/modules/intaro.retailcrm/install/export/local/components/intaro/'
                         . $template['name']
-                        . '/templates/' . $template['templateDirectory']
-                    ;
+                        . '/templates/' . $template['templateDirectory'];
 
                     CopyDirFiles(
                         $pathFrom,
@@ -1142,7 +1142,12 @@ class UpdateSubscribe
 
         RegisterModuleDependences('main', 'OnAfterUserRegister', 'intaro.retailcrm', 'RetailCrmEvent', 'OnAfterUserRegister');
         RegisterModuleDependences('main', 'OnAfterUserAdd', 'intaro.retailcrm', 'RetailCrmEvent', 'OnAfterUserAdd');
+        RegisterModuleDependences('sale', 'OnSaleOrderSaved', 'intaro.retailcrm', 'RetailCrmEvent', 'orderSave', 99);
 
+        if (Option::get('intaro.retailcrm', 'loyalty_program_toggle') !== 'Y') {
+            $loyalty = new LoyaltyInstaller();
+            $loyalty->deleteLPEvents();
+        }
         return $this;
     }
 

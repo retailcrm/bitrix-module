@@ -228,7 +228,7 @@ class LoyaltyInstaller
             $eventManager->unRegisterEventHandler(
                 $event['FROM_MODULE'],
                 $event['EVENT_NAME'],
-                $this->MODULE_ID,
+                Constants::MODULE_ID,
                 EventsHandlers::class,
                 $event['EVENT_NAME'].'Handler'
             );
