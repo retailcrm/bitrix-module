@@ -1142,12 +1142,7 @@ class UpdateSubscribe
 
         RegisterModuleDependences('main', 'OnAfterUserRegister', 'intaro.retailcrm', 'RetailCrmEvent', 'OnAfterUserRegister');
         RegisterModuleDependences('main', 'OnAfterUserAdd', 'intaro.retailcrm', 'RetailCrmEvent', 'OnAfterUserAdd');
-        RegisterModuleDependences('sale', 'OnSaleOrderSaved', 'intaro.retailcrm', 'RetailCrmEvent', 'orderSave', 99);
 
-        if (Option::get('intaro.retailcrm', 'loyalty_program_toggle') !== 'Y') {
-            $loyalty = new LoyaltyInstaller();
-            $loyalty->deleteLPEvents();
-        }
         return $this;
     }
 
@@ -1187,6 +1182,12 @@ function update()
     Loader::includeModule('highloadblock');
 
     COption::SetOptionString('intaro.retailcrm', 'api_version', 'v5');
+    RegisterModuleDependences('sale', 'OnSaleOrderSaved', 'intaro.retailcrm', 'RetailCrmEvent', 'orderSave', 99);
+
+    if (Option::get('intaro.retailcrm', 'loyalty_program_toggle') !== 'Y') {
+        $loyalty = new LoyaltyInstaller();
+        $loyalty->deleteLPEvents();
+    }
 }
 
 function createCustomPropertyFile()
