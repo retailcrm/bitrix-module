@@ -16,7 +16,6 @@ use Bitrix\Main\UserConsent\Internals\AgreementTable;
 use Bitrix\Sale\Internals\OrderPropsGroupTable;
 use Bitrix\Sale\Internals\OrderPropsTable;
 use Bitrix\Sale\Internals\PersonTypeTable;
-use Intaro\RetailCrm\Component\Advanced\LoyaltyInstaller;
 
 /**
  * Class ToModuleTable
@@ -1180,13 +1179,14 @@ function update()
 {
     Loader::includeModule('sale');
     Loader::includeModule('highloadblock');
+    $loyaltyEventClass = 'Intaro\RetailCrm\Component\Handlers\EventsHandlers';
 
     COption::SetOptionString('intaro.retailcrm', 'api_version', 'v5');
     RegisterModuleDependences('sale', 'OnSaleOrderSaved', 'intaro.retailcrm', 'RetailCrmEvent', 'orderSave', 99);
 
     if (Option::get('intaro.retailcrm', 'loyalty_program_toggle') !== 'Y') {
-        $loyalty = new LoyaltyInstaller();
-        $loyalty->deleteLPEvents();
+        UnRegisterModuleDependences('sale', 'OnSaleOrderSaved', 'intaro.retailcrm', $loyaltyEventClass, 'OnSaleOrderSavedHandler');
+        UnRegisterModuleDependences('sale', 'OnSaleComponentOrderResultPrepared', 'intaro.retailcrm', $loyaltyEventClass, 'OnSaleComponentOrderResultPreparedHandler');
     }
 }
 
