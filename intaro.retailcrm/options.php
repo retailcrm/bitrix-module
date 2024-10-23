@@ -612,6 +612,9 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         ConfigProvider::setLoyaltyProgramStatus('Y');
     } else {
         ConfigProvider::setLoyaltyProgramStatus('N');
+        $loyaltyEventClass = 'Intaro\RetailCrm\Component\Handlers\EventsHandlers';
+        UnRegisterModuleDependences('sale', 'OnSaleOrderSaved', 'intaro.retailcrm', $loyaltyEventClass, 'OnSaleOrderSavedHandler');
+        UnRegisterModuleDependences('sale', 'OnSaleComponentOrderResultPrepared', 'intaro.retailcrm', $loyaltyEventClass, 'OnSaleComponentOrderResultPreparedHandler');
     }
 
     try {
