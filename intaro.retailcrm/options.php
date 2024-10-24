@@ -85,7 +85,7 @@ if (method_exists(RCrmActions::class, 'customOrderPropList')
 }
 
 //ajax update deliveryServices
-if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') && isset($_POST['ajax']) && ($_POST['ajax'] === 1)) {
+if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') && isset($_POST['ajax']) && ($_POST['ajax'] == 1)) {
     $api_host = COption::GetOptionString($mid, Constants::CRM_API_HOST_OPTION, 0);
     $api_key = COption::GetOptionString($mid, Constants::CRM_API_KEY_OPTION , 0);
     $api = new RetailCrm\ApiClient($api_host, $api_key);
@@ -108,7 +108,7 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_RE
 
     foreach ($optionsDelivTypes as $key => $deliveryType) {
         foreach ($arDeliveryServiceAll as $deliveryService) {
-            if ($deliveryService['PARENT_ID'] != 0 && $deliveryService['PARENT_ID'] === $key) {
+            if ($deliveryService['PARENT_ID'] != 0 && $deliveryService['PARENT_ID'] == $key) {
                 try {
                     $api->deliveryServicesEdit(RCrmActions::clearArr([
                         'code'         => 'bitrix-' . $deliveryService['ID'],
