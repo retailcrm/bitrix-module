@@ -41,6 +41,7 @@ $MESS ['ICRM_OPTIONS_ORDER_DISCHARGE_TAB'] = 'Orders uploading mode';
 $MESS ['ORDER_DISCH'] = 'Orders uploading mode';
 $MESS ['DISCHARGE_AGENT'] = 'Upload orders using agent';
 $MESS ['DISCHARGE_EVENTS'] = 'Upload orders by events';
+$MESS ['DISCHARGE_WITHOUT_UPDATE'] = 'Upload orders by agent (without update)';
 $MESS ['INFO_2'] = ' Set the correspondence between 1C-Bitrix and RetailCRM order fields.';
 $MESS ['ORDER_PROPS'] = 'Correspondence settings between RetailCRM order fields and 1C-Bitrix order properties';
 $MESS ['FIO'] = 'Full name';

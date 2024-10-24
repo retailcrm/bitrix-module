@@ -62,7 +62,7 @@ $MESS ['ICRM_OPTIONS_ORDER_DISCHARGE_TAB'] = 'Режим выгрузки зак
 $MESS ['ORDER_DISCH'] = 'Режим выгрузки заказов';
 $MESS ['DISCHARGE_AGENT'] = 'Выгрузка заказов с помощью агента';
 $MESS ['DISCHARGE_EVENTS'] = 'Выгрузка заказов по событию';
-
+$MESS ['DISCHARGE_WITHOUT_UPDATE'] = 'Выгрузка заказов по агенту (только создание заказов)';
 $MESS ['INFO_2'] = ' Задайте соответствие между полями заказа 1C-Битрикс и RetailCRM.';
 
 $MESS ['ORDER_PROPS'] = 'Настройки соответствия полей заказа RetailCRM свойствам заказа 1С-Битрикс';

@@ -314,16 +314,48 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     //order discharge mode
     // 0 - agent
     // 1 - event
+    // 2 - agent without update
+    $agentUpload = false;
     $orderDischarge = (int) htmlspecialchars(trim($_POST['order-discharge']));
 
-    if (($orderDischarge != $previousDischarge) && ($orderDischarge === 0)) {
+    if (($orderDischarge != $previousDischarge) && ($orderDischarge === 0 || $orderDischarge === 2 )) {
         // remove depenedencies
-        UnRegisterModuleDependences('sale', 'OnOrderUpdate', $mid, 'RetailCrmEvent', "onUpdateOrder");
         UnRegisterModuleDependences('sale', 'OnSaleOrderDeleted', $mid, 'RetailCrmEvent', "orderDelete");
+        UnRegisterModuleDependences('sale', 'OnSaleOrderSaved', $mid, 'RetailCrmEvent', "orderSave");
+        UnRegisterModuleDependences('sale', 'OnOrderUpdate', $mid, 'RetailCrmEvent', "onUpdateOrder");
+        $agentUpload = true;
+
+        if ($orderDischarge === 0 && COption::GetOptionString($mid, Constants::LAST_ORDER_UPDATE) === '') {
+            COption::SetOptionString($mid, Constants::LAST_ORDER_UPDATE, date("Y-m-d H:i:s"));
+        } else {
+            COption::RemoveOption($mid, Constants::LAST_ORDER_UPDATE);
+        }
+
     } elseif (($orderDischarge != $previousDischarge) && ($orderDischarge === 1)) {
         // event dependencies
         RegisterModuleDependences('sale', 'OnOrderUpdate', $mid, 'RetailCrmEvent', "onUpdateOrder");
         RegisterModuleDependences('sale', 'OnSaleOrderDeleted', $mid, 'RetailCrmEvent', "orderDelete");
+        RegisterModuleDependences('sale', 'OnSaleOrderSaved', $mid, 'RetailCrmEvent', "orderSave");
+        COption::RemoveOption($mid, Constants::LAST_ORDER_UPDATE);
+    }
+
+    if ($agentUpload) {
+        $dateAgent = new DateTime();
+        $intAgent = new DateInterval('PT60S'); 
+        $dateAgent->add($intAgent);
+    
+        CAgent::AddAgent(
+            'RCrmActions::uploadOrdersAgent();',
+            $mid,
+            'N',
+            180,
+            $dateAgent->format('d.m.Y H:i:s'),
+            'Y',
+            $dateAgent->format('d.m.Y H:i:s'),
+            30
+        );
+    } else {
+        CAgent::RemoveAgent("RCrmActions::uploadOrdersAgent();", $mid);
     }
 
     $optionCart = COption::GetOptionString($mid, Constants::CART, 'N');
@@ -3015,6 +3047,9 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                         <label><input class="addr" type="radio" name="order-discharge" value="0" <?php if ($optionsDischarge === 0) {
                                 echo "checked";
                             } ?>><?php echo GetMessage('DISCHARGE_AGENT'); ?></label>
+                        <label><input class="addr" type="radio" name="order-discharge" value="2" <?php if ($optionsDischarge === 2) {
+                                echo "checked";
+                            } ?>><?php echo GetMessage('DISCHARGE_WITHOUT_UPDATE'); ?></label>
                     </b>
                 </td>
             </tr>

@@ -10,6 +10,7 @@
  */
 
 use Bitrix\Main\Context;
+use Bitrix\Main\Type\DateTime;
 use Bitrix\Main\Context\Culture;
 use Bitrix\Main\UserTable;
 use Bitrix\Sale\Delivery\Services\Manager;
@@ -429,7 +430,7 @@ class RetailCrmOrder
                 return false;
             }
         }
-
+        
         if ('ordersEdit' === $methodApi) {
             $order = RetailCrmService::unsetIntegrationDeliveryFields($order);
         }
@@ -536,9 +537,11 @@ class RetailCrmOrder
         $resCustomersAdded = [];
         $resCustomersCorporate = [];
         $orderIds = [];
+        $orderUpdateIds = [];
 
         $lastUpOrderId = RetailcrmConfigProvider::getLastOrderId();
         $failedIds = RetailcrmConfigProvider::getFailedOrdersIds();
+        $uploadMethod = RetailcrmConfigProvider::getOrderDischarge();
 
         if ($failed == true && $failedIds !== false && count($failedIds) > 0) {
             $orderIds = $failedIds;
@@ -556,6 +559,24 @@ class RetailCrmOrder
                 $orderIds[] = $arOrder['ID'];
             }
         }
+
+        if((int)$uploadMethod === 0) {
+            $dateOfLastUpdate = RetailcrmConfigProvider::getLastOrderUpdate();
+            $dbOrderUpdate = OrderTable::GetList([
+                'order' => ['ID' => 'ASC'],
+                'filter' => ['>DATE_UPDATE' => DateTime::createFromTimestamp(strtotime($dateOfLastUpdate))],
+                'limit' => $pSize,
+                'select' => ['ID'],
+            ]);
+
+            while ($arOrderUpdate = $dbOrderUpdate->fetch()) {
+                $orderUpdateIds[] = $arOrderUpdate['ID'];
+            }
+        }
+
+        
+        $orderIds = array_unique(array_merge($orderIds, $orderUpdateIds));
+        
 
         if (count($orderIds) <= 0) {
             return false;
@@ -615,6 +636,16 @@ class RetailCrmOrder
                 continue;
             }
 
+            $orderCrm = RCrmActions::apiMethod($api, 'ordersGet', __METHOD__, $orderId, $site);
+            RetailcrmConfigProvider::setLastOrderUpdate(date("Y-m-d H:i:s"));
+
+            if (isset($orderCrm['order'])) {
+                $methodApi = 'ordersEdit';
+                $arParams['crmOrder'] = $orderCrm['order'];
+            } else {
+                $methodApi = 'ordersCreate';
+            }
+
             self::createCustomerForOrder($api, $arCustomer, $arCustomerCorporate,$arParams, $order, $site);
 
             if (isset($order['RESPONSIBLE_ID']) && !empty($order['RESPONSIBLE_ID'])) {
@@ -622,7 +653,12 @@ class RetailCrmOrder
                 $arParams['managerId']  = $managerService->getManagerCrmId((int) $order['RESPONSIBLE_ID']);
             }
 
-            $arOrders = self::orderSend($order, $api, $arParams, false, $site,'ordersCreate');
+            if ($methodApi === 'ordersEdit') {
+                $arOrders = self::orderSend($order, $api, $arParams, true, $site, 'ordersEdit');
+                continue;
+            }
+
+            $arOrders = self::orderSend($order, $api, $arParams, false, $site, $methodApi);
 
             if (!$arCustomer || !$arOrders) {
                 continue;
