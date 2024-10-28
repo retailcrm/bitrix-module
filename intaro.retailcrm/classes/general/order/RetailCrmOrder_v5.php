@@ -995,7 +995,9 @@ class RetailCrmOrder
                 }
                 if ($delivery['PARENT_ID']) {
                     $service = explode(':', $delivery['CODE']);
-                    $shipment = ['id' => $delivery['PARENT_ID'], 'service' => $service[1]];
+                    $shipment = $delivery['CLASS_NAME'] === '\Sale\Handlers\Delivery\RussianpostProfile'
+                        ? ['id' => $delivery['PARENT_ID'], 'service' => 'bitrix-' . $delivery['ID']]
+                        : ['id' => $delivery['PARENT_ID'], 'service' => $service[1]];
                 } else {
                     $shipment = ['id' => $delivery['ID']];
                 }
