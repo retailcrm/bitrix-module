@@ -161,6 +161,7 @@ class LoyaltyInstaller
                 'EDIT_FORM_LABEL' => ['ru' => $filed['title']],
 
             ];
+
             $props = array_merge($arProps, $customProps);
             $obUserField = new CUserTypeEntity();
             $dbRes = CUserTypeEntity::GetList([], ['FIELD_NAME' => $filed['name']])->fetch();

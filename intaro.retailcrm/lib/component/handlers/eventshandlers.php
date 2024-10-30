@@ -83,7 +83,8 @@ class EventsHandlers
 
             $isWriteOffAvailable = $bonusInput > 0
                 && $availableBonuses > 0
-                && $jsDataTotal['ORDER_TOTAL_PRICE'] >= $bonusDiscount + $loyaltyDiscountInput;
+                && $jsDataTotal['ORDER_TOTAL_PRICE'] >= $bonusDiscount + $loyaltyDiscountInput
+            ;
 
             if ($isWriteOffAvailable || $loyaltyDiscountInput > 0) {
                 $jsDataTotal['ORDER_TOTAL_PRICE']
