@@ -1194,6 +1194,27 @@ function update()
         UnRegisterModuleDependences('sale', 'OnSaleOrderSaved', 'intaro.retailcrm', $loyaltyEventClass, 'OnSaleOrderSavedHandler');
         UnRegisterModuleDependences('sale', 'OnSaleComponentOrderResultPrepared', 'intaro.retailcrm', $loyaltyEventClass, 'OnSaleComponentOrderResultPreparedHandler');
     }
+
+    $orderDischarge = Option::get('intaro.retailcrm', 'order_discharge');
+
+    if ($orderDischarge === '0' || $orderDischarge === '2') {
+        $dateAgent = new DateTime();
+        $dateAgent->add('PT60S');
+        CAgent::AddAgent(
+            'RCrmActions::uploadOrdersAgent();',
+            'intaro.retailcrm',
+            'N',
+            180,
+            $dateAgent->format('d.m.Y H:i:s'),
+            'Y',
+            $dateAgent->format('d.m.Y H:i:s'),
+            30
+        );
+
+        if ($orderDischarge === '0') {
+            COption::SetOptionString('intaro.retailcrm', 'last_order_update', date("Y-m-d H:i:s"));
+        }
+    }
 }
 
 function createCustomPropertyFile()

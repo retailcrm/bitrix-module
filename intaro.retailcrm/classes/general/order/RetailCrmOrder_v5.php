@@ -574,10 +574,7 @@ class RetailCrmOrder
             }
         }
 
-        
-        $orderIds = array_unique(array_merge($orderIds, $orderUpdateIds));
-        
-
+        $orderIds = array_unique(array_merge($orderIds, $orderUpdateIds)); 
         if (count($orderIds) <= 0) {
             return false;
         }
@@ -609,6 +606,7 @@ class RetailCrmOrder
         ];
 
         $recOrders = [];
+        $maxUpdateDate = $dateOfLastUpdate;
 
         foreach ($orderIds as $orderId) {
             $bitrixOrder = Order::load($orderId);
@@ -637,7 +635,6 @@ class RetailCrmOrder
             }
 
             $orderCrm = RCrmActions::apiMethod($api, 'ordersGet', __METHOD__, $orderId, $site);
-            RetailcrmConfigProvider::setLastOrderUpdate(date("Y-m-d H:i:s"));
 
             if (isset($orderCrm['order'])) {
                 $methodApi = 'ordersEdit';
@@ -646,18 +643,19 @@ class RetailCrmOrder
                 $methodApi = 'ordersCreate';
             }
 
-            self::createCustomerForOrder($api, $arCustomer, $arCustomerCorporate,$arParams, $order, $site);
-
             if (isset($order['RESPONSIBLE_ID']) && !empty($order['RESPONSIBLE_ID'])) {
                 $managerService = ManagerService::getInstance();
                 $arParams['managerId']  = $managerService->getManagerCrmId((int) $order['RESPONSIBLE_ID']);
             }
 
             if ($methodApi === 'ordersEdit') {
-                $arOrders = self::orderSend($order, $api, $arParams, true, $site, 'ordersEdit');
+                $updateDate = $bitrixOrder->getField('DATE_UPDATE')->format("Y-m-d H:i:s");
+                $maxUpdateDate = $updateDate > $maxUpdateDate ? $updateDate : $maxUpdateDate;
+                self::orderSend($order, $api, $arParams, true, $site);
                 continue;
             }
 
+            self::createCustomerForOrder($api, $arCustomer, $arCustomerCorporate,$arParams, $order, $site);
             $arOrders = self::orderSend($order, $api, $arParams, false, $site, $methodApi);
 
             if (!$arCustomer || !$arOrders) {
@@ -679,6 +677,8 @@ class RetailCrmOrder
             $ordersPack[$order['LID']][] = $arOrders;
             $recOrders[] = $orderId;
         }
+
+        RetailcrmConfigProvider::setLastOrderUpdate($maxUpdateDate);
 
         if (count($ordersPack) > 0) {
             if (false === RetailCrmOrder::uploadCustomersList($resCustomers, $api, $arParams['optionsSitesList'])) {
