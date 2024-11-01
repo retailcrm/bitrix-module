@@ -574,7 +574,8 @@ class RetailCrmOrder
             }
         }
 
-        $orderIds = array_unique(array_merge($orderIds, $orderUpdateIds)); 
+        $orderIds = array_unique(array_merge($orderIds, $orderUpdateIds));
+
         if (count($orderIds) <= 0) {
             return false;
         }
@@ -634,11 +635,15 @@ class RetailCrmOrder
                 continue;
             }
 
-            $orderCrm = RCrmActions::apiMethod($api, 'ordersGet', __METHOD__, $orderId, $site);
+            if((int)$uploadMethod === 0) {
+                $orderCrm = RCrmActions::apiMethod($api, 'ordersGet', __METHOD__, $orderId, $site);
 
-            if (isset($orderCrm['order'])) {
-                $methodApi = 'ordersEdit';
-                $arParams['crmOrder'] = $orderCrm['order'];
+                if (isset($orderCrm['order'])) {
+                    $methodApi = 'ordersEdit';
+                    $arParams['crmOrder'] = $orderCrm['order'];
+                } else {
+                    $methodApi = 'ordersCreate';
+                }
             } else {
                 $methodApi = 'ordersCreate';
             }
@@ -651,6 +656,7 @@ class RetailCrmOrder
             if ($methodApi === 'ordersEdit') {
                 $updateDate = $bitrixOrder->getField('DATE_UPDATE')->format("Y-m-d H:i:s");
                 $maxUpdateDate = $updateDate > $maxUpdateDate ? $updateDate : $maxUpdateDate;
+
                 self::orderSend($order, $api, $arParams, true, $site);
                 continue;
             }

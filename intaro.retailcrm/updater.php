@@ -1197,8 +1197,9 @@ function update()
 
     $orderDischarge = Option::get('intaro.retailcrm', 'order_discharge');
 
-    if ($orderDischarge === '0' || $orderDischarge === '2') {
+    if ($orderDischarge === '0') {
         $dateAgent = new DateTime();
+
         $dateAgent->add('PT60S');
         CAgent::AddAgent(
             'RCrmActions::uploadOrdersAgent();',
@@ -1210,10 +1211,8 @@ function update()
             $dateAgent->format('d.m.Y H:i:s'),
             30
         );
-
-        if ($orderDischarge === '0') {
-            COption::SetOptionString('intaro.retailcrm', 'last_order_update', date("Y-m-d H:i:s"));
-        }
+        
+        COption::SetOptionString('intaro.retailcrm', 'order_discharge', '2');
     }
 }
 

@@ -23,6 +23,7 @@ $MESS ['ORDER_CUSTOM'] = 'Custom fields';
 $MESS ['COUPON_CUSTOM_FIELD'] = 'Select a custom field in the CRM to transfer the applied coupon in the Bitrix order';
 $MESS ['SELECT_VALUE'] =  '-- Select a value --';
 $MESS ['ORDER_UPLOAD'] = 'Re-upload orders';
+$MESS ['LP_WARNING'] = 'Loyalty program of RetailCRM is available only with the “Uploading orders by event” options active';
 $MESS ['ORDER_NUMBER'] = 'Order numbers: ';
 $MESS ['ORDER_UPLOAD_INFO'] = 'Click "Start uploading" to upload all the orders . Or list the required order IDs separated by commas, intervals or dashes. For example: 1, 3, 5-10, 12, 13... etc.';
 $MESS ['ICRM_OPTIONS_SUBMIT_TITLE'] = 'Save settings';
