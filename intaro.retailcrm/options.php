@@ -324,8 +324,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         UnRegisterModuleDependences('sale', 'OnSaleOrderDeleted', $mid, 'RetailCrmEvent', "orderDelete");
         UnRegisterModuleDependences('sale', 'OnSaleOrderSaved', $mid, 'RetailCrmEvent', "orderSave");
         UnRegisterModuleDependences('sale', 'OnOrderUpdate', $mid, 'RetailCrmEvent', "onUpdateOrder");
-        UnRegisterModuleDependences('sale', 'OnSaleOrderSaved', 'intaro.retailcrm', $loyaltyEventClass, 'OnSaleOrderSavedHandler');
-        UnRegisterModuleDependences('sale', 'OnSaleComponentOrderResultPrepared', 'intaro.retailcrm', $loyaltyEventClass, 'OnSaleComponentOrderResultPreparedHandler');
+        UnRegisterModuleDependences('sale', 'OnSaleOrderSaved', $mid, $loyaltyEventClass, 'OnSaleOrderSavedHandler');
+        UnRegisterModuleDependences('sale', 'OnSaleComponentOrderResultPrepared', $mid, $loyaltyEventClass, 'OnSaleComponentOrderResultPreparedHandler');
         ConfigProvider::setLoyaltyProgramStatus('N');
         
         $dateAgent = new DateTime();

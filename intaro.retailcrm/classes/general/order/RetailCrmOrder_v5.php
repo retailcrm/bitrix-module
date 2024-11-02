@@ -618,6 +618,8 @@ class RetailCrmOrder
 
             $arCustomer = [];
             $arCustomerCorporate = [];
+            $methodApi = 'ordersCreate';
+
             $order = self::orderObjToArr($bitrixOrder);
             $site = self::getCrmShopCodeByLid($order['LID'], $arParams['optionsSitesList']);
 
@@ -641,11 +643,7 @@ class RetailCrmOrder
                 if (isset($orderCrm['order'])) {
                     $methodApi = 'ordersEdit';
                     $arParams['crmOrder'] = $orderCrm['order'];
-                } else {
-                    $methodApi = 'ordersCreate';
                 }
-            } else {
-                $methodApi = 'ordersCreate';
             }
 
             if (isset($order['RESPONSIBLE_ID']) && !empty($order['RESPONSIBLE_ID'])) {
