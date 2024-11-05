@@ -10,6 +10,7 @@
  */
 
 use Bitrix\Main\Context;
+use Bitrix\Main\Type\DateTime;
 use Bitrix\Main\Context\Culture;
 use Bitrix\Main\UserTable;
 use Bitrix\Sale\Delivery\Services\Manager;
@@ -429,7 +430,7 @@ class RetailCrmOrder
                 return false;
             }
         }
-
+        
         if ('ordersEdit' === $methodApi) {
             $order = RetailCrmService::unsetIntegrationDeliveryFields($order);
         }
@@ -536,9 +537,11 @@ class RetailCrmOrder
         $resCustomersAdded = [];
         $resCustomersCorporate = [];
         $orderIds = [];
+        $orderUpdateIds = [];
 
         $lastUpOrderId = RetailcrmConfigProvider::getLastOrderId();
         $failedIds = RetailcrmConfigProvider::getFailedOrdersIds();
+        $uploadMethod = RetailcrmConfigProvider::getOrderDischarge();
 
         if ($failed == true && $failedIds !== false && count($failedIds) > 0) {
             $orderIds = $failedIds;
@@ -556,6 +559,22 @@ class RetailCrmOrder
                 $orderIds[] = $arOrder['ID'];
             }
         }
+
+        if((int)$uploadMethod === 0) {
+            $dateOfLastUpdate = RetailcrmConfigProvider::getLastOrderUpdate();
+            $dbOrderUpdate = OrderTable::GetList([
+                'order' => ['ID' => 'ASC'],
+                'filter' => ['>DATE_UPDATE' => DateTime::createFromTimestamp(strtotime($dateOfLastUpdate))],
+                'limit' => $pSize,
+                'select' => ['ID'],
+            ]);
+
+            while ($arOrderUpdate = $dbOrderUpdate->fetch()) {
+                $orderUpdateIds[] = $arOrderUpdate['ID'];
+            }
+        }
+
+        $orderIds = array_unique(array_merge($orderIds, $orderUpdateIds));
 
         if (count($orderIds) <= 0) {
             return false;
@@ -588,6 +607,7 @@ class RetailCrmOrder
         ];
 
         $recOrders = [];
+        $maxUpdateDate = $dateOfLastUpdate;
 
         foreach ($orderIds as $orderId) {
             $bitrixOrder = Order::load($orderId);
@@ -598,6 +618,8 @@ class RetailCrmOrder
 
             $arCustomer = [];
             $arCustomerCorporate = [];
+            $methodApi = 'ordersCreate';
+
             $order = self::orderObjToArr($bitrixOrder);
             $site = self::getCrmShopCodeByLid($order['LID'], $arParams['optionsSitesList']);
 
@@ -615,14 +637,30 @@ class RetailCrmOrder
                 continue;
             }
 
-            self::createCustomerForOrder($api, $arCustomer, $arCustomerCorporate,$arParams, $order, $site);
+            if((int)$uploadMethod === 0) {
+                $orderCrm = RCrmActions::apiMethod($api, 'ordersGet', __METHOD__, $orderId, $site);
+
+                if (isset($orderCrm['order'])) {
+                    $methodApi = 'ordersEdit';
+                    $arParams['crmOrder'] = $orderCrm['order'];
+                }
+            }
 
             if (isset($order['RESPONSIBLE_ID']) && !empty($order['RESPONSIBLE_ID'])) {
                 $managerService = ManagerService::getInstance();
                 $arParams['managerId']  = $managerService->getManagerCrmId((int) $order['RESPONSIBLE_ID']);
             }
 
-            $arOrders = self::orderSend($order, $api, $arParams, false, $site,'ordersCreate');
+            if ($methodApi === 'ordersEdit') {
+                $updateDate = $bitrixOrder->getField('DATE_UPDATE')->format("Y-m-d H:i:s");
+                $maxUpdateDate = $updateDate > $maxUpdateDate ? $updateDate : $maxUpdateDate;
+
+                self::orderSend($order, $api, $arParams, true, $site);
+                continue;
+            }
+
+            self::createCustomerForOrder($api, $arCustomer, $arCustomerCorporate,$arParams, $order, $site);
+            $arOrders = self::orderSend($order, $api, $arParams, false, $site, $methodApi);
 
             if (!$arCustomer || !$arOrders) {
                 continue;
@@ -643,6 +681,8 @@ class RetailCrmOrder
             $ordersPack[$order['LID']][] = $arOrders;
             $recOrders[] = $orderId;
         }
+
+        RetailcrmConfigProvider::setLastOrderUpdate($maxUpdateDate);
 
         if (count($ordersPack) > 0) {
             if (false === RetailCrmOrder::uploadCustomersList($resCustomers, $api, $arParams['optionsSitesList'])) {

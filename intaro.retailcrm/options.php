@@ -7,6 +7,7 @@ use Bitrix\Main\LoaderException;
 use Bitrix\Main\SystemException;
 use Bitrix\Main\UI\Extension;
 use Bitrix\Sale\Delivery\Services\Manager;
+use Bitrix\Sale\Internals\OrderTable;
 use Intaro\RetailCrm\Component\ApiClient\ClientAdapter;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Constants;
@@ -22,6 +23,7 @@ IncludeModuleLangFile(__FILE__);
 include (__DIR__ . '/lib/component/advanced/loyaltyinstaller.php');
 
 $mid = 'intaro.retailcrm';
+$loyaltyEventClass = 'Intaro\RetailCrm\Component\Handlers\EventsHandlers';
 $uri = $APPLICATION->GetCurPage() . '?mid=' . htmlspecialchars($mid) . '&lang=' . LANGUAGE_ID;
 
 if (!CModule::IncludeModule('intaro.retailcrm') || !CModule::IncludeModule('sale') || !CModule::IncludeModule('iblock') || !CModule::IncludeModule('catalog')) {
@@ -314,16 +316,60 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     //order discharge mode
     // 0 - agent
     // 1 - event
+    // 2 - agent without update
     $orderDischarge = (int) htmlspecialchars(trim($_POST['order-discharge']));
 
-    if (($orderDischarge != $previousDischarge) && ($orderDischarge === 0)) {
+    if (($orderDischarge != $previousDischarge) && ($orderDischarge === 0 || $orderDischarge === 2 )) {
         // remove depenedencies
-        UnRegisterModuleDependences('sale', 'OnOrderUpdate', $mid, 'RetailCrmEvent', "onUpdateOrder");
         UnRegisterModuleDependences('sale', 'OnSaleOrderDeleted', $mid, 'RetailCrmEvent', "orderDelete");
+        UnRegisterModuleDependences('sale', 'OnSaleOrderSaved', $mid, 'RetailCrmEvent', "orderSave");
+        UnRegisterModuleDependences('sale', 'OnOrderUpdate', $mid, 'RetailCrmEvent', "onUpdateOrder");
+        UnRegisterModuleDependences('sale', 'OnSaleOrderSaved', $mid, $loyaltyEventClass, 'OnSaleOrderSavedHandler');
+        UnRegisterModuleDependences('sale', 'OnSaleComponentOrderResultPrepared', $mid, $loyaltyEventClass, 'OnSaleComponentOrderResultPreparedHandler');
+        ConfigProvider::setLoyaltyProgramStatus('N');
+        
+        $dateAgent = new DateTime();
+        $intAgent = new DateInterval('PT60S'); 
+        $dateAgent->add($intAgent);
+    
+        CAgent::AddAgent(
+            'RCrmActions::uploadOrdersAgent();',
+            $mid,
+            'N',
+            180,
+            $dateAgent->format('d.m.Y H:i:s'),
+            'Y',
+            $dateAgent->format('d.m.Y H:i:s'),
+            30
+        );
+
+        if ($orderDischarge === 0) {
+            COption::SetOptionString($mid, Constants::LAST_ORDER_UPDATE, date("Y-m-d H:i:s"));
+        } else {
+            COption::RemoveOption($mid, Constants::LAST_ORDER_UPDATE);
+        }
+
+        $dbOrder = OrderTable::GetList([
+            'order'  => ['ID' => 'DESC'],
+            'limit'  => 1,
+            'select' => ['ID'],
+        ]);
+
+        $arOrder = $dbOrder->fetch();
+        
+        if ($dbOrder) {
+            COption::SetOptionString($mid, Constants::CRM_ORDER_LAST_ID, $arOrder['ID']);
+        } else {
+            COption::SetOptionString($mid, Constants::CRM_ORDER_LAST_ID, 0);
+        }
+
     } elseif (($orderDischarge != $previousDischarge) && ($orderDischarge === 1)) {
         // event dependencies
         RegisterModuleDependences('sale', 'OnOrderUpdate', $mid, 'RetailCrmEvent', "onUpdateOrder");
         RegisterModuleDependences('sale', 'OnSaleOrderDeleted', $mid, 'RetailCrmEvent', "orderDelete");
+        RegisterModuleDependences('sale', 'OnSaleOrderSaved', $mid, 'RetailCrmEvent', "orderSave");
+        COption::RemoveOption($mid, Constants::LAST_ORDER_UPDATE);
+        CAgent::RemoveAgent("RCrmActions::uploadOrdersAgent();", $mid);
     }
 
     $optionCart = COption::GetOptionString($mid, Constants::CART, 'N');
@@ -604,22 +650,16 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             }
         } catch (Exception $exception) {
             RCrmActions::eventLog(
-                'intaro.retailcrm/options.php', 'Options_Loyalty_toggle::enable',
+                'intaro.retailcrm/options.php', 'OrderLoyaltyDataService::createLoyaltyHlBlock',
                 $e->getCode() . ': ' . $exception->getMessage()
             );
         }
 
         ConfigProvider::setLoyaltyProgramStatus('Y');
     } else {
-        try {
-            ConfigProvider::setLoyaltyProgramStatus('N');
-            $loyaltySetup->deleteLPEvents();
-        } catch (Exception $exception) {
-            RCrmActions::eventLog(
-                'intaro.retailcrm/options.php', 'Options_Loyalty_toggle::disable',
-                $e->getCode() . ': ' . $exception->getMessage()
-            );
-        }
+        ConfigProvider::setLoyaltyProgramStatus('N');
+        UnRegisterModuleDependences('sale', 'OnSaleOrderSaved', $mid, $loyaltyEventClass, 'OnSaleOrderSavedHandler');
+        UnRegisterModuleDependences('sale', 'OnSaleComponentOrderResultPrepared', $mid, $loyaltyEventClass, 'OnSaleComponentOrderResultPreparedHandler');
     }
 
     try {
@@ -3015,7 +3055,15 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                         <label><input class="addr" type="radio" name="order-discharge" value="0" <?php if ($optionsDischarge === 0) {
                                 echo "checked";
                             } ?>><?php echo GetMessage('DISCHARGE_AGENT'); ?></label>
+                        <label><input class="addr" type="radio" name="order-discharge" value="2" <?php if ($optionsDischarge === 2) {
+                                echo "checked";
+                            } ?>><?php echo GetMessage('DISCHARGE_WITHOUT_UPDATE'); ?></label>
                     </b>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" class="option-head option-other-top option-other-bottom" style="color:#c24141">
+                    <b><?php echo GetMessage('LP_WARNING'); ?></b>
                 </td>
             </tr>
             <tr>

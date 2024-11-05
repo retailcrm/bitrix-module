@@ -1185,14 +1185,26 @@ function update()
 {
     Loader::includeModule('sale');
     Loader::includeModule('highloadblock');
-    $loyaltyEventClass = 'Intaro\RetailCrm\Component\Handlers\EventsHandlers';
-
     COption::SetOptionString('intaro.retailcrm', 'api_version', 'v5');
-    RegisterModuleDependences('sale', 'OnSaleOrderSaved', 'intaro.retailcrm', 'RetailCrmEvent', 'orderSave', 99);
 
-    if (Option::get('intaro.retailcrm', 'loyalty_program_toggle') !== 'Y') {
-        UnRegisterModuleDependences('sale', 'OnSaleOrderSaved', 'intaro.retailcrm', $loyaltyEventClass, 'OnSaleOrderSavedHandler');
-        UnRegisterModuleDependences('sale', 'OnSaleComponentOrderResultPrepared', 'intaro.retailcrm', $loyaltyEventClass, 'OnSaleComponentOrderResultPreparedHandler');
+    $orderDischarge = Option::get('intaro.retailcrm', 'order_discharge');
+
+    if ($orderDischarge === '0') {
+        $dateAgent = new DateTime();
+
+        $dateAgent->add('PT60S');
+        CAgent::AddAgent(
+            'RCrmActions::uploadOrdersAgent();',
+            'intaro.retailcrm',
+            'N',
+            180,
+            $dateAgent->format('d.m.Y H:i:s'),
+            'Y',
+            $dateAgent->format('d.m.Y H:i:s'),
+            30
+        );
+        
+        COption::SetOptionString('intaro.retailcrm', 'order_discharge', '2');
     }
 }
 

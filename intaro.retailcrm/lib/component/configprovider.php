@@ -549,6 +549,36 @@ class ConfigProvider
     }
 
     /**
+     * getLastOrderUpdate
+     *
+     * @return bool|string|null
+     */
+    public static function getLastOrderUpdate()
+    {
+        return static::getOption(Constants::LAST_ORDER_UPDATE);
+    }
+
+    /**
+     * setLastOrderUpdate
+     *
+     * @return bool|string|null
+     */
+    public static function setLastOrderUpdate($value)
+    {
+        static::setOption(Constants::LAST_ORDER_UPDATE, $value);
+    }
+
+    /**
+     * getOrderDischarge
+     *
+     * @return bool|string|null
+     */
+    public static function getOrderDischarge()
+    {
+        return static::getOption(Constants::CRM_ORDER_DISCHARGE);
+    }
+
+    /**
      * getSendPaymentAmount
      *
      * @return bool|string|null

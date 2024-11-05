@@ -266,8 +266,8 @@ class RCrmActions
         if (is_array($failedIds) && !empty($failedIds)) {
             RetailCrmOrder::uploadOrders(50, true);
         }
-
-        return;
+        
+        return 'RCrmActions::uploadOrdersAgent();';
     }
 
     /**
@@ -290,7 +290,6 @@ class RCrmActions
 
             RetailCrmHistory::customerHistory();
             RetailCrmHistory::orderHistory();
-            self::uploadOrdersAgent();
         } catch (\Throwable $exception) {
             Logger::getInstance()->write(
                 'Fail orderAgent:' . PHP_EOL .

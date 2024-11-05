@@ -21,6 +21,7 @@ $MESS ['PAYMENT_TYPES_LIST'] = 'Способы оплаты';
 $MESS ['PAYMENT_STATUS_LIST'] = 'Статусы';
 $MESS ['ORDER_TYPES_LIST'] = 'Типы заказа';
 $MESS ['CRM_ORDER_METHODS'] = 'Передача заказов из CRM в Битрикс';
+$MESS ['LP_WARNING'] = 'Программа лояльности RetailCRM доступна только при активной опции "Выгрузка заказов по событию"';
 $MESS ['CRM_ORDER_METHODS_OPTION'] = 'Выгружать из RetailCRM заказы оформленные выбранными способами';
 $MESS ['CONTRAGENTS_TYPES_LIST'] = 'Тип контрагента';
 $MESS ['PAYMENT_LIST'] = 'Оплата';
@@ -62,7 +63,7 @@ $MESS ['ICRM_OPTIONS_ORDER_DISCHARGE_TAB'] = 'Режим выгрузки зак
 $MESS ['ORDER_DISCH'] = 'Режим выгрузки заказов';
 $MESS ['DISCHARGE_AGENT'] = 'Выгрузка заказов с помощью агента';
 $MESS ['DISCHARGE_EVENTS'] = 'Выгрузка заказов по событию';
-
+$MESS ['DISCHARGE_WITHOUT_UPDATE'] = 'Выгрузка заказов по агенту (только создание заказов)';
 $MESS ['INFO_2'] = ' Задайте соответствие между полями заказа 1C-Битрикс и RetailCRM.';
 
 $MESS ['ORDER_PROPS'] = 'Настройки соответствия полей заказа RetailCRM свойствам заказа 1С-Битрикс';
