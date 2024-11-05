@@ -401,7 +401,8 @@ class LoyaltyProgramUpdater
                     ['to_method', '=', $event['EVENT_NAME'] . 'Handler'],
                     ['to_class', '=', 'Intaro\RetailCrm\Component\Handlers\EventsHandlers'],
                 ])
-                ->fetchCollection();
+                ->fetchCollection()
+            ;
 
             if (null === $events || 0 === count($events)) {
                 $eventManager->registerEventHandler(
@@ -613,6 +614,7 @@ class LoyaltyProgramUpdater
             'NAME' => 'LoyaltyProgramRetailCRM',
             'TABLE_NAME' => 'loyalty_program'
         ]);
+
         $arLangs = [
             'ru' => 'Программа лояльности',
             'en' => 'Loyalty Program'
@@ -661,7 +663,8 @@ class LoyaltyProgramUpdater
         $persons = PersonTypeTable::query()
             ->setSelect(['ID'])
             ->where([])
-            ->fetchCollection();
+            ->fetchCollection()
+        ;
 
         foreach ($persons as $person) {
             $personId = $person->getID();
@@ -691,7 +694,8 @@ class LoyaltyProgramUpdater
                         ['NAME', '=', $lpOrderGroupName],
                     ]
                 )
-                ->fetch();
+                ->fetch()
+            ;
 
             if (is_array($lpGroup)) {
                 return $lpGroup['ID'];
@@ -728,7 +732,8 @@ class LoyaltyProgramUpdater
                 ['PERSON_TYPE_ID', '=', $personId],
                 ['PROPS_GROUP_ID', '=', $groupId],
             ])
-            ->fetchObject();
+            ->fetchObject()
+        ;
 
         if ($bonusProp === null) {
             $lang = Context::getCurrent()->getLanguage();
@@ -869,7 +874,8 @@ class LoyaltyProgramUpdater
             ->where([
                 ['CODE', '=', 'AGREEMENT_PERSONAL_DATA_CODE']
             ])
-            ->fetch();
+            ->fetch()
+        ;
 
         if (!isset($isAgreementPersonalProgram['ID'])) {
             /** @var EntityObject|null $agreementPersonalData */

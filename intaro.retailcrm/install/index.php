@@ -26,6 +26,7 @@ use Intaro\RetailCrm\Component\Advanced\LoyaltyInstaller;
 Loader::IncludeModule('highloadblock');
 
 IncludeModuleLangFile(__FILE__);
+
 if (class_exists('intaro_retailcrm')) {
     return false;
 }
@@ -51,10 +52,11 @@ class intaro_retailcrm extends CModule
 
     public function __construct()
     {
-        $arModuleVersion    = [];
-        $path               = str_replace("\\", '/', __FILE__);
-        $path               = substr($path, 0, strlen($path) - strlen('/index.php'));
+        $arModuleVersion = [];
+        $path = str_replace("\\", '/', __FILE__);
+        $path = substr($path, 0, strlen($path) - strlen('/index.php'));
         $this->INSTALL_PATH = $path;
+
         include($path . '/version.php');
         $this->MODULE_VERSION = $arModuleVersion['VERSION'];
         $this->MODULE_VERSION_DATE = $arModuleVersion['VERSION_DATE'];

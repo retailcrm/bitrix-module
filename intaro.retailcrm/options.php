@@ -604,17 +604,22 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             }
         } catch (Exception $exception) {
             RCrmActions::eventLog(
-                'intaro.retailcrm/options.php', 'OrderLoyaltyDataService::createLoyaltyHlBlock',
+                'intaro.retailcrm/options.php', 'Options_Loyalty_toggle::enable',
                 $e->getCode() . ': ' . $exception->getMessage()
             );
         }
 
         ConfigProvider::setLoyaltyProgramStatus('Y');
     } else {
-        ConfigProvider::setLoyaltyProgramStatus('N');
-        $loyaltyEventClass = 'Intaro\RetailCrm\Component\Handlers\EventsHandlers';
-        UnRegisterModuleDependences('sale', 'OnSaleOrderSaved', 'intaro.retailcrm', $loyaltyEventClass, 'OnSaleOrderSavedHandler');
-        UnRegisterModuleDependences('sale', 'OnSaleComponentOrderResultPrepared', 'intaro.retailcrm', $loyaltyEventClass, 'OnSaleComponentOrderResultPreparedHandler');
+        try {
+            ConfigProvider::setLoyaltyProgramStatus('N');
+            $loyaltySetup->deleteLPEvents();
+        } catch (Exception $exception) {
+            RCrmActions::eventLog(
+                'intaro.retailcrm/options.php', 'Options_Loyalty_toggle::disable',
+                $e->getCode() . ': ' . $exception->getMessage()
+            );
+        }
     }
 
     try {
