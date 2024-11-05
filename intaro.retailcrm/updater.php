@@ -1185,15 +1185,7 @@ function update()
 {
     Loader::includeModule('sale');
     Loader::includeModule('highloadblock');
-    $loyaltyEventClass = 'Intaro\RetailCrm\Component\Handlers\EventsHandlers';
-
     COption::SetOptionString('intaro.retailcrm', 'api_version', 'v5');
-    RegisterModuleDependences('sale', 'OnSaleOrderSaved', 'intaro.retailcrm', 'RetailCrmEvent', 'orderSave', 99);
-
-    if (Option::get('intaro.retailcrm', 'loyalty_program_toggle') !== 'Y') {
-        UnRegisterModuleDependences('sale', 'OnSaleOrderSaved', 'intaro.retailcrm', $loyaltyEventClass, 'OnSaleOrderSavedHandler');
-        UnRegisterModuleDependences('sale', 'OnSaleComponentOrderResultPrepared', 'intaro.retailcrm', $loyaltyEventClass, 'OnSaleComponentOrderResultPreparedHandler');
-    }
 
     $orderDischarge = Option::get('intaro.retailcrm', 'order_discharge');
 
