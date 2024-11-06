@@ -110,7 +110,7 @@ if ($STEP === 1) {
         }
     </style>
 
-    <form method="post" action="<?=$APPLICATION->GetCurPage()?>">
+    <form method="post" id="submit-form" action="<?=$APPLICATION->GetCurPage()?>">
         <?php
         if ($ACTION === 'EXPORT_EDIT' || $ACTION === 'EXPORT_COPY') {
             ?>
@@ -475,6 +475,7 @@ if ($STEP === 1) {
                             } ?>
                             </tbody>
                         </table>
+                        <button class="adm-btn-save add-custom-row" type="button">Добавить</button>
                         <br>
                         <br>
                     </div>
@@ -483,7 +484,21 @@ if ($STEP === 1) {
             } ?>
         </div>
         <input type="hidden" name="count_checked" id="count_checked" value="<?=$intCountChecked?>">
-        <br>
+<!--        <br>-->
+        <template id="custom-property-template-row">
+            <tr class="adm-list-table-row custom-property-row">
+                <td class="adm-list-table-cell">
+                    <input type="text" title="Название нового свойства" name="custom-property-title" style="width: 200px">
+                </td>
+                <td class="adm-list-table-cell">
+                    <select name="iblockPropertyProduct_" id="iblockPropertyProduct_" class="property-export" onchange="propertyChange(this)" style="width: 200px"></select>
+                </td>
+                <td class="adm-list-table-cell">
+                    <select name="iblockPropertyProduct_" id="iblockPropertyProduct_" class="property-export" onchange="propertyChange(this)" style="width: 200px"></select>
+                    <button id="delete-custom-row" class="adm-btn-save" type="button">Удалить</button>
+                </td>
+            </tr>
+        </template>
         <h3><?=GetMessage('SETTINGS_EXPORT')?></h3>
         <span class="text"><?=GetMessage('FILENAME')?><br><br></span>
         <input type="text" name="SETUP_FILE_NAME" value="<?=htmlspecialcharsbx(strlen($SETUP_FILE_NAME) > 0 ?
@@ -577,7 +592,6 @@ if ($STEP === 1) {
     </form>
 
     <?php CJSCore::Init(['jquery']);?>
-
     <script type="text/javascript">
         function checkLoadStatus(object)
         {
@@ -769,6 +783,190 @@ if ($STEP === 1) {
             select.innerHTML = new_options;
 
             return select;
+        }
+
+        const setupFieldsListElement = $('input[name="SETUP_FIELDS_LIST"]');
+        let customProperties = {};
+
+        $('.add-custom-row').click(function () {
+            createCustomPropsRaw($(this));
+        });
+
+        $(document).on('click', '#delete-custom-row', function () {
+            deleteCustomPropsRaw($(this));
+        });
+
+        $('#submit-form').submit(function (formEvent) {
+            let formElem = formEvent.currentTarget;
+            formEvent.preventDefault();
+            setCustomProperties();
+            addParamsToSetupFieldsList();
+
+            BX.ajax.runAction('intaro:retailcrm.api.customexportprops.save', {
+                json: {properties: customProperties},
+            }).then(function(response) {
+                formElem.submit();
+            });
+        });
+
+        function setCustomProperties()
+        {
+            let customPropertiesRows = $('.custom-property-row');
+            let customPropertyCatalogId;
+            let customPropertyTitle = '';
+            let customPropertyCode = '';
+            let productPropertyMatch = '';
+            let offerPropertyMatch = '';
+
+            let catalogIds = [];
+            customPropertiesRows.each(function (index, propertyRow) {
+                let propertyRowObj = $(propertyRow);
+                customPropertyCatalogId = propertyRowObj.closest('.iblockExportTable').data('type');
+
+                customPropertyTitle = propertyRowObj.find('input[name="custom-property-title"]').val();
+                customPropertyCode = getUniquePropertyCode(customPropertyTitle);
+                productPropertyMatch = propertyRowObj.find('select[name=custom-product-property-select]').val();
+                offerPropertyMatch = propertyRowObj.find('select[name=custom-offer-property-select]').val();
+
+                let values = {
+                    'title': customPropertyTitle,
+                    'code': customPropertyCode,
+                    'productProperty': productPropertyMatch,
+                    'offerProperty': offerPropertyMatch
+                };
+
+                if (catalogIds.indexOf(customPropertyCatalogId) === -1) {
+                    customProperties[customPropertyCatalogId] = [values];
+                } else {
+                    customProperties[customPropertyCatalogId].push(values);
+                }
+                catalogIds.push(customPropertyCatalogId);
+            });
+        }
+
+        function getUniquePropertyCode(customPropertyTitle)
+        {
+            let uniqueValue = transliterate(customPropertyTitle).replace(/ /g, '_');
+            let counter = 0;
+
+            const setupFieldsListValues = setupFieldsListElement.val().split(',');
+            while (setupFieldsListValues.includes(uniqueValue)) {
+                uniqueValue = `${customPropertyTitle}${++counter}`;
+            }
+
+            return uniqueValue;
+        }
+
+        function addParamsToSetupFieldsList()
+        {
+            let newParams = '';
+            let parametersToFill = [
+                'iblockPropertySku_',
+                'iblockPropertyUnitSku_',
+                'iblockPropertyProduct_',
+                'iblockPropertyUnitProduct_',
+                'highloadblockb_hlsys_marking_code_group_',
+                'highloadblock_productb_hlsys_marking_code_group_',
+                'highloadblockeshop_color_reference_',
+                'highloadblock_producteshop_color_reference_',
+                'highloadblockeshop_brand_reference_',
+                'highloadblock_producteshop_brand_reference_'
+            ];
+
+            for (let propertiesByCatalogId of Object.values(customProperties)) {
+                propertiesByCatalogId.forEach(function (values) {
+                    parametersToFill.forEach(function (param) {
+                        newParams += param + values.code;
+                    });
+                });
+            }
+
+            setupFieldsListElement.value = setupFieldsListElement.value + ',' + newParams;
+        }
+
+        function createCustomPropsRaw(buttonEvent)
+        {
+            let rawTemplate = $($('#custom-property-template-row').html());
+            let templateSelectElements = rawTemplate.find('select');
+
+            let lastTableRow = $(buttonEvent).prev('table').find('tbody tr:last-child');
+            let lastRawSelectElements = lastTableRow.find('td select');
+
+            lastRawSelectElements.each(function (index, element) {
+                let selectElement = $(element);
+                let templateSelectElement = templateSelectElements[index];
+                fillTemplateSelect(selectElement, templateSelectElement);
+                lastTableRow.after(rawTemplate);
+            });
+        }
+
+        function deleteCustomPropsRaw(buttonEvent)
+        {
+            buttonEvent.closest('tr').remove();
+        }
+
+        function fillTemplateSelect(sourceSelectElement, templateSelectElement)
+        {
+            let name = sourceSelectElement.attr('name');
+            let id = sourceSelectElement.attr('id');
+            let type = sourceSelectElement.data('type');
+            templateSelectElement.setAttribute('name', name);
+            templateSelectElement.setAttribute('id', id);
+            templateSelectElement.setAttribute('data-type', type);
+
+            let selectOptions = sourceSelectElement.find('option');
+            selectOptions.each(function (index, element) {
+                let optionElem = $(element);
+                let value = $(optionElem).val();
+                let text = $(optionElem).text();
+
+                $('<option>', { value: value, text: text }).appendTo(templateSelectElement);
+            });
+        }
+
+        function transliterate(titleToTransliterate)
+        {
+            translitedText = '';
+            for (var i = 0; i < titleToTransliterate.length; i++) {
+                switch (titleToTransliterate[i]) {
+                    case 'а': case 'А': translitedText += 'a'; break;
+                    case 'б': case 'Б': translitedText += 'b'; break;
+                    case 'в': case 'В': translitedText += 'v'; break;
+                    case 'г': case 'Г': translitedText += 'g'; break;
+                    case 'д': case 'Д': translitedText += 'd'; break;
+                    case 'е': case 'Е': translitedText += 'e'; break;
+                    case 'ё': case 'Ё': translitedText += 'yo'; break;
+                    case 'ж': case 'Ж': translitedText += 'zh'; break;
+                    case 'з': case 'З': translitedText += 'z'; break;
+                    case 'и': case 'И': translitedText += 'i'; break;
+                    case 'й': case 'Й': translitedText += 'y'; break;
+                    case 'к': case 'К': translitedText += 'k'; break;
+                    case 'л': case 'Л': translitedText += 'l'; break;
+                    case 'м': case 'М': translitedText += 'm'; break;
+                    case 'н': case 'Н': translitedText += 'n'; break;
+                    case 'о': case 'О': translitedText += 'o'; break;
+                    case 'п': case 'П': translitedText += 'p'; break;
+                    case 'р': case 'Р': translitedText += 'r'; break;
+                    case 'с': case 'С': translitedText += 's'; break;
+                    case 'т': case 'Т': translitedText += 't'; break;
+                    case 'у': case 'У': translitedText += 'u'; break;
+                    case 'ф': case 'Ф': translitedText += 'f'; break;
+                    case 'х': case 'Х': translitedText += 'h'; break;
+                    case 'ц': case 'Ц': translitedText += 'c'; break;
+                    case 'ч': case 'Ч': translitedText += 'ch'; break;
+                    case 'ш': case 'Ш': translitedText += 'sh'; break;
+                    case 'щ': case 'Щ': translitedText += 'sch'; break;
+                    case 'ъ': case 'Ъ': translitedText += ''; break;
+                    case 'ы': case 'Ы': translitedText += 'y'; break;
+                    case 'ь': case 'Ь': translitedText += ''; break;
+                    case 'э': case 'Э': translitedText += 'e'; break;
+                    case 'ю': case 'Ю': translitedText += 'yu'; break;
+                    case 'я': case 'Я': translitedText += 'ya'; break;
+                    default: translitedText += titleToTransliterate[i]; break;
+                }
+            }
+
+            return translitedText;
         }
     </script>
     <?php
