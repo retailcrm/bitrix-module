@@ -592,6 +592,7 @@ if ($STEP === 1) {
     </form>
 
     <?php CJSCore::Init(['jquery']);?>
+    <?php CUtil::InitJSCore(['intaro_custom_props']); ?>
     <script type="text/javascript">
         function checkLoadStatus(object)
         {
@@ -796,22 +797,73 @@ if ($STEP === 1) {
             deleteCustomPropsRaw($(this));
         });
 
-        $('#submit-form').submit(function (formEvent) {
-            let formElem = formEvent.currentTarget;
-            formEvent.preventDefault();
-            setCustomProperties();
-            addParamsToSetupFieldsList();
+        $(document).on('blur', 'input[name="custom-property-title"]', function () {
+            let inputElem = $(this);
+            let newPropertyTitle = inputElem.val();
 
-            BX.ajax.runAction('intaro:retailcrm.api.customexportprops.save', {
-                json: {properties: customProperties},
-            }).then(function(response) {
-                formElem.submit();
-            });
+            if (!newPropertyTitle) {
+                return;
+            }
+
+            let newPropertyCode = getUniquePropertyCode(newPropertyTitle);
+            addCustomPropCodeToSelectAttributes(newPropertyCode, inputElem);
         });
+
+        $('#submit-form').submit(function (formEvent) {
+            formEvent.preventDefault();
+
+            let formElem = formEvent.currentTarget;
+            let profileId = $($('input[name="PROFILE_ID"]')).val();
+            setCustomProperties();
+
+            if (customProperties.length > 0) {
+                addParamsToSetupFieldsList();
+                BX.ajax.runAction('intaro:retailcrm.api.customexportprops.save', {
+                    json: {
+                        properties: customProperties,
+                        profileId: profileId
+                    },
+                }).then(function() {
+                    formElem.submit();
+                });
+            } else {
+               formElem.submit();
+            }
+        });
+
+        function addCustomPropCodeToSelectAttributes(customPropCode, customPropTitleElem)
+        {
+            let selectElements = customPropTitleElem.closest('.custom-property-row').find('td select');
+            let catalogId = customPropTitleElem.closest('.iblockExportTable').data('type');
+
+            selectElements.each(function (index, element) {
+               let selectElem = $(element);
+               let newSelectIdValue = selectElem.attr('id').match(/^[^_]*_/)[0] + customPropCode + catalogId;
+               let newSelectNameValue = selectElem.attr('name').match(/^[^_]*_/)[0] + customPropCode + `[${catalogId}]`;
+
+               selectElem.attr('id', newSelectIdValue);
+               selectElem.attr('name', newSelectNameValue);
+               selectElem.data('type', customPropCode);
+               triggerSelectChange(selectElem);
+            });
+        }
+
+        function triggerSelectChange(selectElem)
+        {
+            if (selectElem.val().length > 0) {
+                console.log('был')
+                selectElem.trigger('change', [self]);
+            }
+        }
 
         function setCustomProperties()
         {
             let customPropertiesRows = $('.custom-property-row');
+
+            if (customPropertiesRows.length === 0) {
+                return;
+            }
+
             let customPropertyCatalogId;
             let customPropertyTitle = '';
             let customPropertyCode = '';
@@ -824,6 +876,11 @@ if ($STEP === 1) {
                 customPropertyCatalogId = propertyRowObj.closest('.iblockExportTable').data('type');
 
                 customPropertyTitle = propertyRowObj.find('input[name="custom-property-title"]').val();
+
+                if (!customPropertyTitle) {
+                    return true;
+                }
+
                 customPropertyCode = getUniquePropertyCode(customPropertyTitle);
                 productPropertyMatch = propertyRowObj.find('select[name=custom-product-property-select]').val();
                 offerPropertyMatch = propertyRowObj.find('select[name=custom-offer-property-select]').val();
@@ -876,27 +933,28 @@ if ($STEP === 1) {
             for (let propertiesByCatalogId of Object.values(customProperties)) {
                 propertiesByCatalogId.forEach(function (values) {
                     parametersToFill.forEach(function (param) {
-                        newParams += param + values.code;
+                        newParams += ',' + param + values.code;
                     });
                 });
             }
 
-            setupFieldsListElement.value = setupFieldsListElement.value + ',' + newParams;
+            let newValue = setupFieldsListElement.val() + newParams;
+            setupFieldsListElement.val(newValue);
         }
 
-        function createCustomPropsRaw(buttonEvent)
+        function createCustomPropsRaw(addRowButton)
         {
-            let rawTemplate = $($('#custom-property-template-row').html());
-            let templateSelectElements = rawTemplate.find('select');
+            let templateRow = $($('#custom-property-template-row').html());
+            let templateSelectElements = templateRow.find('select');
 
-            let lastTableRow = $(buttonEvent).prev('table').find('tbody tr:last-child');
-            let lastRawSelectElements = lastTableRow.find('td select');
+            let prevTableRow = $(addRowButton).prev('table').find('tbody tr:last-child');
+            let lastRawSelectElements = prevTableRow.find('td select');
 
             lastRawSelectElements.each(function (index, element) {
                 let selectElement = $(element);
                 let templateSelectElement = templateSelectElements[index];
                 fillTemplateSelect(selectElement, templateSelectElement);
-                lastTableRow.after(rawTemplate);
+                prevTableRow.after(templateRow);
             });
         }
 
@@ -907,13 +965,6 @@ if ($STEP === 1) {
 
         function fillTemplateSelect(sourceSelectElement, templateSelectElement)
         {
-            let name = sourceSelectElement.attr('name');
-            let id = sourceSelectElement.attr('id');
-            let type = sourceSelectElement.data('type');
-            templateSelectElement.setAttribute('name', name);
-            templateSelectElement.setAttribute('id', id);
-            templateSelectElement.setAttribute('data-type', type);
-
             let selectOptions = sourceSelectElement.find('option');
             selectOptions.each(function (index, element) {
                 let optionElem = $(element);
@@ -926,6 +977,12 @@ if ($STEP === 1) {
 
         function transliterate(titleToTransliterate)
         {
+            const hasCyrillicChars = /[\u0400-\u04FF]/.test(titleToTransliterate);
+
+            if (!hasCyrillicChars) {
+                return titleToTransliterate;
+            }
+
             translitedText = '';
             for (var i = 0; i < titleToTransliterate.length; i++) {
                 switch (titleToTransliterate[i]) {
@@ -965,7 +1022,6 @@ if ($STEP === 1) {
                     default: translitedText += titleToTransliterate[i]; break;
                 }
             }
-
             return translitedText;
         }
     </script>
