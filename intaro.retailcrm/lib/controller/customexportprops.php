@@ -24,7 +24,9 @@ class CustomExportProps extends Controller
             $response->setStatus(new Error('Ошибка'));
         }
 
-        $properties = json_decode($this->getRequest()->getInput(), true)['properties'];
+        $requestData = json_decode($this->getRequest()->getInput(), true);
+        $properties = $requestData['properties'];
+        $profileId = $requestData['profileId'];
 
         foreach ($properties as $catalogId => $propertyArray) {
             $newPropertiesString = '';
@@ -32,9 +34,10 @@ class CustomExportProps extends Controller
                 $newPropertiesString .= PHP_EOL . $property['code'] . ' = ' . $property['title'];
             }
             $filePath = sprintf(
-                '%s/%s_%s.txt',
+                '%s/%s_%s_%s.txt',
                 $_SERVER['DOCUMENT_ROOT'] . '/local',
                 'icml_property_retailcrm',
+                $profileId,
                 $catalogId
             );
             $saveResult = file_put_contents($filePath, $newPropertiesString, FILE_APPEND);
