@@ -494,7 +494,7 @@ if ($STEP === 1) {
                     <select name="iblockPropertyProduct_" id="iblockPropertyProduct_" class="property-export" onchange="propertyChange(this)" style="width: 200px"></select>
                 </td>
                 <td class="adm-list-table-cell">
-                    <select name="iblockPropertyProduct_" id="iblockPropertyProduct_" class="property-export" onchange="propertyChange(this)" style="width: 200px"></select>
+                    <select name="iblockPropertySku_" id="iiblockPropertySku_" class="property-export" onchange="propertyChange(this)" style="width: 200px"></select>
                     <button id="delete-custom-row" class="adm-btn-save" type="button">Удалить</button>
                 </td>
             </tr>
@@ -816,7 +816,7 @@ if ($STEP === 1) {
             let profileId = $($('input[name="PROFILE_ID"]')).val();
             setCustomProperties();
 
-            if (customProperties.length > 0) {
+            if (Object.keys(customProperties).length > 0) {
                 addParamsToSetupFieldsList();
                 BX.ajax.runAction('intaro:retailcrm.api.customexportprops.save', {
                     json: {

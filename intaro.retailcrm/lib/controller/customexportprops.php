@@ -34,7 +34,7 @@ class CustomExportProps extends Controller
                 $newPropertiesString .= PHP_EOL . $property['code'] . ' = ' . $property['title'];
             }
             $filePath = sprintf(
-                '%s/%s_%s_%s.txt',
+                '%s/%s_profileId_%s_catalogId_%s.txt',
                 $_SERVER['DOCUMENT_ROOT'] . '/local',
                 'icml_property_retailcrm',
                 $profileId,
