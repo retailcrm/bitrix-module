@@ -13,8 +13,9 @@ use RetailcrmConfigProvider;
 
 /**
  * Отвечает за управление настройками выгрузки icml каталога
- *
+ * @var $PROFILE_ID
  * Class SettingsService
+ *
  *
  * @package Intaro\RetailCrm\Icml
  */
@@ -100,6 +101,12 @@ class SettingsService
     /** @var array */
     public $actrualPropList = [];
 
+    /** @var array */
+    public $customPropList = [];
+
+    /** @var array */
+    public $defaultPropList = [];
+
     /**
      * @var \Intaro\RetailCrm\Icml\SettingsService|null
      */
@@ -128,7 +135,9 @@ class SettingsService
         $this->getPriceTypes();
         $this->getVatRates();
 
-        $this->actrualPropList = array_merge($this->getIblockPropsPreset(), $this->parseNewProps());
+        $this->customPropList = $this->parseNewProps();
+        $this->defaultPropList = $this->getIblockPropsPreset();
+        $this->actrualPropList = $this->getActualPropList();
     }
 
     /**
@@ -144,6 +153,21 @@ class SettingsService
         }
 
         return self::$instance;
+    }
+
+    public function getActualPropList(): array
+    {
+        $customProps = [];
+
+        foreach ($this->customPropList as $propsByCatalog) {
+            $customProps = array_merge($customProps, $propsByCatalog);
+        }
+
+        return [
+            ...$this->defaultPropList,
+            ...$customProps
+        ];
+
     }
 
     public function getPriceTypes()
@@ -230,7 +254,9 @@ class SettingsService
     private function setProperties(array &$properties, string $propName): void
     {
         foreach ($this->arOldSetupVars[$propName] as $iblock => $val) {
-            $properties[$iblock][$propName] = $val;
+            if (!empty($val)) {
+                $properties[$iblock][$propName] = $val;
+            }
         }
     }
 
@@ -263,24 +289,50 @@ class SettingsService
     private function parseNewProps(): array
     {
         global $APPLICATION;
+        global $PROFILE_ID;
+        $currentProfile = $PROFILE_ID;
+        $currentProfileCatalogIds = $this->getProfileCatalogIds();
 
         $result = [];
-        $text = $APPLICATION->GetFileContent($_SERVER["DOCUMENT_ROOT"] . "/local/icml_property_retailcrm.txt");
+        foreach ($currentProfileCatalogIds as $catalogId) {
+            $customPropsFilePath = sprintf(
+                '%s/%s_profileId_%s_catalogId_%s.txt',
+                $_SERVER['DOCUMENT_ROOT'] . '/local',
+                'icml_property_retailcrm',
+                $currentProfile,
+                $catalogId,
+            );
+            $text = $APPLICATION->GetFileContent($customPropsFilePath);
 
-        if ($text === false) {
-            return $result;
-        }
-
-        preg_match_all('/\w+\s*=\s*\w+[ *\w+]*/mu', $text, $matches);
-
-        foreach ($matches[0] as $newProp) {
-            $elements = explode("=", $newProp);
-
-            if (empty($elements[0]) || empty($elements[1])) {
+            if ($text === false) {
                 continue;
             }
 
-            $result[trim($elements[0])] = trim($elements[1]);
+            preg_match_all('/\w+\s*=\s*\w+[ *\w+]*/mu', $text, $matches);
+
+            foreach ($matches[0] as $newProp) {
+                $elements = explode("=", $newProp);
+
+                if (empty($elements[0]) || empty($elements[1])) {
+                    continue;
+                }
+
+                $result[$catalogId][trim($elements[0])] = trim($elements[1]);
+            }
+        }
+
+        return $result;
+    }
+
+    private function getProfileCatalogIds(): array
+    {
+        $result = [];
+
+        foreach ($this->arOldSetupVars as $varName => $oldSetupVar) {
+            if (is_array($oldSetupVar) && strpos($varName, 'iblockPropertySku_') !== false) {
+                $result = array_keys($oldSetupVar);
+                break;
+            }
         }
 
         return $result;
