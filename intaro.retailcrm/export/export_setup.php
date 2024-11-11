@@ -190,7 +190,7 @@ if ($STEP === 1) {
                             <tbody>
 
                             <?php
-                            foreach ($settingsService->actrualPropList as $propertyKey => $property) {
+                            foreach ($settingsService->defaultPropList as $propertyKey => $property) {
                                 $productSelected = false; ?>
 
                                 <tr class="adm-list-table-row">
@@ -473,6 +473,95 @@ if ($STEP === 1) {
                                 </tr>
                             <?php
                             } ?>
+
+                            <?php
+                                $productSelected = false;
+                                $catalogId = $arIBlock['ID'];
+                                $catalogCustomProps = $settingsService->customPropList[$catalogId];
+
+                                foreach ($catalogCustomProps as $catalogCustomPropCode => $catalogCustomPropValue) { ?>
+                                    <tr class="adm-list-table-row custom-property-row">
+                                        <td class="adm-list-table-cell custom-property-title">
+                                            <?=htmlspecialcharsex($catalogCustomPropValue)?>
+                                        </td>
+                                        <td class="adm-list-table-cell">
+                                            <select 
+                                                name="iblockPropertyProduct_<?=$catalogCustomPropCode?>[<?= $catalogId ?>]"
+                                                id="iblockPropertyProduct_<?=$catalogCustomPropCode . $catalogId ?>"
+                                                class="property-export"
+                                                data-type="<?= $catalogCustomPropCode ?>"
+                                                onchange="propertyChange(this)"
+                                                style="width: 200px">
+
+                                                <option value=""></option>
+                                            <?php foreach ($arIBlock['PROPERTIES_PRODUCT'] as $prop) {
+                                                $productHlTableName = ''; ?>
+                                                <option value="<?=$prop['CODE']?>"
+                                                    <?php
+                                                    echo $settingsService->getOptionClass($prop, true);
+
+                                                    $productSelected = $settingsService->isOptionSelected(
+                                                        $prop,
+                                                        $arIBlock['OLD_PROPERTY_PRODUCT_SELECT'],
+                                                        $catalogCustomPropCode
+                                                    );
+
+                                                    $productHlTableName
+                                                        = $settingsService->getHlTableName($prop)
+                                                        ?? $productHlTableName;
+
+                                                    echo $productSelected ? ' selected' : '';
+                                                    ?>
+                                                >
+                                                    <?=$prop['NAME']?>
+                                                </option>
+                                            <?php } ?>
+                                            </select>
+                                        </td>
+
+                                        <?php if ($arIBlock['PROPERTIES_SKU'] !== null) {
+                                            $productSelected = false; ?>
+                                            <td class="adm-list-table-cell">
+                                                <select
+                                                    name="iblockPropertyProduct_<?=$catalogCustomPropCode?>[<?= $catalogId ?>]"
+                                                    id="iblockPropertyProduct_<?=$catalogCustomPropCode . $catalogId ?>"
+                                                    class="property-export"
+                                                    data-type="<?= $catalogCustomPropCode ?>"
+                                                    onchange="propertyChange(this)"
+                                                    style="width: 200px">
+
+                                                    <option value=""></option>
+                                                        <?php foreach ($arIBlock['PROPERTIES_SKU'] as $prop) {
+                                                            $skuHlTableName = ''; ?>
+                                                            <option value="<?=$prop['CODE']?>"
+                                                                <?php
+                                                                echo $settingsService->getOptionClass($prop, false);
+
+                                                                if (!$productSelected) {
+                                                                    $isSelected = $settingsService->isOptionSelected(
+                                                                        $prop,
+                                                                        $arIBlock['OLD_PROPERTY_SKU_SELECT'],
+                                                                        $catalogCustomPropCode
+                                                                    );
+
+                                                                    $skuHlTableName
+                                                                        = $settingsService->getHlTableName($prop)
+                                                                        ?? $skuHlTableName;
+
+                                                                    echo $isSelected ? ' selected' : '';
+                                                                }
+                                                                ?>
+                                                            >
+                                                                <?=$prop['NAME']?>
+                                                            </option>
+
+                                                        <?php } ?>
+                                                </select>
+                                                <button id="delete-custom-row" class="adm-btn-save" type="button">Удалить</button>
+                                            </td>
+                                        <?php } ?>
+                                    </tr>
+                            <?php } ?>
                             </tbody>
                         </table>
                         <button class="adm-btn-save add-custom-row" type="button">Добавить</button>
@@ -484,7 +573,7 @@ if ($STEP === 1) {
             } ?>
         </div>
         <input type="hidden" name="count_checked" id="count_checked" value="<?=$intCountChecked?>">
-<!--        <br>-->
+        <br>
         <template id="custom-property-template-row">
             <tr class="adm-list-table-row custom-property-row">
                 <td class="adm-list-table-cell">
@@ -495,7 +584,7 @@ if ($STEP === 1) {
                 </td>
                 <td class="adm-list-table-cell">
                     <select name="iblockPropertySku_" id="iiblockPropertySku_" class="property-export" onchange="propertyChange(this)" style="width: 200px"></select>
-                    <button id="delete-custom-row" class="adm-btn-save" type="button">Удалить</button>
+                    <button id="delete-new-custom-row" class="adm-btn-save" type="button">Удалить</button>
                 </td>
             </tr>
         </template>
@@ -787,14 +876,33 @@ if ($STEP === 1) {
         }
 
         const setupFieldsListElement = $('input[name="SETUP_FIELDS_LIST"]');
-        let customProperties = {};
+        let customProps = {};
+        let customPropsToDelete = {};
+        const setupFieldsParamsToFill = [
+            'iblockPropertySku_',
+            'iblockPropertyUnitSku_',
+            'iblockPropertyProduct_',
+            'iblockPropertyUnitProduct_',
+            'highloadblockb_hlsys_marking_code_group_',
+            'highloadblock_productb_hlsys_marking_code_group_',
+            'highloadblockeshop_color_reference_',
+            'highloadblock_producteshop_color_reference_',
+            'highloadblockeshop_brand_reference_',
+            'highloadblock_producteshop_brand_reference_'
+        ];
 
         $('.add-custom-row').click(function () {
             createCustomPropsRaw($(this));
         });
 
+        $(document).on('click', '#delete-new-custom-row', function () {
+            deleteCustomPropRow($(this));
+        });
+
         $(document).on('click', '#delete-custom-row', function () {
-            deleteCustomPropsRaw($(this));
+            let buttonElem = $(this);
+            addCustomPropToDelete(buttonElem);
+            deleteCustomPropRow(buttonElem);
         });
 
         $(document).on('blur', 'input[name="custom-property-title"]', function () {
@@ -811,25 +919,65 @@ if ($STEP === 1) {
 
         $('#submit-form').submit(function (formEvent) {
             formEvent.preventDefault();
-
+            let savePromise = null;
+            let deletePromise = null;
             let formElem = formEvent.currentTarget;
             let profileId = $($('input[name="PROFILE_ID"]')).val();
+
             setCustomProperties();
 
-            if (Object.keys(customProperties).length > 0) {
-                addParamsToSetupFieldsList();
-                BX.ajax.runAction('intaro:retailcrm.api.customexportprops.save', {
+            if (Object.keys(customProps).length > 0) {
+                savePromise = BX.ajax.runAction('intaro:retailcrm.api.customexportprops.save', {
                     json: {
-                        properties: customProperties,
+                        properties: customProps,
                         profileId: profileId
                     },
-                }).then(function() {
-                    formElem.submit();
-                });
+                }).then(addParamsToSetupFieldsList);
+            }
+
+            if (Object.keys(customPropsToDelete).length > 0) {
+                deletePromise = BX.ajax.runAction('intaro:retailcrm.api.customexportprops.delete', {
+                    json: {
+                        properties: customPropsToDelete,
+                        profileId: profileId
+                    },
+                }).then(deleteParamsFromSetupFieldsList);
+            }
+
+            const promises = [savePromise, deletePromise].filter(Boolean);
+
+            if (promises.length > 0) {
+                Promise.all(promises)
+                    .finally(() => {
+                        formElem.submit();
+                    });
             } else {
-               formElem.submit();
+                formElem.submit();
             }
         });
+
+        function deleteCustomPropRow(deleteButton)
+        {
+           deleteButton.closest('tr').remove();
+        }
+
+        function addCustomPropToDelete(deleteButton)
+        {
+            let deletedPropTitle = deleteButton.closest('td').siblings().filter('.custom-property-title').text().trim();
+            let deletedPropCode = deleteButton.siblings().filter('select').first().data('type');
+            let customPropCatalogId = deleteButton.closest('.iblockExportTable').data('type');
+
+            let values = {
+                'title': deletedPropTitle,
+                'code': deletedPropCode,
+            };
+
+            if (customPropsToDelete.hasOwnProperty(customPropCatalogId)) {
+                customPropsToDelete[customPropCatalogId].push(values);
+            } else {
+                customPropsToDelete[customPropCatalogId] = [values];
+            }
+        }
 
         function addCustomPropCodeToSelectAttributes(customPropCode, customPropTitleElem)
         {
@@ -851,7 +999,6 @@ if ($STEP === 1) {
         function triggerSelectChange(selectElem)
         {
             if (selectElem.val().length > 0) {
-                console.log('был')
                 selectElem.trigger('change', [self]);
             }
         }
@@ -893,9 +1040,9 @@ if ($STEP === 1) {
                 };
 
                 if (catalogIds.indexOf(customPropertyCatalogId) === -1) {
-                    customProperties[customPropertyCatalogId] = [values];
+                    customProps[customPropertyCatalogId] = [values];
                 } else {
-                    customProperties[customPropertyCatalogId].push(values);
+                    customProps[customPropertyCatalogId].push(values);
                 }
                 catalogIds.push(customPropertyCatalogId);
             });
@@ -917,22 +1064,14 @@ if ($STEP === 1) {
         function addParamsToSetupFieldsList()
         {
             let newParams = '';
-            let parametersToFill = [
-                'iblockPropertySku_',
-                'iblockPropertyUnitSku_',
-                'iblockPropertyProduct_',
-                'iblockPropertyUnitProduct_',
-                'highloadblockb_hlsys_marking_code_group_',
-                'highloadblock_productb_hlsys_marking_code_group_',
-                'highloadblockeshop_color_reference_',
-                'highloadblock_producteshop_color_reference_',
-                'highloadblockeshop_brand_reference_',
-                'highloadblock_producteshop_brand_reference_'
-            ];
 
-            for (let propertiesByCatalogId of Object.values(customProperties)) {
+            if (Object.keys(customProps).length === 0) {
+                return;
+            }
+
+            for (let propertiesByCatalogId of Object.values(customProps)) {
                 propertiesByCatalogId.forEach(function (values) {
-                    parametersToFill.forEach(function (param) {
+                    setupFieldsParamsToFill.forEach(function (param) {
                         newParams += ',' + param + values.code;
                     });
                 });
@@ -940,6 +1079,30 @@ if ($STEP === 1) {
 
             let newValue = setupFieldsListElement.val() + newParams;
             setupFieldsListElement.val(newValue);
+
+            return true;
+        }
+
+        function deleteParamsFromSetupFieldsList()
+        {
+            let setupFields = setupFieldsListElement.val();
+
+            if (Object.keys(customPropsToDelete).length === 0) {
+                return;
+            }
+
+            for (let propsByCatalogId of Object.values(customPropsToDelete)) {
+                propsByCatalogId.forEach(function (propValues) {
+                    setupFieldsParamsToFill.forEach(function (param) {
+                        let paramToDelete = ',' + param + propValues.code;
+                        setupFields = setupFields.replace(paramToDelete, '');
+                    });
+                });
+            }
+
+            setupFieldsListElement.val(setupFields);
+
+            return true;
         }
 
         function createCustomPropsRaw(addRowButton)
@@ -956,11 +1119,6 @@ if ($STEP === 1) {
                 fillTemplateSelect(selectElement, templateSelectElement);
                 prevTableRow.after(templateRow);
             });
-        }
-
-        function deleteCustomPropsRaw(buttonEvent)
-        {
-            buttonEvent.closest('tr').remove();
         }
 
         function fillTemplateSelect(sourceSelectElement, templateSelectElement)

@@ -167,7 +167,14 @@ class SettingsService
             ...$this->defaultPropList,
             ...$customProps
         ];
+    }
 
+    public function getFrontPropList(): array
+    {
+        $result = [...$this->defaultPropList];
+        $result['customProps'] = $this->customPropList;
+
+        return $result;
     }
 
     public function getPriceTypes()
