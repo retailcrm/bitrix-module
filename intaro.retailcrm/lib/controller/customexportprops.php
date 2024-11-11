@@ -24,7 +24,7 @@ class CustomExportProps extends Controller
             $response->setStatus(new Error('Ошибка'));
         }
 
-        $requestData = json_decode($this->getRequest()->getInput(), true);
+        $requestData = json_decode($request, true);
         $properties = $requestData['properties'];
         $profileId = $requestData['profileId'];
 
@@ -40,6 +40,7 @@ class CustomExportProps extends Controller
                 $profileId,
                 $catalogId
             );
+
             $saveResult = file_put_contents($filePath, $newPropertiesString, FILE_APPEND);
         }
 
@@ -52,6 +53,27 @@ class CustomExportProps extends Controller
 
     public function deleteAction()
     {
-        
+        $request = $this->getRequest()->getInput();
+
+        $requestData = json_decode($request, true);
+        $properties = $requestData['properties'];
+        $profileId = $requestData['profileId'];
+
+        foreach ($properties as $catalogId => $propsArray) {
+            $filePath = sprintf(
+                '%s/%s_profileId_%s_catalogId_%s.txt',
+                $_SERVER['DOCUMENT_ROOT'] . '/local',
+                'icml_property_retailcrm',
+                $profileId,
+                $catalogId
+            );
+            $fileContent = file_get_contents($filePath);
+
+            foreach ($propsArray as $property) {
+                $propStringToDelete = PHP_EOL . $property['code'] . ' = ' . $property['title'];
+                $fileContent = str_replace($propStringToDelete, '', $fileContent);
+            }
+            file_put_contents($filePath, $fileContent);
+        }
     }
 }

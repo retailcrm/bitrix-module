@@ -17,7 +17,7 @@ $('#submit-form').submit(function (formEvent) {
     addParamsToSetupFieldsList();
 
     BX.ajax.runAction('intaro:retailcrm.api.customexportprops.save', {
-        json: {properties: customProperties},
+        json: {properties: customProps},
     }).then(function() {
         formElem.submit();
     });
@@ -75,9 +75,9 @@ function setCustomProperties()
         };
 
         if (catalogIds.indexOf(customPropertyCatalogId) === -1) {
-            customProperties[customPropertyCatalogId] = [values];
+            customProps[customPropertyCatalogId] = [values];
         } else {
-            customProperties[customPropertyCatalogId].push(values);
+            customProps[customPropertyCatalogId].push(values);
         }
         catalogIds.push(customPropertyCatalogId);
     });
@@ -112,7 +112,7 @@ function addParamsToSetupFieldsList()
         'highloadblock_producteshop_brand_reference_'
     ];
 
-    for (let propertiesByCatalogId of Object.values(customProperties)) {
+    for (let propertiesByCatalogId of Object.values(customProps)) {
         propertiesByCatalogId.forEach(function (values) {
             parametersToFill.forEach(function (param) {
                 newParams += ',' + param + values.code;
