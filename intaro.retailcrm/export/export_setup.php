@@ -190,8 +190,7 @@ if ($STEP === 1) {
                             <tbody>
 
                             <?php
-                            foreach ($settingsService->defaultPropList as $propertyKey => $property) {
-                                $productSelected = false; ?>
+                            foreach ($settingsService->defaultPropList as $propertyKey => $property) { ?>
 
                                 <tr class="adm-list-table-row">
                                     <td class="adm-list-table-cell">
@@ -215,14 +214,14 @@ if ($STEP === 1) {
                                                     if ($keyField === $propertyKey) { ?>
                                                         <option value="<?=$field['CODE']?>"
                                                             <?php
-                                                            $productSelected = $settingsService->isOptionSelected(
+                                                            $isSelected = $settingsService->isOptionSelected(
                                                                 $field,
                                                                 $arIBlock['OLD_PROPERTY_PRODUCT_SELECT'],
                                                                 $propertyKey
                                                             );
                                                             ?>
 
-                                                            <?= $productSelected ? ' selected' : ''?>
+                                                            <?= $isSelected ? ' selected' : ''?>
                                                         >
                                                             <?=$field['name']?>
                                                         </option>
@@ -241,7 +240,7 @@ if ($STEP === 1) {
                                                         <?php
                                                         echo $settingsService->getOptionClass($prop, true);
 
-                                                        $productSelected = $settingsService->isOptionSelected(
+                                                        $isSelected = $settingsService->isOptionSelected(
                                                             $prop,
                                                             $arIBlock['OLD_PROPERTY_PRODUCT_SELECT'],
                                                             $propertyKey
@@ -251,7 +250,7 @@ if ($STEP === 1) {
                                                             = $settingsService->getHlTableName($prop)
                                                             ?? $productHlTableName;
 
-                                                        echo $productSelected ? ' selected' : '';
+                                                        echo $isSelected ? ' selected' : '';
                                                         ?>
                                                     >
                                                         <?=$prop['NAME']?>
@@ -376,19 +375,18 @@ if ($STEP === 1) {
                                                         <option value="<?=$prop['CODE']?>"
                                                             <?php
                                                             echo $settingsService->getOptionClass($prop, false);
-                                                            if (!$productSelected) {
-                                                                $isSelected = $settingsService->isOptionSelected(
-                                                                    $prop,
-                                                                    $arIBlock['OLD_PROPERTY_SKU_SELECT'],
-                                                                    $propertyKey
-                                                                );
 
-                                                                $skuHlTableName
-                                                                    = $settingsService->getHlTableName($prop)
-                                                                    ?? $skuHlTableName;
+                                                            $isSelected = $settingsService->isOptionSelected(
+                                                                $prop,
+                                                                $arIBlock['OLD_PROPERTY_SKU_SELECT'],
+                                                                $propertyKey
+                                                            );
 
-                                                                echo $isSelected ? ' selected' : '';
-                                                            }
+                                                            $skuHlTableName
+                                                                = $settingsService->getHlTableName($prop)
+                                                                ?? $skuHlTableName;
+
+                                                            echo $isSelected ? ' selected' : '';
                                                             ?>
                                                         >
                                                             <?=$prop['NAME']?>
@@ -475,7 +473,6 @@ if ($STEP === 1) {
                             } ?>
 
                             <?php
-                                $productSelected = false;
                                 $catalogId = $arIBlock['ID'];
                                 $catalogCustomProps = $settingsService->customPropList[$catalogId];
 
@@ -500,7 +497,7 @@ if ($STEP === 1) {
                                                     <?php
                                                     echo $settingsService->getOptionClass($prop, true);
 
-                                                    $productSelected = $settingsService->isOptionSelected(
+                                                    $isSelected = $settingsService->isOptionSelected(
                                                         $prop,
                                                         $arIBlock['OLD_PROPERTY_PRODUCT_SELECT'],
                                                         $catalogCustomPropCode
@@ -510,7 +507,7 @@ if ($STEP === 1) {
                                                         = $settingsService->getHlTableName($prop)
                                                         ?? $productHlTableName;
 
-                                                    echo $productSelected ? ' selected' : '';
+                                                    echo $isSelected ? ' selected' : '';
                                                     ?>
                                                 >
                                                     <?=$prop['NAME']?>
@@ -519,12 +516,11 @@ if ($STEP === 1) {
                                             </select>
                                         </td>
 
-                                        <?php if ($arIBlock['PROPERTIES_SKU'] !== null) {
-                                            $productSelected = false; ?>
+                                        <?php if ($arIBlock['PROPERTIES_SKU'] !== null) { ?>
                                             <td class="adm-list-table-cell">
                                                 <select
-                                                    name="iblockPropertyProduct_<?=$catalogCustomPropCode?>[<?= $catalogId ?>]"
-                                                    id="iblockPropertyProduct_<?=$catalogCustomPropCode . $catalogId ?>"
+                                                    name="iblockPropertySku_<?=$catalogCustomPropCode?>[<?= $catalogId ?>]"
+                                                    id="iblockPropertySku_<?=$catalogCustomPropCode . $catalogId ?>"
                                                     class="property-export"
                                                     data-type="<?= $catalogCustomPropCode ?>"
                                                     onchange="propertyChange(this)"
@@ -535,9 +531,8 @@ if ($STEP === 1) {
                                                             $skuHlTableName = ''; ?>
                                                             <option value="<?=$prop['CODE']?>"
                                                                 <?php
-                                                                echo $settingsService->getOptionClass($prop, false);
+                                                                    echo $settingsService->getOptionClass($prop, false);
 
-                                                                if (!$productSelected) {
                                                                     $isSelected = $settingsService->isOptionSelected(
                                                                         $prop,
                                                                         $arIBlock['OLD_PROPERTY_SKU_SELECT'],
@@ -549,7 +544,6 @@ if ($STEP === 1) {
                                                                         ?? $skuHlTableName;
 
                                                                     echo $isSelected ? ' selected' : '';
-                                                                }
                                                                 ?>
                                                             >
                                                                 <?=$prop['NAME']?>
@@ -766,6 +760,7 @@ if ($STEP === 1) {
 
         function propertyChange(obj) {
             let selectedOption = $(obj).find('option')[obj.selectedIndex];
+            console.log(selectedOption);
 
             if (selectedOption.className === 'not-highloadblock') {
                 let objId = '#' + obj.id;
@@ -932,7 +927,7 @@ if ($STEP === 1) {
                         properties: customProps,
                         profileId: profileId
                     },
-                }).then(addParamsToSetupFieldsList);
+                }).then(addParamsToSetupFieldsList());
             }
 
             if (Object.keys(customPropsToDelete).length > 0) {
@@ -941,7 +936,7 @@ if ($STEP === 1) {
                         properties: customPropsToDelete,
                         profileId: profileId
                     },
-                }).then(deleteParamsFromSetupFieldsList);
+                }).then(deleteParamsFromSetupFieldsList());
             }
 
             const promises = [savePromise, deletePromise].filter(Boolean);
