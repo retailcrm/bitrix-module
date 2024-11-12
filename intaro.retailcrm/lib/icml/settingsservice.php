@@ -541,6 +541,9 @@ class SettingsService
      */
     public function isOptionSelected(array $prop, array $oldSelect, string $key): bool
     {
+        if ($key === 'manufacturer') {
+            $a = 'yes';
+        }
         if (count($oldSelect) > 0) {
             if ($prop['CODE'] === $oldSelect[$key]) {
                 return true;
@@ -635,7 +638,9 @@ class SettingsService
             $dbSkuProperties = CIBlock::GetProperties($iblockOffer['IBLOCK_ID'], [], ['MULTIPLE' => 'N']);
 
             while ($prop = $dbSkuProperties->Fetch()) {
-                $propertiesSKU[] = $prop;
+                if ($prop['CODE'] !== '') {
+                    $propertiesSKU[] = $prop;
+                }
             }
         }
 
@@ -689,7 +694,9 @@ class SettingsService
         $iblockResult = CIBlock::GetProperties($iblockId, [], ['MULTIPLE' => 'N']);
 
         while ($prop = $iblockResult->Fetch()) {
-            $propertiesProduct[] = $prop;
+            if ($prop['CODE'] !== '') {
+                $propertiesProduct[] = $prop;
+            }
         }
 
         return $propertiesProduct;
