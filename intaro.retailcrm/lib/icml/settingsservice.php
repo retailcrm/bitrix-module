@@ -8,8 +8,12 @@ use CCatalogGroup;
 use CCatalogSku;
 use CCatalogVat;
 use CIBlock;
+use COption;
+use Bitrix\Main\Config\Option;
 use Intaro\RetailCrm\Service\Hl;
 use RetailcrmConfigProvider;
+use Bitrix\Main\Application;
+use Bitrix\Main\Entity\Query;
 
 /**
  * Отвечает за управление настройками выгрузки icml каталога
@@ -32,6 +36,8 @@ class SettingsService
      * но сам торговым каталогом не является
      */
     public const INFOBLOCK_WITH_SKU = 'P';
+
+    private const MODULE_ID = 'intaro.retailcrm';
 
     /**
      * @var array
@@ -295,36 +301,16 @@ class SettingsService
 
     private function parseNewProps(): array
     {
-        global $APPLICATION;
         global $PROFILE_ID;
         $currentProfile = $PROFILE_ID;
         $currentProfileCatalogIds = $this->getProfileCatalogIds();
 
         $result = [];
         foreach ($currentProfileCatalogIds as $catalogId) {
-            $customPropsFilePath = sprintf(
-                '%s/%s_profileId_%s_catalogId_%s.txt',
-                $_SERVER['DOCUMENT_ROOT'] . '/local',
-                'icml_property_retailcrm',
-                $currentProfile,
-                $catalogId,
-            );
-            $text = $APPLICATION->GetFileContent($customPropsFilePath);
+            $catalogCustomProps = $this->getCustomProps($currentProfile, $catalogId);
 
-            if ($text === false) {
-                continue;
-            }
-
-            preg_match_all('/\w+\s*=\s*\w+[ *\w+]*/mu', $text, $matches);
-
-            foreach ($matches[0] as $newProp) {
-                $elements = explode("=", $newProp);
-
-                if (empty($elements[0]) || empty($elements[1])) {
-                    continue;
-                }
-
-                $result[$catalogId][trim($elements[0])] = trim($elements[1]);
+            foreach ($catalogCustomProps as $prop) {
+                $result[$catalogId][$prop['code']] = $prop['title'];
             }
         }
 
@@ -812,5 +798,48 @@ class SettingsService
         }
 
         return [$arIBlockList, $intCountChecked, $intCountAvailIBlock, $arIBlockList['iblockExport'] ?? false];
+    }
+
+    private function getCustomPropsOptionName(string $profileId, string $catalogId): string
+    {
+        return sprintf(
+            'customProps_profileId_%s_catalogId_%s',
+            $profileId,
+            $catalogId
+        );
+    }
+
+    public function getCustomProps(string $profileId, string $catalogId)
+    {
+        $optionName = $this->getCustomPropsOptionName($profileId, $catalogId);
+
+        return unserialize(COption::GetOptionString(self::MODULE_ID, $optionName));
+    }
+
+    public function deleteCustomProps(
+        string $profileId,
+        string $catalogId,
+        array $propsToDelete
+    ): void
+    {
+        $currentCatalogProps = $this->getCustomProps($profileId, $catalogId);
+        $updatedCatalogProps = array_diff($currentCatalogProps, $propsToDelete);
+
+        if (empty($updatedCatalogProps)) {
+            $this->setCustomProps($profileId, $catalogId, []);
+        }
+
+        $this->setCustomProps($profileId, $catalogId, $updatedCatalogProps);
+    }
+
+    public function setCustomProps(
+        string $profileId,
+        string $catalogId,
+        array $props
+    ): void {
+        $optionName = $this->getCustomPropsOptionName($profileId, $catalogId);
+        $propsString = serialize($props);
+
+        COption::SetOptionString(self::MODULE_ID, $optionName, $propsString);
     }
 }
