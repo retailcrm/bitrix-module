@@ -944,10 +944,10 @@ if ($STEP === 1) {
             if (promises.length > 0) {
                 Promise.all(promises)
                     .finally(() => {
-                        formElem.submit();
+                        // formElem.submit();
                     });
             } else {
-                formElem.submit();
+                // formElem.submit();
             }
         });
 
@@ -963,8 +963,8 @@ if ($STEP === 1) {
             let customPropCatalogId = deleteButton.closest('.iblockExportTable').data('type');
 
             let values = {
-                'title': deletedPropTitle,
                 'code': deletedPropCode,
+                'title': deletedPropTitle,
             };
 
             if (customPropsToDelete.hasOwnProperty(customPropCatalogId)) {
