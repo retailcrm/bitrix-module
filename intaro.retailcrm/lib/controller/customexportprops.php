@@ -40,23 +40,15 @@ class CustomExportProps extends Controller
         $props = $requestData['properties'];
         $profileId = $requestData['profileId'];
 
-        $dbConnection = Application::getInstance()->getConnection();
-        try {
-            $dbConnection->startTransaction();
-            foreach ($props as $catalogId => $propsArray) {
-                $catalogCustomProps = [];
-                foreach ($propsArray as $property) {
-                    $catalogCustomProps[] = [
-                        'code' => $property['code'],
-                        'title' => $property['title']
-                    ];
-                }
-                $settingsService->setCustomProps($profileId, $catalogId, $catalogCustomProps);
+        foreach ($props as $catalogId => $propsArray) {
+            $catalogCustomProps = [];
+            foreach ($propsArray as $property) {
+                $catalogCustomProps[] = [
+                    'code' => $property['code'],
+                    'title' => $property['title']
+                ];
             }
-
-            $dbConnection->commitTransaction();
-        } catch (\Throwable $e) {
-            $dbConnection->rollbackTransaction();
+            $settingsService->saveCustomProps($profileId, $catalogId, $catalogCustomProps);
         }
     }
 
@@ -71,56 +63,15 @@ class CustomExportProps extends Controller
         $props = $requestData['properties'];
         $profileId = $requestData['profileId'];
 
-        $dbConnection = Application::getInstance()->getConnection();
-
-        try {
-            $dbConnection->startTransaction();
-
-            foreach ($props as $catalogId => $propsArray) {
-                $catalogCustomProps = [];
-                foreach ($propsArray as $property) {
-                    $catalogCustomProps[] = [
-                        'code' => $property['code'],
-                        'title' => $property['title']
-                    ];
-                }
-                $settingsService->deleteCustomProps($profileId, $catalogId, $catalogCustomProps);
-//            $filePath = sprintf(
-//                '%s/%s_profileId_%s_catalogId_%s.txt',
-//                $_SERVER['DOCUMENT_ROOT'] . '/local',
-//                'icml_property_retailcrm',
-//                $profileId,
-//                $catalogId
-//            );
-//            $fileContent = file_get_contents($filePath);
-//
-//            foreach ($propsArray as $property) {
-//                $propStringToDelete = PHP_EOL . $property['code'] . ' = ' . $property['title'];
-//                $fileContent = str_replace($propStringToDelete, '', $fileContent);
-//            }
-//            file_put_contents($filePath, $fileContent);
-
+        foreach ($props as $catalogId => $propsArray) {
+            $catalogCustomProps = [];
+            foreach ($propsArray as $property) {
+                $catalogCustomProps[] = [
+                    'code' => $property['code'],
+                    'title' => $property['title']
+                ];
             }
-        } catch (\Throwable $e) {
-            $dbConnection->rollbackTransaction();
-            // Добавить возврат ответа с ошибкой
+            $settingsService->removeCustomProps($profileId, $catalogId, $catalogCustomProps);
         }
-
-//        foreach ($props as $catalogId => $propsArray) {
-//            $filePath = sprintf(
-//                '%s/%s_profileId_%s_catalogId_%s.txt',
-//                $_SERVER['DOCUMENT_ROOT'] . '/local',
-//                'icml_property_retailcrm',
-//                $profileId,
-//                $catalogId
-//            );
-//            $fileContent = file_get_contents($filePath);
-//
-//            foreach ($propsArray as $property) {
-//                $propStringToDelete = PHP_EOL . $property['code'] . ' = ' . $property['title'];
-//                $fileContent = str_replace($propStringToDelete, '', $fileContent);
-//            }
-//            file_put_contents($filePath, $fileContent);
-
-        }
+    }
 }

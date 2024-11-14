@@ -816,30 +816,63 @@ class SettingsService
         return unserialize(COption::GetOptionString(self::MODULE_ID, $optionName));
     }
 
-    public function deleteCustomProps(
+    public function removeCustomProps(
         string $profileId,
         string $catalogId,
         array $propsToDelete
-    ): void
-    {
+    ): void {
         $currentCatalogProps = $this->getCustomProps($profileId, $catalogId);
-        $updatedCatalogProps = array_diff($currentCatalogProps, $propsToDelete);
+        $updatedCatalogProps = array_values(array_filter(
+            $currentCatalogProps,
+            fn ($currentProp) => !in_array($currentProp, $propsToDelete)
+        ));
 
         if (empty($updatedCatalogProps)) {
-            $this->setCustomProps($profileId, $catalogId, []);
+            $this->removeCustomPropsOptionEntry($profileId, $catalogId);
+        } else {
+            $this->updateCustomPropsOptionEntry($profileId, $catalogId, $updatedCatalogProps);
         }
-
-        $this->setCustomProps($profileId, $catalogId, $updatedCatalogProps);
     }
 
-    public function setCustomProps(
+    public function updateCustomPropsOptionEntry(
+        string $profileId,
+        string $catalogId,
+        array $updatedProps
+    ) {
+        $this->removeCustomPropsOptionEntry($profileId, $catalogId);
+        $this->setCustomPropsOptionEntry($profileId, $catalogId, $updatedProps);
+    }
+
+    private function removeCustomPropsOptionEntry($profileId, $catalogId)
+    {
+        $optionName = $this->getCustomPropsOptionName($profileId, $catalogId);
+        $delRes = COption::RemoveOption(self::MODULE_ID, $optionName);
+    }
+
+    private function setCustomPropsOptionEntry(
         string $profileId,
         string $catalogId,
         array $props
-    ): void {
+    )
+    {
         $optionName = $this->getCustomPropsOptionName($profileId, $catalogId);
         $propsString = serialize($props);
 
-        COption::SetOptionString(self::MODULE_ID, $optionName, $propsString);
+        $setResult = COption::SetOptionString(self::MODULE_ID, $optionName, $propsString);
+    }
+
+    public function saveCustomProps(
+        string $profileId,
+        string $catalogId,
+        array $newProps
+    ): void {
+        $currentProps = $this->getCustomProps($profileId, $catalogId);
+
+        if (empty($currentProps)) {
+            $this->setCustomPropsOptionEntry($profileId, $catalogId, $newProps);
+        } else {
+            $updatedProps = array_merge($currentProps, $newProps);
+            $this->updateCustomPropsOptionEntry($profileId, $catalogId, $updatedProps);
+        }
     }
 }
