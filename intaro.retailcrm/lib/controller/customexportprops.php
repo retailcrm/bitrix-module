@@ -48,7 +48,9 @@ class CustomExportProps extends Controller
                     'title' => $property['title']
                 ];
             }
-            $settingsService->saveCustomProps($profileId, $catalogId, $catalogCustomProps);
+            $settingsService
+                ->setCatalogCustomPropsOptionName($profileId)
+                ->saveCustomProps($catalogId, $catalogCustomProps);
         }
     }
 
@@ -71,7 +73,9 @@ class CustomExportProps extends Controller
                     'title' => $property['title']
                 ];
             }
-            $settingsService->removeCustomProps($profileId, $catalogId, $catalogCustomProps);
+            $settingsService
+                ->setCatalogCustomPropsOptionName($catalogId)
+                ->removeCustomProps($catalogCustomProps, $catalogId);
         }
     }
 }

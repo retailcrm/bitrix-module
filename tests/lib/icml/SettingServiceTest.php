@@ -30,8 +30,8 @@ class SettingServiceTest extends \BitrixTestCase
         $settingService = SettingsService::getInstance($this->getSetupVars(), "");
 
         $this->assertInstanceOf(SettingsService::class, $settingService);
-        $this->assertArrayHasKey('property1', $settingService->actrualPropList);
-        $this->assertArrayHasKey('property2', $settingService->actrualPropList);
+        $this->assertArrayHasKey('property1', $settingService->actualPropList);
+        $this->assertArrayHasKey('property2', $settingService->actualPropList);
 
         return $settingService;
     }
