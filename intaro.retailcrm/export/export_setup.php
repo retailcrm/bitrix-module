@@ -473,6 +473,7 @@ if ($STEP === 1) {
                             } ?>
 
                             <?php
+                            if (!empty($catalogCustomProps)) {
                                 $catalogId = $arIBlock['ID'];
                                 $catalogCustomProps = $settingsService->customPropList[$catalogId];
 
@@ -555,7 +556,9 @@ if ($STEP === 1) {
                                             </td>
                                         <?php } ?>
                                     </tr>
-                            <?php } ?>
+                            <?php }
+                            }
+                            ?>
                             </tbody>
                         </table>
                         <button class="adm-btn-save add-custom-row" type="button">Добавить</button>
@@ -664,7 +667,7 @@ if ($STEP === 1) {
             <input type="hidden" name="STEP" value="<?=$STEP + 1?>">
             <input type="hidden" name="SETUP_FIELDS_LIST" value="<?=
             $settingsService->getSetupFieldsString(
-                array_keys($settingsService->actrualPropList) ?? [],
+                array_keys($settingsService->actualPropList) ?? [],
                 $hlblockModule === true,
                 $hlBlockList ?? []
             )
@@ -944,10 +947,10 @@ if ($STEP === 1) {
             if (promises.length > 0) {
                 Promise.all(promises)
                     .finally(() => {
-                        // formElem.submit();
+                        formElem.submit();
                     });
             } else {
-                // formElem.submit();
+                formElem.submit();
             }
         });
 

@@ -39,6 +39,12 @@ class SettingsService
 
     private const MODULE_ID = 'intaro.retailcrm';
 
+    private string $catalogCustomPropsOptionName;
+
+    private string $profileCatalogsOptionName;
+
+    private string $exportProfileId;
+
     /**
      * @var array
      */
@@ -105,7 +111,7 @@ class SettingsService
     public $loadNonActivity;
 
     /** @var array */
-    public $actrualPropList = [];
+    public $actualPropList = [];
 
     /** @var array */
     public $customPropList = [];
@@ -141,9 +147,12 @@ class SettingsService
         $this->getPriceTypes();
         $this->getVatRates();
 
-        $this->customPropList = $this->parseNewProps();
+        $this->exportProfileId = $this->getExportProfileId();
+        $this->profileCatalogsOptionName = $this->getProfileCatalogsOptionName();
+
+        $this->customPropList = $this->getNewProps();
         $this->defaultPropList = $this->getIblockPropsPreset();
-        $this->actrualPropList = $this->getActualPropList();
+        $this->actualPropList = $this->getActualPropList();
     }
 
     /**
@@ -173,14 +182,6 @@ class SettingsService
             ...$this->defaultPropList,
             ...$customProps
         ];
-    }
-
-    public function getFrontPropList(): array
-    {
-        $result = [...$this->defaultPropList];
-        $result['customProps'] = $this->customPropList;
-
-        return $result;
     }
 
     public function getPriceTypes()
@@ -299,32 +300,20 @@ class SettingsService
         ];
     }
 
-    private function parseNewProps(): array
-    {
-        global $PROFILE_ID;
-        $currentProfile = $PROFILE_ID;
-        $currentProfileCatalogIds = $this->getProfileCatalogIds();
-
-        $result = [];
-        foreach ($currentProfileCatalogIds as $catalogId) {
-            $catalogCustomProps = $this->getCustomProps($currentProfile, $catalogId);
-
-            foreach ($catalogCustomProps as $prop) {
-                $result[$catalogId][$prop['code']] = $prop['title'];
-            }
-        }
-
-        return $result;
-    }
-
-    private function getProfileCatalogIds(): array
+    private function getNewProps(): array
     {
         $result = [];
+        $currentProfileCatalogIds = $this->getProfileCatalogs();
 
-        foreach ($this->arOldSetupVars as $varName => $oldSetupVar) {
-            if (is_array($oldSetupVar) && strpos($varName, 'iblockPropertySku_') !== false) {
-                $result = array_keys($oldSetupVar);
-                break;
+        if (!is_null($currentProfileCatalogIds)) {
+            foreach ($currentProfileCatalogIds as $catalogId) {
+                $catalogCustomProps = $this
+                    ->setCatalogCustomPropsOptionName($catalogId)
+                    ->getCustomProps();
+
+                foreach ($catalogCustomProps as $prop) {
+                    $result[$catalogId][$prop['code']] = $prop['title'];
+                }
             }
         }
 
@@ -410,7 +399,7 @@ class SettingsService
 
     public function setProps(): void
     {
-        foreach (array_keys($this->actrualPropList) as $prop) {
+        foreach (array_keys($this->actualPropList) as $prop) {
            $this->setProperties($this->iblockPropertySku, 'iblockPropertySku_' . $prop);
            $this->setProperties($this->iblockPropertyUnitSku, 'iblockPropertyUnitSku_' . $prop);
            $this->setProperties($this->iblockPropertyProduct, 'iblockPropertyProduct_' . $prop);
@@ -647,7 +636,7 @@ class SettingsService
         $props = [];
 
         if (isset($oldValues[$iblockId])) {
-            foreach (array_keys($this->actrualPropList) as $prop) {
+            foreach (array_keys($this->actualPropList) as $prop) {
                 $fullKey = $keyGroup . '_' . $prop;
                 $props[$prop] = $oldValues[$iblockId][$fullKey];
             }
@@ -800,79 +789,106 @@ class SettingsService
         return [$arIBlockList, $intCountChecked, $intCountAvailIBlock, $arIBlockList['iblockExport'] ?? false];
     }
 
-    private function getCustomPropsOptionName(string $profileId, string $catalogId): string
+    public function setCatalogCustomPropsOptionName(string $catalogId): self
     {
-        return sprintf(
-            'customProps_profileId_%s_catalogId_%s',
-            $profileId,
+        $this->catalogCustomPropsOptionName = sprintf(
+            'customProps_exportProfileId_%s_catalogId_%s',
+            $this->exportProfileId,
             $catalogId
         );
+
+        return $this;
     }
 
-    public function getCustomProps(string $profileId, string $catalogId)
+    private function getExportProfileId(): string
     {
-        $optionName = $this->getCustomPropsOptionName($profileId, $catalogId);
+        global $PROFILE_ID;
 
-        return unserialize(COption::GetOptionString(self::MODULE_ID, $optionName));
+        return $PROFILE_ID;
     }
 
-    public function removeCustomProps(
-        string $profileId,
-        string $catalogId,
-        array $propsToDelete
-    ): void {
-        $currentCatalogProps = $this->getCustomProps($profileId, $catalogId);
+    private function getProfileCatalogsOptionName(): string
+    {
+        return sprintf('exportProfile_%s_catalogs', $this->exportProfileId);
+    }
+
+    public function getCustomProps(): ?array
+    {
+        $props = unserialize(COption::GetOptionString(self::MODULE_ID, $this->catalogCustomPropsOptionName));
+
+        if (!$props) {
+            return null;
+        }
+
+        return $props;
+    }
+
+    public function removeCustomProps(array $propsToDelete, string $catalogId): void
+    {
+        $currentCatalogProps = $this->getCustomProps();
         $updatedCatalogProps = array_values(array_filter(
             $currentCatalogProps,
             fn ($currentProp) => !in_array($currentProp, $propsToDelete)
         ));
 
         if (empty($updatedCatalogProps)) {
-            $this->removeCustomPropsOptionEntry($profileId, $catalogId);
+            COption::RemoveOption(self::MODULE_ID, $this->catalogCustomPropsOptionName);
+            COption::RemoveOption(self::MODULE_ID, $this->profileCatalogsOptionName);
         } else {
-            $this->updateCustomPropsOptionEntry($profileId, $catalogId, $updatedCatalogProps);
+            $this->updateProfileCatalogs($catalogId);
+            $this->updateCustomPropsOptionEntry($updatedCatalogProps);
         }
     }
 
-    public function updateCustomPropsOptionEntry(
-        string $profileId,
-        string $catalogId,
-        array $updatedProps
-    ) {
-        $this->removeCustomPropsOptionEntry($profileId, $catalogId);
-        $this->setCustomPropsOptionEntry($profileId, $catalogId, $updatedProps);
+    public function updateCustomPropsOptionEntry(array $updatedProps)
+    {
+        COption::SetOptionString(self::MODULE_ID, $this->catalogCustomPropsOptionName, '');
+        $this->setCustomPropsOptionEntry($updatedProps);
     }
 
-    private function removeCustomPropsOptionEntry($profileId, $catalogId)
+    private function setCustomPropsOptionEntry(array $props)
     {
-        $optionName = $this->getCustomPropsOptionName($profileId, $catalogId);
-        $delRes = COption::RemoveOption(self::MODULE_ID, $optionName);
-    }
-
-    private function setCustomPropsOptionEntry(
-        string $profileId,
-        string $catalogId,
-        array $props
-    )
-    {
-        $optionName = $this->getCustomPropsOptionName($profileId, $catalogId);
         $propsString = serialize($props);
-
-        $setResult = COption::SetOptionString(self::MODULE_ID, $optionName, $propsString);
+        COption::SetOptionString(self::MODULE_ID, $this->catalogCustomPropsOptionName, $propsString);
     }
 
-    public function saveCustomProps(
-        string $profileId,
-        string $catalogId,
-        array $newProps
-    ): void {
-        $currentProps = $this->getCustomProps($profileId, $catalogId);
+    public function saveCustomProps(string $catalogId, array $newProps): void
+    {
+        $currentProps = $this->getCustomProps();
 
-        if (empty($currentProps)) {
-            $this->setCustomPropsOptionEntry($profileId, $catalogId, $newProps);
+        if (is_null($currentProps)) {
+            $this->setCustomPropsOptionEntry($newProps);
+            $this->setProfileCatalogs($catalogId);
         } else {
             $updatedProps = array_merge($currentProps, $newProps);
-            $this->updateCustomPropsOptionEntry($profileId, $catalogId, $updatedProps);
+            $this->updateCustomPropsOptionEntry($updatedProps);
+            $this->updateProfileCatalogs($catalogId);
         }
+    }
+
+    private function getProfileCatalogs(): ?array
+    {
+        $catalogs = unserialize(COption::GetOptionString(self::MODULE_ID, $this->profileCatalogsOptionName));
+
+        if (!$catalogs) {
+            return null;
+        }
+
+        return $catalogs;
+    }
+
+    private function setProfileCatalogs(string $catalogId): void
+    {
+        $catalogs = serialize([$catalogId]);
+        COption::SetOptionString(self::MODULE_ID, $this->profileCatalogsOptionName, $catalogs);
+    }
+
+    private function updateProfileCatalogs(string $catalogId): void
+    {
+        $currentCatalogs = unserialize(COption::GetOptionString(self::MODULE_ID, $this->profileCatalogsOptionName));
+        $updatedCatalogs = serialize([...$currentCatalogs, $catalogId]);
+
+        COption::SetOptionString(self::MODULE_ID, $this->profileCatalogsOptionName, '');
+        COption::SetOptionString(self::MODULE_ID, $this->profileCatalogsOptionName, $updatedCatalogs);
     }
 }
