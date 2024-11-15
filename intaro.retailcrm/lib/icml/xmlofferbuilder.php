@@ -115,8 +115,8 @@ class XmlOfferBuilder
     public function __construct(XmlSetup $setup, array $measure, ?string $serverName)
     {
         $this->setup             = $setup;
+        $this->setSettingsService();
         $this->purchasePriceNull = RetailcrmConfigProvider::getCrmPurchasePrice();
-        $this->settingsService   = SettingsService::getInstance([], '');
         $this->vatRates          = $this->settingsService->vatRates;
         $this->measures          = $this->prepareMeasures($measure);
         $this->serverName = $serverName;
@@ -139,6 +139,12 @@ class XmlOfferBuilder
         $this->addDataFromItem($this->productProps, $this->categories);
 
         return $this->xmlOffer;
+    }
+
+    private function setSettingsService(): void
+    {
+        global $PROFILE_ID;
+        $this->settingsService   = SettingsService::getInstance([], '', $PROFILE_ID);
     }
 
     /**

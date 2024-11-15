@@ -31,14 +31,15 @@ class CustomExportProps extends Controller
 
     public function saveAction()
     {
-        $settingsService = SettingsService::getInstance(
-            [],
-            null
-        );
-
         $requestData = $this->getRequestData();
         $props = $requestData['properties'];
         $profileId = $requestData['profileId'];
+
+        $settingsService = SettingsService::getInstance(
+            [],
+            null,
+            $profileId
+        );
 
         foreach ($props as $catalogId => $propsArray) {
             $catalogCustomProps = [];
@@ -49,21 +50,22 @@ class CustomExportProps extends Controller
                 ];
             }
             $settingsService
-                ->setCatalogCustomPropsOptionName($profileId)
+                ->setCatalogCustomPropsOptionName($catalogId)
                 ->saveCustomProps($catalogId, $catalogCustomProps);
         }
     }
 
     public function deleteAction()
     {
-        $settingsService = SettingsService::getInstance(
-            [],
-            null
-        );
-
         $requestData = $this->getRequestData();
         $props = $requestData['properties'];
         $profileId = $requestData['profileId'];
+
+        $settingsService = SettingsService::getInstance(
+            [],
+            null,
+            $profileId
+        );
 
         foreach ($props as $catalogId => $propsArray) {
             $catalogCustomProps = [];

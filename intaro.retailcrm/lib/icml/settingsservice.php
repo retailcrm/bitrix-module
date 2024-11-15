@@ -131,7 +131,7 @@ class SettingsService
      * @param array       $arOldSetupVars
      * @param string|null $action
      */
-    private function __construct(array $arOldSetupVars, ?string $action)
+    private function __construct(array $arOldSetupVars, ?string $action, string $profileId)
     {
         $this->arOldSetupVars = $arOldSetupVars;
         $this->action = $action;
@@ -147,8 +147,9 @@ class SettingsService
         $this->getPriceTypes();
         $this->getVatRates();
 
-        $this->exportProfileId = $this->getExportProfileId();
-        $this->profileCatalogsOptionName = $this->getProfileCatalogsOptionName();
+        $this->exportProfileId = $profileId;
+        $this->setProfileCatalogsOptionName();
+        $this->deleteEmptyProfileCatalogs();
 
         $this->customPropList = $this->getNewProps();
         $this->defaultPropList = $this->getIblockPropsPreset();
@@ -161,10 +162,10 @@ class SettingsService
      *
      * @return \Intaro\RetailCrm\Icml\SettingsService|null
      */
-    public static function getInstance(array $arOldSetupVars, ?string $action): ?SettingsService
+    public static function getInstance(array $arOldSetupVars, ?string $action, ?string $profileId): ?SettingsService
     {
         if (is_null(self::$instance)) {
-            self::$instance = new self($arOldSetupVars, $action);
+            self::$instance = new self($arOldSetupVars, $action, $profileId);
         }
 
         return self::$instance;
@@ -792,7 +793,7 @@ class SettingsService
     public function setCatalogCustomPropsOptionName(string $catalogId): self
     {
         $this->catalogCustomPropsOptionName = sprintf(
-            'customProps_exportProfileId_%s_catalogId_%s',
+            'exportCustomProps_ProfileId_%s_catalogId_%s',
             $this->exportProfileId,
             $catalogId
         );
@@ -800,19 +801,12 @@ class SettingsService
         return $this;
     }
 
-    private function getExportProfileId(): string
+    private function setProfileCatalogsOptionName(): void
     {
-        global $PROFILE_ID;
-
-        return $PROFILE_ID;
+        $this->profileCatalogsOptionName = sprintf('exportProfileId_%s_catalogs', $this->exportProfileId);
     }
 
-    private function getProfileCatalogsOptionName(): string
-    {
-        return sprintf('exportProfile_%s_catalogs', $this->exportProfileId);
-    }
-
-    public function getCustomProps(): ?array
+    private function getCustomProps(): ?array
     {
         $props = unserialize(COption::GetOptionString(self::MODULE_ID, $this->catalogCustomPropsOptionName));
 
@@ -832,24 +826,23 @@ class SettingsService
         ));
 
         if (empty($updatedCatalogProps)) {
-            COption::RemoveOption(self::MODULE_ID, $this->catalogCustomPropsOptionName);
-            COption::RemoveOption(self::MODULE_ID, $this->profileCatalogsOptionName);
+            $this->deleteOptionEntry($this->catalogCustomPropsOptionName);
+            $this->deleteProfileCatalog($catalogId);
         } else {
-            $this->updateProfileCatalogs($catalogId);
-            $this->updateCustomPropsOptionEntry($updatedCatalogProps);
+            $this->updateCustomProps($updatedCatalogProps);
         }
     }
 
-    public function updateCustomPropsOptionEntry(array $updatedProps)
+    private function updateCustomProps(array $updatedProps)
     {
-        COption::SetOptionString(self::MODULE_ID, $this->catalogCustomPropsOptionName, '');
-        $this->setCustomPropsOptionEntry($updatedProps);
+        $serializedProps = serialize($updatedProps);
+        $this->updateOptionEntry($this->catalogCustomPropsOptionName, $serializedProps);
     }
 
-    private function setCustomPropsOptionEntry(array $props)
+    private function setCustomProps(array $props)
     {
         $propsString = serialize($props);
-        COption::SetOptionString(self::MODULE_ID, $this->catalogCustomPropsOptionName, $propsString);
+        $this->setOptionEntry($this->catalogCustomPropsOptionName, $propsString);
     }
 
     public function saveCustomProps(string $catalogId, array $newProps): void
@@ -857,12 +850,12 @@ class SettingsService
         $currentProps = $this->getCustomProps();
 
         if (is_null($currentProps)) {
-            $this->setCustomPropsOptionEntry($newProps);
-            $this->setProfileCatalogs($catalogId);
+            $this->setProfileCatalog($catalogId);
+            $this->setCustomProps($newProps);
         } else {
             $updatedProps = array_merge($currentProps, $newProps);
-            $this->updateCustomPropsOptionEntry($updatedProps);
             $this->updateProfileCatalogs($catalogId);
+            $this->updateCustomProps($updatedProps);
         }
     }
 
@@ -877,18 +870,57 @@ class SettingsService
         return $catalogs;
     }
 
-    private function setProfileCatalogs(string $catalogId): void
+    private function setProfileCatalog(string $catalogId): void
     {
         $catalogs = serialize([$catalogId]);
-        COption::SetOptionString(self::MODULE_ID, $this->profileCatalogsOptionName, $catalogs);
+        $this->setOptionEntry($this->profileCatalogsOptionName, $catalogs);
     }
 
     private function updateProfileCatalogs(string $catalogId): void
     {
-        $currentCatalogs = unserialize(COption::GetOptionString(self::MODULE_ID, $this->profileCatalogsOptionName));
-        $updatedCatalogs = serialize([...$currentCatalogs, $catalogId]);
+        $currentCatalogs = $this->getProfileCatalogs();
 
-        COption::SetOptionString(self::MODULE_ID, $this->profileCatalogsOptionName, '');
-        COption::SetOptionString(self::MODULE_ID, $this->profileCatalogsOptionName, $updatedCatalogs);
+        if (!in_array($catalogId, $currentCatalogs)) {
+            $updatedCatalogs = serialize(array_merge($currentCatalogs, [$catalogId]));
+            $this->updateOptionEntry($this->profileCatalogsOptionName, $updatedCatalogs);
+        }
+    }
+
+    private function deleteProfileCatalog(string $catalogId): void
+    {
+        $currentCatalogs = $this->getProfileCatalogs();
+        $catalogIdIndex = array_search($catalogId, $currentCatalogs);
+
+        if ($catalogIdIndex !== false) {
+            unset($currentCatalogs[$catalogIdIndex]);
+        }
+
+        $updatedCatalogs = serialize($currentCatalogs);
+        $this->updateOptionEntry($this->profileCatalogsOptionName, $updatedCatalogs);
+    }
+
+    private function deleteEmptyProfileCatalogs(): void
+    {
+        $currentCatalogs = $this->getProfileCatalogs();
+
+        if (is_null($currentCatalogs)) {
+            $this->deleteOptionEntry($this->profileCatalogsOptionName);
+        }
+    }
+
+    private function setOptionEntry(string $name, string $value)
+    {
+        $setResult = COption::SetOptionString(self::MODULE_ID, $name, $value);
+    }
+
+    private function updateOptionEntry(string $name, string $value)
+    {
+        COption::SetOptionString(self::MODULE_ID, $name, '');
+        COption::SetOptionString(self::MODULE_ID, $name, $value);
+    }
+
+    private function deleteOptionEntry(string $name)
+    {
+        COption::RemoveOption(self::MODULE_ID, $name);
     }
 }
