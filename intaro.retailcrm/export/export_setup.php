@@ -26,7 +26,8 @@ CModule::IncludeModule('intaro.retailcrm');
 //TODO заменить вызов на сервис-локатор, когда он приедет
 $settingsService = SettingsService::getInstance(
     $arOldSetupVars ?? [],
-    $ACTION
+    $ACTION,
+    $PROFILE_ID
 );
 
 $isSetupModulePage = $settingsService->isSetupModulePage();
@@ -473,10 +474,10 @@ if ($STEP === 1) {
                             } ?>
 
                             <?php
-                            if (!empty($catalogCustomProps)) {
-                                $catalogId = $arIBlock['ID'];
-                                $catalogCustomProps = $settingsService->customPropList[$catalogId];
+                            $catalogId = $arIBlock['ID'];
+                            $catalogCustomProps = $settingsService->customPropList[$catalogId];
 
+                            if (!empty($catalogCustomProps)) {
                                 foreach ($catalogCustomProps as $catalogCustomPropCode => $catalogCustomPropValue) { ?>
                                     <tr class="adm-list-table-row custom-property-row">
                                         <td class="adm-list-table-cell custom-property-title">

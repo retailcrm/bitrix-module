@@ -38,7 +38,8 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/exp
         }
     }
 
-    $settingService = SettingsService::getInstance([], '');
+    global $PROFILE_ID;
+    $settingService = SettingsService::getInstance([], '', $PROFILE_ID);
     $iblockPropertySku = [];
     $iblockPropertySkuHl = [];
     $iblockPropertyUnitSku = [];
