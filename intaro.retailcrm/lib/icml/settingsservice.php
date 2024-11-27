@@ -17,7 +17,7 @@ use Bitrix\Main\Entity\Query;
 
 /**
  * Отвечает за управление настройками выгрузки icml каталога
- * @var $PROFILE_ID
+ * @var $PROFILE_ID - зачем если получаем в в конструкторе инстансе
  * Class SettingsService
  *
  *
@@ -148,12 +148,13 @@ class SettingsService
         $this->getVatRates();
 
         $this->exportProfileId = $profileId;
-        $this->setProfileCatalogsOptionName();
+        $this->profileCatalogsOptionName = sprintf('exportProfileId_%s_catalogs', $this->exportProfileId);
+        //$this->setProfileCatalogsOptionName();//Установка названия каталога смысла не вижу от метода
         $this->deleteEmptyProfileCatalogs();
 
-        $this->customPropList = $this->getNewProps();
-        $this->defaultPropList = $this->getIblockPropsPreset();
-        $this->actualPropList = $this->getActualPropList();
+        $this->customPropList = $this->getNewProps();//получаеют свойства с разделениекм на каталоги. Но не понял при чем custom в названии
+        $this->defaultPropList = $this->getIblockPropsPreset(); //названия базовых свойств (код свойства для icml - перевод)
+        $this->actualPropList = $this->getActualPropList();//не пойму смысла объединения что намеренно было разделено - нигде не переиспользуется - изменить???
     }
 
     /**
@@ -171,7 +172,7 @@ class SettingsService
         return self::$instance;
     }
 
-    public function getActualPropList(): array
+    private function getActualPropList(): array
     {
         $customProps = [];
 
@@ -185,7 +186,7 @@ class SettingsService
         ];
     }
 
-    public function getPriceTypes()
+    private function getPriceTypes()
     {
         $dbPriceType = CCatalogGroup::GetList(['SORT' => 'ASC'], [], [], [], ['ID', 'NAME', 'BASE']);
 
@@ -194,7 +195,7 @@ class SettingsService
         }
     }
 
-    public function getVatRates()
+    private function getVatRates()
     {
         $dbVatRate = CCatalogVat::GetListEx(['SORT' => 'ASC'], ['ACTIVE' => 'Y'], false, false, ['ID', 'NAME', 'RATE']);
 
@@ -310,7 +311,8 @@ class SettingsService
             foreach ($currentProfileCatalogIds as $catalogId) {
                 $catalogCustomProps = $this
                     ->setCatalogCustomPropsOptionName($catalogId)
-                    ->getCustomProps();
+                    ->getCustomProps()
+                ;
 
                 foreach ($catalogCustomProps as $prop) {
                     $result[$catalogId][$prop['code']] = $prop['title'];
@@ -324,7 +326,7 @@ class SettingsService
     /**
      * @return array
      */
-    public function getHintProps(): array
+    private function getHintProps(): array
     {
         return [
             'article' => ['ARTICLE', 'ART', 'ARTNUMBER', 'ARTICUL', 'ARTIKUL'],
@@ -586,7 +588,7 @@ class SettingsService
      *
      * @return array
      */
-    public function getSiteList(int $iblockId): array
+    private function getSiteList(int $iblockId): array
     {
         $siteList = [];
 
@@ -663,7 +665,7 @@ class SettingsService
      *
      * @return array|null
      */
-    public function getProductProps(int $iblockId): ?array
+    private function getProductProps(int $iblockId): ?array
     {
         $propertiesProduct = null;
 
@@ -684,7 +686,7 @@ class SettingsService
      *
      * @return bool
      */
-    public function isExport($iblockId, $iblockExport): bool
+    private function isExport($iblockId, $iblockExport): bool
     {
         if (is_array($iblockExport) && count($iblockExport) !== 0) {
             return (in_array($iblockId, $iblockExport));

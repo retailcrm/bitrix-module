@@ -144,7 +144,7 @@ class XmlOfferBuilder
     private function setSettingsService(): void
     {
         global $PROFILE_ID;
-        $this->settingsService   = SettingsService::getInstance([], '', $PROFILE_ID);
+        $this->settingsService = SettingsService::getInstance([], '', $PROFILE_ID);
     }
 
     /**
