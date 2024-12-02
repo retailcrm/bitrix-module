@@ -41,17 +41,26 @@ class CustomExportProps extends Controller
             $profileId
         );
 
+        $idCategories = array_keys($props);
+
+        if ($idCategories !== []) {
+            $settingsService->setProfileCatalogs($idCategories);//сразу заменяет и create и update
+        }
+
         foreach ($props as $catalogId => $propsArray) {
             $catalogCustomProps = [];
+
             foreach ($propsArray as $property) {
                 $catalogCustomProps[] = [
                     'code' => $property['code'],
                     'title' => $property['title']
                 ];
             }
+
             $settingsService
                 ->setCatalogCustomPropsOptionName($catalogId)
-                ->saveCustomProps($catalogId, $catalogCustomProps);
+                ->saveCustomProps($catalogCustomProps)
+            ;
         }
     }
 

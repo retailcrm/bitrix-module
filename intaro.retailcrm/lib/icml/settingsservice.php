@@ -131,7 +131,7 @@ class SettingsService
      * @param array       $arOldSetupVars
      * @param string|null $action
      */
-    private function __construct(array $arOldSetupVars, ?string $action, string $profileId)
+    private function __construct(array $arOldSetupVars, ?string $action, ?string $profileId)
     {
         $this->arOldSetupVars = $arOldSetupVars;
         $this->action = $action;
@@ -147,9 +147,10 @@ class SettingsService
         $this->getPriceTypes();
         $this->getVatRates();
 
-        $this->exportProfileId = $profileId;
+        $this->exportProfileId = $profileId ?? 'tmp';
         $this->profileCatalogsOptionName = sprintf('exportProfileId_%s_catalogs', $this->exportProfileId);
         //$this->setProfileCatalogsOptionName();//Установка названия каталога смысла не вижу от метода
+        $this->linkNewProfile();
         $this->deleteEmptyProfileCatalogs();
 
         $this->customPropList = $this->getNewProps();//получаеют свойства с разделениекм на каталоги. Но не понял при чем custom в названии
@@ -847,16 +848,15 @@ class SettingsService
         $this->setOptionEntry($this->catalogCustomPropsOptionName, $propsString);
     }
 
-    public function saveCustomProps(string $catalogId, array $newProps): void
+    public function saveCustomProps(array $newProps): void
     {
-        $currentProps = $this->getCustomProps();
+        $currentProps = $this->getCustomProps();//проверка сущестования комбинации профиля и категории
 
         if (is_null($currentProps)) {
-            $this->setProfileCatalog($catalogId);
             $this->setCustomProps($newProps);
         } else {
-            $updatedProps = array_merge($currentProps, $newProps);
-            $this->updateProfileCatalogs($catalogId);
+            $updatedProps = array_merge($currentProps, $newProps);//TODO также только добавляет но не удаляет, проверить как работает
+            //$this->updateProfileCatalogs($catalogId);
             $this->updateCustomProps($updatedProps);
         }
     }
@@ -872,18 +872,18 @@ class SettingsService
         return $catalogs;
     }
 
-    private function setProfileCatalog(string $catalogId): void
+    public function setProfileCatalogs(array $catalogsId): void
     {
-        $catalogs = serialize([$catalogId]);
+        $catalogs = serialize($catalogsId);
         $this->setOptionEntry($this->profileCatalogsOptionName, $catalogs);
     }
 
-    private function updateProfileCatalogs(string $catalogId): void
+    private function updateProfileCatalogs(string $catalogId): void //TODO Возможно метод для удаления, проверить
     {
         $currentCatalogs = $this->getProfileCatalogs();
 
-        if (!in_array($catalogId, $currentCatalogs)) {
-            $updatedCatalogs = serialize(array_merge($currentCatalogs, [$catalogId]));
+        if (!in_array($catalogId, $currentCatalogs)) {//TODO: только добавляет но не удаляет исправить
+            $updatedCatalogs = serialize(array_merge($currentCatalogs, [$catalogId])); // только здесь объединение каталогов в профиль
             $this->updateOptionEntry($this->profileCatalogsOptionName, $updatedCatalogs);
         }
     }
@@ -912,7 +912,7 @@ class SettingsService
 
     private function setOptionEntry(string $name, string $value)
     {
-        $setResult = COption::SetOptionString(self::MODULE_ID, $name, $value);
+        COption::SetOptionString(self::MODULE_ID, $name, $value);
     }
 
     private function updateOptionEntry(string $name, string $value)
@@ -924,5 +924,38 @@ class SettingsService
     private function deleteOptionEntry(string $name)
     {
         COption::RemoveOption(self::MODULE_ID, $name);
+    }
+
+    private function linkNewProfile(): void
+    {
+        $this->profileCatalogsOptionName; // профиль со списокм каталогов
+        $this->exportProfileId; // id профиля
+
+        $currentProfileCatalogs = unserialize(COption::GetOptionString(self::MODULE_ID, $this->profileCatalogsOptionName));
+
+        if (!$currentProfileCatalogs) {
+            $tmpProfileName = 'exportProfileId_tmp_catalogs';
+            $currentProfileCatalogs = unserialize(COption::GetOptionString(self::MODULE_ID, $tmpProfileName));
+
+            if ($currentProfileCatalogs) {
+                $this->setOptionEntry($this->profileCatalogsOptionName, serialize($currentProfileCatalogs));
+                $this->deleteOptionEntry($tmpProfileName);
+            }
+        }
+
+        foreach ($currentProfileCatalogs as $catalogId) {
+            $optionName = sprintf('exportCustomProps_ProfileId_%s_catalogId_%s', $this->exportProfileId, $catalogId);
+            $propsCatalog = unserialize(COption::GetOptionString(self::MODULE_ID, $optionName));
+
+            if (!$propsCatalog) {
+                $tmpOptionName = sprintf('exportCustomProps_ProfileId_%s_catalogId_%s', 'tmp', $catalogId);
+                $propsCatalog = unserialize(COption::GetOptionString(self::MODULE_ID, $tmpOptionName));
+
+                if ($propsCatalog) {
+                    $this->setOptionEntry($optionName, serialize($propsCatalog));
+                    $this->deleteOptionEntry($tmpOptionName);
+                }
+            }
+        }
     }
 }

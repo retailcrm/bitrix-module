@@ -33,6 +33,16 @@ trait InstallerTrait
         if (!$file->isExists()) {
             $file->putContents("");
         }
+
+        $pathFrom = $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . Constants::MODULE_ID . '/install/export/bitrix/js/intaro/custom-props-export.js';
+
+        CopyDirFiles(
+            $pathFrom,
+            $_SERVER['DOCUMENT_ROOT'] . '/bitrix/js/intaro',
+            true,
+            true,
+            false
+        );
     }
 
     public function subscriptionSetup()
