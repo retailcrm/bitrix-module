@@ -51,7 +51,7 @@ $arJsConfig = [
         'rel' => [],
     ],
     'intaro_custom_props' => [
-        'js'  => '/bitrix/js/intaro/custom-props-export.js',
+        'js'  => '/bitrix/js/intaro/export/custom-props-export.js',
         'rel' => [],
     ],
 ];

@@ -34,11 +34,15 @@ trait InstallerTrait
             $file->putContents("");
         }
 
-        $pathFrom = $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . Constants::MODULE_ID . '/install/export/bitrix/js/intaro/custom-props-export.js';
+        $pathFrom = $_SERVER['DOCUMENT_ROOT'] .
+            '/bitrix/modules/' .
+            Constants::MODULE_ID .
+            '/install/export/bitrix/js/intaro/export'
+        ;
 
         CopyDirFiles(
             $pathFrom,
-            $_SERVER['DOCUMENT_ROOT'] . '/bitrix/js/intaro',
+            $_SERVER['DOCUMENT_ROOT'] . '/bitrix/js/intaro/export/',
             true,
             true,
             false

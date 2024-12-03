@@ -147,11 +147,12 @@ class SettingsService
         $this->getPriceTypes();
         $this->getVatRates();
 
-        $this->exportProfileId = $profileId ?? 'tmp';
+        $this->exportProfileId = $profileId ?? '0';
         $this->profileCatalogsOptionName = sprintf('exportProfileId_%s_catalogs', $this->exportProfileId);
         //$this->setProfileCatalogsOptionName();//Установка названия каталога смысла не вижу от метода
         $this->linkNewProfile();
         $this->deleteEmptyProfileCatalogs();
+        $this->deleteUnusedOptions();
 
         $this->customPropList = $this->getNewProps();//получаеют свойства с разделениекм на каталоги. Но не понял при чем custom в названии
         $this->defaultPropList = $this->getIblockPropsPreset(); //названия базовых свойств (код свойства для icml - перевод)
@@ -185,6 +186,31 @@ class SettingsService
             ...$this->defaultPropList,
             ...$customProps
         ];
+    }
+
+    private function deleteUnusedOptions()
+    {
+        //здесь удаление из b_options удаленных профилей
+      /*  if (CModule::IncludeModule("sale")) {
+            $profiles = CSaleExport::GetList(['ID' => 'DESC'], ['NAME' => 'retailcrm']);
+            $ids = [];
+
+            while ($profile = $profiles->Fetch()) {
+                $ids[(int) $profile['ID']] = (int) $profile['ID'];
+
+                break;
+            }
+
+            if ($ids === []) {
+                return;
+            }
+
+            sort($ids);
+
+            for ($i = 0; $i < end($ids); ++$i) {
+
+            }
+        }*/
     }
 
     private function getPriceTypes()
@@ -934,7 +960,7 @@ class SettingsService
         $currentProfileCatalogs = unserialize(COption::GetOptionString(self::MODULE_ID, $this->profileCatalogsOptionName));
 
         if (!$currentProfileCatalogs) {
-            $tmpProfileName = 'exportProfileId_tmp_catalogs';
+            $tmpProfileName = 'exportProfileId_0_catalogs';
             $currentProfileCatalogs = unserialize(COption::GetOptionString(self::MODULE_ID, $tmpProfileName));
 
             if ($currentProfileCatalogs) {
@@ -948,7 +974,7 @@ class SettingsService
             $propsCatalog = unserialize(COption::GetOptionString(self::MODULE_ID, $optionName));
 
             if (!$propsCatalog) {
-                $tmpOptionName = sprintf('exportCustomProps_ProfileId_%s_catalogId_%s', 'tmp', $catalogId);
+                $tmpOptionName = sprintf('exportCustomProps_ProfileId_%s_catalogId_%s', '0', $catalogId);
                 $propsCatalog = unserialize(COption::GetOptionString(self::MODULE_ID, $tmpOptionName));
 
                 if ($propsCatalog) {

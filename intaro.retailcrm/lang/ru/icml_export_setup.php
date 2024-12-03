@@ -47,4 +47,5 @@ $MESS["UNIT_MEASUREMENT_KG"] = "кг.";
 $MESS['BASE_PRICE'] = 'Базовая цена';
 $MESS['WAIT'] = 'Загрузка...';
 $MESS["OFFERS_VALUE"] = "Максимальное количество торговых предложений у товара";
-$MESS["ADD_PROPERTY"] = "Добавить";
+$MESS["ADD_PROPERTY"] = "Добавить свойство";
+$MESS["DELETE_PROPERTY"] = "Удалить";

@@ -1192,11 +1192,11 @@ function update()
 
 function loadJsExport()
 {
-    $pathFrom = $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/intaro.retailcrm/install/export/bitrix/js/intaro/custom-props-export.js';
+    $pathFrom = $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/intaro.retailcrm/install/export/bitrix/js/intaro/export';
 
     CopyDirFiles(
         $pathFrom,
-        $_SERVER['DOCUMENT_ROOT'] . '/bitrix/js/intaro',
+        $_SERVER['DOCUMENT_ROOT'] . '/bitrix/js/intaro/export/',
         true,
         true,
         false

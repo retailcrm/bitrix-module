@@ -553,7 +553,7 @@ if ($STEP === 1) {
 
                                                         <?php } ?>
                                                 </select>
-                                                <button id="delete-custom-row" class="adm-btn-save" type="button">Удалить</button>
+                                                <button id="delete-custom-row" class="adm-btn-save" type="button" style="margin-left: 10px"><?= GetMessage('DELETE_PROPERTY');?></button>
                                             </td>
                                         <?php } ?>
                                     </tr>
@@ -562,7 +562,7 @@ if ($STEP === 1) {
                             ?>
                             </tbody>
                         </table>
-                        <button class="adm-btn-save add-custom-row" type="button"><?= GetMessage('ADD_PROPERTY');?></button>
+                        <button class="adm-btn-save add-custom-row" type="button" style="margin-top: 10px;"><?= GetMessage('ADD_PROPERTY');?></button>
                         <br>
                         <br>
                     </div>
@@ -582,7 +582,7 @@ if ($STEP === 1) {
                 </td>
                 <td class="adm-list-table-cell">
                     <select name="iblockPropertySku_" id="iiblockPropertySku_" class="property-export" onchange="propertyChange(this)" style="width: 200px"></select>
-                    <button id="delete-new-custom-row" class="adm-btn-save" type="button">Удалить</button>
+                    <button id="delete-new-custom-row" class="adm-btn-save" type="button" style="margin-left: 10px"><?= GetMessage('DELETE_PROPERTY');?></button>
                 </td>
             </tr>
         </template>
@@ -681,6 +681,87 @@ if ($STEP === 1) {
     <?php CJSCore::Init(['jquery']);?>
     <?php CUtil::InitJSCore(['intaro_custom_props']); ?>
     <script type="text/javascript">
+        $('.add-custom-row').click(function () {
+            createCustomPropsRaw($(this));
+        });
+
+        $(document).on('click', '#delete-new-custom-row', function () {
+            deleteCustomPropRow($(this));
+        });
+
+        $(document).on('click', '#delete-custom-row', function () {
+            let buttonElem = $(this);
+            addCustomPropToDelete(buttonElem);
+            deleteCustomPropRow(buttonElem);
+        });
+
+        $(document).on('blur', 'input[name="custom-property-title"]', function () {
+            let inputElem = $(this);
+            let newPropertyTitle = inputElem.val();
+
+            if (!newPropertyTitle) {
+                return;
+            }
+
+            let newPropertyCode = getUniquePropertyCode(newPropertyTitle);
+            addCustomPropCodeToSelectAttributes(newPropertyCode, inputElem);
+        });
+
+        $('#submit-form').submit(function (formEvent) {
+            formEvent.preventDefault();
+            let savePromise = null;
+            let deletePromise = null;
+            let formElem = formEvent.currentTarget;
+            let profileId = $($('input[name="PROFILE_ID"]')).val();
+
+            setCustomProperties();
+
+            if (Object.keys(customProps).length > 0) {
+                savePromise = BX.ajax.runAction('intaro:retailcrm.api.customexportprops.save', {
+                    json: {
+                        properties: customProps,
+                        profileId: profileId
+                    },
+                }).then(addParamsToSetupFieldsList());
+            }
+
+            if (Object.keys(customPropsToDelete).length > 0) {
+                deletePromise = BX.ajax.runAction('intaro:retailcrm.api.customexportprops.delete', {
+                    json: {
+                        properties: customPropsToDelete,
+                        profileId: profileId
+                    },
+                }).then(deleteParamsFromSetupFieldsList());
+            }
+
+            const promises = [savePromise, deletePromise].filter(Boolean);
+
+            if (promises.length > 0) {
+                Promise.all(promises)
+                    .finally(() => {
+                        formElem.submit();
+                    });
+            } else {
+                formElem.submit();
+            }
+        });
+
+        const setupFieldsListElement = $('input[name="SETUP_FIELDS_LIST"]');
+        let customProps = {};
+        let customPropsToDelete = {};
+        const setupFieldsParamsToFill = [
+            'iblockPropertySku_',
+            'iblockPropertyUnitSku_',
+            'iblockPropertyProduct_',
+            'iblockPropertyUnitProduct_',
+            'highloadblockb_hlsys_marking_code_group_',
+            'highloadblock_productb_hlsys_marking_code_group_',
+            'highloadblockeshop_color_reference_',
+            'highloadblock_producteshop_color_reference_',
+            'highloadblockeshop_brand_reference_',
+            'highloadblock_producteshop_brand_reference_'
+        ];
+
         function checkLoadStatus(object)
         {
             if (object.checked) {
