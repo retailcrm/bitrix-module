@@ -78,15 +78,18 @@ class CustomExportProps extends Controller
 
         foreach ($props as $catalogId => $propsArray) {
             $catalogCustomProps = [];
+
             foreach ($propsArray as $property) {
                 $catalogCustomProps[] = [
                     'code' => $property['code'],
                     'title' => $property['title']
                 ];
             }
+
             $settingsService
                 ->setCatalogCustomPropsOptionName($catalogId)
-                ->removeCustomProps($catalogCustomProps, $catalogId);
+                ->removeCustomProps($catalogCustomProps, $catalogId)
+            ;
         }
     }
 }

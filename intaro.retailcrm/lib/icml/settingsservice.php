@@ -546,9 +546,6 @@ class SettingsService
      */
     public function isOptionSelected(array $prop, array $oldSelect, string $key): bool
     {
-        if ($key === 'manufacturer') {
-            $a = 'yes';
-        }
         if (count($oldSelect) > 0) {
             if ($prop['CODE'] === $oldSelect[$key]) {
                 return true;
@@ -844,9 +841,10 @@ class SettingsService
     public function removeCustomProps(array $propsToDelete, string $catalogId): void
     {
         $currentCatalogProps = $this->getCustomProps();
-        $updatedCatalogProps = array_values(array_filter(
-            $currentCatalogProps,
-            fn ($currentProp) => !in_array($currentProp, $propsToDelete)
+        $updatedCatalogProps = array_values(
+            array_filter(
+                $currentCatalogProps,
+                fn ($currentProp) => !in_array($currentProp, $propsToDelete)
         ));
 
         if (empty($updatedCatalogProps)) {
