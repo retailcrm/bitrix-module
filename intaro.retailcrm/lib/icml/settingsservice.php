@@ -152,7 +152,6 @@ class SettingsService
 
         $this->linkNewProfile();
         $this->deleteEmptyProfileCatalogs();
-        $this->deleteUnusedOptions();
 
         $this->customPropList = $this->getNewProps();
         $this->defaultPropList = $this->getIblockPropsPreset();
@@ -186,31 +185,6 @@ class SettingsService
             ...$this->defaultPropList,
             ...$customProps
         ];
-    }
-
-    private function deleteUnusedOptions()
-    {
-        //здесь удаление из b_options удаленных профилей
-      /*  if (CModule::IncludeModule("sale")) {
-            $profiles = CSaleExport::GetList(['ID' => 'DESC'], ['NAME' => 'retailcrm']);
-            $ids = [];
-
-            while ($profile = $profiles->Fetch()) {
-                $ids[(int) $profile['ID']] = (int) $profile['ID'];
-
-                break;
-            }
-
-            if ($ids === []) {
-                return;
-            }
-
-            sort($ids);
-
-            for ($i = 0; $i < end($ids); ++$i) {
-
-            }
-        }*/
     }
 
     private function getPriceTypes()
