@@ -681,33 +681,53 @@ if ($STEP === 1) {
     <?php CJSCore::Init(['jquery']);?>
     <?php CUtil::InitJSCore(['intaro_custom_props']); ?>
     <script type="text/javascript">
+        BX.ready(function() {
+            if (typeof createCustomPropsRaw !== 'function') {
+                $('.add-custom-row').hide();
+            }
+        });
+
         $('.add-custom-row').click(function () {
-            createCustomPropsRaw($(this));
+            if (typeof createCustomPropsRaw === 'function') {
+                createCustomPropsRaw($(this));
+            }
         });
 
         $(document).on('click', '#delete-new-custom-row', function () {
-            deleteCustomPropRow($(this));
+            if (typeof deleteCustomPropRow === 'function') {
+                deleteCustomPropRow($(this));
+            }
         });
 
         $(document).on('click', '#delete-custom-row', function () {
             let buttonElem = $(this);
-            addCustomPropToDelete(buttonElem);
-            deleteCustomPropRow(buttonElem);
+
+            if (typeof addCustomPropToDelete === 'function' && typeof deleteCustomPropRow === 'function') {
+                addCustomPropToDelete(buttonElem);
+                deleteCustomPropRow(buttonElem);
+            }
         });
 
         $(document).on('blur', 'input[name="custom-property-title"]', function () {
-            let inputElem = $(this);
-            let newPropertyTitle = inputElem.val();
 
-            if (!newPropertyTitle) {
-                return;
+            if (typeof getUniquePropertyCode === 'function' && typeof addCustomPropCodeToSelectAttributes === 'function') {
+                let inputElem = $(this);
+                let newPropertyTitle = inputElem.val();
+
+                if (!newPropertyTitle) {
+                    return;
+                }
+
+                let newPropertyCode = getUniquePropertyCode(newPropertyTitle);
+                addCustomPropCodeToSelectAttributes(newPropertyCode, inputElem);
             }
-
-            let newPropertyCode = getUniquePropertyCode(newPropertyTitle);
-            addCustomPropCodeToSelectAttributes(newPropertyCode, inputElem);
         });
 
         $('#submit-form').submit(function (formEvent) {
+            if (typeof setCustomProperties !== "function") {
+                return;
+            }
+
             formEvent.preventDefault();
             let savePromise = null;
             let deletePromise = null;
