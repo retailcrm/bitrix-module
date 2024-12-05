@@ -562,8 +562,7 @@ if ($STEP === 1) {
                             ?>
                             </tbody>
                         </table>
-                        <button class="adm-btn-save add-custom-row" type="button" style="margin-top: 10px;"><?= GetMessage('ADD_PROPERTY');?></button>
-                        <br>
+                        <button class="adm-btn-save add-custom-row" type="button" style="margin-top: 20px;"><?= GetMessage('ADD_PROPERTY');?></button>
                         <br>
                     </div>
                 </div>

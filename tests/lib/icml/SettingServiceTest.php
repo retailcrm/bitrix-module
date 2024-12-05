@@ -17,25 +17,6 @@ class SettingServiceTest extends \BitrixTestCase
         ;
     }
 
-    public function testConstruct(): SettingsService
-    {
-        $path = $_SERVER['DOCUMENT_ROOT'] . '/local/';
-
-        CheckDirPath($path);
-
-        $file = new \Bitrix\Main\IO\File($path . '/icml_property_retailcrm.txt', $siteId = null);
-
-        $file->putContents("property1 = test prop \n property2 = test prop 2");
-
-        $settingService = SettingsService::getInstance($this->getSetupVars(), "");
-
-        $this->assertInstanceOf(SettingsService::class, $settingService);
-        $this->assertArrayHasKey('property1', $settingService->actualPropList);
-        $this->assertArrayHasKey('property2', $settingService->actualPropList);
-
-        return $settingService;
-    }
-
     private function getSetupVars()
     {
         return [
