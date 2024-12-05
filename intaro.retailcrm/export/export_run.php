@@ -38,7 +38,8 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/exp
         }
     }
 
-    $settingService = SettingsService::getInstance([], '');
+    global $PROFILE_ID;
+    $settingService = SettingsService::getInstance([], '', $PROFILE_ID);
     $iblockPropertySku = [];
     $iblockPropertySkuHl = [];
     $iblockPropertyUnitSku = [];
@@ -46,7 +47,7 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/exp
     $iblockPropertyProductHl = [];
     $iblockPropertyUnitProduct = [];
 
-    foreach (array_keys($settingService->actrualPropList) as $prop) {
+    foreach (array_keys($settingService->actualPropList) as $prop) {
         $skuUnitProps = ('iblockPropertyUnitSku_' . $prop);
         $skuUnitProps = $$skuUnitProps;
 

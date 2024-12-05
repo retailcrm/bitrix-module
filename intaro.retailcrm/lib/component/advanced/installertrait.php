@@ -24,15 +24,19 @@ trait InstallerTrait
             false
         );
 
-        $path = $_SERVER['DOCUMENT_ROOT'] . '/local/';
+        $pathFrom = $_SERVER['DOCUMENT_ROOT'] .
+            '/bitrix/modules/' .
+            Constants::MODULE_ID .
+            '/install/export/bitrix/js/intaro/export'
+        ;
 
-        CheckDirPath($path);
-
-        $file = new \Bitrix\Main\IO\File($path . 'icml_property_retailcrm.txt', $siteId = null);
-
-        if (!$file->isExists()) {
-            $file->putContents("");
-        }
+        CopyDirFiles(
+            $pathFrom,
+            $_SERVER['DOCUMENT_ROOT'] . '/bitrix/js/intaro/export/',
+            true,
+            true,
+            false
+        );
     }
 
     public function subscriptionSetup()
