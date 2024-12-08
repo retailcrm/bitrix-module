@@ -144,7 +144,7 @@ class RetailCrmCart
 
 
             foreach ($items as $item) {
-                $itemFields = $item->getFields();
+                $itemFields = $item->getFields()->getValues();
 
                 if (isset($basketItems[(int) $itemFields['ID']])) {
                     $itemFields['PRICE'] = $basketItems[(int) $itemFields['ID']]['PRICE'];
