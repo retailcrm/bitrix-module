@@ -1187,40 +1187,21 @@ function update()
     Loader::includeModule('highloadblock');
     COption::SetOptionString('intaro.retailcrm', 'api_version', 'v5');
 
-    $orderDischarge = Option::get('intaro.retailcrm', 'order_discharge');
-
-    if ($orderDischarge === '0') {
-        $dateAgent = new DateTime();
-
-        $dateAgent->add('PT60S');
-        CAgent::AddAgent(
-            'RCrmActions::uploadOrdersAgent();',
-            'intaro.retailcrm',
-            'N',
-            180,
-            $dateAgent->format('d.m.Y H:i:s'),
-            'Y',
-            $dateAgent->format('d.m.Y H:i:s'),
-            30
-        );
-        
-        COption::SetOptionString('intaro.retailcrm', 'order_discharge', '2');
-    }
+    loadJsExport();
 }
 
-function createCustomPropertyFile()
+function loadJsExport()
 {
-    $path = $_SERVER['DOCUMENT_ROOT'] . '/local/';
+    $pathFrom = $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/intaro.retailcrm/install/export/bitrix/js/intaro/export';
 
-    CheckDirPath($path);
-
-    $file = new \Bitrix\Main\IO\File($path . 'icml_property_retailcrm.txt', $siteId = null);
-
-    if (!$file->isExists()) {
-        $file->putContents("");
-    }
+    CopyDirFiles(
+        $pathFrom,
+        $_SERVER['DOCUMENT_ROOT'] . '/bitrix/js/intaro/export/',
+        true,
+        true,
+        false
+    );
 }
-
 
 try {
     update();

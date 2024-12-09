@@ -26,7 +26,8 @@ CModule::IncludeModule('intaro.retailcrm');
 //TODO заменить вызов на сервис-локатор, когда он приедет
 $settingsService = SettingsService::getInstance(
     $arOldSetupVars ?? [],
-    $ACTION
+    $ACTION,
+    $PROFILE_ID
 );
 
 $isSetupModulePage = $settingsService->isSetupModulePage();
@@ -110,7 +111,7 @@ if ($STEP === 1) {
         }
     </style>
 
-    <form method="post" action="<?=$APPLICATION->GetCurPage()?>">
+    <form method="post" id="submit-form" action="<?=$APPLICATION->GetCurPage()?>">
         <?php
         if ($ACTION === 'EXPORT_EDIT' || $ACTION === 'EXPORT_COPY') {
             ?>
@@ -190,8 +191,7 @@ if ($STEP === 1) {
                             <tbody>
 
                             <?php
-                            foreach ($settingsService->actrualPropList as $propertyKey => $property) {
-                                $productSelected = false; ?>
+                            foreach ($settingsService->defaultPropList as $propertyKey => $property) { ?>
 
                                 <tr class="adm-list-table-row">
                                     <td class="adm-list-table-cell">
@@ -215,14 +215,14 @@ if ($STEP === 1) {
                                                     if ($keyField === $propertyKey) { ?>
                                                         <option value="<?=$field['CODE']?>"
                                                             <?php
-                                                            $productSelected = $settingsService->isOptionSelected(
+                                                            $isSelected = $settingsService->isOptionSelected(
                                                                 $field,
                                                                 $arIBlock['OLD_PROPERTY_PRODUCT_SELECT'],
                                                                 $propertyKey
                                                             );
                                                             ?>
 
-                                                            <?= $productSelected ? ' selected' : ''?>
+                                                            <?= $isSelected ? ' selected' : ''?>
                                                         >
                                                             <?=$field['name']?>
                                                         </option>
@@ -241,7 +241,7 @@ if ($STEP === 1) {
                                                         <?php
                                                         echo $settingsService->getOptionClass($prop, true);
 
-                                                        $productSelected = $settingsService->isOptionSelected(
+                                                        $isSelected = $settingsService->isOptionSelected(
                                                             $prop,
                                                             $arIBlock['OLD_PROPERTY_PRODUCT_SELECT'],
                                                             $propertyKey
@@ -251,7 +251,7 @@ if ($STEP === 1) {
                                                             = $settingsService->getHlTableName($prop)
                                                             ?? $productHlTableName;
 
-                                                        echo $productSelected ? ' selected' : '';
+                                                        echo $isSelected ? ' selected' : '';
                                                         ?>
                                                     >
                                                         <?=$prop['NAME']?>
@@ -376,19 +376,18 @@ if ($STEP === 1) {
                                                         <option value="<?=$prop['CODE']?>"
                                                             <?php
                                                             echo $settingsService->getOptionClass($prop, false);
-                                                            if (!$productSelected) {
-                                                                $isSelected = $settingsService->isOptionSelected(
-                                                                    $prop,
-                                                                    $arIBlock['OLD_PROPERTY_SKU_SELECT'],
-                                                                    $propertyKey
-                                                                );
 
-                                                                $skuHlTableName
-                                                                    = $settingsService->getHlTableName($prop)
-                                                                    ?? $skuHlTableName;
+                                                            $isSelected = $settingsService->isOptionSelected(
+                                                                $prop,
+                                                                $arIBlock['OLD_PROPERTY_SKU_SELECT'],
+                                                                $propertyKey
+                                                            );
 
-                                                                echo $isSelected ? ' selected' : '';
-                                                            }
+                                                            $skuHlTableName
+                                                                = $settingsService->getHlTableName($prop)
+                                                                ?? $skuHlTableName;
+
+                                                            echo $isSelected ? ' selected' : '';
                                                             ?>
                                                         >
                                                             <?=$prop['NAME']?>
@@ -473,9 +472,97 @@ if ($STEP === 1) {
                                 </tr>
                             <?php
                             } ?>
+
+                            <?php
+                            $catalogId = $arIBlock['ID'];
+                            $catalogCustomProps = $settingsService->customPropList[$catalogId];
+
+                            if (!empty($catalogCustomProps)) {
+                                foreach ($catalogCustomProps as $catalogCustomPropCode => $catalogCustomPropValue) { ?>
+                                    <tr class="adm-list-table-row custom-property-row">
+                                        <td class="adm-list-table-cell custom-property-title">
+                                            <?=htmlspecialcharsex($catalogCustomPropValue)?>
+                                        </td>
+                                        <td class="adm-list-table-cell">
+                                            <select 
+                                                name="iblockPropertyProduct_<?=$catalogCustomPropCode?>[<?= $catalogId ?>]"
+                                                id="iblockPropertyProduct_<?=$catalogCustomPropCode . $catalogId ?>"
+                                                class="property-export"
+                                                data-type="<?= $catalogCustomPropCode ?>"
+                                                onchange="propertyChange(this)"
+                                                style="width: 200px">
+
+                                                <option value=""></option>
+                                            <?php foreach ($arIBlock['PROPERTIES_PRODUCT'] as $prop) {
+                                                $productHlTableName = ''; ?>
+                                                <option value="<?=$prop['CODE']?>"
+                                                    <?php
+                                                    echo $settingsService->getOptionClass($prop, true);
+
+                                                    $isSelected = $settingsService->isOptionSelected(
+                                                        $prop,
+                                                        $arIBlock['OLD_PROPERTY_PRODUCT_SELECT'],
+                                                        $catalogCustomPropCode
+                                                    );
+
+                                                    $productHlTableName
+                                                        = $settingsService->getHlTableName($prop)
+                                                        ?? $productHlTableName;
+
+                                                    echo $isSelected ? ' selected' : '';
+                                                    ?>
+                                                >
+                                                    <?=$prop['NAME']?>
+                                                </option>
+                                            <?php } ?>
+                                            </select>
+                                        </td>
+
+                                        <?php if ($arIBlock['PROPERTIES_SKU'] !== null) { ?>
+                                            <td class="adm-list-table-cell">
+                                                <select
+                                                    name="iblockPropertySku_<?=$catalogCustomPropCode?>[<?= $catalogId ?>]"
+                                                    id="iblockPropertySku_<?=$catalogCustomPropCode . $catalogId ?>"
+                                                    class="property-export"
+                                                    data-type="<?= $catalogCustomPropCode ?>"
+                                                    onchange="propertyChange(this)"
+                                                    style="width: 200px">
+
+                                                    <option value=""></option>
+                                                        <?php foreach ($arIBlock['PROPERTIES_SKU'] as $prop) {
+                                                            $skuHlTableName = ''; ?>
+                                                            <option value="<?=$prop['CODE']?>"
+                                                                <?php
+                                                                    echo $settingsService->getOptionClass($prop, false);
+
+                                                                    $isSelected = $settingsService->isOptionSelected(
+                                                                        $prop,
+                                                                        $arIBlock['OLD_PROPERTY_SKU_SELECT'],
+                                                                        $catalogCustomPropCode
+                                                                    );
+
+                                                                    $skuHlTableName
+                                                                        = $settingsService->getHlTableName($prop)
+                                                                        ?? $skuHlTableName;
+
+                                                                    echo $isSelected ? ' selected' : '';
+                                                                ?>
+                                                            >
+                                                                <?=$prop['NAME']?>
+                                                            </option>
+
+                                                        <?php } ?>
+                                                </select>
+                                                <button id="delete-custom-row" class="adm-btn-save" type="button" style="margin-left: 10px"><?= GetMessage('DELETE_PROPERTY');?></button>
+                                            </td>
+                                        <?php } ?>
+                                    </tr>
+                            <?php }
+                            }
+                            ?>
                             </tbody>
                         </table>
-                        <br>
+                        <button class="adm-btn-save add-custom-row" type="button" style="margin-top: 20px;"><?= GetMessage('ADD_PROPERTY');?></button>
                         <br>
                     </div>
                 </div>
@@ -484,6 +571,20 @@ if ($STEP === 1) {
         </div>
         <input type="hidden" name="count_checked" id="count_checked" value="<?=$intCountChecked?>">
         <br>
+        <template id="custom-property-template-row">
+            <tr class="adm-list-table-row custom-property-row">
+                <td class="adm-list-table-cell">
+                    <input type="text" title="Название нового свойства" name="custom-property-title" style="width: 200px">
+                </td>
+                <td class="adm-list-table-cell">
+                    <select name="iblockPropertyProduct_" id="iblockPropertyProduct_" class="property-export" onchange="propertyChange(this)" style="width: 200px"></select>
+                </td>
+                <td class="adm-list-table-cell">
+                    <select name="iblockPropertySku_" id="iiblockPropertySku_" class="property-export" onchange="propertyChange(this)" style="width: 200px"></select>
+                    <button id="delete-new-custom-row" class="adm-btn-save" type="button" style="margin-left: 10px"><?= GetMessage('DELETE_PROPERTY');?></button>
+                </td>
+            </tr>
+        </template>
         <h3><?=GetMessage('SETTINGS_EXPORT')?></h3>
         <span class="text"><?=GetMessage('FILENAME')?><br><br></span>
         <input type="text" name="SETUP_FILE_NAME" value="<?=htmlspecialcharsbx(strlen($SETUP_FILE_NAME) > 0 ?
@@ -566,7 +667,7 @@ if ($STEP === 1) {
             <input type="hidden" name="STEP" value="<?=$STEP + 1?>">
             <input type="hidden" name="SETUP_FIELDS_LIST" value="<?=
             $settingsService->getSetupFieldsString(
-                array_keys($settingsService->actrualPropList) ?? [],
+                array_keys($settingsService->actualPropList) ?? [],
                 $hlblockModule === true,
                 $hlBlockList ?? []
             )
@@ -577,8 +678,109 @@ if ($STEP === 1) {
     </form>
 
     <?php CJSCore::Init(['jquery']);?>
-
+    <?php CUtil::InitJSCore(['intaro_custom_props']); ?>
     <script type="text/javascript">
+        BX.ready(function() {
+            if (typeof createCustomPropsRaw !== 'function') {
+                $('.add-custom-row').hide();
+            }
+        });
+
+        $('.add-custom-row').click(function () {
+            if (typeof createCustomPropsRaw === 'function') {
+                createCustomPropsRaw($(this));
+            }
+        });
+
+        $(document).on('click', '#delete-new-custom-row', function () {
+            if (typeof deleteCustomPropRow === 'function') {
+                deleteCustomPropRow($(this));
+            }
+        });
+
+        $(document).on('click', '#delete-custom-row', function () {
+            let buttonElem = $(this);
+
+            if (typeof addCustomPropToDelete === 'function' && typeof deleteCustomPropRow === 'function') {
+                addCustomPropToDelete(buttonElem);
+                deleteCustomPropRow(buttonElem);
+            }
+        });
+
+        $(document).on('blur', 'input[name="custom-property-title"]', function () {
+
+            if (typeof getUniquePropertyCode === 'function' && typeof addCustomPropCodeToSelectAttributes === 'function') {
+                let inputElem = $(this);
+                let newPropertyTitle = inputElem.val();
+
+                if (!newPropertyTitle) {
+                    return;
+                }
+
+                let newPropertyCode = getUniquePropertyCode(newPropertyTitle);
+                addCustomPropCodeToSelectAttributes(newPropertyCode, inputElem);
+            }
+        });
+
+        $('#submit-form').submit(function (formEvent) {
+            if (typeof setCustomProperties !== "function") {
+                return;
+            }
+
+            formEvent.preventDefault();
+            let savePromise = null;
+            let deletePromise = null;
+            let formElem = formEvent.currentTarget;
+            let profileId = $($('input[name="PROFILE_ID"]')).val();
+
+            setCustomProperties();
+
+            if (Object.keys(customProps).length > 0) {
+                savePromise = BX.ajax.runAction('intaro:retailcrm.api.customexportprops.save', {
+                    json: {
+                        properties: customProps,
+                        profileId: profileId
+                    },
+                }).then(addParamsToSetupFieldsList());
+            }
+
+            if (Object.keys(customPropsToDelete).length > 0) {
+                deletePromise = BX.ajax.runAction('intaro:retailcrm.api.customexportprops.delete', {
+                    json: {
+                        properties: customPropsToDelete,
+                        profileId: profileId
+                    },
+                }).then(deleteParamsFromSetupFieldsList());
+            }
+
+            const promises = [savePromise, deletePromise].filter(Boolean);
+
+            if (promises.length > 0) {
+                Promise.all(promises)
+                    .finally(() => {
+                        formElem.submit();
+                    });
+            } else {
+                formElem.submit();
+            }
+        });
+
+        const setupFieldsListElement = $('input[name="SETUP_FIELDS_LIST"]');
+        let customProps = {};
+        let customPropsToDelete = {};
+        const setupFieldsParamsToFill = [
+            'iblockPropertySku_',
+            'iblockPropertyUnitSku_',
+            'iblockPropertyProduct_',
+            'iblockPropertyUnitProduct_',
+            'highloadblockb_hlsys_marking_code_group_',
+            'highloadblock_productb_hlsys_marking_code_group_',
+            'highloadblockeshop_color_reference_',
+            'highloadblock_producteshop_color_reference_',
+            'highloadblockeshop_brand_reference_',
+            'highloadblock_producteshop_brand_reference_'
+        ];
+
         function checkLoadStatus(object)
         {
             if (object.checked) {
