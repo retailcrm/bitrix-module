@@ -50,6 +50,10 @@ $arJsConfig = [
         'js'  => '/bitrix/js/intaro/sms.js',
         'rel' => [],
     ],
+    'intaro_custom_props' => [
+        'js'  => '/bitrix/js/intaro/export/custom-props-export.js',
+        'rel' => [],
+    ],
 ];
 
 foreach ($arJsConfig as $ext => $arExt) {

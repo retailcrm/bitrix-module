@@ -47,3 +47,5 @@ $MESS['BASE_PRICE'] = 'Base price';
 $MESS['WAIT'] = 'Loading...';
 $MESS["OFFERS_VALUE"] = "Maximum number of trade offers for a product";
 $MESS["LOAD_NON_ACTIVITY"] = "Unload inactive products, services and trade offers";
+$MESS["ADD_PROPERTY"] = "Add property";
+$MESS["DELETE_PROPERTY"] = "Delete";
