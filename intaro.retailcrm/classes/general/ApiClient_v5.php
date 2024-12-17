@@ -1508,7 +1508,7 @@ class ApiClient
         }
 
         return $this->client->makeRequest(
-            "/custom-fields/$entity/edit/{$customField['code']}",
+            "/custom-fields/$entity/{$customField['code']}/edit",
             Client::METHOD_POST,
             array('customField' => json_encode($customField))
         );
@@ -1591,7 +1591,7 @@ class ApiClient
         }
 
         return $this->client->makeRequest(
-            "/custom-fields/dictionaries/{$customDictionary['code']}/create",
+            "/custom-fields/dictionaries/create",
             Client::METHOD_POST,
             array('customDictionary' => json_encode($customDictionary))
         );
