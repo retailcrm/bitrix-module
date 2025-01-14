@@ -57,7 +57,7 @@ class intaro_retailcrm extends CModule
         $path = substr($path, 0, strlen($path) - strlen('/index.php'));
         $this->INSTALL_PATH = $path;
 
-        require_once($path . '/version.php');
+        include($path . '/version.php');
 
         $this->MODULE_VERSION = $arModuleVersion['VERSION'];
         $this->MODULE_VERSION_DATE = $arModuleVersion['VERSION_DATE'];
