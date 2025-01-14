@@ -31,7 +31,7 @@ if (class_exists('intaro_retailcrm')) {
     return false;
 }
 
-include (__DIR__ . '/../lib/component/advanced/installertrait.php');
+require_once(__DIR__ . '/../lib/component/advanced/installertrait.php');
 
 class intaro_retailcrm extends CModule
 {
@@ -57,7 +57,8 @@ class intaro_retailcrm extends CModule
         $path = substr($path, 0, strlen($path) - strlen('/index.php'));
         $this->INSTALL_PATH = $path;
 
-        include($path . '/version.php');
+        require_once($path . '/version.php');
+
         $this->MODULE_VERSION = $arModuleVersion['VERSION'];
         $this->MODULE_VERSION_DATE = $arModuleVersion['VERSION_DATE'];
         $this->MODULE_NAME = GetMessage('RETAIL_MODULE_NAME');
@@ -87,6 +88,18 @@ class intaro_retailcrm extends CModule
      */
     function DoInstall()
     {
+        try {
+            require_once('install_deps.php');
+        } catch (Error $exception) {
+            RCrmActions::eventLog(
+                'RetailCRM module install error',
+                'intaro.retailcrm',
+                $exception->getCode() . ': ' . $exception->getMessage()
+            );
+
+            return false;
+        }
+
         global $APPLICATION, $step, $arResult;
 
         if (!in_array('curl', get_loaded_extensions(), true)) {
@@ -111,57 +124,6 @@ class intaro_retailcrm extends CModule
 
             return false;
         }
-
-        include($this->INSTALL_PATH . '/../lib/component/apiclient/traits/baseclienttrait.php');
-        include($this->INSTALL_PATH . '/../lib/component/apiclient/traits/customerstrait.php');
-        include($this->INSTALL_PATH . '/../lib/component/apiclient/traits/customerscorporatetrait.php');
-        include($this->INSTALL_PATH . '/../lib/component/apiclient/traits/loyaltytrait.php');
-        include($this->INSTALL_PATH . '/../lib/component/apiclient/traits/ordertrait.php');
-        include($this->INSTALL_PATH . '/../lib/component/apiclient/traits/carttrait.php');
-        include($this->INSTALL_PATH . '/../classes/general/Http/Client.php');
-        include($this->INSTALL_PATH . '/../classes/general/Response/ApiResponse.php');
-        include($this->INSTALL_PATH . '/../classes/general/RCrmActions.php');
-        include($this->INSTALL_PATH . '/../classes/general/user/RetailCrmUser.php');
-        include($this->INSTALL_PATH . '/../classes/general/events/RetailCrmEvent.php');
-        require_once $this->INSTALL_PATH . '/../classes/general/RetailcrmConfigProvider.php';
-        include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/offerparam.php');
-        include($this->INSTALL_PATH . '/../lib/icml/settingsservice.php');
-        include($this->INSTALL_PATH . '/../lib/component/agent.php');
-        include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/selectparams.php');
-        include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/unit.php');
-        include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/xmlcategory.php');
-        include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/xmldata.php');
-        include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/xmloffer.php');
-        include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/xmlsetup.php');
-        include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/xmlsetupprops.php');
-        include($this->INSTALL_PATH . '/../lib/model/bitrix/xml/xmlsetuppropscategories.php');
-        include($this->INSTALL_PATH . '/../lib/icml/icmldirector.php');
-        include($this->INSTALL_PATH . '/../lib/icml/icmlwriter.php');
-        include($this->INSTALL_PATH . '/../lib/icml/queryparamsmolder.php');
-        include($this->INSTALL_PATH . '/../lib/icml/xmlcategorydirector.php');
-        include($this->INSTALL_PATH . '/../lib/icml/xmlcategoryfactory.php');
-        include($this->INSTALL_PATH . '/../lib/icml/xmlofferdirector.php');
-        include($this->INSTALL_PATH . '/../lib/icml/xmlofferbuilder.php');
-        include($this->INSTALL_PATH . '/../lib/icml/utils/icmlutils.php');
-        include($this->INSTALL_PATH . '/../lib/repository/catalogrepository.php');
-        include($this->INSTALL_PATH . '/../lib/repository/filerepository.php');
-        include($this->INSTALL_PATH . '/../lib/repository/hlrepository.php');
-        include($this->INSTALL_PATH . '/../lib/repository/measurerepository.php');
-        include($this->INSTALL_PATH . '/../lib/repository/siterepository.php');
-        include($this->INSTALL_PATH . '/../lib/service/hl.php');
-        include($this->INSTALL_PATH . '/../lib/model/bitrix/orm/catalogiblockinfo.php');
-        include($this->INSTALL_PATH . '/../lib/model/bitrix/orm/iblockcatalog.php');
-        include($this->INSTALL_PATH . '/../classes/general/Exception/InvalidJsonException.php');
-        include($this->INSTALL_PATH . '/../classes/general/Exception/CurlException.php');
-        include($this->INSTALL_PATH . '/../classes/general/RestNormalizer.php');
-        include($this->INSTALL_PATH . '/../classes/general/Logger.php');
-        include($this->INSTALL_PATH . '/../classes/general/services/RetailCrmService.php');
-        include($this->INSTALL_PATH . '/../lib/component/constants.php');
-        $version = COption::GetOptionString($this->MODULE_ID, Constants::CRM_API_VERSION, 0);
-        include($this->INSTALL_PATH . '/../classes/general/ApiClient_v5.php');
-        include($this->INSTALL_PATH . '/../classes/general/order/RetailCrmOrder_v5.php');
-        include($this->INSTALL_PATH . '/../classes/general/history/RetailCrmHistory_v5.php');
-        include($this->INSTALL_PATH . '/../classes/general/cart/RetailCrmCart_v5.php');
 
         $step = (int) $_REQUEST['step'];
 
@@ -190,22 +152,6 @@ class intaro_retailcrm extends CModule
                 unset($type);
             }
         }
-
-        include($this->INSTALL_PATH . '/../lib/model/bitrix/abstractmodelproxy.php');
-        include($this->INSTALL_PATH . '/../lib/model/bitrix/orderprops.php');
-        include($this->INSTALL_PATH . '/../lib/model/bitrix/tomodule.php');
-        include($this->INSTALL_PATH . '/../lib/repository/abstractrepository.php');
-        include($this->INSTALL_PATH . '/../lib/repository/orderpropsrepository.php');
-        include($this->INSTALL_PATH . '/../lib/repository/persontyperepository.php');
-        include($this->INSTALL_PATH . '/../lib/repository/tomodulerepository.php');
-        include($this->INSTALL_PATH . '/../lib/model/bitrix/orm/tomodule.php');
-        include($this->INSTALL_PATH . '/../lib/model/bitrix/agreement.php');
-        include($this->INSTALL_PATH . '/../lib/repository/agreementrepository.php');
-        include($this->INSTALL_PATH . '/../lib/service/orderloyaltydataservice.php');
-        include($this->INSTALL_PATH . '/../lib/service/currencyservice.php');
-        include($this->INSTALL_PATH . '/../lib/component/factory/clientfactory.php');
-        include($this->INSTALL_PATH . '/../lib/component/apiclient/clientadapter.php');
-        include($this->INSTALL_PATH . '/../lib/component/advanced/loyaltyinstaller.php');
 
         $this->installExport();
         $this->subscriptionSetup();
