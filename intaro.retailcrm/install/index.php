@@ -90,11 +90,11 @@ class intaro_retailcrm extends CModule
     {
         try {
             require_once('install_deps.php');
-        } catch (Error $ex) {
+        } catch (Error $exception) {
             RCrmActions::eventLog(
                 'RetailCRM module install error',
                 'intaro.retailcrm',
-                $ex->getCode() . ': ' . $ex->getMessage()
+                $exception->getCode() . ': ' . $exception->getMessage()
             );
 
             return false;
