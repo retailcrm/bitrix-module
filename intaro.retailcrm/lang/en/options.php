@@ -148,7 +148,7 @@ $MESS ['NO_INTEGRATION_PAYMENT'] = '(Non-integrated)';
 $MESS ['ERR_CHECK_JOURNAL'] = 'Error while saving. Details in the event log';
 $MESS ['ERROR_LINK_INTEGRATION_PAYMENT'] = 'Error in comparing integration payments';
 $MESS ['ERROR_UPDATE_PAYMENT_TYPES_DELIVERY'] = 'Error when updating payment methods for deliveries';
-$MESS ['INTEGRATION_PAYMENT_LABEL'] = 'When correlating CMS and CRM integration payments, a regular payment is created on the system side to which orders will be linked.';
+$MESS ['INTEGRATION_PAYMENT_LABEL'] = 'When correlating CMS and CRM integration payments, a regular payment is created on the system side to which orders will be linked. <br> If you have integration deliveries in your CRM, then you need to enable the new payment method manually directly in the integration settings';
 $MESS ['NEED_PERMISSIONS_REFERENCE_LABEL'] = 'For this option to work correctly, the api key needs access to receive and edit reference book';
 
 $MESS ['FIX_UPLOAD_CUSTOMER_HEADER'] = 'Fix customer registration date in CRM';

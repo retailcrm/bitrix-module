@@ -877,7 +877,9 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                     $substitutionPaymentList[$integrationPayment] = $codePayment;
 
                     foreach ($originalPayment['deliveryTypes'] as $codeDelivery) {
-                        if (!isset($arResult['deliveryTypesList'][$codeDelivery])) {
+                        if (!isset($arResult['deliveryTypesList'][$codeDelivery]) ||
+                            isset($arResult['deliveryTypesList'][$codeDelivery]['integrationCode'])
+                        ) {
                             continue;
                         }
 
