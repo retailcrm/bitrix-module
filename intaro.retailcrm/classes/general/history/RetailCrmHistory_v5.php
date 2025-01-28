@@ -1226,7 +1226,6 @@ class RetailCrmHistory
                             }
 
                             if (array_key_exists('discountTotal_sum', $collectItems[$product['offer']['externalId']])) {
-                                $item->setField('CUSTOM_PRICE', 'Y');
                                 $item->setField('DISCOUNT_NAME', '');
                                 $item->setField('DISCOUNT_VALUE', '');
 
@@ -1240,6 +1239,7 @@ class RetailCrmHistory
                                     $price = self::truncate($price, 2);
                                 }
 
+                                $item->markFieldCustom('PRICE');
                                 $item->setField('PRICE', $price);
                             }
 
