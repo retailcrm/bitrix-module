@@ -175,8 +175,10 @@ class IcmlWriter
      */
     private function writeOptionalSimpleElement(string $name, $value, bool $isEmptyAllowed = false): void
     {
-        if (!empty($value) || $isEmptyAllowed) {
+        if (!empty($value)) {
             $this->writeSimpleElement($name, $value);
+        } elseif ($isEmptyAllowed && $name === 'purchasePrice') {
+            $this->writeSimpleElement($name, 0);
         }
     }
 
