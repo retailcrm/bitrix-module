@@ -183,7 +183,7 @@ class IcmlWriter
     /**
      * Запись закупочной стоимости
      *
-     * @param        $value
+     * @param $value
      */
     private function writeOptionalPurchasePrice($value): void
     {
