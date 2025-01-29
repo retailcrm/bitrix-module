@@ -163,7 +163,7 @@ class IcmlWriter
         $this->writeOptionalSimpleElement('vatRate', $offer->vatRate);
         $this->writeOptionalSimpleElement('weight', $offer->weight);
         $this->writeOptionalSimpleElement('dimensions', $offer->dimensions);
-        $this->writeOptionalSimpleElement('purchasePrice', $offer->purchasePrice, true);
+        $this->writeOptionalPurchasePrice($offer->purchasePrice);
         $this->writer->endElement();
     }
 
@@ -173,13 +173,21 @@ class IcmlWriter
      * @param string $name
      * @param        $value
      */
-    private function writeOptionalSimpleElement(string $name, $value, bool $isEmptyAllowed = false): void
+    private function writeOptionalSimpleElement(string $name, $value): void
     {
         if (!empty($value)) {
             $this->writeSimpleElement($name, $value);
-        } elseif ($isEmptyAllowed && $name === 'purchasePrice') {
-            $this->writeSimpleElement($name, 0);
         }
+    }
+
+    /**
+     * Запись закупочной стоимости
+     *
+     * @param        $value
+     */
+    private function writeOptionalPurchasePrice($value): void
+    {
+        $this->writeSimpleElement('purchasePrice', !empty($value) ? $value : 0);
     }
 
     /**
