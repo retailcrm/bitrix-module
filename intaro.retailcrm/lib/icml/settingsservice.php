@@ -178,13 +178,12 @@ class SettingsService
         $customProps = [];
 
         foreach ($this->customPropList as $propsByCatalog) {
-            $customProps = array_merge($customProps, $propsByCatalog);
+            foreach ($propsByCatalog as $code => $value) {
+                $customProps[$code] = $value;
+            }
         }
 
-        return [
-            ...$this->defaultPropList,
-            ...$customProps
-        ];
+        return array_merge($this->defaultPropList, $customProps);
     }
 
     private function getPriceTypes()
