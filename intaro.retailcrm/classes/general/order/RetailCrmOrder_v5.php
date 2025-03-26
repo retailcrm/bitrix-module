@@ -358,7 +358,7 @@ class RetailCrmOrder
 
             $order['items'][] = $item;
 
-            if ($send && $dimensionsSetting === 'Y') {
+            if ($dimensionsSetting === 'Y') {
                 $dimensions = RCrmActions::unserializeArrayRecursive($product['DIMENSIONS']);
 
                 if ($dimensions !== false) {
@@ -370,7 +370,7 @@ class RetailCrmOrder
             }
         }
 
-        if ($send && $dimensionsSetting === 'Y') {
+        if ($dimensionsSetting === 'Y') {
             $order['width'] = $width;
             $order['height'] = $height;
             $order['length'] = $length;
