@@ -2062,7 +2062,7 @@ class RetailCrmHistory
             $payment->delete();
         }
 
-        if ($paymentsCrm['totalSumm'] == $paySumm) {
+        if ($paymentsCrm['totalSumm'] == $paySumm && $order->getField('CANCELED') !== 'Y') {
             $order->setFieldNoDemand('PAYED', 'Y');
         } else {
             $order->setFieldNoDemand('PAYED', 'N');
