@@ -34,5 +34,5 @@ if ($_POST['event'] === 'cart') {
 echo json_encode([
     'success' => true,
     'items' => $basketItems,
-	'email' => $USER->GetEmail(),
+    'email' => $USER->GetEmail(),
 ]);
