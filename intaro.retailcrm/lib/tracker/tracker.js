@@ -72,7 +72,7 @@ function sendCartChange() {
                     });
 
                     setTimeout(function() {
-			            ocapi.event("cart", cartObject);
+                        ocapi.event("cart", cartObject);
                     }, 3000);
                 } else {
                     console.warn("Ошибка получения корзины: " + result.message);
