@@ -1,32 +1,35 @@
 <?php
 
-require($_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/main/include/prolog_before.php");
+require($_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/main/include/prolog_before.php');
 
 if (!check_bitrix_sessid()) {
     echo json_encode(['success' => false, 'message' => 'Некорректная сессия']);
-    die();
+    return;
 }
 
-if (!CModule::IncludeModule("sale")) {
+if (!CModule::IncludeModule('sale')) {
     echo json_encode(['success' => false, 'message' => 'Модуль sale не подключен']);
-    die();
+    return;
 }
 
-use Bitrix\Sale;
+use Bitrix\Main\Context;
+use Bitrix\Sale\Basket;
+use Bitrix\Sale\Fuser;
 
 global $USER;
 
 $basketItems = [];
 
 if ($_POST['event'] === 'cart') {
-    $basket = Sale\Basket::loadItemsForFUser(Sale\Fuser::getId(), \Bitrix\Main\Context::getCurrent()->getSite());
+    $basket = Basket::loadItemsForFUser(Fuser::getId(), Context::getCurrent()->getSite());
 
     foreach ($basket as $item) {
         $basketItems[] = [
-            'id' => $item->getId(),
-            'product_id' => $item->getProductId(),
+            'product_id' => $item->getId(),
+            'offer_id' => $item->getProductId(),
             'quantity' => $item->getQuantity(),
             'price' => $item->getPrice(),
+            'xml_id' => $item->getField('XML_ID'),
         ];
     }
 }
