@@ -30,7 +30,6 @@ function sendCartView() {
                     setTimeout(function() {
                         ocapi.event("open_cart", {customer_email: result.email});
                     }, 3000);
-
                 } else {
                     console.warn("Ошибка получения email: " + result.message);
                 }
