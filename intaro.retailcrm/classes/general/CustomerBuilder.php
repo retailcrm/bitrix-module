@@ -161,18 +161,26 @@ class CustomerBuilder extends AbstractBuilder implements RetailcrmBuilderInterfa
                 }
 
                 if (isset($phone['number'])) {
+                    if (\Bitrix\Main\Config\Option::get('main', 'new_user_phone_required', 'N') === 'Y') {
+                        $this->customer->setPhone($phone['number']);
+                        $this->user['PHONE_NUMBER'] = $phone['number'];
+                    }
+
                     if ((!isset($this->user['PERSONAL_PHONE']) || '' == $this->user['PERSONAL_PHONE'])
                         && $this->user['PERSONAL_MOBILE'] != $phone['number']
                     ) {
                         $this->customer->setPersonalPhone($phone['number']);
                         $this->user['PERSONAL_PHONE'] = $phone['number'];
+
                         continue;
                     }
+
                     if ((!isset($this->user['PERSONAL_MOBILE']) || '' == $this->user['PERSONAL_MOBILE'])
                         && $this->user['PERSONAL_PHONE'] != $phone['number']
                     ) {
                         $this->customer->setPersonalMobile($phone['number']);
                         $this->user['PERSONAL_MOBILE'] = $phone['number'];
+
                         continue;
                     }
                 }

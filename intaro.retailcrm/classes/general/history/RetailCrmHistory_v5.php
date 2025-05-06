@@ -145,7 +145,7 @@ class RetailCrmHistory
                 }
 
                 if (RetailcrmConfigProvider::isPhoneRequired()) {
-                    if (empty($customer['phones'])) {
+                    if (isset($customer['create']) && empty($customer['phones'])) {
                         Logger::getInstance()->write('$customer["phones"] is empty. Customer ' . $customer['id'] . ' cannot be created', 'createCustomerError');
                         continue;
                     }

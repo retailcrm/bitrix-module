@@ -47,6 +47,9 @@ class Customer extends BaseModel
     /**@var string $PERSONAL_PHONE */
     protected $PERSONAL_PHONE;
 
+    /**@var string $PHONE_NUMBER */
+    protected $PHONE_NUMBER;
+
     /**@var string $PERSONAL_ZIP */
     protected $PERSONAL_ZIP;
 
@@ -168,6 +171,17 @@ class Customer extends BaseModel
     public function setPersonalPhone($PERSONAL_PHONE)
     {
         $this->PERSONAL_PHONE = $PERSONAL_PHONE;
+
+        return $this;
+    }
+
+    /**
+     * @param string $PERSONAL_PHONE
+     * @return $this
+     */
+    public function setPhone($PHONE_NUMBER)
+    {
+        $this->PHONE_NUMBER = $PHONE_NUMBER;
 
         return $this;
     }
