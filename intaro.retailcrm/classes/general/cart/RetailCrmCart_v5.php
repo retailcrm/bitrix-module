@@ -95,20 +95,25 @@ class RetailCrmCart
             $date = 'updatedAt';
         }
 
+        $cartData = [
+            'customer' => [
+                'externalId' => $arBasket['USER_ID'],
+                'site' => $site,
+            ],
+            $date => date(self::$dateFormat),
+            'items' => $items,
+            'link' => static::generateCartLink(),
+        ];
+
+        if (RetailcrmConfigProvider::getStatusCollector() !== 'Y') {
+            $cartData['droppedAt'] = date(self::$dateFormat);
+        }
+
         return RCrmActions::apiMethod(
             $api,
             'cartSet',
             __METHOD__,
-            [
-                'customer' => [
-                    'externalId' => $arBasket['USER_ID'],
-                    'site' => $site,
-                ],
-                $date => date(self::$dateFormat),
-                'droppedAt' => date(self::$dateFormat),
-                'items' => $items,
-                'link' => static::generateCartLink(),
-            ],
+            $cartData,
             $site
         );
     }
