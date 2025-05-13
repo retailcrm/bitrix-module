@@ -37,7 +37,7 @@ class RetailCrmCollector
 
             $params = array();
             if ($USER->IsAuthorized()) {
-                $params['customerId'] = $USER->GetID();
+                $params['customer']['externalId'] = $USER->GetID();
             }
 
             $str = "<script type=\"text/javascript\">

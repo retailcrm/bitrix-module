@@ -1304,4 +1304,9 @@ class ConfigProvider
     {
         static::setOption(Constants::MATCHED_CUSTOM_USER_FIELDS, serialize($customUserFields));
     }
+
+    public static function getStatusCollector()
+    {
+        return static::getOption(Constants::CRM_COLLECTOR, 'N');
+    }
 }
