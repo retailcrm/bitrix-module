@@ -43,9 +43,9 @@ class LoyaltyAccountOperationsResponse extends AbstractApiResponseModel
     /**
      * Запись в истории бонусного счета
      *
-     * @var \Intaro\RetailCrm\Model\Api\Loyalty\BonusOperations[] $bonusOperations
+     * @var \Intaro\RetailCrm\Model\Api\LoyaltyBonusOperations[] $bonusOperations
      *
-     * @Mapping\Type("array<\Intaro\RetailCrm\Model\Api\Loyalty\BonusOperations>")
+     * @Mapping\Type("array<\Intaro\RetailCrm\Model\Api\LoyaltyBonusOperations>")
      * @Mapping\SerializedName("bonusOperations")
      */
     public $bonusOperations;

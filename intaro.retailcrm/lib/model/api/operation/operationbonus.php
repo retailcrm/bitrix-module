@@ -1,6 +1,6 @@
 <?php
 
-namespace Intaro\RetailCrm\Model\Api\Loyalty;
+namespace Intaro\RetailCrm\Model\Api\Operation;
 
 use Intaro\RetailCrm\Component\Json\Mapping;
 

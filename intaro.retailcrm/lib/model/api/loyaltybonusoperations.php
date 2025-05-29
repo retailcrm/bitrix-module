@@ -1,13 +1,13 @@
 <?php
 
-namespace Intaro\RetailCrm\Model\Api\Loyalty;
+namespace Intaro\RetailCrm\Model\Api;
 
 use Intaro\RetailCrm\Component\Json\Mapping;
 
 /**
  * Class Operation
  */
-class BonusOperations
+class LoyaltyBonusOperations
 {
     /**
      * Тип действия
@@ -42,9 +42,9 @@ class BonusOperations
     /**
      * Связанный заказ
      *
-     * @var \Intaro\RetailCrm\Model\Api\Loyalty\OperationOrder $order
+     * @var \Intaro\RetailCrm\Model\Api\Operation\OperationOrder $order
      *
-     * @Mapping\Type("\Intaro\RetailCrm\Model\Api\Loyalty\OperationOrder")
+     * @Mapping\Type("\Intaro\RetailCrm\Model\Api\Operation\OperationOrder")
      * @Mapping\SerializedName("order")
      */
     public $order;
@@ -52,9 +52,9 @@ class BonusOperations
     /**
      * Начисленные бонусы
      *
-     * @var \Intaro\RetailCrm\Model\Api\Loyalty\OperationBonus $bonus
+     * @var \Intaro\RetailCrm\Model\Api\Operation\OperationBonus $bonus
      *
-     * @Mapping\Type("\Intaro\RetailCrm\Model\Api\Loyalty\OperationBonus")
+     * @Mapping\Type("\Intaro\RetailCrm\Model\Api\Operation\OperationBonus")
      * @Mapping\SerializedName("bonus")
      */
     public $bonus;
@@ -62,9 +62,9 @@ class BonusOperations
     /**
      * Событие программы лояльности
      *
-     * @var \Intaro\RetailCrm\Model\Api\Loyalty\OperationEvent $event
+     * @var \Intaro\RetailCrm\Model\Api\Operation\OperationEvent $event
      *
-     * @Mapping\Type("\Intaro\RetailCrm\Model\Api\Loyalty\OperationEvent")
+     * @Mapping\Type("\Intaro\RetailCrm\Model\Api\Operation\OperationEvent")
      * @Mapping\SerializedName("event")
      */
     public $event;

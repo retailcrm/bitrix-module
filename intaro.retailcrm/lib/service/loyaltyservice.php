@@ -199,24 +199,20 @@ class LoyaltyService
      *
      * @param int $loyaltyAccountId ID участия в программе лояльности
      *
-     * @return mixed|null
+     * @return array
      * @throws LpAccountsUnavailableException
      */
-    public function getLoyaltyAccountOperations(int $loyaltyAccountId)
+    public function getLoyaltyAccountOperations(int $loyaltyAccountId): array
     {
         $response = $this->client->getLoyaltyAccountOperations($loyaltyAccountId);
 
         if ($response !== null && $response->success) {
-            if (!isset($response->loyaltyAccounts[0])) {
-                throw new LpAccountsUnavailableException();
-            }
-
-            return $response->loyaltyAccounts[0];
+            return $response->bonusOperations;
         }
 
         Utils::handleApiErrors($response);
 
-        return null;
+        return [];
     }
 
     /**
