@@ -3009,6 +3009,20 @@ class ApiClient
     }
 
     /**
+     * @param int $loyaltyAccountId
+     *
+     * @return ApiResponse
+     */
+    public function getLoyaltyAccountOperations(int $loyaltyAccountId): ApiResponse
+    {
+        return $this->client->makeRequest(
+            sprintf('/loyalty/account/%s/bonus/operations', $loyaltyAccountId),
+            Client::METHOD_GET,
+        );
+    }
+
+
+    /**
      * @param int $loyaltyId
      *
      * @return ApiResponse
@@ -3035,13 +3049,13 @@ class ApiClient
     }
 
     /**
-     * @param int $accountId
+     * @param int $loyaltyAccountId
      *
      * @return ApiResponse
      */
-    public function getLoyaltyAccount(int $accountId): ApiResponse
+    public function getLoyaltyAccount(int $loyaltyAccountId): ApiResponse
     {
-        return $this->client->makeRequest('/loyalty/account/' . $accountId, Client::METHOD_GET);
+        return $this->client->makeRequest('/loyalty/account/' . $loyaltyAccountId, Client::METHOD_GET);
     }
 
     /**
