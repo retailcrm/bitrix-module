@@ -1,6 +1,7 @@
 <?php
 
 use Bitrix\Main\Localization\Loc;
+use Intaro\RetailCrm\Model\Api\LoyaltyBonusOperations;
 use Intaro\RetailCrm\Service\Exception\LpAccountsUnavailableException;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\ServiceLocator;
@@ -43,7 +44,7 @@ try {
         /* @var LoyaltyService $service */
         $service = ServiceLocator::get(LoyaltyService::class);
         $loyaltyAccount = $service->getLoyaltyAccounts($customer->getLoyalty()->getIdInLoyalty());
-        $loyaltyAccountHistory = $service->getLoyaltyAccountOperations($customer->getLoyalty()->getIdInLoyalty());
+        $loyaltyAccountOperations = $service->getLoyaltyAccountOperations($customer->getLoyalty()->getIdInLoyalty());
 
         if ($loyaltyAccount !== null) {
             $arResult['BONUS_COUNT'] = $loyaltyAccount->amount;
@@ -66,6 +67,8 @@ try {
             if (is_int($arResult['NEXT_LEVEL_SUM']) && is_int($arResult['ORDERS_SUM'])) {
                 $arResult['REMAINING_SUM'] = $arResult['NEXT_LEVEL_SUM'] - $arResult['ORDERS_SUM'];
             }
+
+            $arResult['LOYALTY_ACCOUNT_OPERATIONS'] = $loyaltyAccountOperations;
         }
 
         $this->IncludeComponentTemplate();

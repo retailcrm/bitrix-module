@@ -94,3 +94,119 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
         ?>
     <?php } ?>
 </p>
+
+<?php if (!empty($arResult['LOYALTY_ACCOUNT_OPERATIONS'])): ?>
+    <div class="loyalty-history">
+        <h3>История операций</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+            <tbody>
+            <?php foreach ($arResult['LOYALTY_ACCOUNT_OPERATIONS'] as $operation): ?>
+                <?php
+                $amount = $operation->amount;
+                $isAccrual = $amount >= 0;
+                $formattedAmount = ($amount >= 0 ? '+' : '') . number_format($amount, 0, '.', ' ');
+                $createdAt = $operation->createdAt instanceof \DateTime
+                    ? $operation->createdAt->format('Y-m-d H:i:s')
+                    : $operation->createdAt;
+
+                $description = '';
+
+                switch ($operation->type) {
+                    case 'credit_for_order':
+                        $orderId = $operation->order->externalId;
+                        $description = 'Начисление бонусов за заказ ' . '<a href="/personal/orders/' . $orderId . '">' . $orderId . '</a>';
+
+                        break;
+                    case 'burn':
+                        $description = 'Бонусы сгорели';
+
+                        break;
+                    case 'credit_for_event':
+                        $description = 'Начисление бонусов за событие';
+
+                        break;
+                    case 'charge_for_order':
+                        $orderId = $operation->order->externalId ?? null;
+                        $description = 'Списание бонусов за заказ ' . '<a href="/personal/orders/' . $orderId . '">' . $orderId . '</a>';
+
+                        break;
+                    case 'charge_manual':
+                        $description = 'Списание бонусов менеджером';
+
+                        break;
+
+                    case 'credit_manual':
+                        $description = 'Начислено бонусов менеджером';
+
+                        break;
+                    case 'cancel_of_charge':
+                        $description = 'Отмена списания бонусов';
+
+                        break;
+
+                    case 'cancel_of_credit':
+                        $description = 'Отмена начисления бонусов';
+
+                        break;
+                }
+
+                ?>
+                <tr style="height: 30px;">
+                    <td style="color: <?= $isAccrual ? 'green' : 'red' ?>; font-weight: bold; width: 100px;">
+                        <?= htmlspecialchars($formattedAmount) ?>
+                    </td>
+                    <td style="width: 180px; color: #555;">
+                        <?= htmlspecialchars($createdAt) ?>
+                    </td>
+                    <td>
+                        <?= $description ?>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+
+    <style>
+        .loyalty-history table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .loyalty-history table td {
+            padding: 8px 4px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-size: 16px;
+            vertical-align: middle;
+        }
+
+        .loyalty-history a {
+            color: #0077cc;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .loyalty-history a:hover {
+            text-decoration: underline;
+        }
+
+        .loyalty-history .amount-positive {
+            color: #008000;
+            font-weight: bold;
+        }
+
+        .loyalty-history .amount-negative {
+            color: #cc0000;
+            font-weight: bold;
+        }
+
+        .loyalty-history .operation-row {
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .loyalty-history .operation-row:last-child {
+            border-bottom: none;
+        }
+    </style>
+
+<?php endif; ?>
