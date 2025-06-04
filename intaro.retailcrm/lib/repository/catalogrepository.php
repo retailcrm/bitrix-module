@@ -157,7 +157,7 @@ class CatalogRepository
      * @param int $productIblockId
      * @return \Intaro\RetailCrm\Model\Bitrix\Orm\CatalogIblockInfo
      */
-    public function getCatalogIblockInfo(int $productIblockId): CatalogIblockInfo
+    public function getCatalogIblockInfo(int $productIblockId, $useVatRateCatalog): CatalogIblockInfo
     {
         $catalogIblockInfo = new CatalogIblockInfo();
         $info              = CCatalogSKU::GetInfoByProductIBlock($productIblockId);
@@ -166,6 +166,22 @@ class CatalogRepository
             $catalogIblockInfo->productIblockId = $productIblockId;
 
             return $catalogIblockInfo;
+        }
+
+        if ($useVatRateCatalog) {
+            $dataBlock = \Bitrix\Catalog\CatalogIblockTable::getList([
+                'filter' => ['IBLOCK_ID' => $productIblockId]
+            ])->fetch();
+
+            if (!empty($dataBlock['VAT_ID'])) {
+                $vatRate = \Bitrix\Catalog\VatTable::getList([
+                    'filter' => ['ID' => $dataBlock['VAT_ID']]
+                ])->fetch();
+
+                if ($vatRate) {
+                    $catalogIblockInfo->vatRate = $vatRate['RATE'];
+                }
+            }
         }
 
         $catalogIblockInfo->skuIblockId     = $info['IBLOCK_ID'];

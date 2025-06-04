@@ -119,6 +119,8 @@ class SettingsService
     /** @var array */
     public $defaultPropList = [];
 
+    public $useVatRateCatalog;
+
     /**
      * @var \Intaro\RetailCrm\Icml\SettingsService|null
      */
@@ -137,6 +139,7 @@ class SettingsService
         $this->action = $action;
         $this->iblockExport = $this->getSingleSetting('iblockExport');
         $this->loadPurchasePrice = $this->getSingleSetting('loadPurchasePrice');
+        $this->useVatRateCatalog = $this->getSingleSetting('useVatRateCatalog');
         $this->loadNonActivity = $this->getSingleSetting('loadNonActivity');
         $oldSetup = $this->getSingleSetting('SETUP_FILE_NAME');
         $defaultFilePath = RetailcrmConfigProvider::getDefaultIcmlPath();
@@ -476,7 +479,7 @@ class SettingsService
      */
     public function getSetupFieldsString(array $iblockProperties, bool $hlblockModule, array $hlBlockList): string
     {
-        $values = 'loadPurchasePrice,SETUP_FILE_NAME,iblockExport,maxOffersValue,loadNonActivity';
+        $values = 'loadPurchasePrice,SETUP_FILE_NAME,iblockExport,maxOffersValue,loadNonActivity,useVatRateCatalog';
 
         foreach ($iblockProperties as $val) {
             $values .= ',iblockPropertySku_' . $val

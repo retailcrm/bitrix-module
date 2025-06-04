@@ -47,5 +47,6 @@ $MESS['BASE_PRICE'] = 'Base price';
 $MESS['WAIT'] = 'Loading...';
 $MESS["OFFERS_VALUE"] = "Maximum number of trade offers for a product";
 $MESS["LOAD_NON_ACTIVITY"] = "Unload inactive products, services and trade offers";
+$MESS["USE_VATRATE_CATALOG"] = "Upload VAT of the catalog if there is no VAT in the trade offer";
 $MESS["ADD_PROPERTY"] = "Add property";
 $MESS["DELETE_PROPERTY"] = "Delete";

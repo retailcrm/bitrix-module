@@ -29,4 +29,9 @@ class CatalogIblockInfo
      * @var int
      */
     public $skuPropertyId;
+
+    /**
+     * НДС каталога
+     */
+    public $vatRate = null;
 }
