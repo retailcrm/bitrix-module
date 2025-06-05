@@ -1,174 +1,182 @@
 <?php
 
-/**
- * Bitrix vars
- *
- * @var  array   $arResult
- * @global CUser $USER
- * @global CMain $APPLICATION
- */
-
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
     die();
 }
 ?>
-<p>
-    <?php if (isset($arResult['ERRORS'])) { ?>
-        <b><?=GetMessage('ERRORS')?></b> <?=$arResult['ERRORS']?><br>
-    <?php } ?>
-            <?php if ($arResult['ACTIVE_STATUS'] === 'not_confirmed') { ?>
-                <?= GetMessage('STATUS_NOT_CONFIRMED')?>
-                <a href="/lp-register?activate=Y"> <?= GetMessage('ACTIVATE') ?></a>
-            <?php } ?>
-            <?php if ($arResult['ACTIVE_STATUS'] === 'deactivated') { ?>
-                <?=GetMessage('STATUS_DEACTIVATED')?>
-            <?php } ?>
-        <?php if (isset($arResult['CARD'])) { ?>
-            <b><?=GetMessage('CARD')?></b> <?=$arResult['CARD']?><br>
-        <?php } ?>
 
+<style>
+    .loyalty-wrapper {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        font-size: 15px;
+        color: #000;
+        line-height: 1.5;
+        max-width: 600px;
+    }
 
-    <?php if (isset($arResult['BONUS_COUNT'])) { ?>
-        <?=sprintf(GetMessage('BONUS_COUNT'), $arResult['BONUS_COUNT']) ?><br>
-    <?php } ?>
-        <?php if (isset($arResult['BONUS_COUNT'])) { ?>
-            <?=sprintf(GetMessage('BONUS_COUNT'), $arResult['BONUS_COUNT']) ?><br>
-        <?php } ?>
+    .loyalty-block {
+        margin-bottom: 20px;
+    }
 
+    .loyalty-title {
+        font-weight: bold;
+        font-size: 17px;
+        margin-bottom: 5px;
+    }
 
+    .loyalty-subinfo {
+        color: #777;
+        font-size: 13px;
+    }
 
+    .loyalty-highlight {
+        font-weight: 500;
+    }
 
-        <?php if (isset($arResult['LOYALTY_LEVEL_NAME'])) { ?>
-            <?=$arResult['LOYALTY_LEVEL_NAME']?><br>
-        <?php } ?>
-        <?php if (isset($arResult['LL_PRIVILEGE_SIZE']) && isset($arResult['LL_PRIVILEGE_SIZE_PROMO'])) { ?>
-            <?=sprintf(GetMessage('LOYALTY_BONUS_PERCENT_INFO'), $arResult['LL_PRIVILEGE_SIZE'], $arResult['LL_PRIVILEGE_SIZE_PROMO'])?><br>
-        <?php } ?>
+    .loyalty-progress {
+        color: #444;
+        font-size: 15px;
+    }
 
+    .loyalty-history {
+        margin-top: 20px;
+    }
 
+    .loyalty-history table {
+        width: 100%;
+        border-collapse: collapse;
+    }
 
+    .loyalty-history td {
+        padding: 6px 4px;
+        font-size: 14px;
+        vertical-align: middle;
+    }
 
-        <?php if (isset($arResult['ORDERS_SUM'])) { ?>
-            <?=GetMessage('ORDERS_SUM')?> <?=$arResult['ORDERS_SUM']?><br>
-        <?php } ?>
-    <?php if (isset($arResult['REMAINING_SUM'])) { ?>
-            <?=GetMessage('REMAINING_SUM')?> <?=$arResult['REMAINING_SUM']?><br>
-        <?php } ?>
+    .amount-positive {
+        color: green;
+        font-weight: bold;
+    }
 
+    .amount-negative {
+        color: red;
+        font-weight: bold;
+    }
 
+    .loyalty-history .desc {
+        color: #555;
+    }
 
-<?php if (!empty($arResult['LOYALTY_ACCOUNT_OPERATIONS'])): ?>
-    <div class="loyalty-history">
-        <h3>История операций</h3>
-        <table style="width: 100%; border-collapse: collapse;">
-            <tbody>
-            <?php foreach ($arResult['LOYALTY_ACCOUNT_OPERATIONS'] as $operation): ?>
-                <?php
-                $amount = $operation->amount;
-                $isAccrual = $amount >= 0;
-                $formattedAmount = ($amount >= 0 ? '+' : '') . number_format($amount, 0, '.', ' ');
-                $createdAt = $operation->createdAt instanceof \DateTime
-                    ? $operation->createdAt->format('Y-m-d H:i:s')
-                    : $operation->createdAt;
+    .loyalty-link {
+        color: #0077cc;
+        text-decoration: none;
+        font-weight: 500;
+    }
 
-                $description = '';
+    .loyalty-link:hover {
+        text-decoration: underline;
+    }
+</style>
 
-                switch ($operation->type) {
-                    case 'credit_for_order':
-                        $orderId = $operation->order->externalId;
-                        $description = GetMessage('LOYALTY_ORDER_BONUS_ACCRUAL') . ' <a href="/personal/orders/' . $orderId . '">' . $orderId . '</a>';
+<div class='loyalty-wrapper'>
 
-                        break;
-                    case 'burn':
-                        $description = GetMessage('LOYALTY_BONUS_EXPIRED');
+    <?php if (isset($arResult['ERRORS'])): ?>
+        <div class='loyalty-block'>
+            <div class='loyalty-title'><?= GetMessage('ERRORS') ?></div>
+            <?= $arResult['ERRORS'] ?>
+        </div>
+    <?php endif; ?>
 
-                        break;
-                    case 'credit_for_event':
-                        $description = GetMessage('LOYALTY_EVENT_BONUS_ACCRUAL');
+    <?php if (isset($arResult['BONUS_COUNT'])): ?>
+        <div class='loyalty-block'>
+            <div class='loyalty-title'><?= sprintf(GetMessage('BONUS_COUNT'), $arResult['BONUS_COUNT']) ?></div>
+            <div class='loyalty-subinfo'>
+                <?= $arResult['BONUS_WILL_EXPIRE'] ?> • <?= $arResult['BONUS_PENDING'] ?>
+            </div>
+        </div>
+    <?php endif; ?>
 
-                        break;
-                    case 'charge_for_order':
-                        $orderId = $operation->order->externalId ?? null;
-                        $description = GetMessage('LOYALTY_ORDER_BONUS_DEBIT') . ' <a href="/personal/orders/' . $orderId . '">' . $orderId . '</a>';
+    <?php if (isset($arResult['LOYALTY_LEVEL_NAME'])): ?>
+        <div class='loyalty-block'>
+            <div class='loyalty-title'><?= $arResult['LOYALTY_LEVEL_NAME'] ?></div>
+            <div class='loyalty-subinfo'>
+                <?= sprintf(
+                    GetMessage('LOYALTY_BONUS_PERCENT_INFO'),
+                    $arResult['LL_PRIVILEGE_SIZE'],
+                    $arResult['LL_PRIVILEGE_SIZE_PROMO']
+                ) ?>
+            </div>
+        </div>
+    <?php endif; ?>
 
-                        break;
-                    case 'charge_manual':
-                        $description = GetMessage('LOYALTY_MANAGER_BONUS_DEBIT');
+    <?php if (isset($arResult['ORDERS_SUM']) || isset($arResult['REMAINING_SUM'])): ?>
+        <div class='loyalty-block'>
+            <div class='loyalty-title'><?= GetMessage('ORDERS_SUM') ?> <?= $arResult['ORDERS_SUM'] ?> ₽</div>
+            <div class='loyalty-progress'>
+                <?= GetMessage('REMAINING_SUM') ?> – <?= $arResult['REMAINING_SUM'] ?> ₽
+            </div>
+        </div>
+    <?php endif; ?>
 
-                        break;
+    <?php if (!empty($arResult['LOYALTY_ACCOUNT_OPERATIONS'])): ?>
+        <div class='loyalty-history'>
+            <div class='loyalty-title'><?= GetMessage('LOYALTY_HISTORY_TITLE') ?? 'История операций' ?></div>
+            <table>
+                <tbody>
+                <?php foreach ($arResult['LOYALTY_ACCOUNT_OPERATIONS'] as $operation):
+                    $amount = $operation->amount;
+                    $isAccrual = $amount >= 0;
+                    $formattedAmount = ($isAccrual ? '+' : '') . number_format($amount, 0, '.', ' ');
+                    $createdAt = $operation->createdAt instanceof \DateTime
+                        ? $operation->createdAt->format('Y-m-d')
+                        : $operation->createdAt;
+                    $description = '';
 
-                    case 'credit_manual':
-                        $description = GetMessage('LOYALTY_MANAGER_BONUS_ACCRUAL');
+                    switch ($operation->type) {
+                        case 'credit_for_order':
+                            $orderId = $operation->order->externalId;
+                            $description = GetMessage('LOYALTY_ORDER_BONUS_ACCRUAL') . ' <a class="loyalty-link" href="/personal/orders/' . $orderId . '">' . $orderId . '</a>';
 
-                        break;
-                    case 'cancel_of_charge':
-                        $description = GetMessage('LOYALTY_BONUS_DEBIT_CANCELLED');
+                            break;
+                        case 'burn':
+                            $description = GetMessage('LOYALTY_BONUS_EXPIRED');
 
-                        break;
+                            break;
+                        case 'credit_for_event':
+                            $description = GetMessage('LOYALTY_EVENT_BONUS_ACCRUAL');
 
-                    case 'cancel_of_credit':
-                        $description = GetMessage('LOYALTY_BONUS_ACCRUAL_CANCELLED');
+                            break;
+                        case 'charge_for_order':
+                            $orderId = $operation->order->externalId ?? null;
+                            $description = GetMessage('LOYALTY_ORDER_BONUS_DEBIT') . ' <a class="loyalty-link" href="/personal/orders/' . $orderId . '">' . $orderId . '</a>';
 
-                        break;
-                }
+                            break;
+                        case 'charge_manual':
+                            $description = GetMessage('LOYALTY_MANAGER_BONUS_DEBIT');
 
-                ?>
-                <tr style="height: 30px;">
-                    <td style="color: <?= $isAccrual ? 'green' : 'red' ?>; font-weight: bold; width: 100px;">
-                        <?= htmlspecialchars($formattedAmount) ?>
-                    </td>
-                    <td style="width: 180px; color: #555;">
-                        <?= htmlspecialchars($createdAt) ?>
-                    </td>
-                    <td>
-                        <?= $description ?>
-                    </td>
-                </tr>
-            <?php endforeach; ?>
-            </tbody>
-        </table>
-    </div>
+                            break;
+                        case 'credit_manual':
+                            $description = GetMessage('LOYALTY_MANAGER_BONUS_ACCRUAL');
 
-    <style>
-        .loyalty-history table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+                            break;
+                        case 'cancel_of_charge':
+                            $description = GetMessage('LOYALTY_BONUS_DEBIT_CANCELLED');
 
-        .loyalty-history table td {
-            padding: 8px 4px;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            font-size: 16px;
-            vertical-align: middle;
-        }
+                            break;
+                        case 'cancel_of_credit':
+                            $description = GetMessage('LOYALTY_BONUS_ACCRUAL_CANCELLED');
 
-        .loyalty-history a {
-            color: #0077cc;
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .loyalty-history a:hover {
-            text-decoration: underline;
-        }
-
-        .loyalty-history .amount-positive {
-            color: #008000;
-            font-weight: bold;
-        }
-
-        .loyalty-history .amount-negative {
-            color: #cc0000;
-            font-weight: bold;
-        }
-
-        .loyalty-history .operation-row {
-            border-bottom: 1px solid #e0e0e0;
-        }
-
-        .loyalty-history .operation-row:last-child {
-            border-bottom: none;
-        }
-    </style>
-
-<?php endif; ?>
+                            break;
+                    }
+                    ?>
+                    <tr>
+                        <td class='<?= $isAccrual ? 'amount-positive' : 'amount-negative' ?>'><?= $formattedAmount ?></td>
+                        <td class='desc'><?= htmlspecialchars($createdAt) ?></td>
+                        <td><?= $description ?></td>
+                    </tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    <?php endif; ?>
+</div>
