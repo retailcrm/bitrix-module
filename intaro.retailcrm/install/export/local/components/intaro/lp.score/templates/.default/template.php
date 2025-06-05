@@ -16,84 +16,46 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
     <?php if (isset($arResult['ERRORS'])) { ?>
         <b><?=GetMessage('ERRORS')?></b> <?=$arResult['ERRORS']?><br>
     <?php } ?>
-    <?php if (isset($arResult['LOYALTY_LEVEL_ID'])) { ?>
-        <b><?=GetMessage('LOYALTY_LEVEL_ID')?></b> <?=$arResult['LOYALTY_LEVEL_ID']?><br>
-    <?php } ?>
-    <?php if (isset($arResult['ACTIVE_STATUS'])) { ?>
-        <b><?=GetMessage('STATUS')?>: </b>
-        <?php if ($arResult['ACTIVE_STATUS'] === 'not_confirmed') { ?>
-            <?= GetMessage('STATUS_NOT_CONFIRMED')?>
-            <a href="/lp-register?activate=Y"> <?= GetMessage('ACTIVATE') ?></a>
+            <?php if ($arResult['ACTIVE_STATUS'] === 'not_confirmed') { ?>
+                <?= GetMessage('STATUS_NOT_CONFIRMED')?>
+                <a href="/lp-register?activate=Y"> <?= GetMessage('ACTIVATE') ?></a>
+            <?php } ?>
+            <?php if ($arResult['ACTIVE_STATUS'] === 'deactivated') { ?>
+                <?=GetMessage('STATUS_DEACTIVATED')?>
+            <?php } ?>
+        <?php if (isset($arResult['CARD'])) { ?>
+            <b><?=GetMessage('CARD')?></b> <?=$arResult['CARD']?><br>
         <?php } ?>
-        <?php if ($arResult['ACTIVE_STATUS'] === 'deactivated') { ?>
-            <?=GetMessage('STATUS_DEACTIVATED')?>
-        <?php } ?>
-        <?php if ($arResult['ACTIVE_STATUS'] === 'activated') { ?>
-            <?= GetMessage('STATUS_ACTIVE')?>
-        <?php } ?>
-        <br>
-    <?php } ?>
-    <?php if (isset($arResult['LOYALTY_LEVEL_NAME'])) { ?>
-        <b><?=GetMessage('LOYALTY_LEVEL_NAME')?></b> <?=$arResult['LOYALTY_LEVEL_NAME']?><br>
-    <?php } ?>
-    <?php if (isset($arResult['ORDERS_SUM'])) { ?>
-        <b><?=GetMessage('ORDERS_SUM')?></b> <?=$arResult['ORDERS_SUM']?><br>
-    <?php } ?>
-    <?php if (isset($arResult['REMAINING_SUM'])) { ?>
-        <b><?=GetMessage('REMAINING_SUM')?></b> <?=$arResult['REMAINING_SUM']?><br>
-    <?php } ?>
+
+
     <?php if (isset($arResult['BONUS_COUNT'])) { ?>
-        <b><?=GetMessage('BONUS_COUNT')?></b> <?=$arResult['BONUS_COUNT']?><br>
+        <?=sprintf(GetMessage('BONUS_COUNT'), $arResult['BONUS_COUNT']) ?><br>
     <?php } ?>
-    <?php if (isset($arResult['CARD'])) { ?>
-        <b><?=GetMessage('CARD')?></b> <?=$arResult['CARD']?><br>
-    <?php } ?>
-    <?php if (isset($arResult['PHONE'])) { ?>
-        <b><?=GetMessage('PHONE')?></b> <?=$arResult['PHONE']?><br>
-    <?php } ?>
-    <?php if (isset($arResult['REGISTER_DATE'])) { ?>
-        <b><?=GetMessage('REGISTER_DATE')?></b> <?=$arResult['REGISTER_DATE']?><br>
-    <?php } ?>
-
-    <?php if (isset($arResult['LOYALTY_LEVEL_TYPE'])) { ?>
-        <br><br><b><?=GetMessage('LOYALTY_LEVEL_TYPE')?></b><br>
-
-        <?php if (isset($arResult['NEXT_LEVEL_SUM'])) { ?>
-            <b><?=GetMessage('NEXT_LEVEL_SUM')?></b> <?=$arResult['NEXT_LEVEL_SUM']?><br>
+        <?php if (isset($arResult['BONUS_COUNT'])) { ?>
+            <?=sprintf(GetMessage('BONUS_COUNT'), $arResult['BONUS_COUNT']) ?><br>
         <?php } ?>
-        <?php
-        switch ($arResult['LOYALTY_LEVEL_TYPE']) {
-            case 'bonus_percent':
-                ?>
-                <b><?=GetMessage('SIMPLE_PRODUCTS')?></b>
-                <?=GetMessage('BONUS_PERCENT')?> <?=$arResult['LL_PRIVILEGE_SIZE']?>%<br>
-                <b><?=GetMessage('SALE_PRODUCTS')?></b>
-                <?=GetMessage('BONUS_PERCENT')?> <?=$arResult['LL_PRIVILEGE_SIZE_PROMO']?>%<br>
-                <?php
-                break;
-            case 'bonus_converting':
-                ?>
-                <b><?=GetMessage('SIMPLE_PRODUCTS')?></b>
-                <?=GetMessage('BONUS_CONVERTING')?> <?=$arResult['LL_PRIVILEGE_SIZE']?> <?=GetMessage('EACH_RUB')?><br>
-                <b><?=GetMessage('SALE_PRODUCTS')?></b>
-                <?=GetMessage('BONUS_CONVERTING')?> <?=$arResult['LL_PRIVILEGE_SIZE_PROMO']?>
-                <?=GetMessage('EACH_RUB')?><br>
-                <?php
-                break;
-            case 'discount':
-                ?>
-                <b><?=GetMessage('SIMPLE_PRODUCTS')?></b>
-                <?=GetMessage('PERSONAL_DISCOUNT')?> <?=$arResult['LL_PRIVILEGE_SIZE']?>%<br>
-                <b><?=GetMessage('SALE_PRODUCTS')?></b>
-                <?=GetMessage('PERSONAL_DISCOUNT')?> <?=$arResult['LL_PRIVILEGE_SIZE_PROMO']?>%<br>
-                <?php
-                break;
-            default: ?> - <?php
-                break;
-        }
-        ?>
-    <?php } ?>
-</p>
+
+
+
+
+        <?php if (isset($arResult['LOYALTY_LEVEL_NAME'])) { ?>
+            <?=$arResult['LOYALTY_LEVEL_NAME']?><br>
+        <?php } ?>
+        <?php if (isset($arResult['LL_PRIVILEGE_SIZE']) && isset($arResult['LL_PRIVILEGE_SIZE_PROMO'])) { ?>
+            <?=sprintf(GetMessage('LOYALTY_BONUS_PERCENT_INFO'), $arResult['LL_PRIVILEGE_SIZE'], $arResult['LL_PRIVILEGE_SIZE_PROMO'])?><br>
+        <?php } ?>
+
+
+
+
+        <?php if (isset($arResult['ORDERS_SUM'])) { ?>
+            <?=GetMessage('ORDERS_SUM')?> <?=$arResult['ORDERS_SUM']?><br>
+        <?php } ?>
+    <?php if (isset($arResult['REMAINING_SUM'])) { ?>
+            <?=GetMessage('REMAINING_SUM')?> <?=$arResult['REMAINING_SUM']?><br>
+        <?php } ?>
+
+
 
 <?php if (!empty($arResult['LOYALTY_ACCOUNT_OPERATIONS'])): ?>
     <div class="loyalty-history">
@@ -114,38 +76,38 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
                 switch ($operation->type) {
                     case 'credit_for_order':
                         $orderId = $operation->order->externalId;
-                        $description = 'Начисление бонусов за заказ ' . '<a href="/personal/orders/' . $orderId . '">' . $orderId . '</a>';
+                        $description = GetMessage('LOYALTY_ORDER_BONUS_ACCRUAL') . ' <a href="/personal/orders/' . $orderId . '">' . $orderId . '</a>';
 
                         break;
                     case 'burn':
-                        $description = 'Бонусы сгорели';
+                        $description = GetMessage('LOYALTY_BONUS_EXPIRED');
 
                         break;
                     case 'credit_for_event':
-                        $description = 'Начисление бонусов за событие';
+                        $description = GetMessage('LOYALTY_EVENT_BONUS_ACCRUAL');
 
                         break;
                     case 'charge_for_order':
                         $orderId = $operation->order->externalId ?? null;
-                        $description = 'Списание бонусов за заказ ' . '<a href="/personal/orders/' . $orderId . '">' . $orderId . '</a>';
+                        $description = GetMessage('LOYALTY_ORDER_BONUS_DEBIT') . ' <a href="/personal/orders/' . $orderId . '">' . $orderId . '</a>';
 
                         break;
                     case 'charge_manual':
-                        $description = 'Списание бонусов менеджером';
+                        $description = GetMessage('LOYALTY_MANAGER_BONUS_DEBIT');
 
                         break;
 
                     case 'credit_manual':
-                        $description = 'Начислено бонусов менеджером';
+                        $description = GetMessage('LOYALTY_MANAGER_BONUS_ACCRUAL');
 
                         break;
                     case 'cancel_of_charge':
-                        $description = 'Отмена списания бонусов';
+                        $description = GetMessage('LOYALTY_BONUS_DEBIT_CANCELLED');
 
                         break;
 
                     case 'cancel_of_credit':
-                        $description = 'Отмена начисления бонусов';
+                        $description = GetMessage('LOYALTY_BONUS_ACCRUAL_CANCELLED');
 
                         break;
                 }

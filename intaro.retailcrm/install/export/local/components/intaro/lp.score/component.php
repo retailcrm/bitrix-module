@@ -59,7 +59,7 @@ try {
             $arResult['LL_PRIVILEGE_SIZE'] = $loyaltyAccount->loyaltyLevel->privilegeSize;
             $arResult['LL_PRIVILEGE_SIZE_PROMO'] = $loyaltyAccount->loyaltyLevel->privilegeSizePromo;
             $arResult['LOYALTY_LEVEL_TYPE'] = $loyaltyAccount->loyaltyLevel->type;
-            $arResult['NEXT_LEVEL_SUM'] = (int)$loyaltyAccount->nextLevelSum === 0
+            $arResult['NEXT_LEVEL_SUM'] = (int) $loyaltyAccount->nextLevelSum === 0
                 ? GetMessage('TOP_LEVEL')
                 : (int) $loyaltyAccount->nextLevelSum;
             $arResult['ORDERS_SUM'] = (int)$loyaltyAccount->ordersSum;
