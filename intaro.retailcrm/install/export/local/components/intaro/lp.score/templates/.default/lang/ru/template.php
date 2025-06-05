@@ -50,3 +50,4 @@ $MESS['LOYALTY_MANAGER_BONUS_DEBIT'] = 'Списание бонусов мене
 $MESS['LOYALTY_MANAGER_BONUS_ACCRUAL'] = 'Начислено бонусов менеджером';
 $MESS['LOYALTY_BONUS_DEBIT_CANCELLED'] = 'Отмена списания бонусов';
 $MESS['LOYALTY_BONUS_ACCRUAL_CANCELLED'] = 'Отмена начисления бонусов';
+$MESS['LOYALTY_HISTORY_TITLE'] = 'История операций';

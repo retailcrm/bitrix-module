@@ -50,3 +50,4 @@ $MESS['LOYALTY_MANAGER_BONUS_DEBIT'] = 'Bonus debit by manager';
 $MESS['LOYALTY_MANAGER_BONUS_ACCRUAL'] = 'Bonus accrual by manager';
 $MESS['LOYALTY_BONUS_DEBIT_CANCELLED'] = 'Bonus debit cancellation';
 $MESS['LOYALTY_BONUS_ACCRUAL_CANCELLED'] = 'Bonus accrual cancellation';
+$MESS['LOYALTY_HISTORY_TITLE'] = 'Loyalty History';

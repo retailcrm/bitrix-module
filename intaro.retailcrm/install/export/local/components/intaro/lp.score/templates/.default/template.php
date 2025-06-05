@@ -29,15 +29,6 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
         font-size: 13px;
     }
 
-    .loyalty-highlight {
-        font-weight: 500;
-    }
-
-    .loyalty-progress {
-        color: #444;
-        font-size: 15px;
-    }
-
     .loyalty-history {
         margin-top: 20px;
     }
@@ -63,7 +54,7 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
         font-weight: bold;
     }
 
-    .loyalty-history .desc {
+    .loyalty-history .bonus-description {
         color: #555;
     }
 
@@ -112,15 +103,15 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
     <?php if (isset($arResult['ORDERS_SUM']) || isset($arResult['REMAINING_SUM'])): ?>
         <div class='loyalty-block'>
             <div class='loyalty-title'><?= GetMessage('ORDERS_SUM') ?> <?= $arResult['ORDERS_SUM'] ?> ₽</div>
-            <div class='loyalty-progress'>
-                <?= GetMessage('REMAINING_SUM') ?> – <?= $arResult['REMAINING_SUM'] ?> ₽
+            <div class='loyalty-subinfo'>
+                <?= GetMessage('REMAINING_SUM') ?> <?= $arResult['REMAINING_SUM'] ?> ₽
             </div>
         </div>
     <?php endif; ?>
 
     <?php if (!empty($arResult['LOYALTY_ACCOUNT_OPERATIONS'])): ?>
         <div class='loyalty-history'>
-            <div class='loyalty-title'><?= GetMessage('LOYALTY_HISTORY_TITLE') ?? 'История операций' ?></div>
+            <div class='loyalty-title'><?= GetMessage('LOYALTY_HISTORY_TITLE')?></div>
             <table>
                 <tbody>
                 <?php foreach ($arResult['LOYALTY_ACCOUNT_OPERATIONS'] as $operation):
@@ -171,7 +162,7 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
                     ?>
                     <tr>
                         <td class='<?= $isAccrual ? 'amount-positive' : 'amount-negative' ?>'><?= $formattedAmount ?></td>
-                        <td class='desc'><?= htmlspecialchars($createdAt) ?></td>
+                        <td class='bonus-description'><?= htmlspecialchars($createdAt) ?></td>
                         <td><?= $description ?></td>
                     </tr>
                 <?php endforeach; ?>
