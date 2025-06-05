@@ -152,6 +152,7 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/exp
     $fileSetup->filePath = $SETUP_FILE_NAME;
     $fileSetup->loadPurchasePrice = $loadPurchasePrice === 'Y';
     $fileSetup->loadNonActivity = $loadNonActivity === 'Y';
+    $fileSetup->useVatRateCatalog = $useVatRateCatalog === 'Y';
     $fileSetup->basePriceId = CatalogRepository::getBasePriceId($fileSetup->profileId);
 
     if (!is_array($fileSetup->iblocksForExport) || count($fileSetup->iblocksForExport) === 0) {

@@ -64,6 +64,7 @@ if (($ACTION === 'EXPORT' || $ACTION === 'EXPORT_EDIT' || $ACTION === 'EXPORT_CO
 	$SETUP_PROFILE_NAME = $settingsService->setupProfileName;
 
     $loadPurchasePrice = $settingsService->loadPurchasePrice;
+    $useVatRateCatalog = $settingsService->useVatRateCatalog;
     $iblockExport = $settingsService->iblockExport;
     $loadNonActivity = $settingsService->loadNonActivity;
 
@@ -594,6 +595,9 @@ if ($STEP === 1) {
         <br><br>
         <span class="text"><?=GetMessage('LOAD_NON_ACTIVITY')?>&nbsp;</span>
         <input type="checkbox" name="loadNonActivity" value="Y" <?=$loadNonActivity === 'Y' ? 'checked' : ''?>>
+        <br><br>
+        <span class="text"><?=GetMessage('USE_VATRATE_CATALOG')?></span>
+        <input type="checkbox" name="useVatRateCatalog" value="Y" <?=$useVatRateCatalog === 'Y' ? 'checked' : ''?>>
         <br><br>
         <?php
         if ($isSetupModulePage) { ?>

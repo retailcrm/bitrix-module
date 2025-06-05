@@ -992,6 +992,7 @@ class intaro_retailcrm extends CModule
             $maxOffers = $_POST['maxOffersValue'] ?? null;
             $profileName = $_POST['SETUP_PROFILE_NAME'] ?? null;
             $loadPurchasePrice = $_POST['loadPurchasePrice'] ?? null;
+            $useVatRateCatalog = $_POST['useVatRateCatalog'] ?? null;
             $loadInactiveProduct = $_POST['loadNonActivity'] ?? null;
 
             if ($iblocks === null) {
@@ -1017,6 +1018,7 @@ class intaro_retailcrm extends CModule
                     'SETUP_PROFILE_NAME' => $profileName,
                     'maxOffersValue' => $maxOffers,
                     'loadPurchasePrice' => $loadPurchasePrice,
+                    'useVatRateCatalog' => $useVatRateCatalog,
                     'loadNonActivity' => $loadInactiveProduct,
                 ];
 
@@ -1092,6 +1094,7 @@ class intaro_retailcrm extends CModule
                 $filename,
                 $maxOffers,
                 $loadPurchasePrice,
+                $useVatRateCatalog,
                 $loadInactiveProduct
             );
 
@@ -1283,6 +1286,7 @@ class intaro_retailcrm extends CModule
         $filename,
         $maxOffers,
         $loadPurchasePrice,
+        $useVatRateCatalog,
         $loadInactiveProduct
     ): string {
         $strVars = '';
@@ -1308,11 +1312,12 @@ class intaro_retailcrm extends CModule
         }
 
         $additionalProperties = sprintf(
-            'SETUP_FILE_NAME=%s&maxOffersValue=%s&loadPurchasePrice=%s&loadNonActivity=%s',
+            'SETUP_FILE_NAME=%s&maxOffersValue=%s&loadPurchasePrice=%s&loadNonActivity=%s&useVatRateCatalog=%s',
             $filename,
             $maxOffers,
             $loadPurchasePrice,
-            $loadInactiveProduct
+            $loadInactiveProduct,
+            $useVatRateCatalog
         );
 
         return $strVars . $additionalProperties;

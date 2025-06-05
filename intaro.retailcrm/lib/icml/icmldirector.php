@@ -150,7 +150,10 @@ class IcmlDirector
      */
     private function writeIblockOffers(int $productIblockId): void
     {
-        $catalogIblockInfo = $this->catalogRepository->getCatalogIblockInfo($productIblockId);
+        $catalogIblockInfo = $this->catalogRepository->getCatalogIblockInfo(
+            $productIblockId,
+            $this->setup->useVatRateCatalog
+        );
 
         //если нет торговых предложений
         if ($catalogIblockInfo->skuIblockId === null) {

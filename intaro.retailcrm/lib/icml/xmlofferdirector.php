@@ -107,7 +107,7 @@ class XmlOfferDirector
     ): array {
         $xmlOffers = $this->getXmlOffersPart($paramsForOffer, $catalogIblockInfo);
 
-        return $this->addProductInfo($xmlOffers, $product);
+        return $this->addProductInfo($xmlOffers, $product, $catalogIblockInfo->vatRate);
     }
 
     /**
@@ -117,13 +117,18 @@ class XmlOfferDirector
      * @param \Intaro\RetailCrm\Model\Bitrix\Xml\XmlOffer $product
      * @return \Intaro\RetailCrm\Model\Bitrix\Xml\XmlOffer[]
      */
-    private function addProductInfo(array $xmlOffers, XmlOffer $product): array
+    private function addProductInfo(array $xmlOffers, XmlOffer $product, $vatRateCatalog): array
     {
         foreach ($xmlOffers as $offer) {
             $offer->productId   = $product->id;
             $offer->params      = $this->mergeParams($offer->params, $product->params);
             $offer->unitCode    = $offer->unitCode === null ? null : $offer->unitCode->merge($product->unitCode);
             $offer->vatRate     = $offer->vatRate === 'none' ? $product->vatRate : $offer->vatRate;
+
+            if ($offer->vatRate === 'none' && !empty($vatRateCatalog)) {
+                $offer->vatRate = $vatRateCatalog;
+            }
+
             $offer->vendor      = $offer->mergeValues($product->vendor, $offer->vendor);
             $offer->picture     = $offer->mergeValues($product->picture, $offer->picture);
             $offer->weight      = $offer->mergeValues($product->weight, $offer->weight);
