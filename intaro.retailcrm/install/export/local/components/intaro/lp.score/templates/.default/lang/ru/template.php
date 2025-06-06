@@ -50,5 +50,5 @@ $MESS['LOYALTY_MANAGER_BONUS_ACCRUAL'] = 'Начислено бонусов ме
 $MESS['LOYALTY_BONUS_DEBIT_CANCELLED'] = 'Отмена списания бонусов';
 $MESS['LOYALTY_BONUS_ACCRUAL_CANCELLED'] = 'Отмена начисления бонусов';
 $MESS['LOYALTY_HISTORY_TITLE'] = 'История операций';
-$MESS['LOYALTY_BONUSES_EXPIRE'] = 'бонусов сгорит';
-$MESS['LOYALTY_BONUSES_PENDING'] = 'бонусов ожидает активации';
+$MESS['LOYALTY_BONUSES_EXPIRE'] = 'бонусов сгорят';
+$MESS['LOYALTY_BONUSES_PENDING'] = 'бонусов ожидают активации';
