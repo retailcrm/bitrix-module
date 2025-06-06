@@ -38,6 +38,7 @@ use Intaro\RetailCrm\Repository\CurrencyRepository;
 use Intaro\RetailCrm\Repository\OrderLoyaltyDataRepository;
 use Intaro\RetailCrm\Service\Exception\LpAccountsUnavailableException;
 use Logger;
+use RetailCrm\Response\ApiResponse;
 
 /**
  * Class LoyaltyService
@@ -160,23 +161,21 @@ class LoyaltyService
         return $result;
     }
 
-    //TODO доделать метод проверки регистрации в ПЛ
-
     /**
      * Возвращает список участий в программе лояльности
      *
      * @link https://docs.retailcrm.ru/Developers/API/APIVersions/APIv5#get--api-v5-loyalty-accounts
      *
-     * @param int $idInLoyalty ID участия в программе лояльности
+     * @param int $loyaltyAccountId ID участия в программе лояльности
      *
      * @return null|\Intaro\RetailCrm\Model\Api\LoyaltyAccount
      * @throws \Intaro\RetailCrm\Service\Exception\LpAccountsUnavailableException
      */
-    public function getLoyaltyAccounts(int $idInLoyalty): ?LoyaltyAccount
+    public function getLoyaltyAccounts(int $loyaltyAccountId): ?LoyaltyAccount
     {
         $request = new LoyaltyAccountRequest();
         $request->filter = new LoyaltyAccountApiFilterType();
-        $request->filter->id = $idInLoyalty;
+        $request->filter->id = $loyaltyAccountId;
         $request->filter->sites = is_array($this->site) ? $this->site : [$this->site];
 
         $response = $this->client->getLoyaltyAccounts($request);
@@ -192,6 +191,48 @@ class LoyaltyService
         Utils::handleApiErrors($response);
 
         return null;
+    }
+
+    /**
+     * Метод позволяет получить историю бонусного счета для участия в программе лояльности.
+     *
+     * @link https://docs.retailcrm.ru/Developers/API/APIVersions/APIv5#get--api-v5-loyalty-accounts
+     *
+     * @param int $loyaltyAccountId ID участия в программе лояльности
+     *
+     * @return array
+     * @throws LpAccountsUnavailableException
+     */
+    public function getLoyaltyAccountOperations(int $loyaltyAccountId): array
+    {
+        $response = $this->client->getLoyaltyAccountOperations($loyaltyAccountId);
+
+        if ($response !== null && $response->success) {
+            return $response->bonusOperations;
+        }
+
+        Utils::handleApiErrors($response);
+
+        return [];
+    }
+
+    public function getLoyaltyBonesActivationAndBurnInfo(int $loyaltyAccountId): array
+    {
+        $responseActivation = $this->client->getLoyaltyBonesActivationAndBurnInfo($loyaltyAccountId, 'waiting_activation')->getResponseBody();
+        $responseBurn = $this->client->getLoyaltyBonesActivationAndBurnInfo($loyaltyAccountId, 'burn_soon')->getResponseBody();
+        $burnBonuses = $responseBurn['bonuses'][0] ?: null;
+        $activationBonuses = $responseActivation['bonuses'][0] ?: null;
+        $bonusesInfo = [];
+
+        if ($burnBonuses !== null) {
+            $bonusesInfo['burn_soon'] = ['date' => $burnBonuses['date'], 'amount' => $burnBonuses['amount']];
+        }
+
+        if ($activationBonuses !== null) {
+            $bonusesInfo['waiting_activation'] = ['date' => $activationBonuses['date'], 'amount' => $activationBonuses['amount']];
+        }
+
+        return $bonusesInfo;
     }
 
     /**

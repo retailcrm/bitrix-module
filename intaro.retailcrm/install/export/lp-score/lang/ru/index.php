@@ -1,2 +1,2 @@
 <?php
-$MESS['BONUS_ACCOUNT'] = "Бонусный счет";
+$MESS['BONUS_ACCOUNT'] = "Скидки и бонусы";
