@@ -91,6 +91,7 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
                 <?php if (!empty($willExpire)): ?>
                     <?= htmlspecialcharsbx($willExpire['amount']) ?> <?= GetMessage('LOYALTY_BONUSES_EXPIRE') ?>
                     <?= htmlspecialcharsbx($willExpire['date']) ?>
+                    •
                 <?php endif; ?>
 
                 <?php if (!empty($pending)): ?>

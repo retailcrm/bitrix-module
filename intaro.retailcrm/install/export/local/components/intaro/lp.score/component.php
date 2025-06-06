@@ -50,13 +50,7 @@ try {
 
         if ($loyaltyAccount !== null) {
             $arResult['BONUS_COUNT'] = $loyaltyAccount->amount;
-            $arResult['ACTIVE_STATUS'] = $loyaltyAccount->status;
-            $arResult['CARD'] = $loyaltyAccount->cardNumber !== ''
-                ? $loyaltyAccount->cardNumber
-                : GetMessage('CARD_NOT_LINKED');
-            $arResult['PHONE'] = $loyaltyAccount->phoneNumber;
             $arResult['LOYALTY_LEVEL_NAME'] = $loyaltyAccount->loyaltyLevel->name;
-            $arResult['LOYALTY_LEVEL_ID'] = $loyaltyAccount->id;
             $arResult['LL_PRIVILEGE_SIZE'] = $loyaltyAccount->loyaltyLevel->privilegeSize;
             $arResult['LL_PRIVILEGE_SIZE_PROMO'] = $loyaltyAccount->loyaltyLevel->privilegeSizePromo;
             $arResult['LOYALTY_LEVEL_TYPE'] = $loyaltyAccount->loyaltyLevel->type;
