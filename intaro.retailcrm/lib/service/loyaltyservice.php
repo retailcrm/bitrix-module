@@ -38,6 +38,7 @@ use Intaro\RetailCrm\Repository\CurrencyRepository;
 use Intaro\RetailCrm\Repository\OrderLoyaltyDataRepository;
 use Intaro\RetailCrm\Service\Exception\LpAccountsUnavailableException;
 use Logger;
+use RetailCrm\Response\ApiResponse;
 
 /**
  * Class LoyaltyService
@@ -213,6 +214,25 @@ class LoyaltyService
         Utils::handleApiErrors($response);
 
         return [];
+    }
+
+    public function getLoyaltyBonesActivationAndBurnInfo(int $loyaltyAccountId): array
+    {
+        $responseActivation = $this->client->getLoyaltyBonesActivationAndBurnInfo($loyaltyAccountId, 'waiting_activation')->getResponseBody();
+        $responseBurn = $this->client->getLoyaltyBonesActivationAndBurnInfo($loyaltyAccountId, 'burn_soon')->getResponseBody();
+        $burnBonuses = $responseBurn['bonuses'][0] ?: null;
+        $activationBonuses = $responseActivation['bonuses'][0] ?: null;
+        $bonusesInfo = [];
+
+        if ($burnBonuses !== null) {
+            $bonusesInfo['burn_soon'] = ['date' => $burnBonuses['date'], 'amount' => $burnBonuses['amount']];
+        }
+
+        if ($activationBonuses !== null) {
+            $bonusesInfo['waiting_activation'] = ['date' => $activationBonuses['date'], 'amount' => $activationBonuses['amount']];
+        }
+
+        return $bonusesInfo;
     }
 
     /**

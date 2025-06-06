@@ -34,6 +34,7 @@ use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationConfirmRe
 use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusRequest;
 use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusResponse;
 use ReflectionException;
+use RetailCrm\Response\ApiResponse;
 
 /**
  * Trait LoyaltyTrait
@@ -119,6 +120,11 @@ trait LoyaltyTrait
         $response = $this->client->getLoyaltyAccountOperations($loyaltyAccountId);
 
         return Deserializer::deserializeArray($response->getResponseBody(), LoyaltyAccountOperationsResponse::class);
+    }
+
+    public function getLoyaltyBonesActivationAndBurnInfo(int $loyaltyAccountId, string $status): ApiResponse
+    {
+        return $this->client->getLoyaltyBonsesActivationAndBurnInfo($loyaltyAccountId, $status);
     }
 
     /**

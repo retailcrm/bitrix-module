@@ -1,5 +1,7 @@
 <?php
 
+use Bitrix\Main\Config\Option;
+
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
     die();
 }
@@ -78,33 +80,85 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
         </div>
     <?php endif; ?>
 
-    <?php if (isset($arResult['BONUS_COUNT'])): ?>
+    <?php if (isset($arResult['BONUS_COUNT'], $arResult['LOYALTY_LEVEL_TYPE']) && $arResult['LOYALTY_LEVEL_TYPE'] !== 'discount'): ?>
         <div class='loyalty-block'>
             <div class='loyalty-title'><?= sprintf(GetMessage('BONUS_COUNT'), $arResult['BONUS_COUNT']) ?></div>
+            <?php
+            $pending = $arResult['BONUS_PENDING'] ?? [];
+            $willExpire = $arResult['BONUS_WILL_EXPIRE'] ?? [];
+            ?>
             <div class='loyalty-subinfo'>
-                <?= $arResult['BONUS_WILL_EXPIRE'] ?> • <?= $arResult['BONUS_PENDING'] ?>
+                <?php if (!empty($willExpire)): ?>
+                    <?= htmlspecialcharsbx($willExpire['amount']) ?> <?= GetMessage('LOYALTY_BONUSES_EXPIRE') ?>
+                    <?= htmlspecialcharsbx($willExpire['date']) ?>
+                <?php endif; ?>
+
+                <?php if (!empty($pending)): ?>
+                    <?= htmlspecialcharsbx($pending['amount']) ?> <?= GetMessage('LOYALTY_BONUSES_PENDING') ?>
+                    <?= htmlspecialcharsbx($pending['date']) ?>
+                <?php endif; ?>
             </div>
         </div>
     <?php endif; ?>
 
-    <?php if (isset($arResult['LOYALTY_LEVEL_NAME'])): ?>
+    <?php if (isset($arResult['LOYALTY_LEVEL_NAME'], $arResult['LOYALTY_LEVEL_TYPE'])): ?>
         <div class='loyalty-block'>
             <div class='loyalty-title'><?= $arResult['LOYALTY_LEVEL_NAME'] ?></div>
             <div class='loyalty-subinfo'>
-                <?= sprintf(
-                    GetMessage('LOYALTY_BONUS_PERCENT_INFO'),
-                    $arResult['LL_PRIVILEGE_SIZE'],
-                    $arResult['LL_PRIVILEGE_SIZE_PROMO']
-                ) ?>
+                <?php
+                switch ($arResult['LOYALTY_LEVEL_TYPE']) {
+                    case 'bonus_percent':
+                        echo sprintf(
+                            GetMessage('LOYALTY_BONUS_PERCENT_INFO'),
+                            $arResult['LL_PRIVILEGE_SIZE'],
+                            $arResult['LL_PRIVILEGE_SIZE_PROMO']
+                        );
+
+                        break;
+                    case 'bonus_converting':
+                        $currency = Option::get('sale', 'default_currency', 'RUB');
+                        $currencyDisplay = $currency === 'RUB' ? 'рублей' : $currency;
+
+                        echo sprintf(
+                            GetMessage('LOYALTY_BONUS_CONVERTING_INFO'),
+                            $arResult['LL_PRIVILEGE_SIZE'],
+                            $currencyDisplay,
+                            $arResult['LL_PRIVILEGE_SIZE_PROMO'],
+                            $currencyDisplay
+                        );
+
+                        break;
+                    case 'discount':
+                        echo sprintf(
+                            GetMessage('LOYALTY_BONUS_DISCOUNT_INFO'),
+                            $arResult['LL_PRIVILEGE_SIZE'],
+                            $arResult['LL_PRIVILEGE_SIZE_PROMO']
+                        );
+
+                        break;
+                    default:
+                        echo '-';
+
+                        break;
+                }
+                ?>
             </div>
         </div>
     <?php endif; ?>
 
     <?php if (isset($arResult['ORDERS_SUM']) || isset($arResult['REMAINING_SUM'])): ?>
-        <div class='loyalty-block'>
-            <div class='loyalty-title'><?= GetMessage('ORDERS_SUM') ?> <?= $arResult['ORDERS_SUM'] ?> ₽</div>
-            <div class='loyalty-subinfo'>
-                <?= GetMessage('REMAINING_SUM') ?> <?= $arResult['REMAINING_SUM'] ?> ₽
+        <?php
+            $currency = Option::get('sale', 'default_currency', 'RUB');
+            $currencyDisplay = $currency === 'RUB' ? '₽' : $currency;
+        ?>
+        <div class="loyalty-block">
+            <div class="loyalty-title">
+                <?= GetMessage('ORDERS_SUM') ?>
+                <?= htmlspecialcharsbx($arResult['ORDERS_SUM']) . ' ' . $currencyDisplay ?>
+            </div>
+            <div class="loyalty-subinfo">
+                <?= GetMessage('REMAINING_SUM') ?>
+                <?= htmlspecialcharsbx($arResult['REMAINING_SUM']) . ' ' . $currencyDisplay ?>
             </div>
         </div>
     <?php endif; ?>
@@ -117,7 +171,7 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
                 <?php foreach ($arResult['LOYALTY_ACCOUNT_OPERATIONS'] as $operation):
                     $amount = $operation->amount;
                     $isAccrual = $amount >= 0;
-                    $formattedAmount = ($isAccrual ? '+' : '') . number_format($amount, 0, '.', ' ');
+                    $formattedAmount = ($isAccrual ? '+ ' : '- ') . number_format(abs($amount), 0, '.', ' ');
                     $createdAt = $operation->createdAt instanceof \DateTime
                         ? $operation->createdAt->format('Y-m-d')
                         : $operation->createdAt;

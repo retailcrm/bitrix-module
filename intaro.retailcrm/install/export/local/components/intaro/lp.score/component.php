@@ -35,6 +35,7 @@ try {
     $arResult['PERSONAL_LOYALTY_STATUS'] = LoyaltyAccountService::getLoyaltyPersonalStatus();
 
     $customer = UserRepository::getById($USER->GetID());
+    $loyaltyAccountId = $customer->getLoyalty()->getIdInLoyalty();
 
     if (
         $arResult['LOYALTY_STATUS'] === 'Y'
@@ -43,8 +44,9 @@ try {
     ) {
         /* @var LoyaltyService $service */
         $service = ServiceLocator::get(LoyaltyService::class);
-        $loyaltyAccount = $service->getLoyaltyAccounts($customer->getLoyalty()->getIdInLoyalty());
-        $loyaltyAccountOperations = $service->getLoyaltyAccountOperations($customer->getLoyalty()->getIdInLoyalty());
+        $loyaltyAccount = $service->getLoyaltyAccounts($loyaltyAccountId);
+        $loyaltyAccountOperations = $service->getLoyaltyAccountOperations($loyaltyAccountId);
+        $loyaltyBonusActivationAndBurnInfo = $service->getLoyaltyBonesActivationAndBurnInfo($loyaltyAccountId);
 
         if ($loyaltyAccount !== null) {
             $arResult['BONUS_COUNT'] = $loyaltyAccount->amount;
@@ -53,7 +55,6 @@ try {
                 ? $loyaltyAccount->cardNumber
                 : GetMessage('CARD_NOT_LINKED');
             $arResult['PHONE'] = $loyaltyAccount->phoneNumber;
-            $arResult['REGISTER_DATE'] = $loyaltyAccount->createdAt->format('Y-m-d');
             $arResult['LOYALTY_LEVEL_NAME'] = $loyaltyAccount->loyaltyLevel->name;
             $arResult['LOYALTY_LEVEL_ID'] = $loyaltyAccount->id;
             $arResult['LL_PRIVILEGE_SIZE'] = $loyaltyAccount->loyaltyLevel->privilegeSize;
@@ -69,6 +70,9 @@ try {
             }
 
             $arResult['LOYALTY_ACCOUNT_OPERATIONS'] = $loyaltyAccountOperations;
+            $arResult['BONUS_PENDING'] = $loyaltyBonusActivationAndBurnInfo['waiting_activation'] ?: [];
+            $arResult['BONUS_WILL_EXPIRE'] = $loyaltyBonusActivationAndBurnInfo['burn_soon'] ?: [];
+
         }
 
         $this->IncludeComponentTemplate();
