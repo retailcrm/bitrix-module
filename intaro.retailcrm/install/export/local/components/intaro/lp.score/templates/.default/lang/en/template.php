@@ -52,3 +52,5 @@ $MESS['LOYALTY_BONUS_ACCRUAL_CANCELLED'] = 'Bonus accrual cancellation';
 $MESS['LOYALTY_HISTORY_TITLE'] = 'Loyalty History';
 $MESS['LOYALTY_BONUSES_EXPIRE'] = 'bonuses will expire';
 $MESS['LOYALTY_BONUSES_PENDING'] = 'bonuses pending activation';
+$MESS['LOYALTY_RUBLES'] = 'rubles';
+$MESS['LOYALTY_RUBLES_ICON'] = '₽';
