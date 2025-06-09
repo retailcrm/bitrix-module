@@ -19,6 +19,7 @@ use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountEditRequest
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountRequest;
 use Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountEditResponse;
 use Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountGetResponse;
+use Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountOperationsResponse;
 use Intaro\RetailCrm\Model\Api\Response\Loyalty\Account\LoyaltyAccountsResponse;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\LoyaltyCalculateRequest;
 use Intaro\RetailCrm\Model\Api\Request\Order\Loyalty\OrderLoyaltyApplyRequest;
@@ -33,6 +34,7 @@ use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationConfirmRe
 use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusRequest;
 use Intaro\RetailCrm\Model\Api\Response\SmsVerification\SmsVerificationStatusResponse;
 use ReflectionException;
+use RetailCrm\Response\ApiResponse;
 
 /**
  * Trait LoyaltyTrait
@@ -83,13 +85,13 @@ trait LoyaltyTrait
     }
 
     /**
-     * @param int $accountId
+     * @param int $loyaltyAccountId
      *
      * @return LoyaltyAccountGetResponse|null
      */
-    public function getLoyaltyAccount(int $accountId): ?LoyaltyAccountGetResponse
+    public function getLoyaltyAccount(int $loyaltyAccountId): ?LoyaltyAccountGetResponse
     {
-        $response = $this->client->getLoyaltyAccount($accountId);
+        $response = $this->client->getLoyaltyAccount($loyaltyAccountId);
 
         return Deserializer::deserializeArray($response->getResponseBody(), LoyaltyAccountGetResponse::class);
     }
@@ -103,9 +105,26 @@ trait LoyaltyTrait
     public function getLoyaltyAccounts(LoyaltyAccountRequest $request): ?LoyaltyAccountsResponse
     {
         $serialized = Serializer::serializeArray($request);
-        $response   = $this->client->getLoyaltyAccounts($serialized);
+        $response = $this->client->getLoyaltyAccounts($serialized);
 
         return Deserializer::deserializeArray($response->getResponseBody(), LoyaltyAccountsResponse::class);
+    }
+
+    /**
+     * @param int $loyaltyAccountId
+     *
+     * @return LoyaltyAccountsResponse|null
+     */
+    public function getLoyaltyAccountOperations(int $loyaltyAccountId): ?LoyaltyAccountOperationsResponse
+    {
+        $response = $this->client->getLoyaltyAccountOperations($loyaltyAccountId);
+
+        return Deserializer::deserializeArray($response->getResponseBody(), LoyaltyAccountOperationsResponse::class);
+    }
+
+    public function getLoyaltyBonesActivationAndBurnInfo(int $loyaltyAccountId, string $status): ApiResponse
+    {
+        return $this->client->getLoyaltyBonsesActivationAndBurnInfo($loyaltyAccountId, $status);
     }
 
     /**

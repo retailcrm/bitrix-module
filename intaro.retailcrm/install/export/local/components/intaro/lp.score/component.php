@@ -1,6 +1,7 @@
 <?php
 
 use Bitrix\Main\Localization\Loc;
+use Intaro\RetailCrm\Model\Api\LoyaltyBonusOperations;
 use Intaro\RetailCrm\Service\Exception\LpAccountsUnavailableException;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\ServiceLocator;
@@ -30,10 +31,11 @@ require_once $_SERVER['DOCUMENT_ROOT']
     . '/bitrix/modules/intaro.retailcrm/lib/service/exception/lpaccountsavailableexception.php';
 
 try {
-    $arResult['LOYALTY_STATUS']          = ConfigProvider::getLoyaltyProgramStatus();
+    $arResult['LOYALTY_STATUS'] = ConfigProvider::getLoyaltyProgramStatus();
     $arResult['PERSONAL_LOYALTY_STATUS'] = LoyaltyAccountService::getLoyaltyPersonalStatus();
 
     $customer = UserRepository::getById($USER->GetID());
+    $loyaltyAccountId = $customer->getLoyalty()->getIdInLoyalty();
 
     if (
         $arResult['LOYALTY_STATUS'] === 'Y'
@@ -42,29 +44,29 @@ try {
     ) {
         /* @var LoyaltyService $service */
         $service = ServiceLocator::get(LoyaltyService::class);
-        $response = $service->getLoyaltyAccounts($customer->getLoyalty()->getIdInLoyalty());
+        $loyaltyAccount = $service->getLoyaltyAccounts($loyaltyAccountId);
+        $loyaltyAccountOperations = $service->getLoyaltyAccountOperations($loyaltyAccountId);
+        $loyaltyBonusActivationAndBurnInfo = $service->getLoyaltyBonesActivationAndBurnInfo($loyaltyAccountId);
 
-        if ($response !== null) {
-            $arResult['BONUS_COUNT'] = $response->amount;
-            $arResult['ACTIVE_STATUS'] = $response->status;
-            $arResult['CARD'] = $response->cardNumber !== ''
-                ? $response->cardNumber
-                : GetMessage('CARD_NOT_LINKED');
-            $arResult['PHONE'] = $response->phoneNumber;
-            $arResult['REGISTER_DATE'] = $response->createdAt->format('Y-m-d');
-            $arResult['LOYALTY_LEVEL_NAME'] = $response->loyaltyLevel->name;
-            $arResult['LOYALTY_LEVEL_ID'] = $response->id;
-            $arResult['LL_PRIVILEGE_SIZE'] = $response->loyaltyLevel->privilegeSize;
-            $arResult['LL_PRIVILEGE_SIZE_PROMO'] = $response->loyaltyLevel->privilegeSizePromo;
-            $arResult['LOYALTY_LEVEL_TYPE'] = $response->loyaltyLevel->type;
-            $arResult['NEXT_LEVEL_SUM'] = (int)$response->nextLevelSum === 0
+        if ($loyaltyAccount !== null) {
+            $arResult['BONUS_COUNT'] = $loyaltyAccount->amount;
+            $arResult['LOYALTY_LEVEL_NAME'] = $loyaltyAccount->loyaltyLevel->name;
+            $arResult['LL_PRIVILEGE_SIZE'] = $loyaltyAccount->loyaltyLevel->privilegeSize;
+            $arResult['LL_PRIVILEGE_SIZE_PROMO'] = $loyaltyAccount->loyaltyLevel->privilegeSizePromo;
+            $arResult['LOYALTY_LEVEL_TYPE'] = $loyaltyAccount->loyaltyLevel->type;
+            $arResult['NEXT_LEVEL_SUM'] = (int) $loyaltyAccount->nextLevelSum === 0
                 ? GetMessage('TOP_LEVEL')
-                : (int) $response->nextLevelSum;
-            $arResult['ORDERS_SUM'] = (int)$response->ordersSum;
+                : (int) $loyaltyAccount->nextLevelSum;
+            $arResult['ORDERS_SUM'] = (int)$loyaltyAccount->ordersSum;
 
             if (is_int($arResult['NEXT_LEVEL_SUM']) && is_int($arResult['ORDERS_SUM'])) {
                 $arResult['REMAINING_SUM'] = $arResult['NEXT_LEVEL_SUM'] - $arResult['ORDERS_SUM'];
             }
+
+            $arResult['LOYALTY_ACCOUNT_OPERATIONS'] = $loyaltyAccountOperations;
+            $arResult['BONUS_PENDING'] = $loyaltyBonusActivationAndBurnInfo['waiting_activation'] ?: [];
+            $arResult['BONUS_WILL_EXPIRE'] = $loyaltyBonusActivationAndBurnInfo['burn_soon'] ?: [];
+
         }
 
         $this->IncludeComponentTemplate();
