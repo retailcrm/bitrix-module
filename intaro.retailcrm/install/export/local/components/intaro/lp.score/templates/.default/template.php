@@ -150,7 +150,7 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
     <?php if (isset($arResult['ORDERS_SUM']) || isset($arResult['REMAINING_SUM'])): ?>
         <?php
             $currency = Option::get('sale', 'default_currency', 'RUB');
-            $currencyDisplay = $currency === 'RUB' ? GetMessage('LOYALTY_RUBLES_ICON'): $currency;
+            $currencyDisplay = $currency === 'RUB' ? GetMessage('LOYALTY_RUBLES') : $currency;
         ?>
         <div class="loyalty-block">
             <div class="loyalty-title">

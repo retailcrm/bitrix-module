@@ -53,4 +53,3 @@ $MESS['LOYALTY_HISTORY_TITLE'] = 'История операций';
 $MESS['LOYALTY_BONUSES_EXPIRE'] = 'бонусов сгорят';
 $MESS['LOYALTY_BONUSES_PENDING'] = 'бонусов ожидают активации';
 $MESS['LOYALTY_RUBLES'] = 'рублей';
-$MESS['LOYALTY_RUBLES_ICON'] = '₽';
