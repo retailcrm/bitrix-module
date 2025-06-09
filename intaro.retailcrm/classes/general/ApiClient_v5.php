@@ -3021,7 +3021,7 @@ class ApiClient
         );
     }
 
-    public function getLoyaltyBonsesActivationAndBurnInfo(int $loyaltyAccountId, string $status): ApiResponse
+    public function getLoyaltyBonusesDetails(int $loyaltyAccountId, string $status): ApiResponse
     {
         return $this->client->makeRequest(
             sprintf('/loyalty/account/%s/bonus/%s/details', $loyaltyAccountId, $status),

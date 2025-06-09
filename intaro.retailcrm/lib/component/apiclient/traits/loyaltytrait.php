@@ -122,9 +122,9 @@ trait LoyaltyTrait
         return Deserializer::deserializeArray($response->getResponseBody(), LoyaltyAccountOperationsResponse::class);
     }
 
-    public function getLoyaltyBonesActivationAndBurnInfo(int $loyaltyAccountId, string $status): ApiResponse
+    public function getLoyaltyBonusesDetails(int $loyaltyAccountId, string $status): ApiResponse
     {
-        return $this->client->getLoyaltyBonsesActivationAndBurnInfo($loyaltyAccountId, $status);
+        return $this->client->getLoyaltyBonusesDetails($loyaltyAccountId, $status);
     }
 
     /**
