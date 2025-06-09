@@ -216,10 +216,10 @@ class LoyaltyService
         return [];
     }
 
-    public function getLoyaltyBonesActivationAndBurnInfo(int $loyaltyAccountId): array
+    public function getLoyaltyBonusesDetails(int $loyaltyAccountId): array
     {
-        $responseActivation = $this->client->getLoyaltyBonesActivationAndBurnInfo($loyaltyAccountId, 'waiting_activation')->getResponseBody();
-        $responseBurn = $this->client->getLoyaltyBonesActivationAndBurnInfo($loyaltyAccountId, 'burn_soon')->getResponseBody();
+        $responseActivation = $this->client->getLoyaltyBonusesDetails($loyaltyAccountId, 'waiting_activation')->getResponseBody();
+        $responseBurn = $this->client->getLoyaltyBonusesDetails($loyaltyAccountId, 'burn_soon')->getResponseBody();
         $burnBonuses = $responseBurn['bonuses'][0] ?: null;
         $activationBonuses = $responseActivation['bonuses'][0] ?: null;
         $bonusesInfo = [];

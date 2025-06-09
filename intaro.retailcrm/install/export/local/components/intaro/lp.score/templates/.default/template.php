@@ -84,19 +84,19 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
         <div class='loyalty-block'>
             <div class='loyalty-title'><?= sprintf(GetMessage('BONUS_COUNT'), $arResult['BONUS_COUNT']) ?></div>
             <?php
-            $pending = $arResult['BONUS_PENDING'] ?? [];
-            $willExpire = $arResult['BONUS_WILL_EXPIRE'] ?? [];
+            $bonusesPending = $arResult['BONUS_PENDING'];
+            $bonusesWillExpire = $arResult['BONUS_WILL_EXPIRE'];
             ?>
             <div class='loyalty-subinfo'>
-                <?php if (!empty($willExpire)): ?>
-                    <?= htmlspecialcharsbx($willExpire['amount']) ?> <?= GetMessage('LOYALTY_BONUSES_EXPIRE') ?>
-                    <?= htmlspecialcharsbx($willExpire['date']) ?>
-                    -
+                <?php if ($bonusesWillExpire !== []): ?>
+                    <?= htmlspecialcharsbx($bonusesWillExpire['amount']) ?> <?= GetMessage('LOYALTY_BONUSES_EXPIRE') ?>
+                    <?= htmlspecialcharsbx($bonusesWillExpire['date']) ?>
+                    <br>
                 <?php endif; ?>
 
-                <?php if (!empty($pending)): ?>
-                    <?= htmlspecialcharsbx($pending['amount']) ?> <?= GetMessage('LOYALTY_BONUSES_PENDING') ?>
-                    <?= htmlspecialcharsbx($pending['date']) ?>
+                <?php if ($bonusesPending !== []): ?>
+                    <?= htmlspecialcharsbx($bonusesPending['amount']) ?> <?= GetMessage('LOYALTY_BONUSES_PENDING') ?>
+                    <?= htmlspecialcharsbx($bonusesPending['date']) ?>
                 <?php endif; ?>
             </div>
         </div>

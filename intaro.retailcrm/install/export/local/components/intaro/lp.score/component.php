@@ -45,8 +45,8 @@ try {
         /* @var LoyaltyService $service */
         $service = ServiceLocator::get(LoyaltyService::class);
         $loyaltyAccount = $service->getLoyaltyAccounts($loyaltyAccountId);
+        $loyaltyBonusesDetails = $service->getLoyaltyBonusesDetails($loyaltyAccountId);
         $loyaltyAccountOperations = $service->getLoyaltyAccountOperations($loyaltyAccountId);
-        $loyaltyBonusActivationAndBurnInfo = $service->getLoyaltyBonesActivationAndBurnInfo($loyaltyAccountId);
 
         if ($loyaltyAccount !== null) {
             $arResult['BONUS_COUNT'] = $loyaltyAccount->amount;
@@ -64,9 +64,8 @@ try {
             }
 
             $arResult['LOYALTY_ACCOUNT_OPERATIONS'] = $loyaltyAccountOperations;
-            $arResult['BONUS_PENDING'] = $loyaltyBonusActivationAndBurnInfo['waiting_activation'] ?: [];
-            $arResult['BONUS_WILL_EXPIRE'] = $loyaltyBonusActivationAndBurnInfo['burn_soon'] ?: [];
-
+            $arResult['BONUS_PENDING'] = $loyaltyBonusesDetails['waiting_activation'] ?: [];
+            $arResult['BONUS_WILL_EXPIRE'] = $loyaltyBonusesDetails['burn_soon'] ?: [];
         }
 
         $this->IncludeComponentTemplate();
