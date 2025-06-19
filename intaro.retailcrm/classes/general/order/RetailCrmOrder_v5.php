@@ -438,8 +438,6 @@ class RetailCrmOrder
         $normalizer = new RestNormalizer();
         $order = $normalizer->normalize($order, 'orders');
 
-        Logger::getInstance()->write($order, 'orderSend');
-
         /** @var ClientAdapter $client */
         $client = ClientFactory::createClientAdapter();
         $userId = $arOrder['USER_ID'];
@@ -469,6 +467,11 @@ class RetailCrmOrder
                 if ($site === null) {
                     $site = RetailcrmConfigProvider::getSitesAvailable();
                 }
+
+                // Необходимо всегда передавать параметр isFromCart = true, CRM сама проверит и привяжет корзину к заказу
+                $order['isFromCart'] = true;
+
+                Logger::getInstance()->write($order, 'orderCreate');
 
                 $crmBasket = RCrmActions::apiMethod($api, 'cartGet', __METHOD__, $externalId, $site);
                 $orderResponse = $client->createOrder($order, $site);
@@ -506,6 +509,8 @@ class RetailCrmOrder
             }
 
             if ($methodApi === 'ordersEdit') {
+                Logger::getInstance()->write($order, 'orderEdit');
+
                 return $client->editOrder($order, $site);
             }
         }
