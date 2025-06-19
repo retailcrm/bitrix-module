@@ -470,6 +470,9 @@ class RetailCrmOrder
                     $site = RetailcrmConfigProvider::getSitesAvailable();
                 }
 
+                // Необходимо всегда передавать параметр isFromCart = true, CRM сама проверит и привяжет корзину к заказу
+                $order['isFromCart'] = true;
+
                 $crmBasket = RCrmActions::apiMethod($api, 'cartGet', __METHOD__, $externalId, $site);
                 $orderResponse = $client->createOrder($order, $site);
 
