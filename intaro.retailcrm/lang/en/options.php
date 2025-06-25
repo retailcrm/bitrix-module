@@ -106,6 +106,7 @@ $MESS['CHANGE_SHIPMENT_STATUS_FROM_CRM'] = "Change the shipment status when corr
 
 $MESS ['ONLINE_CONSULTANT_AND_EVENT_TRACKER'] = 'Activate the online consultant/event tracker';
 $MESS ['ONLINE_CONSULTANT_AND_EVENT_TRACKER_LABEL'] = 'JS code for online consultant/event tracker';
+$MESS['ONLINE_CONSULTANT_AND_EVENT_TRACKER_CODE_WARNING'] = 'RetailCRM widget script not found. Make sure the code contains "c.retailcrm.tech/widget/loader.js"';
 $MESS['EVENT_TRACKER_LABEL_EN'] = 'Enable event tracking';
 $MESS['EVENT_TRACKER_CART_DESCRIPTION'] = 'Track changes in the shopping cart';
 $MESS['EVENT_TRACKER_OPEN_CART_DESCRIPTION'] = 'Track cart views';

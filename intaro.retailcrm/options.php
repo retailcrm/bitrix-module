@@ -3367,37 +3367,41 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             <script>
                 document.addEventListener('DOMContentLoaded', () => {
                     const textarea = document.querySelector('textarea[name="online_consultant_script"]');
-                    const warning = document.createElement('div');
-                    const wrapper = textarea.closest('td').querySelector('div');
-                    const trackerCheckbox = wrapper.querySelector('#event_tracker');
-                    const cartCheckbox = wrapper.querySelector('#cart');
-                    const openCartCheckbox = wrapper.querySelector('#open_cart');
+                    const eventTrackerContainer = document.querySelector('#event_tracker_container');
+                    const eventTrackerCheckbox = eventTrackerContainer.querySelector('#event_tracker');
+                    const eventTrackerCartCheckbox = eventTrackerContainer.querySelector('#event_tracker_cart');
+                    const eventTrackerOpenCartCheckbox = eventTrackerContainer.querySelector('#event_tracker_open_cart');
 
-                    if (!textarea || !wrapper || !trackerCheckbox || !cartCheckbox || !openCartCheckbox) {
+                    if (!textarea
+                        || !eventTrackerContainer
+                        || !eventTrackerCheckbox
+                        || !eventTrackerCartCheckbox
+                        || !eventTrackerOpenCartCheckbox
+                    ) {
                         return;
                     }
 
-                    warning.textContent = 'Скрипт виджета RetailCRM не найден. Убедитесь, что в коде есть "c.retailcrm.tech/widget/loader.js"';
+                    const warning = document.createElement('div');
                     warning.style = 'color:red; margin-top:5px; display:none;';
+                    warning.textContent = '<?php echo GetMessage('ONLINE_CONSULTANT_AND_EVENT_TRACKER_CODE_WARNING')?>';
                     textarea.insertAdjacentElement('afterend', warning);
 
-                    const updateEventCheckboxState = () => {
-                        const value = textarea.value.trim();
-                        const hasCode = value !== '';
-                        const hasWidget = value.includes('c.retailcrm.tech/widget/loader.js');
+                    const renderEventCheckboxes = () => {
+                        const textareaValue = textarea.value.trim();
+                        const hasCode = textareaValue !== '';
+                        const hasWidget = textareaValue.includes('c.retailcrm.tech/widget/loader.js');
+                        const canShowEvents = eventTrackerCheckbox.checked && hasCode && hasWidget;
 
                         warning.style.display = (!hasWidget && hasCode) ? 'block' : 'none';
-                        wrapper.style.display = (hasCode && hasWidget) ? 'block' : 'none';
-
-                        const showEvents = trackerCheckbox.checked && hasCode && hasWidget;
-                        cartCheckbox.closest('label').style.display = showEvents ? 'block' : 'none';
-                        openCartCheckbox.closest('label').style.display = showEvents ? 'block' : 'none';
+                        eventTrackerContainer.style.display = (hasCode && hasWidget) ? 'block' : 'none';
+                        eventTrackerCartCheckbox.closest('label').style.display = canShowEvents ? 'block' : 'none';
+                        eventTrackerOpenCartCheckbox.closest('label').style.display = canShowEvents ? 'block' : 'none';
                     };
 
-                    textarea.addEventListener('input', updateEventCheckboxState);
-                    trackerCheckbox.addEventListener('change', updateEventCheckboxState);
+                    textarea.addEventListener('input', renderEventCheckboxes);
+                    eventTrackerCheckbox.addEventListener('change', renderEventCheckboxes);
 
-                    updateEventCheckboxState();
+                    renderEventCheckboxes();
                 });
             </script>
 
@@ -3408,7 +3412,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 <td class="adm-detail-content-cell-r" width="55%">
                     <textarea name="online_consultant_script" style="width: 300px; height: 200px;"><?php echo $optionOnlineConsultantScript; ?></textarea>
 
-                    <div id="event_tracker_wrapper" style="margin-top: 10px; display: none;">
+                    <div id="event_tracker_container" style="margin-top: 10px; display: none;">
                         <label style="display: block; margin-top: 8px;">
                             <input type="checkbox" name="event_tracker" id="event_tracker" value="Y"
                                 <?php if ($optionEventTracker) echo 'checked'; ?>>
@@ -3416,13 +3420,13 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                         </label>
 
                         <label style="display: block; margin-left: 20px; margin-top: 5px;">
-                            <input type="checkbox" name="event_tracker_open_cart" id="open_cart" value="Y" title="open_cart"
+                            <input type="checkbox" name="event_tracker_open_cart" id="event_tracker_open_cart" value="Y" title="open_cart"
                                 <?php if ($optionEventTrackerCart) echo 'checked'; ?>>
                             <?php echo GetMessage('EVENT_TRACKER_OPEN_CART_DESCRIPTION'); ?>
                         </label>
 
                         <label style="display: block; margin-left: 20px; margin-top: 5px;">
-                            <input type="checkbox" name="event_tracker_cart" id="cart" value="Y" title="cart"
+                            <input type="checkbox" name="event_tracker_cart" id="event_tracker_cart" value="Y" title="cart"
                                 <?php if ($optionEventTrackerOpenCart) echo 'checked'; ?>>
                             <?php echo GetMessage('EVENT_TRACKER_CART_DESCRIPTION'); ?>
                         </label>

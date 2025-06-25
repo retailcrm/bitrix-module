@@ -122,6 +122,7 @@ $MESS ['DEMON_KEY'] = 'Ключ для';
 
 $MESS ['ONLINE_CONSULTANT_AND_EVENT_TRACKER'] = 'Активировать онлайн-консультанта/трекер событий';
 $MESS ['ONLINE_CONSULTANT_AND_EVENT_TRACKER_LABEL'] = 'JS код онлайн-консультанта/трекера событий';
+$MESS ['ONLINE_CONSULTANT_AND_EVENT_TRACKER_CODE_WARNING'] = 'Скрипт виджета RetailCRM не найден. Убедитесь, что в коде есть "c.retailcrm.tech/widget/loader.js"';
 $MESS['EVENT_TRACKER_LABEL'] = 'Включить отслеживание событий';
 $MESS['EVENT_TRACKER_CART_DESCRIPTION'] = 'Отслеживать изменения товаров в корзине';
 $MESS['EVENT_TRACKER_OPEN_CART_DESCRIPTION'] = 'Отслеживать просмотр корзины';
