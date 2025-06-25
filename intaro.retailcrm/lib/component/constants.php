@@ -28,12 +28,10 @@ class Constants
     public const CRM_API_KEY_OPTION = 'api_key';
     public const CRM_ORDER_TYPES_ARR = 'order_types_arr';
     public const CRM_DELIVERY_TYPES_ARR = 'deliv_types_arr';
-    public const CRM_DELIVERY_SERVICES_ARR = 'deliv_services_arr';
     public const CRM_PAYMENT_TYPES = 'pay_types_arr';
     public const CRM_PAYMENT_STATUSES = 'pay_statuses_arr';
     public const CRM_PAYMENT = 'payment_arr';
     public const CRM_ORDER_LAST_ID = 'order_last_id';
-    public const CRM_ORDER_SITES = 'sites_ids';
     public const CRM_ORDER_DISCHARGE = 'order_discharge';
     public const CRM_SITES_LIST = 'sites_list';
     public const CRM_ORDER_PROPS = 'order_props';
@@ -66,38 +64,40 @@ class Constants
     public const CRM_CURRENCY = 'currency';
     public const CRM_ADDRESS_OPTIONS = 'address_options';
     public const CRM_DIMENSIONS = 'order_dimensions';
-    public const PROTOCOL                       = 'protocol';
-    public const CRM_ORDER_FAILED_IDS           = 'order_failed_ids';
+    public const PROTOCOL = 'protocol';
+    public const CRM_ORDER_FAILED_IDS = 'order_failed_ids';
     public const CRM_CUSTOMERS_HISTORY_SINCE_ID = 'customer_history';
     public const CRM_ORDER_HISTORY_DATE = 'order_history_date';
     public const CRM_ORDER_HISTORY = 'order_history';
     public const CRM_CATALOG_BASE_PRICE = 'catalog_base_price';
     public const CRM_ORDER_DIMENSIONS = 'order_dimensions';
     public const CRM_INTEGRATION_DELIVERY = 'integration_delivery';
-    public const CRM_SHIPMENT_DEDUCTED        = 'shipment_deducted';
-    public const CORPORATE_CONTRAGENT_TYPE    = 'legal-entity';
-    public const SEND_PAYMENT_AMOUNT          = 'send_payment_amount';
-    public const CRM_ONLINE_CONSULTANT        = 'online_consultant';
+    public const CRM_SHIPMENT_DEDUCTED = 'shipment_deducted';
+    public const CORPORATE_CONTRAGENT_TYPE = 'legal-entity';
+    public const SEND_PAYMENT_AMOUNT = 'send_payment_amount';
+    public const CRM_ONLINE_CONSULTANT = 'online_consultant';
     public const CRM_ONLINE_CONSULTANT_SCRIPT = 'online_consultant_script';
-    public const LOYALTY_PROGRAM_TOGGLE    = 'loyalty_program_toggle';
-    public const CLIENT_ID                 = 'client_id';
+    public const CRM_EVENT_TRACKER = 'event_tracker';
+    public const CRM_EVENT_TRACKER_CART = 'event_tracker_cart';
+    public const CRM_EVENT_TRACKER_OPEN_CART = 'event_tracker_open_cart';
+    public const LOYALTY_PROGRAM_TOGGLE = 'loyalty_program_toggle';
+    public const CLIENT_ID = 'client_id';
     public const AGREEMENT_LOYALTY_PROGRAM = 'agreement_loyalty_program';
-    public const AGREEMENT_PERSONAL_DATA  = 'agreement_personal_data';
-    public const HL_LOYALTY_CODE          = 'LoyaltyProgramRetailCRM';
-    public const HL_LOYALTY_TABLE_NAME    = 'loyalty_program';
-    public const LP_BONUS_INFO                  = 'LP_BONUS_INFO';
-    public const API_ERRORS_LOG                 = 'apiErrors';
-    public const LOYALTY_ERROR                  = 'loyaltyErrors';
-    public const REPOSITORY_ERRORS              = 'repositoryErrors';
-    public const TEMPLATES_ERROR                = 'templatesErrors';
-    public const DEFAULT_LOYALTY_TEMPLATE       = 'default_loyalty';
-    public const LOYALTY_PROGRAM_ID             = 'LOYALTY_PROGRAM_ID';
-    public const LOYALTY_FIELDS                 = 'loyalty_fields';
-    public const AGREEMENT_PERSONAL_DATA_CODE   = 'AGREEMENT_PERSONAL_DATA_CODE';
+    public const AGREEMENT_PERSONAL_DATA = 'agreement_personal_data';
+    public const HL_LOYALTY_CODE = 'LoyaltyProgramRetailCRM';
+    public const HL_LOYALTY_TABLE_NAME = 'loyalty_program';
+    public const API_ERRORS_LOG = 'apiErrors';
+    public const LOYALTY_ERROR = 'loyaltyErrors';
+    public const REPOSITORY_ERRORS = 'repositoryErrors';
+    public const TEMPLATES_ERROR = 'templatesErrors';
+    public const DEFAULT_LOYALTY_TEMPLATE = 'default_loyalty';
+    public const LOYALTY_PROGRAM_ID = 'LOYALTY_PROGRAM_ID';
+    public const LOYALTY_FIELDS = 'loyalty_fields';
+    public const AGREEMENT_PERSONAL_DATA_CODE = 'AGREEMENT_PERSONAL_DATA_CODE';
     public const AGREEMENT_LOYALTY_PROGRAM_CODE = 'AGREEMENT_LOYALTY_PROGRAM_CODE';
-    public const CART                           = 'cart';
+    public const CART = 'cart';
     public const CRM_SEND_PICKUP_POINT_ADDRESS = 'send_pickup_point_address';
-    public const LP_EVENTS                      = [
+    public const LP_EVENTS = [
         ['EVENT_NAME' => 'OnSaleOrderSaved', 'FROM_MODULE' => 'sale'],
         ['EVENT_NAME' => 'OnSaleComponentOrderResultPrepared', 'FROM_MODULE' => 'sale'],
     ];
@@ -106,8 +106,8 @@ class Constants
     public const CUSTOM_FIELDS_TOGGLE = 'custom_fields_toggle';
     public const MATCHED_CUSTOM_PROPS = 'matched_order_props';
     public const MATCHED_CUSTOM_USER_FIELDS = 'matched_custom_field';
-    public const USE_CRM_ORDER_METHODS  = 'use_crm_order_methods';
-    public const CRM_ORDER_METHODS  = 'crm_order_methods';
+    public const USE_CRM_ORDER_METHODS = 'use_crm_order_methods';
+    public const CRM_ORDER_METHODS = 'crm_order_methods';
     public const SYNC_INTEGRATION_PAYMENT = 'sync_integration_payment';
     public const CRM_PART_SUBSTITUTED_PAYMENT_CODE = '-not-integration';
     public const CRM_SUBSTITUTION_PAYMENT_LIST = 'substitution_payment';
@@ -125,9 +125,8 @@ class Constants
     ];
     public const REQUIRED_API_SCOPES_CUSTOM = [
         'custom_fields_read' => 'custom_fields_read',
-        'custom_fields_write' => 'custom_fields_write'
+        'custom_fields_write' => 'custom_fields_write',
     ];
-
     public const OPTION_FIX_DATE_CUSTOMER = 'once_upload_customer';
     public const OPTION_FIX_DATE_CUSTOMER_LAST_ID = 'last_id_customer_fix';
     public const HISTORY_TIME = 'history_time';

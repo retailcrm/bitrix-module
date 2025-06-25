@@ -4,7 +4,6 @@ use Bitrix\Currency\CurrencyManager;
 use Bitrix\Main\Application;
 use Bitrix\Main\EventManager;
 use Bitrix\Main\LoaderException;
-use Bitrix\Main\SystemException;
 use Bitrix\Main\UI\Extension;
 use Bitrix\Sale\Delivery\Services\Manager;
 use Bitrix\Sale\Internals\OrderTable;
@@ -559,6 +558,17 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         UnRegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmOnlineConsultant", "add");
     }
 
+    if (htmlspecialchars(trim($_POST['event_tracker'] === 'Y'))) {
+        $eventTracker = 'Y';
+        // копирование и листнер
+        // RegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmOnlineConsultant", "add");
+    } else {
+        $eventTracker = 'N';
+        $eventTrackerOpenCart =  $_POST['event_tracker_open_cart'];
+
+        // UnRegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmOnlineConsultant", "add");
+    }
+
     //discount_round
     if (htmlspecialchars(trim($_POST['discount_round'])) === 'Y') {
         $discount_round = 'Y';
@@ -999,6 +1009,9 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
     RetailCrmConfigProvider::setOnlineConsultant($onlineConsultant);
     RetailCrmConfigProvider::setOnlineConsultantScript($onlineConsultantScript);
+    RetailCrmConfigProvider::setEventTracker($eventTracker);
+    RetailCrmConfigProvider::setEventTrackerCart(htmlspecialchars(trim($_POST['event_tracker_cart'])) ?: 'N');
+    RetailCrmConfigProvider::setventTrackerOpenCart(htmlspecialchars(trim($_POST['event_tracker_open_cart'])) ?: 'N');
 
     COption::SetOptionString(
         $mid,
@@ -1287,6 +1300,9 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
     $optionOnlineConsultant = RetailcrmConfigProvider::isOnlineConsultantEnabled();
     $optionOnlineConsultantScript = RetailcrmConfigProvider::getOnlineConsultantScript();
+    $optionEventTracker = RetailcrmConfigProvider::isEventTrackerEnabled();
+    $optionEventTrackerCart = RetailcrmConfigProvider::isEventTrackerCartEnabled();
+    $optionEventTrackerOpenCart= RetailcrmConfigProvider::isEventTrackerOpenCartEnabled();
 
     $optionUa = COption::GetOptionString($mid, Constants::CRM_UA, 0);
     $optionUaKeys = unserialize(COption::GetOptionString($mid, Constants::CRM_UA_KEYS));
@@ -3343,15 +3359,75 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             <tr class="heading r-consultant-button">
                 <td colspan="2" class="option-other-heading">
                     <b>
-                        <label><input class="addr" type="checkbox" name="online_consultant" value="Y" <?php if ($optionOnlineConsultant) echo "checked"; ?>><?php echo GetMessage('ONLINE_CONSULTANT'); ?></label>
+                        <label><input class="addr" type="checkbox" name="online_consultant" value="Y" <?php if ($optionOnlineConsultant) echo "checked"; ?>><?php echo GetMessage('ONLINE_CONSULTANT_AND_EVENT_TRACKER'); ?></label>
                     </b>
                 </td>
             </tr>
 
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    const textarea = document.querySelector('textarea[name="online_consultant_script"]');
+                    const warning = document.createElement('div');
+                    const wrapper = textarea.closest('td').querySelector('div');
+                    const trackerCheckbox = wrapper.querySelector('#event_tracker');
+                    const cartCheckbox = wrapper.querySelector('#cart');
+                    const openCartCheckbox = wrapper.querySelector('#open_cart');
+
+                    if (!textarea || !wrapper || !trackerCheckbox || !cartCheckbox || !openCartCheckbox) {
+                        return;
+                    }
+
+                    warning.textContent = 'Скрипт виджета RetailCRM не найден. Убедитесь, что в коде есть "c.retailcrm.tech/widget/loader.js"';
+                    warning.style = 'color:red; margin-top:5px; display:none;';
+                    textarea.insertAdjacentElement('afterend', warning);
+
+                    const updateEventCheckboxState = () => {
+                        const value = textarea.value.trim();
+                        const hasCode = value !== '';
+                        const hasWidget = value.includes('c.retailcrm.tech/widget/loader.js');
+
+                        warning.style.display = (!hasWidget && hasCode) ? 'block' : 'none';
+                        wrapper.style.display = (hasCode && hasWidget) ? 'block' : 'none';
+
+                        const showEvents = trackerCheckbox.checked && hasCode && hasWidget;
+                        cartCheckbox.closest('label').style.display = showEvents ? 'block' : 'none';
+                        openCartCheckbox.closest('label').style.display = showEvents ? 'block' : 'none';
+                    };
+
+                    textarea.addEventListener('input', updateEventCheckboxState);
+                    trackerCheckbox.addEventListener('change', updateEventCheckboxState);
+
+                    updateEventCheckboxState();
+                });
+            </script>
+
             <tr class="r-consultant" <?php if (!$optionOnlineConsultant) echo 'style="display: none;"'; ?>>
-                <td class="adm-detail-content-cell-l" width="45%"><?php echo GetMessage('ONLINE_CONSULTANT_LABEL')?></td>
+                <td class="adm-detail-content-cell-l" width="45%" valign="top">
+                    <?php echo GetMessage('ONLINE_CONSULTANT_AND_EVENT_TRACKER_LABEL')?>
+                </td>
                 <td class="adm-detail-content-cell-r" width="55%">
-                    <textarea name="online_consultant_script"><?php echo $optionOnlineConsultantScript; ?></textarea>
+                    <textarea name="online_consultant_script" style="width: 300px; height: 200px;"><?php echo $optionOnlineConsultantScript; ?></textarea>
+
+                    <div id="event_tracker_wrapper" style="margin-top: 10px; display: none;">
+                        <label style="display: block; margin-top: 8px;">
+                            <input type="checkbox" name="event_tracker" id="event_tracker" value="Y"
+                                <?php if ($optionEventTracker) echo 'checked'; ?>>
+                            <?php echo GetMessage('EVENT_TRACKER_LABEL'); ?>
+                        </label>
+
+                        <label style="display: block; margin-left: 20px; margin-top: 5px;">
+                            <input type="checkbox" name="event_tracker_open_cart" id="open_cart" value="Y" title="open_cart"
+                                <?php if ($optionEventTrackerCart) echo 'checked'; ?>>
+                            <?php echo GetMessage('EVENT_TRACKER_OPEN_CART_DESCRIPTION'); ?>
+                        </label>
+
+                        <label style="display: block; margin-left: 20px; margin-top: 5px;">
+                            <input type="checkbox" name="event_tracker_cart" id="cart" value="Y" title="cart"
+                                <?php if ($optionEventTrackerOpenCart) echo 'checked'; ?>>
+                            <?php echo GetMessage('EVENT_TRACKER_CART_DESCRIPTION'); ?>
+                        </label>
+
+                    </div>
                 </td>
             </tr>
 
