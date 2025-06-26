@@ -111,6 +111,7 @@ $MESS['EVENT_TRACKER_LABEL_EN'] = 'Enable event tracking';
 $MESS['EVENT_TRACKER_CART_DESCRIPTION'] = 'Track changes in the shopping cart';
 $MESS['EVENT_TRACKER_OPEN_CART_DESCRIPTION'] = 'Track cart views';
 $MESS['EVENT_TRACKER_ERROR_CREATE_DIRECTORY'] = 'Error creating directory %s';
+$MESS['EVENT_TRACKER_COPY_FILES'] = 'Copy files for tracker operation';
 
 $MESS ['INTEGRATION_PAYMENT_LIST'] = 'The status will not be transferred for integration payments';
 $MESS ['INTEGRATIONS'] = ' (integration)';
