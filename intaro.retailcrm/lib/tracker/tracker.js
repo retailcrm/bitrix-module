@@ -23,6 +23,7 @@ function sendCartView() {
             onsuccess: function (result) {
                 if (result.success) {
                     setTimeout(function() {
+                        ocapi.setCustomerSiteId(result.userId);
                         ocapi.event('open_cart', {customer_email: result.email});
                     }, 3000);
                 }
@@ -61,6 +62,7 @@ function sendCartChange() {
                     });
 
                     setTimeout(function() {
+                        ocapi.setCustomerSiteId(result.userId);
                         ocapi.event('cart', cartObject);
                     }, 3000);
                 }
