@@ -38,4 +38,5 @@ echo json_encode([
     'success' => true,
     'items' => $basketItems,
     'email' => $USER->GetEmail(),
+    'userId' => $USER->GetID()
 ]);
