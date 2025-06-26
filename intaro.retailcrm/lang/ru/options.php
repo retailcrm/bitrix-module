@@ -126,6 +126,7 @@ $MESS ['ONLINE_CONSULTANT_AND_EVENT_TRACKER_CODE_WARNING'] = 'Скрипт ви�
 $MESS['EVENT_TRACKER_LABEL'] = 'Включить отслеживание событий';
 $MESS['EVENT_TRACKER_CART_DESCRIPTION'] = 'Отслеживать изменения товаров в корзине';
 $MESS['EVENT_TRACKER_OPEN_CART_DESCRIPTION'] = 'Отслеживать просмотр корзины';
+$MESS['EVENT_TRACKER_ERROR_CREATE_DIRECTORY'] = 'Ошибка при создании директории %s';
 
 $MESS ['UNIVERSAL_ANALYTICS'] = 'Включить интеграцию с UA';
 $MESS ['ID_UA'] = 'Идентификатор отслеживания:';

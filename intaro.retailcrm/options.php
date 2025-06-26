@@ -560,11 +560,16 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
     if (htmlspecialchars(trim($_POST['event_tracker'] === 'Y'))) {
         $eventTracker = 'Y';
-        // копирование и листнер
+
+        try {
+            RetailCrmUtils::copyEventTrackerFiles();
+        } catch (Throwable $exception) {
+            Logger::getInstance()->write($exception->getMessage(), 'eventTrackerErrors');
+        }
+
         // RegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmOnlineConsultant", "add");
     } else {
         $eventTracker = 'N';
-        $eventTrackerOpenCart =  $_POST['event_tracker_open_cart'];
 
         // UnRegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmOnlineConsultant", "add");
     }
