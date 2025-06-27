@@ -568,6 +568,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         $onlineConsultantScript = trim($_POST['online_consultant_script']);
         RegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmOnlineConsultant", "add");
     } else {
+        $eventTracker = 'N';
         $onlineConsultant = 'N';
         $onlineConsultantScript = RetailcrmConfigProvider::getOnlineConsultantScript();
         UnRegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmOnlineConsultant", "add");
@@ -582,11 +583,11 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             Logger::getInstance()->write($exception->getMessage(), 'eventTrackerErrors');
         }
 
-        // RegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmOnlineConsultant", "add");
+         RegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmTracker", "add");
     } else {
         $eventTracker = 'N';
 
-        // UnRegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmOnlineConsultant", "add");
+         UnRegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmTracker", "add");
     }
 
     //discount_round

@@ -128,6 +128,8 @@ $MESS['EVENT_TRACKER_CART_DESCRIPTION'] = 'Отслеживать изменен
 $MESS['EVENT_TRACKER_OPEN_CART_DESCRIPTION'] = 'Отслеживать просмотр корзины';
 $MESS['EVENT_TRACKER_ERROR_CREATE_DIRECTORY'] = 'Ошибка при создании директории %s';
 $MESS['EVENT_TRACKER_COPY_FILES'] = 'Копировать файлы для работы трекера';
+$MESS['EVENT_TRACKER_SUCCESSFUL_COPY_FILES'] = 'Файлы трекера успешно скопированы';
+$MESS['EVENT_TRACKER_ERROR_COPY_FILES'] = 'При копировании файлов трекера возникла ошибка';
 
 $MESS ['UNIVERSAL_ANALYTICS'] = 'Включить интеграцию с UA';
 $MESS ['ID_UA'] = 'Идентификатор отслеживания:';

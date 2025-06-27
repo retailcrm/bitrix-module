@@ -112,6 +112,8 @@ $MESS['EVENT_TRACKER_CART_DESCRIPTION'] = 'Track changes in the shopping cart';
 $MESS['EVENT_TRACKER_OPEN_CART_DESCRIPTION'] = 'Track cart views';
 $MESS['EVENT_TRACKER_ERROR_CREATE_DIRECTORY'] = 'Error creating directory %s';
 $MESS['EVENT_TRACKER_COPY_FILES'] = 'Copy files for tracker operation';
+$MESS['EVENT_TRACKER_SUCCESSFUL_COPY_FILES'] = 'Tracker files were successfully copied';
+$MESS['EVENT_TRACKER_ERROR_COPY_FILES'] = 'An error occurred while copying tracker files';
 
 $MESS ['INTEGRATION_PAYMENT_LIST'] = 'The status will not be transferred for integration payments';
 $MESS ['INTEGRATIONS'] = ' (integration)';
