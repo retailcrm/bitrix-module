@@ -19,10 +19,7 @@ class RetailCrmTracker
             return;
         }
 
-        CJSCore::RegisterExt('tracker', [
-            'js' => '/local/js/tracker.js',
-            'rel' => []
-        ]);
+        CJSCore::RegisterExt('tracker', ['js' => '/local/js/tracker.js', 'rel' => []]);
 
         $events = [];
 
