@@ -562,18 +562,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         UnRegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmUa", "add");
     }
 
-    //online_consultant
-    if (htmlspecialchars(trim($_POST['online_consultant'] === 'Y'))) {
-        $onlineConsultant = 'Y';
-        $onlineConsultantScript = trim($_POST['online_consultant_script']);
-        RegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmOnlineConsultant", "add");
-    } else {
-        $eventTracker = 'N';
-        $onlineConsultant = 'N';
-        $onlineConsultantScript = RetailcrmConfigProvider::getOnlineConsultantScript();
-        UnRegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmOnlineConsultant", "add");
-    }
-
     if (htmlspecialchars(trim($_POST['event_tracker'] === 'Y'))) {
         $eventTracker = 'Y';
 
@@ -583,11 +571,32 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             Logger::getInstance()->write($exception->getMessage(), 'eventTrackerErrors');
         }
 
-         RegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmTracker", "add");
+        RegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmTracker", "add");
     } else {
         $eventTracker = 'N';
 
-         UnRegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmTracker", "add");
+        UnRegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmTracker", "add");
+    }
+
+    //online_consultant
+    if (htmlspecialchars(trim($_POST['online_consultant'] === 'Y'))) {
+        $onlineConsultant = 'Y';
+        $onlineConsultantScript = trim($_POST['online_consultant_script']);
+        RegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmOnlineConsultant", "add");
+    } else {
+        $onlineConsultant = 'N';
+        $onlineConsultantScript = RetailcrmConfigProvider::getOnlineConsultantScript();
+        UnRegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmOnlineConsultant", "add");
+
+        // Отключаем трекер, если деактивирована основная опция
+        $eventTracker = 'N';
+        UnRegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmTracker", "add");
+    }
+
+    // Отключаем трекер, если если не добавлен JS-код
+    if ($onlineConsultantScript === '') {
+        $eventTracker = 'N';
+        UnRegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmOnlineConsultant", "add");
     }
 
     //discount_round
@@ -3426,10 +3435,10 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                             data: 'ajax=4',
                             dataType: 'json',
                             success: function () {
-                                alert('Ураа');
+                                alert('<?php echo GetMessage('EVENT_TRACKER_SUCCESSFUL_COPY_FILES'); ?>');
                             },
                             error: function () {
-                                alert('Не ураа');
+                                alert('<?php echo GetMessage('EVENT_TRACKER_ERROR_COPY_FILES'); ?>');
                             }
                         })
                     });
