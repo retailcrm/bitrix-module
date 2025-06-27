@@ -43,12 +43,12 @@ class RetailCrmTracker
 
             Asset::getInstance()->addString(
                 '<script>
-            BX.ready(function() {
-                if (typeof window.startTrack === "function") {
-                    startTrack(...' . json_encode($events) . ');
-                }
-            });
-        </script>'
+                    BX.ready(function() {
+                        if (typeof window.startTrack === "function") {
+                            startTrack(...' . json_encode($events) . ');
+                        }
+                    });
+                </script>'
             );
         });
     }
