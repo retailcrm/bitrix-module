@@ -4,7 +4,6 @@ use Bitrix\Currency\CurrencyManager;
 use Bitrix\Main\Application;
 use Bitrix\Main\EventManager;
 use Bitrix\Main\LoaderException;
-use Bitrix\Main\SystemException;
 use Bitrix\Main\UI\Extension;
 use Bitrix\Sale\Delivery\Services\Manager;
 use Bitrix\Sale\Internals\OrderTable;
@@ -209,6 +208,21 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_RE
     $APPLICATION->RestartBuffer();
     header('Content-Type: application/x-javascript; charset=' . LANG_CHARSET);
     die(json_encode(['success' => true]));
+}
+
+// AJAX запрос для копирования файлов трекера.
+if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') && isset($_POST['ajax']) && $_POST['ajax'] == 4) {
+    $isSuccessfulResponse = true;
+
+    try {
+        RetailCrmUtils::copyEventTrackerFiles();
+    } catch (Throwable $exception) {
+        $isSuccessfulResponse = false;
+
+        Logger::getInstance()->write($exception->getMessage(), 'eventTrackerErrors');
+    }
+
+    die(json_encode(['success' => $isSuccessfulResponse]));
 }
 
 $availableSites = RetailcrmConfigProvider::getSitesList();
@@ -548,6 +562,22 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         UnRegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmUa", "add");
     }
 
+    if (htmlspecialchars(trim($_POST['event_tracker'] === 'Y'))) {
+        $eventTracker = 'Y';
+
+        try {
+            RetailCrmUtils::copyEventTrackerFiles();
+        } catch (Throwable $exception) {
+            Logger::getInstance()->write($exception->getMessage(), 'eventTrackerErrors');
+        }
+
+        RegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmTracker", "add");
+    } else {
+        $eventTracker = 'N';
+
+        UnRegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmTracker", "add");
+    }
+
     //online_consultant
     if (htmlspecialchars(trim($_POST['online_consultant'] === 'Y'))) {
         $onlineConsultant = 'Y';
@@ -556,6 +586,16 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     } else {
         $onlineConsultant = 'N';
         $onlineConsultantScript = RetailcrmConfigProvider::getOnlineConsultantScript();
+        UnRegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmOnlineConsultant", "add");
+
+        // Отключаем трекер, если деактивирована основная опция
+        $eventTracker = 'N';
+        UnRegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmTracker", "add");
+    }
+
+    // Отключаем трекер, если если не добавлен JS-код
+    if ($onlineConsultantScript === '') {
+        $eventTracker = 'N';
         UnRegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmOnlineConsultant", "add");
     }
 
@@ -999,6 +1039,9 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
     RetailCrmConfigProvider::setOnlineConsultant($onlineConsultant);
     RetailCrmConfigProvider::setOnlineConsultantScript($onlineConsultantScript);
+    RetailCrmConfigProvider::setEventTracker($eventTracker);
+    RetailCrmConfigProvider::setEventTrackerCart(htmlspecialchars(trim($_POST['event_tracker_cart'])) ?: 'N');
+    RetailCrmConfigProvider::setventTrackerOpenCart(htmlspecialchars(trim($_POST['event_tracker_open_cart'])) ?: 'N');
 
     COption::SetOptionString(
         $mid,
@@ -1287,6 +1330,9 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
     $optionOnlineConsultant = RetailcrmConfigProvider::isOnlineConsultantEnabled();
     $optionOnlineConsultantScript = RetailcrmConfigProvider::getOnlineConsultantScript();
+    $optionEventTracker = RetailcrmConfigProvider::isEventTrackerEnabled();
+    $optionEventTrackerCart = RetailcrmConfigProvider::isEventTrackerCartEnabled();
+    $optionEventTrackerOpenCart= RetailcrmConfigProvider::isEventTrackerOpenCartEnabled();
 
     $optionUa = COption::GetOptionString($mid, Constants::CRM_UA, 0);
     $optionUaKeys = unserialize(COption::GetOptionString($mid, Constants::CRM_UA_KEYS));
@@ -1541,7 +1587,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         }
 
         function replaceDefSaleTemplate() {
-            console.log($('#lp-templates').serializeArray());
             BX.ajax.runAction('intaro:retailcrm.api.adminpanel.replaceDefSaleTemplate',
                 {
                     data: {
@@ -1552,7 +1597,6 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         }
 
         function replaceDefSaleTemplate() {
-            console.log($('#lp-templates').serializeArray());
             BX.ajax.runAction('intaro:retailcrm.api.adminpanel.replaceDefSaleTemplate',
                 {
                     data: {
@@ -1825,12 +1869,11 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 $(updButton).css('opacity', '0.5').attr('disabled', 'disabled');
 
                 var handlerUrl = $(this).parents('form').attr('action');
-                var data = 'ajax=1';
 
                 $.ajax({
                     type: 'POST',
                     url: handlerUrl,
-                    data: data,
+                    data: 'ajax=1',
                     dataType: 'json',
                     success: function(response) {
                         BX.closeWait();
@@ -2870,16 +2913,15 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                     function orderUpload() {
 
                         var handlerUrl = $('#upload-orders').attr('action');
-                        var step       = $('input[name="step"]').val();
-                        var orders     = $('input[name="orders"]').val();
-                        var data       = 'orders=' + orders + '&step=' + step + '&ajax=2';
+                        var step = $('input[name="step"]').val();
+                        var orders = $('input[name="orders"]').val();
 
                         // ajax request
                         $.ajax({
-                            type:     'POST',
-                            url:      handlerUrl,
-                            data:     data,
-                            dataType: 'json',
+                            type: 'POST',
+                            url: handlerUrl,
+                            data: 'orders=' + orders + '&step=' + step + '&ajax=2',
+                            dataType:'json',
                             success:  function(response) {
                                 $('input[name="step"]').val(response.step);
                                 if (response.step === 'end') {
@@ -2922,12 +2964,11 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
                     function customerFixDate() {
                         var handleUrl = $('#fix-upload_customer').attr('action');
-                        var data = 'ajax=3';
 
                         $.ajax({
                             type: 'POST',
                             url: handleUrl,
-                            data: data,
+                            data: 'ajax=3',
                             dataType: 'json',
                             success: function () {
                                 $('#block-fix-customer-date').html("<p><b><?php echo GetMessage('FIX_UPLOAD_CUSTOMER_AFTER_SUBMIT'); ?></b></p>");
@@ -3343,15 +3384,97 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             <tr class="heading r-consultant-button">
                 <td colspan="2" class="option-other-heading">
                     <b>
-                        <label><input class="addr" type="checkbox" name="online_consultant" value="Y" <?php if ($optionOnlineConsultant) echo "checked"; ?>><?php echo GetMessage('ONLINE_CONSULTANT'); ?></label>
+                        <label><input class="addr" type="checkbox" name="online_consultant" value="Y" <?php if ($optionOnlineConsultant) echo "checked"; ?>><?php echo GetMessage('ONLINE_CONSULTANT_AND_EVENT_TRACKER'); ?></label>
                     </b>
                 </td>
             </tr>
 
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    const textarea = document.querySelector('textarea[name="online_consultant_script"]');
+                    const eventTrackerContainer = document.querySelector('#event_tracker_container');
+                    const eventTrackerCheckbox = eventTrackerContainer.querySelector('#event_tracker');
+                    const eventTrackerCartCheckbox = eventTrackerContainer.querySelector('#event_tracker_cart');
+                    const eventTrackerOpenCartCheckbox = eventTrackerContainer.querySelector('#event_tracker_open_cart');
+                    const eventTrackerCopyFilesButton = eventTrackerContainer.querySelector('#event_tracker_copy_files_button')
+
+                    if (!textarea
+                        || !eventTrackerContainer
+                        || !eventTrackerCheckbox
+                        || !eventTrackerCartCheckbox
+                        || !eventTrackerOpenCartCheckbox
+                        || !eventTrackerCopyFilesButton
+                    ) {
+                        return;
+                    }
+
+                    const warning = document.createElement('div');
+                    warning.style = 'color:red; margin-top:5px; display:none;';
+                    warning.textContent = '<?php echo GetMessage('ONLINE_CONSULTANT_AND_EVENT_TRACKER_CODE_WARNING')?>';
+                    textarea.insertAdjacentElement('afterend', warning);
+
+                    const renderEventCheckboxes = () => {
+                        const textareaValue = textarea.value.trim();
+                        const hasCode = textareaValue !== '';
+                        const hasWidget = textareaValue.includes('c.retailcrm.tech/widget/loader.js');
+                        const canRenderElements = eventTrackerCheckbox.checked && hasCode && hasWidget;
+
+                        warning.style.display = (!hasWidget && hasCode) ? 'block' : 'none';
+                        eventTrackerContainer.style.display = (hasCode && hasWidget) ? 'block' : 'none';
+                        eventTrackerCartCheckbox.closest('label').style.display = canRenderElements ? 'block' : 'none';
+                        eventTrackerOpenCartCheckbox.closest('label').style.display = canRenderElements ? 'block' : 'none';
+                        eventTrackerCopyFilesButton.style.display = canRenderElements ? 'block' : 'none';
+                    };
+
+                    textarea.addEventListener('input', renderEventCheckboxes);
+                    eventTrackerCheckbox.addEventListener('change', renderEventCheckboxes);
+                    eventTrackerCopyFilesButton.addEventListener('click', () => {
+                        $.ajax({
+                            type: 'POST',
+                            url: '<?php echo $uri; ?>',
+                            data: 'ajax=4',
+                            dataType: 'json',
+                            success: function () {
+                                alert('<?php echo GetMessage('EVENT_TRACKER_SUCCESSFUL_COPY_FILES'); ?>');
+                            },
+                            error: function () {
+                                alert('<?php echo GetMessage('EVENT_TRACKER_ERROR_COPY_FILES'); ?>');
+                            }
+                        })
+                    });
+
+                    renderEventCheckboxes();
+                });
+            </script>
+
             <tr class="r-consultant" <?php if (!$optionOnlineConsultant) echo 'style="display: none;"'; ?>>
-                <td class="adm-detail-content-cell-l" width="45%"><?php echo GetMessage('ONLINE_CONSULTANT_LABEL')?></td>
+                <td class="adm-detail-content-cell-l" width="45%" valign="top">
+                    <?php echo GetMessage('ONLINE_CONSULTANT_AND_EVENT_TRACKER_LABEL')?>
+                </td>
                 <td class="adm-detail-content-cell-r" width="55%">
-                    <textarea name="online_consultant_script"><?php echo $optionOnlineConsultantScript; ?></textarea>
+                    <textarea name="online_consultant_script" style="width: 300px; height: 200px;"><?php echo $optionOnlineConsultantScript; ?></textarea>
+
+                    <div id="event_tracker_container" style="margin-top: 10px; display: none;">
+                        <label style="display: block; margin-top: 8px;">
+                            <input type="checkbox" name="event_tracker" id="event_tracker" value="Y"
+                                <?php if ($optionEventTracker) echo 'checked'; ?>>
+                            <?php echo GetMessage('EVENT_TRACKER_LABEL'); ?>
+                        </label>
+
+                        <label style="display: block; margin-left: 20px; margin-top: 5px;">
+                            <input type="checkbox" name="event_tracker_open_cart" id="event_tracker_open_cart" value="Y" title="open_cart"
+                                <?php if ($optionEventTrackerCart) echo 'checked'; ?>>
+                            <?php echo GetMessage('EVENT_TRACKER_OPEN_CART_DESCRIPTION'); ?>
+                        </label>
+
+                        <label style="display: block; margin-left: 20px; margin-top: 5px;">
+                            <input type="checkbox" name="event_tracker_cart" id="event_tracker_cart" value="Y" title="cart"
+                                <?php if ($optionEventTrackerOpenCart) echo 'checked'; ?>>
+                            <?php echo GetMessage('EVENT_TRACKER_CART_DESCRIPTION'); ?>
+                        </label>
+
+                        <input type="button" class="adm-btn-save" id="event_tracker_copy_files_button" style="margin-top: 20px" value="<?php echo GetMessage('EVENT_TRACKER_COPY_FILES'); ?>">
+                    </div>
                 </td>
             </tr>
 

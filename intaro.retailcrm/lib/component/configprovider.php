@@ -990,44 +990,55 @@ class ConfigProvider
         return empty($value) && $value !== 0;
     }
 
-    /**
-     * isOnlineConsultantEnabled
-     *
-     * @return bool
-     */
-    public static function isOnlineConsultantEnabled()
+    public static function isOnlineConsultantEnabled(): bool
     {
         return static::getOption(Constants::CRM_ONLINE_CONSULTANT) === 'Y';
     }
 
-    /**
-     * getOnlineConsultantScript
-     *
-     * @return string
-     */
-    public static function getOnlineConsultantScript()
+    public static function getOnlineConsultantScript(): string
     {
         return trim(static::getOption(Constants::CRM_ONLINE_CONSULTANT_SCRIPT, ""));
     }
 
-    /**
-     * setOnlineConsultant
-     *
-     * @param string $value
-     */
-    public static function setOnlineConsultant($value)
+    public static function isEventTrackerEnabled(): bool
+    {
+        return static::getOption(Constants::CRM_EVENT_TRACKER) === 'Y';
+    }
+
+
+    public static function isEventTrackerCartEnabled(): bool
+    {
+        return static::getOption(Constants::CRM_EVENT_TRACKER_CART) === 'Y';
+    }
+
+    public static function isEventTrackerOpenCartEnabled(): bool
+    {
+        return static::getOption(Constants::CRM_EVENT_TRACKER_OPEN_CART) === 'Y';
+    }
+
+    public static function setOnlineConsultant(string $value)
     {
         static::setOption(Constants::CRM_ONLINE_CONSULTANT, $value);
     }
 
-    /**
-     * setOnlineConsultantScript
-     *
-     * @param string $value
-     */
-    public static function setOnlineConsultantScript($value)
+    public static function setOnlineConsultantScript(string $value)
     {
         static::setOption(Constants::CRM_ONLINE_CONSULTANT_SCRIPT, $value);
+    }
+
+    public static function setEventTracker(string $value)
+    {
+        static::setOption(Constants::CRM_EVENT_TRACKER, $value);
+    }
+
+    public static function setEventTrackerCart(string $value)
+    {
+        static::setOption(Constants::CRM_EVENT_TRACKER_CART, $value);
+    }
+
+    public static function setventTrackerOpenCart(string $value)
+    {
+        static::setOption(Constants::CRM_EVENT_TRACKER_OPEN_CART, $value);
     }
 
     /**

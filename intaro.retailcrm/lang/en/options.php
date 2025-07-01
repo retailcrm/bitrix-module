@@ -103,8 +103,18 @@ $MESS['PURCHASE_ICML'] = "If enabled, ICML generation will reset the purchase pr
 $MESS['PURCHASE_HEADER'] = "Reset purchase price in ICML";
 $MESS['PHONE_REQUIRED'] = "In the main module settings «Phone Number is required» option was enabled, so it may cause problems with reverse synchronization. For proper work you must disable this option.";
 $MESS['CHANGE_SHIPMENT_STATUS_FROM_CRM'] = "Change the shipment status when corresponding flag is received from RetailCRM";
-$MESS ['ONLINE_CONSULTANT'] = 'Activate Online Consultant';
-$MESS ['ONLINE_CONSULTANT_LABEL'] = 'Online Consultant script';
+
+$MESS ['ONLINE_CONSULTANT_AND_EVENT_TRACKER'] = 'Activate the online consultant/event tracker';
+$MESS ['ONLINE_CONSULTANT_AND_EVENT_TRACKER_LABEL'] = 'JS code for online consultant/event tracker';
+$MESS['ONLINE_CONSULTANT_AND_EVENT_TRACKER_CODE_WARNING'] = 'RetailCRM widget script not found. Make sure the code contains "c.retailcrm.tech/widget/loader.js"';
+$MESS['EVENT_TRACKER_LABEL_EN'] = 'Enable event tracking';
+$MESS['EVENT_TRACKER_CART_DESCRIPTION'] = 'Track changes in the shopping cart';
+$MESS['EVENT_TRACKER_OPEN_CART_DESCRIPTION'] = 'Track cart views';
+$MESS['EVENT_TRACKER_ERROR_CREATE_DIRECTORY'] = 'Error creating directory %s';
+$MESS['EVENT_TRACKER_COPY_FILES'] = 'Copy files for tracker operation';
+$MESS['EVENT_TRACKER_SUCCESSFUL_COPY_FILES'] = 'Tracker files were successfully copied';
+$MESS['EVENT_TRACKER_ERROR_COPY_FILES'] = 'An error occurred while copying tracker files';
+
 $MESS ['INTEGRATION_PAYMENT_LIST'] = 'The status will not be transferred for integration payments';
 $MESS ['INTEGRATIONS'] = ' (integration)';
 

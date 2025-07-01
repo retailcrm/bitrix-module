@@ -256,4 +256,28 @@ class Utils
 
         return $entity->getDataClass();
     }
+
+    public static function copyEventTrackerFiles()
+    {
+        $pathFrom = $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . Constants::MODULE_ID . '/lib/tracker/';
+        $jsDir = $_SERVER['DOCUMENT_ROOT'] . '/local/js/';
+        $ajaxDir = $_SERVER['DOCUMENT_ROOT'] . '/local/ajax/';
+
+        // Если файлы существуют, ничего создавать и копировать не нужно
+        if (file_exists($jsDir . '/tracker.js') && file_exists($ajaxDir . '/ajaxBasket.php')) {
+            return;
+        }
+
+        // Проверяем существуют ли директории, если нет, тогда создает их.
+        if (!is_dir($jsDir) && !mkdir($jsDir, 0755) && !is_dir($jsDir)) {
+            throw new \RuntimeException(sprintf(GetMessage('EVENT_TRACKER_ERROR_CREATE_DIRECTORY'), $ajaxDir));
+        }
+
+        if (!is_dir($ajaxDir) && !mkdir($ajaxDir, 0755) && !is_dir($ajaxDir)) {
+            throw new \RuntimeException(sprintf(GetMessage('EVENT_TRACKER_ERROR_CREATE_DIRECTORY'), $ajaxDir));
+        }
+
+        CopyDirFiles($pathFrom . 'tracker.js', $jsDir . 'tracker.js');
+        CopyDirFiles($pathFrom . 'ajaxBasket.php', $ajaxDir . 'ajaxBasket.php');
+    }
 }
