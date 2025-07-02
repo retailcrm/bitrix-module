@@ -146,7 +146,7 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/retailcrm/exp
     }
 
     $fileSetup = new XmlSetup($xmlProps);
-    $fileSetup->profileId = $profile_id;
+    $fileSetup->profileId = $PROFILE_ID ?? $profile_id;
     $fileSetup->iblocksForExport = $iblockExport;
     $fileSetup->maxOffersValue = $maxOffersValue ?? null;
     $fileSetup->filePath = $SETUP_FILE_NAME;
