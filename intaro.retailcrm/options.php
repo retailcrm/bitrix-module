@@ -3317,7 +3317,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             </tr>
         <?php endforeach; ?>
         <?php endif; ?>
-
+        <?php if ($optionCollector === 'Y') : ?>
             <tr class="heading r-coll-button">
                 <td colspan="2" class="option-other-heading">
                     <b>
@@ -3327,6 +3327,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                     </b>
                 </td>
             </tr>
+        <?php endif; ?>
             <tr class="r-coll" <?php if ($optionCollector !== 'Y') {
                 echo 'style="display: none;"';
             } ?>>
