@@ -34,13 +34,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Setup PHP ${{ matrix.php-version }}
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@v2.32.0
         with:
           php-version: ${{ matrix.php-version }}
           ini-values: short_open_tag=On, mbstring.func_overload=2, mbstring.internal_encoding="UTF-8"
           coverage: xdebug
-      - name: a2en
-        run: php -i
       - name: Install Bitrix
         env:
           BITRIX_EDITION: ${{ matrix.bitrix-edition }}
