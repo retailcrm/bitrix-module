@@ -40,7 +40,7 @@ jobs:
           ini-values: short_open_tag=On, mbstring.func_overload=2, mbstring.internal_encoding="UTF-8"
           coverage: xdebug
       - name: a2en
-        run: a2enmod rewrite
+        run: sudo a2enmod rewrite
       - name: Install Bitrix
         env:
           BITRIX_EDITION: ${{ matrix.bitrix-edition }}
