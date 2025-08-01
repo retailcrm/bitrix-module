@@ -29,6 +29,7 @@ use Intaro\RetailCrm\Service\LoyaltyAccountService;
 use RetailCrm\Response\ApiResponse;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Model\Api\Response\OrdersCreateResponse;
+use Intaro\RetailCrm\Model\Api\Response\OrdersEditResponse;
 
 IncludeModuleLangFile(__FILE__);
 
@@ -474,9 +475,9 @@ class RetailCrmOrder
                 Logger::getInstance()->write($order, 'orderCreate');
 
                 $crmBasket = RCrmActions::apiMethod($api, 'cartGet', __METHOD__, $externalId, $site);
-                $orderResponse = $client->createOrder($order, $site);
+                $orderCreateResponse = $client->createOrder($order, $site);
 
-                if ($orderResponse instanceof OrdersCreateResponse && !$orderResponse->success) {
+                if ($orderCreateResponse instanceof OrdersCreateResponse && !$orderCreateResponse->success) {
 
                     Logger::getInstance()->write([
                         'methodApi' => 'orderCreate',
@@ -487,7 +488,7 @@ class RetailCrmOrder
 
                 }
 
-                if (!empty($crmBasket['cart']) && $orderResponse instanceof OrdersCreateResponse && !empty($orderResponse->id) ) {
+                if (!empty($crmBasket['cart']) && $orderCreateResponse instanceof OrdersCreateResponse && !empty($orderResponse->id) ) {
                     RCrmActions::apiMethod(
                         $api,
                         'cartClear',
@@ -498,20 +499,31 @@ class RetailCrmOrder
                                 'externalId' => $externalId
                             ],
                             'order' => [
-                                'id' => $orderResponse->id
+                                'id' => $orderCreateResponse->id
                             ]
                         ],
                         $site
                     );
                 }
 
-                return $orderResponse;
+                return $orderCreateResponse;
             }
 
             if ($methodApi === 'ordersEdit') {
                 Logger::getInstance()->write($order, 'orderEdit');
 
-                return $client->editOrder($order, $site);
+                $orderEditResponse = $client->editOrder($order, $site);
+
+                if ($orderEditResponse instanceof OrdersEditResponse && !$orderEditResponse->success) {
+                    Logger::getInstance()->write([
+                        'methodApi' => 'orderEdit',
+                        'errorMsg' => $orderEditResponse->errorMsg ?? '',
+                        'errors' => $orderEditResponse->errors ?? '',
+                        'params' => ['number' => $order['number'], 'externalId' => $order['externalId']]
+                    ], 'apiErrors');
+                }
+
+                return $orderEditResponse;
             }
         }
 
