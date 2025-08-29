@@ -11,7 +11,7 @@ ifneq ($(NOT_USE_VENDOR),1)
 	composer install
 endif
 
-install_bitrix: download_bitrix
+install_bitrix: download_bitrix configure_session
 	@echo "===== Installing Bitrix..."
 	@php bin/bitrix-install db_type
 	@php bin/bitrix-install requirement
@@ -30,7 +30,12 @@ ifeq ("$(wildcard $(BITRIX_PATH)/bitrix/php_interface/dbconn.php)","")
 	chmod -R 777 $(BITRIX_PATH)
 	tar -xf /tmp/$(BITRIX_EDITION).tar.gz -C $(BITRIX_PATH)
 	rm /tmp/$(BITRIX_EDITION).tar.gz
+	chmod -R 777 $(BITRIX_PATH)
 endif
+
+configure_session:
+	mkdir -p /tmp
+	chmod -R 777 /tmp
 
 build_release:
 ifneq ($(LAST_TAG),$(RELEASE_TAG))
