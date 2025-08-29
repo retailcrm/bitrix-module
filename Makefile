@@ -36,6 +36,8 @@ endif
 configure_session:
 	mkdir -p /tmp/php_sessions
 	chmod -R 777 /tmp/php_sessions
+	chmod g+s /tmp/php_sessions
+
 
 build_release:
 ifneq ($(LAST_TAG),$(RELEASE_TAG))
