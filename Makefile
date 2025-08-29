@@ -38,8 +38,8 @@ configure_session:
 	ls -al /
 	mkdir -p /tmp/php_sessions
 	chmod -R 777 /tmp/php_sessions
-	sudo chown -R www-data:www-data /tmp/php_sessions
 	chmod g+s /tmp/php_sessions
+	sudo chown -R www-data:www-data /tmp/php_sessions
 
 
 build_release:
