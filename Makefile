@@ -34,8 +34,8 @@ ifeq ("$(wildcard $(BITRIX_PATH)/bitrix/php_interface/dbconn.php)","")
 endif
 
 configure_session:
-	mkdir -p /tmp
-	chmod -R 777 /tmp
+	mkdir -p /tmp/php_sessions
+	chmod -R 777 /tmp/php_sessions
 
 build_release:
 ifneq ($(LAST_TAG),$(RELEASE_TAG))
