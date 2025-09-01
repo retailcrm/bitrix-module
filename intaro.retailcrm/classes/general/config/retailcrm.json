@@ -464,7 +464,10 @@
             "type": "skip"
         },
         "cost": {
-            "type": "string"
+            "type": "double",
+            "default": 0,
+            "min": 0,
+            "decimals": 2
         },
         "date": {
             "type": "datetime",
