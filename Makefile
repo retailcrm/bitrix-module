@@ -30,6 +30,7 @@ ifeq ("$(wildcard $(BITRIX_PATH)/bitrix/php_interface/dbconn.php)","")
 	chmod -R 777 $(BITRIX_PATH)
 	tar -xf /tmp/$(BITRIX_EDITION).tar.gz -C $(BITRIX_PATH)
 	rm /tmp/$(BITRIX_EDITION).tar.gz
+	sudo chown -R www-data:www-data /var/lib/php/sessions
 endif
 
 build_release:
