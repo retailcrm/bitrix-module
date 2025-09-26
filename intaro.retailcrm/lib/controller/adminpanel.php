@@ -6,6 +6,7 @@ use Bitrix\Main\Engine\ActionFilter\Authentication;
 use Bitrix\Main\Engine\Controller;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Constants;
+use RetailCrmUser;
 
 /**
  * @category Integration
@@ -86,6 +87,16 @@ class AdminPanel extends Controller
         return [
             'status' => $status ?? false,
         ];
+    }
+
+    /**
+     * @return int
+     */
+    public function updateIdsAction(): int
+    {
+        RetailCrmUser::updateLoyaltyAccountIds();
+
+        return 1;
     }
 
     /**

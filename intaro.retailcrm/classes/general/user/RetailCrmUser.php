@@ -264,4 +264,35 @@ class RetailCrmUser
             $offset += $limit;
         }
     }
+
+    public static function updateLoyaltyAccountIds()
+    {
+        $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
+        $offset = 0;
+        $limit = 50;
+
+        while (true) {
+            try {
+                $usersResult = UserTable::getList([
+                    'select' => ['ID', 'UF_REG_IN_PL_INTARO'],
+                    'filter' => ['=UF_REG_IN_PL_INTARO' => true],
+                    'order' => ['ID'],
+                    'limit' => $limit,
+                    'offset' => $offset
+                ]);
+            } catch (\Exception $exception) {
+                Logger::getInstance()->write($exception->getMessage(), 'loyaltyIdsUpdate');
+
+                break;
+            }
+
+            $users = $usersResult->fetchAll();
+
+            if ($users === []) {
+                break;
+            }
+
+            $offset += $limit;
+        }
+    }
 }
