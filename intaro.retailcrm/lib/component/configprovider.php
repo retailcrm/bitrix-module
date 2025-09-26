@@ -1320,4 +1320,24 @@ class ConfigProvider
     {
         return static::getOption(Constants::CRM_COLLECTOR, 'N');
     }
+
+    /**
+     * @param array|null $optionsSitesList
+     * @return string|null
+     */
+    public static function getUserSite(array $user, array $optionsSitesList): ?string
+    {
+        if (!$optionsSitesList) {
+            return null;
+        }
+    
+        if (isset($user['LID']) && 
+            array_key_exists($user['LID'], $optionsSitesList) && 
+            $optionsSitesList[$user['LID']] !== null
+        ) {
+            return $optionsSitesList[$user['LID']];
+        }
+    
+        return null;
+    }
 }
