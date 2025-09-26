@@ -6,7 +6,7 @@ use Bitrix\Main\Engine\ActionFilter\Authentication;
 use Bitrix\Main\Engine\Controller;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Constants;
-
+use CAgent;
 /**
  * @category Integration
  * @package  Intaro\RetailCrm\Controller
@@ -86,6 +86,29 @@ class AdminPanel extends Controller
         return [
             'status' => $status ?? false,
         ];
+    }
+
+    /**
+     * @return array
+     */
+    public function updateIdsAction(): array
+    {
+        $agentName = 'RetailCrmUser::updateLoyaltyAccountIdsAgent();';
+
+        CAgent::RemoveAgent($agentName, 'intaro.retailcrm');
+    
+        $agentId = CAgent::AddAgent(
+            $agentName,
+            'intaro.retailcrm',
+            'N',
+            20,
+            '',
+            'Y',
+            date('d.m.Y H:i:s', time() + 10),
+            30
+        );
+
+        return ['success' => $agentId !== false];
     }
 
     /**

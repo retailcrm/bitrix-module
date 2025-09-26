@@ -12,6 +12,8 @@
 IncludeModuleLangFile(__FILE__);
 
 use Bitrix\Main\UserTable;
+use Retailcrm\ApiClient;
+use Throwable;
 
 /**
  * Class RetailCrmUser
@@ -207,7 +209,7 @@ class RetailCrmUser
         COption::SetOptionString(RetailcrmConstants::MODULE_ID, RetailcrmConstants::OPTION_FIX_DATE_CUSTOMER, 'Y');
 
         $startId = COption::GetOptionInt(RetailcrmConstants::MODULE_ID, RetailcrmConstants::OPTION_FIX_DATE_CUSTOMER_LAST_ID, 0);
-        $api = new RetailCrm\ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
+        $api = new ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
         $optionsSitesList = RetailcrmConfigProvider::getSitesList();
         $limit = 50;
         $offset = 0;
@@ -221,7 +223,7 @@ class RetailCrmUser
                     'limit' => $limit,
                     'offset' => $offset,
                 ]);
-            } catch (\Throwable $exception) {
+            } catch (Throwable $exception) {
                 Logger::getInstance()->write($exception->getMessage(), 'fixDateCustomers');
 
                 break;
@@ -234,14 +236,10 @@ class RetailCrmUser
             }
 
             foreach ($users as $user) {
-                $site = null;
-
-                if ($optionsSitesList) {
-                    if (isset($user['LID']) && array_key_exists($user['LID'], $optionsSitesList) && $optionsSitesList[$user['LID']] !== null) {
-                        $site = $optionsSitesList[$user['LID']];
-                    } else {
-                        continue;
-                    }
+                $site = RetailcrmConfigProvider::getUserSite($user, $optionsSitesList);
+    
+                if ($optionsSitesList && $site === null) {
+                    continue;
                 }
 
                 $customer['externalId'] = $user['ID'];
@@ -251,7 +249,7 @@ class RetailCrmUser
                     $customer['createdAt'] = $date->format('Y-m-d H:i:s');
 
                     RCrmActions::apiMethod($api, 'customersEdit', __METHOD__, $customer, $site);
-                } catch (\Throwable $exception) {
+                } catch (Throwable $exception) {
                     Logger::getInstance()->write($exception->getMessage(), 'fixDateCustomers');
                     continue;
                 }
@@ -263,5 +261,103 @@ class RetailCrmUser
 
             $offset += $limit;
         }
+    }
+
+    public static function updateLoyaltyAccountIds(): bool
+    {
+        $api = new ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
+        $offset = 0;
+        $limit = 50;
+        $optionsSitesList = RetailcrmConfigProvider::getSitesList();
+        $status = true;
+
+        while (true) {
+            try {
+                $usersResult = UserTable::getList([
+                    'select' => ['ID', 'UF_REG_IN_PL_INTARO', 'LID', 'UF_LP_ID_INTARO'],
+                    'filter' => ['=UF_REG_IN_PL_INTARO' => true],
+                    'order' => ['ID'],
+                    'limit' => $limit,
+                    'offset' => $offset
+                ]);
+            } catch (Throwable $exception) {
+                Logger::getInstance()->write($exception->getMessage(), 'loyaltyIdsUpdate');
+
+                $status = false;
+
+                break;
+            }
+
+            $users = $usersResult->fetchAll();
+
+            if ($users === []) {
+                break;
+            }
+
+            $offset += $limit;
+
+            foreach ($users as $user) {
+                $site = RetailcrmConfigProvider::getUserSite($user, $optionsSitesList);
+
+                if ($optionsSitesList && $site === null) {
+                    continue;
+                }
+
+                $filter['customerExternalId'] = $user['ID'];
+
+                try {
+                    $actualLoyalty = null;
+                    $crmAccounts = RCrmActions::apiMethod($api, 'getLoyaltyAccounts', __METHOD__, $filter, $site);
+
+                    foreach ($crmAccounts['loyaltyAccounts'] as $crmAccount) {
+                        $loyalty = $crmAccounts = RCrmActions::apiMethod(
+                            $api,
+                            'getLoyaltyLoyalty',
+                            __METHOD__,
+                            $crmAccount['loyalty']['id'],
+                            $site
+                        );
+
+                        if ($loyalty['loyalty']['active'] === true) {
+                            $actualLoyalty = $crmAccount;
+
+                            break;
+                        }
+                    }
+
+                    if ($actualLoyalty !== null && $user['UF_LP_ID_INTARO'] != $actualLoyalty['id']) {
+                        $updateUser = new CUser;
+                        $cardNumber = isset($actualLoyalty['cardNumber']) ? $actualLoyalty['cardNumber'] : '';
+
+                        $fields = [
+                            'UF_LP_ID_INTARO' => $actualLoyalty['id'],
+                            'UF_CARD_NUM_INTARO' => $cardNumber
+                        ];
+
+                        if ($updateUser->Update($user['ID'], $fields)) {
+                            Logger::getInstance()->write(
+                                sprintf('Обновлен идентификатор участия ПЛ для пользователя с ID %s', $user['ID']),
+                                'loyaltyIdsUpdate'
+                            );
+                        }
+                    }
+                } catch (Throwable $exception) {
+                    Logger::getInstance()->write($exception->getMessage(), 'loyaltyIdsUpdate');
+
+                    continue;
+                }
+
+                time_nanosleep(0, 550000000);
+            }
+        }
+
+        return $status;
+    }
+
+    public static function updateLoyaltyAccountIdsAgent()
+    {
+        self::updateLoyaltyAccountIds();
+
+        return '';
     }
 }

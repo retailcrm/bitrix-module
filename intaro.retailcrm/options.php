@@ -1514,6 +1514,27 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             });
         }
 
+        function updateIds() {
+            BX.ajax.runAction('intaro:retailcrm.api.adminpanel.updateIds',
+                {
+                    data: {
+                        sessid: BX.bitrix_sessid()
+                    }
+                }
+            ).then(result => {
+                if (result.data.success === true) {
+                    BX.UI.Notification.Center.notify({
+                        content: "<?= GetMessage('IDS_UPDATED') ?>"
+                    });
+                } else {
+                    BX.UI.Notification.Center.notify({
+                        content: "<?= GetMessage('IDS_NOT_UPDATED') ?>"
+                    });
+                }
+
+            });
+        }
+
         function replaceDefaultTemplates(donor) {
             let templates = [];
             let i = 0;
@@ -2369,6 +2390,13 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                             <?php echo GetMessage('LOYALTY_PROGRAM_TOGGLE_MSG'); ?>
                         </label>
                     </b>
+                </td>
+            </tr>
+            <tr>
+                 <td>
+                    <div style="text-align: center; padding-top: 2%;">
+                        <input type="button" onclick="updateIds()" class="adm-btn-save" value="<?php echo GetMessage('LP_IDS_UPDATE'); ?>"/>
+                    </div>
                 </td>
             </tr>
             <tr>
