@@ -2394,7 +2394,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             </tr>
             <tr>
                  <td>
-                    <div style="text-align: center;">
+                    <div style="text-align: center; padding-top: 2%;">
                         <input type="button" onclick="updateIds()" class="adm-btn-save" value="<?php echo GetMessage('LP_IDS_UPDATE'); ?>"/>
                     </div>
                 </td>
