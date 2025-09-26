@@ -160,6 +160,8 @@ $MESS ['LP_CUSTOM_TEMP_CREATE_MSG'] = 'Создать шаблон default_loyal
 $MESS ['LP_DEF_TEMP_CREATE_MSG'] = 'Заменить шаблон .default компонента sale.order.ajax шаблоном с функциями Программы лояльности. <br> Если в папке .local уже есть шаблон .default для sale.order.ajax, то он будет скопирован в папку .default_backup';
 
 $MESS ['LOYALTY_PROGRAM_TITLE'] = 'Программа лояльности';
+$MESS ['IDS_UPDATED'] = 'Обновление участий программы лояльности завершено';
+$MESS ['IDS_NOT_UPDATED'] = 'Ошибка обновления участий программы лояльности';
 $MESS ['LOYALTY_PROGRAM_TOGGLE_MSG'] = 'Активность программы лояльности';
 $MESS ['LP_CUSTOM_TEMP_CREATE_MSG'] = 'Создать шаблон intaro.retailCRM для компонента оформления заказа sale.order.ajax c функциями Программы лояльности. <br> <b>Внимение:</b> если шаблон уже существует, то он будет перезаписан';
 $MESS ['LP_DEF_TEMP_CREATE_MSG'] = 'Заменить шаблон .default компонента sale.order.ajax шаблоном с функциями Программы лояльности. <br> Если в папке .local уже есть шаблон .default для sale.order.ajax, то он будет скопирован в папку .default_backup';

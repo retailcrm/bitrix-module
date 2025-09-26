@@ -1522,7 +1522,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                     }
                 }
             ).then(result => {
-                if (result.data === 1) {
+                if (result.data.success === true) {
                     BX.UI.Notification.Center.notify({
                         content: "<?= GetMessage('IDS_UPDATED') ?>"
                     });

@@ -90,13 +90,13 @@ class AdminPanel extends Controller
     }
 
     /**
-     * @return int
+     * @return array
      */
-    public function updateIdsAction(): int
+    public function updateIdsAction(): array
     {
-        RetailCrmUser::updateLoyaltyAccountIds();
+        $success = RetailCrmUser::updateLoyaltyAccountIds();
 
-        return 1;
+        return ['success' => $success];
     }
 
     /**
