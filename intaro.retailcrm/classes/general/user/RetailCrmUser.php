@@ -332,7 +332,7 @@ class RetailCrmUser
                         }
                     }
 
-                    if ($actualLoyalty !== null && $user['UF_LP_ID_INTARO'] !== $actualLoyalty['id']) {
+                    if ($actualLoyalty !== null && $user['UF_LP_ID_INTARO'] != $actualLoyalty['id']) {
                         $updateUser = new CUser;
                         $cardNumber = isset($actualLoyalty['cardNumber']) ? $actualLoyalty['cardNumber'] : '';
 
@@ -359,5 +359,12 @@ class RetailCrmUser
         }
 
         return $status;
+    }
+
+    public static function updateLoyaltyAccountIdsAgent()
+    {
+        self::updateLoyaltyAccountIds();
+
+        return "";
     }
 }

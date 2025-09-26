@@ -94,7 +94,25 @@ class AdminPanel extends Controller
      */
     public function updateIdsAction(): array
     {
-        $success = RetailCrmUser::updateLoyaltyAccountIds();
+    // Устанавливаем разовый агент
+        $agentName = "RetailCrmUser::updateLoyaltyAccountIdsAgent();";
+    
+    // Сначала удаляем существующего агента (если есть)
+       \CAgent::RemoveAgent($agentName, "intaro.retailcrm");
+    
+    // Добавляем нового агента для выполнения через 1 минуту
+        $agentId = \CAgent::AddAgent(
+            $agentName,
+            "intaro.retailcrm", // модуль
+            "N", // не периодический (разовый)
+            20, // интервал в секундах (1 минута)
+            "", // дата начала
+            "Y", // активность
+            date("d.m.Y H:i:s", time() + 10), // дата следующего запуска (через 1 минуту)
+            30 // приоритет
+        );
+    
+        $success = ($agentId !== false);
 
         return ['success' => $success];
     }
