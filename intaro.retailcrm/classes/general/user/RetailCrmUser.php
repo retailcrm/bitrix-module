@@ -310,18 +310,27 @@ class RetailCrmUser
                     $crmAccounts = RCrmActions::apiMethod($api, 'getLoyaltyAccounts', __METHOD__, $filter, $site);
 
                     foreach ($crmAccounts['loyaltyAccounts'] as $crmAccount) {
-                        $loyalty = $crmAccounts = RCrmActions::apiMethod(
-                            $api,
-                            'getLoyaltyLoyalty',
-                            __METHOD__,
-                            $crmAccount['loyalty']['id'],
-                            $site
-                        );
+                        try {
+                            $loyalty = RCrmActions::apiMethod(
+                                $api,
+                                'getLoyaltyLoyalty',
+                                __METHOD__,
+                                $crmAccount['loyalty']['id'],
+                                $site
+                            );
 
-                        if ($loyalty['loyalty']['active'] === true) {
-                            $actualLoyalty = $crmAccount;
+                            if ($loyalty['loyalty']['active'] === true) {
+                                $actualLoyalty = $crmAccount;
 
-                            break;
+                                break;
+                            }
+                        } catch (Throwable $exception) {
+                            Logger::getInstance()->write(
+                                sprintf('Ошибка получения участия в ПЛ пользователя с ID %s', $user['ID']),
+                                'loyaltyIdsUpdate'
+                            );
+
+                            continue;
                         }
                     }
 
@@ -334,9 +343,22 @@ class RetailCrmUser
                             'UF_CARD_NUM_INTARO' => $cardNumber
                         ];
 
-                        if ($updateUser->Update($user['ID'], $fields)) {
+                        try {
+                            $result = $updateUser->Update($user['ID'], $fields);
+
                             Logger::getInstance()->write(
-                                sprintf('Обновлен идентификатор участия ПЛ для пользователя с ID %s', $user['ID']),
+                                $result
+                                    ? sprintf('Обновлен идентификатор участия ПЛ для пользователя с ID %s', $user['ID'])
+                                    : sprintf('Не удалось обновить данные пользователя с ID %s', $user['ID']),
+                                'loyaltyIdsUpdate'
+                            );
+                        } catch (Throwable $exception) {
+                            Logger::getInstance()->write(
+                                sprintf(
+                                    'Ошибка при обновлении участия для пользователя с ID %s. Подробнее: %s',
+                                    $user['ID'],
+                                    $exception->getMessage()
+                                ),
                                 'loyaltyIdsUpdate'
                             );
                         }

@@ -730,6 +730,8 @@ class RCrmActions
             case 'cartSet':
             case 'cartClear':
                 return self::proxy($api, $methodApi, $method, [$params, $site]);
+            case 'getLoyaltyAccounts':
+                return self::proxy($api, $methodApi, $method, [['filter' => $params], $site]);
             default:
             return self::proxy($api, $methodApi, $method, [$params, $site]);
         }
