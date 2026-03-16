@@ -175,7 +175,7 @@ class RetailCrmUser
     private static function getBooleanFields($customer, $arFields)
     {
         if (isset($arFields['UF_SUBSCRIBE_USER_EMAIL'])) {
-            if ($arFields['UF_SUBSCRIBE_USER_EMAIL'] === "1") {
+            if ($arFields['UF_SUBSCRIBE_USER_EMAIL'] === "1" || $arFields['UF_SUBSCRIBE_USER_EMAIL'] === true) {
                 $customer['subscribed'] = true;
             } else {
                 $customer['subscribed'] = false;
