@@ -126,9 +126,10 @@ class RetailCrmHistory
             RetailcrmConfigProvider::setCustomersHistorySinceId($lastId['id']);
 
             $newUser = new CUser();
-            $customerBuilder = new CustomerBuilder();
 
             foreach ($customers as $customer) {
+                $customerBuilder = new CustomerBuilder();
+
                 if (function_exists('retailCrmBeforeCustomerSave')) {
                     $newResCustomer = retailCrmBeforeCustomerSave($customer);
                     if (is_array($newResCustomer) && !empty($newResCustomer)) {
@@ -144,11 +145,9 @@ class RetailCrmHistory
                     continue;
                 }
 
-                if (RetailcrmConfigProvider::isPhoneRequired()) {
-                    if (isset($customer['create']) && empty($customer['phones'])) {
-                        Logger::getInstance()->write('$customer["phones"] is empty. Customer ' . $customer['id'] . ' cannot be created', 'createCustomerError');
-                        continue;
-                    }
+                if (RetailcrmConfigProvider::isPhoneRequired() && !isset($customer['externalId']) && (!isset($customer['phones']) || count($customer['phones']) === 0)) {
+                    Logger::getInstance()->write('$customer["phones"] is empty. Customer ' . $customer['id'] . ' cannot be created', 'createCustomerError');
+                    continue;
                 }
 
                 if (isset($customer['externalId']) && !is_numeric($customer['externalId'])) {
