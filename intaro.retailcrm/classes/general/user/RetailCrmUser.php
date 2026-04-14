@@ -160,10 +160,9 @@ class RetailCrmUser
         $customer['address']['city'] = $arFields['PERSONAL_CITY'] ?? null;
         $customer['address']['text'] = $arFields['PERSONAL_STREET'] ?? null;
         $customer['address']['index'] = $arFields['PERSONAL_ZIP'] ?? null;
-		$customer['birthday'] = isset($arFields['PERSONAL_BIRTHDAY'])
-			? new \DateTime($arFields['PERSONAL_BIRTHDAY'])
-			: null
-		;
+        $customer['birthday'] = !empty($arFields['PERSONAL_BIRTHDAY'])
+            ? new \DateTime($arFields['PERSONAL_BIRTHDAY'])
+            : null;
 
         if (mb_strlen($arFields['EMAIL']) < 100) {
             $customer['email'] = $arFields['EMAIL'];
