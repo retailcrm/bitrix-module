@@ -160,6 +160,7 @@ class RetailCrmUser
         $customer['address']['city'] = $arFields['PERSONAL_CITY'] ?? null;
         $customer['address']['text'] = $arFields['PERSONAL_STREET'] ?? null;
         $customer['address']['index'] = $arFields['PERSONAL_ZIP'] ?? null;
+        
         if (!empty($arFields['PERSONAL_BIRTHDAY'])) {
             $customer['birthday'] = new \DateTime($arFields['PERSONAL_BIRTHDAY']);
         }
