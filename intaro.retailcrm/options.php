@@ -3,6 +3,7 @@
 use Bitrix\Currency\CurrencyManager;
 use Bitrix\Main\Application;
 use Bitrix\Main\EventManager;
+use Bitrix\Main\ModuleManager;
 use Bitrix\Main\LoaderException;
 use Bitrix\Main\UI\Extension;
 use Bitrix\Sale\Delivery\Services\Manager;
@@ -1471,7 +1472,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $tabControl->Begin();
     ?>
     <?php
-    CJSCore::Init(array("jquery"));
+    $jqueryCore = version_compare(ModuleManager::getVersion('main'), '22.100.0', '>=') ? 'jquery3' : 'jquery';
+    CJSCore::Init([$jqueryCore]);
 
     try {
         Extension::load("ui.notification");
@@ -1483,7 +1485,10 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     }
     ?>
 
-    <?php CJSCore::Init(['jquery']);?>
+    <?php
+    $jqueryCore = version_compare(ModuleManager::getVersion('main'), '22.100.0', '>=') ? 'jquery3' : 'jquery';
+    CJSCore::Init([$jqueryCore]);
+    ?>
 
     <script type="text/javascript">
         function createTemplates(donor) {

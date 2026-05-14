@@ -1,4 +1,7 @@
 <?php
+
+use Bitrix\Main\ModuleManager;
+
 if (!check_bitrix_sessid())
     return;
 IncludeModuleLangFile(__FILE__);
@@ -68,7 +71,10 @@ IncludeModuleLangFile(__FILE__);
     }
 </style>
 
-<?php CJSCore::Init(['jquery']);?>
+<?php
+$jqueryCore = version_compare(ModuleManager::getVersion('main'), '22.100.0', '>=') ? 'jquery3' : 'jquery';
+CJSCore::Init([$jqueryCore]);
+?>
 
 <script type="text/javascript">
     $(document).ready(function() { 

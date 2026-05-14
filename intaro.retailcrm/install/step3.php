@@ -2,6 +2,7 @@
 
 use Intaro\RetailCrm\Component\Constants;
 use RetailCrm\ApiClient;
+use Bitrix\Main\ModuleManager;
 
 /** @var $APPLICATION */
 
@@ -72,7 +73,10 @@ if (isset($arResult['ORDER_PROPS'])) {
 }
 ?>
 
-<?php CJSCore::Init(['jquery']);?>
+<?php
+$jqueryCore = version_compare(ModuleManager::getVersion('main'), '22.100.0', '>=') ? 'jquery3' : 'jquery';
+CJSCore::Init([$jqueryCore]);
+?>
 
 <script type="text/javascript">
     function updateAddressList()
