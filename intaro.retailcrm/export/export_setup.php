@@ -1,6 +1,7 @@
 <?php
 
 use Intaro\RetailCrm\Icml\SettingsService;
+use Bitrix\Main\ModuleManager;
 
 CModule::IncludeModule('intaro.retailcrm');
 
@@ -681,7 +682,10 @@ if ($STEP === 1) {
         } ?>
     </form>
 
-    <?php CJSCore::Init(['jquery']);?>
+    <?php
+    $jqueryCore = version_compare(ModuleManager::getVersion('main'), '22.100.0', '>=') ? 'jquery3' : 'jquery';
+    CJSCore::Init([$jqueryCore]);
+    ?>
     <?php CUtil::InitJSCore(['intaro_custom_props']); ?>
     <script type="text/javascript">
         BX.ready(function() {
