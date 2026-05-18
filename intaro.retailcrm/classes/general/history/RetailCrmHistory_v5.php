@@ -2040,7 +2040,6 @@ class RetailCrmHistory
                 $newPayment->setField('EXTERNAL_PAYMENT', 'N');
                 $newPayment->setField('UPDATED_1C', 'N');
                 $newPayment->setField('XML_ID', $paymentCrm['id']);
-                $newPayment->setField('ACCOUNT_NUMBER', $order->getField('ACCOUNT_NUMBER'));
 
                 $newPaymentId = $newPayment->getId();
 
