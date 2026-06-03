@@ -76,7 +76,12 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
     <?php if (isset($arResult['ERRORS'])): ?>
         <div class='loyalty-block'>
             <div class='loyalty-title'><?= GetMessage('ERRORS') ?></div>
-            <?= $arResult['ERRORS'] ?>
+            <?php
+            $errors = is_array($arResult['ERRORS']) ? $arResult['ERRORS'] : [(string) $arResult['ERRORS']];
+            ?>
+            <?php foreach ($errors as $error): ?>
+                <div><?= htmlspecialcharsbx((string) $error) ?></div>
+            <?php endforeach; ?>
         </div>
     <?php endif; ?>
 
@@ -104,7 +109,7 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
 
     <?php if (isset($arResult['LOYALTY_LEVEL_NAME'], $arResult['LOYALTY_LEVEL_TYPE'])): ?>
         <div class='loyalty-block'>
-            <div class='loyalty-title'><?= $arResult['LOYALTY_LEVEL_NAME'] ?></div>
+            <div class='loyalty-title'><?= htmlspecialcharsbx((string) $arResult['LOYALTY_LEVEL_NAME']) ?></div>
             <div class='loyalty-subinfo'>
                 <?php
                 switch ($arResult['LOYALTY_LEVEL_TYPE']) {
@@ -177,11 +182,19 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
                         ? $operation->createdAt->format('Y-m-d')
                         : $operation->createdAt;
                     $description = '';
+                    $orderId = '';
+                    $safeOrderUrl = '';
+                    $safeOrderText = '';
 
                     switch ($operation->type) {
                         case 'credit_for_order':
-                            $orderId = $operation->order->externalId;
-                            $description = GetMessage('LOYALTY_ORDER_BONUS_ACCRUAL') . ' <a class="loyalty-link" href="/personal/orders/' . $orderId . '">' . $orderId . '</a>';
+                            $orderId = (string) ($operation->order->externalId ?? '');
+                            $safeOrderUrl = rawurlencode($orderId);
+                            $safeOrderText = htmlspecialcharsbx($orderId);
+                            $description = GetMessage('LOYALTY_ORDER_BONUS_ACCRUAL')
+                                . ($orderId !== ''
+                                    ? ' <a class="loyalty-link" href="/personal/orders/' . $safeOrderUrl . '">' . $safeOrderText . '</a>'
+                                    : '');
 
                             break;
                         case 'burn':
@@ -193,8 +206,13 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
 
                             break;
                         case 'charge_for_order':
-                            $orderId = $operation->order->externalId ?? null;
-                            $description = GetMessage('LOYALTY_ORDER_BONUS_DEBIT') . ' <a class="loyalty-link" href="/personal/orders/' . $orderId . '">' . $orderId . '</a>';
+                            $orderId = (string) ($operation->order->externalId ?? '');
+                            $safeOrderUrl = rawurlencode($orderId);
+                            $safeOrderText = htmlspecialcharsbx($orderId);
+                            $description = GetMessage('LOYALTY_ORDER_BONUS_DEBIT')
+                                . ($orderId !== ''
+                                    ? ' <a class="loyalty-link" href="/personal/orders/' . $safeOrderUrl . '">' . $safeOrderText . '</a>'
+                                    : '');
 
                             break;
                         case 'charge_manual':
@@ -217,7 +235,7 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
                     ?>
                     <tr>
                         <td class='<?= $isAccrual ? 'amount-positive' : 'amount-negative' ?>'><?= $formattedAmount ?></td>
-                        <td class='bonus-description'><?= htmlspecialchars($createdAt) ?></td>
+                        <td class='bonus-description'><?= htmlspecialcharsbx((string) $createdAt) ?></td>
                         <td><?= $description ?></td>
                     </tr>
                 <?php endforeach; ?>
