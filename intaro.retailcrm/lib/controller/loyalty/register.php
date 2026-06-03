@@ -109,7 +109,7 @@ class Register extends Controller
         global $USER_FIELD_MANAGER;
 
         $msg          = '';
-        $cardNumber   = htmlspecialchars(trim($request['UF_CARD_NUM_INTARO'] ?? ''));
+        $cardNumber   = trim((string) ($request['UF_CARD_NUM_INTARO'] ?? ''));
         $userProvider = new CurrentUserProvider();
         $customer     = $userProvider->get();
         $phoneNumber  = Utils::filterPhone($request['PERSONAL_PHONE'] ?? '');
@@ -498,7 +498,7 @@ class Register extends Controller
             }
 
             if ($type === 'strings') {
-                $newFields[$field['code']] = htmlspecialchars(trim($field['value']));
+                $newFields[$field['code']] = trim((string) $field['value']);
                 continue;
             }
 
@@ -508,7 +508,7 @@ class Register extends Controller
             }
 
             if ($type === 'options') {
-                $newFields[$field['code']] = htmlspecialchars(trim($field['value']));
+                $newFields[$field['code']] = trim((string) $field['value']);
                 continue;
             }
         }
