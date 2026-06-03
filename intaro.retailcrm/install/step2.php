@@ -31,11 +31,17 @@ if (count($arResult['arSites']) === 1) {
 }
 
 if (!isset($arResult['PAYMENT'])) {
-    $arResult['PAYMENT'] = unserialize(COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_PAYMENT, 0));
+    $arResult['PAYMENT'] = unserialize(
+        (string) COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_PAYMENT, 0),
+        ['allowed_classes' => false]
+    );
 }
 
 if (!isset($arResult['ORDER_TYPES'])) {
-    $arResult['ORDER_TYPES'] = unserialize(COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_ORDER_TYPES_ARR, 0));
+    $arResult['ORDER_TYPES'] = unserialize(
+        (string) COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_ORDER_TYPES_ARR, 0),
+        ['allowed_classes' => false]
+    );
 }
 
 if (!isset($arResult['paymentTypesList'])) {
@@ -44,7 +50,10 @@ if (!isset($arResult['paymentTypesList'])) {
         $availableSites,
         $RETAIL_CRM_API->paymentTypesList()->paymentTypes
     );
-    $arResult['PAYMENT_TYPES'] = unserialize(COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_PAYMENT_TYPES, 0));
+    $arResult['PAYMENT_TYPES'] = unserialize(
+        (string) COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_PAYMENT_TYPES, 0),
+        ['allowed_classes' => false]
+    );
 }
 
 if (!isset($arResult['bitrixStatusesList'])) {
@@ -60,7 +69,10 @@ if (!isset($arResult['orderTypesList'])) {
 
 if (!isset($arResult['paymentStatusesList'])) {
     $arResult['paymentStatusesList'] = $RETAIL_CRM_API->paymentStatusesList()->paymentStatuses;
-    $arResult['PAYMENT_STATUSES'] = unserialize(COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_PAYMENT_STATUSES, 0));
+    $arResult['PAYMENT_STATUSES'] = unserialize(
+        (string) COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_PAYMENT_STATUSES, 0),
+        ['allowed_classes' => false]
+    );
 }
 
 if (!isset($arResult['bitrixDeliveryTypesList'])) {
@@ -69,7 +81,10 @@ if (!isset($arResult['bitrixDeliveryTypesList'])) {
         $availableSites,
         $RETAIL_CRM_API->deliveryTypesList()->deliveryTypes
     );
-    $arResult['DELIVERY_TYPES'] = unserialize(COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_DELIVERY_TYPES_ARR, 0));
+    $arResult['DELIVERY_TYPES'] = unserialize(
+        (string) COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_DELIVERY_TYPES_ARR, 0),
+        ['allowed_classes' => false]
+    );
 }
 
 //bitrix pyament Y/N
