@@ -97,6 +97,10 @@ if (method_exists(RCrmActions::class, 'customOrderPropList')
 
 //ajax update deliveryServices
 if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') && isset($_POST['ajax']) && ($_POST['ajax'] === '1')) {
+    if (!check_bitrix_sessid()) {
+        die('invalid_sessid');
+    }
+
     $api_host = COption::GetOptionString($mid, Constants::CRM_API_HOST_OPTION, 0);
     $api_key = COption::GetOptionString($mid, Constants::CRM_API_KEY_OPTION , 0);
     $api = new RetailCrm\ApiClient($api_host, $api_key);
@@ -143,6 +147,10 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_RE
 
 //upload orders after install module
 if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') && isset($_POST['ajax']) && $_POST['ajax'] == 2) {
+    if (!check_bitrix_sessid()) {
+        die('invalid_sessid');
+    }
+
     $step      = $_POST['step'];
     $orders    = $_POST['orders'];
     $countStep = 50; // 50 orders on step
@@ -200,6 +208,10 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_RE
 }
 
 if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') && isset($_POST['ajax']) && $_POST['ajax'] == 3) {
+    if (!check_bitrix_sessid()) {
+        die('invalid_sessid');
+    }
+
     $dateAgent = new DateTime();
     $intAgent = new DateInterval('PT60S');
     $dateAgent->add($intAgent);
@@ -222,6 +234,10 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_RE
 
 // AJAX запрос для копирования файлов трекера.
 if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') && isset($_POST['ajax']) && $_POST['ajax'] == 4) {
+    if (!check_bitrix_sessid()) {
+        die('invalid_sessid');
+    }
+
     $isSuccessfulResponse = true;
 
     try {
@@ -1912,7 +1928,10 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 $.ajax({
                     type: 'POST',
                     url: handlerUrl,
-                    data: 'ajax=1',
+                    data: {
+                        ajax: 1,
+                        sessid: BX.bitrix_sessid()
+                    },
                     dataType: 'json',
                     success: function(response) {
                         BX.closeWait();
@@ -2966,7 +2985,12 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                         $.ajax({
                             type: 'POST',
                             url: handlerUrl,
-                            data: 'orders=' + orders + '&step=' + step + '&ajax=2',
+                            data: {
+                                orders: orders,
+                                step: step,
+                                ajax: 2,
+                                sessid: BX.bitrix_sessid()
+                            },
                             dataType:'json',
                             success:  function(response) {
                                 $('input[name="step"]').val(response.step);
@@ -3014,7 +3038,10 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                         $.ajax({
                             type: 'POST',
                             url: handleUrl,
-                            data: 'ajax=3',
+                            data: {
+                                ajax: 3,
+                                sessid: BX.bitrix_sessid()
+                            },
                             dataType: 'json',
                             success: function () {
                                 $('#block-fix-customer-date').html("<p><b><?php echo GetMessage('FIX_UPLOAD_CUSTOMER_AFTER_SUBMIT'); ?></b></p>");
@@ -3479,7 +3506,10 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                         $.ajax({
                             type: 'POST',
                             url: '<?php echo $uri; ?>',
-                            data: 'ajax=4',
+                            data: {
+                                ajax: 4,
+                                sessid: BX.bitrix_sessid()
+                            },
                             dataType: 'json',
                             success: function () {
                                 alert('<?php echo GetMessage('EVENT_TRACKER_SUCCESSFUL_COPY_FILES'); ?>');
