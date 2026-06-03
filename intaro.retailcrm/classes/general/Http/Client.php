@@ -26,6 +26,10 @@ class Client
 {
     const METHOD_GET = 'GET';
     const METHOD_POST = 'POST';
+    const CURL_RETRY_LIMIT = 3;
+
+    /** @var array<string, bool> */
+    protected static $validatedHosts = [];
 
     protected $url;
     protected $defaultParameters;
@@ -41,11 +45,7 @@ class Client
      */
     public function __construct($url, array $defaultParameters = [])
     {
-        if (false === stripos($url, 'https://')) {
-            throw new \InvalidArgumentException(
-                'API schema requires HTTPS protocol'
-            );
-        }
+        $this->assertSafeUrl((string) $url);
 
         $this->url = $url;
         $this->defaultParameters = $defaultParameters;
@@ -104,6 +104,7 @@ class Client
             : $parameters = array_merge($this->defaultParameters, $parameters);
 
         $url = $this->url . $path;
+        $this->assertSafeUrl($url);
 
         if (self::METHOD_GET === $method && count($parameters)) {
             $url .= '?' . http_build_query($parameters, '', '&');
@@ -113,10 +114,16 @@ class Client
         curl_setopt($curlHandler, CURLOPT_URL, $url);
         curl_setopt($curlHandler, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($curlHandler, CURLOPT_FAILONERROR, false);
-        curl_setopt($curlHandler, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($curlHandler, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($curlHandler, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($curlHandler, CURLOPT_SSL_VERIFYHOST, 2);
+        curl_setopt($curlHandler, CURLOPT_FOLLOWLOCATION, false);
         curl_setopt($curlHandler, CURLOPT_TIMEOUT, 30);
         curl_setopt($curlHandler, CURLOPT_CONNECTTIMEOUT, 30);
+
+        if (defined('CURLPROTO_HTTPS')) {
+            curl_setopt($curlHandler, CURLOPT_PROTOCOLS, CURLPROTO_HTTPS);
+            curl_setopt($curlHandler, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_HTTPS);
+        }
 
         if (self::METHOD_POST === $method) {
             curl_setopt($curlHandler, CURLOPT_POST, true);
@@ -133,12 +140,13 @@ class Client
         if (
             $errno
             && in_array($errno, $this->curlErrors, false)
-            && $this->retry < 3
+            && $this->retry < self::CURL_RETRY_LIMIT
         ) {
             $errno = null;
             $error = null;
             ++$this->retry;
-            $this->makeRequest($path, $method, $parameters);
+
+            return $this->makeRequest($path, $method, $parameters);
         }
 
         if ($errno) {
@@ -156,5 +164,95 @@ class Client
     public function getRetry()
     {
         return $this->retry;
+    }
+
+    /**
+     * @param string $url
+     *
+     * @throws \InvalidArgumentException
+     */
+    protected function assertSafeUrl(string $url): void
+    {
+        $parts = parse_url($url);
+
+        if ($parts === false || empty($parts['scheme']) || strtolower($parts['scheme']) !== 'https') {
+            throw new \InvalidArgumentException('API schema requires HTTPS protocol');
+        }
+
+        $host = (string) ($parts['host'] ?? '');
+
+        if ($host === '') {
+            throw new \InvalidArgumentException('API host is required');
+        }
+
+        $cacheKey = strtolower((string) $parts['scheme']) . '://' . strtolower($host);
+
+        if (!empty($parts['port'])) {
+            $cacheKey .= ':' . (int) $parts['port'];
+        }
+
+        if (isset(self::$validatedHosts[$cacheKey])) {
+            return;
+        }
+
+        $resolvedIps = $this->resolveHostIps($host);
+
+        if ($resolvedIps === []) {
+            throw new \InvalidArgumentException('API host must resolve to a public IP address');
+        }
+
+        foreach ($resolvedIps as $ip) {
+            if (
+                false === filter_var(
+                    $ip,
+                    FILTER_VALIDATE_IP,
+                    FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+                )
+            ) {
+                throw new \InvalidArgumentException('API host must resolve only to public IP addresses');
+            }
+        }
+
+        self::$validatedHosts[$cacheKey] = true;
+    }
+
+    /**
+     * @param string $host
+     *
+     * @return string[]
+     */
+    protected function resolveHostIps(string $host): array
+    {
+        if (false !== filter_var($host, FILTER_VALIDATE_IP)) {
+            return [$host];
+        }
+
+        $ips = [];
+
+        if (function_exists('dns_get_record')) {
+            $records = dns_get_record($host, DNS_A + DNS_AAAA);
+
+            if (is_array($records)) {
+                foreach ($records as $record) {
+                    if (!empty($record['ip'])) {
+                        $ips[] = $record['ip'];
+                    }
+
+                    if (!empty($record['ipv6'])) {
+                        $ips[] = $record['ipv6'];
+                    }
+                }
+            }
+        }
+
+        if ($ips === [] && function_exists('gethostbynamel')) {
+            $resolvedHosts = gethostbynamel($host);
+
+            if (is_array($resolvedHosts)) {
+                $ips = array_merge($ips, $resolvedHosts);
+            }
+        }
+
+        return array_values(array_unique(array_filter($ips, 'is_string')));
     }
 }
