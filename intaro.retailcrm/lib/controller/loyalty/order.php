@@ -12,6 +12,7 @@
 namespace Intaro\RetailCrm\Controller\Loyalty;
 
 use Bitrix\Main\Engine\ActionFilter\Authentication;
+use Bitrix\Main\Engine\ActionFilter\Csrf;
 use Bitrix\Main\Engine\ActionFilter\HttpMethod;
 use Bitrix\Main\Engine\Controller;
 use Bitrix\Sale\Order as BitrixOrder;
@@ -194,16 +195,18 @@ class Order extends Controller
     public function configureActions(): array
     {
         return [
-            'sendSms' => [
-                '-prefilters' => [
-                    new Authentication,
-                    new HttpMethod(['GET']),
+            'sendVerificationCode' => [
+                'prefilters' => [
+                    new Authentication(),
+                    new HttpMethod([HttpMethod::METHOD_POST]),
+                    new Csrf(),
                 ],
             ],
             'resendOrderSms' => [
-                '-prefilters' => [
-                    new Authentication,
-                    new HttpMethod(['POST']),
+                'prefilters' => [
+                    new Authentication(),
+                    new HttpMethod([HttpMethod::METHOD_POST]),
+                    new Csrf(),
                 ],
             ],
         ];

@@ -115,7 +115,7 @@ if ($arResult["LOYALTY_CONNECTION_ERROR"] === true) {
                                         autofocus="autofocus"
                                         required="required"
                                         name="PERSONAL_PHONE"
-                                        pattern="([\+]*[0-9]{1}\s?[\(]*[0-9]{3}[\)]*\s?\d{3}[-]*\d{2}[-]*\d{2})"
+                                        pattern="\+?[0-9]\s?\(?[0-9]{3}\)?\s?[0-9]{3}-?[0-9]{2}-?[0-9]{2}"
                                         placeholder="+_(___)___-__-__"
                                         value="+_(___)___-__-__"
                                         size="30"

@@ -3,6 +3,8 @@
 namespace Intaro\RetailCrm\Controller\Loyalty;
 
 use Bitrix\Main\Engine\ActionFilter\Authentication;
+use Bitrix\Main\Engine\ActionFilter\Csrf;
+use Bitrix\Main\Engine\ActionFilter\HttpMethod;
 use Bitrix\Main\Engine\Controller;
 use Bitrix\Main\Request;
 use Intaro\RetailCrm\Component\Builder\Api\CustomerBuilder;
@@ -54,13 +56,17 @@ class Register extends Controller
     {
         return [
             'saveUserLpFields' => [
-                '-prefilters' => [
-                    Authentication::class,
+                'prefilters' => [
+                    new Authentication(),
+                    new HttpMethod([HttpMethod::METHOD_POST]),
+                    new Csrf(),
                 ],
             ],
             'resetUserLpFields' => [
-                '-prefilters' => [
-                    Authentication::class,
+                'prefilters' => [
+                    new Authentication(),
+                    new HttpMethod([HttpMethod::METHOD_POST]),
+                    new Csrf(),
                 ],
             ],
         ];
