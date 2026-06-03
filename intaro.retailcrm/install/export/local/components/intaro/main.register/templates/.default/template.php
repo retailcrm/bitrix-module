@@ -355,7 +355,10 @@ if ($arResult["LOYALTY_CONNECTION_ERROR"] === true) {
                         <tr>
                             <td><? echo GetMessage("main_profile_time_zones_zones") ?></td>
                             <td>
-                                <select name="REGISTER[TIME_ZONE]"<? if (!isset($_REQUEST["REGISTER"]["TIME_ZONE"])) echo 'disabled="disabled"' ?>>
+                                <select
+                                    name="REGISTER[TIME_ZONE]"
+                                    <?= !isset($_REQUEST["REGISTER"]["TIME_ZONE"]) ? ' disabled="disabled"' : '' ?>
+                                >
                                     <? foreach ($arResult["TIME_ZONE_LIST"] as $tz => $tz_name): ?>
                                         <option value="<?=htmlspecialcharsbx($tz)?>"<?=$arResult["VALUES"]["TIME_ZONE"]
                                         == $tz ? " selected=\"selected\"" : ""?>><?=htmlspecialcharsbx($tz_name)?></option>
