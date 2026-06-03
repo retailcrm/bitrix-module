@@ -28,7 +28,12 @@ try
 {
 	$signedParamsString = $request->get('signedParamsString') ?: '';
 	$params = $signer->unsign($signedParamsString, 'sale.order.ajax');
-	$params = unserialize(base64_decode($params));
+	$params = unserialize(base64_decode($params), ['allowed_classes' => false]);
+
+	if (!is_array($params))
+	{
+		die();
+	}
 }
 catch (\Bitrix\Main\Security\Sign\BadSignatureException $e)
 {
