@@ -668,7 +668,7 @@ class RetailCrmEvent
             $user = UserRepository::getById($arFields['USER_ID']);
 
             if (isset($_POST['REGISTER']['PERSONAL_PHONE'])) {
-                $phone = htmlspecialchars($_POST['REGISTER']['PERSONAL_PHONE']);
+                $phone = Utils::filterPhone((string) $_POST['REGISTER']['PERSONAL_PHONE']);
 
                 if ($user !== null) {
                     $user->setPersonalPhone($phone);

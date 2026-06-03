@@ -2,10 +2,12 @@
 
 namespace Intaro\RetailCrm\Controller;
 
+use Bitrix\Main\Engine\ActionFilter\Authentication;
+use Bitrix\Main\Engine\ActionFilter\Csrf;
+use Bitrix\Main\Engine\ActionFilter\HttpMethod;
 use Bitrix\Main\Engine\Controller;
-use Bitrix\Main\Result;
 use Bitrix\Main\Error;
-use Bitrix\Main\Application;
+use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Icml\SettingsService;
 
 /**
@@ -18,22 +20,61 @@ use Intaro\RetailCrm\Icml\SettingsService;
  */
 class CustomExportProps extends Controller
 {
+    public function configureActions(): array
+    {
+        return [
+            'save' => [
+                'prefilters' => [
+                    new Authentication(),
+                    new HttpMethod([HttpMethod::METHOD_POST]),
+                    new Csrf(),
+                ],
+            ],
+            'delete' => [
+                'prefilters' => [
+                    new Authentication(),
+                    new HttpMethod([HttpMethod::METHOD_POST]),
+                    new Csrf(),
+                ],
+            ],
+        ];
+    }
+
     private function getRequestData(): array
     {
         $data = $this->getRequest()->getInput();
 
-        if ($data === null) {
-
+        if (!is_string($data) || $data === '') {
+            return [];
         }
 
-        return json_decode($data, true);
+        $decoded = json_decode($data, true);
+
+        return is_array($decoded) ? $decoded : [];
+    }
+
+    private function hasWriteAccess(): bool
+    {
+        global $APPLICATION, $USER;
+
+        return $USER instanceof \CUser
+            && (
+                $USER->IsAdmin()
+                || ($APPLICATION instanceof \CMain && $APPLICATION->GetGroupRight(Constants::MODULE_ID) === 'W')
+            );
     }
 
     public function saveAction()
     {
+        if (!$this->hasWriteAccess()) {
+            $this->addError(new Error('Access denied'));
+
+            return null;
+        }
+
         $requestData = $this->getRequestData();
-        $props = $requestData['properties'];
-        $profileId = $requestData['profileId'];
+        $props = is_array($requestData['properties'] ?? null) ? $requestData['properties'] : [];
+        $profileId = (int) ($requestData['profileId'] ?? 0);
 
         $settingsService = SettingsService::getInstance(
             [],
@@ -66,9 +107,15 @@ class CustomExportProps extends Controller
 
     public function deleteAction()
     {
+        if (!$this->hasWriteAccess()) {
+            $this->addError(new Error('Access denied'));
+
+            return null;
+        }
+
         $requestData = $this->getRequestData();
-        $props = $requestData['properties'];
-        $profileId = $requestData['profileId'];
+        $props = is_array($requestData['properties'] ?? null) ? $requestData['properties'] : [];
+        $profileId = (int) ($requestData['profileId'] ?? 0);
 
         $settingsService = SettingsService::getInstance(
             [],
