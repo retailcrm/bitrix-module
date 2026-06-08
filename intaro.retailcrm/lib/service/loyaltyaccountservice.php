@@ -241,6 +241,42 @@ class LoyaltyAccountService
     }
 
     /**
+     * Возвращает доступное количество бонусов для пользователя по его аккаунту лояльности.
+     *
+     * @param int|null $userId
+     *
+     * @return float
+     */
+    public static function getAvailableBonusesForUser(?int $userId = null): float
+    {
+        global $USER;
+
+        if ($userId === null) {
+            if (!($USER instanceof CUser) || !$USER->IsAuthorized()) {
+                return 0.0;
+            }
+
+            $userId = (int) $USER->GetID();
+        }
+
+        $loyaltyAccountId = self::getLoyaltyAccountId($userId);
+
+        if ($loyaltyAccountId === null) {
+            return 0.0;
+        }
+
+        /** @var LoyaltyService $loyaltyService */
+        $loyaltyService = ServiceLocator::get(LoyaltyService::class);
+        $loyaltyAccount = $loyaltyService->getLoyaltyAccounts($loyaltyAccountId);
+
+        if ($loyaltyAccount === null || !isset($loyaltyAccount->amount)) {
+            return 0.0;
+        }
+
+        return (float) $loyaltyAccount->amount;
+    }
+
+    /**
      * Метод возвращает значение для поля 'privilegeType'. Валидация поля происходит по кейсам:
      *  1. Программа лояльност не работает с корп. клиентами.
      *  2. Участие клиента не найдено в CRM, соответственно либо нет участия, либо нет клиента.
