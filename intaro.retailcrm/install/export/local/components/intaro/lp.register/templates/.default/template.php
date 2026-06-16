@@ -23,13 +23,22 @@ if ($arResult["LOYALTY_CONNECTION_ERROR"] === true) {
 
     die();
 }
+
+$allowedFormActions = ['resetUserLpFields', 'saveUserLpFields', 'sendVerificationCode', 'activateAccount'];
+$formButtonAction = (string) ($arResult['LP_REGISTER']['form']['button']['action'] ?? '');
+$safeFormButtonAction = in_array($formButtonAction, $allowedFormActions, true) ? $formButtonAction : '';
+
+$sanitizer = new \CBXSanitizer();
+$sanitizer->SetLevel(\CBXSanitizer::SECURE_LEVEL_MIDDLE);
+$safeLoyaltyAgreement = $sanitizer->SanitizeHtml((string) ($arResult['AGREEMENT_LOYALTY_PROGRAM'] ?? ''));
+$safePersonalDataAgreement = $sanitizer->SanitizeHtml((string) ($arResult['AGREEMENT_PERSONAL_DATA'] ?? ''));
 ?>
 <?php CUtil::InitJSCore(['ajax', 'jquery', 'popup']); ?>
 <div id="uf_agree_pl_intaro_popup" style="display:none;">
-    <?=$arResult['AGREEMENT_LOYALTY_PROGRAM']?>
+    <?= $safeLoyaltyAgreement ?>
 </div>
 <div id="uf_pd_proc_pl_intaro_popup" style="display:none;">
-    <?=$arResult['AGREEMENT_PERSONAL_DATA']?>
+    <?= $safePersonalDataAgreement ?>
 </div>
 <script>
     BX.ready(function() {
@@ -85,11 +94,11 @@ if ($arResult["LOYALTY_CONNECTION_ERROR"] === true) {
             <?php $this->addExternalJs(SITE_TEMPLATE_PATH . '/script.js'); ?>
     <div id="regBody">
             <?php if (isset($arResult['LP_REGISTER']['msg'])) { ?>
-                <div id="lpRegMsg" class="lpRegMsg"><?=$arResult['LP_REGISTER']['msg']?></div>
+                <div id="lpRegMsg" class="lpRegMsg"><?= htmlspecialcharsbx((string) $arResult['LP_REGISTER']['msg']) ?></div>
             <?php } ?>
 
             <?php if (isset($arResult['LP_REGISTER']['form']['button']) && !isset($arResult['LP_REGISTER']['form']['fields'])) { ?>
-                <input type="button" onclick="<?=$arResult['LP_REGISTER']['form']['button']['action']?>()" value="<?=GetMessage('TRY_AGAIN')?>">
+                <input type="button" onclick="<?= htmlspecialcharsbx($safeFormButtonAction) ?>()" value="<?=GetMessage('TRY_AGAIN')?>">
             <?php } ?>
 
             <?php
@@ -102,11 +111,11 @@ if ($arResult["LOYALTY_CONNECTION_ERROR"] === true) {
                             ?>
                             <label>
                                 <input
-                                    name="<?=$key?>"
-                                    id="<?=$key?>Field"
-                                    type="<?=$field['type']?>"
+                                    name="<?= htmlspecialcharsbx((string) $key) ?>"
+                                    id="<?= htmlspecialcharsbx((string) $key) ?>Field"
+                                    type="<?= htmlspecialcharsbx((string) $field['type']) ?>"
                                     <?php if (isset($field['value'])) { ?>
-                                        value="<?=$field['value']?>"
+                                        value="<?= htmlspecialcharsbx((string) $field['value']) ?>"
                                     <?php } ?>
                                 >
                                 <?php
@@ -136,66 +145,66 @@ if ($arResult["LOYALTY_CONNECTION_ERROR"] === true) {
                                     <?php
                                     if ($externalField['type'] === 'string' || $externalField['type'] === 'date') { ?>
                                         <input
-                                            name="<?=$externalField['code']?>"
-                                            id="external_<?=$externalField['code']?>"
-                                            type="<?=$externalField['type']?>"
+                                            name="<?= htmlspecialcharsbx((string) $externalField['code']) ?>"
+                                            id="external_<?= htmlspecialcharsbx((string) $externalField['code']) ?>"
+                                            type="<?= htmlspecialcharsbx((string) $externalField['type']) ?>"
                                         >
-                                        <?=$externalField['name']?>
+                                        <?= htmlspecialcharsbx((string) $externalField['name']) ?>
                                     <?php } ?>
 
                                     <?php
                                     if ($externalField['type'] === 'boolean') { ?>
                                         <input
-                                            name="<?=$externalField['code']?>"
-                                            id="external_<?=$externalField['code']?>"
+                                            name="<?= htmlspecialcharsbx((string) $externalField['code']) ?>"
+                                            id="external_<?= htmlspecialcharsbx((string) $externalField['code']) ?>"
                                             type="checkbox"
                                         >
-                                        <?=$externalField['name']?>
+                                        <?= htmlspecialcharsbx((string) $externalField['name']) ?>
                                     <?php } ?>
 
                                     <?php
                                     if ($externalField['type'] === 'text') { ?>
                                         <textarea
-                                            name="<?=$externalField['code']?>"
-                                            id="external_<?=$externalField['code']?>"
+                                            name="<?= htmlspecialcharsbx((string) $externalField['code']) ?>"
+                                            id="external_<?= htmlspecialcharsbx((string) $externalField['code']) ?>"
                                             cols="30"
                                             rows="10"
                                         ></textarea>
-                                        <?=$externalField['name']?>
+                                        <?= htmlspecialcharsbx((string) $externalField['name']) ?>
                                     <?php } ?>
 
                                     <?php
                                     if ($externalField['type'] === 'integer' || $externalField['type'] === 'numeric') { ?>
                                         <input
-                                            name="<?=$externalField['code']?>"
-                                            id="external_<?=$externalField['code']?>"
+                                            name="<?= htmlspecialcharsbx((string) $externalField['code']) ?>"
+                                            id="external_<?= htmlspecialcharsbx((string) $externalField['code']) ?>"
                                             type="number"
                                         >
-                                        <?=$externalField['name']?>
+                                        <?= htmlspecialcharsbx((string) $externalField['name']) ?>
                                     <?php } ?>
 
                                     <?php
                                     if ($externalField['type'] === 'email') { ?>
                                         <input
-                                            name="<?=$externalField['code']?>"
-                                            id="external_<?=$externalField['code']?>"
+                                            name="<?= htmlspecialcharsbx((string) $externalField['code']) ?>"
+                                            id="external_<?= htmlspecialcharsbx((string) $externalField['code']) ?>"
                                             type="email"
                                         >
-                                        <?=$externalField['name']?>
+                                        <?= htmlspecialcharsbx((string) $externalField['name']) ?>
                                     <?php } ?>
 
                                     <?php
                                     if ($externalField['type'] === 'dictionary') { ?>
-                                        <select name="<?=$externalField['code']?>">
+                                        <select name="<?= htmlspecialcharsbx((string) $externalField['code']) ?>">
                                             <?php
                                             foreach ($externalField['dictionaryElements'] as $dictionaryElement) {
                                                 ?>
-                                                <option value="<?=$dictionaryElement['code']?>"><?=$dictionaryElement['name']?> </option>
+                                                <option value="<?= htmlspecialcharsbx((string) $dictionaryElement['code']) ?>"><?= htmlspecialcharsbx((string) $dictionaryElement['name']) ?> </option>
                                                 <?php
                                             }
                                             ?>
                                         </select>
-                                        <?=$externalField['name']?>
+                                        <?= htmlspecialcharsbx((string) $externalField['name']) ?>
                                     <?php } ?>
                                 </lable>
                                 <br>
@@ -210,16 +219,16 @@ if ($arResult["LOYALTY_CONNECTION_ERROR"] === true) {
                         ?>
                         <script>
                             $(function() {
-                                const deadline = new Date('<?= $arResult['LP_REGISTER']['resendAvailable'] ?>');
+                                const deadline = new Date('<?= CUtil::JSEscape((string) $arResult['LP_REGISTER']['resendAvailable']) ?>');
                                 initializeClock("countdown", deadline);
                             });
                         </script>
                         <div id="countdownDiv"> <?=GetMessage('RESEND_POSSIBLE')?> <span id="countdown"></span> <?=GetMessage('SEC')?></div>
                         <div id="deadlineMessage" style="display: none;">
-                            <input type="button" onclick="resendRegisterSms(<?=$arResult['LP_REGISTER']['idInLoyalty']?>)" value="<?=GetMessage('RESEND_SMS')?>">
+                            <input type="button" onclick="resendRegisterSms(<?= (int) $arResult['LP_REGISTER']['idInLoyalty'] ?>)" value="<?=GetMessage('RESEND_SMS')?>">
                         </div>
                     <?php } ?>
-                    <input type="button" onclick="<?=$arResult['LP_REGISTER']['form']['button']['action']?>()" value="<?=GetMessage('SEND')?>">
+                    <input type="button" onclick="<?= htmlspecialcharsbx($safeFormButtonAction) ?>()" value="<?=GetMessage('SEND')?>">
                 </div>
             <?php } ?>
     </div>

@@ -24,7 +24,7 @@ function sendCartView() {
                 if (result.success) {
                     setTimeout(function() {
                         ocapi.setCustomerSiteId(result.userId);
-                        ocapi.event('open_cart', {customer_email: result.email});
+                        ocapi.event('open_cart');
                     }, 3000);
                 }
             },

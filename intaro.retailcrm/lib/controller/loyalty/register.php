@@ -3,10 +3,13 @@
 namespace Intaro\RetailCrm\Controller\Loyalty;
 
 use Bitrix\Main\Engine\ActionFilter\Authentication;
+use Bitrix\Main\Engine\ActionFilter\Csrf;
+use Bitrix\Main\Engine\ActionFilter\HttpMethod;
 use Bitrix\Main\Engine\Controller;
 use Bitrix\Main\Request;
 use Intaro\RetailCrm\Component\Builder\Api\CustomerBuilder;
 use Intaro\RetailCrm\Component\ConfigProvider;
+use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\DataProvider\CurrentUserProvider;
@@ -53,13 +56,17 @@ class Register extends Controller
     {
         return [
             'saveUserLpFields' => [
-                '-prefilters' => [
-                    Authentication::class,
+                'prefilters' => [
+                    new Authentication(),
+                    new HttpMethod([HttpMethod::METHOD_POST]),
+                    new Csrf(),
                 ],
             ],
             'resetUserLpFields' => [
-                '-prefilters' => [
-                    Authentication::class,
+                'prefilters' => [
+                    new Authentication(),
+                    new HttpMethod([HttpMethod::METHOD_POST]),
+                    new Csrf(),
                 ],
             ],
         ];
@@ -109,7 +116,7 @@ class Register extends Controller
         global $USER_FIELD_MANAGER;
 
         $msg          = '';
-        $cardNumber   = htmlspecialchars(trim($request['UF_CARD_NUM_INTARO'] ?? ''));
+        $cardNumber   = trim((string) ($request['UF_CARD_NUM_INTARO'] ?? ''));
         $userProvider = new CurrentUserProvider();
         $customer     = $userProvider->get();
         $phoneNumber  = Utils::filterPhone($request['PERSONAL_PHONE'] ?? '');
@@ -179,6 +186,16 @@ class Register extends Controller
      */
     public function accountCreateAction(array $request): array
     {
+        global $APPLICATION, $USER, $USER_FIELD_MANAGER;
+
+        if (!($USER instanceof \CUser) || !$USER->IsAuthorized()) {
+            return [
+                'status'   => 'error',
+                'msg'      => GetMessage('NOT_REGISTER'),
+                'msgColor' => 'brown',
+            ];
+        }
+
         if (isset($request['phone'])) {
             $phoneNumber = Utils::filterPhone($request['phone']);
 
@@ -191,12 +208,36 @@ class Register extends Controller
             }
         }
 
-        $user = User::getEntityByPrimary($request['customerId']);
+        $currentUserId = (int) $USER->GetID();
+        $requestCustomerId = (int) ($request['customerId'] ?? 0);
+        $customerId = $currentUserId;
+        $canManageOtherUser = $USER->IsAdmin()
+            || ($APPLICATION instanceof \CMain && $APPLICATION->GetGroupRight(Constants::MODULE_ID) === 'W');
 
-        global $USER_FIELD_MANAGER;
+        if ($requestCustomerId > 0 && $requestCustomerId !== $currentUserId) {
+            if (!$canManageOtherUser) {
+                return [
+                    'status'   => 'error',
+                    'msg'      => 'Access denied',
+                    'msgColor' => 'brown',
+                ];
+            }
 
-        $USER_FIELD_MANAGER->Update('USER', $request['customerId'], [
-            'UF_CARD_NUM_INTARO' => $request['card'],
+            $customerId = $requestCustomerId;
+        }
+
+        $user = User::getEntityByPrimary($customerId);
+
+        if ($user === null) {
+            return [
+                'status'   => 'error',
+                'msg'      => GetMessage('REQUEST_ERROR'),
+                'msgColor' => 'brown',
+            ];
+        }
+
+        $USER_FIELD_MANAGER->Update('USER', $customerId, [
+            'UF_CARD_NUM_INTARO' => trim((string) ($request['card'] ?? '')),
         ]);
 
         if (empty($user->getPersonalPhone()) && isset($request['phone'])) {
@@ -209,7 +250,7 @@ class Register extends Controller
         $createResponse = $service->createLoyaltyAccount(
             $request['phone'],
             $request['card'],
-            (string) $request['customerId']
+            (string) $customerId
         );
 
         if ($createResponse !== null) {
@@ -498,7 +539,7 @@ class Register extends Controller
             }
 
             if ($type === 'strings') {
-                $newFields[$field['code']] = htmlspecialchars(trim($field['value']));
+                $newFields[$field['code']] = trim((string) $field['value']);
                 continue;
             }
 
@@ -508,7 +549,7 @@ class Register extends Controller
             }
 
             if ($type === 'options') {
-                $newFields[$field['code']] = htmlspecialchars(trim($field['value']));
+                $newFields[$field['code']] = trim((string) $field['value']);
                 continue;
             }
         }

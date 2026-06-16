@@ -12,11 +12,14 @@
 namespace Intaro\RetailCrm\Controller\Loyalty;
 
 use Bitrix\Main\Engine\ActionFilter\Authentication;
+use Bitrix\Main\Engine\ActionFilter\Csrf;
 use Bitrix\Main\Engine\ActionFilter\HttpMethod;
 use Bitrix\Main\Engine\Controller;
 use Bitrix\Sale\Order as BitrixOrder;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse;
+use Intaro\RetailCrm\Repository\OrderLoyaltyDataRepository;
+use Intaro\RetailCrm\Service\CookieService;
 use Intaro\RetailCrm\Service\LoyaltyService;
 use Intaro\RetailCrm\Service\LoyaltyAccountService;
 use Intaro\RetailCrm\Service\OrderLoyaltyDataService;
@@ -66,6 +69,14 @@ class Order extends Controller
      */
     public function sendVerificationCodeAction(string $verificationCode, int $orderId, string $checkId): array
     {
+        if (!$this->isOrderCheckIdValid($orderId, $checkId)) {
+            return [
+                'status'   => 'error',
+                'msg'      => 'Forbidden',
+                'msgColor' => 'brown',
+            ];
+        }
+
         /** @var LoyaltyAccountService $service */
         $service  = ServiceLocator::get(LoyaltyAccountService::class);
         $response = $service->confirmVerification($verificationCode, $checkId);
@@ -112,6 +123,10 @@ class Order extends Controller
      */
     public function resendOrderSmsAction(int $orderId)
     {
+        if (!$this->canAccessOrder($orderId)) {
+            return ['msg' => 'Forbidden'];
+        }
+
         /** @var LoyaltyService $service */
         $service = ServiceLocator::get(LoyaltyService::class);
         $result = $service->resendBonusPayment($orderId);
@@ -127,6 +142,52 @@ class Order extends Controller
         return $result;
     }
 
+    private function canAccessOrder(int $orderId): bool
+    {
+        global $USER;
+
+        $order = BitrixOrder::load($orderId);
+
+        if ($order === null) {
+            return false;
+        }
+
+        if ($USER instanceof \CUser
+            && $USER->IsAuthorized()
+            && (int) $order->getUserId() === (int) $USER->GetID()
+        ) {
+            return true;
+        }
+
+        /** @var CookieService $cookieService */
+        $cookieService = ServiceLocator::get(CookieService::class);
+        $smsCookie = $cookieService->getSmsCookie('lpOrderBonusConfirm');
+
+        if ($smsCookie === null || empty($smsCookie->checkId)) {
+            return false;
+        }
+
+        return $this->isOrderCheckIdValid($orderId, $smsCookie->checkId);
+    }
+
+    private function isOrderCheckIdValid(int $orderId, string $checkId): bool
+    {
+        if ($checkId === '') {
+            return false;
+        }
+
+        $repository = new OrderLoyaltyDataRepository();
+        $products = $repository->getProductsByOrderId($orderId);
+
+        foreach ($products as $product) {
+            if ((string) $product->checkId === $checkId) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
 
     /**
      * @return \array[][]
@@ -134,16 +195,18 @@ class Order extends Controller
     public function configureActions(): array
     {
         return [
-            'sendSms' => [
-                '-prefilters' => [
-                    new Authentication,
-                    new HttpMethod(['GET']),
+            'sendVerificationCode' => [
+                'prefilters' => [
+                    new Authentication(),
+                    new HttpMethod([HttpMethod::METHOD_POST]),
+                    new Csrf(),
                 ],
             ],
             'resendOrderSms' => [
-                '-prefilters' => [
-                    new Authentication,
-                    new HttpMethod(['POST']),
+                'prefilters' => [
+                    new Authentication(),
+                    new HttpMethod([HttpMethod::METHOD_POST]),
+                    new Csrf(),
                 ],
             ],
         ];

@@ -50,9 +50,18 @@ class RetailCrmPrices
         $api_key = COption::GetOptionString(self::$MODULE_ID, self::$CRM_API_KEY_OPTION, 0);
 	$api = new RetailCrm\ApiClient($api_host, $api_key);
 
-        $infoBlocks = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_IBLOCKS_PRICES, 0));
-	$prices = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PRICES, 0));
-	$shops = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_PRICE_SHOPS, 0));
+        $infoBlocks = unserialize(
+            (string) COption::GetOptionString(self::$MODULE_ID, self::$CRM_IBLOCKS_PRICES, 0),
+            ['allowed_classes' => false]
+        );
+	$prices = unserialize(
+            (string) COption::GetOptionString(self::$MODULE_ID, self::$CRM_PRICES, 0),
+            ['allowed_classes' => false]
+        );
+	$shops = unserialize(
+            (string) COption::GetOptionString(self::$MODULE_ID, self::$CRM_PRICE_SHOPS, 0),
+            ['allowed_classes' => false]
+        );
 
         if (count($shops) == 0) {
             RCrmActions::eventLog('RetailCrmPrices::pricesUpload()', '$shops', 'No stores selected for download');

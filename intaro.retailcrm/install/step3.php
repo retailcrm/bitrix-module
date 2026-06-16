@@ -28,15 +28,24 @@ if (!isset($arResult['bitrixOrderTypesList'])) {
     $arResult['bitrixOrderTypesList'] = RCrmActions::OrderTypesList($arResult['arSites']);
     $arResult['arProp'] = RCrmActions::OrderPropsList();
     $arResult['locationProp'] = RCrmActions::getLocationProps();
-    $arResult['ORDER_PROPS'] = unserialize(COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_ORDER_PROPS, 0));
+    $arResult['ORDER_PROPS'] = unserialize(
+        (string) COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_ORDER_PROPS, 0),
+        ['allowed_classes' => false]
+    );
 }
 
 if (!isset($arResult['LEGAL_DETAILS'])) {
-    $arResult['LEGAL_DETAILS'] = unserialize(COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_LEGAL_DETAILS, 0));
+    $arResult['LEGAL_DETAILS'] = unserialize(
+        (string) COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_LEGAL_DETAILS, 0),
+        ['allowed_classes' => false]
+    );
 }
 
 if (!isset($arResult['CONTRAGENT_TYPES'])) {
-    $arResult['CONTRAGENT_TYPES'] = unserialize(COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_CONTRAGENT_TYPE, 0));
+    $arResult['CONTRAGENT_TYPES'] = unserialize(
+        (string) COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_CONTRAGENT_TYPE, 0),
+        ['allowed_classes' => false]
+    );
 
     if ($arResult['CONTRAGENT_TYPES'] === false) {
         foreach ($arResult['contragentType'] as $crmContrAgentType) {

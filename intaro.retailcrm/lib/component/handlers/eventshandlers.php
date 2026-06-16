@@ -67,7 +67,7 @@ class EventsHandlers
     ): void {
         if (ConfigProvider::getLoyaltyProgramStatus() === 'Y') {
             $bonusInput           = (float) $request->get('bonus-input');
-            $availableBonuses     = (float) $request->get('available-bonuses');
+            $availableBonuses     = LoyaltyAccountService::getAvailableBonusesForUser();
             $chargeRate           = (float) $request->get('charge-rate');
             $loyaltyDiscountInput = (float) $request->get('loyalty-discount-input');
             $calculateItemsInput  = $request->get('calculate-items-input');
@@ -136,7 +136,6 @@ class EventsHandlers
 
             $isBonusInput = (
                 !empty($_POST['bonus-input'])
-                && !empty($_POST['available-bonuses'])
             );
 
             $isDataForLoyaltyDiscount = isset($_POST['calculate-items-input'], $_POST['loyalty-discount-input']);
@@ -152,11 +151,12 @@ class EventsHandlers
             $orderLoyaltyDataService = ServiceLocator::get(OrderLoyaltyDataService::class);
 
             $bonusFloat = (float) $_POST['bonus-input'];
+            $availableBonuses = LoyaltyAccountService::getAvailableBonusesForUser((int) $order->getUserId());
 
             /** @var bool $isNewOrder */
             $isNewOrder                 = $event->getParameter('IS_NEW');
             $isLoyaltyOn                = ConfigProvider::getLoyaltyProgramStatus() === 'Y';
-            $isBonusesIssetAndAvailable = $isBonusInput && (float) $_POST['available-bonuses'] >= $bonusFloat;
+            $isBonusesIssetAndAvailable = $isBonusInput && $availableBonuses >= $bonusFloat;
 
             /** @var array $calculateItemsInput */
             $calculateItemsInput = $isDataForLoyaltyDiscount

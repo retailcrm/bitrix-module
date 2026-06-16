@@ -13,8 +13,12 @@
 
 namespace Intaro\RetailCrm\Controller;
 
+use Bitrix\Main\Engine\ActionFilter\Authentication;
+use Bitrix\Main\Engine\ActionFilter\Csrf;
 use Bitrix\Main\Engine\Controller;
+use Bitrix\Main\Error;
 use CModule;
+use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Service\Hl;
 
 /**
@@ -27,6 +31,18 @@ use Intaro\RetailCrm\Service\Hl;
  */
 class Icml extends Controller
 {
+    public function configureActions(): array
+    {
+        return [
+            'getHlTable' => [
+                'prefilters' => [
+                    new Authentication(),
+                    new Csrf(),
+                ],
+            ],
+        ];
+    }
+
     /**
      * @param string|null $tableName
      *
@@ -34,6 +50,12 @@ class Icml extends Controller
      */
     public function getHlTableAction(?string $tableName): array
     {
+        if (!$this->hasWriteAccess()) {
+            $this->addError(new Error('Access denied'));
+
+            return [];
+        }
+
         $hlBlockList = [];
 
         CModule::IncludeModule('highloadblock');
@@ -49,5 +71,18 @@ class Icml extends Controller
 
             return $hlBlockList;
         }
+
+        return [];
+    }
+
+    private function hasWriteAccess(): bool
+    {
+        global $APPLICATION, $USER;
+
+        return $USER instanceof \CUser
+            && (
+                $USER->IsAdmin()
+                || ($APPLICATION instanceof \CMain && $APPLICATION->GetGroupRight(Constants::MODULE_ID) === 'W')
+            );
     }
 }

@@ -19,15 +19,49 @@ $result = array(
 	'DATA' => array()
 );
 
-$siteId = '';
-if(strlen($_REQUEST['SITE_ID']))
-	$siteId = $_REQUEST['SITE_ID'];
-elseif(strlen(SITE_ID))
-	$siteId = SITE_ID;
+$zip = trim((string) ($_REQUEST['ZIP'] ?? ''));
+$action = (string) ($_REQUEST['ACT'] ?? '');
+$allowedActions = array('', 'GET_LOCS_BY_ZIP');
 
-if($_REQUEST['ACT'] != 'GET_LOCS_BY_ZIP')
+$siteId = '';
+if (isset($_REQUEST['SITE_ID']) && is_string($_REQUEST['SITE_ID']) && preg_match('/^[A-Za-z0-9_]{2}$/', $_REQUEST['SITE_ID']) === 1)
 {
-	$item = Helper::getLocationsByZip($_REQUEST['ZIP'], array('limit' => 1))->fetch();
+	$siteId = $_REQUEST['SITE_ID'];
+}
+elseif(strlen(SITE_ID))
+{
+	$siteId = SITE_ID;
+}
+
+if (!in_array($action, $allowedActions, true))
+{
+	$result['ERRORS'] = array('Invalid action');
+}
+elseif($zip === '' || mb_strlen($zip) > 20 || preg_match('/^[0-9A-Za-z\\-\\s]+$/u', $zip) !== 1)
+{
+	$result['ERRORS'] = array('Invalid zip');
+}
+
+$response = function (array $result): void {
+	header('Content-Type: application/x-javascript; charset='.LANG_CHARSET);
+
+	print(CUtil::PhpToJSObject(array(
+		'result' => empty($result['ERRORS']),
+		'errors' => $result['ERRORS'],
+		'data' => $result['DATA']
+	), false, false, true));
+};
+
+if (!empty($result['ERRORS']))
+{
+	$response($result);
+
+	return;
+}
+
+if($action != 'GET_LOCS_BY_ZIP')
+{
+	$item = Helper::getLocationsByZip($zip, array('limit' => 1))->fetch();
 
 	if(!isset($item['LOCATION_ID']))
 	{
@@ -46,7 +80,7 @@ if($_REQUEST['ACT'] != 'GET_LOCS_BY_ZIP')
 }
 else
 {
-	$dbRes = Helper::getLocationsByZip($_REQUEST['ZIP'], array('select' => array('PARENT_ID' => 'LOCATION.PARENT_ID')));
+	$dbRes = Helper::getLocationsByZip($zip, array('select' => array('PARENT_ID' => 'LOCATION.PARENT_ID')));
 	$locationsId = array();
 
 	while($item = $dbRes->fetch())
@@ -90,10 +124,4 @@ else
 	}
 }
 
-header('Content-Type: application/x-javascript; charset='.LANG_CHARSET);
-
-print(CUtil::PhpToJSObject(array(
-	'result' => empty($result['ERRORS']),
-	'errors' => $result['ERRORS'],
-	'data' => $result['DATA']
-), false, false, true));
+$response($result);

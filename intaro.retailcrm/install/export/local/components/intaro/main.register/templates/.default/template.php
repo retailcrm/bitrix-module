@@ -115,7 +115,7 @@ if ($arResult["LOYALTY_CONNECTION_ERROR"] === true) {
                                         autofocus="autofocus"
                                         required="required"
                                         name="PERSONAL_PHONE"
-                                        pattern="([\+]*[0-9]{1}\s?[\(]*[0-9]{3}[\)]*\s?\d{3}[-]*\d{2}[-]*\d{2})"
+                                        pattern="\+?[0-9]\s?\(?[0-9]{3}\)?\s?[0-9]{3}-?[0-9]{2}-?[0-9]{2}"
                                         placeholder="+_(___)___-__-__"
                                         value="+_(___)___-__-__"
                                         size="30"
@@ -355,7 +355,10 @@ if ($arResult["LOYALTY_CONNECTION_ERROR"] === true) {
                         <tr>
                             <td><? echo GetMessage("main_profile_time_zones_zones") ?></td>
                             <td>
-                                <select name="REGISTER[TIME_ZONE]"<? if (!isset($_REQUEST["REGISTER"]["TIME_ZONE"])) echo 'disabled="disabled"' ?>>
+                                <select
+                                    name="REGISTER[TIME_ZONE]"
+                                    <?= !isset($_REQUEST["REGISTER"]["TIME_ZONE"]) ? ' disabled="disabled"' : '' ?>
+                                >
                                     <? foreach ($arResult["TIME_ZONE_LIST"] as $tz => $tz_name): ?>
                                         <option value="<?=htmlspecialcharsbx($tz)?>"<?=$arResult["VALUES"]["TIME_ZONE"]
                                         == $tz ? " selected=\"selected\"" : ""?>><?=htmlspecialcharsbx($tz_name)?></option>

@@ -25,22 +25,31 @@ include (__DIR__ . '/lib/component/advanced/loyaltyinstaller.php');
 $mid = 'intaro.retailcrm';
 $loyaltyEventClass = 'Intaro\RetailCrm\Component\Handlers\EventsHandlers';
 $uri = $APPLICATION->GetCurPage() . '?mid=' . htmlspecialchars($mid) . '&lang=' . LANGUAGE_ID;
+$sanitizeErrorKey = static function (string $key): string {
+    $key = trim($key);
+
+    if ($key === '' || preg_match('/^ERR_[A-Z0-9_]+$/', $key) !== 1) {
+        return '';
+    }
+
+    return $key;
+};
 
 if (!CModule::IncludeModule('intaro.retailcrm') || !CModule::IncludeModule('sale') || !CModule::IncludeModule('iblock') || !CModule::IncludeModule('catalog')) {
     return;
 }
 
-$_GET['errc'] = htmlspecialchars(trim($_GET['errc']));
-$_GET['ok'] = htmlspecialchars(trim($_GET['ok']));
+$errc = $sanitizeErrorKey((string) ($_GET['errc'] ?? ''));
+$ok = trim((string) ($_GET['ok'] ?? ''));
 
 if (RetailcrmConfigProvider::isPhoneRequired()) {
     echo ShowMessage(["TYPE" => "ERROR", "MESSAGE" => GetMessage('PHONE_REQUIRED')]);
 }
 
-if (array_key_exists('errc', $_GET) && is_string($_GET['errc']) && strlen($_GET['errc']) > 0) {
-    echo CAdminMessage::ShowMessage(GetMessage($_GET['errc']));
+if ($errc !== '') {
+    echo CAdminMessage::ShowMessage(GetMessage($errc));
 }
-if (!empty($_GET['ok']) && $_GET['ok'] === 'Y') {
+if ($ok === 'Y') {
     echo CAdminMessage::ShowNote(GetMessage('ICRM_OPTIONS_OK'));
 }
 
@@ -88,6 +97,10 @@ if (method_exists(RCrmActions::class, 'customOrderPropList')
 
 //ajax update deliveryServices
 if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') && isset($_POST['ajax']) && ($_POST['ajax'] === '1')) {
+    if (!check_bitrix_sessid()) {
+        die('invalid_sessid');
+    }
+
     $api_host = COption::GetOptionString($mid, Constants::CRM_API_HOST_OPTION, 0);
     $api_key = COption::GetOptionString($mid, Constants::CRM_API_KEY_OPTION , 0);
     $api = new RetailCrm\ApiClient($api_host, $api_key);
@@ -134,6 +147,10 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_RE
 
 //upload orders after install module
 if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') && isset($_POST['ajax']) && $_POST['ajax'] == 2) {
+    if (!check_bitrix_sessid()) {
+        die('invalid_sessid');
+    }
+
     $step      = $_POST['step'];
     $orders    = $_POST['orders'];
     $countStep = 50; // 50 orders on step
@@ -191,6 +208,10 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_RE
 }
 
 if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') && isset($_POST['ajax']) && $_POST['ajax'] == 3) {
+    if (!check_bitrix_sessid()) {
+        die('invalid_sessid');
+    }
+
     $dateAgent = new DateTime();
     $intAgent = new DateInterval('PT60S');
     $dateAgent->add($intAgent);
@@ -213,6 +234,10 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_RE
 
 // AJAX запрос для копирования файлов трекера.
 if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') && isset($_POST['ajax']) && $_POST['ajax'] == 4) {
+    if (!check_bitrix_sessid()) {
+        die('invalid_sessid');
+    }
+
     $isSuccessfulResponse = true;
 
     try {
@@ -238,8 +263,8 @@ if (!empty($availableSites)) {
 //update connection settings
 if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $error = null;
-    $api_host = htmlspecialchars(trim($_POST['api_host']));
-    $api_key = htmlspecialchars(trim($_POST['api_key']));
+    $api_host = trim((string) ($_POST['api_host'] ?? ''));
+    $api_key = trim((string) ($_POST['api_key'] ?? ''));
 
     //bitrix site list
     $siteListArr = [];
@@ -649,8 +674,8 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         }
 
         //api request with $version
-        $crmUrl = htmlspecialchars(trim($_POST['api_host']));
-        $apiKey = htmlspecialchars(trim($_POST['api_key']));
+        $crmUrl = trim((string) ($_POST['api_host'] ?? ''));
+        $apiKey = trim((string) ($_POST['api_key'] ?? ''));
 
         if ('/' !== $crmUrl[strlen($crmUrl) - 1]) {
             $crmUrl .= '/';
@@ -1360,8 +1385,12 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
     $errorsText = [];
 
-    if (preg_match('/&errc=ERR_(.*)/is', $APPLICATION->GetCurUri(), $matches)) {
-        $errorsText[] = GetMessage(urldecode($matches[1]));
+    if (preg_match('/&errc=(ERR_[A-Z0-9_]+)/', $APPLICATION->GetCurUri(), $matches)) {
+        $errorKey = $sanitizeErrorKey(urldecode($matches[1]));
+
+        if ($errorKey !== '') {
+            $errorsText[] = GetMessage($errorKey);
+        }
     }
 
     if (empty($errorsText)) {
@@ -1899,7 +1928,10 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 $.ajax({
                     type: 'POST',
                     url: handlerUrl,
-                    data: 'ajax=1',
+                    data: {
+                        ajax: 1,
+                        sessid: BX.bitrix_sessid()
+                    },
                     dataType: 'json',
                     success: function(response) {
                         BX.closeWait();
@@ -1964,11 +1996,11 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
         <tr >
             <td width="50%" class="adm-detail-content-cell-l"><?php echo GetMessage('ICRM_API_HOST'); ?></td>
-            <td width="50%" class="adm-detail-content-cell-r"><input type="text" id="api_host" name="api_host" value="<?php echo $api_host; ?>"></td>
+            <td width="50%" class="adm-detail-content-cell-r"><input type="text" id="api_host" name="api_host" value="<?php echo htmlspecialcharsbx((string) $api_host); ?>"></td>
         </tr>
         <tr>
             <td width="50%" class="adm-detail-content-cell-l"><?php echo GetMessage('ICRM_API_KEY'); ?></td>
-            <td width="50%" class="adm-detail-content-cell-r"><input type="text" id="api_key" name="api_key" value="<?php echo $api_key; ?>"></td>
+            <td width="50%" class="adm-detail-content-cell-r"><input type="text" id="api_key" name="api_key" value="<?php echo htmlspecialcharsbx((string) $api_key); ?>"></td>
         </tr>
 
         <?php if ($errorsText): ?>
@@ -1976,7 +2008,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                 <tr align="center">
                     <td colspan="2">
                         <strong style="color:red" >
-                            <?php echo $error; ?>
+                            <?php echo htmlspecialcharsbx((string) $error); ?>
                         </strong>
                     </td>
                 </tr>
@@ -2953,7 +2985,12 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                         $.ajax({
                             type: 'POST',
                             url: handlerUrl,
-                            data: 'orders=' + orders + '&step=' + step + '&ajax=2',
+                            data: {
+                                orders: orders,
+                                step: step,
+                                ajax: 2,
+                                sessid: BX.bitrix_sessid()
+                            },
                             dataType:'json',
                             success:  function(response) {
                                 $('input[name="step"]').val(response.step);
@@ -3001,7 +3038,10 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                         $.ajax({
                             type: 'POST',
                             url: handleUrl,
-                            data: 'ajax=3',
+                            data: {
+                                ajax: 3,
+                                sessid: BX.bitrix_sessid()
+                            },
                             dataType: 'json',
                             success: function () {
                                 $('#block-fix-customer-date').html("<p><b><?php echo GetMessage('FIX_UPLOAD_CUSTOMER_AFTER_SUBMIT'); ?></b></p>");
@@ -3466,7 +3506,10 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                         $.ajax({
                             type: 'POST',
                             url: '<?php echo $uri; ?>',
-                            data: 'ajax=4',
+                            data: {
+                                ajax: 4,
+                                sessid: BX.bitrix_sessid()
+                            },
                             dataType: 'json',
                             success: function () {
                                 alert('<?php echo GetMessage('EVENT_TRACKER_SUCCESSFUL_COPY_FILES'); ?>');

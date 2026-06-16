@@ -302,11 +302,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $_REQUEST["code_submit_button"] <> '
 		}
 	}
 }
+$backurl = (string) ($_REQUEST["backurl"] ?? '');
+$isValidBackurl = preg_match('#^/(?!/)[A-Za-z0-9_./?=&%-]*$#', $backurl) === 1;
+
 // if user is registered - redirect him to backurl or to success_page; currently added users too
 if($register_done)
 {
-	if($arParams["USE_BACKURL"] == "Y" && $_REQUEST["backurl"] <> '')
-		LocalRedirect($_REQUEST["backurl"]);
+	if($arParams["USE_BACKURL"] == "Y" && $isValidBackurl)
+		LocalRedirect($backurl);
 	elseif($arParams["SUCCESS_PAGE"] <> '')
 		LocalRedirect($arParams["SUCCESS_PAGE"]);
 }
@@ -319,7 +322,7 @@ foreach ($arResult["REQUIRED_FIELDS"] as $field)
 	$arResult["REQUIRED_FIELDS_FLAGS"][$field] = "Y";
 
 // check backurl existance
-$arResult["BACKURL"] = htmlspecialcharsbx($_REQUEST["backurl"]);
+$arResult["BACKURL"] = $isValidBackurl ? htmlspecialcharsbx($backurl) : '';
 
 // get countries list
 if (in_array("PERSONAL_COUNTRY", $arResult["SHOW_FIELDS"]) || in_array("WORK_COUNTRY", $arResult["SHOW_FIELDS"]))

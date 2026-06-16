@@ -462,7 +462,7 @@ if (strlen($request->get('ORDER_ID')) > 0) {
                                         <div class="bx-soa-coupon-block">
                                             <div class="bx-input">
                                                 <input name='bonus-input' class="form-control" type="number" step="any" max="<?=$arResult['AVAILABLE_BONUSES']?>" id='bonus-input'>
-                                                <input name="available-bonuses" class="form-control" type="hidden" id='available-bonus-input' value="<?=$arResult['AVAILABLE_BONUSES']?>">
+                                                <input class="form-control" type="hidden" id='available-bonus-input' value="<?=$arResult['AVAILABLE_BONUSES']?>">
                                                 <input name="charge-rate" class="form-control" type="hidden" id='charge-rate-input' value="<?=$arResult['CHARGERATE']?>">
                                                 <script id="data-basket-items">
                                                     window.__BASKET_ITEMS__
