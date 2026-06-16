@@ -1,1 +1,1 @@
-- Исправлены замечания по безопасности модуля. Устранены уязвимости Authentication Bypass, IDOR и SSRF. Снижены риски CSRF, XSS и Information Disclosure. Усилены проверки доступа и обработки пользовательских данных.
+- Исправлено присвоение PERSON_TYPE_ID для $newOrder
