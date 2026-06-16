@@ -599,6 +599,44 @@ class RetailCrmHistory
 
                     $newOrder = Order::create($site, $orderCustomerExtId, $currency);
 
+                    if (RetailCrmOrder::isOrderCorporate($order)
+                        || (!empty($order['contragentType']) && in_array($order['contragentType'], ['legal-entity', 'enterpreneur']))
+                    ) {
+                        $personType = $contragentTypes['legal-entity'];
+                        $newOrder->setField('PERSON_TYPE_ID', $personType);
+
+                        $propsRemove = true;
+                    } else {
+                        if (isset($order['orderType']) && $order['orderType']) {
+                            $nType = [];
+                            $tList = RCrmActions::OrderTypesList([['LID' => $site]]);
+
+                            foreach ($tList as $type) {
+                                if (isset($optionsOrderTypes[$type['ID']])) {
+                                    $nType[$optionsOrderTypes[$type['ID']]] = $type['ID'];
+                                }
+                            }
+
+                            $newOptionsOrderTypes = $nType;
+
+                            if ($newOptionsOrderTypes[$order['orderType']]) {
+                                $personType = (int) $newOrder->getField('PERSON_TYPE_ID');
+                                if ($personType != $newOptionsOrderTypes[$order['orderType']] && $personType != 0) {
+                                    $propsRemove = true;
+                                }
+
+                                $personType = $newOptionsOrderTypes[$order['orderType']];
+                                $newOrder->setField('PERSON_TYPE_ID', $personType);
+                            } elseif ($personType == 0) {
+                                RCrmActions::eventLog(
+                                    'RetailCrmHistory::orderHistory',
+                                    'orderType not found',
+                                    'PERSON_TYPE_ID = 0'
+                                );
+                            }
+                        }
+                    }
+                    
                     self::setManager($newOrder, $order);
 
                     if (isset($buyerProfileToAppend['ID']) && isset($optionsLegalDetails['legalName'])) {
@@ -683,43 +721,6 @@ class RetailCrmHistory
 
                     $propsRemove = false;
                     $personType = $newOrder->getField('PERSON_TYPE_ID');
-
-                    if (RetailCrmOrder::isOrderCorporate($order)
-                        || (!empty($order['contragentType']) && in_array($order['contragentType'], ['legal-entity', 'enterpreneur']))
-                    ) {
-                        $personType = $contragentTypes['legal-entity'];
-                        $newOrder->setField('PERSON_TYPE_ID', $personType);
-
-                        $propsRemove = true;
-                    } else {
-                        if (isset($order['orderType']) && $order['orderType']) {
-                            $nType = [];
-                            $tList = RCrmActions::OrderTypesList([['LID' => $site]]);
-
-                            foreach ($tList as $type) {
-                                if (isset($optionsOrderTypes[$type['ID']])) {
-                                    $nType[$optionsOrderTypes[$type['ID']]] = $type['ID'];
-                                }
-                            }
-
-                            $newOptionsOrderTypes = $nType;
-
-                            if ($newOptionsOrderTypes[$order['orderType']]) {
-                                if ($personType != $newOptionsOrderTypes[$order['orderType']] && $personType != 0) {
-                                    $propsRemove = true;
-                                }
-
-                                $personType = $newOptionsOrderTypes[$order['orderType']];
-                                $newOrder->setField('PERSON_TYPE_ID', $personType);
-                            } elseif ($personType == 0) {
-                                RCrmActions::eventLog(
-                                    'RetailCrmHistory::orderHistory',
-                                    'orderType not found',
-                                    'PERSON_TYPE_ID = 0'
-                                );
-                            }
-                        }
-                    }
 
                     //status
                     if ($optionsPayStatuses[$order['status']]) {
