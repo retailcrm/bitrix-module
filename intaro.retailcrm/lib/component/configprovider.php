@@ -997,12 +997,16 @@ class ConfigProvider
 
     public static function getOnlineConsultantScript(): string
     {
-        return trim(static::getOption(Constants::CRM_ONLINE_CONSULTANT_SCRIPT, ""));
+        return static::buildAllowedOnlineConsultantScript(
+            trim(static::getOption(Constants::CRM_ONLINE_CONSULTANT_SCRIPT, ""))
+        );
     }
 
     public static function getOnlineConsultantScriptUrl(): string
     {
-        return static::extractAllowedOnlineConsultantUrl(static::getOnlineConsultantScript());
+        return static::extractAllowedOnlineConsultantUrl(
+            trim(static::getOption(Constants::CRM_ONLINE_CONSULTANT_SCRIPT, ""))
+        );
     }
 
     public static function isEventTrackerEnabled(): bool
@@ -1030,13 +1034,45 @@ class ConfigProvider
     {
         static::setOption(
             Constants::CRM_ONLINE_CONSULTANT_SCRIPT,
-            static::extractAllowedOnlineConsultantUrl($value)
+            static::buildAllowedOnlineConsultantScript($value)
         );
     }
 
     public static function setEventTracker(string $value)
     {
         static::setOption(Constants::CRM_EVENT_TRACKER, $value);
+    }
+
+    private static function buildAllowedOnlineConsultantScript(string $value): string
+    {
+        $url = static::extractAllowedOnlineConsultantUrl($value);
+        $rcct = static::extractOnlineConsultantToken($value);
+
+        if ($url === '') {
+            return '';
+        }
+
+        $scriptParts = [];
+
+        if ($rcct !== '') {
+            $scriptParts[] = sprintf(
+                '<script>var _rcct = "%s";</script>',
+                htmlspecialcharsbx($rcct)
+            );
+        }
+
+        $scriptParts[] = sprintf('<script async src="%s"></script>', htmlspecialcharsbx($url));
+
+        return implode('', $scriptParts);
+    }
+
+    private static function extractOnlineConsultantToken(string $value): string
+    {
+        if (!preg_match('/_rcct\s*=\s*[\'"]([A-Za-z0-9_-]+)[\'"]/i', $value, $matches)) {
+            return '';
+        }
+
+        return (string) ($matches[1] ?? '');
     }
 
     private static function extractAllowedOnlineConsultantUrl(string $value): string
@@ -1053,7 +1089,7 @@ class ConfigProvider
             $candidates[] = $value;
         }
 
-        if (preg_match_all('~https://[^\s\'"<>]+~i', $value, $matches)) {
+        if (preg_match_all('~(?:https:)?//[^\s\'"<>]+~i', $value, $matches)) {
             $candidates = array_merge($candidates, $matches[0]);
         }
 
@@ -1065,11 +1101,20 @@ class ConfigProvider
         ];
 
         foreach (array_unique($candidates) as $candidate) {
+            if (strpos($candidate, '//') === 0) {
+                $candidate = 'https:' . $candidate;
+            }
+
             $parsedUrl = parse_url($candidate);
             $host = strtolower((string) ($parsedUrl['host'] ?? ''));
             $scheme = strtolower((string) ($parsedUrl['scheme'] ?? ''));
+            $path = (string) ($parsedUrl['path'] ?? '');
 
             if ($host === '' || $scheme !== 'https') {
+                continue;
+            }
+
+            if (strpos($path, '/widget/loader.js') === false) {
                 continue;
             }
 

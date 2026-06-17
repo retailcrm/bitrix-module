@@ -25,18 +25,15 @@ class RetailCrmOnlineConsultant
     public static function add()
     {
         $request = \Bitrix\Main\Context::getCurrent()->getRequest();
-        $scriptUrl = RetailcrmConfigProvider::getOnlineConsultantScriptUrl();
+        $script = RetailcrmConfigProvider::getOnlineConsultantScript();
 
         if (
             RetailcrmConfigProvider::isOnlineConsultantEnabled()
             && $request->isAdminSection() !== true
-            && $scriptUrl !== ''
+            && $script !== ''
         ) {
             \Bitrix\Main\Page\Asset::getInstance()->addString(
-                sprintf(
-                    '<script async src="%s"></script>',
-                    htmlspecialcharsbx($scriptUrl)
-                ),
+                $script,
                 true
             );
             

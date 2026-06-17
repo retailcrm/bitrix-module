@@ -3495,11 +3495,28 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                     warning.style = 'color:red; margin-top:5px; display:none;';
                     warning.textContent = '<?php echo GetMessage('ONLINE_CONSULTANT_AND_EVENT_TRACKER_CODE_WARNING')?>';
                     textarea.insertAdjacentElement('afterend', warning);
+                    const allowedDomains = ['retailcrm.ru', 'retailcrm.pro', 'retailcrm.es', 'retailcrm.tech'];
 
                     const renderEventCheckboxes = () => {
                         const textareaValue = textarea.value.trim();
                         const hasCode = textareaValue !== '';
-                        const hasWidget = textareaValue.includes('c.retailcrm.tech/widget/loader.js');
+                        const urlMatches = textareaValue.match(/(?:https:)?\/\/[^\s'"<>]+/g) || [];
+                        const hasWidget = urlMatches.some((url) => {
+                            try {
+                                const normalizedUrl = url.startsWith('//') ? 'https:' + url : url;
+                                const parsedUrl = new URL(normalizedUrl);
+                                const host = parsedUrl.hostname.toLowerCase();
+                                const hasAllowedDomain = allowedDomains.some((domain) =>
+                                    host === domain || host.endsWith('.' + domain)
+                                );
+
+                                return parsedUrl.protocol === 'https:'
+                                    && hasAllowedDomain
+                                    && parsedUrl.pathname.includes('/widget/loader.js');
+                            } catch (e) {
+                                return false;
+                            }
+                        });
                         const canRenderElements = eventTrackerCheckbox.checked && hasCode && hasWidget;
 
                         warning.style.display = (!hasWidget && hasCode) ? 'block' : 'none';
