@@ -261,7 +261,10 @@ class RCrmActions
     public static function uploadOrdersAgent()
     {
         RetailCrmOrder::uploadOrders();
-        $failedIds = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_FAILED_IDS, 0));
+        $failedIds = unserialize(
+            COption::GetOptionString(self::$MODULE_ID, self::$CRM_ORDER_FAILED_IDS, 0),
+            ['allowed_classes' => false]
+        );
 
         if (is_array($failedIds) && !empty($failedIds)) {
             RetailCrmOrder::uploadOrders(50, true);

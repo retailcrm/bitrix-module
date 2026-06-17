@@ -24,7 +24,10 @@ class RetailCrmUa
     public static function add()
     {
         $ua = COption::GetOptionString(self::$MODULE_ID, self::$CRM_UA, 0);
-        $uaKeys = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_UA_KEYS, 0));
+        $uaKeys = unserialize(
+            COption::GetOptionString(self::$MODULE_ID, self::$CRM_UA_KEYS, 0),
+            ['allowed_classes' => false]
+        );
         $request = \Bitrix\Main\Context::getCurrent()->getRequest();
 
         if ($ua === 'Y' && !empty($uaKeys[SITE_ID]['ID']) && !empty($uaKeys[SITE_ID]['INDEX']) && $request->isAdminSection() !== true) {

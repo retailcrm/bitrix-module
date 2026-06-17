@@ -118,7 +118,10 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && (strtolower($_SERVER['HTTP_X_RE
         die(json_encode(['success' => false, 'errMsg' => $e->getCode()]));
     }
 
-    $optionsDelivTypes    = unserialize(COption::GetOptionString($mid, Constants::CRM_DELIVERY_TYPES_ARR, 0));
+    $optionsDelivTypes    = unserialize(
+        COption::GetOptionString($mid, Constants::CRM_DELIVERY_TYPES_ARR, 0),
+        ['allowed_classes' => false]
+    );
     $arDeliveryServiceAll = Manager::getActiveList();
 
     foreach ($optionsDelivTypes as $key => $deliveryType) {
@@ -792,8 +795,14 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
         RCrmActions::sendConfiguration($api, false);
     } else {
-        $deactivateAgents = unserialize(COption::GetOptionString($mid, Constants::AGENTS_DEACTIVATE, ''));
-        $deactivateEvents = unserialize(COption::GetOptionString($mid, Constants::EVENTS_DEACTIVATE, ''));
+        $deactivateAgents = unserialize(
+            COption::GetOptionString($mid, Constants::AGENTS_DEACTIVATE, ''),
+            ['allowed_classes' => false]
+        );
+        $deactivateEvents = unserialize(
+            COption::GetOptionString($mid, Constants::EVENTS_DEACTIVATE, ''),
+            ['allowed_classes' => false]
+        );
 
         if (!empty($deactivateAgents)) {
             $dateAgent = new DateTime();
@@ -1320,39 +1329,39 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
     //saved params
     $useCrmOrderMethods = ConfigProvider::useCrmOrderMethods();
-    $crmOrderMethods = unserialize(COption::GetOptionString($mid, Constants::CRM_ORDER_METHODS, 0));
-    $moduleDeactivate = unserialize(COption::GetOptionString($mid, Constants::MODULE_DEACTIVATE, 'N'));
-    $optionsOrderTypes = unserialize(COption::GetOptionString($mid, Constants::CRM_ORDER_TYPES_ARR, 0));
-    $optionsDelivTypes = unserialize(COption::GetOptionString($mid, Constants::CRM_DELIVERY_TYPES_ARR, 0));
-    $optionsPayTypes = unserialize(COption::GetOptionString($mid, Constants::CRM_PAYMENT_TYPES, 0));
-    $optionsPayStatuses = unserialize(COption::GetOptionString($mid, Constants::CRM_PAYMENT_STATUSES, 0));
-    $optionsPayment = unserialize(COption::GetOptionString($mid, Constants::CRM_PAYMENT, 0));
-    $optionsSitesList = unserialize(COption::GetOptionString($mid, Constants::CRM_SITES_LIST, 0));
+    $crmOrderMethods = unserialize(COption::GetOptionString($mid, Constants::CRM_ORDER_METHODS, 0), ['allowed_classes' => false]);
+    $moduleDeactivate = unserialize(COption::GetOptionString($mid, Constants::MODULE_DEACTIVATE, 'N'), ['allowed_classes' => false]);
+    $optionsOrderTypes = unserialize(COption::GetOptionString($mid, Constants::CRM_ORDER_TYPES_ARR, 0), ['allowed_classes' => false]);
+    $optionsDelivTypes = unserialize(COption::GetOptionString($mid, Constants::CRM_DELIVERY_TYPES_ARR, 0), ['allowed_classes' => false]);
+    $optionsPayTypes = unserialize(COption::GetOptionString($mid, Constants::CRM_PAYMENT_TYPES, 0), ['allowed_classes' => false]);
+    $optionsPayStatuses = unserialize(COption::GetOptionString($mid, Constants::CRM_PAYMENT_STATUSES, 0), ['allowed_classes' => false]);
+    $optionsPayment = unserialize(COption::GetOptionString($mid, Constants::CRM_PAYMENT, 0), ['allowed_classes' => false]);
+    $optionsSitesList = unserialize(COption::GetOptionString($mid, Constants::CRM_SITES_LIST, 0), ['allowed_classes' => false]);
     $optionsDischarge = (int) COption::GetOptionString($mid, Constants::CRM_ORDER_DISCHARGE, 0);
-    $optionsOrderProps = unserialize(COption::GetOptionString($mid, Constants::CRM_ORDER_PROPS, 0));
-    $optionsContragentType = unserialize(COption::GetOptionString($mid, Constants::CRM_CONTRAGENT_TYPE, 0));
-    $optionsLegalDetails = unserialize(COption::GetOptionString($mid, Constants::CRM_LEGAL_DETAILS, 0));
-    $optionsCustomFields = unserialize(COption::GetOptionString($mid, Constants::CRM_CUSTOM_FIELDS, 0));
+    $optionsOrderProps = unserialize(COption::GetOptionString($mid, Constants::CRM_ORDER_PROPS, 0), ['allowed_classes' => false]);
+    $optionsContragentType = unserialize(COption::GetOptionString($mid, Constants::CRM_CONTRAGENT_TYPE, 0), ['allowed_classes' => false]);
+    $optionsLegalDetails = unserialize(COption::GetOptionString($mid, Constants::CRM_LEGAL_DETAILS, 0), ['allowed_classes' => false]);
+    $optionsCustomFields = unserialize(COption::GetOptionString($mid, Constants::CRM_CUSTOM_FIELDS, 0), ['allowed_classes' => false]);
     $optionsOrderNumbers = COption::GetOptionString($mid, Constants::CRM_ORDER_NUMBERS, 0);
     $optionsOrderVat = COption::GetOptionString($mid, Constants::CRM_ORDER_VAT, 0);
     $optionsOrderTrackNumber = ConfigProvider::getTrackNumberStatus();
     $optionsSyncIntegrationPayment = ConfigProvider::getSyncIntegrationPayment();
-    $canselOrderArr = unserialize(COption::GetOptionString($mid, Constants::CRM_CANCEL_ORDER, 0));
+    $canselOrderArr = unserialize(COption::GetOptionString($mid, Constants::CRM_CANCEL_ORDER, 0), ['allowed_classes' => false]);
     $sendPickupPointAddress = COption::GetOptionString($mid, Constants::CRM_SEND_PICKUP_POINT_ADDRESS, 'N');
 
     $optionInventotiesUpload = COption::GetOptionString($mid, Constants::CRM_INVENTORIES_UPLOAD, 0);
-    $optionStores = unserialize(COption::GetOptionString($mid, Constants::CRM_STORES, 0));
-    $optionShops = unserialize(COption::GetOptionString($mid, Constants::CRM_SHOPS, 0));
-    $optionIblocksInventories = unserialize(COption::GetOptionString($mid, Constants::CRM_IBLOCKS_INVENTORIES, 0));
-    $optionShopsCorporate = unserialize(COption::GetOptionString($mid, Constants::CRM_SHOPS, 0));
+    $optionStores = unserialize(COption::GetOptionString($mid, Constants::CRM_STORES, 0), ['allowed_classes' => false]);
+    $optionShops = unserialize(COption::GetOptionString($mid, Constants::CRM_SHOPS, 0), ['allowed_classes' => false]);
+    $optionIblocksInventories = unserialize(COption::GetOptionString($mid, Constants::CRM_IBLOCKS_INVENTORIES, 0), ['allowed_classes' => false]);
+    $optionShopsCorporate = unserialize(COption::GetOptionString($mid, Constants::CRM_SHOPS, 0), ['allowed_classes' => false]);
 
     $optionPricesUpload = COption::GetOptionString($mid, Constants::CRM_PRICES_UPLOAD, 0);
-    $optionPrices = unserialize(COption::GetOptionString($mid, Constants::CRM_PRICES, 0));
-    $optionPriceShops = unserialize(COption::GetOptionString($mid, Constants::CRM_PRICE_SHOPS, 0));
-    $optionIblocksPrices = unserialize(COption::GetOptionString($mid, Constants::CRM_IBLOCKS_PRICES, 0));
+    $optionPrices = unserialize(COption::GetOptionString($mid, Constants::CRM_PRICES, 0), ['allowed_classes' => false]);
+    $optionPriceShops = unserialize(COption::GetOptionString($mid, Constants::CRM_PRICE_SHOPS, 0), ['allowed_classes' => false]);
+    $optionIblocksPrices = unserialize(COption::GetOptionString($mid, Constants::CRM_IBLOCKS_PRICES, 0), ['allowed_classes' => false]);
 
     $optionCollector = COption::GetOptionString($mid, Constants::CRM_COLLECTOR, 0);
-    $optionCollectorKeys = unserialize(COption::GetOptionString($mid, Constants::CRM_COLL_KEY));
+    $optionCollectorKeys = unserialize(COption::GetOptionString($mid, Constants::CRM_COLL_KEY), ['allowed_classes' => false]);
 
     $optionOnlineConsultant = RetailcrmConfigProvider::isOnlineConsultantEnabled();
     $optionOnlineConsultantScript = RetailcrmConfigProvider::getOnlineConsultantScript();
@@ -1361,7 +1370,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $optionEventTrackerOpenCart= RetailcrmConfigProvider::isEventTrackerOpenCartEnabled();
 
     $optionUa = COption::GetOptionString($mid, Constants::CRM_UA, 0);
-    $optionUaKeys = unserialize(COption::GetOptionString($mid, Constants::CRM_UA_KEYS));
+    $optionUaKeys = unserialize(COption::GetOptionString($mid, Constants::CRM_UA_KEYS), ['allowed_classes' => false]);
 
     $optionDiscRound = COption::GetOptionString($mid, Constants::CRM_DISCOUNT_ROUND, 0);
     $optionPricePrchaseNull = COption::GetOptionString($mid, Constants::CRM_PURCHASE_PRICE_NULL, 0);
@@ -1369,7 +1378,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
     //corporate-cliente
     $optionCorpClient = COption::GetOptionString($mid, Constants::CRM_CC, 0);
-    $optionCorpShops = unserialize(COption::GetOptionString($mid, Constants::CRM_CORP_SHOPS, 0));
+    $optionCorpShops = unserialize(COption::GetOptionString($mid, Constants::CRM_CORP_SHOPS, 0), ['allowed_classes' => false]);
     $optionsCorpComName = COption::GetOptionString($mid, Constants::CRM_CORP_NAME, 0);
     $optionsCorpAdres = COption::GetOptionString($mid, Constants::CRM_CORP_ADDRESS, 0);
 
@@ -1446,7 +1455,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     } while($getCustomFields['pagination']['currentPage'] < $getCustomFields['pagination']['totalPageCount']);
 
     $optionsOrderDimensions = COption::GetOptionString($mid, Constants::CRM_DIMENSIONS, 'N');
-    $addressOptions = unserialize(COption::GetOptionString($mid, Constants::CRM_ADDRESS_OPTIONS, 0));
+    $addressOptions = unserialize(COption::GetOptionString($mid, Constants::CRM_ADDRESS_OPTIONS, 0), ['allowed_classes' => false]);
 
     $optionCart = COption::GetOptionString($mid, Constants::CART, 'N');
 
