@@ -1002,13 +1002,6 @@ class ConfigProvider
         );
     }
 
-    public static function getOnlineConsultantScriptUrl(): string
-    {
-        return static::extractAllowedOnlineConsultantUrl(
-            trim(static::getOption(Constants::CRM_ONLINE_CONSULTANT_SCRIPT, ""))
-        );
-    }
-
     public static function isEventTrackerEnabled(): bool
     {
         return static::getOption(Constants::CRM_EVENT_TRACKER) === 'Y';
