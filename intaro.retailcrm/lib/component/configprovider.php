@@ -1000,6 +1000,11 @@ class ConfigProvider
         return trim(static::getOption(Constants::CRM_ONLINE_CONSULTANT_SCRIPT, ""));
     }
 
+    public static function getOnlineConsultantScriptUrl(): string
+    {
+        return static::extractAllowedOnlineConsultantUrl(static::getOnlineConsultantScript());
+    }
+
     public static function isEventTrackerEnabled(): bool
     {
         return static::getOption(Constants::CRM_EVENT_TRACKER) === 'Y';
@@ -1023,12 +1028,59 @@ class ConfigProvider
 
     public static function setOnlineConsultantScript(string $value)
     {
-        static::setOption(Constants::CRM_ONLINE_CONSULTANT_SCRIPT, $value);
+        static::setOption(
+            Constants::CRM_ONLINE_CONSULTANT_SCRIPT,
+            static::extractAllowedOnlineConsultantUrl($value)
+        );
     }
 
     public static function setEventTracker(string $value)
     {
         static::setOption(Constants::CRM_EVENT_TRACKER, $value);
+    }
+
+    private static function extractAllowedOnlineConsultantUrl(string $value): string
+    {
+        $value = trim($value);
+
+        if ($value === '') {
+            return '';
+        }
+
+        $candidates = [];
+
+        if (filter_var($value, FILTER_VALIDATE_URL)) {
+            $candidates[] = $value;
+        }
+
+        if (preg_match_all('~https://[^\s\'"<>]+~i', $value, $matches)) {
+            $candidates = array_merge($candidates, $matches[0]);
+        }
+
+        $allowedDomains = [
+            'retailcrm.ru',
+            'retailcrm.pro',
+            'retailcrm.es',
+            'retailcrm.tech',
+        ];
+
+        foreach (array_unique($candidates) as $candidate) {
+            $parsedUrl = parse_url($candidate);
+            $host = strtolower((string) ($parsedUrl['host'] ?? ''));
+            $scheme = strtolower((string) ($parsedUrl['scheme'] ?? ''));
+
+            if ($host === '' || $scheme !== 'https') {
+                continue;
+            }
+
+            foreach ($allowedDomains as $domain) {
+                if ($host === $domain || substr($host, -strlen('.' . $domain)) === '.' . $domain) {
+                    return $candidate;
+                }
+            }
+        }
+
+        return '';
     }
 
     public static function setEventTrackerCart(string $value)

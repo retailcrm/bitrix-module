@@ -610,7 +610,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     //online_consultant
     if (htmlspecialchars(trim($_POST['online_consultant'] === 'Y'))) {
         $onlineConsultant = 'Y';
-        $onlineConsultantScript = trim($_POST['online_consultant_script']);
+        $onlineConsultantScript = trim((string) ($_POST['online_consultant_script'] ?? ''));
         RegisterModuleDependences("main", "OnBeforeProlog", $mid, "RetailCrmOnlineConsultant", "add");
     } else {
         $onlineConsultant = 'N';
@@ -3538,7 +3538,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                     <?php echo GetMessage('ONLINE_CONSULTANT_AND_EVENT_TRACKER_LABEL')?>
                 </td>
                 <td class="adm-detail-content-cell-r" width="55%">
-                    <textarea name="online_consultant_script" style="width: 300px; height: 200px;"><?php echo $optionOnlineConsultantScript; ?></textarea>
+                    <textarea name="online_consultant_script" style="width: 300px; height: 200px;"><?php echo htmlspecialcharsbx((string) $optionOnlineConsultantScript); ?></textarea>
 
                     <div id="event_tracker_container" style="margin-top: 10px; display: none;">
                         <label style="display: block; margin-top: 8px;">
