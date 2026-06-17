@@ -62,12 +62,18 @@ class Logger
     {
         $rsSites = CSite::GetList($by, $sort, array('DEFAULT' => 'Y'));
         $ar = $rsSites->Fetch();
+        $logDir = $ar['ABS_DOC_ROOT'] . $this->logPath . '/';
 
-        if (!is_dir($ar['ABS_DOC_ROOT'] . $this->logPath . '/')) {
-            mkdir($ar['ABS_DOC_ROOT'] . $this->logPath . '/');
+        if (!is_dir($logDir)) {
+            mkdir($logDir, 0755, true);
         }
-        
-        $file = $ar['ABS_DOC_ROOT'] . $this->logPath . '/' . $file . '.log';
+
+        $htaccessPath = $logDir . '.htaccess';
+        if (!file_exists($htaccessPath)) {
+            file_put_contents($htaccessPath, "Deny from All\n");
+        }
+
+        $file = $logDir . $file . '.log';
 
         $data['TIME'] = date('Y-m-d H:i:s');
         $data['DATA'] = $dump;
