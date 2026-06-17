@@ -11,6 +11,9 @@
 
 namespace Intaro\RetailCrm\Controller\Loyalty;
 
+use Bitrix\Main\Engine\ActionFilter\Authentication;
+use Bitrix\Main\Engine\ActionFilter\Csrf;
+use Bitrix\Main\Engine\ActionFilter\HttpMethod;
 use Bitrix\Main\Engine\Controller;
 use Bitrix\Main\Request;
 use Exception;
@@ -36,6 +39,19 @@ class Basket extends Controller
         /** @var LoyaltyService */
         $this->service = ServiceLocator::get(LoyaltyService::class);
         parent::__construct($request);
+    }
+
+    public function configureActions(): array
+    {
+        return [
+            'addLoyaltyToBasket' => [
+                'prefilters' => [
+                    new Authentication(),
+                    new HttpMethod([HttpMethod::METHOD_POST]),
+                    new Csrf(),
+                ],
+            ],
+        ];
     }
 
     /**
