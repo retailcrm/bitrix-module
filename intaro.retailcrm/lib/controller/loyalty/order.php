@@ -197,7 +197,9 @@ class Order extends Controller
         return [
             'loyaltyCalculate' => [
                 'prefilters' => [
+                    new Authentication(),
                     new HttpMethod([HttpMethod::METHOD_POST]),
+                    new Csrf(),
                 ],
             ],
             'sendVerificationCode' => [
