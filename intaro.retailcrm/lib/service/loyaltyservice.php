@@ -143,7 +143,7 @@ class LoyaltyService
 
             $prices = ConfigProvider::getCrmPrices();
             $product->priceType = new PriceType();
-            $serializePrice = unserialize($prices);
+            $serializePrice = unserialize($prices, ['allowed_classes' => false]);
 
             if (isset($serializePrice[$item['PRICE_TYPE_ID']])) {
                 $product->priceType->code = $serializePrice[$item['PRICE_TYPE_ID']];

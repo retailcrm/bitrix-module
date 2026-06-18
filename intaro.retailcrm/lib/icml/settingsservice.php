@@ -805,7 +805,10 @@ class SettingsService
 
     private function getCustomProps(): ?array
     {
-        $props = unserialize(COption::GetOptionString(self::MODULE_ID, $this->catalogCustomPropsOptionName));
+        $props = unserialize(
+            COption::GetOptionString(self::MODULE_ID, $this->catalogCustomPropsOptionName),
+            ['allowed_classes' => false]
+        );
 
         if (!$props) {
             return null;
@@ -857,7 +860,10 @@ class SettingsService
 
     private function getProfileCatalogs(): ?array
     {
-        $catalogs = unserialize(COption::GetOptionString(self::MODULE_ID, $this->profileCatalogsOptionName));
+        $catalogs = unserialize(
+            COption::GetOptionString(self::MODULE_ID, $this->profileCatalogsOptionName),
+            ['allowed_classes' => false]
+        );
 
         if (!$catalogs) {
             return null;
@@ -912,11 +918,17 @@ class SettingsService
 
     private function linkNewProfile(): void
     {
-        $currentProfileCatalogs = unserialize(COption::GetOptionString(self::MODULE_ID, $this->profileCatalogsOptionName));
+        $currentProfileCatalogs = unserialize(
+            COption::GetOptionString(self::MODULE_ID, $this->profileCatalogsOptionName),
+            ['allowed_classes' => false]
+        );
 
         if (!$currentProfileCatalogs) {
             $tmpProfileName = 'exportProfileId_0_catalogs';
-            $currentProfileCatalogs = unserialize(COption::GetOptionString(self::MODULE_ID, $tmpProfileName));
+            $currentProfileCatalogs = unserialize(
+                COption::GetOptionString(self::MODULE_ID, $tmpProfileName),
+                ['allowed_classes' => false]
+            );
 
             if ($currentProfileCatalogs) {
                 $this->setOptionEntry($this->profileCatalogsOptionName, serialize($currentProfileCatalogs));
@@ -926,11 +938,17 @@ class SettingsService
 
         foreach ($currentProfileCatalogs as $catalogId) {
             $optionName = sprintf('exportCustomProps_ProfileId_%s_catalogId_%s', $this->exportProfileId, $catalogId);
-            $propsCatalog = unserialize(COption::GetOptionString(self::MODULE_ID, $optionName));
+            $propsCatalog = unserialize(
+                COption::GetOptionString(self::MODULE_ID, $optionName),
+                ['allowed_classes' => false]
+            );
 
             if (!$propsCatalog) {
                 $tmpOptionName = sprintf('exportCustomProps_ProfileId_%s_catalogId_%s', '0', $catalogId);
-                $propsCatalog = unserialize(COption::GetOptionString(self::MODULE_ID, $tmpOptionName));
+                $propsCatalog = unserialize(
+                    COption::GetOptionString(self::MODULE_ID, $tmpOptionName),
+                    ['allowed_classes' => false]
+                );
 
                 if ($propsCatalog) {
                     $this->setOptionEntry($optionName, serialize($propsCatalog));

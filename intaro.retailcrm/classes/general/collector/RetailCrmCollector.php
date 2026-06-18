@@ -28,7 +28,10 @@ class RetailCrmCollector
      */
     public static function add()
     {
-        $keys = unserialize(COption::GetOptionString(self::$MODULE_ID, self::$CRM_COLL_KEY, 0));
+        $keys = unserialize(
+            COption::GetOptionString(self::$MODULE_ID, self::$CRM_COLL_KEY, 0),
+            ['allowed_classes' => false]
+        );
         $collector = COption::GetOptionString(self::$MODULE_ID, self::$CRM_COLL, 0);
         $request = \Bitrix\Main\Context::getCurrent()->getRequest();
 

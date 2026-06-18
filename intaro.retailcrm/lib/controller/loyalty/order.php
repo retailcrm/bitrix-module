@@ -195,6 +195,11 @@ class Order extends Controller
     public function configureActions(): array
     {
         return [
+            'loyaltyCalculate' => [
+                'prefilters' => [
+                    new HttpMethod([HttpMethod::METHOD_POST]),
+                ],
+            ],
             'sendVerificationCode' => [
                 'prefilters' => [
                     new Authentication(),

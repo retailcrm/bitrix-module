@@ -55,6 +55,34 @@ class Register extends Controller
     public function configureActions(): array
     {
         return [
+            'accountCreate' => [
+                'prefilters' => [
+                    new Authentication(),
+                    new HttpMethod([HttpMethod::METHOD_POST]),
+                    new Csrf(),
+                ],
+            ],
+            'resendRegisterSms' => [
+                'prefilters' => [
+                    new Authentication(),
+                    new HttpMethod([HttpMethod::METHOD_POST]),
+                    new Csrf(),
+                ],
+            ],
+            'activateLpBySms' => [
+                'prefilters' => [
+                    new Authentication(),
+                    new HttpMethod([HttpMethod::METHOD_POST]),
+                    new Csrf(),
+                ],
+            ],
+            'activateAccount' => [
+                'prefilters' => [
+                    new Authentication(),
+                    new HttpMethod([HttpMethod::METHOD_POST]),
+                    new Csrf(),
+                ],
+            ],
             'saveUserLpFields' => [
                 'prefilters' => [
                     new Authentication(),
