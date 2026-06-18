@@ -429,7 +429,7 @@ class RCrmActions
         }
 
         if (is_string($string)) {
-            $string = unserialize($string);
+            $string = unserialize($string, ['allowed_classes' => false]);
         }
 
         if (!is_array($string)) {

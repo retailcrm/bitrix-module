@@ -3512,7 +3512,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
 
                                 return parsedUrl.protocol === 'https:'
                                     && hasAllowedDomain
-                                    && parsedUrl.pathname.includes('/widget/loader.js');
+                                    && parsedUrl.pathname === '/widget/loader.js';
                             } catch (e) {
                                 return false;
                             }

@@ -997,7 +997,7 @@ class ConfigProvider
 
     public static function getOnlineConsultantScript(): string
     {
-        return static::buildAllowedOnlineConsultantScript(
+        return static::sanitizeOnlineConsultantScript(
             trim(static::getOption(Constants::CRM_ONLINE_CONSULTANT_SCRIPT, ""))
         );
     }
@@ -1027,7 +1027,7 @@ class ConfigProvider
     {
         static::setOption(
             Constants::CRM_ONLINE_CONSULTANT_SCRIPT,
-            static::buildAllowedOnlineConsultantScript($value)
+            static::sanitizeOnlineConsultantScript($value)
         );
     }
 
@@ -1036,39 +1036,7 @@ class ConfigProvider
         static::setOption(Constants::CRM_EVENT_TRACKER, $value);
     }
 
-    private static function buildAllowedOnlineConsultantScript(string $value): string
-    {
-        $url = static::extractAllowedOnlineConsultantUrl($value);
-        $rcct = static::extractOnlineConsultantToken($value);
-
-        if ($url === '') {
-            return '';
-        }
-
-        $scriptParts = [];
-
-        if ($rcct !== '') {
-            $scriptParts[] = sprintf(
-                '<script>var _rcct = "%s";</script>',
-                htmlspecialcharsbx($rcct)
-            );
-        }
-
-        $scriptParts[] = sprintf('<script async src="%s"></script>', htmlspecialcharsbx($url));
-
-        return implode('', $scriptParts);
-    }
-
-    private static function extractOnlineConsultantToken(string $value): string
-    {
-        if (!preg_match('/_rcct\s*=\s*[\'"]([A-Za-z0-9_-]+)[\'"]/i', $value, $matches)) {
-            return '';
-        }
-
-        return (string) ($matches[1] ?? '');
-    }
-
-    private static function extractAllowedOnlineConsultantUrl(string $value): string
+    private static function sanitizeOnlineConsultantScript(string $value): string
     {
         $value = trim($value);
 
@@ -1076,15 +1044,24 @@ class ConfigProvider
             return '';
         }
 
-        $candidates = [];
-
-        if (filter_var($value, FILTER_VALIDATE_URL)) {
-            $candidates[] = $value;
+        $rcct = '';
+        if (preg_match('/_rcct\s*=\s*[\'"]([A-Za-z0-9_-]+)[\'"]/i', $value, $matches)) {
+            $rcct = (string) ($matches[1] ?? '');
         }
 
-        if (preg_match_all('~(?:https:)?//[^\s\'"<>]+~i', $value, $matches)) {
-            $candidates = array_merge($candidates, $matches[0]);
+        if (!preg_match('~(?:https:)?//[^\s\'"<>]+~i', $value, $matches)) {
+            return '';
         }
+
+        $url = (string) $matches[0];
+        if (strpos($url, '//') === 0) {
+            $url = 'https:' . $url;
+        }
+
+        $parsedUrl = parse_url($url);
+        $host = strtolower((string) ($parsedUrl['host'] ?? ''));
+        $scheme = strtolower((string) ($parsedUrl['scheme'] ?? ''));
+        $path = (string) ($parsedUrl['path'] ?? '');
 
         $allowedDomains = [
             'retailcrm.ru',
@@ -1093,32 +1070,25 @@ class ConfigProvider
             'retailcrm.tech',
         ];
 
-        foreach (array_unique($candidates) as $candidate) {
-            if (strpos($candidate, '//') === 0) {
-                $candidate = 'https:' . $candidate;
-            }
-
-            $parsedUrl = parse_url($candidate);
-            $host = strtolower((string) ($parsedUrl['host'] ?? ''));
-            $scheme = strtolower((string) ($parsedUrl['scheme'] ?? ''));
-            $path = (string) ($parsedUrl['path'] ?? '');
-
-            if ($host === '' || $scheme !== 'https') {
-                continue;
-            }
-
-            if (strpos($path, '/widget/loader.js') === false) {
-                continue;
-            }
-
-            foreach ($allowedDomains as $domain) {
-                if ($host === $domain || substr($host, -strlen('.' . $domain)) === '.' . $domain) {
-                    return $candidate;
-                }
+        $isAllowedDomain = false;
+        foreach ($allowedDomains as $domain) {
+            if ($host === $domain || substr($host, -strlen('.' . $domain)) === '.' . $domain) {
+                $isAllowedDomain = true;
+                break;
             }
         }
 
-        return '';
+        if ($scheme !== 'https' || !$isAllowedDomain || $path !== '/widget/loader.js') {
+            return '';
+        }
+
+        $script = '';
+
+        if ($rcct !== '') {
+            $script .= sprintf('<script>var _rcct = "%s";</script>', htmlspecialcharsbx($rcct));
+        }
+
+        return $script . sprintf('<script async src="%s"></script>', htmlspecialcharsbx($url));
     }
 
     public static function setEventTrackerCart(string $value)
