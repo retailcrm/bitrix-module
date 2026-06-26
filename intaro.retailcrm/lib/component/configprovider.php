@@ -975,7 +975,7 @@ class ConfigProvider
      */
     protected static function getUnserializedOption($option, $def = 0)
     {
-        return unserialize(static::getOption($option, $def));
+        return unserialize(static::getOption($option, $def), ['allowed_classes' => false]);
     }
 
     /**
@@ -997,7 +997,9 @@ class ConfigProvider
 
     public static function getOnlineConsultantScript(): string
     {
-        return trim(static::getOption(Constants::CRM_ONLINE_CONSULTANT_SCRIPT, ""));
+        return static::sanitizeOnlineConsultantScript(
+            trim(static::getOption(Constants::CRM_ONLINE_CONSULTANT_SCRIPT, ""))
+        );
     }
 
     public static function isEventTrackerEnabled(): bool
@@ -1023,12 +1025,70 @@ class ConfigProvider
 
     public static function setOnlineConsultantScript(string $value)
     {
-        static::setOption(Constants::CRM_ONLINE_CONSULTANT_SCRIPT, $value);
+        static::setOption(
+            Constants::CRM_ONLINE_CONSULTANT_SCRIPT,
+            static::sanitizeOnlineConsultantScript($value)
+        );
     }
 
     public static function setEventTracker(string $value)
     {
         static::setOption(Constants::CRM_EVENT_TRACKER, $value);
+    }
+
+    private static function sanitizeOnlineConsultantScript(string $value): string
+    {
+        $value = trim($value);
+
+        if ($value === '') {
+            return '';
+        }
+
+        $rcct = '';
+        if (preg_match('/_rcct\s*=\s*[\'"]([A-Za-z0-9_-]+)[\'"]/i', $value, $matches)) {
+            $rcct = (string) ($matches[1] ?? '');
+        }
+
+        if (!preg_match('~(?:https:)?//[^\s\'"<>]+~i', $value, $matches)) {
+            return '';
+        }
+
+        $url = (string) $matches[0];
+        if (strpos($url, '//') === 0) {
+            $url = 'https:' . $url;
+        }
+
+        $parsedUrl = parse_url($url);
+        $host = strtolower((string) ($parsedUrl['host'] ?? ''));
+        $scheme = strtolower((string) ($parsedUrl['scheme'] ?? ''));
+        $path = (string) ($parsedUrl['path'] ?? '');
+
+        $allowedDomains = [
+            'retailcrm.ru',
+            'retailcrm.pro',
+            'retailcrm.es',
+            'retailcrm.tech',
+        ];
+
+        $isAllowedDomain = false;
+        foreach ($allowedDomains as $domain) {
+            if ($host === $domain || substr($host, -strlen('.' . $domain)) === '.' . $domain) {
+                $isAllowedDomain = true;
+                break;
+            }
+        }
+
+        if ($scheme !== 'https' || !$isAllowedDomain || $path !== '/widget/loader.js') {
+            return '';
+        }
+
+        $script = '';
+
+        if ($rcct !== '') {
+            $script .= sprintf('<script>var _rcct = "%s";</script>', htmlspecialcharsbx($rcct));
+        }
+
+        return $script . sprintf('<script async src="%s"></script>', htmlspecialcharsbx($url));
     }
 
     public static function setEventTrackerCart(string $value)

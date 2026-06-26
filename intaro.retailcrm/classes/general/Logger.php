@@ -62,18 +62,19 @@ class Logger
     {
         $rsSites = CSite::GetList($by, $sort, array('DEFAULT' => 'Y'));
         $ar = $rsSites->Fetch();
+        $logDir = $ar['ABS_DOC_ROOT'] . $this->logPath . '/';
 
-        if (!is_dir($ar['ABS_DOC_ROOT'] . $this->logPath . '/')) {
-            mkdir($ar['ABS_DOC_ROOT'] . $this->logPath . '/');
+        if (!is_dir($logDir)) {
+            mkdir($logDir, 0755, true);
         }
-        
-        $file = $ar['ABS_DOC_ROOT'] . $this->logPath . '/' . $file . '.log';
+
+        $file = $logDir . $file . '.log';
 
         $data['TIME'] = date('Y-m-d H:i:s');
         $data['DATA'] = $dump;
 
         $f = fopen($file, "a+");
-        fwrite($f, print_r($data, true));
+        fwrite($f, $this->maskSensitiveData(print_r($data, true)));
         fclose($f);
 
         // if filesize more than 5 Mb rotate it
@@ -118,5 +119,22 @@ class Logger
     private function clean($file)
     {
         file_put_contents($file, '');
+    }
+
+    private function maskSensitiveData($data)
+    {
+        $sensitiveKeys = 'api[_-]?key|token|access[_-]?token|password|passwd|secret|authorization';
+
+        $data = preg_replace(
+            '/(\[(?:' . $sensitiveKeys . ')\]\s*=>\s*)[^\r\n]*/i',
+            '$1[masked]',
+            $data
+        );
+
+        return preg_replace(
+            '/([?&](?:' . $sensitiveKeys . ')=)[^&\s"\']+/i',
+            '$1[masked]',
+            $data
+        );
     }
 }

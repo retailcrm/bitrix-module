@@ -20,6 +20,12 @@ if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) {
     die();
 }
 
+$sanitizer = new CBXSanitizer();
+$sanitizer->SetLevel(CBXSanitizer::SECURE_LEVEL_MIDDLE);
+
+$agreementLoyaltyProgram = $sanitizer->SanitizeHtml((string) ($arResult['AGREEMENT_LOYALTY_PROGRAM'] ?? ''));
+$agreementPersonalData = $sanitizer->SanitizeHtml((string) ($arResult['AGREEMENT_PERSONAL_DATA'] ?? ''));
+
 if ($arResult["SHOW_SMS_FIELD"] == true) {
     CJSCore::Init('phone_auth');
 }
@@ -34,10 +40,10 @@ if ($arResult["LOYALTY_CONNECTION_ERROR"] === true) {
 ?>
 <?php CUtil::InitJSCore(['ajax', 'jquery', 'popup']); ?>
 <div id="uf_agree_pl_intaro_popup" style="display:none;">
-    <?=$arResult['AGREEMENT_LOYALTY_PROGRAM']?>
+    <?=$agreementLoyaltyProgram?>
 </div>
 <div id="uf_pd_proc_pl_intaro_popup" style="display:none;">
-    <?=$arResult['AGREEMENT_PERSONAL_DATA']?>
+    <?=$agreementPersonalData?>
 </div>
 <script>
     BX.ready(function() {
@@ -96,7 +102,7 @@ if ($arResult["LOYALTY_CONNECTION_ERROR"] === true) {
         <?php $this->addExternalJs(SITE_TEMPLATE_PATH . '/script.js'); ?>
         <div id="regBody">
             <?php if (isset($arResult['LP_REGISTER']['msg'])) { ?>
-                <div id="lpRegMsg" class="lpRegMsg"><?=$arResult['LP_REGISTER']['msg']?></div>
+                <div id="lpRegMsg" class="lpRegMsg"><?=htmlspecialcharsbx((string) $arResult['LP_REGISTER']['msg'])?></div>
             <?php } ?>
 
             <?php

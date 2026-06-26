@@ -245,7 +245,7 @@ class intaro_retailcrm extends CModule
             COption::SetOptionString($this->MODULE_ID, Constants::CRM_API_KEY_OPTION, $api_key);
 
             if ($sites_list = COption::GetOptionString($this->OLD_MODULE_ID, Constants::CRM_SITES_LIST, 0)) {
-                $arResult['SITES_LIST'] = unserialize($sites_list);
+                $arResult['SITES_LIST'] = unserialize($sites_list, ['allowed_classes' => false]);
             }
 
             $APPLICATION->IncludeAdminFile(
@@ -453,19 +453,19 @@ class intaro_retailcrm extends CModule
             $arResult['bitrixStatusesList'] = RCrmActions::StatusesList();
 
             if ($order_types = COption::GetOptionString($this->OLD_MODULE_ID, Constants::CRM_ORDER_TYPES_ARR, 0)) {
-                $arResult['ORDER_TYPES'] = array_flip(unserialize($order_types));
+                $arResult['ORDER_TYPES'] = array_flip(unserialize($order_types, ['allowed_classes' => false]));
             }
             if ($delivery_types = COption::GetOptionString($this->OLD_MODULE_ID, Constants::CRM_DELIVERY_TYPES_ARR, 0)) {
-                $arResult['DELIVERY_TYPES'] = array_flip(unserialize($delivery_types));
+                $arResult['DELIVERY_TYPES'] = array_flip(unserialize($delivery_types, ['allowed_classes' => false]));
             }
             if ($payment_types = COption::GetOptionString($this->OLD_MODULE_ID, Constants::CRM_PAYMENT_TYPES, 0)) {
-                $arResult['PAYMENT_TYPES'] = array_flip(unserialize($payment_types));
+                $arResult['PAYMENT_TYPES'] = array_flip(unserialize($payment_types, ['allowed_classes' => false]));
             }
             if ($payment_statuses = COption::GetOptionString($this->OLD_MODULE_ID, Constants::CRM_PAYMENT_STATUSES, 0)) {
-                $arResult['PAYMENT_STATUSES'] = array_flip(unserialize($payment_statuses));
+                $arResult['PAYMENT_STATUSES'] = array_flip(unserialize($payment_statuses, ['allowed_classes' => false]));
             }
             if ($payment = COption::GetOptionString($this->OLD_MODULE_ID, Constants::CRM_PAYMENT, 0)) {
-                $arResult['PAYMENT'] = array_flip(unserialize($payment));
+                $arResult['PAYMENT'] = array_flip(unserialize($payment, ['allowed_classes' => false]));
             }
 
             $APPLICATION->IncludeAdminFile(
@@ -668,13 +668,13 @@ class intaro_retailcrm extends CModule
             }
 
             if ($orderProps = COption::GetOptionString($this->OLD_MODULE_ID, Constants::CRM_ORDER_PROPS, 0)) {
-                $arResult['ORDER_PROPS'] = unserialize($orderProps);
+                $arResult['ORDER_PROPS'] = unserialize($orderProps, ['allowed_classes' => false]);
             }
             if ($legalDetails = COption::GetOptionString($this->OLD_MODULE_ID, Constants::CRM_LEGAL_DETAILS, 0)) {
-                $arResult['LEGAL_DETAILS'] = unserialize($legalDetails);
+                $arResult['LEGAL_DETAILS'] = unserialize($legalDetails, ['allowed_classes' => false]);
             }
             if ($contragentType = COption::GetOptionString($this->OLD_MODULE_ID, Constants::CRM_CONTRAGENT_TYPE, 0)) {
-                $arResult['CONTRAGENT_TYPES'] = unserialize($contragentType);
+                $arResult['CONTRAGENT_TYPES'] = unserialize($contragentType, ['allowed_classes' => false]);
             }
 
             $APPLICATION->IncludeAdminFile(
