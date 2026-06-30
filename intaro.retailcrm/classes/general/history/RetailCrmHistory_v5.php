@@ -21,7 +21,6 @@ use Bitrix\Sale\Delivery\Services\Manager;
 use Bitrix\Sale\Fuser;
 use Bitrix\Sale\Internals\PaymentTable;
 use Bitrix\Sale\Internals\OrderPropsTable;
-use Bitrix\Sale\Internals\OrderPropsValueTable;
 use Bitrix\Sale\Location\Search\Finder;
 use Bitrix\Sale\Order;
 use Bitrix\Sale\OrderUserProperties;
@@ -685,12 +684,12 @@ class RetailCrmHistory
                         || $personTypeChanged
                     );
 
-                    if ($propsRemove) {
-                        self::deleteOrderPropsExceptPersonType($newOrder, $personType);
-                    }
-
                     if ($personTypeChanged) {
                         $newOrder->setField('PERSON_TYPE_ID', $personType);
+                    }
+
+                    if ($propsRemove) {
+                        self::deleteOrderPropsExceptPersonType($newOrder, $personType);
                     }
 
                     self::setManager($newOrder, $order);
@@ -1511,18 +1510,13 @@ class RetailCrmHistory
             $allowedPropertyIds[] = (int) $property['ID'];
         }
 
-        if (empty($allowedPropertyIds)) {
-            return;
-        }
+        $propertyCollection = $order->getPropertyCollection();
 
-        $values = OrderPropsValueTable::getList([
-            'select' => ['ID', 'ORDER_PROPS_ID'],
-            'filter' => ['=ORDER_ID' => $order->getId()],
-        ]);
+        foreach ($propertyCollection as $propertyValue) {
+            $orderPropertyId = (int) $propertyValue->getField('ORDER_PROPS_ID');
 
-        while ($value = $values->fetch()) {
-            if (!in_array((int) $value['ORDER_PROPS_ID'], $allowedPropertyIds, true)) {
-                OrderPropsValueTable::delete((int) $value['ID']);
+            if (empty($allowedPropertyIds) || !in_array($orderPropertyId, $allowedPropertyIds, true)) {
+                $propertyValue->delete();
             }
         }
     }
