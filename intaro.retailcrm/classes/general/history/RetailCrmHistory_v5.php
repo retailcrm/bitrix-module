@@ -666,6 +666,22 @@ class RetailCrmHistory
                         continue;
                     }
 
+                    self::setManager($newOrder, $order);
+
+                    //delivery
+                    if (array_key_exists('delivery', $order)) {
+                        $itemUpdate = true;
+
+                        if (!isset($orderCrm)) {
+                            $orderCrm = RCrmActions::apiMethod($api, 'orderGet', __METHOD__, $order['id']);
+                        }
+
+                        if ($orderCrm) {
+                            self::deliveryUpdate($newOrder, $optionsDelivTypes, $orderCrm['order']);
+                            self::orderSave($newOrder);
+                        }
+                    }
+
                     $currentPersonType = (int) $newOrder->getField('PERSON_TYPE_ID');
                     $personType = self::resolvePersonType(
                         $order,
@@ -690,22 +706,6 @@ class RetailCrmHistory
 
                     if ($propsRemove) {
                         self::deleteOrderPropsExceptPersonType($newOrder, $personType);
-                    }
-
-                    self::setManager($newOrder, $order);
-
-                    //delivery
-                    if (array_key_exists('delivery', $order)) {
-                        $itemUpdate = true;
-
-                        if (!isset($orderCrm)) {
-                            $orderCrm = RCrmActions::apiMethod($api, 'orderGet', __METHOD__, $order['id']);
-                        }
-
-                        if ($orderCrm) {
-                            self::deliveryUpdate($newOrder, $optionsDelivTypes, $orderCrm['order']);
-                            self::orderSave($newOrder);
-                        }
                     }
 
                     //status
