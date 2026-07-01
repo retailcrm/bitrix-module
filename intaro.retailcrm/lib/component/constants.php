@@ -18,7 +18,7 @@ namespace Intaro\RetailCrm\Component;
  */
 class Constants
 {
-    public const MODULE_VERSION = '6.8.2';
+    public const MODULE_VERSION = '6.8.3';
     public const CRM_PURCHASE_PRICE_NULL = 'purchasePrice_null';
     public const BITRIX_USER_ID_PREFIX = 'bitrixUserId-';
     public const CRM_USERS_MAP = 'crm_users_map';
@@ -38,6 +38,7 @@ class Constants
     public const CRM_LEGAL_DETAILS = 'legal_details';
     public const CRM_CUSTOM_FIELDS = 'custom_fields';
     public const CRM_CONTRAGENT_TYPE = 'contragent_type';
+    public const CRM_CONTRAGENT_TYPE_SITE = 'contragent_type_site';
     public const CRM_SITES_LIST_CORPORATE = 'shops-corporate';
     public const CRM_ORDER_NUMBERS = 'order_numbers';
     public const CRM_ORDER_VAT = 'order_vat';

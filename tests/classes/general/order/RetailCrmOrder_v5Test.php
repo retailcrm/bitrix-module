@@ -114,7 +114,7 @@ class RetailCrmOrder_v5Test extends BitrixTestCase {
     public function initSystemData(): void
     {
         RetailcrmConfigProvider::setOrderTypes(['bitrixType' => 'crmType']);
-        RetailcrmConfigProvider::setContragentTypes(['bitrixType' => 'individual']);
+        RetailcrmConfigProvider::setContragentTypesBySite(['s1' => ['bitrixType' => 'individual']]);
         RetailcrmConfigProvider::setPaymentStatuses([1 => 'paymentStatus']);
         RetailcrmConfigProvider::setPaymentTypes([1 => 'testPayment']);
         RetailcrmConfigProvider::setDeliveryTypes(['test' => 'test']);
@@ -129,16 +129,20 @@ class RetailCrmOrder_v5Test extends BitrixTestCase {
         $arFields = $this->getArFields();
         $this->initSystemData();
 
+        $contragentTypes = RetailcrmConfigProvider::getContragentTypesBySite();
+
         $arParams = [
             'optionsOrderTypes' => RetailcrmConfigProvider::getOrderTypes(),
             'optionsPayStatuses' => RetailcrmConfigProvider::getPaymentStatuses(),
-            'optionsContragentType' => RetailcrmConfigProvider::getContragentTypes(),
+            'optionsContragentType' => $contragentTypes,
             'optionsDelivTypes' => RetailcrmConfigProvider::getDeliveryTypes(),
             'optionsPayTypes' => RetailcrmConfigProvider::getPaymentTypes(),
             'optionsOrderProps' => ['bitrixType' => ['fio' => 'FIO']],
             'optionsPayment' => ['Y' => 'paid'],
             'customOrderProps' => ['1#TEST_PROP_1' => 'custom_first', '2#TEST_PROP_2' => 'custom_second']
         ];
+
+        $contragentType = $contragentTypes['s1'][$arFields['PERSON_TYPE_ID']] ?? null;
 
         return [[
             'arFields' => $arFields,
@@ -159,7 +163,7 @@ class RetailCrmOrder_v5Test extends BitrixTestCase {
                     'service' => ['code' => $arFields['DELIVERYS'][0]['service']]
                 ],
                 'contragent' => [
-                    'contragentType' => $arParams['optionsContragentType'][$arFields['PERSON_TYPE_ID']]
+                    'contragentType' => $contragentType
                 ],
                 'payments' => [[
                     'type' => $arParams['optionsPayTypes'][$arFields['PAYMENTS'][0]['PAY_SYSTEM_ID']],

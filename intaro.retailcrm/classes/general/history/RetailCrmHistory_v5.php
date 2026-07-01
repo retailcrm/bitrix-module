@@ -12,8 +12,13 @@
 use Bitrix\Main\ArgumentException;
 use Bitrix\Main\ArgumentNullException;
 use Bitrix\Main\ArgumentOutOfRangeException;
+use Bitrix\Main\ArgumentTypeException;
 use Bitrix\Main\Context;
+use Bitrix\Main\NotImplementedException;
 use Bitrix\Main\NotSupportedException;
+use Bitrix\Main\ObjectException;
+use Bitrix\Main\ObjectNotFoundException;
+use Bitrix\Main\ObjectPropertyException;
 use Bitrix\Main\SystemException;
 use Bitrix\Sale\Basket;
 use Bitrix\Sale\Delivery\Services\EmptyDeliveryService;
@@ -294,7 +299,7 @@ class RetailCrmHistory
         $optionsOrderNumbers = RetailcrmConfigProvider::getOrderNumbers();
         $optionsCanselOrder = RetailcrmConfigProvider::getCancellableOrderPaymentStatuses();
         $currency = RetailcrmConfigProvider::getCurrencyOrDefault();
-        $contragentTypes = array_flip(RetailcrmConfigProvider::getContragentTypes());
+        $contragentTypesBySite = RetailcrmConfigProvider::getContragentTypesBySite();
         $shipmentDeducted = RetailcrmConfigProvider::getShipmentDeducted();
 
         $optionsPayment = [
@@ -409,6 +414,8 @@ class RetailCrmHistory
 
                     continue;
                 }
+
+                $contragentTypes = array_flip($contragentTypesBySite[$site] ?? []);
 
                 if (isset($order['customer']['externalId']) && !is_numeric($order['customer']['externalId'])) {
                     unset($order['customer']['externalId']);
@@ -664,6 +671,8 @@ class RetailCrmHistory
 
                         continue;
                     }
+
+                    $contragentTypes = array_flip($contragentTypesBySite[$site] ?? []);
 
                     self::setManager($newOrder, $order);
 

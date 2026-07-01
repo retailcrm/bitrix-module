@@ -134,7 +134,7 @@ class RetailCrmOrder
             $order['customer']['browserId'] = $_COOKIE['_rc'];
         }
 
-        $order['contragent']['contragentType'] = $arParams['optionsContragentType'][$arOrder['PERSON_TYPE_ID']];
+        $order['contragent']['contragentType'] = $arParams['optionsContragentType'][$arOrder['LID']][$arOrder['PERSON_TYPE_ID']] ?? null;
 
         $countryList = BitrixOrderService::getCountryList();
         $isSendCustomFields = 'N';
@@ -615,7 +615,7 @@ class RetailCrmOrder
         $optionsPayment = RetailcrmConfigProvider::getPayment();
         $optionsOrderProps = RetailcrmConfigProvider::getOrderProps();
         $optionsLegalDetails = RetailcrmConfigProvider::getLegalDetails();
-        $optionsContragentType = RetailcrmConfigProvider::getContragentTypes();
+        $optionsContragentType = RetailcrmConfigProvider::getContragentTypesBySite();
         $optionsCustomFields = RetailcrmConfigProvider::getCustomFields();
 
         $api = new ApiClient(RetailcrmConfigProvider::getApiUrl(), RetailcrmConfigProvider::getApiKey());
@@ -772,7 +772,7 @@ class RetailCrmOrder
         array $order,
         $site
     ): void {
-        $optionsContragentType = RetailcrmConfigProvider::getContragentTypes();
+        $optionsContragentType = RetailcrmConfigProvider::getContragentTypesBySite();
         $user = UserTable::getById($order['USER_ID'])->fetch();
 
         if (!$user) {
@@ -793,7 +793,7 @@ class RetailCrmOrder
 
         if (
             'Y' === RetailcrmConfigProvider::getCorporateClientStatus()
-            && in_array($optionsContragentType[$order['PERSON_TYPE_ID']], ['legal-entity', 'enterpreneur'])
+            && in_array($optionsContragentType[$order['LID']][$order['PERSON_TYPE_ID']] ?? null, ['legal-entity', 'enterpreneur'])
         ) {
             // TODO check if order is corporate, and if it IS - make corporate order
             $arCustomer = RetailCrmUser::customerSend(
@@ -807,7 +807,7 @@ class RetailCrmOrder
             $arCustomerCorporate = RetailCrmCorporateClient::clientSend(
                 $order,
                 $api,
-                $optionsContragentType[$order['PERSON_TYPE_ID']],
+                $optionsContragentType[$order['LID']][$order['PERSON_TYPE_ID']] ?? null,
                 false,
                 true,
                 $site
@@ -824,7 +824,7 @@ class RetailCrmOrder
         $arCustomer = RetailCrmUser::customerSend(
             $user,
             $api,
-            $optionsContragentType[$order['PERSON_TYPE_ID']],
+            $optionsContragentType[$order['LID']][$order['PERSON_TYPE_ID']] ?? null,
             false,
             $site
         );

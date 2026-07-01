@@ -44,6 +44,9 @@ class CustomerBuilder implements BuilderInterface
     /** @var string $personTypeId */
     private $personTypeId;
 
+    /** @var string|null $siteId */
+    private $siteId;
+
     /** @var bool */
     private $attachDaemonCollectorId = false;
 
@@ -63,10 +66,12 @@ class CustomerBuilder implements BuilderInterface
      */
     public function build(): BuilderInterface
     {
-        $this->buildBase(
-            ConfigProvider::getContragentTypeForPersonType($this->personTypeId ?? '')
-            ?? 'individual'
-        );
+        $contragentType = ConfigProvider::getContragentTypeForPersonType(
+            $this->personTypeId ?? '',
+            $this->siteId
+        ) ?? 'individual';
+
+        $this->buildBase($contragentType);
         $this->buildNames();
         $this->buildPhones();
         $this->buildAddress();
@@ -88,6 +93,7 @@ class CustomerBuilder implements BuilderInterface
         $this->user = null;
         $this->customer = null;
         $this->personTypeId = null;
+        $this->siteId = null;
 
         return $this;
     }
@@ -121,6 +127,17 @@ class CustomerBuilder implements BuilderInterface
     public function setPersonTypeId(string $personTypeId): CustomerBuilder
     {
         $this->personTypeId = $personTypeId;
+        return $this;
+    }
+
+    /**
+     * @param string|null $siteId
+     *
+     * @return CustomerBuilder
+     */
+    public function setSiteId(?string $siteId): CustomerBuilder
+    {
+        $this->siteId = $siteId;
         return $this;
     }
 

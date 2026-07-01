@@ -3,6 +3,7 @@
 use Bitrix\Main\Loader;
 use Bitrix\Main\Config\Option;
 use Bitrix\Main\Application;
+use Intaro\RetailCrm\Component\Constants;
 
 function update()
 {
@@ -13,6 +14,8 @@ function update()
     customFieldsCheck();
     addEventSaveOrder();
     loadJsExport();
+
+    migrateContragentTypes();
 }
 
 function loadJsExport()
@@ -90,6 +93,62 @@ function addEventSaveOrder()
         if ($result > 0) {
             UnRegisterModuleDependences('sale', 'OnSaleComponentOrderResultPrepared', 'intaro.retailcrm', $loyaltyEventClass, 'OnSaleComponentOrderResultPreparedHandler');
         }
+    }
+}
+
+/**
+ * Миграция данных contragent type из старого формата в новый
+ */
+function migrateContragentTypes()
+{
+    $newOptionValue = Option::get('intaro.retailcrm', Constants::CRM_CONTRAGENT_TYPE_SITE, null);
+
+    if ($newOptionValue !== null && $newOptionValue !== '') {
+        return;
+    }
+
+    $oldContragentTypes = Option::get('intaro.retailcrm', Constants::CRM_CONTRAGENT_TYPE, null);
+
+    if (empty($oldContragentTypes)) {
+        $oldContragentTypes = [];
+    } else {
+        $oldContragentTypes = unserialize($oldContragentTypes, ['allowed_classes' => false]);
+
+        if (!is_array($oldContragentTypes)) {
+            $oldContragentTypes = [];
+        }
+    }
+
+    $sites = \CSite::GetList(
+        $by = 'sort',
+        $order = 'asc',
+        ['ACTIVE' => 'Y']
+    );
+
+    $newContragentTypes = [];
+
+    while ($site = $sites->Fetch()) {
+        $siteId = $site['LID'];
+        $newContragentTypes[$siteId] = [];
+
+        $personTypes = \CSalePersonType::GetList(
+            ['SORT' => 'ASC'],
+            ['LID' => $siteId, 'ACTIVE' => 'Y']
+        );
+
+        while ($personType = $personTypes->Fetch()) {
+            $personTypeId = $personType['ID'];
+
+            if (isset($oldContragentTypes[$personTypeId])) {
+                $newContragentTypes[$siteId][$personTypeId] = $oldContragentTypes[$personTypeId];
+            } else {
+                $newContragentTypes[$siteId][$personTypeId] = 'individual';
+            }
+        }
+    }
+
+    if (!empty($newContragentTypes)) {
+        Option::set('intaro.retailcrm', Constants::CRM_CONTRAGENT_TYPE_SITE, serialize($newContragentTypes));
     }
 }
 

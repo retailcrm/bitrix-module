@@ -19,8 +19,10 @@ class CustomerBuilderTest extends TestCase
 {
     public function setUp(): void
     {
-        Helpers::setConfigProperty('contragentTypes', [
-            'individual' => 'individual'
+        Helpers::setConfigProperty('contragentTypesBySite', [
+            's1' => [
+                'individual' => 'individual'
+            ]
         ]);
     }
 
@@ -52,6 +54,7 @@ class CustomerBuilderTest extends TestCase
             ->reset()
             ->setAttachDaemonCollectorId(true)
             ->setPersonTypeId('individual')
+            ->setSiteId('s1')
             ->setUser($entity)
             ->build()
             ->getResult();
@@ -97,6 +100,7 @@ class CustomerBuilderTest extends TestCase
         $builder = new CustomerBuilder();
         $result = $builder
             ->setPersonTypeId('individual')
+            ->setSiteId('s1')
             ->setUser($entity)
             ->build()
             ->getResult();
