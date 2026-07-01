@@ -20,6 +20,7 @@ use Bitrix\Sale\Delivery\Services\EmptyDeliveryService;
 use Bitrix\Sale\Delivery\Services\Manager;
 use Bitrix\Sale\Fuser;
 use Bitrix\Sale\Internals\PaymentTable;
+use Bitrix\Sale\Internals\OrderPropsTable;
 use Bitrix\Sale\Location\Search\Finder;
 use Bitrix\Sale\Order;
 use Bitrix\Sale\OrderUserProperties;
@@ -681,44 +682,30 @@ class RetailCrmHistory
                         }
                     }
 
-                    $propsRemove = false;
-                    $personType = $newOrder->getField('PERSON_TYPE_ID');
+                    $currentPersonType = (int) $newOrder->getField('PERSON_TYPE_ID');
+                    $personType = self::resolvePersonType(
+                        $order,
+                        $site,
+                        $contragentTypes,
+                        $optionsOrderTypes,
+                        $currentPersonType
+                    );
 
-                    if (RetailCrmOrder::isOrderCorporate($order)
-                        || (!empty($order['contragentType']) && in_array($order['contragentType'], ['legal-entity', 'enterpreneur']))
-                    ) {
-                        $personType = $contragentTypes['legal-entity'];
+                    $personTypeChanged = $personType > 0 && $personType !== $currentPersonType;
+
+                    $propsRemove = $personType > 0 && (
+                        RetailCrmOrder::isOrderCorporate($order)
+                        || (!empty($order['contragentType'])
+                            && in_array($order['contragentType'], ['legal-entity', 'enterpreneur'], true))
+                        || $personTypeChanged
+                    );
+
+                    if ($personTypeChanged) {
                         $newOrder->setField('PERSON_TYPE_ID', $personType);
+                    }
 
-                        $propsRemove = true;
-                    } else {
-                        if (isset($order['orderType']) && $order['orderType']) {
-                            $nType = [];
-                            $tList = RCrmActions::OrderTypesList([['LID' => $site]]);
-
-                            foreach ($tList as $type) {
-                                if (isset($optionsOrderTypes[$type['ID']])) {
-                                    $nType[$optionsOrderTypes[$type['ID']]] = $type['ID'];
-                                }
-                            }
-
-                            $newOptionsOrderTypes = $nType;
-
-                            if ($newOptionsOrderTypes[$order['orderType']]) {
-                                if ($personType != $newOptionsOrderTypes[$order['orderType']] && $personType != 0) {
-                                    $propsRemove = true;
-                                }
-
-                                $personType = $newOptionsOrderTypes[$order['orderType']];
-                                $newOrder->setField('PERSON_TYPE_ID', $personType);
-                            } elseif ($personType == 0) {
-                                RCrmActions::eventLog(
-                                    'RetailCrmHistory::orderHistory',
-                                    'orderType not found',
-                                    'PERSON_TYPE_ID = 0'
-                                );
-                            }
-                        }
+                    if ($propsRemove) {
+                        self::deleteOrderPropsExceptPersonType($newOrder, $personType);
                     }
 
                     //status
@@ -767,14 +754,7 @@ class RetailCrmHistory
                     $orderDump = [];
                     $propertyCollectionArr['properties'] = $nProps;
 
-                    if ($propsRemove) {//delete props
-                        foreach ($propertyCollectionArr['properties'] as $orderProp) {
-                            if ($orderProp['PROPS_GROUP_ID'] == 0) {
-                                $somePropValue = $propertyCollection->getItemByOrderPropertyId($orderProp['ID']);
-                                self::setProp($somePropValue);
-                            }
-                        }
-
+                    if ($propsRemove) {
                         $orderCrm = RCrmActions::apiMethod($api, 'orderGet', __METHOD__, $order['id']);
 
                         $orderDump = $order;
@@ -1470,6 +1450,75 @@ class RetailCrmHistory
         } while ($historyResponse['pagination']['currentPage'] < $historyResponse['pagination']['totalPageCount']);
 
         return false;
+    }
+
+    private static function resolvePersonType(
+        array $order,
+        string $site,
+        array $contragentTypes,
+        array $optionsOrderTypes,
+        int $currentPersonType
+    ): int {
+        if (
+            RetailCrmOrder::isOrderCorporate($order)
+            || (!empty($order['contragentType'])
+                && in_array($order['contragentType'], ['legal-entity', 'enterpreneur'], true))
+        ) {
+            return (int) ($contragentTypes['legal-entity'] ?? 0);
+        }
+
+        if (empty($order['orderType'])) {
+            return $currentPersonType;
+        }
+
+        $newOptionsOrderTypes = [];
+
+        foreach (RCrmActions::OrderTypesList([['LID' => $site]]) as $type) {
+            if (isset($optionsOrderTypes[$type['ID']])) {
+                $newOptionsOrderTypes[$optionsOrderTypes[$type['ID']]] = (int) $type['ID'];
+            }
+        }
+
+        if (isset($newOptionsOrderTypes[$order['orderType']])) {
+            return $newOptionsOrderTypes[$order['orderType']];
+        }
+
+        if ($currentPersonType === 0) {
+            RCrmActions::eventLog(
+                'RetailCrmHistory::orderHistory',
+                'orderType not found',
+                'PERSON_TYPE_ID = 0'
+            );
+        }
+
+        return $currentPersonType;
+    }
+
+    private static function deleteOrderPropsExceptPersonType(Order $order, int $personType): void
+    {
+        if ($personType <= 0 || !$order->getId()) {
+            return;
+        }
+
+        $allowedPropertyIds = [];
+        $properties = OrderPropsTable::getList([
+            'select' => ['ID'],
+            'filter' => ['=PERSON_TYPE_ID' => $personType],
+        ]);
+
+        while ($property = $properties->fetch()) {
+            $allowedPropertyIds[] = (int) $property['ID'];
+        }
+
+        $propertyCollection = $order->getPropertyCollection();
+
+        foreach ($propertyCollection as $propertyValue) {
+            $orderPropertyId = (int) $propertyValue->getField('ORDER_PROPS_ID');
+
+            if (empty($allowedPropertyIds) || !in_array($orderPropertyId, $allowedPropertyIds, true)) {
+                $propertyValue->delete();
+            }
+        }
     }
 
     /**
