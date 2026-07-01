@@ -47,14 +47,20 @@ if (!isset($arResult['CONTRAGENT_TYPES'])) {
         ['allowed_classes' => false]
     );
 
-    if ($arResult['CONTRAGENT_TYPES'] === false) {
-        foreach ($arResult['contragentType'] as $crmContrAgentType) {
-            if ($crmContrAgentType['ID'] === 'individual') {
-                $arResult['CONTRAGENT_TYPES']['1'] = 'individual';
-            }
+    if ($arResult['CONTRAGENT_TYPES'] === false || empty($arResult['CONTRAGENT_TYPES'])) {
+        $arResult['CONTRAGENT_TYPES'] = [];
 
-            if ($crmContrAgentType['ID'] === 'legal-entity') {
-                $arResult['CONTRAGENT_TYPES']['2'] = 'legal-entity';
+        foreach ($arResult['arSites'] as $site) {
+            $arResult['CONTRAGENT_TYPES'][$site['LID']] = [];
+
+            foreach ($arResult['contragentType'] as $crmContrAgentType) {
+                if ($crmContrAgentType['ID'] === 'individual') {
+                    $arResult['CONTRAGENT_TYPES'][$site['LID']]['1'] = 'individual';
+                }
+
+                if ($crmContrAgentType['ID'] === 'legal-entity') {
+                    $arResult['CONTRAGENT_TYPES'][$site['LID']]['2'] = 'legal-entity';
+                }
             }
         }
     }
@@ -122,34 +128,37 @@ CJSCore::Init([$jqueryCore]);
     }
 
     $(document).ready(function() {
-        const individual = $("[name='contragent-type-1']").val();
-        const legalEntity = $("[name='contragent-type-2']").val();
-        $('input:checked[name^="address-detail-"]').each(updateAddressList);
+        <?php foreach ($arResult['arSites'] as $site): ?>
+        const individual_<?= $site['LID'] ?> = $("[name='contragent-type-<?= $site['LID'] ?>-1']").val();
+        const legalEntity_<?= $site['LID'] ?> = $("[name='contragent-type-<?= $site['LID'] ?>-2']").val();
 
-        if (legalEntity !== 'individual') {
+        if (legalEntity_<?= $site['LID'] ?> !== 'individual') {
             $('tr.legal-detail-2').each(function(){
-                if($(this).hasClass(legalEntity)){
+                if($(this).hasClass(legalEntity_<?= $site['LID'] ?>)){
                     $(this).show();
                     $('.legal-detail-title-2').show();
                 }
             });
         }
 
-        if (individual !== 'individual') {
+        if (individual_<?= $site['LID'] ?> !== 'individual') {
             $('tr.legal-detail-1').each(function(){
-                if($(this).hasClass(individual)){
+                if($(this).hasClass(individual_<?= $site['LID'] ?>)){
                     $(this).show();
                     $('.legal-detail-title-1').show();
                 }
             });
         }
+        <?php endforeach; ?>
 
         $('input[name^="address-detail-"]').change(updateAddressList);
-        
+        $('input:checked[name^="address-detail-"]').each(updateAddressList);
+
         $('tr.contragent-type select').change(function(){
             const splitName      = $(this).attr('name').split('-');
             const contragentType = $(this).val();
-            const orderType = splitName[2];
+            const siteLid = splitName[2];
+            const orderType = splitName[3];
             let legalDetailOrderType = $('tr.legal-detail-' + orderType);
             
             legalDetailOrderType.hide();
