@@ -468,8 +468,12 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     //contragents type list
     $contragentTypeArr = [];
 
-    foreach ($orderTypesList as $orderType) {
-        $contragentTypeArr[$orderType['ID']] = htmlspecialchars(trim($_POST['contragent-type-' . $orderType['ID']]));
+    foreach ($arResult['arSites'] as $site) {
+        foreach ($orderTypesList as $orderType) {
+            $contragentTypeArr[$site['LID']][$orderType['ID']] = htmlspecialchars(
+                    trim($_POST['contragent-type-' . $site['LID'] . '-' . $orderType['ID']])
+            );
+        }
     }
 
     //stores
@@ -906,8 +910,22 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     );
     COption::SetOptionString(
         $mid,
-        Constants::CRM_CONTRAGENT_TYPE,
+        Constants::CRM_CONTRAGENT_TYPE_SITE,
         serialize(RCrmActions::clearArr(is_array($contragentTypeArr) ? $contragentTypeArr : []))
+    );
+    $legacyContragentTypes = [];
+    if (!empty($contragentTypeArr)) {
+        $firstSite = reset($arResult['arSites']);
+        foreach ($orderTypesList as $orderType) {
+            $legacyContragentTypes[$orderType['ID']] =
+                    $contragentTypeArr[$firstSite['LID']][$orderType['ID']] ?? 'individual';
+        }
+    }
+
+    COption::SetOptionString(
+            $mid,
+            Constants::CRM_CONTRAGENT_TYPE,
+            serialize(RCrmActions::clearArr(is_array($legacyContragentTypes) ? $legacyContragentTypes : []))
     );
     COption::SetOptionString(
         $mid,
@@ -1339,7 +1357,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     $optionsSitesList = unserialize(COption::GetOptionString($mid, Constants::CRM_SITES_LIST, 0), ['allowed_classes' => false]);
     $optionsDischarge = (int) COption::GetOptionString($mid, Constants::CRM_ORDER_DISCHARGE, 0);
     $optionsOrderProps = unserialize(COption::GetOptionString($mid, Constants::CRM_ORDER_PROPS, 0), ['allowed_classes' => false]);
-    $optionsContragentType = unserialize(COption::GetOptionString($mid, Constants::CRM_CONTRAGENT_TYPE, 0), ['allowed_classes' => false]);
+    $optionsContragentType = unserialize(COption::GetOptionString($mid, Constants::CRM_CONTRAGENT_TYPE_SITE, 0), ['allowed_classes' => false]);
     $optionsLegalDetails = unserialize(COption::GetOptionString($mid, Constants::CRM_LEGAL_DETAILS, 0), ['allowed_classes' => false]);
     $optionsCustomFields = unserialize(COption::GetOptionString($mid, Constants::CRM_CUSTOM_FIELDS, 0), ['allowed_classes' => false]);
     $optionsOrderNumbers = COption::GetOptionString($mid, Constants::CRM_ORDER_NUMBERS, 0);
@@ -1811,9 +1829,9 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             $('input:checked[name^="address-detail-"]').each(updateAddressList);
 
             $('tr.contragent-type select').change(function() {
-                splitName      = $(this).attr('name').split('-');
-                contragentType = $(this).val();
-                orderType = splitName[2];
+                const splitName = $(this).attr('name').split('-');
+                const contragentType = $(this).val();
+                const orderType = splitName[3];
 
                 $('tr.legal-detail-' + orderType).hide();
                 $('.legal-detail-title-' + orderType).hide();
@@ -2285,22 +2303,29 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             <tr class="heading">
                 <td colspan="2"><b><?php echo GetMessage('ORDER_TYPE_INFO') . ' ' . $bitrixOrderType['NAME']; ?></b></td>
             </tr>
+
+            <?php foreach ($arResult['arSites'] as $site): ?>
             <tr class="contragent-type">
                 <td width="50%" class="adm-detail-content-cell-l">
-                    <?php echo GetMessage('CONTRAGENTS_TYPES_LIST'); ?>
+                    <?php echo GetMessage('CONTRAGENTS_TYPES_LIST') . ' (' . $site['NAME'] . ' [' . $site['LID'] . '])'; ?>
                 </td>
                 <td width="50%" class="adm-detail-content-cell-r">
-                    <select name="contragent-type-<?php echo $bitrixOrderType['ID']; ?>" class="typeselect">
+                    <select name="contragent-type-<?php echo $site['LID'] . '-' . $bitrixOrderType['ID']; ?>" class="typeselect">
                         <?php foreach ($arResult['contragentType'] as $contragentType): ?>
-                            <option value="<?php echo $contragentType["ID"]; ?>" <?php if ($optionsContragentType[$bitrixOrderType['ID']] === $contragentType['ID']) {
-                                echo 'selected';
-                            } ?>>
+                            <option value="<?php echo $contragentType["ID"]; ?>"
+                                    <?php if (isset($optionsContragentType[$site['LID']][$bitrixOrderType['ID']])
+                                            && $optionsContragentType[$site['LID']][$bitrixOrderType['ID']] === $contragentType['ID']) {
+                                        echo 'selected';
+                                    } ?>
+                            >
                                 <?php echo $contragentType["NAME"]; ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
                 </td>
             </tr>
+        <?php endforeach; ?>
+
             <?php $countProps = 1;
         foreach ($arResult['orderProps'] as $orderProp): ?>
             <?php if ($orderProp['ID'] === 'text'): ?>
@@ -2399,9 +2424,22 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
             <?php foreach ($arResult['legalDetails'] as $legalDetails): ?>
             <tr class="legal-detail-<?php echo $bitrixOrderType['ID']; ?> <?php foreach ($legalDetails['GROUP'] as $gr) {
                 echo $gr . ' ';
-            } ?>" <?php if (!in_array($optionsContragentType[$bitrixOrderType['ID']], $legalDetails['GROUP'], true)) {
-                echo 'style="display:none"';
-            } ?>>
+            } ?>"
+                    <?php
+                    $isVisible = false;
+                    foreach ($arResult['arSites'] as $site) {
+                        if (isset($optionsContragentType[$site['LID']][$bitrixOrderType['ID']])
+                                && in_array($optionsContragentType[$site['LID']][$bitrixOrderType['ID']], $legalDetails['GROUP'], true)
+                        ) {
+                            $isVisible = true;
+                            break;
+                        }
+                    }
+                    if (!$isVisible) {
+                        echo 'style="display:none"';
+                    }
+                    ?>
+            >
                 <td width="50%" class="" name="<?php ?>">
                     <?php echo $legalDetails['NAME']; ?>
                 </td>

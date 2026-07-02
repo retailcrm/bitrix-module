@@ -20,9 +20,11 @@ class CorporateCustomerBuilderTest extends TestCase
         Helpers::setConfigProperty('sitesList', ['s1' => 's1']);
         Helpers::setConfigProperty('corporateClientName', 'COMPANY');
         Helpers::setConfigProperty('corporateClientAddress', 'COMPANY_ADR');
-        Helpers::setConfigProperty('contragentTypes', [
-            'individual',
-            'legal-entity'
+        Helpers::setConfigProperty('contragentTypesBySite', [
+            's1' => [
+                'individual' => 'individual',
+                'legal-entity' => 'legal-entity'
+            ]
         ]);
         Helpers::setConfigProperty('legalDetails', [
             'individual',
@@ -75,7 +77,9 @@ class CorporateCustomerBuilderTest extends TestCase
 
         $order = Order::create('s1', $user->getId());
         $order->setField('DATE_INSERT', new DateTime());
-        $order->setPersonTypeId(array_flip(ConfigProvider::getContragentTypes())['legal-entity']);
+        $contragentTypes = ConfigProvider::getContragentTypesBySite();
+        $personTypeId = array_flip($contragentTypes['s1'] ?? [])['legal-entity'] ?? null;
+        $order->setPersonTypeId($personTypeId);
         $saveResult = $order->save();
         self::assertTrue($saveResult->isSuccess(), implode(', ', $saveResult->getErrorMessages()));
         self::assertNotNull($order->getId(), implode(', ', $saveResult->getErrorMessages()));

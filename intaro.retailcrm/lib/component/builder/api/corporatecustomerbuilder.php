@@ -86,7 +86,6 @@ class CorporateCustomerBuilder implements BuilderInterface
         $this->cookieExtractor = ServiceLocator::get(CookieService::class);
         $this->sites = ConfigProvider::getSitesList();
         $this->legalDetails = ConfigProvider::getLegalDetails();
-        $this->contragentTypes = ConfigProvider::getContragentTypes();
     }
 
     /**
@@ -103,12 +102,16 @@ class CorporateCustomerBuilder implements BuilderInterface
             throw new BuilderException('Order should be provided for building corporate customer!');
         }
 
-        $contragentType = ConfigProvider::getContragentTypeForPersonType($this->order->getPersonTypeId());
+        $contragentType = ConfigProvider::getContragentTypeForPersonType(
+            $this->order->getPersonTypeId(),
+            $this->order->getSiteId()
+        );
 
         if (null === $contragentType) {
             throw new BuilderException(sprintf(
-                'Cannot find corresponding contragent type for PERSON_TYPE_ID `%s`',
-                $this->order->getPersonTypeId()
+                'Cannot find corresponding contragent type for PERSON_TYPE_ID `%s` and site `%s`',
+                $this->order->getPersonTypeId(),
+                $this->order->getSiteId()
             ));
         }
 
@@ -269,8 +272,13 @@ class CorporateCustomerBuilder implements BuilderInterface
             }
         }
 
-        if (array_key_exists($this->order->getPersonTypeId(), $this->contragentTypes)) {
-            $this->customer->contragent->contragentType = $this->contragentTypes[$this->order->getPersonTypeId()];
+        $contragentType = ConfigProvider::getContragentTypeForPersonType(
+            $this->order->getPersonTypeId(),
+            $this->order->getSiteId()
+        );
+
+        if (null !== $contragentType) {
+            $this->customer->contragent->contragentType = $contragentType;
         }
 
         if (empty($this->customer->nickName)) {

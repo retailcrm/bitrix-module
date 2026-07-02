@@ -43,18 +43,24 @@ if (!isset($arResult['LEGAL_DETAILS'])) {
 
 if (!isset($arResult['CONTRAGENT_TYPES'])) {
     $arResult['CONTRAGENT_TYPES'] = unserialize(
-        (string) COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_CONTRAGENT_TYPE, 0),
+        (string) COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_CONTRAGENT_TYPE_SITE, 0),
         ['allowed_classes' => false]
     );
 
-    if ($arResult['CONTRAGENT_TYPES'] === false) {
-        foreach ($arResult['contragentType'] as $crmContrAgentType) {
-            if ($crmContrAgentType['ID'] === 'individual') {
-                $arResult['CONTRAGENT_TYPES']['1'] = 'individual';
-            }
+    if ($arResult['CONTRAGENT_TYPES'] === false || empty($arResult['CONTRAGENT_TYPES'])) {
+        $arResult['CONTRAGENT_TYPES'] = [];
 
-            if ($crmContrAgentType['ID'] === 'legal-entity') {
-                $arResult['CONTRAGENT_TYPES']['2'] = 'legal-entity';
+        foreach ($arResult['arSites'] as $site) {
+            $arResult['CONTRAGENT_TYPES'][$site['LID']] = [];
+
+            foreach ($arResult['contragentType'] as $crmContrAgentType) {
+                if ($crmContrAgentType['ID'] === 'individual') {
+                    $arResult['CONTRAGENT_TYPES'][$site['LID']]['1'] = 'individual';
+                }
+
+                if ($crmContrAgentType['ID'] === 'legal-entity') {
+                    $arResult['CONTRAGENT_TYPES'][$site['LID']]['2'] = 'legal-entity';
+                }
             }
         }
     }
@@ -122,34 +128,37 @@ CJSCore::Init([$jqueryCore]);
     }
 
     $(document).ready(function() {
-        const individual = $("[name='contragent-type-1']").val();
-        const legalEntity = $("[name='contragent-type-2']").val();
-        $('input:checked[name^="address-detail-"]').each(updateAddressList);
+        <?php foreach ($arResult['arSites'] as $site): ?>
+        const individual_<?= $site['LID'] ?> = $("[name='contragent-type-<?= $site['LID'] ?>-1']").val();
+        const legalEntity_<?= $site['LID'] ?> = $("[name='contragent-type-<?= $site['LID'] ?>-2']").val();
 
-        if (legalEntity !== 'individual') {
+        if (legalEntity_<?= $site['LID'] ?> !== 'individual') {
             $('tr.legal-detail-2').each(function(){
-                if($(this).hasClass(legalEntity)){
+                if($(this).hasClass(legalEntity_<?= $site['LID'] ?>)){
                     $(this).show();
                     $('.legal-detail-title-2').show();
                 }
             });
         }
 
-        if (individual !== 'individual') {
+        if (individual_<?= $site['LID'] ?> !== 'individual') {
             $('tr.legal-detail-1').each(function(){
-                if($(this).hasClass(individual)){
+                if($(this).hasClass(individual_<?= $site['LID'] ?>)){
                     $(this).show();
                     $('.legal-detail-title-1').show();
                 }
             });
         }
+        <?php endforeach; ?>
 
         $('input[name^="address-detail-"]').change(updateAddressList);
-        
+        $('input:checked[name^="address-detail-"]').each(updateAddressList);
+
         $('tr.contragent-type select').change(function(){
             const splitName      = $(this).attr('name').split('-');
             const contragentType = $(this).val();
-            const orderType = splitName[2];
+            const siteLid = splitName[2];
+            const orderType = splitName[3];
             let legalDetailOrderType = $('tr.legal-detail-' + orderType);
             
             legalDetailOrderType.hide();
@@ -194,20 +203,26 @@ CJSCore::Init([$jqueryCore]);
                     <?= GetMessage('CONTRAGENT_TYPE')?>
                 </td>
                 <td width="50%" class="adm-detail-content-cell-r">
-                    <select name="contragent-type-<?= $bitrixOrderType['ID']?>" class="typeselect">
-                        <?php foreach ($arResult['contragentType'] as $contragentType): ?>
-                        <option value="<?= $contragentType['ID']; ?>"
-                            <?=
-                            (isset($arResult['CONTRAGENT_TYPES'][$bitrixOrderType['ID']])
-                                && $arResult['CONTRAGENT_TYPES'][$bitrixOrderType['ID']] == $contragentType['ID']) ?
-                                'selected'
-                                : ''
-                             ?>
-                        >
-                            <?= $contragentType['NAME']?>
-                        </option>
-                        <?php endforeach; ?>
-                    </select>
+                <?php foreach ($arResult['arSites'] as $site): ?>
+                    <tr class="contragent-type">
+                        <td width="50%" class="adm-detail-content-cell-l">
+                            <?= GetMessage('CONTRAGENT_TYPE') . ' (' . $site['NAME'] . ' [' . $site['LID'] . '])'?>
+                        </td>
+                        <td width="50%" class="adm-detail-content-cell-r">
+                            <select name="contragent-type-<?= $site['LID'] . '-' . $bitrixOrderType['ID']?>" class="typeselect">
+                                <?php foreach ($arResult['contragentType'] as $contragentType): ?>
+                                    <option value="<?= $contragentType['ID']; ?>"
+                                            <?= (isset($arResult['CONTRAGENT_TYPES'][$site['LID']][$bitrixOrderType['ID']])
+                                                    && $arResult['CONTRAGENT_TYPES'][$site['LID']][$bitrixOrderType['ID']] == $contragentType['ID']) ?
+                                                    'selected' : '' ?>
+                                    >
+                                        <?= $contragentType['NAME']?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
                 </td>
             </tr>
             

@@ -152,7 +152,7 @@ class CustomerService
      */
     public function createModel(int $userId)
     {
-        $key = array_search('individual', ConfigProvider::getContragentTypes(), true);
+        $key = $this->findIndividualPersonTypeId();
         $builder = new CustomerBuilder();
 
         try {
@@ -166,5 +166,25 @@ class CustomerService
         }catch (BuilderException $exception){
             Logger::getInstance()->write($exception->getMessage(), Constants::LOYALTY_ERROR);
         }
+    }
+
+    /**
+     * Находит ID типа плательщика, соответствующего 'individual'
+     * Перебирает все сайты в поиске первого individual
+     *
+     * @return string|null
+     */
+    private function findIndividualPersonTypeId(): ?string
+    {
+        $contragentTypesBySite = ConfigProvider::getContragentTypesBySite();
+
+        foreach ($contragentTypesBySite as $siteContragentTypes) {
+            $found = array_search('individual', $siteContragentTypes, true);
+            if ($found !== false) {
+                return (string) $found;
+            }
+        }
+
+        return null;
     }
 }

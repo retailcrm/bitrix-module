@@ -171,7 +171,7 @@ class RetailCrmEvent
         $optionsSitesList = RetailcrmConfigProvider::getSitesList();
         $optionsOrderProps = RetailcrmConfigProvider::getOrderProps();
         $optionsLegalDetails = RetailcrmConfigProvider::getLegalDetails();
-        $optionsContragentType = RetailcrmConfigProvider::getContragentTypes();
+        $optionsContragentType = RetailcrmConfigProvider::getContragentTypesBySite();
         $optionsCustomFields = RetailcrmConfigProvider::getCustomFields();
 
         //corp cliente swich
@@ -224,7 +224,7 @@ class RetailCrmEvent
 
         //TODO эта управляющая конструкция по функционалу дублирует RetailCrmOrder::createCustomerForOrder.
         // Необходимо устранить дублирование, вынеся логику в обособленный класс-сервис
-        if ('Y' === $optionCorpClient && in_array($optionsContragentType[$arOrder['PERSON_TYPE_ID']], ['legal-entity', 'enterpreneur'])) {
+        if ('Y' === $optionCorpClient && in_array($optionsContragentType[$arOrder['LID']][$arOrder['PERSON_TYPE_ID']] ?? null, ['legal-entity', 'enterpreneur'])) {
             //corparate cliente
             $nickName = '';
             $address = '';
@@ -325,7 +325,7 @@ class RetailCrmEvent
                 $resultUserCorp = RetailCrmCorporateClient::clientSend(
                     $arOrder,
                     $api,
-                    $optionsContragentType[$arOrder['PERSON_TYPE_ID']],
+                    $optionsContragentType[$arOrder['LID']][$arOrder['PERSON_TYPE_ID']] ?? null,
                     true,
                     false,
                     $site
@@ -430,7 +430,7 @@ class RetailCrmEvent
                 $resultUser = RetailCrmUser::customerSend(
                     $arUser,
                     $api,
-                    $optionsContragentType[$arOrder['PERSON_TYPE_ID']],
+                    $optionsContragentType[$arOrder['LID']][$arOrder['PERSON_TYPE_ID']] ?? null,
                     true,
                     $site
                 );

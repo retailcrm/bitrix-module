@@ -94,6 +94,9 @@ class ConfigProvider
     /** @var array $contragentTypes */
     protected static $contragentTypes;
 
+    /** @var array $contragentTypesBySite */
+    protected static $contragentTypesBySite;
+
     /** @var array $cancellableOrderPaymentStatuses */
     protected static $cancellableOrderPaymentStatuses;
 
@@ -464,6 +467,7 @@ class ConfigProvider
     /**
      * getContragentTypes
      *
+     * @deprecated Use getContragentTypesBySite() instead
      * @return array
      */
     public static function getContragentTypes()
@@ -476,19 +480,66 @@ class ConfigProvider
     }
 
     /**
-     * Returns contragent type for provided person type (PERSON_TYPE_ID in the Bitrix order).
+     * setContragentTypes
+     *
+     * @deprecated Use setContragentTypesBySite() instead
+     * @param array $contragentTypeArr
+     */
+    public static function setContragentTypes($contragentTypeArr)
+    {
+        static::setOption(Constants::CRM_CONTRAGENT_TYPE, serialize(self::getUtils()
+            ->clearArray(is_array($contragentTypeArr)?$contragentTypeArr:[])));
+    }
+
+    /**
+     * getContragentTypesBySite
+     *
+     * @return array
+     */
+    public static function getContragentTypesBySite()
+    {
+        if (self::isEmptyNotZero(static::$contragentTypesBySite)) {
+            static::$contragentTypesBySite = static::getUnserializedOption(Constants::CRM_CONTRAGENT_TYPE_SITE);
+        }
+
+        return is_array(static::$contragentTypesBySite) ? static::$contragentTypesBySite : [];
+    }
+
+    /**
+     * setContragentTypesBySite
+     *
+     * @param array $contragentTypeArr
+     */
+    public static function setContragentTypesBySite($contragentTypeArr)
+    {
+        static::setOption(Constants::CRM_CONTRAGENT_TYPE_SITE, serialize(self::getUtils()
+            ->clearArray(is_array($contragentTypeArr)?$contragentTypeArr:[])));
+    }
+
+    /**
+     * Returns contragent type for provided person type (PERSON_TYPE_ID in the Bitrix order) and site ID.
      * Returns null if nothing was found.
      *
      * @param string $personTypeId
+     * @param string|null $siteId
      *
      * @return string|null
      */
-    public static function getContragentTypeForPersonType(string $personTypeId): ?string
+    public static function getContragentTypeForPersonType(string $personTypeId, ?string $siteId = null): ?string
     {
-        $personTypes = static::getContragentTypes();
+        $contragentTypesBySite = static::getContragentTypesBySite();
 
-        if (!empty($personTypes[$personTypeId])) {
-            return $personTypes[$personTypeId];
+        if ($siteId !== null) {
+            if (!empty($contragentTypesBySite[$siteId][$personTypeId])) {
+                return $contragentTypesBySite[$siteId][$personTypeId];
+            }
+            return null;
+        }
+
+        foreach ($contragentTypesBySite as $siteContragentTypes) {
+            if (!empty($siteContragentTypes[$personTypeId])) {
+                return $siteContragentTypes[$personTypeId];
+            }
         }
 
         return null;
@@ -1143,17 +1194,6 @@ class ConfigProvider
     {
         static::setOption(Constants::CRM_PAYMENT_STATUSES, serialize(self::getUtils()
             ->clearArray(is_array($paymentStatusesArr)?$paymentStatusesArr:[])));
-    }
-
-    /**
-     * setContragentTypes
-     *
-     * @param array $contragentTypeArr
-     */
-    public static function setContragentTypes($contragentTypeArr)
-    {
-        static::setOption(Constants::CRM_CONTRAGENT_TYPE, serialize(self::getUtils()
-            ->clearArray(is_array($contragentTypeArr)?$contragentTypeArr:[])));
     }
 
     /**
