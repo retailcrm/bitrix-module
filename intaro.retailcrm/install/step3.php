@@ -43,7 +43,7 @@ if (!isset($arResult['LEGAL_DETAILS'])) {
 
 if (!isset($arResult['CONTRAGENT_TYPES'])) {
     $arResult['CONTRAGENT_TYPES'] = unserialize(
-        (string) COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_CONTRAGENT_TYPE, 0),
+        (string) COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_CONTRAGENT_TYPE_SITE, 0),
         ['allowed_classes' => false]
     );
 
@@ -203,20 +203,26 @@ CJSCore::Init([$jqueryCore]);
                     <?= GetMessage('CONTRAGENT_TYPE')?>
                 </td>
                 <td width="50%" class="adm-detail-content-cell-r">
-                    <select name="contragent-type-<?= $bitrixOrderType['ID']?>" class="typeselect">
-                        <?php foreach ($arResult['contragentType'] as $contragentType): ?>
-                        <option value="<?= $contragentType['ID']; ?>"
-                            <?=
-                            (isset($arResult['CONTRAGENT_TYPES'][$bitrixOrderType['ID']])
-                                && $arResult['CONTRAGENT_TYPES'][$bitrixOrderType['ID']] == $contragentType['ID']) ?
-                                'selected'
-                                : ''
-                             ?>
-                        >
-                            <?= $contragentType['NAME']?>
-                        </option>
-                        <?php endforeach; ?>
-                    </select>
+                <?php foreach ($arResult['arSites'] as $site): ?>
+                    <tr class="contragent-type">
+                        <td width="50%" class="adm-detail-content-cell-l">
+                            <?= GetMessage('CONTRAGENT_TYPE') . ' (' . $site['NAME'] . ' [' . $site['LID'] . '])'?>
+                        </td>
+                        <td width="50%" class="adm-detail-content-cell-r">
+                            <select name="contragent-type-<?= $site['LID'] . '-' . $bitrixOrderType['ID']?>" class="typeselect">
+                                <?php foreach ($arResult['contragentType'] as $contragentType): ?>
+                                    <option value="<?= $contragentType['ID']; ?>"
+                                            <?= (isset($arResult['CONTRAGENT_TYPES'][$site['LID']][$bitrixOrderType['ID']])
+                                                    && $arResult['CONTRAGENT_TYPES'][$site['LID']][$bitrixOrderType['ID']] == $contragentType['ID']) ?
+                                                    'selected' : '' ?>
+                                    >
+                                        <?= $contragentType['NAME']?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
                 </td>
             </tr>
             

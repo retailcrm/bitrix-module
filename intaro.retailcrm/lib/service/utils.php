@@ -86,12 +86,14 @@ class Utils
      * Returns true if provided PERSON_TYPE_ID is corporate customer
      *
      * @param string $personTypeId
+     * @param string|null $siteId
      *
      * @return bool
      */
-    public function isPersonCorporate(string $personTypeId): bool
+    public function isPersonCorporate(string $personTypeId, ?string $siteId = null): bool
     {
-        return ConfigProvider::getContragentTypeForPersonType($personTypeId) === Constants::CORPORATE_CONTRAGENT_TYPE;
+        $contragentType = ConfigProvider::getContragentTypeForPersonType($personTypeId, $siteId);
+        return $contragentType === Constants::CORPORATE_CONTRAGENT_TYPE;
     }
 
     /**

@@ -910,7 +910,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
     );
     COption::SetOptionString(
         $mid,
-        Constants::CRM_CONTRAGENT_TYPE,
+        Constants::CRM_CONTRAGENT_TYPE_SITE,
         serialize(RCrmActions::clearArr(is_array($contragentTypeArr) ? $contragentTypeArr : []))
     );
     $legacyContragentTypes = [];
