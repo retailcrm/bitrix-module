@@ -198,11 +198,6 @@ CJSCore::Init([$jqueryCore]);
             <tr class="heading">
                 <td colspan="2"><b><?= GetMessage('ORDER_TYPE_INFO') . ' ' . $bitrixOrderType['NAME']?></b></td>
             </tr>
-            <tr class="contragent-type">
-                <td width="50%" class="adm-detail-content-cell-l">
-                    <?= GetMessage('CONTRAGENT_TYPE')?>
-                </td>
-                <td width="50%" class="adm-detail-content-cell-r">
                 <?php foreach ($arResult['arSites'] as $site): ?>
                     <tr class="contragent-type">
                         <td width="50%" class="adm-detail-content-cell-l">
@@ -223,8 +218,6 @@ CJSCore::Init([$jqueryCore]);
                         </td>
                     </tr>
                 <?php endforeach; ?>
-                </td>
-            </tr>
             
             <?php $countProps = 0; foreach($arResult['orderProps'] as $orderProp): ?>
             <?php if($orderProp['ID'] === 'text'): ?>

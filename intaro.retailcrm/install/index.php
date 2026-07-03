@@ -674,7 +674,18 @@ class intaro_retailcrm extends CModule
                 $arResult['LEGAL_DETAILS'] = unserialize($legalDetails, ['allowed_classes' => false]);
             }
             if ($contragentType = COption::GetOptionString($this->OLD_MODULE_ID, Constants::CRM_CONTRAGENT_TYPE, 0)) {
-                $arResult['CONTRAGENT_TYPES'] = unserialize($contragentType, ['allowed_classes' => false]);
+                $oldContragentTypes = unserialize($contragentType, ['allowed_classes' => false]);
+
+                $arResult['CONTRAGENT_TYPES'] = [];
+                $arSites = RCrmActions::getSitesList();
+
+                if (is_array($oldContragentTypes)) {
+                    foreach ($arSites as $site) {
+                        foreach ($oldContragentTypes as $personTypeId => $contragentTypeValue) {
+                            $arResult['CONTRAGENT_TYPES'][$site['LID']][$personTypeId] = $contragentTypeValue;
+                        }
+                    }
+                }
             }
 
             $APPLICATION->IncludeAdminFile(
