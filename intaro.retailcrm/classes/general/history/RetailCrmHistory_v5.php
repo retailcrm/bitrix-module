@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * @category RetailCRM
  * @package  RetailCRM\History

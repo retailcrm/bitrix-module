@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * @category Integration
  * @package  Intaro\RetailCrm\Component

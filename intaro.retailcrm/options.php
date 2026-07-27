@@ -1,5 +1,6 @@
 <?php
 
+
 use Bitrix\Currency\CurrencyManager;
 use Bitrix\Main\Application;
 use Bitrix\Main\EventManager;

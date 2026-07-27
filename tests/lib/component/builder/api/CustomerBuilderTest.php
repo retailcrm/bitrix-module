@@ -1,5 +1,6 @@
 <?php
 
+
 namespace Tests\Intaro\RetailCrm\Component\Builder\Api;
 
 use Bitrix\Main\Event;
