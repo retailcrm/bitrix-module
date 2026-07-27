@@ -794,7 +794,7 @@ class intaro_retailcrm extends CModule
             COption::SetOptionString($this->MODULE_ID, Constants::CRM_ADDRESS_OPTIONS, serialize($addressDetailOptions));
             COption::SetOptionString($this->MODULE_ID, Constants::CRM_ORDER_PROPS, serialize(RCrmActions::clearArr($orderPropsArr)));
             COption::SetOptionString($this->MODULE_ID, Constants::CRM_LEGAL_DETAILS, serialize(RCrmActions::clearArr($legalDetailsArr)));
-            COption::SetOptionString($this->MODULE_ID, Constants::CRM_CONTRAGENT_TYPE_SITE, serialize(RCrmActions::clearArr($contragentTypeArr)));
+            COption::SetOptionString($this->MODULE_ID, 'contragent_type_site', serialize(RCrmActions::clearArr($contragentTypeArr)));
 
             $APPLICATION->IncludeAdminFile(
                 GetMessage('MODULE_INSTALL_TITLE'), $this->INSTALL_PATH . '/step4.php'
@@ -1209,7 +1209,7 @@ class intaro_retailcrm extends CModule
         COption::RemoveOption($this->MODULE_ID, Constants::CRM_ORDER_TYPES_ARR);
         COption::RemoveOption($this->MODULE_ID, Constants::CRM_LEGAL_DETAILS);
         COption::RemoveOption($this->MODULE_ID, Constants::CRM_CONTRAGENT_TYPE);
-        COption::RemoveOption($this->MODULE_ID, Constants::CRM_CONTRAGENT_TYPE_SITE);
+        COption::RemoveOption($this->MODULE_ID, 'contragent_type_site');
         COption::RemoveOption($this->MODULE_ID, Constants::CRM_SITES_LIST);
         COption::RemoveOption($this->MODULE_ID, Constants::CRM_ORDER_DISCHARGE);
         COption::RemoveOption($this->MODULE_ID, Constants::CRM_ORDER_FAILED_IDS);

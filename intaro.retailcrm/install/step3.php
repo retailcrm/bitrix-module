@@ -43,7 +43,7 @@ if (!isset($arResult['LEGAL_DETAILS'])) {
 
 if (!isset($arResult['CONTRAGENT_TYPES'])) {
     $arResult['CONTRAGENT_TYPES'] = unserialize(
-        (string) COption::GetOptionString(Constants::MODULE_ID, Constants::CRM_CONTRAGENT_TYPE_SITE, 0),
+        (string) COption::GetOptionString(Constants::MODULE_ID, 'contragent_type_site', 0),
         ['allowed_classes' => false]
     );
 

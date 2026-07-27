@@ -1,11 +1,8 @@
 <?php
 
-require_once __DIR__ . '/lib/component/constants.php';
-
 use Bitrix\Main\Loader;
 use Bitrix\Main\Config\Option;
 use Bitrix\Main\Application;
-use Intaro\RetailCrm\Component\Constants;
 
 function update()
 {
@@ -103,13 +100,13 @@ function addEventSaveOrder()
  */
 function migrateContragentTypes()
 {
-    $newOptionValue = Option::get('intaro.retailcrm', Constants::CRM_CONTRAGENT_TYPE_SITE, null);
+    $newOptionValue = Option::get('intaro.retailcrm', 'contragent_type_site', null);
 
     if ($newOptionValue !== null && $newOptionValue !== '') {
         return;
     }
 
-    $oldContragentTypes = Option::get('intaro.retailcrm', Constants::CRM_CONTRAGENT_TYPE, null);
+    $oldContragentTypes = Option::get('intaro.retailcrm', 'contragent_type', null);
 
     if (empty($oldContragentTypes)) {
         $oldContragentTypes = [];
@@ -150,7 +147,7 @@ function migrateContragentTypes()
     }
 
     if (!empty($newContragentTypes)) {
-        Option::set('intaro.retailcrm', Constants::CRM_CONTRAGENT_TYPE_SITE, serialize($newContragentTypes));
+        Option::set('intaro.retailcrm', 'contragent_type_site', serialize($newContragentTypes));
     }
 }
 
