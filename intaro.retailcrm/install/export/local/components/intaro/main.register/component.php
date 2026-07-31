@@ -268,7 +268,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $_REQUEST["register_submit_button"] 
 }
 
 // verify phone code
-if ($_SERVER["REQUEST_METHOD"] == "POST" && $_REQUEST["code_submit_button"] <> '' && !$USER->IsAuthorized())
+if (
+    $_SERVER["REQUEST_METHOD"] == "POST"
+    && check_bitrix_sessid()
+    && $_REQUEST["code_submit_button"] <> ''
+    && !$USER->IsAuthorized()
+)
 {
 	if($_REQUEST["SIGNED_DATA"] <> '')
 	{
