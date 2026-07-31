@@ -1378,9 +1378,20 @@ class SaleOrderAjax extends \CBitrixComponent
 	{
 		global $USER;
 
+		if (!$this->request->isPost() || !$this->checkSession)
+		{
+			$this->showAjaxAnswer([
+				'error' => Loc::getMessage('SESSID_ERROR'),
+			]);
+
+			return;
+		}
+
 		if ($USER->IsAuthorized())
 		{
 			$this->refreshOrderAjaxAction();
+
+			return;
 		}
 
 		$request = $this->request->get('order') ?: [];
@@ -4620,6 +4631,15 @@ class SaleOrderAjax extends \CBitrixComponent
 	 */
 	protected function enterCouponAction()
 	{
+		if (!$this->request->isPost() || !$this->checkSession)
+		{
+			$this->showAjaxAnswer([
+				'error' => Loc::getMessage('SESSID_ERROR'),
+			]);
+
+			return;
+		}
+
 		$coupon = trim($this->request->get('coupon'));
 
 		if (!empty($coupon))
@@ -4640,6 +4660,15 @@ class SaleOrderAjax extends \CBitrixComponent
 	 */
 	protected function removeCouponAction()
 	{
+		if (!$this->request->isPost() || !$this->checkSession)
+		{
+			$this->showAjaxAnswer([
+				'error' => Loc::getMessage('SESSID_ERROR'),
+			]);
+
+			return;
+		}
+
 		$coupon = htmlspecialchars_decode(trim($this->request->get('coupon')));
 
 		if (!empty($coupon))
