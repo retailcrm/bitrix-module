@@ -25,6 +25,7 @@ use Bitrix\Sale\Order;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Model\Api\Response\OrdersCreateResponse;
 use Intaro\RetailCrm\Model\Api\Response\OrdersEditResponse;
+use Intaro\RetailCrm\Service\Utils;
 
 /**
  * Class RetailCrmEvent
