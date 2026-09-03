@@ -12,6 +12,7 @@
 
 namespace Intaro\RetailCrm\Service;
 
+use CUser;
 use Exception;
 use Intaro\RetailCrm\Component\Builder\Api\CustomerBuilder;
 use Intaro\RetailCrm\Component\Builder\Exception\BuilderException;
@@ -46,6 +47,11 @@ class CustomerService
     private $site;
 
     /**
+     * @var UserCustomFieldsService
+     */
+    private $userCustomFieldsService;
+
+    /**
      * LoyaltyService constructor.
      *
      * @throws \Bitrix\Main\ArgumentOutOfRangeException
@@ -55,6 +61,7 @@ class CustomerService
         IncludeModuleLangFile(__FILE__);
         $this->client = ClientFactory::createClientAdapter();
         $this->site = ConfigProvider::getSitesAvailable();
+        $this->userCustomFieldsService = new UserCustomFieldsService();
     }
 
     /**
@@ -155,14 +162,33 @@ class CustomerService
     {
         $key = $this->findIndividualPersonTypeId();
         $builder = new CustomerBuilder();
+        $user = UserRepository::getById($userId);
 
         try {
-            return $builder
+            $builder
                 ->reset()
                 ->setAttachDaemonCollectorId(true)
                 ->setPersonTypeId($key)
-                ->setUser(UserRepository::getById($userId))
-                ->build()
+                ->setUser($user);
+
+            if (ConfigProvider::getCustomFieldsStatus() === 'Y') {
+                $matchedFields = (array) ConfigProvider::getMatchedUserFields();
+
+                $by = 'id';
+                $order = 'asc';
+                $userFields = CUser::GetList(
+                    $by,
+                    $order,
+                    ['ID' => $userId],
+                    ['SELECT' => array_keys($matchedFields)]
+                )->Fetch();
+
+                if (is_array($userFields)) {
+                    $builder->setCustomFields($this->userCustomFieldsService->getCustomFields($userFields));
+                }
+            }
+
+            return $builder->build()
                 ->getResult();
         }catch (BuilderException $exception){
             Logger::getInstance()->write($exception->getMessage(), Constants::LOYALTY_ERROR);
