@@ -155,7 +155,7 @@ class RetailCrmOrder
                 && !empty($arParams['customOrderProps'])
                 && isset($arParams['customOrderProps'][$prop['ID'] . '#' . $prop['CODE']])
             ) {
-                if ($prop['VALUE'][0] === []) {
+                if (!array_key_exists(0, $prop['VALUE']) || $prop['VALUE'][0] === []) {
                     continue;
                 }
 

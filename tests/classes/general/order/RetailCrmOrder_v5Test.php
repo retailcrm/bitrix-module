@@ -112,13 +112,16 @@ class RetailCrmOrder_v5Test extends BitrixTestCase {
         $this->assertTrue($flag, 'Переменной не существует');
     }
 
-    public function testOrderSendSkipsEmptyArrayInCustomField(): void
+    /**
+     * @dataProvider emptyCustomFieldValueProvider
+     */
+    public function testOrderSendSkipsEmptyArrayInCustomField(array $value): void
     {
         $arFields = $this->getArFields();
         $arFields['PROPS']['properties'][] = [
             'ID' => 3,
             'CODE' => 'EMPTY_DATE',
-            'VALUE' => [[]],
+            'VALUE' => $value,
             'TYPE' => 'DATE',
         ];
 
@@ -145,6 +148,14 @@ class RetailCrmOrder_v5Test extends BitrixTestCase {
         );
 
         self::assertArrayNotHasKey('data_rezerva', $order['customFields'] ?? []);
+    }
+
+    public function emptyCustomFieldValueProvider(): array
+    {
+        return [
+            'empty value list' => [[]],
+            'nested empty array' => [[[]]],
+        ];
     }
 
     public function initSystemData(): void
