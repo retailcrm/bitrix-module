@@ -2,6 +2,8 @@
 
 use Intaro\RetailCrm\Service\CustomerService;
 use Intaro\RetailCrm\Component\ConfigProvider;
+use Intaro\RetailCrm\Component\ServiceLocator;
+use Intaro\RetailCrm\Model\Api\Customer;
 use Tests\Intaro\RetailCrm\Helpers;
 
 /**
@@ -55,45 +57,48 @@ class CustomerServiceTest extends BitrixTestCase
      * @runInSeparateProcess
      * @preserveGlobalState disabled
      */
-    public function testCreateModelWithMappedCustomUserField(): void
+    public function testOnAfterUserRegisterWithMappedCustomUserField(): void
     {
-        $fieldName = 'UF_INTARO_CONSENT';
+        $mappedFieldName = 'UF_INTARO_MAPPED';
+        $unmappedFieldName = 'UF_INTARO_CONTROL';
         $crmFieldCode = 'registration_consent';
         $userTypeEntity = new CUserTypeEntity();
-        $createdUserField = false;
-        $userFieldId = null;
+        $createdUserFieldIds = [];
         $userId = 0;
+        $oldCustomerService = ServiceLocator::get(CustomerService::class);
         $oldCustomFieldsStatus = ConfigProvider::getCustomFieldsStatus();
         $oldMatchedUserFields = ConfigProvider::getMatchedUserFields();
         $oldMatchedUserFields = is_array($oldMatchedUserFields) ? $oldMatchedUserFields : null;
 
         try {
-            $userField = CUserTypeEntity::GetList([], ['FIELD_NAME' => $fieldName])->Fetch();
+            foreach ([$mappedFieldName, $unmappedFieldName] as $fieldName) {
+                $userField = CUserTypeEntity::GetList([], ['FIELD_NAME' => $fieldName])->Fetch();
 
-            if (!$userField) {
-                $userFieldId = $userTypeEntity->Add([
-                    'ENTITY_ID' => 'USER',
-                    'FIELD_NAME' => $fieldName,
-                    'USER_TYPE_ID' => 'boolean',
-                    'MULTIPLE' => 'N',
-                    'MANDATORY' => 'N',
-                    'SHOW_FILTER' => 'N',
-                    'EDIT_IN_LIST' => 'Y',
-                    'IS_SEARCHABLE' => 'N',
-                    'EDIT_FORM_LABEL' => [
-                        'ru' => 'Registration consent test',
-                        'en' => 'Registration consent test',
-                    ],
-                ]);
-                $createdUserField = $userFieldId > 0;
+                if (!$userField) {
+                    $userFieldId = $userTypeEntity->Add([
+                        'ENTITY_ID' => 'USER',
+                        'FIELD_NAME' => $fieldName,
+                        'USER_TYPE_ID' => 'boolean',
+                        'MULTIPLE' => 'N',
+                        'MANDATORY' => 'N',
+                        'SHOW_FILTER' => 'N',
+                        'EDIT_IN_LIST' => 'Y',
+                        'IS_SEARCHABLE' => 'N',
+                        'EDIT_FORM_LABEL' => [
+                            'ru' => $fieldName,
+                            'en' => $fieldName,
+                        ],
+                    ]);
 
-                self::assertTrue($createdUserField, (string) $userTypeEntity->LAST_ERROR);
-                $GLOBALS['USER_FIELD_MANAGER']->CleanCache();
+                    self::assertGreaterThan(0, $userFieldId, (string) $userTypeEntity->LAST_ERROR);
+                    $createdUserFieldIds[] = $userFieldId;
+                }
             }
+            $GLOBALS['USER_FIELD_MANAGER']->CleanCache();
 
             ConfigProvider::setCustomFieldsStatus('Y');
-            ConfigProvider::setMatchedUserFields([$fieldName => $crmFieldCode]);
-            Helpers::setConfigProperty('mathedCustomFields', [$fieldName => $crmFieldCode]);
+            ConfigProvider::setMatchedUserFields([$mappedFieldName => $crmFieldCode]);
+            Helpers::setConfigProperty('mathedCustomFields', [$mappedFieldName => $crmFieldCode]);
 
             $suffix = uniqid();
             $user = new CUser();
@@ -102,48 +107,52 @@ class CustomerServiceTest extends BitrixTestCase
                 'EMAIL' => 'rcrm-' . $suffix . '@example.com',
                 'PASSWORD' => 'TestPassword123',
                 'CONFIRM_PASSWORD' => 'TestPassword123',
+                $mappedFieldName => '1',
+                $unmappedFieldName => '1',
             ]);
 
             self::assertGreaterThan(0, $userId, $user->LAST_ERROR);
-            self::assertTrue($user->Update($userId, [$fieldName => '1']), $user->LAST_ERROR);
 
-            $by = 'id';
-            $order = 'asc';
-            $userFields = CUser::GetList(
-                $by,
-                $order,
-                ['ID' => $userId],
-                ['SELECT' => [$fieldName]]
-            )->Fetch();
-            self::assertSame('1', $userFields[$fieldName]);
+            $customerService = new class extends CustomerService {
+                /** @var Customer|null */
+                public $sentCustomer;
 
-            $customer = $this->customerService->createModel((int) $userId);
+                public function createOrUpdateCustomer(Customer $customer)
+                {
+                    $this->sentCustomer = $customer;
 
-            self::assertSame([$crmFieldCode => 1], $customer->customFields);
+                    return 1;
+                }
+            };
+            ServiceLocator::set(CustomerService::class, $customerService);
 
-            self::assertTrue($user->Update($userId, [$fieldName => '0']), $user->LAST_ERROR);
+            RetailCrmEvent::OnAfterUserRegister([
+                'USER_ID' => $userId,
+                'UF_REG_IN_PL_INTARO' => 0,
+                'UF_AGREE_PL_INTARO' => 0,
+                'UF_PD_PROC_PL_INTARO' => 0,
+            ]);
 
-            $customer = $this->customerService->createModel((int) $userId);
-
-            self::assertSame([$crmFieldCode => 0], $customer->customFields);
-
-            ConfigProvider::setCustomFieldsStatus('N');
-            $customer = $this->customerService->createModel((int) $userId);
-
-            self::assertNull($customer->customFields);
+            self::assertInstanceOf(Customer::class, $customerService->sentCustomer);
+            self::assertSame(
+                [$crmFieldCode => 1],
+                $customerService->sentCustomer->customFields
+            );
+            self::assertArrayNotHasKey($unmappedFieldName, $customerService->sentCustomer->customFields);
         } finally {
             if ($userId > 0) {
                 CUser::Delete($userId);
             }
 
-            if ($createdUserField) {
+            foreach ($createdUserFieldIds as $userFieldId) {
                 $userTypeEntity->Delete($userFieldId);
-                $GLOBALS['USER_FIELD_MANAGER']->CleanCache();
             }
+            $GLOBALS['USER_FIELD_MANAGER']->CleanCache();
 
             ConfigProvider::setCustomFieldsStatus($oldCustomFieldsStatus);
             ConfigProvider::setMatchedUserFields($oldMatchedUserFields);
             Helpers::setConfigProperty('mathedCustomFields', $oldMatchedUserFields);
+            ServiceLocator::set(CustomerService::class, $oldCustomerService);
         }
     }
 }

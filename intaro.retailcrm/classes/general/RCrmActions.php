@@ -19,6 +19,7 @@ use Intaro\RetailCrm\Service\Utils;
 use RetailCrm\Exception\CurlException;
 use RetailCrm\Exception\InvalidJsonException;
 use Intaro\RetailCrm\Service\ManagerService;
+use Intaro\RetailCrm\Service\UserCustomFieldsService;
 use Bitrix\Main\UserFieldTable;
 use Bitrix\Main\UserFieldLangTable;
 use Bitrix\Sale\Internals\SiteCurrencyTable;
@@ -588,47 +589,12 @@ class RCrmActions
 
     public static function getTypeUserField()
     {
-        $userFields = UserFieldTable::getList([
-            'select' => ['FIELD_NAME', 'USER_TYPE_ID'],
-            'filter' => [
-                ['ENTITY_ID' => 'USER'],
-                ['?FIELD_NAME' => '~%INTARO%'],
-                ['!=FIELD_NAME' => 'UF_SUBSCRIBE_USER_EMAIL'],
-                ['?USER_TYPE_ID' => 'string | date | datetime | integer | double | boolean'],
-                ['MULTIPLE' => 'N'],
-            ]
-        ])->fetchAll();
-
-        $result = [];
-
-        foreach ($userFields as $userField) {
-            $result[$userField['FIELD_NAME']] = $userField['USER_TYPE_ID'];
-        }
-
-        return $result;
+        return ServiceLocator::get(UserCustomFieldsService::class)->getUserFieldTypes();
     }
 
     public static function convertCmsFieldToCrmValue($value, $type)
     {
-        $result = $value;
-
-        switch ($type) {
-            case 'boolean':
-                $result = $value === '1' ? 1 : 0;
-                break;
-            case 'Y/N':
-                $result = $result === 'Y' ? 1 : 0;
-                break;
-            case 'STRING':
-            case 'string':
-                $result =  strlen($value) <= 500 ? $value : '';
-                break;
-            case 'datetime':
-                $result = date('Y-m-d', strtotime($value));
-                break;
-        }
-
-        return $result;
+        return ServiceLocator::get(UserCustomFieldsService::class)->convertValue($value, $type);
     }
 
     public static function convertCrmValueToCmsField($crmValue, $type)

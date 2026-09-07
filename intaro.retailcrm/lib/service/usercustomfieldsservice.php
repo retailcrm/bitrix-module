@@ -49,20 +49,24 @@ class UserCustomFieldsService
      *
      * @return array
      */
-    private function getUserFieldTypes(array $fieldNames): array
+    public function getUserFieldTypes(array $fieldNames = []): array
     {
+        $filter = [
+            ['ENTITY_ID' => 'USER'],
+            ['!=FIELD_NAME' => 'UF_SUBSCRIBE_USER_EMAIL'],
+            ['?USER_TYPE_ID' => 'string | date | datetime | integer | double | boolean'],
+            ['MULTIPLE' => 'N'],
+        ];
+
         if (empty($fieldNames)) {
-            return [];
+            $filter[] = ['?FIELD_NAME' => '~%INTARO%'];
+        } else {
+            $filter[] = ['@FIELD_NAME' => $fieldNames];
         }
 
         $userFields = UserFieldTable::getList([
             'select' => ['FIELD_NAME', 'USER_TYPE_ID'],
-            'filter' => [
-                ['ENTITY_ID' => 'USER'],
-                ['@FIELD_NAME' => $fieldNames],
-                ['?USER_TYPE_ID' => 'string | date | datetime | integer | double | boolean'],
-                ['MULTIPLE' => 'N'],
-            ],
+            'filter' => $filter,
         ])->fetchAll();
 
         $result = [];
@@ -76,11 +80,11 @@ class UserCustomFieldsService
 
     /**
      * @param mixed  $value
-     * @param string $type
+     * @param mixed  $type
      *
      * @return mixed
      */
-    private function convertValue($value, string $type)
+    public function convertValue($value, $type)
     {
         switch ($type) {
             case 'boolean':

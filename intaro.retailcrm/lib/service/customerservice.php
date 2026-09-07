@@ -19,6 +19,7 @@ use Intaro\RetailCrm\Component\Builder\Exception\BuilderException;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
+use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Model\Api\Customer;
 use Intaro\RetailCrm\Model\Api\Request\Customers\CustomersCreateRequest;
 use Intaro\RetailCrm\Model\Api\Request\Customers\CustomersEditRequest;
@@ -61,7 +62,7 @@ class CustomerService
         IncludeModuleLangFile(__FILE__);
         $this->client = ClientFactory::createClientAdapter();
         $this->site = ConfigProvider::getSitesAvailable();
-        $this->userCustomFieldsService = new UserCustomFieldsService();
+        $this->userCustomFieldsService = ServiceLocator::get(UserCustomFieldsService::class);
     }
 
     /**
