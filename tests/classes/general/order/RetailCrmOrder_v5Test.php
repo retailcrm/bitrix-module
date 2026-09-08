@@ -112,6 +112,52 @@ class RetailCrmOrder_v5Test extends BitrixTestCase {
         $this->assertTrue($flag, 'Переменной не существует');
     }
 
+    /**
+     * @dataProvider emptyCustomFieldValueProvider
+     */
+    public function testOrderSendSkipsEmptyArrayInCustomField(array $value): void
+    {
+        $arFields = $this->getArFields();
+        $arFields['PROPS']['properties'][] = [
+            'ID' => 3,
+            'CODE' => 'EMPTY_DATE',
+            'VALUE' => $value,
+            'TYPE' => 'DATE',
+        ];
+
+        $this->initSystemData();
+        RetailcrmConfigProvider::setCustomFieldsStatus('Y');
+        RetailcrmConfigProvider::setSyncIntegrationPayment('N');
+
+        $order = RetailCrmOrder::orderSend(
+            $arFields,
+            new stdClass(),
+            [
+                'optionsOrderTypes' => RetailcrmConfigProvider::getOrderTypes(),
+                'optionsPayStatuses' => RetailcrmConfigProvider::getPaymentStatuses(),
+                'optionsContragentType' => RetailcrmConfigProvider::getContragentTypesBySite(),
+                'optionsDelivTypes' => RetailcrmConfigProvider::getDeliveryTypes(),
+                'optionsPayTypes' => RetailcrmConfigProvider::getPaymentTypes(),
+                'optionsOrderProps' => ['bitrixType' => ['fio' => 'FIO']],
+                'optionsPayment' => ['Y' => 'paid'],
+                'customOrderProps' => ['3#EMPTY_DATE' => 'data_rezerva'],
+            ],
+            false,
+            null,
+            'ordersCreate'
+        );
+
+        self::assertArrayNotHasKey('data_rezerva', $order['customFields'] ?? []);
+    }
+
+    public function emptyCustomFieldValueProvider(): array
+    {
+        return [
+            'empty value list' => [[]],
+            'nested empty array' => [[[]]],
+        ];
+    }
+
     public function initSystemData(): void
     {
         RetailcrmConfigProvider::setOrderTypes(['bitrixType' => 'crmType']);
