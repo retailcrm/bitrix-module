@@ -12,6 +12,8 @@
 IncludeModuleLangFile(__FILE__);
 
 use Bitrix\Main\UserTable;
+use Intaro\RetailCrm\Component\ServiceLocator;
+use Intaro\RetailCrm\Service\UserCustomFieldsService;
 use Retailcrm\ApiClient;
 use Throwable;
 
@@ -51,7 +53,7 @@ class RetailCrmUser
         $customer['contragent'] = ['contragentType' => $contragentType];
 
         if (RetailcrmConfigProvider::getCustomFieldsStatus() === 'Y') {
-            $customer['customFields'] = self::getCustomFields($arFields);
+            $customer['customFields'] = self::getCustomFieldsService()->getCustomFields($arFields);
         }
 
         if ($send && isset($_COOKIE['_rc']) && $_COOKIE['_rc'] != '') {
@@ -101,7 +103,7 @@ class RetailCrmUser
         $found = false;
 
         if (RetailcrmConfigProvider::getCustomFieldsStatus() === 'Y') {
-            $customer['customFields'] = self::getCustomFields($arFields);
+            $customer['customFields'] = self::getCustomFieldsService()->getCustomFields($arFields);
         }
 
         if (count($optionsSitesList) > 0) {
@@ -189,26 +191,9 @@ class RetailCrmUser
         return $customer;
     }
 
-    private static function getCustomFields(array $arFields)
+    private static function getCustomFieldsService(): UserCustomFieldsService
     {
-        if (!method_exists(RCrmActions::class, 'getTypeUserField')
-            || !method_exists(RCrmActions::class, 'convertCmsFieldToCrmValue')
-        ) {
-            return [];
-        }
-
-        $customUserFields = RetailcrmConfigProvider::getMatchedUserFields();
-        $typeList = RCrmActions::getTypeUserField();
-        $result = [];
-
-        foreach ($customUserFields as $code => $codeCrm) {
-            if (isset($arFields[$code])) {
-                $type = $typeList[$code] ?? '';
-                $result[$codeCrm] = RCrmActions::convertCmsFieldToCrmValue($arFields[$code], $type);
-            }
-        }
-
-        return $result;
+        return ServiceLocator::get(UserCustomFieldsService::class);
     }
 
     public static function fixDateCustomer(): void

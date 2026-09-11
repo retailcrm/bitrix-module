@@ -12,6 +12,11 @@ require_once($this->INSTALL_PATH . '/../classes/general/RCrmActions.php');
 require_once($this->INSTALL_PATH . '/../classes/general/user/RetailCrmUser.php');
 require_once($this->INSTALL_PATH . '/../classes/general/events/RetailCrmEvent.php');
 require_once $this->INSTALL_PATH . '/../classes/general/RetailcrmConfigProvider.php';
+require_once $this->INSTALL_PATH . '/../lib/service/usercustomfieldsservice.php';
+\Intaro\RetailCrm\Component\ServiceLocator::registerService(
+    \Intaro\RetailCrm\Service\UserCustomFieldsService::class,
+    \Intaro\RetailCrm\Service\UserCustomFieldsService::class
+);
 require_once($this->INSTALL_PATH . '/../lib/model/bitrix/xml/offerparam.php');
 require_once($this->INSTALL_PATH . '/../lib/icml/settingsservice.php');
 require_once($this->INSTALL_PATH . '/../lib/component/agent.php');
