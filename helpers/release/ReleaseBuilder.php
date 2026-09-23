@@ -7,6 +7,13 @@ require_once 'ModifiedFile.php';
  */
 class ReleaseBuilder
 {
+    /** @var string[] */
+    private const REQUIRED_CONFIG_FILES = [
+        'classes/general/config/options.xml',
+        'classes/general/config/country.xml',
+        'classes/general/config/objects.xml',
+    ];
+
     /** @var ModifiedFile[] */
     protected $files;
 
@@ -45,6 +52,11 @@ class ReleaseBuilder
 
             $modifiedFiles[] = $this->getRealFilename($file->getFilename());
         }
+
+        $modifiedFiles = array_values(array_unique(array_merge(
+            $modifiedFiles,
+            self::REQUIRED_CONFIG_FILES
+        )));
 
         if (!in_array(ModifiedFile::DESCRIPTION, $modifiedFiles) || !in_array(ModifiedFile::VERSION, $modifiedFiles)) {
             throw new \UnexpectedValueException('Version or description file does not exists');

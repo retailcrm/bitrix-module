@@ -27,7 +27,7 @@ echo "
 " > "./$version/install/version.php"
 echo "Update version and date in the file \"version.php\""
 
-for i in `find ./"$version" -type f -name '*.*'`; do
+for i in `find ./"$version" -type f -name '*.*' ! -iname '*.xml'`; do
     encoding=`file -b --mime-encoding "$i"`
     if [ "$encoding" != "iso-8859-1" ] && [ "$encoding" != "us-ascii" ] && [ "$encoding" != "binary" ]; then
         echo "$i: converting from $encoding to cp1251"
