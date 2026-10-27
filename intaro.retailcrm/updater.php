@@ -15,6 +15,18 @@ function update()
     loadJsExport();
 
     migrateContragentTypes();
+    addLoyaltyBonusesForBasketRulesOption();
+}
+
+function addLoyaltyBonusesForBasketRulesOption()
+{
+    $moduleId = 'intaro.retailcrm';
+    $optionName = 'loyalty_bonuses_for_basket_rules';
+    $option = Option::get($moduleId, $optionName, null);
+
+    if ($option === null || $option === '') {
+        Option::set($moduleId, $optionName, 'N');
+    }
 }
 
 function loadJsExport()

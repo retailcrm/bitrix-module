@@ -12,16 +12,15 @@
 namespace Intaro\RetailCrm\Service;
 
 use Bitrix\Main\Loader;
-use Bitrix\Sale\BasketItemBase;
 use Bitrix\Sale\Order;
 use Exception;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\Factory\ClientFactory;
 use Intaro\RetailCrm\Component\ServiceLocator;
+use Intaro\RetailCrm\Model\Api\CodeValueModel;
 use Intaro\RetailCrm\Model\Api\LoyaltyAccount;
 use Intaro\RetailCrm\Model\Api\LoyaltyAccountApiFilterType;
-use Intaro\RetailCrm\Model\Api\OrderProduct;
 use Intaro\RetailCrm\Model\Api\PriceType;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\Account\LoyaltyAccountRequest;
 use Intaro\RetailCrm\Model\Api\Request\Loyalty\LoyaltyCalculateRequest;
@@ -128,6 +127,11 @@ class LoyaltyService
         foreach ($basketItems as $item) {
             $product = new SerializedOrderProduct();
 
+            $basketItemId = new CodeValueModel();
+            $basketItemId->code = 'bitrixBasketId';
+            $basketItemId->value = (string) $item['ID'];
+            $product->externalIds = [$basketItemId];
+
             $fullPrice = $item['BASE_PRICE'] ?? $item['FULL_PRICE'];
             $product->initialPrice = $fullPrice; //цена без скидки
 
@@ -153,6 +157,23 @@ class LoyaltyService
         }
 
         $result = $this->client->loyaltyCalculate($request);
+
+        if ($result !== null && $result->success && isset($result->order->items)) {
+            $basketIds = array_fill_keys(array_map('strval', array_column($basketItems, 'ID')), true);
+
+            foreach ($result->order->items as $calculatedItem) {
+                $basketId = (string) ($calculatedItem->offer->externalId ?? '');
+
+                if (!isset($basketIds[$basketId])) {
+                    continue;
+                }
+
+                $externalId = new CodeValueModel();
+                $externalId->code = 'bitrixBasketId';
+                $externalId->value = $basketId;
+                $calculatedItem->externalIds = [$externalId];
+            }
+        }
 
         if (isset($result->errorMsg) && !empty($result->errorMsg)) {
             $this->logger->write($result->errorMsg, Constants::LOYALTY_ERROR);
@@ -269,7 +290,20 @@ class LoyaltyService
         }
 
         if (!empty($response->verification->verifiedAt)) {
-            $this->saveBonusDiscounts(Order::load($orderId), $response);
+            $order = Order::load($orderId);
+
+            if ($order === null || !$this->applyLoyaltyBasketPrices($order, $response)) {
+                return false;
+            }
+
+            $saveResult = $order->save();
+
+            if (!$saveResult->isSuccess()) {
+                $this->logger->write($saveResult->getErrorMessages(), Constants::LOYALTY_ERROR);
+
+                return false;
+            }
+
             $this->setDebitedStatus($orderId, true);
 
             return true;
@@ -455,14 +489,12 @@ class LoyaltyService
     public function saveDiscounts(Order $order, array $calculateItemsInput): void
     {
         try {
-            /** @var BasketItemBase $basketItem */
-            foreach ($order->getBasket() as $basketItem) {
-                $calcItemPosition = $calculateItemsInput[$basketItem->getId()];
-                $calculateItem = $calcItemPosition['SUM_NUM'] / $calcItemPosition['QUANTITY'];
+            $result = (new LoyaltyBasketPriceApplier())->applySavedDiscounts($order, $calculateItemsInput);
 
-                $basketItem->setField('CUSTOM_PRICE', 'Y');
-                $basketItem->setField('DISCOUNT_PRICE', $basketItem->getBasePrice() - $calculateItem);
-                $basketItem->setField('PRICE', $calculateItem);
+            if (!$result->isSuccess()) {
+                $this->logger->write($result->getErrorMessages(), Constants::LOYALTY_ERROR);
+
+                return;
             }
 
             $order->save();
@@ -471,37 +503,6 @@ class LoyaltyService
         }
     }
 
-
-    /**
-     * @param \Bitrix\Sale\Order                                                           $order
-     * @param \Intaro\RetailCrm\Model\Api\Response\Order\Loyalty\OrderLoyaltyApplyResponse $response
-     *
-     * @return void|null
-     */
-    public function saveBonusDiscounts(Order $order, OrderLoyaltyApplyResponse $response): void
-    {
-        try {
-            $basketItems = $order->getBasket();
-
-            if ($basketItems === null) {
-                $this->logger->write('No item in basket', Constants::LOYALTY_ERROR);
-            }
-
-            /** @var BasketItemBase $basketItem */
-            foreach ($basketItems as $key => $basketItem) {
-                /** @var OrderProduct $item */
-                $item = $response->order->items[$key];
-                $basePrice = $basketItem->getField('BASE_PRICE');
-                $basketItem->setField('CUSTOM_PRICE', 'Y');
-                $basketItem->setField('DISCOUNT_PRICE', $item->discountTotal);
-                $basketItem->setField('PRICE', $basePrice - $item->discountTotal);
-            }
-
-            $order->save();
-        } catch (Exception $exception) {
-            $this->logger->write($exception->getMessage(), Constants::LOYALTY_ERROR);
-        }
-    }
 
     /**
      * @param int $externalId
@@ -552,14 +553,43 @@ class LoyaltyService
     {
         $response = $this->sendBonusPayment($order->getId(), $bonusCount);
 
-        if ($response->success) {
-           $this->saveBonusDiscounts($order, $response);
+        if ($response !== null && $response->success) {
+            if (!$this->applyLoyaltyBasketPrices($order, $response)) {
+                return null;
+            }
         } else {
             Utils::handleApiErrors($response);
             return null;
         }
 
         return $response;
+    }
+
+    /**
+     * @param \Bitrix\Sale\Order                                                           $order
+     * @param \Intaro\RetailCrm\Model\Api\Response\Order\Loyalty\OrderLoyaltyApplyResponse $response
+     *
+     * @return bool
+     */
+    private function applyLoyaltyBasketPrices(Order $order, OrderLoyaltyApplyResponse $response): bool
+    {
+        $result = (new LoyaltyBasketPriceApplier())->apply($order, $response, false);
+
+        if (!$result->isSuccess()) {
+            $this->logger->write($result->getErrorMessages(), Constants::LOYALTY_ERROR);
+
+            return false;
+        }
+
+        $finalActionResult = $order->doFinalAction(true);
+
+        if ($finalActionResult->isSuccess()) {
+            return true;
+        }
+
+        $this->logger->write($finalActionResult->getErrorMessages(), Constants::LOYALTY_ERROR);
+
+        return false;
     }
 
     /**

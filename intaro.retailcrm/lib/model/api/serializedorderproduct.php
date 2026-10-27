@@ -21,6 +21,16 @@ use Intaro\RetailCrm\Component\Json\Mapping;
 class SerializedOrderProduct
 {
     /**
+     * Внешние идентификаторы позиции в заказе
+     *
+     * @var array $externalIds
+     *
+     * @Mapping\Type("array<Intaro\RetailCrm\Model\Api\CodeValueModel>")
+     * @Mapping\SerializedName("externalIds")
+     */
+    public $externalIds;
+
+    /**
      * Цена товара/SKU
      *
      * @var double $initialPrice

@@ -932,6 +932,24 @@ class ConfigProvider
     }
 
     /**
+     * @return string
+     */
+    public static function getLoyaltyBonusesForBasketRules(): string
+    {
+        return static::getOption(Constants::LOYALTY_BONUSES_FOR_BASKET_RULES, 'N') ?: 'N';
+    }
+
+    /**
+     * @param string $status
+     *
+     * @throws \Bitrix\Main\ArgumentOutOfRangeException
+     */
+    public static function setLoyaltyBonusesForBasketRules(string $status): void
+    {
+        static::setOption(Constants::LOYALTY_BONUSES_FOR_BASKET_RULES, $status === 'Y' ? 'Y' : 'N');
+    }
+
+    /**
      * @return string|null
      */
     public static function getAgreementLoyaltyProgram(): ?string

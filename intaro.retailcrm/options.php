@@ -736,6 +736,13 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         UnRegisterModuleDependences('sale', 'OnSaleComponentOrderResultPrepared', $mid, $loyaltyEventClass, 'OnSaleComponentOrderResultPreparedHandler');
     }
 
+    ConfigProvider::setLoyaltyBonusesForBasketRules(
+        isset($_POST['loyalty_bonuses_for_basket_rules'])
+        && $_POST['loyalty_bonuses_for_basket_rules'] === 'on'
+            ? 'Y'
+            : 'N'
+    );
+
     try {
         $arResult['paymentTypesList'] = RetailCrmService::getAvailableTypes(
             $availableSites,
@@ -2464,6 +2471,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         <?php
         //loyalty program options
         $loyaltyProgramToggle = ConfigProvider::getLoyaltyProgramStatus();
+        $loyaltyBonusesForBasketRules = ConfigProvider::getLoyaltyBonusesForBasketRules();
         ?>
             <tr class="heading">
                 <td colspan="2" class="option-other-heading">
@@ -2475,6 +2483,16 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
                             <?php echo GetMessage('LOYALTY_PROGRAM_TOGGLE_MSG'); ?>
                         </label>
                     </b>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" class="option-other-heading">
+                    <label>
+                        <input type="checkbox" name="loyalty_bonuses_for_basket_rules" <?php if ($loyaltyBonusesForBasketRules === 'Y') {
+                            echo "checked";
+                        } ?>>
+                        <?php echo GetMessage('LOYALTY_BONUSES_FOR_BASKET_RULES'); ?>
+                    </label>
                 </td>
             </tr>
             <tr>

@@ -18,7 +18,7 @@ namespace Intaro\RetailCrm\Component;
  */
 class Constants
 {
-    public const MODULE_VERSION = '6.9.5';
+    public const MODULE_VERSION = '6.9.6';
     public const CRM_PURCHASE_PRICE_NULL = 'purchasePrice_null';
     public const BITRIX_USER_ID_PREFIX = 'bitrixUserId-';
     public const CRM_USERS_MAP = 'crm_users_map';
@@ -82,6 +82,7 @@ class Constants
     public const CRM_EVENT_TRACKER_CART = 'event_tracker_cart';
     public const CRM_EVENT_TRACKER_OPEN_CART = 'event_tracker_open_cart';
     public const LOYALTY_PROGRAM_TOGGLE = 'loyalty_program_toggle';
+    public const LOYALTY_BONUSES_FOR_BASKET_RULES = 'loyalty_bonuses_for_basket_rules';
     public const CLIENT_ID = 'client_id';
     public const AGREEMENT_LOYALTY_PROGRAM = 'agreement_loyalty_program';
     public const AGREEMENT_PERSONAL_DATA = 'agreement_personal_data';
