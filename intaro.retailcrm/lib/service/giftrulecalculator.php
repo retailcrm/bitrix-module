@@ -25,6 +25,8 @@ final class GiftRuleCalculator extends Discount
         $calculator->order = $order;
         $calculator->context = new User($order->getUserId());
         $calculator->initInstanceData();
+        // Saved orders otherwise replay historical discounts without checking conditions.
+        $calculator->setOrderRefresh(true);
 
         foreach ($gifts as $gift) {
             $calculator->giftBasketCodes[$gift['basketCode']] = true;

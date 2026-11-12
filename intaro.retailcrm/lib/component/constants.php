@@ -100,6 +100,7 @@ class Constants
     public const CART = 'cart';
     public const CRM_SEND_PICKUP_POINT_ADDRESS = 'send_pickup_point_address';
     public const LP_EVENTS = [
+        ['EVENT_NAME' => 'OnSaleOrderBeforeSaved', 'FROM_MODULE' => 'sale'],
         ['EVENT_NAME' => 'OnSaleOrderSaved', 'FROM_MODULE' => 'sale'],
         ['EVENT_NAME' => 'OnSaleComponentOrderResultPrepared', 'FROM_MODULE' => 'sale'],
     ];

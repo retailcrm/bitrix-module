@@ -353,7 +353,13 @@ class RetailCrmOrder
             $item['discountManualPercent'] = 0;
             $item['initialPrice'] = (double) $product['BASE_PRICE'];
 
-            if (
+            $originalDiscount = ConfigProvider::getLoyaltyBonusesForBasketRules() === 'Y'
+                ? ServiceLocator::get(LoyaltyService::class)->getBasketRuleOriginalDiscount((int) $product['ID'])
+                : null;
+            if ($originalDiscount !== null) {
+                // Preliminary bonus prices must not become an additional manual CRM discount.
+                $item['discountManualAmount'] = $originalDiscount;
+            } elseif (
                 $product['BASE_PRICE'] >= $product['PRICE']
                 && $methodApi === 'ordersEdit'
                 && ConfigProvider::getLoyaltyProgramStatus() === 'Y'

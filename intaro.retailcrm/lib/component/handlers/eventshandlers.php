@@ -24,9 +24,7 @@ use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse;
 use Intaro\RetailCrm\Model\Api\Response\Order\Loyalty\OrderLoyaltyApplyResponse;
 use Intaro\RetailCrm\Repository\UserRepository;
-use Intaro\RetailCrm\Service\GiftResolver;
-use Intaro\RetailCrm\Service\GiftRuleCalculator;
-use Intaro\RetailCrm\Service\LoyaltyBasketPriceApplier;
+use Intaro\RetailCrm\Service\LoyaltyGiftRecalculator;
 use Intaro\RetailCrm\Service\LoyaltyService;
 use Intaro\RetailCrm\Service\LoyaltyAccountService;
 use Intaro\RetailCrm\Service\CustomerService;
@@ -156,91 +154,8 @@ class EventsHandlers
         LoyaltyService $loyaltyService,
         float $bonusInput
     ): ?LoyaltyCalculateResponse {
-        try {
-            $giftResolver = new GiftResolver();
-            $giftsBeforeBonuses = $giftResolver->resolve($order);
-            $calculate = $loyaltyService->getLoyaltyCalculate($basketItems, $bonusInput);
-
-            if (!$calculate instanceof LoyaltyCalculateResponse || !$calculate->success) {
-                return null;
-            }
-
-            $priceApplyResult = (new LoyaltyBasketPriceApplier())->apply($order, $calculate, false);
-
-            if (!$priceApplyResult->isSuccess()) {
-                Logger::getInstance()->write($priceApplyResult->getErrorMessages(), Constants::LOYALTY_ERROR);
-
-                return null;
-            }
-
-            foreach ($giftsBeforeBonuses as $gift) {
-                $giftItem = $order->getBasket()->getItemByBasketCode($gift['basketCode']);
-
-                if ($giftItem !== null) {
-                    $giftResetResult = $giftItem->setFields([
-                        'CUSTOM_PRICE' => 'N',
-                        'PRICE' => $giftItem->getBasePrice(),
-                        'DISCOUNT_PRICE' => 0,
-                    ]);
-
-                    if (!$giftResetResult->isSuccess()) {
-                        Logger::getInstance()->write($giftResetResult->getErrorMessages(), Constants::LOYALTY_ERROR);
-
-                        return null;
-                    }
-                }
-            }
-
-            $firstFinalActionResult = $order->doFinalAction(true);
-
-            if (!$firstFinalActionResult->isSuccess()) {
-                Logger::getInstance()->write($firstFinalActionResult->getErrorMessages(), Constants::LOYALTY_ERROR);
-
-                return null;
-            }
-
-            $giftCalculation = GiftRuleCalculator::buildForGifts($order, $giftsBeforeBonuses);
-            $giftCalculationResult = $giftCalculation->calculate();
-
-            if (!$giftCalculationResult->isSuccess()) {
-                Logger::getInstance()->write($giftCalculationResult->getErrorMessages(), Constants::LOYALTY_ERROR);
-
-                return null;
-            }
-
-            $giftsAfterBonuses = $giftResolver->resolveApplyResult($giftCalculation->getApplyResult(true));
-            $removedGifts = $giftResolver->getRemovedGifts($giftsBeforeBonuses, $giftsAfterBonuses);
-
-            foreach ($removedGifts as $gift) {
-                $basketItem = $order->getBasket()->getItemByBasketCode($gift['basketCode']);
-
-                if ($basketItem === null) {
-                    continue;
-                }
-
-                $deleteResult = $basketItem->delete();
-
-                if (!$deleteResult->isSuccess()) {
-                    Logger::getInstance()->write($deleteResult->getErrorMessages(), Constants::LOYALTY_ERROR);
-
-                    return null;
-                }
-            }
-
-            $secondFinalActionResult = $order->doFinalAction(true);
-
-            if (!$secondFinalActionResult->isSuccess()) {
-                Logger::getInstance()->write($secondFinalActionResult->getErrorMessages(), Constants::LOYALTY_ERROR);
-
-                return null;
-            }
-
-            return $calculate;
-        } catch (Throwable $exception) {
-            Logger::getInstance()->write($exception->getMessage(), Constants::LOYALTY_ERROR);
-
-            return null;
-        }
+        return LoyaltyGiftRecalculator::getInstance()
+            ->prepare($order, $basketItems, $loyaltyService, $bonusInput);
     }
 
     /**
@@ -358,6 +273,55 @@ class EventsHandlers
         $arResult['JS_DATA']['GRID'] = $arResult['GRID'];
     }
 
+    /** Apply the enabled basket-rule policy to the actual order before its first save. */
+    public static function OnSaleOrderBeforeSavedHandler(Event $event)
+    {
+        $order = $event->getParameter('ENTITY');
+        $bonuses = (float) ($_POST['bonus-input'] ?? 0);
+        if (self::$disableSaleHandler || !$order instanceof Order || $order->getId() > 0
+            || ConfigProvider::getLoyaltyProgramStatus() !== 'Y'
+            || !self::shouldUseBonusesForBasketRules($bonuses)
+        ) {
+            return null;
+        }
+
+        try {
+            if (!is_finite($bonuses)
+                || $bonuses > LoyaltyAccountService::getAvailableBonusesForUser((int) $order->getUserId())
+            ) {
+                throw new \RuntimeException('Insufficient loyalty balance.');
+            }
+            $rows = [];
+            foreach ($order->getBasket() as $item) {
+                $rows[] = [
+                    'ID' => $item->getId(),
+                    'PRODUCT_ID' => $item->getProductId(),
+                    'XML_ID' => $item->getField('PRODUCT_XML_ID'),
+                    'BASE_PRICE' => $item->getBasePrice(),
+                    'PRICE' => $item->getPrice(),
+                    'QUANTITY' => $item->getQuantity(),
+                    'PRICE_TYPE_ID' => $item->getField('PRICE_TYPE_ID'),
+                ];
+            }
+            $calculation = self::recalculateOrderForBasketRules(
+                $order, $rows, ServiceLocator::get(LoyaltyService::class), $bonuses
+            );
+            if (!$calculation) {
+                throw new \RuntimeException('Loyalty calculation failed before saving the order.');
+            }
+        } catch (Throwable $exception) {
+            Logger::getInstance()->write($exception->getMessage(), Constants::LOYALTY_ERROR);
+            return new \Bitrix\Main\EventResult(
+                \Bitrix\Main\EventResult::ERROR,
+                new \Bitrix\Sale\ResultError(
+                    GetMessage('RETAILCRM_LOYALTY_RECALCULATION_ERROR'),
+                    'RETAILCRM_LOYALTY_RECALCULATION_ERROR'
+                )
+            );
+        }
+        return null;
+    }
+
     /**
      * Обработчик события, вызываемого ПОСЛЕ сохранения заказа (OnSaleOrderSaved)
      *
@@ -372,6 +336,10 @@ class EventsHandlers
         try {
             /** @var Order $order */
             $order = $event->getParameter('ENTITY');
+
+            if (ConfigProvider::getLoyaltyBonusesForBasketRules() === 'Y') {
+                LoyaltyGiftRecalculator::getInstance()->removeDiscardedCartItems($order);
+            }
 
             $isBonusInput = (
                 !empty($_POST['bonus-input'])

@@ -158,7 +158,14 @@ class LoyaltyService
 
         $result = $this->client->loyaltyCalculate($request);
 
-        if ($result !== null && $result->success && isset($result->order->items)) {
+        if ($result !== null && $result->success && isset($result->order->items)
+            && ConfigProvider::getLoyaltyBonusesForBasketRules() === 'Y'
+        ) {
+            if (!(new LoyaltyCalculationMapper())->map($result->order->items, $basketItems)) {
+                $this->logger->write('Cannot unambiguously match loyalty calculation to basket rows.', Constants::LOYALTY_ERROR);
+                return null;
+            }
+        } elseif ($result !== null && $result->success && isset($result->order->items)) {
             $basketIds = array_fill_keys(array_map('strval', array_column($basketItems, 'ID')), true);
 
             foreach ($result->order->items as $calculatedItem) {
@@ -511,9 +518,21 @@ class LoyaltyService
      */
     public function getInitialDiscount(int $externalId): ?float
     {
+        $discount = $this->getBasketRuleOriginalDiscount($externalId);
+        if ($discount !== null) {
+            return $discount;
+        }
         $repository = new OrderLoyaltyDataRepository();
 
         return $repository->getDefDiscountByProductPosition($externalId);
+    }
+
+    public function getBasketRuleOriginalDiscount(int $basketId): ?float
+    {
+        if (ConfigProvider::getLoyaltyBonusesForBasketRules() !== 'Y') {
+            return null;
+        }
+        return LoyaltyGiftRecalculator::getInstance()->getOriginalDiscount($basketId);
     }
 
     /**
@@ -573,6 +592,14 @@ class LoyaltyService
      */
     private function applyLoyaltyBasketPrices(Order $order, OrderLoyaltyApplyResponse $response): bool
     {
+        if (ConfigProvider::getLoyaltyBonusesForBasketRules() === 'Y') {
+            $result = LoyaltyGiftRecalculator::getInstance()->applyActual($order, $response);
+            if (!$result->isSuccess()) {
+                $this->logger->write($result->getErrorMessages(), Constants::LOYALTY_ERROR);
+            }
+            return $result->isSuccess();
+        }
+
         $result = (new LoyaltyBasketPriceApplier())->apply($order, $response, false);
 
         if (!$result->isSuccess()) {

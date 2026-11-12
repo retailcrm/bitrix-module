@@ -368,6 +368,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         UnRegisterModuleDependences('sale', 'OnSaleOrderDeleted', $mid, 'RetailCrmEvent', "orderDelete");
         UnRegisterModuleDependences('sale', 'OnSaleOrderSaved', $mid, 'RetailCrmEvent', "orderSave");
         UnRegisterModuleDependences('sale', 'OnOrderUpdate', $mid, 'RetailCrmEvent', "onUpdateOrder");
+        UnRegisterModuleDependences('sale', 'OnSaleOrderBeforeSaved', $mid, $loyaltyEventClass, 'OnSaleOrderBeforeSavedHandler');
         UnRegisterModuleDependences('sale', 'OnSaleOrderSaved', $mid, $loyaltyEventClass, 'OnSaleOrderSavedHandler');
         UnRegisterModuleDependences('sale', 'OnSaleComponentOrderResultPrepared', $mid, $loyaltyEventClass, 'OnSaleComponentOrderResultPreparedHandler');
         ConfigProvider::setLoyaltyProgramStatus('N');
@@ -732,6 +733,7 @@ if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
         ConfigProvider::setLoyaltyProgramStatus('Y');
     } else {
         ConfigProvider::setLoyaltyProgramStatus('N');
+        UnRegisterModuleDependences('sale', 'OnSaleOrderBeforeSaved', $mid, $loyaltyEventClass, 'OnSaleOrderBeforeSavedHandler');
         UnRegisterModuleDependences('sale', 'OnSaleOrderSaved', $mid, $loyaltyEventClass, 'OnSaleOrderSavedHandler');
         UnRegisterModuleDependences('sale', 'OnSaleComponentOrderResultPrepared', $mid, $loyaltyEventClass, 'OnSaleComponentOrderResultPreparedHandler');
     }

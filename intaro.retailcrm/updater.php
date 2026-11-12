@@ -16,6 +16,13 @@ function update()
 
     migrateContragentTypes();
     addLoyaltyBonusesForBasketRulesOption();
+    Loader::includeModule('intaro.retailcrm');
+    if (Option::get('intaro.retailcrm', 'loyalty_program_toggle') === 'Y') {
+        (new \Intaro\RetailCrm\Component\Advanced\LoyaltyInstaller())->addEvents();
+    } else {
+        UnRegisterModuleDependences('sale', 'OnSaleOrderBeforeSaved', 'intaro.retailcrm',
+            'Intaro\\RetailCrm\\Component\\Handlers\\EventsHandlers', 'OnSaleOrderBeforeSavedHandler');
+    }
 }
 
 function addLoyaltyBonusesForBasketRulesOption()
