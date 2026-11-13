@@ -21,6 +21,24 @@ use Intaro\RetailCrm\Component\Json\Mapping;
 class OrderProduct
 {
     /**
+     * Внешние идентификаторы позиции в заказе
+     *
+     * @var array $externalIds
+     *
+     * @Mapping\Type("array<Intaro\RetailCrm\Model\Api\CodeValueModel>")
+     * @Mapping\SerializedName("externalIds")
+     */
+    public $externalIds;
+
+    /**
+     * @var \Intaro\RetailCrm\Model\Api\SerializedOrderProductOffer
+     *
+     * @Mapping\Type("\Intaro\RetailCrm\Model\Api\SerializedOrderProductOffer")
+     * @Mapping\SerializedName("offer")
+     */
+    public $offer;
+
+    /**
      * Количество списанных бонусов
      *
      * @var double $bonusesChargeTotal

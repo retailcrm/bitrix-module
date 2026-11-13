@@ -17,6 +17,8 @@ use Bitrix\Sale\Order;
 use Exception;
 use Intaro\RetailCrm\Component\Builder\BuilderInterface;
 use Intaro\RetailCrm\Component\Constants;
+use Intaro\RetailCrm\Component\ConfigProvider;
+use Intaro\RetailCrm\Service\LoyaltyService;
 use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Model\Api\OrderProduct;
 use Intaro\RetailCrm\Model\Api\Response\Order\Loyalty\OrderLoyaltyApplyResponse;
@@ -81,6 +83,14 @@ class LoyaltyDataBuilder implements BuilderInterface
 
                 $loyaltyHl->defaultDiscount
                     = $this->calculateItemsInput[$loyaltyHl->basketItemPositionId]['SHOP_ITEM_DISCOUNT'] ?? null;
+
+                if (ConfigProvider::getLoyaltyBonusesForBasketRules() === 'Y') {
+                    $loyaltyService = ServiceLocator::get(LoyaltyService::class);
+                    $originalDiscount = $loyaltyService->getBasketRuleOriginalDiscount((int) $basketItem->getId());
+                    if ($originalDiscount !== null) {
+                        $loyaltyHl->defaultDiscount = $originalDiscount;
+                    }
+                }
 
                 $loyaltyHl->bonusCount
                     = $this->calculateItemsInput[$loyaltyHl->basketItemPositionId]['BONUSES_CHARGE'] ?? null;
@@ -191,7 +201,23 @@ class LoyaltyDataBuilder implements BuilderInterface
         }
 
         /** @var OrderProduct $item */
-        $item = $this->applyResponse->order->items[$key];
+        $item = $this->applyResponse->order->items[$key] ?? null;
+        if (ConfigProvider::getLoyaltyBonusesForBasketRules() === 'Y') {
+            $item = null;
+            foreach ($this->applyResponse->order->items as $responseItem) {
+                foreach ($responseItem->externalIds ?? [] as $externalId) {
+                    if ($externalId->code === 'bitrixBasketId'
+                        && explode('#', (string) $externalId->value, 2)[0] === (string) $loyaltyHl->basketItemPositionId
+                    ) {
+                        $item = $responseItem;
+                        break 2;
+                    }
+                }
+            }
+        }
+        if ($item === null) {
+            return;
+        }
 
         $loyaltyHl->checkId    = $checkId;
         $loyaltyHl->isDebited  = $isDebited;

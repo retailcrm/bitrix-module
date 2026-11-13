@@ -211,8 +211,11 @@ class OrderLoyaltyDataService
             }
 
             EventsHandlers::$disableSaleHandler = true;
-            $order->save();
-            EventsHandlers::$disableSaleHandler = false;
+            try {
+                $order->save();
+            } finally {
+                EventsHandlers::$disableSaleHandler = false;
+            }
         } catch (Exception $exception) {
             $this->logger->write($exception->getMessage(), Constants::LOYALTY_ERROR);
         }

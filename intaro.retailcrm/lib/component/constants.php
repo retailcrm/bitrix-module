@@ -82,6 +82,7 @@ class Constants
     public const CRM_EVENT_TRACKER_CART = 'event_tracker_cart';
     public const CRM_EVENT_TRACKER_OPEN_CART = 'event_tracker_open_cart';
     public const LOYALTY_PROGRAM_TOGGLE = 'loyalty_program_toggle';
+    public const LOYALTY_BONUSES_FOR_BASKET_RULES = 'loyalty_bonuses_for_basket_rules';
     public const CLIENT_ID = 'client_id';
     public const AGREEMENT_LOYALTY_PROGRAM = 'agreement_loyalty_program';
     public const AGREEMENT_PERSONAL_DATA = 'agreement_personal_data';
@@ -99,6 +100,7 @@ class Constants
     public const CART = 'cart';
     public const CRM_SEND_PICKUP_POINT_ADDRESS = 'send_pickup_point_address';
     public const LP_EVENTS = [
+        ['EVENT_NAME' => 'OnSaleOrderBeforeSaved', 'FROM_MODULE' => 'sale'],
         ['EVENT_NAME' => 'OnSaleOrderSaved', 'FROM_MODULE' => 'sale'],
         ['EVENT_NAME' => 'OnSaleComponentOrderResultPrepared', 'FROM_MODULE' => 'sale'],
     ];
