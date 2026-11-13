@@ -265,7 +265,7 @@ if (!empty($availableSites)) {
 }
 
 //update connection settings
-if (isset($_POST['Update']) && ($_POST['Update'] === 'Y')) {
+if (isset($_POST['Update']) && ($_POST['Update'] === 'Y') && check_bitrix_sessid()) {
     $error = null;
     $api_host = trim((string) ($_POST['api_host'] ?? ''));
     $api_key = trim((string) ($_POST['api_key'] ?? ''));

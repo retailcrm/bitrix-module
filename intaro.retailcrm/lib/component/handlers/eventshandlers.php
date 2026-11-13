@@ -365,11 +365,6 @@ class EventsHandlers
             $isLoyaltyOn                = ConfigProvider::getLoyaltyProgramStatus() === 'Y';
             $isBonusesIssetAndAvailable = $isBonusInput && $availableBonuses >= $bonusFloat;
 
-            /** @var array $calculateItemsInput */
-            $calculateItemsInput = $isDataForLoyaltyDiscount
-                ? json_decode(htmlspecialchars_decode($_POST['calculate-items-input']), true)
-                : [];
-
             if ($isNewOrder && $isLoyaltyOn && ($isDataForLoyaltyDiscount || $isBonusInput)) {
                 self::$disableSaleHandler = true;
 
@@ -377,11 +372,9 @@ class EventsHandlers
                     $hlInfoBuilder = new LoyaltyDataBuilder();
                     $hlInfoBuilder->setOrder($order);
 
-                    $discountInput = isset($_POST['loyalty-discount-input'])
-                        ? (float) $_POST['loyalty-discount-input']
-                        : 0;
-
+                    $discountInput = 0.0;
                     $loyaltyBonusMsg = 0;
+                    $calculateItemsInput = $loyaltyService->getShopDiscountItems($order);
 
                     $preliminaryPrices = ConfigProvider::getLoyaltyBonusesForBasketRules() === 'Y'
                         ? self::getBasketPrices($order)
@@ -402,7 +395,11 @@ class EventsHandlers
 
                     //Если бонусов нет, но скидка по ПЛ есть
                     if ($isDataForLoyaltyDiscount && !$isBonusInput) {
-                        $loyaltyService->saveDiscounts($order, $calculateItemsInput);
+                        $loyaltyDiscount = $loyaltyService->applyCalculatedDiscounts($order);
+
+                        if ($loyaltyDiscount !== null) {
+                            $discountInput = $loyaltyDiscount;
+                        }
                     }
 
                     $orderLoyaltyDataService->saveBonusAndDiscToOrderProps(

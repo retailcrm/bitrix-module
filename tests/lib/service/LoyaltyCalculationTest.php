@@ -2,6 +2,7 @@
 
 use Intaro\RetailCrm\Component\Json\Deserializer;
 use Intaro\RetailCrm\Component\Json\Serializer;
+use Intaro\RetailCrm\Model\Api\LoyaltyCalculation;
 use Intaro\RetailCrm\Model\Api\OrderProduct;
 use Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse;
 use Intaro\RetailCrm\Model\Api\SerializedLoyaltyOrder;
@@ -106,5 +107,19 @@ class LoyaltyCalculationTest extends \PHPUnit\Framework\TestCase
         $parsed = Deserializer::deserializeArray($rawItem, OrderProduct::class);
 
         self::assertSame('16', $parsed->offer->externalId);
+    }
+
+    public function testResolveLoyaltyDiscountSubtractsShopDiscount(): void
+    {
+        $calculation = new LoyaltyCalculateResponse();
+        $privilege = new LoyaltyCalculation();
+        $privilege->maximum = true;
+        $privilege->discount = 300.0;
+        $calculation->calculations = [$privilege];
+        $service = new LoyaltyService();
+        $method = new ReflectionMethod(LoyaltyService::class, 'resolveLoyaltyDiscount');
+        $method->setAccessible(true);
+
+        self::assertSame(100.0, $method->invoke($service, $calculation, 200.0));
     }
 }

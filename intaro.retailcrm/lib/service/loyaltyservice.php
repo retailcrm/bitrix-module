@@ -491,16 +491,151 @@ class LoyaltyService
 
     /**
      * @param \Bitrix\Sale\Order $order
-     * @param array              $calculateItemsInput
+     *
+     * @return float|null
      */
-    public function saveDiscounts(Order $order, array $calculateItemsInput): void
+    public function applyCalculatedDiscounts(Order $order): ?float
     {
         try {
-            $result = (new LoyaltyBasketPriceApplier())->applySavedDiscounts($order, $calculateItemsInput);
+            $basket = $order->getBasket();
+
+            if ($basket === null) {
+                $this->logger->write(
+                    'Loyalty discount was not applied because the basket is empty.',
+                    Constants::LOYALTY_ERROR
+                );
+
+                return null;
+            }
+
+            $basketItems = [];
+            $calculateItems = [];
+            $shopDiscountTotal = 0.0;
+
+            foreach ($basket as $basketItem) {
+                $basketItemId = (string) $basketItem->getId();
+
+                if ($basketItemId === '' || $basketItemId === '0') {
+                    continue;
+                }
+
+                $quantity = (float) $basketItem->getQuantity();
+                $shopDiscountTotal += (float) $basketItem->getDiscountPrice() * $quantity;
+                $basketItems[] = $basketItem;
+                $calculateItems[] = [
+                    'ID' => $basketItemId,
+                    'XML_ID' => (string) $basketItem->getField('PRODUCT_XML_ID'),
+                    'BASE_PRICE' => (float) $basketItem->getBasePrice(),
+                    'PRICE' => (float) $basketItem->getPrice(),
+                    'QUANTITY' => $quantity,
+                    'PRICE_TYPE_ID' => $basketItem->getField('PRICE_TYPE_ID'),
+                ];
+            }
+
+            if ($basketItems === []) {
+                $this->logger->write(
+                    'Loyalty discount was not applied because the basket has no saved items.',
+                    Constants::LOYALTY_ERROR
+                );
+
+                return null;
+            }
+
+            $calculation = $this->getLoyaltyCalculate($calculateItems, 0);
+
+            if (!$calculation instanceof LoyaltyCalculateResponse
+                || !$calculation->success
+                || !isset($calculation->order->items)
+            ) {
+                $this->logger->write(
+                    'Loyalty discount was not applied because CRM calculation failed.',
+                    Constants::LOYALTY_ERROR
+                );
+
+                return null;
+            }
+
+            $result = (new LoyaltyBasketPriceApplier())->apply($order, $calculation, false);
 
             if (!$result->isSuccess()) {
                 $this->logger->write($result->getErrorMessages(), Constants::LOYALTY_ERROR);
 
+                return null;
+            }
+
+            return $this->resolveLoyaltyDiscount($calculation, $shopDiscountTotal);
+        } catch (Exception $exception) {
+            $this->logger->write($exception->getMessage(), Constants::LOYALTY_ERROR);
+
+            return null;
+        }
+    }
+
+    /**
+     * @param \Bitrix\Sale\Order $order
+     *
+     * @return array<string, array<string, float>>
+     */
+    public function getShopDiscountItems(Order $order): array
+    {
+        $items = [];
+        $basket = $order->getBasket();
+
+        if ($basket === null) {
+            return $items;
+        }
+
+        foreach ($basket as $basketItem) {
+            $basketItemId = (string) $basketItem->getId();
+
+            if ($basketItemId === '' || $basketItemId === '0') {
+                continue;
+            }
+
+            $items[$basketItemId] = [
+                'SHOP_ITEM_DISCOUNT' => round(
+                    (float) $basketItem->getBasePrice() - (float) $basketItem->getPrice(),
+                    2
+                ),
+            ];
+        }
+
+        return $items;
+    }
+
+    /**
+     * @param \Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse $calculation
+     * @param float                                                                  $shopDiscountTotal
+     *
+     * @return float
+     */
+    private function resolveLoyaltyDiscount(LoyaltyCalculateResponse $calculation, float $shopDiscountTotal): float
+    {
+        if (!is_array($calculation->calculations)) {
+            return 0.0;
+        }
+
+        foreach ($calculation->calculations as $privilege) {
+            if ($privilege->maximum && $privilege->discount > 0) {
+                return max(0, round((float) $privilege->discount - $shopDiscountTotal, 2));
+            }
+        }
+
+        return 0.0;
+    }
+
+    /**
+     * Переданный расчёт из браузера не используется.
+     *
+     * @param \Bitrix\Sale\Order $order
+     * @param array              $calculateItemsInput
+     */
+    public function saveDiscounts(Order $order, array $calculateItemsInput): void
+    {
+        unset($calculateItemsInput);
+
+        try {
+            if ($this->applyCalculatedDiscounts($order) === null) {
                 return;
             }
 
