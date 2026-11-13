@@ -27,6 +27,7 @@ use Intaro\RetailCrm\Service\LoyaltyService;
 use RetailCrm\ApiClient;
 use Intaro\RetailCrm\Service\ManagerService;
 use Intaro\RetailCrm\Service\LoyaltyAccountService;
+use Intaro\RetailCrm\Service\UserCustomFieldsService;
 use RetailCrm\Response\ApiResponse;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Model\Api\Response\OrdersCreateResponse;
@@ -159,7 +160,23 @@ class RetailCrmOrder
                     continue;
                 }
 
-                $order['customFields'][$arParams['customOrderProps'][$prop['ID'] . '#' . $prop['CODE']]] = RCrmActions::convertCmsFieldToCrmValue($prop['VALUE'][0], $prop['TYPE']);
+                $crmFieldCode = $arParams['customOrderProps'][$prop['ID'] . '#' . $prop['CODE']];
+                $customFieldsService = ServiceLocator::get(UserCustomFieldsService::class);
+
+                if ($customFieldsService->isStringLengthExceeded($prop['VALUE'][0], $prop['TYPE'] ?? '')) {
+                    $customFieldsService->logStringLengthExceeded(
+                        'RetailCrmOrder::orderSend',
+                        UserCustomFieldsService::DIRECTION_TO_CRM,
+                        'order ' . $arOrder['ID'],
+                        (string) $prop['CODE'],
+                        (string) $crmFieldCode,
+                        $prop['VALUE'][0]
+                    );
+
+                    continue;
+                }
+
+                $order['customFields'][$crmFieldCode] = RCrmActions::convertCmsFieldToCrmValue($prop['VALUE'][0], $prop['TYPE']);
             } elseif (is_array($arParams['optionsOrderProps'][$arOrder['PERSON_TYPE_ID']])
                 && $search = array_search($prop['CODE'], $arParams['optionsOrderProps'][$arOrder['PERSON_TYPE_ID']])) {//other
                 if (in_array($search, ['fio', 'phone', 'email'])) {//fio, phone, email

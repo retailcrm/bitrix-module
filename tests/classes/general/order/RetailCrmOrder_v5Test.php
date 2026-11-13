@@ -158,6 +158,109 @@ class RetailCrmOrder_v5Test extends BitrixTestCase {
         ];
     }
 
+    /**
+     * @dataProvider stringCustomFieldProvider
+     */
+    public function testOrderSendStringCustomFieldLength(string $value, bool $isSent): void
+    {
+        $order = $this->sendOrderWithStringCustomField($value);
+
+        if ($isSent) {
+            self::assertSame($value, $order['customFields']['measurements']);
+        } else {
+            self::assertArrayNotHasKey('measurements', $order['customFields'] ?? []);
+        }
+    }
+
+    public function stringCustomFieldProvider(): array
+    {
+        return [
+            'cyrillic string shorter than the limit' => [str_repeat('я', 454), true],
+            'exactly 500 characters' => [str_repeat('я', 500), true],
+            '501 characters is not sent' => [str_repeat('я', 501), false],
+        ];
+    }
+
+    public function testOrderSendDoesNotLogEmptyStringCustomField(): void
+    {
+        $lastLogId = $this->getLastEventLogId();
+
+        $this->sendOrderWithStringCustomField('');
+
+        self::assertSame('', $this->getLengthExceededLogDescription($lastLogId));
+    }
+
+    public function testOrderSendLogsTooLongCustomField(): void
+    {
+        $lastLogId = $this->getLastEventLogId();
+
+        $this->sendOrderWithStringCustomField(str_repeat('я', 501));
+
+        $description = $this->getLengthExceededLogDescription($lastLogId);
+
+        self::assertStringContainsString('Bitrix -> RetailCRM', $description);
+        self::assertStringContainsString('order 1', $description);
+        self::assertStringContainsString('MEASUREMENTS', $description);
+        self::assertStringContainsString('measurements', $description);
+        self::assertStringContainsString('length: 501', $description);
+        self::assertStringContainsString('limit: 500', $description);
+        self::assertStringNotContainsString('яя', $description);
+    }
+
+    private function getLastEventLogId(): int
+    {
+        global $DB;
+
+        $row = $DB->Query('SELECT MAX(ID) AS ID FROM b_event_log')->Fetch();
+
+        return (int) ($row['ID'] ?? 0);
+    }
+
+    private function getLengthExceededLogDescription(int $afterId): string
+    {
+        global $DB;
+
+        $row = $DB->Query(
+            'SELECT DESCRIPTION FROM b_event_log WHERE ID > ' . $afterId
+            . " AND ITEM_ID = 'CustomFieldLengthExceeded' ORDER BY ID DESC LIMIT 1"
+        )->Fetch();
+
+        return (string) ($row['DESCRIPTION'] ?? '');
+    }
+
+    private function sendOrderWithStringCustomField(string $value): array
+    {
+        $arFields = $this->getArFields();
+        $arFields['PROPS']['properties'][] = [
+            'ID' => 3,
+            'CODE' => 'MEASUREMENTS',
+            'VALUE' => [$value],
+            'TYPE' => 'STRING',
+        ];
+
+        $this->initSystemData();
+        RetailcrmConfigProvider::setCustomFieldsStatus('Y');
+        RetailcrmConfigProvider::setSyncIntegrationPayment('N');
+
+        return RetailCrmOrder::orderSend(
+            $arFields,
+            new stdClass(),
+            [
+                'optionsOrderTypes' => RetailcrmConfigProvider::getOrderTypes(),
+                'optionsPayStatuses' => RetailcrmConfigProvider::getPaymentStatuses(),
+                'optionsContragentType' => RetailcrmConfigProvider::getContragentTypesBySite(),
+                'optionsDelivTypes' => RetailcrmConfigProvider::getDeliveryTypes(),
+                'optionsPayTypes' => RetailcrmConfigProvider::getPaymentTypes(),
+                'optionsOrderProps' => ['bitrixType' => ['fio' => 'FIO']],
+                'optionsPayment' => ['Y' => 'paid'],
+                'customOrderProps' => ['3#MEASUREMENTS' => 'measurements'],
+            ],
+            false,
+            null,
+            'ordersCreate'
+        );
+    }
+
     public function initSystemData(): void
     {
         RetailcrmConfigProvider::setOrderTypes(['bitrixType' => 'crmType']);

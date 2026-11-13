@@ -622,7 +622,10 @@ class RCrmActions
             case 'STRING':
             case 'string':
             case 'text':
-                $result = strlen($crmValue) <= 500 ? $crmValue : '';
+                if (ServiceLocator::get(UserCustomFieldsService::class)->isStringLengthExceeded($crmValue, $type)) {
+                    $result = null;
+                }
+
                 break;
         }
 

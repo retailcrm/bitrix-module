@@ -198,6 +198,73 @@ class RetailCrmHistory_v5Test extends \BitrixTestCase
         $this->assertEquals(1515, $cmsOrder->getField('RESPONSIBLE_ID'));
     }
 
+    /**
+     * @dataProvider stringCustomFieldProvider
+     */
+    public function testConvertCrmValueToCmsFieldStringLength(string $value, bool $isTransferred): void
+    {
+        self::assertSame($isTransferred ? $value : null, RCrmActions::convertCrmValueToCmsField($value, 'STRING'));
+    }
+
+    /**
+     * @dataProvider stringCustomFieldProvider
+     */
+    public function testSetCustomOrderPropsStringLength(string $value, bool $isTransferred): void
+    {
+        $property = $this->createMock(\Bitrix\Sale\PropertyValue::class);
+        $property->method('getType')
+            ->willReturn('STRING');
+        $property->expects($isTransferred ? $this->once() : $this->never())
+            ->method('setField')
+            ->with('VALUE', $value)
+            ->willReturn(new \Bitrix\Main\Result());
+
+        $propertyCollection = $this->createMock(\Bitrix\Sale\PropertyValueCollection::class);
+        $propertyCollection->method('getItemByOrderPropertyId')
+            ->with('7')
+            ->willReturn($property);
+
+        RetailCrmHistory::setCustomOrderProps(
+            $propertyCollection,
+            ['id' => 100, 'customFields' => ['measurements' => $value]],
+            ['measurements' => '7#MEASUREMENTS']
+        );
+    }
+
+    /**
+     * @dataProvider stringCustomFieldProvider
+     */
+    public function testGetCustomUserFieldsStringLength(string $value, bool $isTransferred): void
+    {
+        $method = new ReflectionMethod(RetailCrmHistory::class, 'getCustomUserFields');
+        $method->setAccessible(true);
+        $oldCustomFieldsStatus = RetailCrmHistory::$CUSTOM_FIELDS_IS_ACTIVE;
+        RetailCrmHistory::$CUSTOM_FIELDS_IS_ACTIVE = 'Y';
+
+        try {
+            $customFields = $method->invoke(
+                null,
+                ['id' => 100, 'customFields' => ['note' => $value]],
+                ['note' => 'UF_FIELD_USER_1'],
+                ['UF_FIELD_USER_1' => 'string']
+            );
+        } finally {
+            RetailCrmHistory::$CUSTOM_FIELDS_IS_ACTIVE = $oldCustomFieldsStatus;
+        }
+
+        self::assertSame($isTransferred ? ['UF_FIELD_USER_1' => $value] : [], $customFields);
+    }
+
+    public function stringCustomFieldProvider(): array
+    {
+        return [
+            'cyrillic string shorter than the limit' => [str_repeat('я', 454), true],
+            'exactly 500 characters' => [str_repeat('я', 500), true],
+            '501 characters does not change the current value' => [str_repeat('я', 501), false],
+            'empty string clears the field' => ['', true],
+        ];
+    }
+
     private function deleteTestingUser(): void
     {
         $dbUser = CUser::GetList(($by = 'ID'), ($sort = 'DESC'), ['=EMAIL' => 'testbitrixreg@gmail.com']);

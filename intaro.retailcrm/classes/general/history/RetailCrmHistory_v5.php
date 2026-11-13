@@ -35,6 +35,7 @@ use Intaro\RetailCrm\Component\ServiceLocator;
 use Intaro\RetailCrm\Component\Builder\Bitrix\LoyaltyDataBuilder;
 use Intaro\RetailCrm\Service\ManagerService;
 use Intaro\RetailCrm\Service\OrderLoyaltyDataService;
+use Intaro\RetailCrm\Service\UserCustomFieldsService;
 use Intaro\RetailCrm\Component\ConfigProvider;
 use Intaro\RetailCrm\Component\Constants;
 use Intaro\RetailCrm\Component\Handlers\EventsHandlers;
@@ -1344,22 +1345,7 @@ class RetailCrmHistory
                     $newOrder->setField('PRICE', $orderSumm);
 
                     if (self::$CUSTOM_FIELDS_IS_ACTIVE === 'Y' && !empty($matchedCustomOrderFields)) {
-                        foreach ($order['customFields'] as $code => $value) {
-                            if (isset($matchedCustomOrderFields[$code])) {
-                                $arrayIdentifier = explode('#', $matchedCustomOrderFields[$code], 2);
-                                $property = $propertyCollection->getItemByOrderPropertyId($arrayIdentifier[0]);
-                                $value = RCrmActions::convertCrmValueToCmsField($value, $property->getType());
-                                $queryResult = $property->setField('VALUE', $value);
-
-                                if (!$queryResult->isSuccess()) {
-                                    RCrmActions::eventLog(
-                                        'RetailCrmHistory::orderHistory',
-                                        'CustomOrderPropSave',
-                                        'Error when saving a property: ' . $arrayIdentifier[1]
-                                    );
-                                }
-                            }
-                        }
+                        self::setCustomOrderProps($propertyCollection, $order, $matchedCustomOrderFields);
                     }
 
                     self::orderSave($newOrder);
@@ -2349,6 +2335,50 @@ class RetailCrmHistory
         return self::convertBooleanFields($customerArray);
     }
 
+    /**
+     * Sets the matched retailCRM custom fields to the order properties.
+     * A string value that exceeds the length limit is skipped, the property keeps its current value.
+     *
+     * @param \Bitrix\Sale\PropertyValueCollectionBase $propertyCollection
+     * @param array                                     $order
+     * @param array                                     $matchedCustomOrderFields
+     */
+    public static function setCustomOrderProps($propertyCollection, array $order, array $matchedCustomOrderFields): void
+    {
+        $customFieldsService = ServiceLocator::get(UserCustomFieldsService::class);
+
+        foreach ($order['customFields'] as $code => $value) {
+            if (isset($matchedCustomOrderFields[$code])) {
+                $arrayIdentifier = explode('#', $matchedCustomOrderFields[$code], 2);
+                $property = $propertyCollection->getItemByOrderPropertyId($arrayIdentifier[0]);
+
+                if ($customFieldsService->isStringLengthExceeded($value, $property->getType())) {
+                    $customFieldsService->logStringLengthExceeded(
+                        'RetailCrmHistory::orderHistory',
+                        UserCustomFieldsService::DIRECTION_TO_CMS,
+                        'order (CRM id ' . ($order['id'] ?? '') . ')',
+                        (string) ($arrayIdentifier[1] ?? $arrayIdentifier[0]),
+                        (string) $code,
+                        $value
+                    );
+
+                    continue;
+                }
+
+                $value = RCrmActions::convertCrmValueToCmsField($value, $property->getType());
+                $queryResult = $property->setField('VALUE', $value);
+
+                if (!$queryResult->isSuccess()) {
+                    RCrmActions::eventLog(
+                        'RetailCrmHistory::orderHistory',
+                        'CustomOrderPropSave',
+                        'Error when saving a property: ' . $arrayIdentifier[1]
+                    );
+                }
+            }
+        }
+    }
+
     private static function getCustomUserFields($customer, $matchedCustomFields, $customUserFieldTypes)
     {
         $customFields = [];
@@ -2357,9 +2387,25 @@ class RetailCrmHistory
             && isset($customer['customFields'])
             && is_array($customer['customFields'])
         ) {
+            $customFieldsService = ServiceLocator::get(UserCustomFieldsService::class);
+
             foreach ($customer['customFields'] as $code => $value) {
                 if (isset($matchedCustomFields[$code]) && !empty($customUserFieldTypes[$matchedCustomFields[$code]])) {
                     $type = $customUserFieldTypes[$matchedCustomFields[$code]];
+
+                    if ($customFieldsService->isStringLengthExceeded($value, $type)) {
+                        $customFieldsService->logStringLengthExceeded(
+                            'RetailCrmHistory::getCustomUserFields',
+                            UserCustomFieldsService::DIRECTION_TO_CMS,
+                            'customer (CRM id ' . ($customer['id'] ?? '') . ')',
+                            (string) $matchedCustomFields[$code],
+                            (string) $code,
+                            $value
+                        );
+
+                        continue;
+                    }
+
                     $customFields[$matchedCustomFields[$code]] = RCrmActions::convertCrmValueToCmsField($value, $type);
                 }
             }
