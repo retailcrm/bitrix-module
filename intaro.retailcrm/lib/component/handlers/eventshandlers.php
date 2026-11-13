@@ -380,6 +380,14 @@ class EventsHandlers
                         ? self::getBasketPrices($order)
                         : [];
 
+                    if ($isDataForLoyaltyDiscount && $isBonusesIssetAndAvailable) {
+                        $loyaltyDiscount = $loyaltyService->calculateLoyaltyDiscount($order, $bonusFloat);
+
+                        if ($loyaltyDiscount !== null) {
+                            $discountInput = $loyaltyDiscount;
+                        }
+                    }
+
                     //Если есть бонусы
                     if ($isBonusesIssetAndAvailable) {
                         $applyBonusResponse = $loyaltyService->applyBonusesInOrder($order, $bonusFloat);

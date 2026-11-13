@@ -497,65 +497,13 @@ class LoyaltyService
     public function applyCalculatedDiscounts(Order $order): ?float
     {
         try {
-            $basket = $order->getBasket();
+            $loaded = $this->loadLoyaltyCalculation($order, 0);
 
-            if ($basket === null) {
-                $this->logger->write(
-                    'Loyalty discount was not applied because the basket is empty.',
-                    Constants::LOYALTY_ERROR
-                );
-
+            if ($loaded === null) {
                 return null;
             }
 
-            $basketItems = [];
-            $calculateItems = [];
-            $shopDiscountTotal = 0.0;
-
-            foreach ($basket as $basketItem) {
-                $basketItemId = (string) $basketItem->getId();
-
-                if ($basketItemId === '' || $basketItemId === '0') {
-                    continue;
-                }
-
-                $quantity = (float) $basketItem->getQuantity();
-                $shopDiscountTotal += (float) $basketItem->getDiscountPrice() * $quantity;
-                $basketItems[] = $basketItem;
-                $calculateItems[] = [
-                    'ID' => $basketItemId,
-                    'XML_ID' => (string) $basketItem->getField('PRODUCT_XML_ID'),
-                    'BASE_PRICE' => (float) $basketItem->getBasePrice(),
-                    'PRICE' => (float) $basketItem->getPrice(),
-                    'QUANTITY' => $quantity,
-                    'PRICE_TYPE_ID' => $basketItem->getField('PRICE_TYPE_ID'),
-                ];
-            }
-
-            if ($basketItems === []) {
-                $this->logger->write(
-                    'Loyalty discount was not applied because the basket has no saved items.',
-                    Constants::LOYALTY_ERROR
-                );
-
-                return null;
-            }
-
-            $calculation = $this->getLoyaltyCalculate($calculateItems, 0);
-
-            if (!$calculation instanceof LoyaltyCalculateResponse
-                || !$calculation->success
-                || !isset($calculation->order->items)
-            ) {
-                $this->logger->write(
-                    'Loyalty discount was not applied because CRM calculation failed.',
-                    Constants::LOYALTY_ERROR
-                );
-
-                return null;
-            }
-
-            $result = (new LoyaltyBasketPriceApplier())->apply($order, $calculation, false);
+            $result = (new LoyaltyBasketPriceApplier())->apply($order, $loaded['calculation'], false);
 
             if (!$result->isSuccess()) {
                 $this->logger->write($result->getErrorMessages(), Constants::LOYALTY_ERROR);
@@ -563,12 +511,105 @@ class LoyaltyService
                 return null;
             }
 
-            return $this->resolveLoyaltyDiscount($calculation, $shopDiscountTotal);
+            return $this->resolveLoyaltyDiscount($loaded['calculation'], $loaded['shopDiscountTotal']);
         } catch (Exception $exception) {
             $this->logger->write($exception->getMessage(), Constants::LOYALTY_ERROR);
 
             return null;
         }
+    }
+
+    /**
+     * @param \Bitrix\Sale\Order $order
+     * @param float              $bonuses
+     *
+     * @return float|null
+     */
+    public function calculateLoyaltyDiscount(Order $order, float $bonuses = 0): ?float
+    {
+        try {
+            $loaded = $this->loadLoyaltyCalculation($order, $bonuses);
+
+            if ($loaded === null) {
+                return null;
+            }
+
+            return $this->resolveLoyaltyDiscount($loaded['calculation'], $loaded['shopDiscountTotal']);
+        } catch (Exception $exception) {
+            $this->logger->write($exception->getMessage(), Constants::LOYALTY_ERROR);
+
+            return null;
+        }
+    }
+
+    /**
+     * @param \Bitrix\Sale\Order $order
+     * @param float              $bonuses
+     *
+     * @return array{calculation: \Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse, shopDiscountTotal: float}|null
+     */
+    private function loadLoyaltyCalculation(Order $order, float $bonuses): ?array
+    {
+        $basket = $order->getBasket();
+
+        if ($basket === null) {
+            $this->logger->write(
+                'Loyalty discount was not applied because the basket is empty.',
+                Constants::LOYALTY_ERROR
+            );
+
+            return null;
+        }
+
+        $calculateItems = [];
+        $shopDiscountTotal = 0.0;
+
+        foreach ($basket as $basketItem) {
+            $basketItemId = (string) $basketItem->getId();
+
+            if ($basketItemId === '' || $basketItemId === '0') {
+                continue;
+            }
+
+            $quantity = (float) $basketItem->getQuantity();
+            $shopDiscountTotal += (float) $basketItem->getDiscountPrice() * $quantity;
+            $calculateItems[] = [
+                'ID' => $basketItemId,
+                'XML_ID' => (string) $basketItem->getField('PRODUCT_XML_ID'),
+                'BASE_PRICE' => (float) $basketItem->getBasePrice(),
+                'PRICE' => (float) $basketItem->getPrice(),
+                'QUANTITY' => $quantity,
+                'PRICE_TYPE_ID' => $basketItem->getField('PRICE_TYPE_ID'),
+            ];
+        }
+
+        if ($calculateItems === []) {
+            $this->logger->write(
+                'Loyalty discount was not applied because the basket has no saved items.',
+                Constants::LOYALTY_ERROR
+            );
+
+            return null;
+        }
+
+        $calculation = $this->getLoyaltyCalculate($calculateItems, $bonuses);
+
+        if (!$calculation instanceof LoyaltyCalculateResponse
+            || !$calculation->success
+            || !isset($calculation->order->items)
+        ) {
+            $this->logger->write(
+                'Loyalty discount was not applied because CRM calculation failed.',
+                Constants::LOYALTY_ERROR
+            );
+
+            return null;
+        }
+
+        return [
+            'calculation' => $calculation,
+            'shopDiscountTotal' => $shopDiscountTotal,
+        ];
     }
 
     /**

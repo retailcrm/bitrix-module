@@ -266,6 +266,11 @@ if (!empty($availableSites)) {
 
 //update connection settings
 if (isset($_POST['Update']) && ($_POST['Update'] === 'Y') && check_bitrix_sessid()) {
+    if (!$USER->CanDoOperation('edit_other_settings') || $APPLICATION->GetGroupRight($mid) < 'W') {
+        $APPLICATION->AuthForm(GetMessage('ACCESS_DENIED'));
+        return;
+    }
+
     $error = null;
     $api_host = trim((string) ($_POST['api_host'] ?? ''));
     $api_key = trim((string) ($_POST['api_key'] ?? ''));
