@@ -572,12 +572,16 @@ class LoyaltyService
             }
 
             $quantity = (float) $basketItem->getQuantity();
-            $shopDiscountTotal += (float) $basketItem->getDiscountPrice() * $quantity;
+            $basePrice = (float) $basketItem->getBasePrice();
+            $originalDiscount = $this->getBasketRuleOriginalDiscount((int) $basketItemId);
+            $shopDiscountTotal += ($originalDiscount ?? (float) $basketItem->getDiscountPrice()) * $quantity;
             $calculateItems[] = [
                 'ID' => $basketItemId,
                 'XML_ID' => (string) $basketItem->getField('PRODUCT_XML_ID'),
-                'BASE_PRICE' => (float) $basketItem->getBasePrice(),
-                'PRICE' => (float) $basketItem->getPrice(),
+                'BASE_PRICE' => $basePrice,
+                'PRICE' => $originalDiscount !== null
+                    ? $basePrice - $originalDiscount
+                    : (float) $basketItem->getPrice(),
                 'QUANTITY' => $quantity,
                 'PRICE_TYPE_ID' => $basketItem->getField('PRICE_TYPE_ID'),
             ];
@@ -648,9 +652,9 @@ class LoyaltyService
      * @param \Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse $calculation
      * @param float                                                                  $shopDiscountTotal
      *
-     * @return float
+     * @return float|null
      */
-    private function resolveLoyaltyDiscount(LoyaltyCalculateResponse $calculation, float $shopDiscountTotal): float
+    private function resolveLoyaltyDiscount(LoyaltyCalculateResponse $calculation, float $shopDiscountTotal): ?float
     {
         if (!is_array($calculation->calculations)) {
             return 0.0;
@@ -658,7 +662,15 @@ class LoyaltyService
 
         foreach ($calculation->calculations as $privilege) {
             if ($privilege->maximum && $privilege->discount > 0) {
-                return max(0, round((float) $privilege->discount - $shopDiscountTotal, 2));
+                $chargedBonuses = $calculation->order->bonusesChargeTotal ?? 0.0;
+                $chargeRate = $calculation->loyalty->chargeRate ?? null;
+                if ($chargedBonuses > 0 && $chargeRate === null) {
+                    return null;
+                }
+
+                $bonusDiscount = $chargedBonuses * (float) $chargeRate;
+
+                return max(0.0, round($privilege->discount - $shopDiscountTotal - $bonusDiscount, 2));
             }
         }
 
