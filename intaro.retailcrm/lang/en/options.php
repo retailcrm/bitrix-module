@@ -38,6 +38,7 @@ $MESS ['ERR_403_CUSTOM'] = 'Not enough permissions for API key!';
 $MESS ['ERR_JSON'] = 'Invalid data was received from CRM, check data books settings';
 $MESS ['ERR_0'] = 'Server connection timeout error.';
 $MESS ['ICRM_OPTIONS_OK'] = 'Changes are successfully saved.';
+$MESS ['ICRM_OPTIONS_SESSION_EXPIRED'] = 'Your session has expired. Enter your changes again and save the settings.';
 $MESS ['CANCELED'] = 'Is «Cancelled»';
 $MESS ['STATUS_NOT_SETTINGS'] ='Cannot find suitable statuses in Bitrix';
 $MESS ['INFO_1'] = ' Set the correspondence between 1C-Bitrix data books and RetailCRM data books.';

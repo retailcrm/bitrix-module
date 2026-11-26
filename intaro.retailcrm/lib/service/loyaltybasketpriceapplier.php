@@ -118,43 +118,6 @@ final class LoyaltyBasketPriceApplier
         return $result;
     }
 
-    public function applySavedDiscounts(Order $order, array $calculateItemsInput): Result
-    {
-        $result = new Result();
-
-        try {
-            foreach ($order->getBasket() as $basketItem) {
-                $basketItemId = (string) $basketItem->getId();
-                $calculateItem = $calculateItemsInput[$basketItemId] ?? null;
-
-                if (!is_array($calculateItem)
-                    || !isset($calculateItem['SUM_NUM'], $calculateItem['QUANTITY'])
-                    || !is_numeric($calculateItem['SUM_NUM'])
-                    || !is_numeric($calculateItem['QUANTITY'])
-                    || (float) $calculateItem['QUANTITY'] <= 0
-                ) {
-                    $result->addError(new Error(sprintf('Saved loyalty discount for basket item %s is invalid.', $basketItemId)));
-                    continue;
-                }
-
-                $price = (float) $calculateItem['SUM_NUM'] / (float) $calculateItem['QUANTITY'];
-                $setResult = $basketItem->setFields([
-                    'CUSTOM_PRICE' => 'Y',
-                    'DISCOUNT_PRICE' => $basketItem->getBasePrice() - $price,
-                    'PRICE' => $price,
-                ]);
-
-                if (!$setResult->isSuccess()) {
-                    $result->addErrors($setResult->getErrors());
-                }
-            }
-        } catch (\Throwable $exception) {
-            $result->addError(new Error($exception->getMessage()));
-        }
-
-        return $result;
-    }
-
     /**
      * @param mixed $calculatedItem
      *

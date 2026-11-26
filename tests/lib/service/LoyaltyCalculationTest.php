@@ -2,8 +2,10 @@
 
 use Intaro\RetailCrm\Component\Json\Deserializer;
 use Intaro\RetailCrm\Component\Json\Serializer;
+use Intaro\RetailCrm\Model\Api\LoyaltyCalculation;
 use Intaro\RetailCrm\Model\Api\OrderProduct;
 use Intaro\RetailCrm\Model\Api\Response\Loyalty\LoyaltyCalculateResponse;
+use Intaro\RetailCrm\Model\Api\SerializedLoyalty;
 use Intaro\RetailCrm\Model\Api\SerializedLoyaltyOrder;
 use Intaro\RetailCrm\Model\Api\SerializedOrderProductOffer;
 use Intaro\RetailCrm\Service\LoyaltyService;
@@ -106,5 +108,75 @@ class LoyaltyCalculationTest extends \PHPUnit\Framework\TestCase
         $parsed = Deserializer::deserializeArray($rawItem, OrderProduct::class);
 
         self::assertSame('16', $parsed->offer->externalId);
+    }
+
+    public function testResolveLoyaltyDiscountSubtractsShopDiscount(): void
+    {
+        $calculation = new LoyaltyCalculateResponse();
+        $privilege = new LoyaltyCalculation();
+        $privilege->maximum = true;
+        $privilege->discount = 300.0;
+        $calculation->calculations = [$privilege];
+        $service = new LoyaltyService();
+        $method = new ReflectionMethod(LoyaltyService::class, 'resolveLoyaltyDiscount');
+        $method->setAccessible(true);
+
+        self::assertSame(100.0, $method->invoke($service, $calculation, 200.0));
+    }
+
+    /**
+     * @dataProvider shopDiscountCases
+     */
+    public function testCalculatesDiscountAfterBonusRedemption(
+        ?float $originalDiscount,
+        float $expectedRequestPrice,
+        float $crmDiscount,
+        float $basketDiscount = 175.0
+    ): void {
+        $basket = \Bitrix\Sale\Basket::create('s1');
+        $item = $basket->createItem('', 1);
+        $item->setFieldNoDemand('ID', 16);
+        $item->setFieldNoDemand('BASE_PRICE', 500);
+        $item->setFieldNoDemand('PRICE', 325);
+        $item->setFieldNoDemand('DISCOUNT_PRICE', $basketDiscount);
+        $item->setFieldNoDemand('QUANTITY', 2);
+        $order = $this->createMock(\Bitrix\Sale\Order::class);
+        $order->method('getBasket')->willReturn($basket);
+
+        $response = new LoyaltyCalculateResponse();
+        $response->success = true;
+        $response->order = new SerializedLoyaltyOrder();
+        $response->order->items = [new OrderProduct()];
+        $response->order->bonusesChargeTotal = 25.0;
+        $response->loyalty = new SerializedLoyalty();
+        $response->loyalty->chargeRate = 2.0;
+        $privilege = new LoyaltyCalculation();
+        $privilege->maximum = true;
+        $privilege->discount = $crmDiscount;
+        $response->calculations = [$privilege];
+
+        $service = $this->getMockBuilder(LoyaltyService::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['getBasketRuleOriginalDiscount', 'getLoyaltyCalculate'])
+            ->getMock();
+        $service->method('getBasketRuleOriginalDiscount')->with(16)->willReturn($originalDiscount);
+        $service->expects(self::once())->method('getLoyaltyCalculate')
+            ->with(self::callback(static function (array $items) use ($expectedRequestPrice) {
+                return $items[0]['PRICE'] === $expectedRequestPrice;
+            }), 80.0)
+            ->willReturn($response);
+
+        self::assertSame(100.0, $service->calculateLoyaltyDiscount($order, 80.0));
+        self::assertEquals(325, $item->getPrice());
+    }
+
+    public function shopDiscountCases(): array
+    {
+        return [
+            'saved shop discount' => [100.0, 400.0, 350.0],
+            'saved zero discount' => [0.0, 500.0, 150.0],
+            'no saved discount' => [null, 325.0, 500.0],
+            'custom price with zero DISCOUNT_PRICE' => [null, 325.0, 500.0, 0.0],
+        ];
     }
 }
