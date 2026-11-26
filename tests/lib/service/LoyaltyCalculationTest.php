@@ -130,14 +130,15 @@ class LoyaltyCalculationTest extends \PHPUnit\Framework\TestCase
     public function testCalculatesDiscountAfterBonusRedemption(
         ?float $originalDiscount,
         float $expectedRequestPrice,
-        float $crmDiscount
+        float $crmDiscount,
+        float $basketDiscount = 175.0
     ): void {
         $basket = \Bitrix\Sale\Basket::create('s1');
         $item = $basket->createItem('', 1);
         $item->setFieldNoDemand('ID', 16);
         $item->setFieldNoDemand('BASE_PRICE', 500);
         $item->setFieldNoDemand('PRICE', 325);
-        $item->setFieldNoDemand('DISCOUNT_PRICE', 175);
+        $item->setFieldNoDemand('DISCOUNT_PRICE', $basketDiscount);
         $item->setFieldNoDemand('QUANTITY', 2);
         $order = $this->createMock(\Bitrix\Sale\Order::class);
         $order->method('getBasket')->willReturn($basket);
@@ -175,6 +176,7 @@ class LoyaltyCalculationTest extends \PHPUnit\Framework\TestCase
             'saved shop discount' => [100.0, 400.0, 350.0],
             'saved zero discount' => [0.0, 500.0, 150.0],
             'no saved discount' => [null, 325.0, 500.0],
+            'custom price with zero DISCOUNT_PRICE' => [null, 325.0, 500.0, 0.0],
         ];
     }
 }

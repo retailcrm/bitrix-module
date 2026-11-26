@@ -265,7 +265,14 @@ if (!empty($availableSites)) {
 }
 
 //update connection settings
-if (isset($_POST['Update']) && ($_POST['Update'] === 'Y') && check_bitrix_sessid()) {
+$isSettingsUpdate = ($_POST['Update'] ?? null) === 'Y';
+$hasValidSettingsSession = $isSettingsUpdate && check_bitrix_sessid();
+
+if ($isSettingsUpdate && !$hasValidSettingsSession) {
+    echo CAdminMessage::ShowMessage(GetMessage('ICRM_OPTIONS_SESSION_EXPIRED'));
+}
+
+if ($hasValidSettingsSession) {
     if (!$USER->CanDoOperation('edit_other_settings') || $APPLICATION->GetGroupRight($mid) < 'W') {
         $APPLICATION->AuthForm(GetMessage('ACCESS_DENIED'));
         return;

@@ -574,14 +574,19 @@ class LoyaltyService
             $quantity = (float) $basketItem->getQuantity();
             $basePrice = (float) $basketItem->getBasePrice();
             $originalDiscount = $this->getBasketRuleOriginalDiscount((int) $basketItemId);
-            $shopDiscountTotal += ($originalDiscount ?? (float) $basketItem->getDiscountPrice()) * $quantity;
+            $price = $originalDiscount !== null
+                ? $basePrice - $originalDiscount
+                : (float) $basketItem->getPrice();
+
+            if ($basePrice > 0) {
+                $shopDiscountTotal += ($basePrice - $price) * $quantity;
+            }
+
             $calculateItems[] = [
                 'ID' => $basketItemId,
                 'XML_ID' => (string) $basketItem->getField('PRODUCT_XML_ID'),
                 'BASE_PRICE' => $basePrice,
-                'PRICE' => $originalDiscount !== null
-                    ? $basePrice - $originalDiscount
-                    : (float) $basketItem->getPrice(),
+                'PRICE' => $price,
                 'QUANTITY' => $quantity,
                 'PRICE_TYPE_ID' => $basketItem->getField('PRICE_TYPE_ID'),
             ];
